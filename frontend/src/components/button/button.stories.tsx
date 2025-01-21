@@ -1,0 +1,170 @@
+import React from "react";
+
+import {
+  BorderButton,
+  Button,
+  CircularButton,
+  GreenButton,
+  InvisibleButton,
+  RedButton,
+  RedSecondaryButton,
+  SecondaryButton,
+  SquareButton,
+  ToggleableButton,
+} from "./button";
+import { ButtonProps } from "./button.props";
+
+export default {
+  component: Button,
+  title: "Button",
+  argTypes: { onPress: { action: "pressed" } },
+};
+
+export const primary = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+primary.args = {
+  isDisabled: false,
+  text: "Primary Button",
+  tag: "",
+};
+
+export const secondary = (args: ButtonProps): React.ReactNode => (
+  <SecondaryButton {...args} />
+);
+secondary.args = {
+  isDisabled: false,
+  text: "Secondary Button",
+  tag: "",
+};
+
+export const green = (args: ButtonProps): React.ReactNode => (
+  <GreenButton {...args} />
+);
+green.args = {
+  isDisabled: false,
+  text: "Green Button",
+  tag: "",
+};
+
+export const red = (args: ButtonProps): React.ReactNode => (
+  <RedButton {...args} />
+);
+red.args = {
+  isDisabled: false,
+  text: "Red Button",
+  tag: "",
+};
+
+export const redSecondary = (args: ButtonProps): React.ReactNode => (
+  <RedSecondaryButton {...args} />
+);
+red.args = {
+  isDisabled: false,
+  text: "Red Secondary Button",
+  tag: "",
+};
+
+export const small = (args: ButtonProps): React.ReactNode => (
+  <SecondaryButton {...args} />
+);
+small.args = {
+  isDisabled: false,
+  isShy: false,
+  text: "Small Button",
+  icon: "add",
+  isSmall: true,
+};
+
+export const icon = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+icon.args = {
+  isDisabled: false,
+  icon: "add",
+  tag: "",
+};
+
+export const iconAndText = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+iconAndText.args = {
+  isDisabled: false,
+  icon: "add",
+  text: "Add",
+  tag: "",
+};
+
+export const iconRight = (args: ButtonProps): React.ReactNode => (
+  <Button style={{ width: "240px" }} {...args} />
+);
+iconRight.args = {
+  isDisabled: false,
+  icon: "add",
+  iconRight: true,
+  text: "Add",
+  tag: "",
+};
+
+export const square = (args: ButtonProps): React.ReactNode => (
+  <SquareButton {...args} />
+);
+square.args = {
+  isDisabled: false,
+  text: "S",
+};
+
+export const circular = (args: ButtonProps): React.ReactNode => (
+  <CircularButton {...args} />
+);
+circular.args = {
+  isDisabled: false,
+  text: "C",
+};
+
+export const invisible = (args: ButtonProps): React.ReactNode => (
+  <InvisibleButton {...args} />
+);
+invisible.args = {
+  isDisabled: false,
+  icon: "home",
+  text: "Home",
+};
+
+export const tooltip = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+tooltip.args = {
+  isDisabled: false,
+  text: "Hover Me",
+  tooltip: "Tooltip!",
+};
+
+export const notification = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+notification.args = {
+  isDisabled: false,
+  text: "Button with Notification",
+  tag: "",
+  notifications: 100,
+};
+
+export const toggleable = (
+  args: ButtonProps & { isActive?: boolean },
+): React.ReactNode => <ToggleableButton {...args} />;
+toggleable.args = {
+  isDisabled: false,
+  icon: "add",
+  text: "Navigation Button",
+  isActive: false,
+  isCollapsed: true,
+};
+
+export const border = (args: ButtonProps): React.ReactNode => (
+  <BorderButton {...args} />
+);
+border.args = {
+  isDisabled: false,
+  text: "Border Button",
+};
