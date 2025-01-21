@@ -17,12 +17,12 @@ import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(f"{BASE_DIR}/..")
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.append(f"{BASE_DIR}")
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
-FILE_UPLOAD_TEMP_DIR = BASE_DIR / "uploads"
+FILE_UPLOAD_TEMP_DIR = BASE_DIR / "backend/uploads"
 if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
     print("creating nonexistent", FILE_UPLOAD_TEMP_DIR)
     os.makedirs(FILE_UPLOAD_TEMP_DIR)
@@ -66,7 +66,8 @@ ROOT_URLCONF = "main.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "static" / "templates"],
+        # "DIRS": [BASE_DIR / "static" / "templates"],
+        "DIRS": [BASE_DIR / "frontend/dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -88,7 +89,7 @@ WSGI_APPLICATION = "main.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "backend/db.sqlite3",
     }
 }
 
@@ -127,13 +128,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'frontend/build/static',  # Path to React's build/static folder # TODO R check if useful
-# ]
+STATICFILES_DIRS = [
+    BASE_DIR / 'frontend/dist',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

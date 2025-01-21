@@ -15,8 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-# TODO R check if ChatGPTs idea here makes sense
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView
 
 from . import views
 
@@ -24,8 +23,8 @@ from . import views
 # from myapp import views
 
 urlpatterns = [
-    # Serve the React app (assuming your React build folder is in 'frontend/build')
-    path("", TemplateView.as_view(template_name='index.html'), name='index'),
+    path('', RedirectView.as_view(url='/static/index.html')),
+    path("api/ping/", views.ping, name="ping"),
 
     # TODO R API routes (if using Django for API)
     # path('api/', include('myapp.api.urls')),  # Example for API routes

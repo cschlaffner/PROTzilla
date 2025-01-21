@@ -78,5 +78,8 @@ echo "done."
 python backend/protzilla/data_integration/database_download.py
 
 echo "starting protzilla..."
+cd frontend
+pnpm build
+cd ..
 python backend/manage.py runserver
 echo "quit protzilla"

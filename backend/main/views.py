@@ -4,8 +4,8 @@ from datetime import date
 
 import pandas
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render
 from django.urls import reverse
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
@@ -14,8 +14,8 @@ from backend.protzilla.data_integration.database_query import uniprot_columns, u
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
-def index(request):
-    return redirect("/runs/")
+def ping(request):
+    return HttpResponse("pong")
 
 
 def databases(request):
