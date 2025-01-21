@@ -1,3 +1,5 @@
+# TODO R move to more useful location (only after whole project is included, might affect tests)
+
 import json
 import re
 from datetime import date

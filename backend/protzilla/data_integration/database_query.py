@@ -1,3 +1,5 @@
+# TODO R move to more useful location (only after whole project is included, might affect tests)
+
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import pandas as pd
