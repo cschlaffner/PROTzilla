@@ -46,8 +46,33 @@ python --version
 
 cd "$(dirname $0)"
 
-echo "checking for and installing new requirements..."
+echo "checking for and installing new requirements in backend..."
 pip install -q -r requirements.txt
+echo "done."
+
+echo "checking for and installing new requirements in frontend..."
+
+if ! command -v pnpm &> /dev/null; then
+    echo "pnpm is not installed. Please install pnpm first."
+    exit 1
+fi
+
+if ! command -v node &> /dev/null; then
+    echo "Node.js is not installed. Please install Node.js first."
+    exit 1
+fi
+
+if [ ! -d "frontend/.storybook" ]; then
+    echo "Initializing Storybook..."
+    npx storybook@latest init
+fi
+
+cd frontend
+
+pnpm install
+
+cd ..
+
 echo "done."
 
 python backend/protzilla/data_integration/database_download.py
