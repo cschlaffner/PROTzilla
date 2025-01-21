@@ -70,7 +70,6 @@ const Input = styled(Text)`
   text-align: right;
 `;*/
 
-
 export const Node: React.FC<NodeProps> = ({
   icon,
   title,
@@ -95,18 +94,10 @@ export const Node: React.FC<NodeProps> = ({
     </NodeHeader>
     <NodeBody>
       <Sockets>
-        <Input>
-          text = {inputSockets[0].title}
-        </Input>
-        {
-          inputSockets.map((
-            {titleTx: itemTitle}
-          ) => (
-            <Input>
-              text = {itemTitle}
-            </Input>
-          ))
-        }
+        <Input>text = {inputSockets[0].title}</Input>
+        {inputSockets.map(({ titleTx: itemTitle }) => (
+          <Input>text = {itemTitle}</Input>
+        ))}
       </Sockets>
     </NodeBody>
   </FlexColumn>
