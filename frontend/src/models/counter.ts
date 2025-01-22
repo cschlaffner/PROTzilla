@@ -3,7 +3,7 @@ import { action, observable } from "mobx";
 import { ClientModel, IClientModel, Property } from "./sync-engine";
 
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-@ClientModel()
+@ClientModel("Counter")
 export class Counter {
   @Property()
   @observable
