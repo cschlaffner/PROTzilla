@@ -13,16 +13,14 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 import sys
 from pathlib import Path
-
 from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND_PATH, FRONTEND_PATH
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 sys.path.append(f"{PROJECT_PATH}")
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
 if not os.path.exists(UPLOAD_PATH):
-    print("creating nonexistent", UPLOAD_PATH)
+    print("creating nonexistent ", UPLOAD_PATH)
     os.makedirs(UPLOAD_PATH)
 
 # Quick-start development settings - unsuitable for production
