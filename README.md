@@ -10,6 +10,14 @@ Dependencies are managed via
 
 Github workflows should work as expected.
 
+### Install scripts
+#### .sh
+- installs all dependencies 
+- expects pnpm, node.js to be installed
+- opens frontend index.html built by pnpm via backend-configured port http://127.0.0.1:8000/
 
+
+#### .bat 
+TODO add docu
 
 _Ready for development. ;)_
