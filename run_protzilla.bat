@@ -53,16 +53,8 @@ pip install -r requirements.txt
 echo done.
 
 echo Checking for and installing new requirements in the frontend...
-where pnpm >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Error: pnpm is not installed. Please install pnpm first.
-    exit /b 1
-)
-where node >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Error: Node.js is not installed. Please install Node.js first.
-    exit /b 1
-)
+
+::hier noch irgendnelösung für node.js finden
 
 if not exist "frontend\.storybook" (
     echo Initializing Storybook...
@@ -80,5 +72,10 @@ cd ..
 REM downloading uniprot if necessary
 python backend/protzilla/data_integration/database_download.py
 
+REM starting frontend
+cd frontend
+pnpm build
+cd .. 
+
 REM Run Django server
-python ui/manage.py runserver
+python backend/manage.py runserver
