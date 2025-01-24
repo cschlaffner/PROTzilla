@@ -53,12 +53,15 @@ echo "done."
 echo "checking for and installing new requirements in frontend..."
 
 if ! command -v pnpm &> /dev/null; then
-    echo "pnpm is not installed. Please install pnpm first."
+    curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=10.0.0 sh -
+#    echo "pnpm is not installed. Please install pnpm first."
     exit 1
 fi
 
 if ! command -v node &> /dev/null; then
-    echo "Node.js is not installed. Please install Node.js first."
+    curl -o- https://fnm.vercel.app/install | bash
+    fnm install 22
+#    echo "Node.js is not installed. Please install Node.js first."
     exit 1
 fi
 
