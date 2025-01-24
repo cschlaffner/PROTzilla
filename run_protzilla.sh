@@ -41,8 +41,8 @@ if ! grep -q "\*" <<<"$ENV_STRING"; then
 fi
 
 # for debugging, should be python3.11.xx
-echo "python version: (should be python3.11.xx)"
-python --version
+# echo "python version: (should be python3.11.xx)"
+# python --version
 
 cd "$(dirname $0)"
 
