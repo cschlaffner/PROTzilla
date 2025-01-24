@@ -1,4 +1,4 @@
-# TODO R move to more useful location (only after whole project is included, might affect tests)
+# TODO S move to more useful location (only after whole project is included, might affect tests)
 
 import json
 import re

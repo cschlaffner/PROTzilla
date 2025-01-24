@@ -1,4 +1,4 @@
-# TODO R move to more useful location (only after whole project is included, might affect tests)
+# TODO S move to more useful location (only after whole project is included, might affect tests)
 
 from xml.etree.ElementTree import Element, SubElement, tostring
 
@@ -8,7 +8,7 @@ from biomart import BiomartServer
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities.utilities import clean_uniprot_id
+from backend.protzilla.utilities.miscellaneous_utils import clean_uniprot_id
 
 
 def biomart_query(queries, filter_name, attributes, use_grch37=False):

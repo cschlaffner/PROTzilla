@@ -10,22 +10,20 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-# TODO R update for new frontend
-
 import os
 import sys
 from pathlib import Path
 
+from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND_PATH, FRONTEND_PATH
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-sys.path.append(f"{BASE_DIR}")
+sys.path.append(f"{PROJECT_PATH}")
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
-FILE_UPLOAD_TEMP_DIR = BASE_DIR / "backend/uploads"
-if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
-    print("creating nonexistent", FILE_UPLOAD_TEMP_DIR)
-    os.makedirs(FILE_UPLOAD_TEMP_DIR)
+if not os.path.exists(UPLOAD_PATH):
+    print("creating nonexistent", UPLOAD_PATH)
+    os.makedirs(UPLOAD_PATH)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -48,7 +46,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    #"runs",
 ]
 
 MIDDLEWARE = [
@@ -66,8 +63,7 @@ ROOT_URLCONF = "main.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # "DIRS": [BASE_DIR / "static" / "templates"],
-        "DIRS": [BASE_DIR / "frontend/dist"],
+        "DIRS": [FRONTEND_PATH / "dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -89,7 +85,7 @@ WSGI_APPLICATION = "main.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "backend/db.sqlite3",
+        "NAME": BACKEND_PATH/ "db.sqlite3",
     }
 }
 
@@ -131,7 +127,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend/dist',
+    FRONTEND_PATH / "dist",
 ]
 
 # Default primary key field type
