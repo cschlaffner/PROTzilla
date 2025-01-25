@@ -13,9 +13,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 import sys
 from pathlib import Path
-from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND_PATH, FRONTEND_PATH
 
+PROJECT_PATH = Path(__file__).resolve().parent.parent.parent # path to the root of the project
 sys.path.append(f"{PROJECT_PATH}")
+
+from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND_PATH, FRONTEND_PATH
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
