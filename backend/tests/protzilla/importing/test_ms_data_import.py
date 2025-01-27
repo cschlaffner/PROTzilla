@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import BACKEND_PATH
 from backend.protzilla.importing import ms_data_import
 
 
@@ -191,7 +191,7 @@ def diann_import_intensity_df():
 def test_max_quant_import_different_intensity_names():
     for intensity_name in ["Intensity", "iBAQ", "LFQ intensity"]:
         outputs = ms_data_import.max_quant_import(
-            file_path=f"{PROJECT_PATH}/tests/test_data/data_import/maxquant_small.tsv",
+            file_path=f"{BACKEND_PATH}/tests/test_data/data_import/maxquant_small.tsv",
             intensity_name=intensity_name,
         )
         assert "protein_df" in outputs
@@ -212,7 +212,7 @@ def test_max_quant_import_file_not_exist():
 
 def test_max_quant_import_no_protein_ids_column():
     outputs = ms_data_import.max_quant_import(
-        file_path=f"{PROJECT_PATH}/tests/test_data/data_import/maxquant_small_noproteincolumn.tsv",
+        file_path=f"{BACKEND_PATH}/tests/test_data/data_import/maxquant_small_noproteincolumn.tsv",
         intensity_name="Intensity",
     )
     assert "protein_df" not in outputs
@@ -223,7 +223,7 @@ def test_max_quant_import_no_protein_ids_column():
 
 def test_max_quant_import_invalid_data():
     outputs = ms_data_import.max_quant_import(
-        file_path=f"{PROJECT_PATH}/tests/test_data/data_import/maxquant_small_invalid.tsv",
+        file_path=f"{BACKEND_PATH}/tests/test_data/data_import/maxquant_small_invalid.tsv",
         intensity_name="Intensity",
     )
     assert "protein_df" not in outputs
@@ -247,7 +247,7 @@ def test_max_quant_import_invalid_data():
 )
 def test_ms_fragger_import(intensity_name):
     outputs = ms_data_import.ms_fragger_import(
-        file_path=f"{PROJECT_PATH}/tests/combined_protein_method_small_cut.tsv",
+        file_path=f"{BACKEND_PATH}/tests/combined_protein_method_small_cut.tsv",
         intensity_name=intensity_name,
     )
 
@@ -262,7 +262,7 @@ def test_ms_fragger_import(intensity_name):
 
 def test_diann_import():
     outputs = ms_data_import.diann_import(
-        file_path=f"{PROJECT_PATH}/tests/diann_intensities.tsv",
+        file_path=f"{BACKEND_PATH}/tests/diann_intensities.tsv",
         aggregation_method="Sum",
     )
 
@@ -276,7 +276,7 @@ def test_diann_import():
 
 def test_filter_rev_con():
     outputs = ms_data_import.max_quant_import(
-        file_path=PROJECT_PATH / "tests" / "proteinGroups_small_cut.txt",
+        file_path=BACKEND_PATH / "tests" / "proteinGroups_small_cut.txt",
         intensity_name="Intensity",
     )
     protein_ids = outputs["protein_df"]["Protein ID"].unique().tolist()

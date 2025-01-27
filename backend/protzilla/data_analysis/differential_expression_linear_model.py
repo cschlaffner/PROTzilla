@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-from backend.protzilla.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.miscellaneous_utils import default_intensity_column, exists_message
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,

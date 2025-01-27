@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import TEST_DATA_PATH
 from backend.protzilla.data_integration.di_plots import (
     GO_enrichment_bar_plot,
     GO_enrichment_dot_plot,
@@ -14,11 +14,11 @@ from backend.protzilla.data_integration.di_plots import (
 
 @pytest.fixture
 def data_folder_tests():
-    return PROJECT_PATH / "tests/test_data/enrichment_data"
+    return TEST_DATA_PATH / "enrichment_data"
 
 
 def test_enrichment_bar_plot_restring(show_figures, helpers):
-    test_data_folder = f"{PROJECT_PATH}/tests/test_data/enrichment_data"
+    test_data_folder = f"{TEST_DATA_PATH}/enrichment_data" # TODO S change this
     result = pd.read_csv(f"{test_data_folder}/merged_KEGG_process.csv", header=0)
     bar_base64 = GO_enrichment_bar_plot(
         input_df=result,
