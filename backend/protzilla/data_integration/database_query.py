@@ -1,9 +1,11 @@
 # TODO S move to more useful location (only after whole project is included, might affect tests)
 
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, tostring, ParseError
 
 import pandas as pd
 import requests
+import warnings
+
 from biomart import BiomartServer
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
@@ -93,9 +95,10 @@ def uniprot_columns(filename):
     ).columns.tolist()
 
 
-def biomart_database(
-    database_name: str = "ENSEMBL_MART_ENSEMBL", max_attempts: int = 3
-):
+def is_biomart_available(
+        database_name: str="ENSEMBL_MART_ENSEMBL",
+        max_attempts: int=3
+    ) -> bool:
     mirror_list = [
         "http://ensembl.org/biomart",
         "http://asia.ensembl.org/biomart",
@@ -105,12 +108,34 @@ def biomart_database(
         for url in mirror_list:
             try:
                 server = BiomartServer(url)
-                if server:
-                    db = server.databases[database_name]
-                    return db
-
-            except requests.ConnectionError:
+                db = server.databases[database_name]
+                return True
+            except ParseError as e:
+                if "Service unavailable" in str(e):
+                    warnings.warn(f"ParseError: Expected XML but received an HTML error page indicating the service at {url} is unavailable.", RuntimeWarning)
+                    continue
+            except requests.HTTPError as e:
+                warnings.warn(f"HTTPError: Server at {url} responded with {e.response.status_code} {e.response.reason}.", RuntimeWarning)
                 continue
+            except requests.ConnectionError:
+                warnings.warn(f"ConnectionError: Could not connect to {url}.", RuntimeWarning)
+                continue
+    return False
+
+def biomart_database(
+    database_name: str = "ENSEMBL_MART_ENSEMBL", max_attempts: int = 3
+):
+    mirror_list = [
+        "http://ensembl.org/biomart",
+        "http://asia.ensembl.org/biomart",
+        "http://useast.ensembl.org/biomart",
+    ]
+    if is_biomart_available():
+        for _ in range(max_attempts):
+            for url in mirror_list:
+                server = BiomartServer(url)
+                db = server.databases[database_name]
+                return db
 
 
 def uniprot_databases():
