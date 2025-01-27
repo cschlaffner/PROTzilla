@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dropdown, Button, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
@@ -15,6 +15,13 @@ export const IndexScreen: React.FC = () => {
     { value: "test11", label: "Test11" },
     { value: "ahhhhhhhh", label: "Ahhhhhhhh" },
   ]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/jannesjsontest/')
+      .then((response) => response.json())
+      .then((data: { value: string; label: string }[]) => setRuns(data))
+      .catch((error) => console.error('Error fetching data:', error));
+  }, []);
 
   const handleCreateRun = () => {
     if (runs.some((run) => run.value === newRunName)) {
