@@ -73,6 +73,7 @@ fi
 cd frontend
 
 pnpm install
+pnpm install bootstrap
 
 cd ..
 

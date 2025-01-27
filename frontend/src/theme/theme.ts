@@ -10,9 +10,9 @@ export const defaultPalette = {
   textDisabled: "#C0C0C2",
   onPrimary: "#FFF",
 
-  primary: "#2C2E34",
-  primaryHover: "#2C2E34",
-  primaryActive: "#2C2E34",
+  primary: "#4A536A",
+  primaryHover: "#4A536A",
+  primaryActive: "#4A536A",
   primaryDisabled: "#C0C0C2",
 
   secondary: "#F0F0F0",

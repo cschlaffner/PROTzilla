@@ -1,6 +1,6 @@
 # Ignore frontend .gitignore
 frontend/.gitignore
-
+frontend/node_modules/
 .DS_Store
 .idea/
 user_data/runs/*
