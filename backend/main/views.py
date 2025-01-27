@@ -18,7 +18,7 @@ def ping(request):
     return HttpResponse("pong")
 
 def jannesjsontest(request):
-    listdict = [{"name": "bong", "label": 2}, {"name": "bing", "label": "chilling"}]
+    listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]
     return JsonResponse(listdict, safe=False)
 
 

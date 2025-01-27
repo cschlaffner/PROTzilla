@@ -9,12 +9,8 @@ export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
-  const [existingRun, setExistingRun] = useState("test10");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([
-    { value: "test10", label: "Test10" },
-    { value: "test11", label: "Test11" },
-    { value: "ahhhhhhhh", label: "Ahhhhhhhh" },
-  ]);
+  const [existingRun, setExistingRun] = useState("nothing here yet");
+  const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/jannesjsontest/')
