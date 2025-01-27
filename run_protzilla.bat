@@ -55,6 +55,7 @@ echo done.
 echo Checking for and installing new requirements in the frontend...
 
 ::hier noch irgendnelösung für node.js finden
+call powershell.exe -ExecutionPolicy Bypass -Command "$env:PNPM_VERSION = '10.0.0'; Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression"
 
 if not exist "frontend\.storybook" (
     echo Initializing Storybook...
