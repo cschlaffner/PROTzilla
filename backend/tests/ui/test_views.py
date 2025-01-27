@@ -4,7 +4,7 @@ import sys
 #
 # sys.path.append(f"{UI_PATH}")
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import BACKEND_PATH
 
 """, all_button_parameters
 
@@ -109,7 +109,7 @@ def test_step_finished(run_standard):
     assert not run_standard.current_step.finished
 
     parameters = {
-        "file_path": f"{PROJECT_PATH}/tests/proteinGroups_small_cut.txt",
+        "file_path": f"{BACKEND_PATH}/tests/proteinGroups_small_cut.txt",
         "intensity_name": "Intensity",
         "map_to_uniprot": False,
         "aggregation_method": "Sum",
@@ -131,7 +131,7 @@ def test_step_finished(run_standard):
     assert not run_standard.current_step.finished
 
     parameters = {
-        "file_path": f"{PROJECT_PATH}/tests/nonexistent_file.txt",
+        "file_path": f"{BACKEND_PATH}/tests/nonexistent_file.txt",
         "feature_orientation": "Columns (samples in rows, features in columns)",
     }
     run_standard.step_calculate(parameters)
@@ -139,7 +139,7 @@ def test_step_finished(run_standard):
     assert not run_standard.current_step.finished
 
     parameters = {
-        "file_path": f"{PROJECT_PATH}/tests/metadata_cut_columns.csv",
+        "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
         "feature_orientation": "Columns (samples in rows, features in columns)",
     }
     run_standard.step_calculate(parameters)

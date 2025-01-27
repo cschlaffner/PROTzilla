@@ -5,11 +5,13 @@ from unittest import mock
 import pytest
 import yaml
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import PROJECT_PATH, BACKEND_PATH
 from backend.protzilla.utilities.miscellaneous_utils import random_string
 
-sys.path.append(f"{PROJECT_PATH}/..")
-sys.path.append(f"{PROJECT_PATH}")
+# sys.path.append(f"{PROJECT_PATH}/..")
+# sys.path.append(f"{PROJECT_PATH}")
+sys.path.append(f"{PROJECT_PATH}") # TODO S check if these changes are the ones that fix the issure/ keep expected behaviour (here and in test_runner.py)
+sys.path.append(f"{BACKEND_PATH}")
 
 from backend.protzilla.runner import Runner
 from backend.runner_cli import args_parser
