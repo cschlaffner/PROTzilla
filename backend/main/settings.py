@@ -21,6 +21,11 @@ from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
+FILE_UPLOAD_TEMP_DIR = UPLOAD_PATH
+if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
+    print("creating nonexistent", FILE_UPLOAD_TEMP_DIR)
+    os.makedirs(FILE_UPLOAD_TEMP_DIR)
+
 if not os.path.exists(UPLOAD_PATH):
     print("creating nonexistent ", UPLOAD_PATH)
     os.makedirs(UPLOAD_PATH)
@@ -143,7 +148,7 @@ LOGGING = {
     "handlers": {
         "django": {
             "level": "INFO",
-            "class": "protzilla.constants.protzilla_logging.ProtzillaLoggingHandler",
+            "class": "backend.protzilla.constants.protzilla_logging.ProtzillaLoggingHandler",
         },
     },
     "loggers": {
