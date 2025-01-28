@@ -11,6 +11,7 @@ export const IndexScreen: React.FC = () => {
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
   const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
+//  const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/jannesjsontest/')
@@ -18,6 +19,38 @@ export const IndexScreen: React.FC = () => {
       .then((data: { value: string; label: string }[]) => setRuns(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
+  
+    // Fetch CSRF token on component mount
+/*    useEffect(() => {
+      fetch("http://127.0.0.1:8000/api/get-csrf-token/")
+        .then((response) => response.json())
+        .then((data) => setCsrfToken(data.csrfToken))
+        .catch((error) => console.error("Error fetching CSRF token:", error));
+    }, []); */
+  
+
+  const giveBackendSomething = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/do_something_with_element_from_frontend/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          //"X-CSRFToken": csrfToken, // Include CSRF token here
+        },
+        body: JSON.stringify({ element: "das_richtigenicht" }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting element:", error);
+    }
+  };
 
   const handleCreateRun = () => {
     if (runs.some((run) => run.value === newRunName)) {
@@ -103,6 +136,7 @@ export const IndexScreen: React.FC = () => {
                   className="mb-3"
                 />
                 <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
+                <Button className="btn btn-primary w-100 mb-2" onClick={giveBackendSomething}>Do something</Button>
                 <Button className="btn btn-secondary w-100">Manage databases</Button>
               </div>
             </div>
