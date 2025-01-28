@@ -8,7 +8,7 @@ from backend.protzilla.data_integration.database_query import (
 )
 
 
-@patch("protzilla.data_integration.database_query.uniprot_to_genes")
+@patch("backend.protzilla.data_integration.database_query.uniprot_to_genes")
 def test_uniprot_groups_to_genes(mock_uniprot_to_genes):
     mock_uniprot_to_genes.return_value = dict(a="ABS", b="HKL", c="NNF"), ["d"]
     gene_mapping_df, filtered = uniprot_groups_to_genes(
@@ -34,7 +34,7 @@ def test_uniprot_groups_to_genes(mock_uniprot_to_genes):
     assert set(gene_mapping_df["Protein ID"].to_list()) == {"a;b;c", "a-1;b-1_4", "c;d"}
 
 
-@patch("protzilla.data_integration.database_query.biomart_query")
+@patch("backend.protzilla.data_integration.database_query.biomart_query")
 def test_uniprot_to_genes_biomart(mock_biomart):
     # no databases found, only biomart will be used to map
     mock_biomart.return_value = [["a", "ABS"], ["b", "HKL"], ["c", "NNF"]]
@@ -43,9 +43,9 @@ def test_uniprot_to_genes_biomart(mock_biomart):
     assert not_found == ["d"]
 
 
-@patch("protzilla.data_integration.database_query.uniprot_query_dataframe")
-@patch("protzilla.data_integration.database_query.uniprot_columns")
-@patch("protzilla.data_integration.database_query.biomart_query")
+@patch("backend.protzilla.data_integration.database_query.uniprot_query_dataframe")
+@patch("backend.protzilla.data_integration.database_query.uniprot_columns")
+@patch("backend.protzilla.data_integration.database_query.biomart_query")
 def test_uniprot_to_genes_database(mock_biomart, mock_columns, mock_query):
     # database found, biomart will not find anything
     mock_query.return_value = pd.DataFrame(
@@ -58,9 +58,9 @@ def test_uniprot_to_genes_database(mock_biomart, mock_columns, mock_query):
     assert not_found == ["d"]
 
 
-@patch("protzilla.data_integration.database_query.uniprot_query_dataframe")
-@patch("protzilla.data_integration.database_query.uniprot_columns")
-@patch("protzilla.data_integration.database_query.biomart_query")
+@patch("backend.protzilla.data_integration.database_query.uniprot_query_dataframe")
+@patch("backend.protzilla.data_integration.database_query.uniprot_columns")
+@patch("backend.protzilla.data_integration.database_query.biomart_query")
 def test_uniprot_to_genes_both(mock_biomart, mock_columns, mock_query):
     # both database and biomart used for mapping
     mock_query.return_value = pd.DataFrame(

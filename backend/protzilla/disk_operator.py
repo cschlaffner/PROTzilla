@@ -128,6 +128,7 @@ class DiskOperator:
     def write_run(self, step_manager: StepManager) -> None:
         with ErrorHandler():
             if not self.run_dir.exists():
+                print("DEBUG: created rundir:" + str(self.run_dir))
                 self.run_dir.mkdir(parents=True, exist_ok=True)
             if not self.dataframe_dir.exists():
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)

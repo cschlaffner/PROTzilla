@@ -768,7 +768,7 @@ def test_potential_peptide_matches_allowed_mismatches_negative():
 
 
 @pytest.mark.skip(reason="Some file read/write error, TODO")
-@mock.patch("protzilla.data_analysis.protein_graphs._get_protein_file")
+@mock.patch("backend.protzilla.data_analysis.protein_graphs._get_protein_file")
 def test_create_prot_variation_graph(
     mock_get_protein_file,
     tests_folder_name,
@@ -810,7 +810,7 @@ def test_create_prot_variation_graph(
     assert nx.utils.graphs_equal(created_graph, test_protein_variation_graph)
 
 
-@mock.patch("protzilla.data_analysis.protein_graphs._get_protein_file")
+@mock.patch("backend.protzilla.data_analysis.protein_graphs._get_protein_file")
 def test_create_protein_variation_graph_bad_request(
     mock_get_protein_file, critical_logger
 ):
@@ -1285,7 +1285,7 @@ def test_get_peptides_no_grouping_selected_groups(test_peptide_df):
         _get_peptides(peptide_df, protein_id, None, ["D"])
 
 
-@mock.patch("protzilla.data_analysis.protein_graphs._get_peptides")
+@mock.patch("backend.protzilla.data_analysis.protein_graphs._get_peptides")
 def test_peptides_to_isoform_no_peptides(mock_get_peptides, critical_logger):
     mock_get_peptides.return_value = []
     protein_id = "SomeID"
@@ -1298,7 +1298,7 @@ def test_peptides_to_isoform_no_peptides(mock_get_peptides, critical_logger):
 
 
 @mock.patch.multiple(
-    "protzilla.data_analysis.protein_graphs",
+    "backend.protzilla.data_analysis.protein_graphs",
     _get_peptides=mock.MagicMock(return_value=["not_falsey_list"]),
     _create_protein_variation_graph=mock.MagicMock(
         return_value=dict(

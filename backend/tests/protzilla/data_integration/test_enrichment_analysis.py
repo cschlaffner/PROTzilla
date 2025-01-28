@@ -160,7 +160,7 @@ def test_merge_up_down_regulated_dfs_restring():
 
 
 @patch(
-    "protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
+    "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
 @pytest.mark.parametrize(
     "background",
@@ -204,7 +204,7 @@ def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests)
 
 
 @patch(
-    "protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
+    "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
 def test_GO_analysis_with_STRING_one_direction_missing(
     mock_enrichment, data_folder_tests
@@ -431,7 +431,7 @@ def test_GO_analysis_with_no_gene_sets_input():
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
 
-@patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
+@patch("backend.protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")

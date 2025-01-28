@@ -345,7 +345,7 @@ def test_clean_protein_groups():
     assert filtered == "REV__P12345 YP_123456789 0000000 TAU-98".split()
 
 
-@patch("protzilla.importing.ms_data_import.map_ids_to_uniprot")
+@patch("backend.protzilla.importing.ms_data_import.map_ids_to_uniprot")
 def test_clean_protein_groups_map(ids_to_uniprot_mock):
     ids_to_uniprot_mock.return_value = {"NP_123456": ["P54321", "P12345"]}
     expected = ["P54321", ""]
