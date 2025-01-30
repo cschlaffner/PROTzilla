@@ -10,14 +10,20 @@ export const defaultPalette = {
   textDisabled: "#C0C0C2",
   onPrimary: "#FFF",
 
+  protzilla_gray: "#E0E0E0",
+  protzilla_light_gray: "#E8EDF3",
+  protzilla_dark_blue: "#4A536A",  //zurZeit  primary
+  protzilla_light_blue: "#F7F6FE",
+  protzilla_red: "#CE5A5A",
+
   primary: "#4A536A",
   primaryHover: "#4A536A",
   primaryActive: "#4A536A",
   primaryDisabled: "#C0C0C2",
 
-  secondary: "#F0F0F0",
-  secondaryHover: "#EAEAEB",
-  secondaryActive: "#D5D5D6",
+  secondary: "#E8EDF3",
+  secondaryHover: "#E8EDF3",//"#EAEAEB",
+  secondaryActive: "#E8EDF3",
   secondaryDisabled: "#F2F2F3",
 
   link: "#2C2E34",
@@ -25,10 +31,15 @@ export const defaultPalette = {
 
   divider: "#EAEAEB",
 
-  red: "#C03D29",
-  redHover: "#C03D29",
-  redActive: "#C03D29",
-  redDisabled: "#F9ECEA",
+  red: "#CE5A5A",  //previously "#C03D29",
+  redHover: "#CE5A5A",
+  redActive: "#CE5A5A",
+  redDisabled: "#CE5A5A",
+
+  gray: "#E0E0E0",  
+  grayHover: "#E0E0E0",
+  grayActive: "#E0E0E0",
+  grayDisabled: "#E0E0E0",
 
   yellow: "#ED9804",
   yellowHover: "#ED9804",
@@ -45,6 +56,9 @@ export const defaultPalette = {
   blueActive: "#004CA2",
   blueDisabled: "#E5EDF6",
 
+  black: "#000000",
+  blackDisabled: "#F2F2F3",
+  
   lightGray12: "#44464b",
   gray6: "#E4E4E5",
   gray50: "#929396",

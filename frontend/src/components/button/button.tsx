@@ -463,6 +463,32 @@ export const SecondaryButton = styled(Button)`
   ${secondaryButtonMixin}
 `;
 
+export const GrayButton = styled(Button)`
+  background-color: ${(props) =>
+    color(
+      props.isShy ? "transparent" : props.isDisabled ? "grayDisabled" : "gray",
+    )};
+
+  .text {
+    color: ${({ isDisabled }) => color(isDisabled ? "blackDisabled" : "black")};
+  }
+  
+  .icon {
+    ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "black")}
+  }
+
+  :hover {
+    background-color: ${(props) =>
+      color(props.isDisabled ? "grayDisabled" : "grayHover")};
+  }
+
+  :active {
+    background-color: ${(props) =>
+      color(props.isDisabled ? "grayDisabled" : "grayActive")};
+  }
+`;
+
+
 export const RedSecondaryButton = styled(Button)`
   ${secondaryButtonMixin}
 
@@ -476,6 +502,11 @@ export const RedSecondaryButton = styled(Button)`
 `;
 
 export const SquareButton = styled(Button)`
+  padding: 0;
+  width: ${size("buttonHeight")};
+`;
+
+export const GraySquareButton = styled(GrayButton)`
   padding: 0;
   width: ${size("buttonHeight")};
 `;
