@@ -24,7 +24,6 @@ def protein_group_intensities(dataframe, protein_group_name):
     # small helper function for tests
     return dataframe[dataframe["Protein ID"] == protein_group_name]["Intensity"]
 
-
 @pytest.fixture
 def input_imputation_df():
     test_intensity_list = (

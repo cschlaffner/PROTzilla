@@ -13,7 +13,7 @@ from backend.protzilla.data_preprocessing import (
     transformation,
 )
 from backend.protzilla.steps import Plots, Step, StepManager
-from backend.protzilla.utilities.miscellaneous_utils import format_trace
+from backend.protzilla.utilities.misc import format_trace
 
 
 class DataPreprocessingStep(Step):

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from backend.protzilla.data_preprocessing.plots import create_box_plots, create_histograms
-from backend.protzilla.utilities.miscellaneous_utils import default_intensity_column
+from backend.protzilla.utilities.misc import default_intensity_column
 
 
 def by_log(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None, log_base="log10") -> dict:
