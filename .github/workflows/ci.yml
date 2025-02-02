@@ -49,7 +49,7 @@ jobs:
       - name: Run tests and build coverage file
         run: |
           export PYTHONPATH=. pytest 
-          pytest --cache-clear --cov=. --cov-report term-missing backend/tests/
+          pytest --cache-clear --cov=. --cov-config .coverargc --cov-report term-missing backend/tests/
 
       - name: Format with black
         run: python -m black .
@@ -92,7 +92,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --lockfile-directory=frontend
 
       - name: Run linter
         run: pnpm lint
