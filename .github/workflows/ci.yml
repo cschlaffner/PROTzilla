@@ -90,9 +90,10 @@ jobs:
         with:
           node-version: 20
           cache: "pnpm"
+          cache-dependency-path: "**/pnpm-lock.yaml"
 
       - name: Install dependencies
-        run: cd frontend && pnpm install --frozen-lockfile
+        run: cd frontend && pnpm install --frozen-lockfile #might be redundant
 
       - name: Run linter
         run: pnpm lint
