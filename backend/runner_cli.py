@@ -2,8 +2,6 @@ import argparse
 import sys
 from pathlib import Path
 
-#TODO S make work wtf
-
 # import project path because module is not found
 project_root_path = Path(__file__).parent.parent
 sys.path.append(str(project_root_path))
