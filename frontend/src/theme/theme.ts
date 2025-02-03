@@ -169,6 +169,7 @@ export const baseTheme = {
     buttonGap: "8px",
     smallButtonGap: "6px",
 
+    verySmall: "5px",
     small: "10px",
     medium: "20px",
     large: "50px",
