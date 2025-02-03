@@ -1,10 +1,12 @@
-name: Combined CI Pipeline
+name: Backend CI Pipeline
 
 on:
   push:
     branches:
       - main
       - dev
+    paths:
+      - backend/**
   pull_request:
     branches:
       - '*'
@@ -49,7 +51,7 @@ jobs:
       - name: Run tests and build coverage file
         run: |
           export PYTHONPATH=. pytest 
-          pytest --cache-clear --cov=. --cov-report term-missing tests/
+          pytest --cache-clear --cov=. --cov-report term-missing backend/tests/
 
       - name: Format with black
         run: python -m black .
@@ -61,39 +63,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action
           path: python-coverage-comment-action.txt
-
-  frontend:
-    name: Frontend CI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      # Cache node_modules
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run linter
-        run: pnpm lint
-
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build application
-        run: pnpm build

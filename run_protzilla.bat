@@ -24,7 +24,7 @@ echo Installing Miniconda3...
 start "" /wait Miniconda3-latest.exe /InstallationType=JustMe /AddToPath=1 /S /D=%UserProfile%\Miniconda3
 del Miniconda3-latest.exe
 echo Miniconda3 installation completed.
-echo please run the script again
+echo Please run the script in a new terminal again.
 pause
 goto :eof
 
@@ -52,9 +52,45 @@ pip install wheel
 pip install -r requirements.txt
 echo done.
 
-echo Checking for and installing new requirements in the frontend...
 
-::hier noch irgendnelösung für node.js finden
+echo
+echo Checking for node.js.
+
+set NODE_VER=null
+set NODE_EXEC=node-v22.13.1-x64.msi
+
+node -v >tmp.txt
+set /p NODE_VER=<tmp.txt
+del tmp.txt
+
+IF %NODE_VER% EQU null (
+	echo Node.js is not installed! Please press a key to download and install it.
+	PAUSE
+
+	NET SESSION >nul 2>&1
+	IF %ERRORLEVEL% NEQ 0 (
+		echo This setup needs admin permissions. Please run this file as admin.
+		pause
+		exit
+	)
+
+	IF NOT EXIST %NODE_EXEC% (
+		echo Node setup file does not exist. Downloading ...
+		START /WAIT curl -O http://nodejs.org/dist/v22.13.1/%NODE_EXEC%
+	)
+
+	START /WAIT %NODE_EXEC% /quiet /norestart
+
+	echo Please run the script in a new terminal again.
+	pause
+	goto :eof
+) ELSE (
+	echo Node is already installed. Proceeding ...
+)
+
+
+echo Checking for and installing new requirements in the frontend...
+call powershell.exe -ExecutionPolicy Bypass -Command "$env:PNPM_VERSION = '10.0.0'; Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression"
 
 if not exist "frontend\.storybook" (
     echo Initializing Storybook...

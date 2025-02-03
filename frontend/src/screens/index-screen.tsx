@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Dropdown, Button, TextField } from "../components";
+import React, { useEffect, useState } from "react";
+
+import { Button, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
 
@@ -9,12 +10,15 @@ export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
-  const [existingRun, setExistingRun] = useState("test10");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([
-    { value: "test10", label: "Test10" },
-    { value: "test11", label: "Test11" },
-    { value: "ahhhhhhhh", label: "Ahhhhhhhh" },
-  ]);
+  const [existingRun, setExistingRun] = useState("nothing here yet");
+  const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/jannesjsontest/')
+      .then((response) => response.json())
+      .then((data: { value: string; label: string }[]) => { setRuns(data); })
+      .catch((error: unknown) => {console.error('Error fetching data:', error)});
+  }, []);
 
   const handleCreateRun = () => {
     if (runs.some((run) => run.value === newRunName)) {
@@ -59,7 +63,7 @@ export const IndexScreen: React.FC = () => {
                   label="Add run name:"
                   placeholder="Enter run name"
                   value={newRunName}
-                  onChange={(e) => setNewRunName(e.target.value)}
+                  onChange={(e) => {setNewRunName(e.target.value)}}
                   className="mb-3"
                 />
                 <Dropdown
@@ -69,7 +73,7 @@ export const IndexScreen: React.FC = () => {
                     { value: "example-workflow", label: "Example"}
                   ]}
                   value={workflow}
-                  onChange={(value) => setWorkflow(value)}
+                  onChange={(value) => {setWorkflow(value)}}
                   className="mb-3"
                 />
                 <Dropdown
@@ -79,7 +83,7 @@ export const IndexScreen: React.FC = () => {
                     { value: "low-memory", label: "Low Memory" },
                   ]}
                   value={memoryMode}
-                  onChange={(value) => setMemoryMode(value)}
+                  onChange={(value) => {setMemoryMode(value)}}
                   className="mb-3"
                 />
                 <Button className="btn btn-primary w-100" onClick={handleCreateRun}>Create</Button>
@@ -96,7 +100,7 @@ export const IndexScreen: React.FC = () => {
                   label="Select run:"
                   options={runs}
                   value={existingRun}
-                  onChange={(value) => setExistingRun(value)}
+                  onChange={(value) => {setExistingRun(value)}}
                   className="mb-3"
                 />
                 <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
@@ -114,7 +118,7 @@ export const IndexScreen: React.FC = () => {
                   label="Select run:"
                   options={runs}
                   value={existingRun}
-                  onChange={(value) => setExistingRun(value)}
+                  onChange={(value) => {setExistingRun(value)}}
                   className="mb-3"
                 />
                 <Button className="btn btn-danger w-100" onClick={handleDeleteRun}>Delete</Button>

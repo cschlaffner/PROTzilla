@@ -4,7 +4,7 @@ from datetime import date
 
 import pandas
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -16,6 +16,10 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 def ping(request):
     return HttpResponse("pong")
+
+def jannesjsontest(request):
+    listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]
+    return JsonResponse(listdict, safe=False)
 
 
 def databases(request):

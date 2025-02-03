@@ -8,7 +8,7 @@ from restring import restring
 
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.data_integration.database_query import biomart_database
-from backend.protzilla.utilities.miscellaneous_utils import clean_uniprot_id
+from backend.protzilla.utilities.misc import clean_uniprot_id
 
 # Import enrichment analysis gsea methods to remove redundant function definition
 from .enrichment_analysis_gsea import gsea, gsea_preranked
