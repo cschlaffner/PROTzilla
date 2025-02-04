@@ -37,7 +37,7 @@ export const defaultPalette = {
   redDisabled: "#CE5A5A",
 
   gray: "#E0E0E0",  
-  grayHover: "#E0E0E0",
+  grayHover: "#CE5A5A",
   grayActive: "#E0E0E0",
   grayDisabled: "#E0E0E0",
 
