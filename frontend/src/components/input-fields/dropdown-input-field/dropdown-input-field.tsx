@@ -55,6 +55,12 @@ const OptionItem = styled.li`
 
 `;
 
+const DropdownIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="gray" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
@@ -83,6 +89,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
         value={searchTerm}
         onChange={setSearchTerm}
         placeholder={placeholder}
+        inlineSuffix={<DropdownIcon />}
         onFocus={() => setIsOpen(true)}
         {...props}
       />

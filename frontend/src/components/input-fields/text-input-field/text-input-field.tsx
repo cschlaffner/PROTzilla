@@ -4,35 +4,30 @@ import { FrameInputField } from "../frame-input-field";
 import { fontSize, spacing } from "../../../theme";
 import { TextInputFieldProps } from "./text-input-field.props";
 
-
 const StyledInput = styled.input`
-  font-size: ${fontSize("default")};;
-  border: none;
-  outline: none;
-  background-color: transparent;
-  padding: ${spacing("small")};
+  font-size: ${fontSize("default")};
 `;
 
 export const TextInputField = forwardRef<HTMLInputElement, TextInputFieldProps>(
-    ({ value, placeholder, min, max, step, onChange, ...props }, ref) => {
-      const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const inputValue  = event.target.value;
-        if (onChange) {
-          onChange(inputValue);
-        }
-      };
-  
-      return (
-        <FrameInputField {...props}>
-          <StyledInput
-            type="text"
-            value={value ?? ""}
-            placeholder={placeholder}
-            onChange={handleChange}
-            ref={ref}
-            {...props}
-            />
-        </FrameInputField>
-      );
-    }
-  );
+  ({ value, placeholder, min, max, step, onChange, ...props }, ref) => {
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = event.target.value;
+      if (onChange) {
+        onChange(inputValue);
+      }
+    };
+
+    return (
+      <FrameInputField {...props}>
+        <StyledInput
+          type="text"
+          value={value ?? ""}
+          placeholder={placeholder}
+          onChange={handleChange}
+          ref={ref}
+          {...props}
+        />
+      </FrameInputField>
+    );
+  },
+);

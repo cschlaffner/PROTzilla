@@ -74,8 +74,17 @@ export const baseTheme = {
    */
   iconColorAttribute: "stroke",
 
-  borders: {},
-  borderWidths: {},
+  borders: {
+    defaultStrength: "2px",
+    defaultType: "solid",
+    defaultRadius: "8px",
+  },
+  borderWidths: {
+    default: "2px",
+  },
+  borderColors: {
+    default: "#ccc",
+  },
   breakpoints: {
     /** Phone. */
     xs: 0,

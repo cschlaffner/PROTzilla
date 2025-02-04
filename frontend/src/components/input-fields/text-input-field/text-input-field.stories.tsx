@@ -3,12 +3,10 @@ import { TextInputField } from "./text-input-field";
 import { useState } from "react";
 import { TextInputFieldProps } from "./text-input-field.props";
 
-
 export default {
-    component: TextInputField,
-    title: "Input Fields / Text Input Field",
+  component: TextInputField,
+  title: "Input Fields / Text Input Field",
 } as Meta<TextInputFieldProps>;
-
 
 const Template: StoryFn<TextInputFieldProps> = (args) => {
   const [value, setValue] = useState<string>(args.value ?? "");
@@ -16,10 +14,18 @@ const Template: StoryFn<TextInputFieldProps> = (args) => {
   return <TextInputField {...args} value={value} onChange={setValue} />;
 };
 
-
 export const primary = Template.bind({});
 primary.args = {
   label: "Your Input",
-  value: "",
   placeholder: "Type something",
+};
+
+export const allAffix = Template.bind({});
+allAffix.args = {
+  label: "Your Input",
+  placeholder: "Type something",
+  inlinePrefix: "%",
+  inlineSuffix: "%",
+  separatePrefix: "%",
+  separateSuffix: "%",
 };

@@ -3,12 +3,10 @@ import { NumberInputField } from "./number-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
 import { useState } from "react";
 
-
 export default {
-    component: NumberInputField,
-    title: "Input Fields / Number Input Field",
+  component: NumberInputField,
+  title: "Input Fields / Number Input Field",
 } as Meta<NumberInputFieldProps>;
-
 
 const Template: StoryFn<NumberInputFieldProps> = (args) => {
   const [value, setValue] = useState<number | undefined>(args.value ?? 0);
@@ -41,5 +39,5 @@ unit.args = {
   min: 0,
   max: 100,
   step: 5,
-  unit: "%",
+  separatePrefix: "%",
 };
