@@ -5,10 +5,11 @@ import type {
 } from "../../types";
 
 export interface FrameInputFieldProps
-  extends 
+  extends
   I18nLabelProps,
   I18nPlaceholderProps,
   UIStateProps {
   label?: string;
+  labelPosition?: "top" | "side";
   children: React.ReactNode;
 }

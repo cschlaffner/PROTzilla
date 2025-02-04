@@ -4,7 +4,7 @@ import { FrameInputFieldProps } from "./frame-input-field.props";
 
 export default {
     component: FrameInputField,
-    title: "Input Fields / Input Field Frame",
+    title: "Input Fields / Frame Input Field",
 } as Meta<FrameInputFieldProps>;
 
 
@@ -14,31 +14,18 @@ const FrameTemplate: StoryFn<FrameInputFieldProps> = (args) => (
   </FrameInputField>
 );
 
-export const frame = FrameTemplate.bind({});
-frame.args = {
+
+export const primary = FrameTemplate.bind({});
+primary.args = {
   label: "Your Input Frame",
 }
 
+export const sideLabel = FrameTemplate.bind({});
+sideLabel.args = {
+  label: "Your Input Frame",
+  labelPosition: "side",
+}
 
-const WithoutLabelTemplate: StoryFn<FrameInputFieldProps> = (args) => (
-  <FrameInputField {...args}>
-    <p>Just a text field.</p>
-  </FrameInputField>
-);
-
-export const withoutLabel = WithoutLabelTemplate.bind({});
+export const withoutLabel = FrameTemplate.bind({});
 withoutLabel.args = {
-};
-
-
-const TestInputFieldTemplate: StoryFn<FrameInputFieldProps> = (args) => (
-  <FrameInputField {...args}>
-    <input type="text" placeholder={args.placeholder} className="w-full bg-transparent outline-none"/>
-  </FrameInputField>
-);
-
-export const testInputField = TestInputFieldTemplate.bind({});
-testInputField.args = {
-  label: "Your Input Field",
-  placeholder: "Enter something - no function",
-};
+}
