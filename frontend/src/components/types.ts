@@ -137,4 +137,5 @@ export type I18nMessage = I18nTitleProps & I18nDescriptionProps;
 
 export interface UIStateProps {
   isDisabled?: boolean;
+  isHoverable?: boolean;
 }

@@ -17,12 +17,12 @@ export const defaultPalette = {
   protzilla_red: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#4A536A",
+  primaryHover: "#CE5A5A",
   primaryActive: "#4A536A",
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#E8EDF3",//"#EAEAEB",
+  secondaryHover: "#CE5A5A",//"#EAEAEB",
   secondaryActive: "#E8EDF3",
   secondaryDisabled: "#F2F2F3",
 
