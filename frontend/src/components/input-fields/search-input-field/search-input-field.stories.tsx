@@ -25,4 +25,5 @@ export const label = Template.bind({});
 label.args = {
   label: "Search for something",
   placeholder: "Search ...",
+  subscript: "Live Update",
 };

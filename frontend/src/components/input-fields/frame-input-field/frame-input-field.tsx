@@ -1,9 +1,9 @@
 import React, { useRef } from "react";
 import { FrameInputFieldProps } from "./frame-input-field.props";
-import { InputLabel } from "../../text";
+import { InputLabel, Text } from "../../text";
 import { FlexColumn, FlexRow } from "../../box";
 import styled from "styled-components";
-import { fontSize, spacing, border, borderColors } from "../../../theme";
+import { fontSize, spacing, border, borderColors, color } from "../../../theme";
 
 const StyledInputFrame = styled.div`
   border: ${border("defaultStrength")} solid ${borderColors("default")};
@@ -60,6 +60,14 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
   padding-right: ${spacing("small")};
 `;
 
+const StyledSubscriptText = styled(Text)`
+  font-size: ${fontSize("small")};
+  flex-shrink: 0;
+  flex-grow: 0;
+  margin: ${spacing("verySmall")} 0 0 0;
+  color: ${color("gray50")};
+`;
+
 const getChildStyle = () => ({
   padding: "10px",
   border: "none",
@@ -70,6 +78,7 @@ const getChildStyle = () => ({
 export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   label,
   labelPosition = "top",
+  subscript,
   children,
   inlinePrefix,
   inlineSuffix,
@@ -100,23 +109,28 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   return (
     <Wrapper>
       <InputLabel className="label" text={formattedLabel} />
-      <StyledInputFrame>
-        {separatePrefix && (
-          <StyledSeparatePrefix>{separatePrefix}</StyledSeparatePrefix>
-        )}
-        <StyledInputContainer onClick={handleClick}>
-          {inlinePrefix && (
-            <StyledInlinePrefix>{inlinePrefix}</StyledInlinePrefix>
+      <FlexColumn>
+        <StyledInputFrame>
+          {separatePrefix && (
+            <StyledSeparatePrefix>{separatePrefix}</StyledSeparatePrefix>
           )}
-          {styledChildren}
-          {inlineSuffix && (
-            <StyledInlineSuffix>{inlineSuffix}</StyledInlineSuffix>
+          <StyledInputContainer onClick={handleClick}>
+            {inlinePrefix && (
+              <StyledInlinePrefix>{inlinePrefix}</StyledInlinePrefix>
+            )}
+            {styledChildren}
+            {inlineSuffix && (
+              <StyledInlineSuffix>{inlineSuffix}</StyledInlineSuffix>
+            )}
+          </StyledInputContainer>
+          {separateSuffix && (
+            <StyledSeparateSuffix>{separateSuffix}</StyledSeparateSuffix>
           )}
-        </StyledInputContainer>
-        {separateSuffix && (
-          <StyledSeparateSuffix>{separateSuffix}</StyledSeparateSuffix>
+        </StyledInputFrame>
+        {subscript && (
+              <StyledSubscriptText className="subscript" text={subscript} />
         )}
-      </StyledInputFrame>
+      </FlexColumn>
     </Wrapper>
   );
 };

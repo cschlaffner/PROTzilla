@@ -24,6 +24,12 @@ sideLabel.args = {
   labelPosition: "side",
 };
 
+export const subscript = FrameTemplate.bind({});
+subscript.args = {
+  label: "Your Input Frame",
+  subscript: "Fancy subscript Text",
+};
+
 export const withoutLabel = FrameTemplate.bind({});
 withoutLabel.args = {};
 
