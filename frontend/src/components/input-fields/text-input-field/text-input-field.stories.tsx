@@ -17,8 +17,8 @@ const Template: StoryFn<TextInputFieldProps> = (args) => {
 };
 
 
-export const Default = Template.bind({});
-Default.args = {
+export const primary = Template.bind({});
+primary.args = {
   label: "Your Input",
   value: "",
   placeholder: "Type something",

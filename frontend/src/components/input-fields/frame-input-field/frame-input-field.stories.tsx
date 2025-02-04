@@ -10,7 +10,7 @@ export default {
 
 const FrameTemplate: StoryFn<FrameInputFieldProps> = (args) => (
   <FrameInputField {...args}>
-    <p>Just a text field.</p>
+    <p style={{ padding: "10px" }}>Just a text field.</p>
   </FrameInputField>
 );
 

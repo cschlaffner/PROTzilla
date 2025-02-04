@@ -76,7 +76,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   value,
   defaultValue,
   options,
-  label,
+  label: label,
   labelTx,
   labelComponents,
   labelData,

@@ -289,7 +289,7 @@ export const TextField = React.forwardRef<
     children,
     className,
     style,
-    label,
+    label: label,
     labelTx,
     labelComponents,
     labelData,

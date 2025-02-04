@@ -33,7 +33,7 @@ const SwitchOptionLabel = styled(Text).withConfig({
 
 export const SwitchOption: React.FC<SwitchOptionProps> = ({
   labelTx,
-  label,
+  label: label,
   labelComponents,
   labelData,
   value,

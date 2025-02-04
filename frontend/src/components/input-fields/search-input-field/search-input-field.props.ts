@@ -3,15 +3,13 @@ import type {
 } from "../../types";
 import { FrameInputFieldProps } from "../frame-input-field";
 
-export interface TextInputFieldProps
+export interface SearchInputFieldProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
-    "defaultValue" | "value" | "onChange" | "children"
+     "onChange" | "children" | "value"
   >,
   FrameInputFieldProps,
   UIStateProps {
-  value?: string;
-  defaultValue?: string;
   placeholder?: string;
   onChange?: (value: string) => void;
 }

@@ -1,18 +1,15 @@
 import type {
-  I18nLabelProps,
-  I18nPlaceholderProps,
   UIStateProps,
 } from "../../types";
+import { FrameInputFieldProps } from "../frame-input-field";
 
 export interface NumberInputFieldProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
-    "defaultValue" | "value" | "onChange"
+    "defaultValue" | "value" | "onChange" | "children"
   >,
-  I18nLabelProps,
-  I18nPlaceholderProps,
+  FrameInputFieldProps,
   UIStateProps {
-  label?: string,
   value?: number;
   defaultValue?: number;
   placeholder?: string;

@@ -139,5 +139,5 @@ export const InputLabel = styled(Text)`
   font-size: ${fontSize("default")};
   font-weight: ${fontWeight("bold")};
   color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
-  margin-bottom: 4px;
+  margin: 4px 0 4px 0;
 `;
