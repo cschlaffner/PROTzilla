@@ -22,7 +22,7 @@ export const defaultPalette = {
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#CE5A5A",//"#EAEAEB",
+  secondaryHover: "#000000",//"#EAEAEB",
   secondaryActive: "#E8EDF3",
   secondaryDisabled: "#F2F2F3",
 
@@ -37,7 +37,7 @@ export const defaultPalette = {
   redDisabled: "#CE5A5A",
 
   gray: "#E0E0E0",  
-  grayHover: "#CE5A5A",
+  grayHover: "#FFFFFF",
   grayActive: "#E0E0E0",
   grayDisabled: "#E0E0E0",
 
