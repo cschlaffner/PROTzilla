@@ -27,7 +27,6 @@ export const primary = (args: ButtonProps): React.ReactNode => (
 );
 primary.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Primary Button",
   tag: "",
 };
@@ -37,7 +36,6 @@ export const secondary = (args: ButtonProps): React.ReactNode => (
 );
 secondary.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Secondary Button",
   tag: "",
 };
@@ -47,7 +45,6 @@ export const gray = (args: ButtonProps): React.ReactNode => (
 );
 gray.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Gray Button",
   tag: "",
 };
@@ -57,7 +54,6 @@ export const green = (args: ButtonProps): React.ReactNode => (
 );
 green.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Green Button",
   tag: "",
 };
@@ -67,7 +63,6 @@ export const red = (args: ButtonProps): React.ReactNode => (
 );
 red.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Red Button",
   tag: "",
 };
@@ -77,7 +72,6 @@ export const redSecondary = (args: ButtonProps): React.ReactNode => (
 );
 redSecondary.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Red Secondary Button",
   tag: "",
 };
@@ -88,7 +82,6 @@ export const small = (args: ButtonProps): React.ReactNode => (
 small.args = {
   isDisabled: false,
   isShy: false,
-  isHoverable: false,
   text: "Small Button",
   icon: "add",
   isSmall: true,
@@ -99,7 +92,6 @@ export const icon = (args: ButtonProps): React.ReactNode => (
 );
 icon.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   tag: "",
 };
@@ -109,7 +101,6 @@ export const grayIcon = (args: ButtonProps): React.ReactNode => (
 );
 grayIcon.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   tag: "",
 };
@@ -119,7 +110,6 @@ export const iconAndText = (args: ButtonProps): React.ReactNode => (
 );
 iconAndText.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   text: "Add",
   tag: "",
@@ -130,7 +120,6 @@ export const iconRight = (args: ButtonProps): React.ReactNode => (
 );
 iconRight.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   iconRight: true,
   text: "Add",
@@ -142,7 +131,6 @@ export const square = (args: ButtonProps): React.ReactNode => (
 );
 square.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "S",
 };
 
@@ -159,7 +147,6 @@ export const circular = (args: ButtonProps): React.ReactNode => (
 );
 circular.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "C",
 };
 
@@ -168,7 +155,6 @@ export const invisible = (args: ButtonProps): React.ReactNode => (
 );
 invisible.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   text: "Home",
 };
@@ -178,7 +164,6 @@ export const tooltip = (args: ButtonProps): React.ReactNode => (
 );
 tooltip.args = {
   isDisabled: false, 
-  isHoverable: true,
   text: "Hover Me",
   tooltip: "Tooltip!",
 };
@@ -188,7 +173,6 @@ export const notification = (args: ButtonProps): React.ReactNode => (
 );
 notification.args = {
   isDisabled: false,
-  isHoverable: false,
   text: "Button with Notification",
   tag: "",
   notifications: 100,
@@ -199,7 +183,6 @@ export const toggleable = (
 ): React.ReactNode => <ToggleableButton {...args} />;
 toggleable.args = {
   isDisabled: false,
-  isHoverable: false,
   icon: "add",
   text: "Navigation Button",
   isActive: false,
@@ -211,6 +194,5 @@ export const border = (args: ButtonProps): React.ReactNode => (
 );
 border.args = {
   isDisabled: false,
-  isHoverable: true,
   text: "Border Button",
 };

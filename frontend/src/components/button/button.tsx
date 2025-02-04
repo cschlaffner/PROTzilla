@@ -29,7 +29,7 @@ const StyledButton = styled.button.withConfig({
   shouldForwardProp: (prop) =>
     prop.toString() !== "onlyIcon" && prop.toString() !== "onlyText",
 })<
-  Pick<ButtonProps, "iconRight" | "isDisabled" | "isHoverable" | "isShy" | "isSmall"> & {
+  Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall"> & {
     onlyIcon?: boolean;
     onlyText?: boolean;
   }
@@ -122,7 +122,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     tooltipDistanceFocus = 10,
     showTooltipImmediately,
     isDisabled,
-    isHoverable,
     text,
     tx,
     txComponents,
@@ -265,7 +264,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
       <StyledButton
         {...rest}
         isDisabled={isDisabled}
-        isHoverable={isHoverable}
         isShy={isShy}
         isSmall={isSmall}
         onKeyDown={handleKeyDown}
@@ -366,9 +364,7 @@ export const Button = styled(BaseButton)`
       color(
         props.isDisabled 
         ? "primaryDisabled" 
-        : props.isHoverable
-          ? "primaryHover"
-          : "primary", 
+        : "primaryHover"
       )};
   }
 
@@ -393,9 +389,7 @@ export const GreenButton = styled(Button)`
       color(
         props.isDisabled 
         ? "greenDisabled" 
-        : props.isHoverable
-          ? "greenHover"
-          : "green", 
+        : "greenHover"
       )};
 
   :active {
@@ -415,9 +409,7 @@ export const RedButton = styled(Button)`
       color(
         props.isDisabled 
         ? "redDisabled" 
-        : props.isHoverable
-          ? "redHover"
-          : "red", 
+        : "redHover"
       )};
 
   :active {
@@ -441,9 +433,7 @@ export const YellowButton = styled(Button)`
       color(
         props.isDisabled 
         ? "yellowDisabled" 
-        : props.isHoverable
-          ? "yellowHover"
-          : "yellow", 
+        : "yellowHover"
       )};
 
   :active {
@@ -462,28 +452,26 @@ const secondaryButtonMixin = css<ButtonProps>`
           : "secondary",
     )};
 
-  .text {
-    color: ${({ isDisabled }) =>
-      color(isDisabled ? "primaryDisabled" : "black")}; 
-  }
-
-  .icon {
-    ${({ isDisabled }) => iconColor(isDisabled ? "primaryDisabled" : "primary")}
-  }
-
   &:hover {
     background-color: ${(props) =>
       color(
         props.isDisabled 
         ? "secondaryDisabled" 
-        : props.isHoverable
-          ? "secondaryHover"
-          : "secondary", 
+        : "secondaryHover"
       )};
 
   :active {
     background-color: ${(props) =>
       color(props.isDisabled ? "secondaryDisabled" : "secondaryActive")};
+  }
+  
+  .text {
+    color: ${({ isDisabled }) =>
+      color(isDisabled ? "primaryDisabled" : "primary")}; 
+  }
+
+  .icon {
+    ${({ isDisabled }) => iconColor(isDisabled ? "primaryDisabled" : "primary")}
   }
 `;
 
@@ -510,9 +498,7 @@ export const GrayButton = styled(Button)`
       color(
         props.isDisabled 
         ? "grayDisabled" 
-        : props.isHoverable
-          ? "grayHover"
-          : "gray", 
+        : "grayHover"
       )};
 
   :active {
@@ -593,9 +579,7 @@ export const BorderButton = styled(Button)`
         color(
           props.isDisabled 
             ? "primaryDisabled" 
-            : props.isHoverable
-              ? "primaryHover"
-              : "primary", 
+            : "primaryHover" 
           )};
     background-color: ${color("background")};
     .text {
@@ -603,9 +587,7 @@ export const BorderButton = styled(Button)`
         color(
           props.isDisabled 
             ? "primaryDisabled" 
-            : props.isHoverable
-              ? "primaryHover"
-              : "primary",
+            : "primaryHover"
           )};
     }
   }
