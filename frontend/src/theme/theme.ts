@@ -10,11 +10,11 @@ export const defaultPalette = {
   textDisabled: "#C0C0C2",
   onPrimary: "#FFF",
 
-  protzilla_gray: "#E0E0E0",
-  protzilla_light_gray: "#E8EDF3",
-  protzilla_dark_blue: "#4A536A",  //zurZeit  primary
-  protzilla_light_blue: "#F7F6FE",
-  protzilla_red: "#CE5A5A",
+  protzillaGray: "#E0E0E0",
+  protzillaLightGray: "#E8EDF3",
+  protzillaDarkBlue: "#4A536A",  
+  protzillaLightBlue: "#F7F6FE",
+  protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
   primaryHover: "#4A536A",
@@ -22,7 +22,7 @@ export const defaultPalette = {
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#E8EDF3",//"#EAEAEB",
+  secondaryHover: "#E8EDF3",
   secondaryActive: "#E8EDF3",
   secondaryDisabled: "#F2F2F3",
 
@@ -31,7 +31,7 @@ export const defaultPalette = {
 
   divider: "#EAEAEB",
 
-  red: "#CE5A5A",  //previously "#C03D29",
+  red: "#CE5A5A",
   redHover: "#CE5A5A",
   redActive: "#CE5A5A",
   redDisabled: "#CE5A5A",
