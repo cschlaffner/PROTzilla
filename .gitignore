@@ -1,6 +1,7 @@
 .DS_Store
 .idea/
-backend/user_data/*
+backend/user_data/external_data
+backend/user_data/runs
 backend/uploads/*
 .vscode/*
 .flake8

@@ -6,7 +6,7 @@ import pytest
 import yaml
 
 from backend.protzilla.constants.paths import PROJECT_PATH, BACKEND_PATH
-from backend.protzilla.utilities.miscellaneous_utils import random_string
+from backend.protzilla.utilities.misc import random_string
 
 # sys.path.append(f"{PROJECT_PATH}/..")
 # sys.path.append(f"{PROJECT_PATH}")

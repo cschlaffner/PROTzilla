@@ -3,7 +3,7 @@ from sklearn.metrics import PrecisionRecallDisplay, RocCurveDisplay
 
 from backend.protzilla.constants.colors import PROTZILLA_DISCRETE_COLOR_SEQUENCE
 from backend.protzilla.data_analysis.classification_helper import encode_labels
-from backend.protzilla.utilities.miscellaneous_utils import fig_to_base64
+from backend.protzilla.utilities.misc import fig_to_base64
 
 
 def precision_recall_curve_plot(model, input_test_df, labels_test_df, plot_title=None):

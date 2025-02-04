@@ -24,7 +24,7 @@ from backend.protzilla.data_analysis.protein_graphs import (
     _potential_peptide_matches,
     peptides_to_isoform,
 )
-from backend.protzilla.utilities.miscellaneous_utils import random_string
+from backend.protzilla.utilities.misc import random_string
 
 
 # TODO: add markdown pictures of the graphs

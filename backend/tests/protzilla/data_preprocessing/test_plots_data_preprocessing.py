@@ -7,7 +7,6 @@ from backend.tests.protzilla.data_preprocessing.test_imputation import *
 # this tests will build some Figures and display them if show_figures==True
 # it tests only for occurring errors
 
-
 @pytest.mark.order(1)
 @pytest.mark.dependency()
 def test_create_pie_plot(show_figures):

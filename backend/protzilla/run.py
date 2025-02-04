@@ -10,7 +10,7 @@ import datetime
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.steps import Messages, Output, Plots, Step
-from backend.protzilla.utilities.miscellaneous_utils import format_trace
+from backend.protzilla.utilities.misc import format_trace
 from backend.protzilla.disk_operator import DiskOperator, YamlOperator
 
 

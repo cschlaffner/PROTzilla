@@ -10,6 +10,7 @@ from requests.adapters import HTTPAdapter, Retry
 from tqdm import tqdm
 
 # cannot be imported form constants as package cannot be found
+#TODO S
 external_data_path = Path(__file__).parent.parent.parent / "user_data" / "external_data"
 uniprot_db_path = external_data_path / "uniprot"
 database_metadata_path = external_data_path / "internal" / "metadata" / "uniprot.json"

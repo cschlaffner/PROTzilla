@@ -1,0 +1,229 @@
+{
+  "analysis_level": "protein",
+  "sections": {
+    "importing": {
+      "steps": [
+        {
+          "name": "ms_data_import",
+          "method": "max_quant_import",
+          "parameters": {
+            "intensity_name": "iBAQ"
+          }
+        },
+        {
+          "name": "metadata_import",
+          "method": "metadata_import_method",
+          "parameters": {
+            "feature_orientation": "Columns (samples in rows, features in columns)"
+          }
+        }
+      ]
+    },
+    "data_preprocessing": {
+      "steps": [
+        {
+          "name": "filter_proteins",
+          "method": "samples_missing_filter",
+          "parameters": {
+            "percentage": 0.2
+          },
+          "graphs": [
+            {
+              "graph_type": "Pie chart"
+            }
+          ]
+        },
+        {
+          "name": "filter_samples",
+          "method": "protein_intensity_sum_filter",
+          "parameters": {
+            "threshold": 2
+          },
+          "graphs": [
+            {
+              "graph_type": "Bar chart"
+            }
+          ]
+        },
+        {
+          "name": "imputation",
+          "method": "knn",
+          "parameters": {
+            "number_of_neighbours": 10
+          },
+          "graphs": [
+            {
+              "graph_type": "Boxplot",
+              "group_by": "Sample",
+              "visual_transformation": "log10"
+            },
+            {
+              "graph_type_quantities": "Pie chart"
+            }
+          ]
+        },
+        {
+          "name": "outlier_detection",
+          "method": "local_outlier_factor",
+          "parameters": {
+            "number_of_neighbors": 3
+          }
+        },
+        {
+          "name": "normalisation",
+          "method": "median",
+          "parameters": {
+            "percentile": 0.4
+          },
+          "graphs": [
+            {
+              "graph_type": "Boxplot",
+              "group_by": "Sample"
+            }
+          ],
+            "output_name": "preprocessed_data"
+        },
+        {
+          "name": "transformation",
+          "method": "log_transformation",
+          "parameters": {
+            "log_base": "log2"
+          },
+          "graphs": [
+            {
+              "graph_type": "Boxplot",
+              "group_by": "Sample"
+            }
+          ]
+        }
+      ]
+    },
+    "data_analysis": {
+      "steps": [
+        {
+          "name": "plot",
+          "method": "prot_quant",
+          "parameters": {
+            "input_df": [
+              "preprocessed_data",
+              "dataframe"
+            ],
+            "protein_group": null
+          },
+          "output_name": "prot_quant_plot"
+        },
+        {
+          "name": "dimension_reduction",
+          "method": "umap",
+          "parameters": {
+            "input_df": [
+              "preprocessed_data",
+              "dataframe"
+            ],
+            "n_neighbors": 15,
+            "n_components": 2,
+            "min_dist": 0.1,
+            "metric": "euclidean",
+            "random_state": 42
+          },
+          "output_name": "umap"
+        },
+        {
+          "name": "plot",
+          "method": "scatter_plot",
+          "parameters": {
+            "input_df": [
+              "umap",
+              "embedded_data"
+            ],
+            "color_df": [
+              "None",
+              null
+            ]
+          }
+        },
+        {
+          "name": "differential_expression",
+          "method": "anova",
+          "parameters": {
+            "intensity_df": [
+              "preprocessed_data",
+              "dataframe"
+            ],
+            "multiple_testing_correction_method": "Benjamini-Hochberg",
+            "alpha": 0.05,
+            "grouping": "Group",
+            "selected_groups": [],
+            "metadata_df": null
+          },
+          "output_name": "anova"
+        },
+        {
+          "name": "differential_expression",
+          "method": "t_test",
+          "parameters": {
+            "intensity_df": [
+              "preprocessed_data",
+              "dataframe"
+            ],
+            "grouping": "Group"
+          },
+          "output_name": "ttest"
+        },
+        {
+          "name": "plot",
+          "method": "volcano",
+          "parameters": {
+            "proteins_of_interest": [],
+            "proteins_of_interest_input": "differentially_expressed_proteins_df",
+            "input_dict": "ttest",
+            "p_values": [
+              "ttest",
+              "corrected_p_values_df"
+            ],
+            "log2_fc": [
+              "ttest",
+              "log2_fold_change_df"
+            ],
+            "fc_threshold": 0,
+            "alpha": [
+              "ttest",
+              "corrected_alpha"
+            ],
+            "group1": [
+              "ttest",
+              "group1"
+            ],
+            "group2": [
+              "ttest",
+              "group2"
+            ]
+          }
+        }
+      ]
+    },
+    "data_integration": {
+      "steps": [
+        {
+          "name": "enrichment_analysis",
+          "method": "GO_analysis_with_STRING",
+          "parameters": {
+            "input_df": [
+              "ttest",
+              "differentially_expressed_proteins_df"
+            ],
+            "differential_expression_col": "log2_fold_change"
+          },
+          "output_name": "GO_analysis_with_STRING"
+        },
+        {
+          "name": "plot",
+          "method": "GO_enrichment_bar_plot",
+          "parameters": {
+            "gene_sets_restring": "Component"
+          }
+        }
+      ]
+    }
+  }
+}
