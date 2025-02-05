@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PlotComponent from "../components/plot/plot";
 
-const PlotScreen = () => {
+export const PlotScreen = () => {
   const [plotData, setPlotData] = useState<any[]>([]);
   const [plotLayout, setPlotLayout] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -27,5 +27,3 @@ const PlotScreen = () => {
     </div>
   );
 };
-
-export default PlotScreen;
