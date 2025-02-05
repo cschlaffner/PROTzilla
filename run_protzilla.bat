@@ -75,11 +75,15 @@ IF %NODE_VER% EQU null (
 	)
 
 	IF NOT EXIST %NODE_EXEC% (
-		echo Node setup file does not exist. Downloading ...
+		echo Downloading Node.js...
 		START /WAIT curl -O http://nodejs.org/dist/v22.13.1/%NODE_EXEC%
 	)
-
+	
+	echo Installing Node.js...
 	START /WAIT %NODE_EXEC% /quiet /norestart
+	del %NODE_EXEC%
+	echo Node.js successfully installed.
+	echo
 
 	echo Please run the script in a new terminal again.
 	pause
