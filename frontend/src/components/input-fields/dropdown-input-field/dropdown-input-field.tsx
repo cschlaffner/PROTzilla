@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
-import { TextInputField } from "../text-input-field";
 import { border, borderColors, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 
@@ -73,7 +72,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLUListElement | null>(null);
 
   const handleSelect = (option: string) => {
     setSelectedValue(option);
@@ -94,14 +93,14 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen]);
+},[isOpen]);
 
   return (
     <DropdownContainer>
       <div onClick={() => setIsOpen(!isOpen)}>
-        <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
-            <p>{selectedValue}</p>
-        </FrameInputField>
+      <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
+          <input type="text" value={selectedValue} disabled />
+      </FrameInputField>
       </div>
       
       {isOpen && (
