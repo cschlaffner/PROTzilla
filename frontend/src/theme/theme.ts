@@ -215,8 +215,8 @@ export type ColorMode = keyof typeof colorModes;
 
 export type BreakpointQueries<T> = {
   [K in keyof T as K extends string
-  ? `${K}-up` | `${K}-down` | `${K}-only`
-  : never]: string;
+    ? `${K}-up` | `${K}-down` | `${K}-only`
+    : never]: string;
 };
 
 export const getMediaQueriesFromBreakpoints = <
@@ -235,18 +235,18 @@ export const getMediaQueriesFromBreakpoints = <
     result[`${key}-only`] =
       index === 0
         ? // First breakpoint
-        `@media (max-width: ${String(
-          Math.max(0, breakpoints[keys[index + 1]] - 1),
-        )}px)`
+          `@media (max-width: ${String(
+            Math.max(0, breakpoints[keys[index + 1]] - 1),
+          )}px)`
         : index === keys.length - 1
           ? // Last breakpoint
-          `@media (min-width: ${String(breakpoints[keys[index - 1]] + 1)}px)`
+            `@media (min-width: ${String(breakpoints[keys[index - 1]] + 1)}px)`
           : // Middle breakpoint
-          `@media (min-width: ${String(
-            breakpoints[keys[index - 1]] + 1,
-          )}px) and (max-width: ${String(
-            Math.max(0, breakpoints[keys[index + 1]] - 1),
-          )}px)`;
+            `@media (min-width: ${String(
+              breakpoints[keys[index - 1]] + 1,
+            )}px) and (max-width: ${String(
+              Math.max(0, breakpoints[keys[index + 1]] - 1),
+            )}px)`;
   });
 
   return result as BreakpointQueries<T>;

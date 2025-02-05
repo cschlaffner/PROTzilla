@@ -12,7 +12,7 @@ const DropdownContainer = styled.div`
 
 const OptionsList = styled.ul`
   position: absolute;
-  width: inherit; 
+  width: inherit;
   max-height: 150px;
   overflow-y: auto;
   background: white;
@@ -53,22 +53,28 @@ const OptionItem = styled.li`
   &:last-child::after {
     display: none;
   }
-
 `;
 
 const DropdownIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="gray" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="gray"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M6 9l6 6 6-6" />
   </svg>
 );
-
-
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
   defaultValue = options[0],
   onClick,
-  ... props
+  ...props
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
@@ -81,7 +87,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   };
 
   useEffect(() => {
-    function handleClickOutside(event: { target: any; }) {
+    function handleClickOutside(event: { target: any }) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
@@ -93,16 +99,16 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-},[isOpen]);
+  }, [isOpen]);
 
   return (
     <DropdownContainer>
       <div onClick={() => setIsOpen(!isOpen)}>
-      <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
+        <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
           <input type="text" value={selectedValue} disabled />
-      </FrameInputField>
+        </FrameInputField>
       </div>
-      
+
       {isOpen && (
         <OptionsList ref={dropdownRef}>
           {options.length > 0 ? (

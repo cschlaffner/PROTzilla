@@ -30,13 +30,14 @@ const StyledSeparateAffix = styled.div`
 
 const StyledSeparatePrefix = styled(StyledSeparateAffix)`
   border-right: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0 0
-    calc(${border("defaultRadius")} - ${border("defaultStrength")});
+  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")})
+    0 0 calc(${border("defaultRadius")} - ${border("defaultStrength")});
 `;
 
 const StyledSeparateSuffix = styled(StyledSeparateAffix)`
   border-left: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: 0 calc(${border("defaultRadius")} - ${border("defaultStrength")})
+  border-radius: 0
+    calc(${border("defaultRadius")} - ${border("defaultStrength")})
     calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0;
 `;
 
@@ -128,7 +129,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
           )}
         </StyledInputFrame>
         {subscript && (
-              <StyledSubscriptText className="subscript" text={subscript} />
+          <StyledSubscriptText className="subscript" text={subscript} />
         )}
       </FlexColumn>
     </Wrapper>

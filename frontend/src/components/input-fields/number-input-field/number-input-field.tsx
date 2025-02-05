@@ -4,11 +4,9 @@ import styled from "styled-components";
 import { FrameInputField } from "../frame-input-field";
 import { fontSize } from "../../../theme";
 
-
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
 `;
-
 
 export const NumberInputField = forwardRef<
   HTMLInputElement,

@@ -1,11 +1,10 @@
 import { UIStateProps } from "../../types";
 import { FrameInputFieldProps } from "../frame-input-field";
 
-
 export interface CheckboxSelectInputFieldProps
   extends FrameInputFieldProps,
     UIStateProps {
-    options: { label: string; value: string }[];
-    selectedValues: string[];
-    onChange: (value: string[]) => void;
+  options: { label: string; value: string }[];
+  selectedValues: string[];
+  onChange: (value: string[]) => void;
 }

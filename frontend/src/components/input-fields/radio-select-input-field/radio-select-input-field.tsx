@@ -11,42 +11,41 @@ const StyledRadioContainer = styled.div`
 `;
 
 const StyledLabel = styled.label`
-    display: flex;
-    align-items: center;
-    gap: ${spacing("small")};
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: ${spacing("small")};
+  cursor: pointer;
 `;
 
 const StyledRadio = styled.input`
   // margin-right: ${spacing("small")};
 `;
 
-
 export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
-    options,
-    selectedValue,
-    onChange,
-    ... props
+  options,
+  selectedValue,
+  onChange,
+  ...props
 }) => {
-    return (
-        <FrameInputField {...props}>
-            <StyledRadioContainer>
-                {options.map((option) => {
-                    const id = `radio-${option.value}`; 
-                    return (
-                    <StyledLabel key={option.value} htmlFor={id}>
-                        <StyledRadio
-                            id={id}
-                            type="radio"
-                            value={option.value}
-                            checked={selectedValue === option.value}
-                            onChange={() => onChange(option.value)}
-                        />
-                        {option.label}
-                    </StyledLabel>
-                    );
-                })}
-            </StyledRadioContainer>
-        </FrameInputField>
-    );
+  return (
+    <FrameInputField {...props}>
+      <StyledRadioContainer>
+        {options.map((option) => {
+          const id = `radio-${option.value}`;
+          return (
+            <StyledLabel key={option.value} htmlFor={id}>
+              <StyledRadio
+                id={id}
+                type="radio"
+                value={option.value}
+                checked={selectedValue === option.value}
+                onChange={() => onChange(option.value)}
+              />
+              {option.label}
+            </StyledLabel>
+          );
+        })}
+      </StyledRadioContainer>
+    </FrameInputField>
+  );
 };

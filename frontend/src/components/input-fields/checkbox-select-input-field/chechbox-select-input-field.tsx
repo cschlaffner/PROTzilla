@@ -11,50 +11,46 @@ const StyledCheckboxContainer = styled.div`
 `;
 
 const StyledLabel = styled.label`
-    display: flex;
-    align-items: center;
-    gap: ${spacing("small")};
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: ${spacing("small")};
+  cursor: pointer;
 `;
 
 const StyledCheckbox = styled.input`
   // margin-right: ${spacing("small")};
 `;
 
+export const CheckboxSelectInputField: React.FC<
+  CheckboxSelectInputFieldProps
+> = ({ options, selectedValues, onChange, ...props }) => {
+  const handleChange = (value: string) => {
+    const newSelectedValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
 
-export const CheckboxSelectInputField: React.FC<CheckboxSelectInputFieldProps> = ({
-    options,
-    selectedValues,
-    onChange,
-    ... props
-}) => {
-    const handleChange = (value: string) => {
-        const newSelectedValues = selectedValues.includes(value)
-          ? selectedValues.filter((v) => v !== value)
-          : [...selectedValues, value];
+    onChange(newSelectedValues);
+  };
 
-        onChange(newSelectedValues);
-      };
-
-    return (
-        <FrameInputField {...props}>
-            <StyledCheckboxContainer>
-                {options.map((option) => {
-                    const id = `checkbox-${option.value}`; 
-                    return (
-                      <StyledLabel key={option.value} htmlFor={id}>
-                        <StyledCheckbox
-                          id={id}
-                          type="checkbox"
-                          value={option.value}
-                          checked={selectedValues.includes(option.value)}
-                          onChange={() => handleChange(option.value)}
-                        />
-                        {option.label}
-                      </StyledLabel>
-                    );
-                })}
-            </StyledCheckboxContainer>
-        </FrameInputField>
-    );
+  return (
+    <FrameInputField {...props}>
+      <StyledCheckboxContainer>
+        {options.map((option) => {
+          const id = `checkbox-${option.value}`;
+          return (
+            <StyledLabel key={option.value} htmlFor={id}>
+              <StyledCheckbox
+                id={id}
+                type="checkbox"
+                value={option.value}
+                checked={selectedValues.includes(option.value)}
+                onChange={() => handleChange(option.value)}
+              />
+              {option.label}
+            </StyledLabel>
+          );
+        })}
+      </StyledCheckboxContainer>
+    </FrameInputField>
+  );
 };
