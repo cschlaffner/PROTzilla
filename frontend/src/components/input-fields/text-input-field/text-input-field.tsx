@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import styled from "styled-components";
 import { FrameInputField } from "../frame-input-field";
-import { fontSize, spacing } from "../../../theme";
+import { fontSize } from "../../../theme";
 import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input`
