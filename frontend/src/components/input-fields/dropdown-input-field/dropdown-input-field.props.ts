@@ -1,11 +1,10 @@
 import type { UIStateProps } from "../../types";
-import { TextInputFieldProps } from "../text-input-field";
+import { FrameInputFieldProps } from "../frame-input-field";
 
 
 export interface DropdownInputFieldProps
-    extends Omit<TextInputFieldProps, "onSelect">, UIStateProps {
+    extends FrameInputFieldProps, UIStateProps {
     options: string[];
-    value?: string;
     defaultValue?: string;
-    onSelect: (value: string) => void;
+    onClick: (value: string) => void;
 }

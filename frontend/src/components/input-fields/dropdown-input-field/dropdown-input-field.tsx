@@ -1,31 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { TextInputField } from "../text-input-field";
+import { border, borderColors, spacing } from "../../../theme";
+import { FrameInputField } from "../frame-input-field";
 
 const DropdownContainer = styled.div`
   position: relative;
   display: inline-block;
-  width: 200px; /* Setzt eine feste Breite */
+  width: 200px;
 `;
 
 const OptionsList = styled.ul`
   position: absolute;
-  width: inherit; /* Nimmt exakt die Breite von DropdownContainer */
+  width: inherit; 
   max-height: 150px;
   overflow-y: auto;
   background: white;
-  border-radius: 8px;
+  border-radius: ${border("defaultRadius")};
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ccc;
+  border: ${border("defaultStrength")} solid ${borderColors("default")};
   list-style: none;
   padding: 0;
-  margin-top: 4px;
+  margin-top: ${spacing("verySmall")};
   z-index: 1000;
 `;
 
 const OptionItem = styled.li`
-  padding: 10px;
+  padding: ${spacing("small")};
   cursor: pointer;
   transition: background 0.2s ease-in-out;
   position: relative;
@@ -62,41 +64,50 @@ const DropdownIcon = () => (
 );
 
 
+
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
-  value,
-  defaultValue = "",
-  onSelect,
-  placeholder = "Search...",
+  defaultValue = options[0],
+  onClick,
   ... props
 }) => {
-  const [searchTerm, setSearchTerm] = useState<string>(value ?? defaultValue);
+  const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const filteredOptions = options.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSelect = (selectedValue: string) => {
-    setSearchTerm(selectedValue);
+  const handleSelect = (option: string) => {
+    setSelectedValue(option);
     setIsOpen(false);
-    onSelect(selectedValue);
+    onClick(option);
   };
+
+  useEffect(() => {
+    function handleClickOutside(event: { target: any; }) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
     <DropdownContainer>
-      <TextInputField
-        value={searchTerm}
-        onChange={setSearchTerm}
-        placeholder={placeholder}
-        inlineSuffix={<DropdownIcon />}
-        onFocus={() => setIsOpen(true)}
-        {...props}
-      />
+      <div onClick={() => setIsOpen(!isOpen)}>
+        <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
+            <p>{selectedValue}</p>
+        </FrameInputField>
+      </div>
+      
       {isOpen && (
-        <OptionsList>
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((option, index) => (
+        <OptionsList ref={dropdownRef}>
+          {options.length > 0 ? (
+            options.map((option, index) => (
               <OptionItem key={index} onClick={() => handleSelect(option)}>
                 {option}
               </OptionItem>
