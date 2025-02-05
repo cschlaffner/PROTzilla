@@ -12,7 +12,7 @@ export const defaultPalette = {
 
   protzillaGray: "#E0E0E0",
   protzillaLightGray: "#E8EDF3",
-  protzillaDarkBlue: "#4A536A",  
+  protzillaDarkBlue: "#4A536A",
   protzillaLightBlue: "#F7F6FE",
   protzillaRed: "#CE5A5A",
 
@@ -36,7 +36,7 @@ export const defaultPalette = {
   redActive: "#CE5A5A",
   redDisabled: "#CE5A5A",
 
-  gray: "#E0E0E0",  
+  gray: "#E0E0E0",
   grayHover: "#E0E0E0",
   grayActive: "#E0E0E0",
   grayDisabled: "#E0E0E0",
@@ -58,7 +58,7 @@ export const defaultPalette = {
 
   black: "#000000",
   blackDisabled: "#F2F2F3",
-  
+
   lightGray12: "#44464b",
   gray6: "#E4E4E5",
   gray50: "#929396",
