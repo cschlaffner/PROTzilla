@@ -4,15 +4,15 @@ import {
   BorderButton,
   Button,
   CircularButton,
+  GrayButton,
+  GraySquareButton,
   GreenButton,
   InvisibleButton,
-  GrayButton,
   RedButton,
   RedSecondaryButton,
   SecondaryButton,
   SquareButton,
   ToggleableButton,
-  GraySquareButton,
 } from "./button";
 import { ButtonProps } from "./button.props";
 
