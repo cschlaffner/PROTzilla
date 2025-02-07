@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
 import PlotComponent from "../components/plot/plot";
 
 export const PlotScreen = () => {
@@ -14,7 +15,7 @@ export const PlotScreen = () => {
         setPlotLayout(data.layout);
         setLoading(false);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Error fetching plot data:", error);
         setLoading(false);
       });
