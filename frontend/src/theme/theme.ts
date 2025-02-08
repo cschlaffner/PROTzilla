@@ -65,6 +65,7 @@ export const defaultPalette = {
 
   transparent: "rgba(0,0,0,0)",
   popUpBackdrop: "rgba(44,46,52,0.20)",
+  popUpBackdropLight: "rgba(255,255,255,0.10)",
 };
 
 const colorModes = {
