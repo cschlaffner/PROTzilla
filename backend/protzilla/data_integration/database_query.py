@@ -10,7 +10,7 @@ from biomart import BiomartServer
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities.misc import clean_uniprot_id
+from backend.protzilla.utilities import clean_uniprot_id
 
 
 def biomart_query(queries, filter_name, attributes, use_grch37=False):
