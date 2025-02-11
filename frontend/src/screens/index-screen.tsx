@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-
 import { Button, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Container, Row, Col } from "react-grid-system";
 import { defaultPalette } from "../theme";
 
 
@@ -52,10 +52,9 @@ export const IndexScreen: React.FC = () => {
         <h1 className="h4 mb-0">PROTzilla</h1>
         <a href="https://github.com" className="text-white">GitHub</a>
       </header>
-      <main className="container py-5 w-100">
-        <div className="row w-100 g-4 justify-content-between align-items-center">
-          {/* New Run Section */}
-          <div className="col-md-4">
+      <Container>
+        <Row gutterWidth={16} justify="between" align="center" style={{ marginTop: "1rem" }}>
+          <Col md={4}>
             <div className="card shadow-sm">
               <div className="card-body">
                 <h5 className="card-title">Work on a new run:</h5>
@@ -89,10 +88,9 @@ export const IndexScreen: React.FC = () => {
                 <Button className="btn btn-primary w-100" onClick={handleCreateRun}>Create</Button>
               </div>
             </div>
-          </div>
-
+          </Col>
           {/* Continue Run Section */}
-          <div className="col-md-4">
+          <Col md={4}>
             <div className="card shadow-sm">
               <div className="card-body">
                 <h5 className="card-title">Continue an existing run:</h5>
@@ -107,10 +105,10 @@ export const IndexScreen: React.FC = () => {
                 <Button className="btn btn-secondary w-100">Manage databases</Button>
               </div>
             </div>
-          </div>
+          </Col>
 
           {/* Delete Run Section */}
-          <div className="col-md-4">
+          <Col md={4}>
             <div className="card shadow-sm">
               <div className="card-body">
                 <h5 className="card-title">Delete an existing run:</h5>
@@ -124,9 +122,9 @@ export const IndexScreen: React.FC = () => {
                 <Button className="btn btn-danger w-100" onClick={handleDeleteRun}>Delete</Button>
               </div>
             </div>
-          </div>
-        </div>
-      </main>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };
