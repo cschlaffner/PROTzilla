@@ -7,12 +7,12 @@ import { FrameInputField } from "../frame-input-field";
 const DropdownContainer = styled.div`
   position: relative;
   display: inline-block;
-  width: 200px;
+  width: 100%;
 `;
 
-const OptionsList = styled.ul`
+const OptionsList = styled.ul<{ width: number }>`
   position: absolute;
-  width: inherit;
+  width: ${({ width }) => `${width}px`};
   max-height: 150px;
   overflow-y: auto;
   background: white;
@@ -79,18 +79,23 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
-
-  const handleSelect = (option: string) => {
-    setSelectedValue(option);
-    setIsOpen(false);
-    onClick(option);
-  };
+  const inputRef = useRef<HTMLDivElement | null>(null);
+  const [dropdownWidth, setDropdownWidth] = useState<number>(200);
 
   useEffect(() => {
-    function handleClickOutside(event: { target: any }) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
+    }
+
+    if (inputRef.current) {
+      setDropdownWidth(inputRef.current.getBoundingClientRect().width);
     }
 
     if (isOpen) {
@@ -101,19 +106,37 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     };
   }, [isOpen]);
 
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (
+      target.closest(".inline-prefix") ||
+      target.closest(".inline-suffix") ||
+      target.closest(".selected-value-text")
+    ) {
+      setIsOpen(!isOpen);
+    }
+  };
+
   return (
     <DropdownContainer>
-      <div onClick={() => setIsOpen(!isOpen)}>
+      <div ref={inputRef} onClick={handleClick}>
         <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
-          <input type="text" value={selectedValue} disabled />
+          <p className="selected-value-text">{selectedValue}</p>
         </FrameInputField>
       </div>
 
       {isOpen && (
-        <OptionsList ref={dropdownRef}>
+        <OptionsList width={dropdownWidth} ref={dropdownRef}>
           {options.length > 0 ? (
             options.map((option, index) => (
-              <OptionItem key={index} onClick={() => handleSelect(option)}>
+              <OptionItem
+                key={index}
+                onClick={() => {
+                  setSelectedValue(option);
+                  setIsOpen(false);
+                  onClick(option);
+                }}
+              >
                 {option}
               </OptionItem>
             ))

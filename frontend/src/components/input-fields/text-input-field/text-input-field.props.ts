@@ -11,5 +11,5 @@ export interface TextInputFieldProps
   value: string;
   defaultValue?: string;
   placeholder?: string;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
 }

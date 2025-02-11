@@ -27,11 +27,12 @@ const SearchIcon = () => (
 export const SearchInputField = forwardRef<
   HTMLInputElement,
   SearchInputFieldProps
->(({ placeholder, onChange, ...props }, ref) => {
+>(({ value, placeholder, onChange, ...props }, ref) => {
   return (
     <FrameInputField {...props} inlinePrefix={<SearchIcon />}>
       <StyledInput
         type="text"
+        value={value ?? ""}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}
         ref={ref}

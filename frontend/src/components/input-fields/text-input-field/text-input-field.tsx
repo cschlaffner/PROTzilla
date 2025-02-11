@@ -6,6 +6,7 @@ import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
+  width: 100%;
 `;
 
 export const TextInputField = forwardRef<HTMLInputElement, TextInputFieldProps>(

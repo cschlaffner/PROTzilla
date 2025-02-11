@@ -11,10 +11,12 @@ const StyledRadioContainer = styled.div`
 `;
 
 const StyledLabel = styled.label`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: ${spacing("small")};
   cursor: pointer;
+  max-width: fit-content;
+  user-select: none;
 `;
 
 const StyledRadio = styled.input`

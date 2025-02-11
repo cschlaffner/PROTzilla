@@ -4,17 +4,19 @@ import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.pro
 import { spacing } from "../../../theme";
 
 const StyledCheckboxContainer = styled.div`
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
   cursor: default;
 `;
 
 const StyledLabel = styled.label`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: ${spacing("small")};
   cursor: pointer;
+  max-width: fit-content;
+  user-select: none;
 `;
 
 const StyledCheckbox = styled.input`

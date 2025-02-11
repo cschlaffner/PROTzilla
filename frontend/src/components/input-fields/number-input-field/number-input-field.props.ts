@@ -8,11 +8,11 @@ export interface NumberInputFieldProps
     >,
     FrameInputFieldProps,
     UIStateProps {
-  value?: number;
+  value: number;
   defaultValue?: number;
   placeholder?: string;
   min?: number;
   max?: number;
   step?: number;
-  onChange?: (value: number) => void;
+  onChange: (value: number) => void;
 }

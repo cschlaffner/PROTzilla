@@ -1,9 +1,30 @@
 import React, { useRef } from "react";
 import { FrameInputFieldProps } from "./frame-input-field.props";
 import { InputLabel, Text } from "../../text";
-import { FlexColumn, FlexRow } from "../../box";
 import styled from "styled-components";
 import { fontSize, spacing, border, borderColors, color } from "../../../theme";
+
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0px ${spacing("verySmall")};
+  padding: ${spacing("verySmall")} 0px;
+  max-width: 500px;
+`;
+
+const GridItem = styled.div<{ row: number; col: number }>`
+  grid-row: ${({ row }) => row};
+  grid-column: ${({ col }) => col};
+`;
+
+const FlexContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: ${spacing("verySmall")};
+  width: 100%;
+`;
 
 const StyledInputFrame = styled.div`
   border: ${border("defaultStrength")} solid ${borderColors("default")};
@@ -12,11 +33,7 @@ const StyledInputFrame = styled.div`
   display: flex;
   gap: ${spacing("verySmall")};
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-`;
-
-const StyledFlexRow = styled(FlexRow)`
-  gap: ${spacing("small")};
-  align-items: "center";
+  width: 100%;
 `;
 
 const StyledSeparateAffix = styled.div`
@@ -46,6 +63,7 @@ const StyledInputContainer = styled.div`
   align-items: center;
   gap: ${spacing("verySmall")};
   cursor: pointer;
+  width: 100%;
 `;
 
 const StyledInlineAffix = styled.span`
@@ -61,12 +79,23 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
   padding-right: ${spacing("small")};
 `;
 
-const StyledSubscriptText = styled(Text)`
+const StyledSubtitle = styled(Text)`
   font-size: ${fontSize("small")};
-  flex-shrink: 0;
-  flex-grow: 0;
   margin: ${spacing("verySmall")} 0 0 0;
   color: ${color("gray50")};
+  padding: 0 ${spacing("verySmall")};
+`;
+
+const StyledSubscriptText = styled(StyledSubtitle)`
+  white-space: normal;
+  word-break: break-word;
+  flex: 1;
+`;
+
+const FixedText = styled(StyledSubtitle)`
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-style: italic;
 `;
 
 const getChildStyle = () => ({
@@ -74,22 +103,20 @@ const getChildStyle = () => ({
   border: "none",
   outline: "none",
   background: "transparent",
+  width: "100%",
 });
 
 export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   label,
   labelPosition = "top",
   subscript,
+  optional = false,
   children,
   inlinePrefix,
   inlineSuffix,
   separatePrefix,
   separateSuffix,
 }) => {
-  const Wrapper = labelPosition === "top" ? FlexColumn : StyledFlexRow;
-  const formattedLabel =
-    labelPosition === "side" && label ? `${label}:` : label;
-
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleClick = () => {
     if (inputRef.current) {
@@ -108,30 +135,67 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   });
 
   return (
-    <Wrapper>
-      <InputLabel className="label" text={formattedLabel} />
-      <FlexColumn>
+    <GridContainer>
+      {labelPosition === "top" ? (
+        <GridItem row={1} col={2}>
+          {label && (
+            <InputLabel
+              className="label"
+              text={label}
+              style={{ padding: "0 5px" }}
+            />
+          )}
+        </GridItem>
+      ) : (
+        <GridItem row={2} col={1}>
+          {label && (
+            <InputLabel
+              className="label"
+              text={label + ":"}
+              style={{ padding: "0 10px" }}
+            />
+          )}
+        </GridItem>
+      )}
+      <GridItem row={2} col={2}>
         <StyledInputFrame>
           {separatePrefix && (
-            <StyledSeparatePrefix>{separatePrefix}</StyledSeparatePrefix>
+            <StyledSeparatePrefix className="separate-prefix">
+              {separatePrefix}
+            </StyledSeparatePrefix>
           )}
           <StyledInputContainer onClick={handleClick}>
             {inlinePrefix && (
-              <StyledInlinePrefix>{inlinePrefix}</StyledInlinePrefix>
+              <StyledInlinePrefix className="inline-prefix">
+                {inlinePrefix}
+              </StyledInlinePrefix>
             )}
             {styledChildren}
             {inlineSuffix && (
-              <StyledInlineSuffix>{inlineSuffix}</StyledInlineSuffix>
+              <StyledInlineSuffix className="inline-suffix">
+                {inlineSuffix}
+              </StyledInlineSuffix>
             )}
           </StyledInputContainer>
           {separateSuffix && (
-            <StyledSeparateSuffix>{separateSuffix}</StyledSeparateSuffix>
+            <StyledSeparateSuffix className="separate-suffix">
+              {separateSuffix}
+            </StyledSeparateSuffix>
           )}
         </StyledInputFrame>
-        {subscript && (
-          <StyledSubscriptText className="subscript" text={subscript} />
-        )}
-      </FlexColumn>
-    </Wrapper>
+      </GridItem>
+      <GridItem row={3} col={2}>
+        <FlexContainer>
+          {subscript && (
+            <StyledSubscriptText
+              className="subscript"
+              text={subscript}
+              style={{ whiteSpace: "normal" }}
+            />
+          )}
+          {optional && <FixedText text="optional" />}
+        </FlexContainer>
+      </GridItem>
+    </GridContainer>
   );
 };

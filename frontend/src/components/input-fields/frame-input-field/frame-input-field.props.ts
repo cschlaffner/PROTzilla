@@ -4,7 +4,8 @@ export interface FrameInputFieldProps extends UIStateProps {
   label?: string;
   labelPosition?: "top" | "side";
   subscript?: string;
-  children: React.ReactNode;
+  optional?: boolean;
+  children?: React.ReactNode;
   inlinePrefix?: React.ReactNode;
   inlineSuffix?: React.ReactNode;
   separatePrefix?: React.ReactNode;
