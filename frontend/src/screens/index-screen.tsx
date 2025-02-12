@@ -53,7 +53,7 @@ export const IndexScreen: React.FC = () => {
         <a href="https://github.com" className="text-white">GitHub</a>
       </header>
       <Container>
-        <Row gutterWidth={16} justify="between" align="center" style={{ marginTop: "1rem" }}>
+        <Row gutterWidth={16} justify="between" align="center" style={{ height: "80vh" }}>
           <Col md={4}>
             <Card title="Work on a new run:">
               <TextField
