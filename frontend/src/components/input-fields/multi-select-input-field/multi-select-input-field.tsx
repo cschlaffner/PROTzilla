@@ -165,6 +165,7 @@ export const MultiSelectInputField = forwardRef<
             onChange={(e) => setSearchTerm(e)}
             placeholder="Search in lists"
             smallBorder={true}
+            smallFrame={true}
           />
         </div>
       </FlexColumn>

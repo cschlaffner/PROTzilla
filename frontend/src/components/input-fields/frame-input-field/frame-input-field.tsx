@@ -99,8 +99,8 @@ const FixedText = styled(StyledSubtitle)`
   font-style: italic;
 `;
 
-const getChildStyle = () => ({
-  padding: "10px",
+const getChildStyle = (smallFrame: boolean) => ({
+  padding: smallFrame ? "5px" : "10px",
   border: "none",
   outline: "none",
   background: "transparent",
@@ -118,6 +118,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   separatePrefix,
   separateSuffix,
   smallBorder = false,
+  smallFrame = false,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -130,7 +131,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   const styledChildren = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
       return React.cloneElement(child as React.ReactElement<any>, {
-        style: getChildStyle(),
+        style: getChildStyle(smallFrame),
         ref: inputRef,
       });
     }
