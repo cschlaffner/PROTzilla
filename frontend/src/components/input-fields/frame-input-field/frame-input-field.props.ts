@@ -10,4 +10,5 @@ export interface FrameInputFieldProps extends UIStateProps {
   inlineSuffix?: React.ReactNode;
   separatePrefix?: React.ReactNode;
   separateSuffix?: React.ReactNode;
+  smallBorder?: boolean;
 }

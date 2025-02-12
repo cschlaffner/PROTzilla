@@ -26,8 +26,9 @@ const FlexContainer = styled.div`
   width: 100%;
 `;
 
-const StyledInputFrame = styled.div`
-  border: ${border("defaultStrength")} solid ${borderColors("default")};
+const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
+   border: ${({ $smallBorder }) =>
+    border($smallBorder ? "smallStrength" : "defaultStrength")} solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   background-color: white;
   display: flex;
@@ -116,6 +117,8 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   inlineSuffix,
   separatePrefix,
   separateSuffix,
+  smallBorder = false,
+  ...props
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleClick = () => {
@@ -135,7 +138,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   });
 
   return (
-    <GridContainer>
+    <GridContainer {...props}>
       {labelPosition === "top" ? (
         <GridItem row={1} col={2}>
           {label && (
@@ -158,7 +161,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
         </GridItem>
       )}
       <GridItem row={2} col={2}>
-        <StyledInputFrame>
+        <StyledInputFrame $smallBorder={smallBorder}>
           {separatePrefix && (
             <StyledSeparatePrefix className="separate-prefix">
               {separatePrefix}

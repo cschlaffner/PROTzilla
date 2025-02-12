@@ -2,9 +2,9 @@ import { UIStateProps } from "../../types";
 import { FrameInputFieldProps } from "../frame-input-field";
 
 export interface MultiSelectInputFieldProps
-  extends FrameInputFieldProps,
+  extends Omit<FrameInputFieldProps, "onChange">,
     UIStateProps {
   options: { label: string; value: string }[];
   selectedOptions?: string[];
-  onChange: (value: string) => void;
+  onChange: (selectedValues: string[]) => void;
 }

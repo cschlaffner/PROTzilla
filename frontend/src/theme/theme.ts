@@ -89,6 +89,7 @@ export const baseTheme = {
   iconColorAttribute: "stroke",
 
   borders: {
+    smallStrength: "1px",
     defaultStrength: "2px",
     defaultType: "solid",
     defaultRadius: "8px",
