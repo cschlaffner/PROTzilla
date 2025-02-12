@@ -5,4 +5,5 @@ export { default as chevronUp } from "./chevron-up.svg?react";
 export { default as checkmark } from "./checkmark.svg?react";
 export { default as close } from "./close.svg?react";
 export { default as eye } from "./eye.svg?react";
+export { default as info } from "./info.svg?react";
 export { default as spinner } from "./spinner.svg?react";
