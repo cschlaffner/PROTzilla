@@ -110,7 +110,7 @@ pnpm install
 cd ..
 
 REM downloading uniprot if necessary
-python backend/protzilla/data_integration/database_download.py
+python install_scripts/database_download.py
 
 REM starting frontend
 cd frontend

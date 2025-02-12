@@ -1,6 +1,6 @@
 import pandas as pd
 
-from backend.protzilla.utilities.misc import default_intensity_column
+from backend.protzilla.utilities import default_intensity_column
 
 
 def long_to_wide(intensity_df: pd.DataFrame, value_name: str | None = None):
