@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Dropdown, TextField } from "../components";
+import { Button, Dropdown, TextField, Card } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col } from "react-grid-system";
 import { defaultPalette } from "../theme";
@@ -55,73 +55,64 @@ export const IndexScreen: React.FC = () => {
       <Container>
         <Row gutterWidth={16} justify="between" align="center" style={{ marginTop: "1rem" }}>
           <Col md={4}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">Work on a new run:</h5>
-                <TextField
-                  label="Add run name:"
-                  placeholder="Enter run name"
-                  value={newRunName}
-                  onChange={(e) => {setNewRunName(e.target.value)}}
-                  className="mb-3"
-                />
-                <Dropdown
-                  label="With workflow:"
-                  options={[
-                    { value: "standard", label: "Standard" },
-                    { value: "example-workflow", label: "Example"}
-                  ]}
-                  value={workflow}
-                  onChange={(value) => {setWorkflow(value)}}
-                  className="mb-3"
-                />
-                <Dropdown
-                  label="Memory mode:"
-                  options={[
-                    { value: "standard", label: "Standard" },
-                    { value: "low-memory", label: "Low Memory" },
-                  ]}
-                  value={memoryMode}
-                  onChange={(value) => {setMemoryMode(value)}}
-                  className="mb-3"
-                />
-                <Button className="btn btn-primary w-100" onClick={handleCreateRun}>Create</Button>
-              </div>
-            </div>
+            <Card title="Work on a new run:">
+              <TextField
+                label="Add run name:"
+                placeholder="Enter run name"
+                value={newRunName}
+                onChange={(e) => {setNewRunName(e.target.value)}}
+                className="mb-3"
+              />
+              <Dropdown
+                label="With workflow:"
+                options={[
+                  { value: "standard", label: "Standard" },
+                  { value: "example-workflow", label: "Example"}
+                ]}
+                value={workflow}
+                onChange={(value) => {setWorkflow(value)}}
+                className="mb-3"
+              />
+              <Dropdown
+                label="Memory mode:"
+                options={[
+                  { value: "standard", label: "Standard" },
+                  { value: "low-memory", label: "Low Memory" },
+                ]}
+                value={memoryMode}
+                onChange={(value) => {setMemoryMode(value)}}
+                className="mb-3"
+              />
+              <Button className="btn btn-primary w-100" onClick={handleCreateRun}>Create</Button>
+            </Card>
           </Col>
           {/* Continue Run Section */}
           <Col md={4}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">Continue an existing run:</h5>
-                <Dropdown
-                  label="Select run:"
-                  options={runs}
-                  value={existingRun}
-                  onChange={(value) => {setExistingRun(value)}}
-                  className="mb-3"
-                />
-                <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-                <Button className="btn btn-secondary w-100">Manage databases</Button>
-              </div>
-            </div>
+            <Card title="Continue an existing run:">
+              <Dropdown
+                label="Select run:"
+                options={runs}
+                value={existingRun}
+                onChange={(value) => {setExistingRun(value)}}
+                className="mb-3"
+              />
+              <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
+              <Button className="btn btn-secondary w-100">Manage databases</Button>
+            </Card>
           </Col>
 
           {/* Delete Run Section */}
           <Col md={4}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">Delete an existing run:</h5>
-                <Dropdown
-                  label="Select run:"
-                  options={runs}
-                  value={existingRun}
-                  onChange={(value) => {setExistingRun(value)}}
-                  className="mb-3"
-                />
-                <Button className="btn btn-danger w-100" onClick={handleDeleteRun}>Delete</Button>
-              </div>
-            </div>
+            <Card title="Delete an existing run:">
+              <Dropdown
+                label="Select run:"
+                options={runs}
+                value={existingRun}
+                onChange={(value) => {setExistingRun(value)}}
+                className="mb-3"
+              />
+              <Button className="btn btn-danger w-100" onClick={handleDeleteRun}>Delete</Button>
+            </Card>
           </Col>
         </Row>
       </Container>
