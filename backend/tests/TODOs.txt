@@ -1,2 +1,0 @@
-- check where workflow.json in tests is still used -> should be unnecessary
-- rename ui to frontend and add frontend tests
