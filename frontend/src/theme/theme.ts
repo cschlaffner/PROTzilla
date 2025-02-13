@@ -183,7 +183,8 @@ export const baseTheme = {
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
-    inputFieldsMaxWidth: "500ox"
+    inputFieldsMaxWidth: "500px",
+    inputFieldListSmall: "100px"
   },
   spacing: {
     listIndentation: "14px",

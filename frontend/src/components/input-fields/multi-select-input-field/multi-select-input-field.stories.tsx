@@ -5,14 +5,11 @@ import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 export default {
   component: MultiSelectInputField,
   title: "Input Fields / Multi Select Input Field",
+  argTypes: { onChange: { action: "changed" } },
 } as Meta<MultiSelectInputFieldProps>;
 
 const Template: StoryFn<MultiSelectInputFieldProps> = (args) => {
-  return (
-    <div>
-      <MultiSelectInputField {...args} />;
-    </div>
-  );
+  return <MultiSelectInputField {...args} />;
 };
 
 export const primary = Template.bind({});

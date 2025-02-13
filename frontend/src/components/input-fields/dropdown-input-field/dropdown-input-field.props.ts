@@ -6,5 +6,5 @@ export interface DropdownInputFieldProps
     UIStateProps {
   options: string[];
   defaultValue?: string;
-  onClick: (value: string) => void;
+  onChange: (value: string) => void;
 }

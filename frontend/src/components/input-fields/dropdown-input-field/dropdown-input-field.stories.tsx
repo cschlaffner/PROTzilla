@@ -5,14 +5,11 @@ import { DropdownInputFieldProps } from "./dropdown-input-field.props";
 export default {
   component: DropdownInputField,
   title: "Input Fields / Dropdown Input Field",
+  argTypes: { onChange: { action: "changed" } },
 } as Meta<DropdownInputFieldProps>;
 
 const Template: StoryFn<DropdownInputFieldProps> = (args) => {
-  return (
-    <div>
-      <DropdownInputField {...args} />;
-    </div>
-  );
+  return <DropdownInputField {...args} />;
 };
 
 export const primary = Template.bind({});

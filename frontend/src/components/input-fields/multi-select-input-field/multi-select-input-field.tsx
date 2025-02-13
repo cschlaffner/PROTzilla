@@ -1,36 +1,34 @@
-import React, { forwardRef, useEffect, useState } from "react";
-import styled from "styled-components";
-import { FrameInputField } from "../frame-input-field";
-import { border, borderColors, fontSize, spacing } from "../../../theme";
-import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
+import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
+import { FrameInputField } from "../frame-input-field";
+import { InputLabel } from "../../text";
+import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 import { SearchInputField } from "../search-input-field";
-import { InputLabel, Text } from "../../text";
+import React, { forwardRef, useState } from "react";
+import styled from "styled-components";
 
 const OptionsListContainer = styled.ul`
-  //position: absolute;
-  height: 100px;
-  width: 100%;
-  overflow-y: auto;
-  list-style: none;
-  border: ${border("smallStrength")} solid ${borderColors("default")};
+  // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: ${border("defaultRadius")};
-  // box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 0;
+  border: ${border("smallStrength")} solid ${borderColors("default")};
+  height: ${size("inputFieldListSmall")};
+  list-style: none;
   margin: ${spacing("verySmall")} 0 ${spacing("small")} 0;
+  overflow-y: auto;
+  padding: 0;
+  width: 100%;
 `;
 
 const OptionItem = styled.li`
-  padding: ${spacing("verySmall")} ${spacing("small")};
-  position: relative;
+  &:hover {
+    background: ${color("gray6")};
+  }
+  align-items: center;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  padding: ${spacing("verySmall")} ${spacing("small")};
+  position: relative;
   user-select: none;
-  &:hover {
-    background: #f5f5f5;
-  }
 `;
 
 const ListLabel = styled(InputLabel)``;
@@ -106,7 +104,7 @@ const OptionsListComponent: React.FC<{
             </OptionItem>
           ))
         ) : (
-          <OptionItem style={{ pointerEvents: "none"}}>No entry</OptionItem>
+          <OptionItem style={{ pointerEvents: "none" }}>No entry</OptionItem>
         )}
       </OptionsListContainer>
     </div>
@@ -116,7 +114,7 @@ const OptionsListComponent: React.FC<{
 export const MultiSelectInputField = forwardRef<
   HTMLInputElement,
   MultiSelectInputFieldProps
->(({ options, onChange, ...props }, ref) => {
+>(({ options, onChange, ...props }) => {
   const [selectedOptions, setSelectedOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -161,7 +159,7 @@ export const MultiSelectInputField = forwardRef<
         <div style={{ width: "100%" }}>
           <SearchInputField
             style={{ padding: "0", gap: "0" }}
-            value={searchTerm}
+            defaultValue={searchTerm}
             onChange={(e) => setSearchTerm(e)}
             placeholder="Search in lists"
             smallBorder={true}

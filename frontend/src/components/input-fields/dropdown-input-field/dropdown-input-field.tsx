@@ -1,27 +1,27 @@
+import { border, borderColors, size, spacing } from "../../../theme";
+import { FrameInputField } from "../frame-input-field";
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
-import { border, borderColors, spacing } from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
 
 const DropdownContainer = styled.div`
-  position: relative;
   display: inline-block;
+  position: relative;
   width: 100%;
 `;
 
 const OptionsList = styled.ul<{ width: number }>`
-  position: absolute;
-  width: ${({ width }) => `${width}px`};
-  max-height: 150px;
-  overflow-y: auto;
   background: white;
   border-radius: ${border("defaultRadius")};
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   border: ${border("defaultStrength")} solid ${borderColors("default")};
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   list-style: none;
-  padding: 0;
   margin-top: ${spacing("verySmall")};
+  max-height: ${size("inputFieldListSmall")};
+  overflow-y: auto;
+  padding: 0;
+  position: absolute;
+  width: ${({ width }) => `${width}px`};
   z-index: 1000;
 `;
 
@@ -73,7 +73,7 @@ const DropdownIcon = () => (
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
   defaultValue = options[0],
-  onClick,
+  onChange,
   ...props
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
@@ -106,6 +106,12 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     };
   }, [isOpen]);
 
+  const handleChange = (option: string) => {
+    setSelectedValue(option);
+    onChange?.(option);
+    setIsOpen(false);
+  };
+
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
     if (
@@ -132,9 +138,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
               <OptionItem
                 key={index}
                 onClick={() => {
-                  setSelectedValue(option);
-                  setIsOpen(false);
-                  onClick(option);
+                  handleChange(option);
                 }}
               >
                 {option}
