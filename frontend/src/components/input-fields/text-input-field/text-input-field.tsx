@@ -1,8 +1,8 @@
-import React, { forwardRef } from "react";
-import styled from "styled-components";
-import { FrameInputField } from "../frame-input-field";
 import { fontSize } from "../../../theme";
+import { FrameInputField } from "../frame-input-field";
 import { TextInputFieldProps } from "./text-input-field.props";
+import { forwardRef, useState } from "react";
+import styled from "styled-components";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
@@ -10,25 +10,25 @@ const StyledInput = styled.input`
 `;
 
 export const TextInputField = forwardRef<HTMLInputElement, TextInputFieldProps>(
-  ({ value, placeholder, min, max, step, onChange, ...props }, ref) => {
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = event.target.value;
-      if (onChange) {
-        onChange(inputValue);
-      }
+  ({ defaultValue = "", placeholder, onChange, ...props }) => {
+    const [value, setValue] = useState<string>(defaultValue);
+
+    const handleChange = (value: string) => {
+      setValue(value);
+      onChange?.(value);
     };
 
     return (
       <FrameInputField {...props}>
         <StyledInput
           type="text"
-          value={value ?? ""}
+          value={value}
           placeholder={placeholder}
-          onChange={handleChange}
-          ref={ref}
+          onChange={(e) => handleChange(e.target.value)}
           {...props}
         />
       </FrameInputField>
     );
   },
 );
+ 

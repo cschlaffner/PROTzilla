@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import styled from "styled-components";
 import { FrameInputField } from "../frame-input-field";
 import { fontSize } from "../../../theme";
@@ -27,15 +27,21 @@ const SearchIcon = () => (
 export const SearchInputField = forwardRef<
   HTMLInputElement,
   SearchInputFieldProps
->(({ value, placeholder, onChange, ...props }, ref) => {
+>(({ defaultValue = "", placeholder, onChange, ...props }) => {
+  const [value, setValue] = useState<string>(defaultValue);
+
+  const handleChange = (value: string) => {
+    setValue(value);
+    onChange?.(value);
+  };
+
   return (
     <FrameInputField {...props} inlinePrefix={<SearchIcon />}>
       <StyledInput
         type="text"
-        value={value ?? ""}
+        value={value}
         placeholder={placeholder}
-        onChange={(e) => onChange?.(e.target.value)}
-        ref={ref}
+        onChange={(e) => handleChange(e.target.value)}
         {...props}
       />
     </FrameInputField>

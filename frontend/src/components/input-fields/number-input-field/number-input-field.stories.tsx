@@ -1,17 +1,15 @@
 import { Meta, StoryFn } from "@storybook/react";
 import { NumberInputField } from "./number-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
-import { useState } from "react";
 
 export default {
   component: NumberInputField,
   title: "Input Fields / Number Input Field",
+  argTypes: { onChange: { action: "changed" } },
 } as Meta<NumberInputFieldProps>;
 
 const Template: StoryFn<NumberInputFieldProps> = (args) => {
-  const [value, setValue] = useState<number | undefined>(args.value ?? 0);
-
-  return <NumberInputField {...args} value={value} onChange={setValue} />;
+  return <NumberInputField {...args} />;
 };
 
 export const primary = Template.bind({});

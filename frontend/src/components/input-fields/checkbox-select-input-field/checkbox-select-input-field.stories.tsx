@@ -1,24 +1,16 @@
-import { Meta, StoryFn } from "@storybook/react";
 import { CheckboxSelectInputField } from "./chechbox-select-input-field";
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
-import { useState } from "react";
+import { Meta, StoryFn } from "@storybook/react";
 
 export default {
   component: CheckboxSelectInputField,
   title: "Input Fields / Checkbox Select Input Field",
+  argTypes: { onChange: { action: "changed" } },
 } as Meta<CheckboxSelectInputFieldProps>;
 
 const Template: StoryFn<CheckboxSelectInputFieldProps> = (args) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>(
-    args.selectedValues ?? [],
-  );
-
   return (
-    <CheckboxSelectInputField
-      {...args}
-      selectedValues={selectedValues}
-      onChange={setSelectedValues}
-    />
+    <CheckboxSelectInputField {...args} />
   );
 };
 

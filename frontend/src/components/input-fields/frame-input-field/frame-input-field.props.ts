@@ -1,11 +1,11 @@
 import type { UIStateProps } from "../../types";
 
 export interface FrameInputFieldProps extends UIStateProps {
+  children?: React.ReactNode;
   label?: string;
   labelPosition?: "top" | "side";
-  subscript?: string;
   optional?: boolean;
-  children?: React.ReactNode;
+  subscript?: string;
   inlinePrefix?: React.ReactNode;
   inlineSuffix?: React.ReactNode;
   separatePrefix?: React.ReactNode;

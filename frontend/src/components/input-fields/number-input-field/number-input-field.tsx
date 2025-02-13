@@ -1,8 +1,8 @@
-import React, { forwardRef } from "react";
-import { NumberInputFieldProps } from "./number-input-field.props";
-import styled from "styled-components";
-import { FrameInputField } from "../frame-input-field";
 import { fontSize } from "../../../theme";
+import { FrameInputField } from "../frame-input-field";
+import { NumberInputFieldProps } from "./number-input-field.props";
+import { forwardRef, useState } from "react";
+import styled from "styled-components";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
@@ -11,26 +11,36 @@ const StyledInput = styled.input`
 export const NumberInputField = forwardRef<
   HTMLInputElement,
   NumberInputFieldProps
->(({ value, placeholder, min, max, step, onChange, ...props }, ref) => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    const numValue = inputValue === "" ? undefined : parseFloat(inputValue);
-    if (onChange) {
-      onChange(numValue ?? 0);
+>(({ defaultValue = 0, placeholder, min, max, step, onChange, ...props }, ref) => {
+  const [value, setValue] = useState<string>(String(defaultValue));
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+
+    if (newValue === "-" || newValue === "") {
+      setValue(newValue);
+      return;
+    }
+
+    const numericValue = Number(newValue);
+    if (!isNaN(numericValue)) {
+      setValue(newValue);
+      onChange?.(numericValue);
     }
   };
 
   return (
     <FrameInputField {...props}>
       <StyledInput
+        ref={ref}
         type="number"
-        value={value ?? ""}
+        inputMode="numeric"
+        value={value}
         placeholder={placeholder}
         min={min}
         max={max}
         step={step}
-        onChange={handleChange}
-        ref={ref}
+        onInput={handleInput} 
         {...props}
       />
     </FrameInputField>

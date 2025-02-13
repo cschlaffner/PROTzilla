@@ -9,13 +9,21 @@ export default {
 
 const FrameTemplate: StoryFn<FrameInputFieldProps> = (args) => (
   <FrameInputField {...args}>
-    <p>Just a text field.</p>
+    <div>
+      <p>Just a text field.</p>
+    </div>
   </FrameInputField>
 );
 
 export const primary = FrameTemplate.bind({});
 primary.args = {
   label: "Your Input Frame",
+};
+
+export const smallFrame = FrameTemplate.bind({});
+smallFrame.args = {
+  label: "Your Input Frame",
+  smallFrame: true,
 };
 
 export const sideLabel = FrameTemplate.bind({});
@@ -28,6 +36,12 @@ export const subscript = FrameTemplate.bind({});
 subscript.args = {
   label: "Your Input Frame",
   subscript: "Fancy subscript Text",
+};
+
+export const optional = FrameTemplate.bind({});
+optional.args = {
+  label: "Your Input Frame",
+  optional: true,
 };
 
 export const withoutLabel = FrameTemplate.bind({});

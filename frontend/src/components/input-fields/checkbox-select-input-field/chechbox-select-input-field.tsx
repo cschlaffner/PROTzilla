@@ -1,37 +1,43 @@
-import styled from "styled-components";
-import { FrameInputField } from "../frame-input-field";
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
+import { FrameInputField } from "../frame-input-field";
 import { spacing } from "../../../theme";
+import styled from "styled-components";
+import { useState } from "react";
 
 const StyledCheckboxContainer = styled.div`
+  cursor: default;
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
-  cursor: default;
 `;
 
 const StyledLabel = styled.label`
-  display: inline-flex;
   align-items: center;
-  gap: ${spacing("small")};
   cursor: pointer;
+  display: inline-flex;
+  gap: ${spacing("small")};
   max-width: fit-content;
   user-select: none;
 `;
 
-const StyledCheckbox = styled.input`
-  // margin-right: ${spacing("small")};
-`;
-
 export const CheckboxSelectInputField: React.FC<
   CheckboxSelectInputFieldProps
-> = ({ options, selectedValues, onChange, ...props }) => {
+> = ({
+  options,
+  selectedValues: selectedValuesProp = [],
+  onChange,
+  ...props
+}) => {
+  const [selectedValues, setSelectedValues] =
+    useState<string[]>(selectedValuesProp);
+
   const handleChange = (value: string) => {
     const newSelectedValues = selectedValues.includes(value)
       ? selectedValues.filter((v) => v !== value)
       : [...selectedValues, value];
-
-    onChange(newSelectedValues);
+      
+    setSelectedValues(newSelectedValues);
+    onChange?.(newSelectedValues);
   };
 
   return (
@@ -41,7 +47,7 @@ export const CheckboxSelectInputField: React.FC<
           const id = `checkbox-${option.value}`;
           return (
             <StyledLabel key={option.value} htmlFor={id}>
-              <StyledCheckbox
+              <input
                 id={id}
                 type="checkbox"
                 value={option.value}

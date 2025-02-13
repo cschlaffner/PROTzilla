@@ -1,49 +1,57 @@
-import React, { useRef } from "react";
+import {
+  fontSize,
+  spacing,
+  border,
+  borderColors,
+  color,
+  size,
+} from "../../../theme";
 import { FrameInputFieldProps } from "./frame-input-field.props";
 import { InputLabel, Text } from "../../text";
+import React, { useRef } from "react";
 import styled from "styled-components";
-import { fontSize, spacing, border, borderColors, color } from "../../../theme";
 
 const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr;
   align-items: center;
+  display: grid;
   gap: 0px ${spacing("verySmall")};
+  grid-template-columns: auto 1fr;
+  max-width: ${size("inputFieldsMaxWidth")};
   padding: ${spacing("verySmall")} 0px;
-  max-width: 500px;
 `;
 
 const GridItem = styled.div<{ row: number; col: number }>`
-  grid-row: ${({ row }) => row};
   grid-column: ${({ col }) => col};
+  grid-row: ${({ row }) => row};
 `;
 
 const FlexContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  display: flex;
   gap: ${spacing("verySmall")};
+  justify-content: space-between;
   width: 100%;
 `;
 
 const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
-   border: ${({ $smallBorder }) =>
-    border($smallBorder ? "smallStrength" : "defaultStrength")} solid ${borderColors("default")};
-  border-radius: ${border("defaultRadius")};
   background-color: white;
+  border: ${({ $smallBorder }) =>
+      border($smallBorder ? "smallStrength" : "defaultStrength")}
+    solid ${borderColors("default")};
+  border-radius: ${border("defaultRadius")};
   display: flex;
   gap: ${spacing("verySmall")};
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+  // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 100%;
 `;
 
 const StyledSeparateAffix = styled.div`
+  align-items: center;
+  background: ${color("gray6")};
+  box-sizing: content-box;
+  display: flex;
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("verySmall")};
-  background: #eee;
-  display: flex;
-  align-items: center;
-  box-sizing: content-box;
 `;
 
 const StyledSeparatePrefix = styled(StyledSeparateAffix)`
@@ -60,16 +68,16 @@ const StyledSeparateSuffix = styled(StyledSeparateAffix)`
 `;
 
 const StyledInputContainer = styled.div`
-  display: flex;
   align-items: center;
-  gap: ${spacing("verySmall")};
   cursor: pointer;
+  display: flex;
+  gap: ${spacing("verySmall")};
   width: 100%;
 `;
 
 const StyledInlineAffix = styled.span`
-  display: flex;
   align-items: center;
+  display: flex;
 `;
 
 const StyledInlinePrefix = styled(StyledInlineAffix)`
@@ -81,38 +89,38 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
 `;
 
 const StyledSubtitle = styled(Text)`
+  color: ${color("gray50")};
   font-size: ${fontSize("small")};
   margin: ${spacing("verySmall")} 0 0 0;
-  color: ${color("gray50")};
   padding: 0 ${spacing("verySmall")};
 `;
 
 const StyledSubscriptText = styled(StyledSubtitle)`
+  flex: 1;
   white-space: normal;
   word-break: break-word;
-  flex: 1;
 `;
 
 const FixedText = styled(StyledSubtitle)`
   flex-shrink: 0;
-  margin-left: 8px;
   font-style: italic;
+  margin-left: 8px;
 `;
 
 const getChildStyle = (smallFrame: boolean) => ({
-  padding: smallFrame ? "5px" : "10px",
+  background: "transparent",
   border: "none",
   outline: "none",
-  background: "transparent",
+  padding: smallFrame ? "5px" : "10px",
   width: "100%",
 });
 
 export const FrameInputField: React.FC<FrameInputFieldProps> = ({
+  children,
   label,
   labelPosition = "top",
-  subscript,
   optional = false,
-  children,
+  subscript,
   inlinePrefix,
   inlineSuffix,
   separatePrefix,
@@ -146,7 +154,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
             <InputLabel
               className="label"
               text={label}
-              style={{ padding: "0 5px" }}
+              style={{ padding: `0 ${spacing("verySmall")}` }}
             />
           )}
         </GridItem>
@@ -156,7 +164,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
             <InputLabel
               className="label"
               text={label + ":"}
-              style={{ padding: "0 10px" }}
+              style={{ padding: `0 ${spacing("small")}` }}
             />
           )}
         </GridItem>
@@ -190,13 +198,13 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
       </GridItem>
       <GridItem row={3} col={2}>
         <FlexContainer>
-          {subscript && (
+         
             <StyledSubscriptText
               className="subscript"
               text={subscript}
               style={{ whiteSpace: "normal" }}
             />
-          )}
+          
           {optional && <FixedText text="optional" />}
         </FlexContainer>
       </GridItem>
