@@ -73,11 +73,13 @@ const DropdownIcon = () => (
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
-  defaultValue = options[0],
+  defaultValue = options[0]?.value,
   onChange,
   ...props
 }) => {
-  const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
+  const [selectedValue, setSelectedValue] = useState<string>(
+    options.find((opt) => opt.value === defaultValue)?.label || ""
+  );
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
@@ -107,9 +109,9 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     };
   }, [isOpen]);
 
-  const handleChange = (option: string) => {
-    setSelectedValue(option);
-    onChange(option);
+  const handleChange = (option: { label: string; value: string }) => {
+    setSelectedValue(option.label);
+    onChange(option.value);
     setIsOpen(false);
   };
 
@@ -135,14 +137,14 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
       {isOpen && (
         <OptionsList width={dropdownWidth} ref={dropdownRef}>
           {options.length > 0 ? (
-            options.map((option, index) => (
+            options.map((option) => (
               <OptionItem
-                key={index}
+                key={option.value}
                 onClick={() => {
                   handleChange(option);
                 }}
               >
-                {option}
+                {option.label}
               </OptionItem>
             ))
           ) : (

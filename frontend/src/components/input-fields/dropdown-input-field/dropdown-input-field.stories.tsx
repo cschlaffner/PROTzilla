@@ -16,5 +16,11 @@ const Template: StoryFn<DropdownInputFieldProps> = (args) => {
 export const primary = Template.bind({});
 primary.args = {
   label: "Choose something",
-  options: ["Apple", "Banana", "Cherry", "Date", "Grapes"],
+  options: [
+    { label: "Apple", value: "apple" },
+    { label: "Banana", value: "banana" },
+    { label: "Cherry", value: "cherry" },
+    { label: "Date", value: "date" },
+    { label: "Grapes", value: "grapes" },
+  ],
 };
