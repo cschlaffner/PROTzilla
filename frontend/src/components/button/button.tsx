@@ -525,7 +525,6 @@ export const InvisibleButton = styled(BaseButton)`
   background: none;
   border: none;
   outline: none;
-  padding: 0;
 
   box-sizing: border-box;
   pointer-events: auto;
@@ -544,6 +543,17 @@ export const InvisibleButton = styled(BaseButton)`
   .icon {
     ${iconColor("primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
+  }
+  
+  &:hover {
+    border-radius: ${({ isSmall }) => radius(isSmall ? "smallButton" : "button")};
+    display: inline-flex;
+    height: ${({ isSmall }) =>
+      size(isSmall ? "smallButtonHeight" : "buttonHeight")};
+    min-height: ${({ isSmall }) =>
+      size(isSmall ? "smallButtonHeight" : "buttonHeight")};
+    background-color: ${(props) =>
+      color(props.isDisabled ? "transparent" : "invisibleHover")};
   }
 `;
 

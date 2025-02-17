@@ -63,6 +63,7 @@ export const defaultPalette = {
   gray6: "#E4E4E5",
   gray50: "#929396",
 
+  invisibleHover: "#CE5A5A",
   transparent: "rgba(0,0,0,0)",
   popUpBackdrop: "rgba(44,46,52,0.20)",
 };
