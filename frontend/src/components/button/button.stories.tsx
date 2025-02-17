@@ -5,6 +5,7 @@ import {
   Button,
   CircularButton,
   GrayButton,
+  GraySquareButton,
   GreenButton,
   InvisibleButton,
   RedButton,
@@ -12,7 +13,6 @@ import {
   SecondaryButton,
   SquareButton,
   ToggleableButton,
-  GraySquareButton,
 } from "./button";
 import { ButtonProps } from "./button.props";
 

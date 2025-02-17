@@ -472,7 +472,7 @@ export const GrayButton = styled(Button)`
   .text {
     color: ${({ isDisabled }) => color(isDisabled ? "blackDisabled" : "black")};
   }
-  
+
   .icon {
     ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "black")}
   }
@@ -487,7 +487,6 @@ export const GrayButton = styled(Button)`
       color(props.isDisabled ? "grayDisabled" : "grayActive")};
   }
 `;
-
 
 export const RedSecondaryButton = styled(Button)`
   ${secondaryButtonMixin}

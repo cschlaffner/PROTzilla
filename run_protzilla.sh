@@ -75,7 +75,7 @@ cd ..
 
 echo "done."
 
-python backend/protzilla/data_integration/database_download.py
+python install_scripts/database_download.py
 
 echo "starting protzilla..."
 cd frontend

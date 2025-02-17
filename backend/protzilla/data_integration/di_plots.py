@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities.misc import fig_to_base64
+from backend.protzilla.utilities import fig_to_base64
 
 from ..constants.colors import PROTZILLA_DISCRETE_COLOR_SEQUENCE
 

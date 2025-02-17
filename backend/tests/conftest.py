@@ -15,7 +15,7 @@ from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
 from backend.protzilla.constants.paths import RUNS_PATH, TEST_DATA_PATH
-from backend.protzilla.utilities.misc import random_string
+from backend.protzilla.utilities import random_string
 
 
 def pytest_addoption(parser):

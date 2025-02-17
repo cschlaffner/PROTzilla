@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from backend.protzilla.data_preprocessing.plots import create_box_plots, create_histograms
-from backend.protzilla.utilities.misc import default_intensity_column
+from backend.protzilla.utilities import default_intensity_column
 
 
 def by_z_score(protein_df: pd.DataFrame) -> dict:
