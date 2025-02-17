@@ -30,7 +30,10 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 active_runs: dict[str, Run] = {}
 
 def run_information_list(request):
-    runs, runs_favourite, all_tags = get_available_runinfo()
+    run_info = get_available_runinfo()
+    if not run_info:
+        return JsonResponse(None, safe=False) #not clean, maybe use error message or smth
+    runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
     available_runinfo = [all_available_runs, all_tags]
 

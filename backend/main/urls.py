@@ -18,6 +18,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 from . import views
+from . import viewswithapi
 
 # TODO R If you have views that handle API requests, you can import those here
 # from myapp import views
@@ -27,6 +28,9 @@ urlpatterns = [
     path("api/ping/", views.ping, name="ping"),
     path("api/jannesjsontest/", views.jannesjsontest, name="jannesjsontest"),
     path("api/do_something_with_element_from_frontend/", views.do_something_with_element_from_frontend, name="do_something_with_element_from_frontend"),
+    path("api/run_information/", viewswithapi.run_information_list, name="run_information"),
+    path("api/step_name_list/", viewswithapi.step_name_list, name="step_name_list"),
+    path("api/workflow_name_list/", viewswithapi.workflow_name_list, name="workflow_name_list"),
     # TODO R API routes (if using Django for API)
     # path('api/', include('myapp.api.urls')),  # Example for API routes
 

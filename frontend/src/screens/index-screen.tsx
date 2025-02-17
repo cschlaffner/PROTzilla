@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Dropdown, Button, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
+import { callApiWithParameters } from "../utils";
+//import { useFetch } from "../hooks";
 
 
 
@@ -10,7 +12,7 @@ export const IndexScreen: React.FC = () => {
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
+  const [runs, setRuns] = useState<any>([]);
 //  const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
@@ -19,6 +21,8 @@ export const IndexScreen: React.FC = () => {
       .then((data: { value: string; label: string }[]) => setRuns(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
+  /*const data = useFetch("jannesjsontest"); //doesnt seem to work :(
+  setRuns(data);*/
   
     // Fetch CSRF token on component mount
 /*    useEffect(() => {
@@ -29,31 +33,8 @@ export const IndexScreen: React.FC = () => {
     }, []); */
   
 
-  const giveBackendSomething = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/do_something_with_element_from_frontend/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          //"X-CSRFToken": csrfToken, // Include CSRF token here
-        },
-        body: JSON.stringify({ element: "das_richtigenicht" }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("Error deleting element:", error);
-    }
-  };
-
   const handleCreateRun = () => {
-    if (runs.some((run) => run.value === newRunName)) {
+    if (runs.some((run: { value: string; }) => run.value === newRunName)) {
         alert("A run with this name already exists!");
         return;
     }
@@ -67,7 +48,7 @@ export const IndexScreen: React.FC = () => {
   };
 
   const handleDeleteRun = () => {
-    setRuns(runs.filter((run) => run.value !== existingRun));
+    setRuns(runs.filter((run: { value: string; }) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
     console.log(runs)
   };
@@ -136,7 +117,7 @@ export const IndexScreen: React.FC = () => {
                   className="mb-3"
                 />
                 <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-                <Button className="btn btn-primary w-100 mb-2" onClick={giveBackendSomething}>Do something</Button>
+                <Button className="btn btn-primary w-100 mb-2" onClick={() => callApiWithParameters("do_something_with_element_from_frontend/", { element: "das_richtige" })}>Do something</Button>
                 <Button className="btn btn-secondary w-100">Manage databases</Button>
               </div>
             </div>

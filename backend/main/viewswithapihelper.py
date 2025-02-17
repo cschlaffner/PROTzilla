@@ -1,5 +1,5 @@
 import re
-import backend.protzilla.all_steps as form_map
+from backend.protzilla.all_steps import get_all_methods
 
 def parameters_from_post(post):
     d = dict(post)
@@ -40,7 +40,7 @@ def get_all_possible_step_names() -> list[str]:
     :return: List of names.
     :rtype: String
     """
-    step_classes = form_map._forward_mapping.keys()
+    step_classes = get_all_methods()
     step_names = []
     for step in step_classes:
         step_names.append(
