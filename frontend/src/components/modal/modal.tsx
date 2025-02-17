@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+
 import { ModalProps } from "./modal.props";
 import { Card } from "../card"; // Reuse the Card component
 
@@ -34,7 +35,7 @@ const CloseButton = styled.button`
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (
     <Backdrop isOpen={isOpen} onClick={onClose}>
-      <ModalContent className={className} onClick={(e) => e.stopPropagation()}>
+      <ModalContent className={className} onClick={(e) => { e.stopPropagation(); }}>
         <Card title={title}>
           <CloseButton onClick={onClose}>×</CloseButton>
           {children}

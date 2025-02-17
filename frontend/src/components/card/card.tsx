@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+
 import { CardProps } from "./card.props";
 import { spacing } from "../../theme";
 
