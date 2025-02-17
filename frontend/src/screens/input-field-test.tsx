@@ -137,7 +137,14 @@ export const InputFieldTestScreen: React.FC = () => {
 
         <DropdownInputField
           label="Wer hat die meisten Spezis getrunken?"
-          options={["max", "jannes", "jonas", "sarah", "ronja", "philipp"]}
+          options={[
+            { label: "Max", value: "max" },
+            { label: "Jannes", value: "jannes" },
+            { label: "Jonas", value: "jonas" },
+            { label: "Sarah", value: "sarah" },
+            { label: "Ronja", value: "ronja" },
+            { label: "Philipp", value: "philipp" },
+          ]}
           onChange={(e) => {
             handleChange("dropdown", e);
           }}
