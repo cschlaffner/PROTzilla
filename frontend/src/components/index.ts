@@ -18,5 +18,6 @@ export * from "./text";
 export * from "./text-field";
 export * from "./tooltip";
 export * from "./types";
+export * from "./card"
 
 export * from "./main-screen";

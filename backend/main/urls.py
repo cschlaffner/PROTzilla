@@ -19,15 +19,11 @@ from django.views.generic import RedirectView
 
 from . import views
 
-# TODO R If you have views that handle API requests, you can import those here
-# from myapp import views
+# TODO If we have views that handle API requests, we can import those here
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
     path("api/ping/", views.ping, name="ping"),
-    path("api/jannesjsontest/", views.jannesjsontest, name="jannesjsontest"),
-    # TODO R API routes (if using Django for API)
-    # path('api/', include('myapp.api.urls')),  # Example for API routes
 
 
     path("databases", views.databases, name="databases"),
