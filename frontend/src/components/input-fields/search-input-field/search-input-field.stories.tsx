@@ -1,4 +1,5 @@
 import { Meta, StoryFn } from "@storybook/react";
+
 import { SearchInputField } from "./search-input-field";
 import { SearchInputFieldProps } from "./search-input-field.props";
 

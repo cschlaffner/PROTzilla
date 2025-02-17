@@ -1,7 +1,8 @@
+import React, { useEffect, useRef, useState } from "react";
+import { styled } from "styled-components";
+
 import { border, borderColors, size, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 
 const DropdownContainer = styled.div`
@@ -21,7 +22,7 @@ const OptionsList = styled.ul<{ width: number }>`
   overflow-y: auto;
   padding: 0;
   position: absolute;
-  width: ${({ width }) => `${width}px`};
+  width: ${({ width }) => `${width.toString()}px`};
   z-index: 1000;
 `;
 
@@ -108,7 +109,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
 
   const handleChange = (option: string) => {
     setSelectedValue(option);
-    onChange?.(option);
+    onChange(option);
     setIsOpen(false);
   };
 

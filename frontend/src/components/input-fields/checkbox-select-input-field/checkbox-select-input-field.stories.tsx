@@ -1,6 +1,7 @@
+import { Meta, StoryFn } from "@storybook/react";
+
 import { CheckboxSelectInputField } from "./chechbox-select-input-field";
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
-import { Meta, StoryFn } from "@storybook/react";
 
 export default {
   component: CheckboxSelectInputField,
@@ -9,9 +10,7 @@ export default {
 } as Meta<CheckboxSelectInputFieldProps>;
 
 const Template: StoryFn<CheckboxSelectInputFieldProps> = (args) => {
-  return (
-    <CheckboxSelectInputField {...args} />
-  );
+  return <CheckboxSelectInputField {...args} />;
 };
 
 export const primary = Template.bind({});

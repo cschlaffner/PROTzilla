@@ -1,15 +1,16 @@
+import React, { useRef } from "react";
+import { styled } from "styled-components";
+
+import { FrameInputFieldProps } from "./frame-input-field.props";
 import {
-  fontSize,
-  spacing,
   border,
   borderColors,
   color,
+  fontSize,
   size,
+  spacing,
 } from "../../../theme";
-import { FrameInputFieldProps } from "./frame-input-field.props";
 import { InputLabel, Text } from "../../text";
-import React, { useRef } from "react";
-import styled from "styled-components";
 
 const GridContainer = styled.div`
   align-items: center;
@@ -138,7 +139,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
 
   const styledChildren = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child as React.ReactElement<any>, {
+      return React.cloneElement(child as React.ReactElement, {
         style: getChildStyle(smallFrame),
         ref: inputRef,
       });
@@ -154,7 +155,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
             <InputLabel
               className="label"
               text={label}
-              style={{ padding: `0 ${spacing("verySmall")}` }}
+              style={{ padding: `0 ${String(spacing("verySmall"))}` }}
             />
           )}
         </GridItem>
@@ -164,7 +165,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
             <InputLabel
               className="label"
               text={label + ":"}
-              style={{ padding: `0 ${spacing("small")}` }}
+              style={{ padding: `0 ${String(spacing("small"))}` }}
             />
           )}
         </GridItem>
@@ -198,13 +199,12 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
       </GridItem>
       <GridItem row={3} col={2}>
         <FlexContainer>
-         
-            <StyledSubscriptText
-              className="subscript"
-              text={subscript}
-              style={{ whiteSpace: "normal" }}
-            />
-          
+          <StyledSubscriptText
+            className="subscript"
+            text={subscript}
+            style={{ whiteSpace: "normal" }}
+          />
+
           {optional && <FixedText text="optional" />}
         </FlexContainer>
       </GridItem>

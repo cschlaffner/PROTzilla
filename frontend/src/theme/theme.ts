@@ -184,7 +184,7 @@ export const baseTheme = {
     largeAvatar: "100px",
     navigationItemWidth: "240px",
     inputFieldsMaxWidth: "500px",
-    inputFieldListSmall: "100px"
+    inputFieldListSmall: "100px",
   },
   spacing: {
     listIndentation: "14px",

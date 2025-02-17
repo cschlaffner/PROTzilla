@@ -1,11 +1,12 @@
+import React, { forwardRef, useState } from "react";
+import { styled } from "styled-components";
+
+import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
-import { FrameInputField } from "../frame-input-field";
 import { InputLabel } from "../../text";
-import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
+import { FrameInputField } from "../frame-input-field";
 import { SearchInputField } from "../search-input-field";
-import React, { forwardRef, useState } from "react";
-import styled from "styled-components";
 
 const OptionsListContainer = styled.ul`
   // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -88,7 +89,9 @@ const OptionsListComponent: React.FC<{
           filteredOptions.map((option) => (
             <OptionItem
               key={option.value}
-              onClick={() => onItemClick(option)}
+              onClick={() => {
+                onItemClick(option);
+              }}
               style={{ cursor: "pointer" }}
             >
               {isLeftList ? (
@@ -114,7 +117,7 @@ const OptionsListComponent: React.FC<{
 export const MultiSelectInputField = forwardRef<
   HTMLInputElement,
   MultiSelectInputFieldProps
->(({ options, onChange, ...props }) => {
+>(function MultiSelectInputField({ options, onChange, ...props }) {
   const [selectedOptions, setSelectedOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -160,7 +163,9 @@ export const MultiSelectInputField = forwardRef<
           <SearchInputField
             style={{ padding: "0", gap: "0" }}
             defaultValue={searchTerm}
-            onChange={(e) => setSearchTerm(e)}
+            onChange={(e) => {
+              setSearchTerm(e);
+            }}
             placeholder="Search in lists"
             smallBorder={true}
             smallFrame={true}

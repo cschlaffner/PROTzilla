@@ -1,4 +1,5 @@
 import { Meta, StoryFn } from "@storybook/react";
+
 import { TextInputField } from "./text-input-field";
 import { TextInputFieldProps } from "./text-input-field.props";
 
@@ -27,4 +28,3 @@ allAffix.args = {
   separatePrefix: "%",
   separateSuffix: "%",
 };
- 

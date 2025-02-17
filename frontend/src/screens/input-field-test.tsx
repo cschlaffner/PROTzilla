@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { TextInputField } from "../components/input-fields/text-input-field";
-import { NumberInputField } from "../components/input-fields/number-input-field";
-import { SearchInputField } from "../components/input-fields/search-input-field";
+
 import { CheckboxSelectInputField } from "../components/input-fields/checkbox-select-input-field";
-import { RadioSelectInputField } from "../components/input-fields/radio-select-input-field";
 import { DropdownInputField } from "../components/input-fields/dropdown-input-field";
 import { MultiSelectInputField } from "../components/input-fields/multi-select-input-field";
+import { NumberInputField } from "../components/input-fields/number-input-field";
+import { RadioSelectInputField } from "../components/input-fields/radio-select-input-field";
+import { SearchInputField } from "../components/input-fields/search-input-field";
+import { TextInputField } from "../components/input-fields/text-input-field";
 
 // ++++++++++++++++++++++++++++++++++++++
 // SPIELWIESE
@@ -13,10 +14,18 @@ import { MultiSelectInputField } from "../components/input-fields/multi-select-i
 // ++++++++++++++++++++++++++++++++++++++
 
 export const InputFieldTestScreen: React.FC = () => {
-  const [values, setValues] = useState<{ [key: string]: any }>({
+  const [values, setValues] = useState<{
+    textinput1: string;
+    multiselect: string[];
+    numberinput1: number;
+    search: string;
+    checkboxes: string[];
+    radio: string;
+    dropdown: string;
+  }>({
     textinput1: "",
     multiselect: [],
-    numberinput1: Number,
+    numberinput1: 0,
     search: "",
     checkboxes: [],
     radio: "",
@@ -25,10 +34,13 @@ export const InputFieldTestScreen: React.FC = () => {
 
   const [tooltip, setTooltip] = useState<string | null>(null);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (
+    field: keyof typeof values,
+    value: string | number | string[],
+  ) => {
     setValues((prev) => ({ ...prev, [field]: value }));
 
-    setTooltip(`${field} geändert zu: ${value}`);
+    setTooltip(`${field} geändert zu: ${String(value)}`);
 
     setTimeout(() => {
       setTooltip(null);
@@ -57,7 +69,9 @@ export const InputFieldTestScreen: React.FC = () => {
           label="Gib mal was ein"
           labelPosition="side"
           value={values.textinput1}
-          onChange={(e) => handleChange("textinput1", e)}
+          onChange={(e) => {
+            handleChange("textinput1", e);
+          }}
           placeholder="Was steht hier?"
           subscript="Hallo"
           optional={true}
@@ -65,22 +79,26 @@ export const InputFieldTestScreen: React.FC = () => {
 
         <MultiSelectInputField
           options={colorOptions}
-          onChange={(selectedOptions) =>
-            handleChange("multiselect", selectedOptions)
-          }
+          onChange={(selectedOptions) => {
+            handleChange("multiselect", selectedOptions);
+          }}
           label="Wähle die richtigen Farben aus"
         />
 
         <NumberInputField
           value={values.numberinput1}
-          onChange={(e) => handleChange("numberinput1", e)}
+          onChange={(e) => {
+            handleChange("numberinput1", e);
+          }}
           optional={true}
           subscript="Dieser Zähler springt irgendwie komisch was ist wenn dieser Text immer länger wird, weißst du, dass das beste Getränk Spezi ist"
         />
 
         <SearchInputField
           value={values.search}
-          onChange={(e) => handleChange("search", e)}
+          onChange={(e) => {
+            handleChange("search", e);
+          }}
         />
 
         <CheckboxSelectInputField
@@ -92,7 +110,9 @@ export const InputFieldTestScreen: React.FC = () => {
             { label: "Yellow", value: "yellow" },
           ]}
           selectedValues={values.checkboxes}
-          onChange={(e) => handleChange("checkboxes", e)}
+          onChange={(e) => {
+            handleChange("checkboxes", e);
+          }}
           label="Wähle eine Farbe aus"
           subscript="Was hast du ausgewählt?"
           separatePrefix=":)"
@@ -107,7 +127,9 @@ export const InputFieldTestScreen: React.FC = () => {
             { label: "Yellow", value: "yellow" },
           ]}
           selectedValue={values.radio}
-          onChange={(e) => handleChange("radio", e)}
+          onChange={(e) => {
+            handleChange("radio", e);
+          }}
           label="Wähle eine Farbe aus"
           subscript="Was hast du ausgewählt?"
           separatePrefix=":)"
@@ -116,7 +138,9 @@ export const InputFieldTestScreen: React.FC = () => {
         <DropdownInputField
           label="Wer hat die meisten Spezis getrunken?"
           options={["max", "jannes", "jonas", "sarah", "ronja", "philipp"]}
-          onClick={(e) => handleChange("dropdown", e)}
+          onClick={(e) => {
+            handleChange("dropdown", e);
+          }}
         />
       </div>
     </div>

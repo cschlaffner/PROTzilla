@@ -1,8 +1,9 @@
+import { forwardRef, useState } from "react";
+import { styled } from "styled-components";
+
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
-import { forwardRef, useState } from "react";
-import styled from "styled-components";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
@@ -11,11 +12,14 @@ const StyledInput = styled.input`
 export const NumberInputField = forwardRef<
   HTMLInputElement,
   NumberInputFieldProps
->(({ defaultValue = 0, placeholder, min, max, step, onChange, ...props }, ref) => {
+>(function NumberInputField(
+  { defaultValue = 0, placeholder, min, max, step, onChange, ...props },
+  ref,
+) {
   const [value, setValue] = useState<string>(String(defaultValue));
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newValue = e.target.value;
+    const newValue = e.target.value;
 
     if (newValue === "-" || newValue === "") {
       setValue(newValue);
@@ -25,7 +29,7 @@ export const NumberInputField = forwardRef<
     const numericValue = Number(newValue);
     if (!isNaN(numericValue)) {
       setValue(newValue);
-      onChange?.(numericValue);
+      onChange(numericValue);
     }
   };
 
@@ -40,7 +44,7 @@ export const NumberInputField = forwardRef<
         min={min}
         max={max}
         step={step}
-        onInput={handleInput} 
+        onInput={handleInput}
         {...props}
       />
     </FrameInputField>

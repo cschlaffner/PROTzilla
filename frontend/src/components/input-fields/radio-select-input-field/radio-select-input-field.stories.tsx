@@ -1,4 +1,5 @@
 import { Meta, StoryFn } from "@storybook/react";
+
 import { RadioSelectInputField } from "./radio-select-input-field";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 
@@ -23,4 +24,3 @@ primary.args = {
     { label: "Yellow", value: "yellow" },
   ],
 };
-

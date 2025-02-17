@@ -1,8 +1,9 @@
+import { useState } from "react";
+import { styled } from "styled-components";
+
 import { FrameInputField } from "../frame-input-field";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
-import styled from "styled-components";
-import { useState } from "react";
 
 const StyledRadioContainer = styled.div`
   cursor: default;
@@ -30,7 +31,7 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
 
   const handleChange = (value: string) => {
     setSelectedValue(value);
-    onChange?.(value);
+    onChange(value);
   };
 
   return (
@@ -45,7 +46,9 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
                 type="radio"
                 value={option.value}
                 checked={selectedValue === option.value}
-                onChange={() => handleChange(option.value)}
+                onChange={() => {
+                  handleChange(option.value);
+                }}
               />
               {option.label}
             </StyledLabel>
