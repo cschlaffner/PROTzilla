@@ -4,8 +4,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col } from "react-grid-system";
 import { defaultPalette } from "../theme";
 
-
-
 export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
   const [workflow, setWorkflow] = useState("standard");
@@ -14,16 +12,20 @@ export const IndexScreen: React.FC = () => {
   const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/jannesjsontest/')
+    fetch("http://127.0.0.1:8000/api/jannesjsontest/")
       .then((response) => response.json())
-      .then((data: { value: string; label: string }[]) => { setRuns(data); })
-      .catch((error: unknown) => {console.error('Error fetching data:', error)});
+      .then((data: { value: string; label: string }[]) => {
+        setRuns(data);
+      })
+      .catch((error: unknown) => {
+        console.error("Error fetching data:", error);
+      });
   }, []);
 
   const handleCreateRun = () => {
     if (runs.some((run) => run.value === newRunName)) {
-        alert("A run with this name already exists!");
-        return;
+      alert("A run with this name already exists!");
+      return;
     }
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
@@ -37,20 +39,22 @@ export const IndexScreen: React.FC = () => {
   const handleDeleteRun = () => {
     setRuns(runs.filter((run) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
-    console.log(runs)
+    console.log(runs);
   };
-
 
   return (
     <div className="min-vh-100 w-100 bg-light">
-      <header 
+      <header
         style={{
           backgroundColor: defaultPalette.primary, // Verwendung der Theme-Farbe
           color: defaultPalette.onPrimary,
         }}
-        className=" text-white py-3 px-4 d-flex justify-content-between align-items-center">
+        className=" text-white py-3 px-4 d-flex justify-content-between align-items-center"
+      >
         <h1 className="h4 mb-0">PROTzilla</h1>
-        <a href="https://github.com" className="text-white">GitHub</a>
+        <a href="https://github.com" className="text-white">
+          GitHub
+        </a>
       </header>
       <Container>
         <Row gutterWidth={16} justify="between" align="center" style={{ height: "80vh" }}>

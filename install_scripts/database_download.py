@@ -1,7 +1,6 @@
-# TODO S move to more useful location (only after whole project is included, might affect tests)
-
 import json
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -9,11 +8,13 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from tqdm import tqdm
 
-# cannot be imported form constants as package cannot be found
-#TODO S
-external_data_path = Path(__file__).parent.parent.parent / "user_data" / "external_data"
-uniprot_db_path = external_data_path / "uniprot"
-database_metadata_path = external_data_path / "internal" / "metadata" / "uniprot.json"
+project_root_path = Path(__file__).parent.parent
+sys.path.append(str(project_root_path))
+
+from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
+
+uniprot_db_path = EXTERNAL_DATA_PATH / "uniprot"
+database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
 def get_next_link(headers):

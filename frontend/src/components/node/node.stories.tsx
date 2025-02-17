@@ -11,5 +11,5 @@ export default {
 export const primary = (args: NodeProps): React.ReactNode => <Node {...args} />;
 primary.args = {
   title: "Node",
-  inputSockets: [{id:0, titleTx:"meep"}]
+  inputSockets: [{ id: 0, titleTx: "meep" }],
 };

@@ -1,7 +1,7 @@
 .DS_Store
 .idea/
-backend/user_data/external_data
-backend/user_data/runs
+# ignore workflows for pushes from now on but keep explicit few on github for running tests
+backend/user_data/*
 backend/uploads/*
 .vscode/*
 .flake8
