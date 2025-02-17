@@ -68,7 +68,7 @@ export const InputFieldTestScreen: React.FC = () => {
         <TextInputField
           label="Gib mal was ein"
           labelPosition="side"
-          value={values.textinput1}
+          defaultValue={values.textinput1}
           onChange={(e) => {
             handleChange("textinput1", e);
           }}
@@ -86,7 +86,7 @@ export const InputFieldTestScreen: React.FC = () => {
         />
 
         <NumberInputField
-          value={values.numberinput1}
+          defaultValue={values.numberinput1}
           onChange={(e) => {
             handleChange("numberinput1", e);
           }}
@@ -95,7 +95,7 @@ export const InputFieldTestScreen: React.FC = () => {
         />
 
         <SearchInputField
-          value={values.search}
+          defaultValue={values.search}
           onChange={(e) => {
             handleChange("search", e);
           }}
@@ -138,7 +138,7 @@ export const InputFieldTestScreen: React.FC = () => {
         <DropdownInputField
           label="Wer hat die meisten Spezis getrunken?"
           options={["max", "jannes", "jonas", "sarah", "ronja", "philipp"]}
-          onClick={(e) => {
+          onChange={(e) => {
             handleChange("dropdown", e);
           }}
         />
