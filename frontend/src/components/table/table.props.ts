@@ -32,7 +32,7 @@ export interface TableRowProps<
   data?: T;
 }
 
-// Define NavbarProps, where columns and rows are based on the above flexible types
+// Define TableProps, where columns and rows are based on the above flexible types
 export interface TableProps<
   T extends TableRowData,
   AdditionalKeys extends PropertyKey = never,
