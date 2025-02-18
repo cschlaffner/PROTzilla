@@ -33,8 +33,6 @@ from backend.protzilla.data_integration.database_query import check_biomart_avai
 
 # isort:end_skip_file
 
-biomart_check = check_biomart_availability()
-
 
 @pytest.fixture
 def data_folder_tests():
@@ -381,6 +379,7 @@ def test_GO_analysis_with_STRING_too_many_col_df():
 
 
 def test_GO_analysis_with_enrichr_wrong_proteins_input():
+    biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
@@ -399,6 +398,7 @@ def test_GO_analysis_with_enrichr_wrong_proteins_input():
 
 
 def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
+    biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
@@ -414,6 +414,7 @@ def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
 
 
 def test_GO_analysis_with_no_gene_sets_input():
+    biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
@@ -433,6 +434,7 @@ def test_GO_analysis_with_no_gene_sets_input():
 
 @patch("backend.protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
+    biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     # Check if enrichr API is available
@@ -512,6 +514,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
 
 
 def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
+    biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
