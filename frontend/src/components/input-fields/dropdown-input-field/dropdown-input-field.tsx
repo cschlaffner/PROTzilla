@@ -73,13 +73,11 @@ const DropdownIcon = () => (
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
-  defaultValue = options[0]?.value,
+  defaultValue = options[0],
   onChange,
   ...props
 }) => {
-  const [selectedValue, setSelectedValue] = useState<string>(
-    options.find((opt) => opt.value === defaultValue)?.label || ""
-  );
+  const [selectedValue, setSelectedValue] = useState<{ label: string; value: string }>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
@@ -110,7 +108,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   }, [isOpen]);
 
   const handleChange = (option: { label: string; value: string }) => {
-    setSelectedValue(option.label);
+    setSelectedValue(option);
     onChange(option.value);
     setIsOpen(false);
   };
@@ -130,7 +128,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     <DropdownContainer>
       <div ref={inputRef} onClick={handleClick}>
         <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
-          <p className="selected-value-text">{selectedValue}</p>
+          <p className="selected-value-text">{selectedValue.label}</p>
         </FrameInputField>
       </div>
 
