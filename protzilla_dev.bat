@@ -42,6 +42,8 @@ if "%key%"=="3" goto cleanup
 :: Start frontend server
 echo Starting frontend server as developer...
 cd frontend
+pnpm install
+pnpm build
 start /B pnpm dev
 cd ..
 

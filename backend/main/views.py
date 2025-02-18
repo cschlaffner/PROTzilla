@@ -17,10 +17,6 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 def ping(request):
     return HttpResponse("pong")
 
-def jannesjsontest(request):
-    listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]
-    return JsonResponse(listdict, safe=False)
-
 
 def databases(request):
     databases = uniprot_databases()
