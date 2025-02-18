@@ -1,3 +1,10 @@
+import { SectionNames, SelectedStep, SetSelectedStep } from "../types";
+
 export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement>{
-    name: "importing" | "data_preprocessing" | "data_analysis" | "data_integration";
+    name: SectionNames;
+    index:number;
+    title:string;
+    collapsed:boolean;
+    selectedStep:SelectedStep;
+    setSelectedStep: SetSelectedStep;
 }

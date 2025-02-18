@@ -10,3 +10,5 @@ export { default as importing } from "./importing.svg?react";
 export { default as data_preprocessing } from "./data_preprocessing.svg?react";
 export { default as data_analysis } from "./data_analysis.svg?react";
 export { default as data_integration } from "./data_integration.svg?react";
+export { default as list } from "./list.svg?react";
+export { default as chevronDoubleLeft } from "./chevron-double-left.svg?react";
