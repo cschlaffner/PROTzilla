@@ -11,12 +11,25 @@ import { RadioSelectInputField } from "../../input-fields/radio-select-input-fie
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
+import { Button } from "../../button";
 
 const StyledForm = styled.div`
+  width: 100%;
   max-width: ${size("inputFieldsMaxWidth")};
 `;
 
 const FormLabel = styled(Text)`
+  color: ${color("gray50")};
+  font-size: ${fontSize("default")};
+`;
+
+const StyledSubmitDiv = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const SubmitButton = styled(Button)`
   color: ${color("gray50")};
   font-size: ${fontSize("default")};
 `;
@@ -42,6 +55,11 @@ export const Form: React.FC<FormProps> = ({ formData }) => {
           {...inputField.props}
         />
       ))}
+      {formData.confirm && (
+        <StyledSubmitDiv>
+          <SubmitButton text="Submit" />
+        </StyledSubmitDiv>
+      )}
     </StyledForm>
   );
 };
@@ -50,7 +68,7 @@ interface InputFieldProps {
   type: string;
   id: string;
   onChange: (id: string, value: any) => void;
-  options: { label: string; value: string }[];
+  options?: { label: string; value: string }[];
   [key: string]: any;
 }
 
@@ -72,15 +90,37 @@ const InputField: React.FC<InputFieldProps> = ({
     case "search":
       return <SearchInputField onChange={handleInputChange} {...props} />;
     case "radio-select":
-      return <RadioSelectInputField onChange={handleInputChange}  options={options} {...props} />;
+      return (
+        <RadioSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
     case "checkbox-select":
       return (
-        <CheckboxSelectInputField onChange={handleInputChange}  options={options} {...props} />
+        <CheckboxSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
       );
     case "dropdown":
-      return <DropdownInputField onChange={handleInputChange}  options={options} {...props} />;
+      return (
+        <DropdownInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
     case "multi-select":
-      return <MultiSelectInputField onChange={handleInputChange}  options={options} {...props} />;
+      return (
+        <MultiSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
     default:
       return null;
   }
