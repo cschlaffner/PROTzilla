@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from "axios";
-import { action, observable, runInAction } from "mobx";
+import {action, observable, runInAction} from "mobx";
 
 import type { I18nMessage } from "../components";
 import { API_ROOT } from "../constants";
@@ -22,7 +22,7 @@ export class RootStore {
 
   public shouldPersist = false;
 
-  protected messageTimeouts: Record<string, number | undefined> = {};
+  protected messageTimeouts: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
   @observable protected accessor messages: Record<
     string,
     I18nMessage | undefined

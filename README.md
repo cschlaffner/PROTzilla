@@ -30,7 +30,7 @@ There might be open new TODOs, these will be addressed, nothing crucial for now.
 For local testing execute `pytest`.
 For specific tests execute `pytest path/to/test`
 
-### Github Workflows
+### GitHub Workflows
 - Frontend CI & Backend CI separated -> only executed if changes in each folder
 
 ### Dependencies
