@@ -7,7 +7,7 @@ import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 import { setupRootStore, StoreProvider } from "./store";
-import { CountersScreen, IndexScreen } from "../screens";
+import { CountersScreen, IndexScreen, WithNavbar } from "../screens";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -36,6 +36,7 @@ function App() {
             <Routes>
               <Route path="/" element={<MainScreen />}>
                 <Route path="/" element={<IndexScreen />} />
+                <Route path="/navbar" element={<WithNavbar />} />
                 <Route path="/counters" element={<CountersScreen />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
