@@ -2,8 +2,8 @@ import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { size, spacing } from "../theme";
 import { Navbar } from "../components/navbar/navbar.tsx";
+import { size, spacing } from "../theme";
 
 const FlexColumn = styled.div`
   align-items: stretch;
@@ -22,11 +22,13 @@ export const WithNavbar = observer(() => {
   return (
     <div>
       <Navbar
-        onNavigateHome={() => navigate("/")}
+        onNavigateHome={() => {
+          void navigate("/");
+        }}
         isDetailsPage={true}
         title={"my_runnnnnnn"}
       />
-      <FlexColumn>"Put PROTzilla content here"</FlexColumn>
+      <FlexColumn>Put PROTzilla content here</FlexColumn>
     </div>
   );
 });
