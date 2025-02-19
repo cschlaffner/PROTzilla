@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
-
+  // on pointer down - undefined o. openMenu
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
@@ -138,7 +138,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             txData={isDetailsPage ? titleData : undefined}
             txComponents={isDetailsPage ? titleComponents : undefined}
           />
-          {isDetailsPage && <Button icon={"edit"} onPress={openRunSettings} />}
+          {isDetailsPage && (
+            <Button
+              icon={"edit"}
+              onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
+            />
+          )}
           {isRunSettingsOpen && (
             <TempRunSettings ref={refRunSettings}>
               {
@@ -149,7 +154,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarCenter>
 
         <NavbarRight>
-          <Button icon={"burgerMenu"} onPress={openMenu} />
+          <Button
+            icon={"burgerMenu"}
+            onPointerDown={isMenuOpen ? undefined : openMenu}
+          />
           {isMenuOpen && (
             <TempMenu ref={refMenu}>
               {
