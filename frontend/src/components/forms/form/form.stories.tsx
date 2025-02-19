@@ -1,6 +1,7 @@
 import { Meta, StoryFn } from "@storybook/react";
-import { FormProps } from "./form.props";
+
 import { Form } from "./form";
+import { FormProps } from "./form.props";
 
 export default {
   component: Form,

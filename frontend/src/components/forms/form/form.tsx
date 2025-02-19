@@ -1,17 +1,17 @@
 import React, { useState } from "react";
-import { FormProps } from "./form.props";
 import { styled } from "styled-components";
-import { color, fontSize, size, spacing } from "../../../theme";
 
-import { Text } from "../../text";
-import { TextInputField } from "../../input-fields/text-input-field";
-import { NumberInputField } from "../../input-fields/number-input-field";
-import { SearchInputField } from "../../input-fields/search-input-field";
-import { RadioSelectInputField } from "../../input-fields/radio-select-input-field";
+import { FormProps } from "./form.props";
+import { color, fontSize, size, spacing } from "../../../theme";
+import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
-import { Button } from "../../button";
+import { NumberInputField } from "../../input-fields/number-input-field";
+import { RadioSelectInputField } from "../../input-fields/radio-select-input-field";
+import { SearchInputField } from "../../input-fields/search-input-field";
+import { TextInputField } from "../../input-fields/text-input-field";
+import { Text } from "../../text";
 
 const StyledForm = styled.div`
   width: 100%;
@@ -41,22 +41,29 @@ const ChangeIndicator = styled.div`
   font-size: ${fontSize("default")};
 `;
 
-export const Form: React.FC<FormProps> = ({ formData, onChange, onFirstChange}) => {
-  const [formValues, setFormValues] = useState<{ [key: string]: any }>({});
-  const [submittedValues, setSubmittedValues] = useState<{ [key: string]: any }>({});
+export const Form: React.FC<FormProps> = ({
+  formData,
+  onChange,
+  onFirstChange,
+}) => {
+  const [formValues, setFormValues] = useState<Record<string, any>>({});
+  const [submittedValues, setSubmittedValues] = useState<Record<string, any>>(
+    {},
+  );
   const [isChanged, setIsChanged] = useState(false);
   const [firstChangeTriggered, setFirstChangeTriggered] = useState(false);
 
   const handleChange = (id: string, value: any) => {
     setFormValues((prevValues) => {
       const newValues = { ...prevValues, [id]: value };
-      const hasChanges = JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+      const hasChanges =
+        JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
       if (!formData.submit) {
         onChange(newValues);
       } else {
         setIsChanged(hasChanges);
-        
+
         if (!firstChangeTriggered && hasChanges) {
           onFirstChange?.(true);
           setFirstChangeTriggered(true);
@@ -69,7 +76,7 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFirstChange}) 
 
   const handleSubmit = () => {
     onChange(formValues);
-    setSubmittedValues(formValues); 
+    setSubmittedValues(formValues);
     setIsChanged(false);
     setFirstChangeTriggered(false);
   };
@@ -79,6 +86,7 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFirstChange}) 
       <FormLabel>{formData.label}</FormLabel>
       {formData.input_fields.map((inputField) => (
         <InputField
+          key={inputField.id}
           type={inputField.type}
           id={inputField.id}
           onChange={handleChange}
@@ -87,8 +95,14 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFirstChange}) 
       ))}
       {formData.submit && (
         <StyledSubmitDiv>
-          {isChanged && <ChangeIndicator>New changes can be submitted</ChangeIndicator>}
-          <SubmitButton text="Submit" onClick={handleSubmit} isDisabled={!isChanged} />
+          {isChanged && (
+            <ChangeIndicator>New changes can be submitted</ChangeIndicator>
+          )}
+          <SubmitButton
+            text="Submit"
+            onClick={handleSubmit}
+            isDisabled={!isChanged}
+          />
         </StyledSubmitDiv>
       )}
     </StyledForm>
