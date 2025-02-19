@@ -25,7 +25,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
     path("api/ping/", views.ping, name="ping"),
 
-
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),

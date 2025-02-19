@@ -11,6 +11,9 @@ on:
     branches:
       - '*'
 
+    paths:
+      - frontend/**
+
 permissions:
   actions: read
   contents: write

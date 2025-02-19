@@ -93,47 +93,49 @@ def uniprot_columns(filename):
     ).columns.tolist()
 
 
-def is_biomart_available(
-        database_name: str="ENSEMBL_MART_ENSEMBL",
-        max_attempts: int=3
-    ) -> bool:
-    mirror_list = [
-        "http://ensembl.org/biomart",
-        "http://asia.ensembl.org/biomart",
-        "http://useast.ensembl.org/biomart",
-    ]
-    for _ in range(max_attempts):
-        for url in mirror_list:
-            try:
-                server = BiomartServer(url)
-                db = server.databases[database_name]
-                return True
-            except ParseError as e:
-                if "Service unavailable" in str(e):
-                    warnings.warn(f"ParseError: Expected XML but received an HTML error page indicating the service at {url} is unavailable.", RuntimeWarning)
-                    continue
-            except requests.HTTPError as e:
-                warnings.warn(f"HTTPError: Server at {url} responded with {e.response.status_code} {e.response.reason}.", RuntimeWarning)
-                continue
-            except requests.ConnectionError:
-                warnings.warn(f"ConnectionError: Could not connect to {url}.", RuntimeWarning)
-                continue
-    return False
 
-def biomart_database(
-    database_name: str = "ENSEMBL_MART_ENSEMBL", max_attempts: int = 3
-):
+def check_biomart_availability() -> dict:
+    """
+    Checks if a BioMart server is available by querying the registry endpoint.
+    :return: Dictionary containing the following entries:
+        - available: bool, if BioMart is available
+        - url: str, the URL where BioMart is available
+    """
+
     mirror_list = [
         "http://ensembl.org/biomart",
         "http://asia.ensembl.org/biomart",
         "http://useast.ensembl.org/biomart",
     ]
-    if is_biomart_available():
-        for _ in range(max_attempts):
-            for url in mirror_list:
-                server = BiomartServer(url)
-                db = server.databases[database_name]
-                return db
+
+    for url in mirror_list:
+        try:
+            # Requesting response the same way as server = BiomartServer(url)
+            response = requests.get(f"{url}/martservice?type=registry")
+            if "<title>Service unavailable</title>" in response.text:
+                warnings.warn(f"Error: Server at {url} responded an HTML error page indicating the service is unavailable.")
+                continue
+            else:
+                return dict(available=True, url=url)
+        except ParseError as e:
+            if "<title>Service unavailable<title>" in str(e):
+                warnings.warn(f"ParseError: Expected XML but received an HTML error page indicating the service at {url} is unavailable.", RuntimeWarning)
+                continue
+        except requests.HTTPError as e:
+            warnings.warn(f"HTTPError: Server at {url} responded with {e.response.status_code} {e.response.reason}.", RuntimeWarning)
+            continue
+        except requests.ConnectionError:
+            warnings.warn(f"ConnectionError: Could not connect to {url}.", RuntimeWarning)
+            continue
+    return dict(available=False, url=None)
+
+
+def biomart_database(database_name: str = "ENSEMBL_MART_ENSEMBL"):
+    biomart_check = check_biomart_availability()
+    if biomart_check["available"]:
+        server = BiomartServer(biomart_check["url"])
+        db = server.databases[database_name]
+        return db
 
 
 def uniprot_databases():
