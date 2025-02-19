@@ -17,12 +17,12 @@ export const defaultPalette = {
   protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#4A536A",
+  primaryHover: "#CE5A5A",
   primaryActive: "#4A536A",
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#E8EDF3",
+  secondaryHover: "#000000",
   secondaryActive: "#E8EDF3",
   secondaryDisabled: "#F2F2F3",
 
@@ -36,8 +36,9 @@ export const defaultPalette = {
   redActive: "#CE5A5A",
   redDisabled: "#CE5A5A",
 
-  gray: "#E0E0E0",
-  grayHover: "#E0E0E0",
+  
+  gray: "#E0E0E0",  
+  grayHover: "#FFFFFF",
   grayActive: "#E0E0E0",
   grayDisabled: "#E0E0E0",
 
@@ -63,6 +64,7 @@ export const defaultPalette = {
   gray6: "#E4E4E5",
   gray50: "#929396",
 
+  invisibleHover: "#CE5A5A",
   transparent: "rgba(0,0,0,0)",
   popUpBackdrop: "rgba(0, 0, 0, 0.5)",
 
