@@ -512,24 +512,25 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
     assert "No background provided" in current_out["messages"][0]["msg"]
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
 
-
-def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
-    biomart_check = check_biomart_availability()
-    if biomart_check["available"] == False:
-        pytest.skip("BioMart servers are not available. Skipping related tests.")
-    current_out = GO_analysis_with_Enrichr(
-        proteins_df=pd.DataFrame(
-            {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
-        ),
-        organism="human",
-        differential_expression_col="log2_fold_change",
-        direction="both",
-        gene_sets_path=data_folder_tests / "Reactome_2022.txt",
-        background_path="aMadeUpInputFormat.abc",
-        gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
-    )
-    assert "messages" in current_out
-    assert "Invalid file type for background" in current_out["messages"][0]["msg"]
+# TODO fix biomart communication to avoid test failure because of server unavailabilty
+# -- current procedure fails because availability varies too quickly
+# def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
+#     biomart_check = check_biomart_availability()
+#     if biomart_check["available"] == False:
+#         pytest.skip("BioMart servers are not available. Skipping related tests.")
+#     current_out = GO_analysis_with_Enrichr(
+#         proteins_df=pd.DataFrame(
+#             {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
+#         ),
+#         organism="human",
+#         differential_expression_col="log2_fold_change",
+#         direction="both",
+#         gene_sets_path=data_folder_tests / "Reactome_2022.txt",
+#         background_path="aMadeUpInputFormat.abc",
+#         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
+#     )
+#     assert "messages" in current_out
+#     assert "Invalid file type for background" in current_out["messages"][0]["msg"]
 
 
 @pytest.fixture
