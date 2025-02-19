@@ -1,0 +1,2 @@
+export const TABLE_SCROLL_RENDER_MARGIN = 5;
+export const TABLE_SCROLL_LOAD_FACTOR = 0.9;
