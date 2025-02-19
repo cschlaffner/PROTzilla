@@ -1,11 +1,11 @@
 import { Meta, StoryFn } from "@storybook/react";
-import { FormProps } from "./form.props"; 
+import { FormProps } from "./form.props";
 import { Form } from "./form";
 
 export default {
   component: Form,
   title: "Forms / Form",
-  argTypes: { onChange: { action: "changed" } },
+  argTypes: { onChange: { action: "changed" }, onFirstChange: { action: "first change" } },
 } as Meta<FormProps>;
 
 const Template: StoryFn<FormProps> = (args) => {
@@ -16,8 +16,7 @@ export const primary = Template.bind({});
 primary.args = {
   formData: {
     label: "Formular Demo",
-    onChange: "handleFormChange",
-    confirm: false,
+    submit: false,
     input_fields: [
       {
         type: "text",
@@ -55,8 +54,7 @@ export const submit = Template.bind({});
 submit.args = {
   formData: {
     label: "Formular Demo",
-    onChange: "handleFormChange",
-    confirm: true,
+    submit: true,
     input_fields: [
       {
         type: "text",

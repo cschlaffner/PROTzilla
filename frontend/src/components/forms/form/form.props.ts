@@ -8,23 +8,48 @@ import { TextInputFieldProps } from "../../input-fields/text-input-field";
 
 export interface FormProps {
   formData: FormData;
+  onChange: (data: Record<string, any>) => void;
+  onFirstChange?: (firstChange: boolean) => void;
 }
 
 export interface FormData {
   label: string;
-  onChange: string;
-  confirm: boolean;
+  submit: boolean;
   input_fields: InputField[];
 }
 
-export type InputField = 
-  | { type: 'text'; id: string; props: Omit<TextInputFieldProps, "onChange"> }
-  | { type: 'number'; id: string; props: Omit<NumberInputFieldProps, "onChange"> }
-  | { type: 'search'; id: string; props: Omit<SearchInputFieldProps, "onChange"> }
-  | { type: 'radio-select'; id: string; props: Omit<RadioSelectInputFieldProps, "onChange"> }
-  | { type: 'checkbox-select'; id: string; props: Omit<CheckboxSelectInputFieldProps, "onChange"> }
-  | { type: 'multi-select'; id: string; props: Omit<MultiSelectInputFieldProps, "onChange"> }
-  | { type: 'dropdown'; id: string; props: Omit<DropdownInputFieldProps, "onChange"> };
+export type InputField =
+  | { type: "text"; id: string; props: Omit<TextInputFieldProps, "onChange"> }
+  | {
+      type: "number";
+      id: string;
+      props: Omit<NumberInputFieldProps, "onChange">;
+    }
+  | {
+      type: "search";
+      id: string;
+      props: Omit<SearchInputFieldProps, "onChange">;
+    }
+  | {
+      type: "radio-select";
+      id: string;
+      props: Omit<RadioSelectInputFieldProps, "onChange">;
+    }
+  | {
+      type: "checkbox-select";
+      id: string;
+      props: Omit<CheckboxSelectInputFieldProps, "onChange">;
+    }
+  | {
+      type: "multi-select";
+      id: string;
+      props: Omit<MultiSelectInputFieldProps, "onChange">;
+    }
+  | {
+      type: "dropdown";
+      id: string;
+      props: Omit<DropdownInputFieldProps, "onChange">;
+    };
 
 export type InputFieldProps =
   | TextInputFieldProps

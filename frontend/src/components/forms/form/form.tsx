@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FormProps } from "./form.props";
 import { styled } from "styled-components";
-import { color, fontSize, size } from "../../../theme";
+import { color, fontSize, size, spacing } from "../../../theme";
 
 import { Text } from "../../text";
 import { TextInputField } from "../../input-fields/text-input-field";
@@ -27,6 +27,8 @@ const StyledSubmitDiv = styled.div`
   width: 100%;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: ${spacing("small")};
 `;
 
 const SubmitButton = styled(Button)`
@@ -34,14 +36,42 @@ const SubmitButton = styled(Button)`
   font-size: ${fontSize("default")};
 `;
 
-export const Form: React.FC<FormProps> = ({ formData }) => {
+const ChangeIndicator = styled.div`
+  color: ${color("red")};
+  font-size: ${fontSize("default")};
+`;
+
+export const Form: React.FC<FormProps> = ({ formData, onChange, onFirstChange}) => {
   const [formValues, setFormValues] = useState<{ [key: string]: any }>({});
+  const [submittedValues, setSubmittedValues] = useState<{ [key: string]: any }>({});
+  const [isChanged, setIsChanged] = useState(false);
+  const [firstChangeTriggered, setFirstChangeTriggered] = useState(false);
 
   const handleChange = (id: string, value: any) => {
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [id]: value,
-    }));
+    setFormValues((prevValues) => {
+      const newValues = { ...prevValues, [id]: value };
+      const hasChanges = JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+
+      if (!formData.submit) {
+        onChange(newValues);
+      } else {
+        setIsChanged(hasChanges);
+        
+        if (!firstChangeTriggered && hasChanges) {
+          onFirstChange?.(true);
+          setFirstChangeTriggered(true);
+        }
+      }
+
+      return newValues;
+    });
+  };
+
+  const handleSubmit = () => {
+    onChange(formValues);
+    setSubmittedValues(formValues); 
+    setIsChanged(false);
+    setFirstChangeTriggered(false);
   };
 
   return (
@@ -55,9 +85,10 @@ export const Form: React.FC<FormProps> = ({ formData }) => {
           {...inputField.props}
         />
       ))}
-      {formData.confirm && (
+      {formData.submit && (
         <StyledSubmitDiv>
-          <SubmitButton text="Submit" />
+          {isChanged && <ChangeIndicator>New changes can be submitted</ChangeIndicator>}
+          <SubmitButton text="Submit" onClick={handleSubmit} isDisabled={!isChanged} />
         </StyledSubmitDiv>
       )}
     </StyledForm>
