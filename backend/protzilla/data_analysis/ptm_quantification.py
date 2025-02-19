@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from seaborn import distplot, diverging_palette, lineplot, scatterplot
 
-from backend.protzilla.utilities.misc import fig_to_base64
+from backend.protzilla.utilities import fig_to_base64
 
 CONFIDENCE_BAND_ALPHA = 0.3
 

@@ -5,7 +5,7 @@ from pathlib import Path
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.run import Run
 from backend.protzilla.run_helper import log_messages
-from backend.protzilla.utilities.misc import random_string
+from backend.protzilla.utilities import random_string
 
 
 class Runner:

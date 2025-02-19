@@ -17,31 +17,6 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 def ping(request):
     return HttpResponse("pong")
 
-def jannesjsontest(request):
-    listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]
-    return JsonResponse(listdict, safe=False)
-
-def plot(request):
-    import plotly.graph_objects as go
-    import plotly.graph_objects as go
-
-    fig = go.Figure(data=[
-        go.Bar(
-            x=["Yes", "No"],
-            y=[90, 10],
-            text=[f"{v}%" for v in [90, 10]],
-            textposition="auto",
-            marker=dict(color=["#4A536A", "#CE5A5A"])
-        )
-    ])
-    fig.update_layout(
-        title="Possibility of Team PROTzilla traveling to Kopenhagen?",
-        xaxis_title="Response",
-        yaxis_title="Probability (%)",
-        yaxis=dict(range=[0, 100])
-    )
-    fig_json = json.loads(fig.to_json())
-    return JsonResponse(fig_json)
 
 def databases(request):
     databases = uniprot_databases()

@@ -4,12 +4,12 @@ This is a work-in-progress version.
 Please refer to the current PROTzilla at https://github.com/cschlaffner/PROTzilla2
 
 ### Install scripts
-Available for Linux-based (.sh) & Windows (.bat)
+Available for Linux-based (run_protzilla.sh) & Windows (run_protzilla.bat)
 - installs all dependencies 
 - installs pnpm & node.js (if errors occur, please inform others!)
 - opens frontend index.html built by pnpm via backend-configured port http://127.0.0.1:8000/
 
-## Starting Protzilla
+## Starting PROTzilla
 Run `protzilla_dev` for your OS (Windows not tested yet).
 It starts the frontend server in development mode (`pnpm dev`) and the backend server (as usual in PROTzilla2, but with a dynamic link to the frontend).
 
@@ -22,7 +22,7 @@ NOT up to date! As soon as PROTzilla2 has all features merged, backend will be u
 
 There might be open new TODOs, these will be addressed, nothing crucial for now.
 
-### Frontend status
+### Frontend Status
 - Contains README from Pauls workshop (might not be entirely up to date, but kept for now as a reference)
 - Contains many components that will be changed/deleted -> **WIP for Feb/March 2025**
 
@@ -30,7 +30,7 @@ There might be open new TODOs, these will be addressed, nothing crucial for now.
 For local testing execute `pytest`.
 For specific tests execute `pytest path/to/test`
 
-### Github workflows
+### GitHub Workflows
 - Frontend CI & Backend CI separated -> only executed if changes in each folder
 
 ### Dependencies
