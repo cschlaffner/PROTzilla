@@ -127,7 +127,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     txComponents,
     txData,
     textStyle,
-    isCautious,
     isShy,
     isSmall,
     showFocusOutline = true,
