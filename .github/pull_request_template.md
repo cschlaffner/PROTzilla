@@ -17,7 +17,8 @@ fixes #<Issue Number>
 **Mergeability**
 - [ ] main-branch has been merged into local branch to resolve conflicts
 - [ ] The tests and linter have passed AFTER local merge
-- [ ] The code has been formatted with `black`
+- [ ] The backend code has been formatted with `black`
+- [ ] The frontend code has been formatted with `pnpm format` and checked with `pnpm lint`
  
 **Code review**
 - [ ] I have self-reviewed my code.
