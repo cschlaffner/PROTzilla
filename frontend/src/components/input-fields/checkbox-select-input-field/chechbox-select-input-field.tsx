@@ -37,8 +37,12 @@ export const CheckboxSelectInputField: React.FC<
       ? selectedValues.filter((v) => v !== value)
       : [...selectedValues, value];
 
-    setSelectedValues(newSelectedValues);
-    onChange(newSelectedValues);
+    const sortedSelection = newSelectedValues.sort((a, b) =>
+      a.localeCompare(b),
+    );
+
+    setSelectedValues(sortedSelection);
+    onChange(sortedSelection);
   };
 
   return (

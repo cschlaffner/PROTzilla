@@ -136,8 +136,12 @@ export const MultiSelectInputField = forwardRef<
         ? prev.filter((item) => item.value !== option.value)
         : [...prev, option];
 
-      onChange(newSelection.map((opt) => opt.value));
-      return newSelection;
+        const sortedSelection = newSelection.sort((a, b) =>
+          a.value.localeCompare(b.value)
+        );
+    
+        onChange(sortedSelection.map((opt) => opt.value));
+        return sortedSelection;
     });
   };
   return (
