@@ -64,7 +64,7 @@ export const defaultPalette = {
   gray50: "#929396",
 
   transparent: "rgba(0,0,0,0)",
-  popUpBackdrop: "rgba(44,46,52,0.20)",
+  popUpBackdrop: "rgba(0, 0, 0, 0.5)",
 };
 
 const colorModes = {
@@ -163,6 +163,7 @@ export const baseTheme = {
   shadows: {
     floating: "0px 12px 20px -10px rgba(0, 0, 0, 0.25)",
     tooltip: "0px 3px 8px -4px rgba(0, 0, 0, 0.3)",
+    box_shadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
   },
   sizes: {
     icon: "20px",
