@@ -29,10 +29,10 @@ from backend.protzilla.data_integration.enrichment_analysis_gsea import (
     gsea_preranked,
     create_ranked_df,
 )
-
 from backend.protzilla.data_integration.database_query import check_biomart_availability
 
 # isort:end_skip_file
+
 
 @pytest.fixture
 def data_folder_tests():
@@ -379,7 +379,6 @@ def test_GO_analysis_with_STRING_too_many_col_df():
 
 
 def test_GO_analysis_with_enrichr_wrong_proteins_input():
-
     biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
@@ -399,7 +398,6 @@ def test_GO_analysis_with_enrichr_wrong_proteins_input():
 
 
 def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
-
     biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
@@ -416,7 +414,6 @@ def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
 
 
 def test_GO_analysis_with_no_gene_sets_input():
-
     biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
@@ -437,7 +434,6 @@ def test_GO_analysis_with_no_gene_sets_input():
 
 @patch("backend.protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
-
     biomart_check = check_biomart_availability()
     if biomart_check["available"] == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
@@ -515,7 +511,6 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
     assert "messages" in current_out
     assert "No background provided" in current_out["messages"][0]["msg"]
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
-
 
 # TODO fix biomart communication to avoid test failure because of server unavailabilty
 # -- current procedure fails because availability varies too quickly

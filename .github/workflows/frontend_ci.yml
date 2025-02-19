@@ -13,9 +13,6 @@ on:
     paths:
       - frontend/**
 
-    paths:
-      - frontend/**
-
 permissions:
   actions: read
   contents: write
