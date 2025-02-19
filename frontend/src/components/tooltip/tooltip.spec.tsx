@@ -1,0 +1,15 @@
+import { render } from "@testing-library/react";
+
+import { Tooltip } from "./tooltip";
+import { getTheme, ThemeProvider } from "../../theme";
+
+describe("Tooltip", () => {
+  it("should render successfully", () => {
+    const { baseElement } = render(
+      <ThemeProvider theme={getTheme()}>
+        <Tooltip />
+      </ThemeProvider>,
+    );
+    expect(baseElement).toBeTruthy();
+  });
+});
