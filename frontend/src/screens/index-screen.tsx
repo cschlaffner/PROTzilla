@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { Dropdown, Button, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
-import { callApiWithParameters } from "../utils";
+import { callApi, callApiWithParameters } from "../utils";
 //import { useFetch } from "../hooks";
 
 
@@ -21,8 +21,7 @@ export const IndexScreen: React.FC = () => {
       .then((data: { value: string; label: string }[]) => setRuns(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
-  /*const data = useFetch("jannesjsontest"); //doesnt seem to work :(
-  setRuns(data);*/
+
   
     // Fetch CSRF token on component mount
 /*    useEffect(() => {

@@ -22,3 +22,10 @@ export const callApiWithParameters = async (url: string, parameters: {[key : str
       console.error("Error deleting element:", error);
     }
   };
+  
+export const callApi = (url: string) => {
+    fetch("http://127.0.0.1:8000/api/" + url)
+      .then((response) => response.json())
+      .then((data: any) => {return data})
+      .catch((error) => console.error('Error fetching data:', error));
+};
