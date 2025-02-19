@@ -75,7 +75,7 @@ const StyledButton = styled.button.withConfig({
         `
       : css`
           cursor: pointer;
-          &:active > * {
+          &&:active > * {
             opacity: 1;
           }
         `}
@@ -127,6 +127,7 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     txComponents,
     txData,
     textStyle,
+    isCautious,
     isShy,
     isSmall,
     showFocusOutline = true,
@@ -361,12 +362,12 @@ export const Button = styled(BaseButton)`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : "primaryHover")};
+      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryHover")};
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : "primaryActive")};
+      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryActive")};
   }
 `;
 
@@ -383,9 +384,10 @@ export const GreenButton = styled(Button)`
   &:hover {
     background-color: ${(props) =>
       color(props.isDisabled ? "greenDisabled" : "greenHover")};
+
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
       color(props.isDisabled ? "greenDisabled" : "greenActive")};
   }
@@ -402,7 +404,7 @@ export const RedButton = styled(Button)`
       color(props.isDisabled ? "redDisabled" : "redHover")};
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
       color(props.isDisabled ? "redDisabled" : "redActive")};
   }
@@ -423,7 +425,7 @@ export const YellowButton = styled(Button)`
       color(props.isDisabled ? "yellowDisabled" : "yellowHover")};
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
       color(props.isDisabled ? "yellowDisabled" : "yellowActive")};
   }
@@ -441,12 +443,12 @@ const secondaryButtonMixin = css<ButtonProps>`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : "secondaryHover")};
+      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryHover")};
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : "secondaryActive")};
+      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryActive")};
   }
 
   .text {
@@ -479,12 +481,12 @@ export const GrayButton = styled(Button)`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : "grayHover")};
+      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayHover")};
   }
 
-  :active {
+  &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : "grayActive")};
+      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayActive")};
   }
 `;
 
@@ -574,7 +576,7 @@ export const BorderButton = styled(Button)`
     }
   }
 
-  :active {
+  &:active {
     border: 1px solid
       ${({ isDisabled }) =>
         color(isDisabled ? "primaryDisabled" : "primaryActive")};
@@ -586,7 +588,7 @@ export const BorderButton = styled(Button)`
       color(isDisabled ? "primaryDisabled" : "primary")};
     font-weight: ${fontWeight("bold")};
 
-    :active {
+    &:active {
       color: ${({ isDisabled }) =>
         color(isDisabled ? "primaryDisabled" : "primaryActive")};
     }
