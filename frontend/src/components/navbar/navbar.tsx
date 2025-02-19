@@ -12,9 +12,10 @@ import { Icon } from "../icon";
 const NavbarBody = styled.div`
   align-items: center;
   width: 100vw;
-  height: 75px;
+  height: ${spacing("navbarHeight")};
   box-sizing: border-box;
   background: ${color("primary")};
+  position: relative;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -48,7 +49,7 @@ const HomeButton = styled(Button)`
   padding-left: ${spacing("smallButtonIconPadding")};
   padding-bottom: 0;
   padding-right: ${spacing("buttonPadding")};
-  background-color: ${color("popUpBackdropLight")};
+  background-color: ${color("backdropLight")};
   height: ${spacing("large")};
   align-content: center;
 
@@ -79,6 +80,8 @@ const TempMenu = styled.div`
   width: 100px;
   height: 100px;
   background: #1a1d20;
+  position: absolute;
+  top: ${spacing("navbarHeight")};
   color: #fff;
   align-self: self-end;
   font-size: ${fontSize("small")};
@@ -89,6 +92,8 @@ const TempRunSettings = styled.div`
   width: 100px;
   height: 100px;
   background: #1a1d20;
+  position: absolute;
+  top: ${spacing("navbarHeight")};
   color: #fff;
   align-self: center;
   font-size: ${fontSize("small")};
@@ -99,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   titleTx,
   titleData,
   titleComponents,
-  onNavigateBack,
+  onNavigateHome,
   isDetailsPage,
 
   ...rest
@@ -121,45 +126,40 @@ export const Navbar: React.FC<NavbarProps> = ({
             <HomeButton
               icon={"protzilla"}
               text="Home"
-              onPress={onNavigateBack}
+              onPress={onNavigateHome}
             />
           ) : (
             <HomeIcon icon={"protzilla"} color={"onPrimary"} />
           )}
         </NavbarLeft>
-        {isDetailsPage ? (
-          <NavbarCenter>
-            <NavbarCenterTitle
-              text={title}
-              tx={titleTx}
-              txData={titleData}
-              txComponents={titleComponents}
-            />
-            <Button icon={"edit"} onPress={openRunSettings} />
-          </NavbarCenter>
-        ) : (
-          <NavbarCenter>
-            <NavbarCenterTitle text={"PROTzilla"} tx={"PROTzilla"} />
-          </NavbarCenter>
-        )}
+        <NavbarCenter>
+          <NavbarCenterTitle
+            text={isDetailsPage ? title : "PROTzilla"}
+            tx={isDetailsPage ? titleTx : "PROTzilla"}
+            txData={isDetailsPage ? titleData : undefined}
+            txComponents={isDetailsPage ? titleComponents : undefined}
+          />
+          {isDetailsPage && <Button icon={"edit"} onPress={openRunSettings} />}
+          {isRunSettingsOpen && (
+            <TempRunSettings ref={refRunSettings}>
+              {
+                "TODO: Create component to show current run's name, tags, other info."
+              }
+            </TempRunSettings>
+          )}
+        </NavbarCenter>
+
         <NavbarRight>
           <Button icon={"burgerMenu"} onPress={openMenu} />
+          {isMenuOpen && (
+            <TempMenu ref={refMenu}>
+              {
+                "TODO: Create component to show menu, go to settings, add github icon etc. "
+              }
+            </TempMenu>
+          )}
         </NavbarRight>
       </NavbarBody>
-      {isMenuOpen && (
-        <TempMenu ref={refMenu}>
-          {
-            "TODO: Create component to show menu, go to settings, add github icon etc. "
-          }
-        </TempMenu>
-      )}
-      {isRunSettingsOpen && (
-        <TempRunSettings ref={refRunSettings}>
-          {
-            "TODO: Create component to show current run's name, tags, other info."
-          }
-        </TempRunSettings>
-      )}
     </FlexColumn>
   );
 };
