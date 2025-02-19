@@ -49,7 +49,6 @@ const HomeButton = styled(Button)`
   padding-left: ${spacing("smallButtonIconPadding")};
   padding-bottom: 0;
   padding-right: ${spacing("buttonPadding")};
-  background-color: ${color("backdropLight")};
   height: ${spacing("large")};
   align-content: center;
 

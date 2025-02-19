@@ -7,7 +7,7 @@ export default {
   component: Navbar,
   title: "Navbar",
   argTypes: {
-    onNavigateBack: { action: "back" },
+    onNavigateHome: { action: "back" },
     onOpenMenu: { action: "menu" },
   },
 };
