@@ -5,6 +5,7 @@ import { ModalProps } from "./modal.props";
 import { color, zIndex } from "../../theme";
 import { CircularButton } from "../button";
 import { Card } from "../card"; 
+import { Icon } from "../icon"
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -49,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           title={
             <CardHeader>
               <span>{title}</span>
-              <CloseButton onClick={onClose}>×</CloseButton>
+              <CloseButton onClick={onClose}><Icon icon="close"></Icon></CloseButton>
             </CardHeader>
           }>
           {children}

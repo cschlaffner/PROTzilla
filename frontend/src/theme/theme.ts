@@ -18,7 +18,7 @@ export const defaultPalette = {
 
   primary: "#4A536A",
   primaryHover: "#CE5A5A",
-  primaryActive: "#4A536A",
+  primaryActive: "#CE5A5A",
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
