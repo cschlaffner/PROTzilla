@@ -2,9 +2,9 @@ import React from "react";
 import styled from "styled-components";
 
 import { ModalProps } from "./modal.props";
-import { Card } from "../card"; 
-import { zIndex, color } from "../../theme";
+import { color, zIndex } from "../../theme";
 import { CircularButton } from "../button";
+import { Card } from "../card"; 
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
   position: fixed;

@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 
 import { CardProps } from "./card.props";
-import { spacing, shadow } from "../../theme";
+import { shadow, spacing } from "../../theme";
 
 
 const StyledCard = styled.div`
