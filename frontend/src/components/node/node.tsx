@@ -76,6 +76,7 @@ export const Node: React.FC<NodeProps> = ({
   titleTx,
   titleData,
   titleComponents,
+
   inputSockets,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   outputSockets,

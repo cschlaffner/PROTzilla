@@ -1,6 +1,7 @@
 # PROTzilla Frontend - Development Notes
 
 Author: Paul Brachmann, slightly edited by Sarah Vogels
+
 ## Get Started
 
 1. Install [node.js](https://nodejs.org/en/)

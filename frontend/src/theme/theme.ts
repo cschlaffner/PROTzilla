@@ -58,6 +58,7 @@ export const defaultPalette = {
 
   black: "#000000",
   blackDisabled: "#F2F2F3",
+
   lightGray12: "#44464b",
   gray6: "#E4E4E5",
   gray50: "#929396",
