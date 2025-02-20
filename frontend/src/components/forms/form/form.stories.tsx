@@ -6,7 +6,10 @@ import { FormProps } from "./form.props";
 export default {
   component: Form,
   title: "Forms / Form",
-  argTypes: { onChange: { action: "changed" }, onFirstChange: { action: "first change" } },
+  argTypes: {
+    onChange: { action: "changed" },
+    onFormTouched: { action: "form has changed" },
+  },
 } as Meta<FormProps>;
 
 const Template: StoryFn<FormProps> = (args) => {

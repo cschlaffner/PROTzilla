@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps } from "./form.props";
-import { color, fontSize, size, spacing } from "../../../theme";
+import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
@@ -19,8 +19,11 @@ const StyledForm = styled.div`
 `;
 
 const FormLabel = styled(Text)`
-  color: ${color("gray50")};
-  font-size: ${fontSize("default")};
+  font-size: ${fontSize("h2")};
+  line-height: ${fontSize("h2")};
+  font-weight: ${fontWeight("bold")};
+  color: ${color("primary")};
+  padding-bottom: ${spacing("small")};
 `;
 
 const StyledSubmitDiv = styled.div`
@@ -44,14 +47,28 @@ const ChangeIndicator = styled.div`
 export const Form: React.FC<FormProps> = ({
   formData,
   onChange,
-  onFirstChange,
+  onFormTouched,
 }) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [submittedValues, setSubmittedValues] = useState<Record<string, any>>(
     {},
   );
   const [isChanged, setIsChanged] = useState(false);
-  const [firstChangeTriggered, setFirstChangeTriggered] = useState(false);
+  const [formTouchedTriggered, setFormTouchedTriggered] = useState(false);
+
+  const inputRefs = useRef<{ [key: string]: any }>({});
+
+  useEffect(() => {
+    setTimeout(() => {
+      const initialValues: Record<string, any> = {};
+      Object.keys(inputRefs.current).forEach((key) => {
+        if (inputRefs.current[key]?.getValue) {
+          initialValues[key] = inputRefs.current[key].getValue();
+        }
+      });
+      setFormValues(initialValues);
+    }, 0);
+  }, []);
 
   const handleChange = (id: string, value: any) => {
     setFormValues((prevValues) => {
@@ -64,9 +81,14 @@ export const Form: React.FC<FormProps> = ({
       } else {
         setIsChanged(hasChanges);
 
-        if (!firstChangeTriggered && hasChanges) {
-          onFirstChange?.(true);
-          setFirstChangeTriggered(true);
+        if (hasChanges) {
+          if (!formTouchedTriggered) {
+            onFormTouched?.(true);
+            setFormTouchedTriggered(true);
+          }
+        } else {
+          onFormTouched?.(false);
+          setFormTouchedTriggered(false);
         }
       }
 
@@ -78,18 +100,21 @@ export const Form: React.FC<FormProps> = ({
     onChange(formValues);
     setSubmittedValues(formValues);
     setIsChanged(false);
-    setFirstChangeTriggered(false);
+    setFormTouchedTriggered(false);
   };
 
   return (
     <StyledForm>
-      <FormLabel>{formData.label}</FormLabel>
+      <FormLabel as="h2">{formData.label}</FormLabel>
       {formData.input_fields.map((inputField) => (
         <InputField
           key={inputField.id}
           type={inputField.type}
           id={inputField.id}
           onChange={handleChange}
+          ref={(el) => {
+            if (el) inputRefs.current[inputField.id] = el;
+          }}
           {...inputField.props}
         />
       ))}
@@ -117,56 +142,63 @@ interface InputFieldProps {
   [key: string]: any;
 }
 
-const InputField: React.FC<InputFieldProps> = ({
-  type,
-  id,
-  onChange,
-  options,
-  ...props
-}) => {
-  const handleInputChange = (value: any) => {
-    onChange(id, value);
-  };
-  switch (type) {
-    case "text":
-      return <TextInputField onChange={handleInputChange} {...props} />;
-    case "number":
-      return <NumberInputField onChange={handleInputChange} {...props} />;
-    case "search":
-      return <SearchInputField onChange={handleInputChange} {...props} />;
-    case "radio-select":
-      return (
-        <RadioSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "checkbox-select":
-      return (
-        <CheckboxSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "dropdown":
-      return (
-        <DropdownInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "multi-select":
-      return (
-        <MultiSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    default:
-      return null;
-  }
-};
+const InputField = React.forwardRef<any, InputFieldProps>(
+  ({ type, id, onChange, options, ...props }, ref) => {
+    const handleInputChange = (value: any) => {
+      onChange(id, value);
+    };
+
+    switch (type) {
+      case "text":
+        return (
+          <TextInputField ref={ref} onChange={handleInputChange} {...props} />
+        );
+      case "number":
+        return (
+          <NumberInputField ref={ref} onChange={handleInputChange} {...props} />
+        );
+      case "search":
+        return (
+          <SearchInputField ref={ref} onChange={handleInputChange} {...props} />
+        );
+      case "radio-select":
+        return (
+          <RadioSelectInputField
+            ref={ref}
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "checkbox-select":
+        return (
+          <CheckboxSelectInputField
+            ref={ref}
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "dropdown":
+        return (
+          <DropdownInputField
+            ref={ref}
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "multi-select":
+        return (
+          <MultiSelectInputField
+            ref={ref}
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      default:
+        return null;
+    }
+  },
+);

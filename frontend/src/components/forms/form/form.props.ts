@@ -9,7 +9,7 @@ import { TextInputFieldProps } from "../../input-fields/text-input-field";
 export interface FormProps {
   formData: FormData;
   onChange: (data: Record<string, any>) => void;
-  onFirstChange?: (firstChange: boolean) => void;
+  onFormTouched?: (hasChanged: boolean) => void;
 }
 
 export interface FormData {
