@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { styled } from "styled-components";
 
-import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
+import {
+  CheckboxSelectInputFieldProps,
+  CheckboxSelectInputFieldRef,
+} from "./checkbox-select-input-field.props";
 import { spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 
@@ -21,14 +24,13 @@ const StyledLabel = styled.label`
   user-select: none;
 `;
 
-export const CheckboxSelectInputField: React.FC<
+export const CheckboxSelectInputField = forwardRef<
+  CheckboxSelectInputFieldRef,
   CheckboxSelectInputFieldProps
-> = ({
-  options,
-  selectedValues: selectedValuesProp = [],
-  onChange,
-  ...props
-}) => {
+>(function MultiSelectInputField(
+  { options, selectedValues: selectedValuesProp = [], onChange, ...props },
+  ref,
+) {
   const [selectedValues, setSelectedValues] =
     useState<string[]>(selectedValuesProp);
 
@@ -44,6 +46,13 @@ export const CheckboxSelectInputField: React.FC<
     setSelectedValues(sortedSelection);
     onChange(sortedSelection);
   };
+
+  useImperativeHandle(ref, () => ({
+    getValue: () => selectedValues,
+    setValue: (values: string[]) => {
+      setSelectedValues(values);
+    },
+  }));
 
   return (
     <FrameInputField {...props}>
@@ -68,4 +77,4 @@ export const CheckboxSelectInputField: React.FC<
       </StyledCheckboxContainer>
     </FrameInputField>
   );
-};
+});

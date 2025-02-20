@@ -11,3 +11,8 @@ export interface NumberInputFieldProps
   step?: number;
   onChange: (value: number) => void;
 }
+
+export interface NumberInputFieldRef {
+  getValue: () => number | null;
+  setValue: (value: number) => void;
+}

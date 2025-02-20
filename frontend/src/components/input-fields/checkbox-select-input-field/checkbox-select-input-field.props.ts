@@ -8,3 +8,8 @@ export interface CheckboxSelectInputFieldProps
   selectedValues?: string[];
   onChange: (value: string[]) => void;
 }
+
+export interface CheckboxSelectInputFieldRef {
+  getValue: () => string[];
+  setValue: (values: string[]) => void;
+}
