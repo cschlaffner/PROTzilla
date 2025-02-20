@@ -1,39 +1,25 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import { SearchInputFieldProps } from "./search-input-field.props";
+import {
+  SearchInputFieldProps,
+  SearchInputFieldRef,
+} from "./search-input-field.props";
+import { Icon } from "../../icon";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
 `;
 
-const SearchIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="gray"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-);
-
 export const SearchInputField = forwardRef<
-  HTMLInputElement,
+  SearchInputFieldRef,
   SearchInputFieldProps
->(function SearchInputField({
-  defaultValue = "",
-  placeholder,
-  onChange,
-  ...props
-}) {
+>(function SearchInputField(
+  { defaultValue = "", placeholder, onChange, ...props },
+  ref,
+) {
   const [value, setValue] = useState<string>(defaultValue);
 
   const handleChange = (value: string) => {
@@ -41,8 +27,23 @@ export const SearchInputField = forwardRef<
     onChange(value);
   };
 
+  useImperativeHandle(ref, () => ({
+    getValue: () => value,
+    setValue: (newValue: string) => {
+      setValue(newValue);
+    },
+  }));
+
   return (
-    <FrameInputField {...props} inlinePrefix={<SearchIcon />}>
+    <FrameInputField
+      {...props}
+      inlinePrefix={
+        <Icon
+          icon="searchLens"
+          {...(props.smallFrame ? { isSmall: true } : {})}
+        />
+      }
+    >
       <StyledInput
         type="text"
         value={value}

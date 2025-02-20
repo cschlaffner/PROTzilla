@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputField } from "../frame-input-field";
-import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
+import {
+  RadioSelectInputFieldProps,
+  RadioSelectInputFieldRef,
+} from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
 const StyledRadioContainer = styled.div`
@@ -21,18 +24,28 @@ const StyledLabel = styled.label`
   user-select: none;
 `;
 
-export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
-  options,
-  selectedValue: selectedValueProp = options[0].value,
-  onChange,
-  ...props
-}) => {
-  const [selectedValue, setSelectedValue] = useState<string>(selectedValueProp);
+export const RadioSelectInputField = forwardRef<
+  RadioSelectInputFieldRef,
+  RadioSelectInputFieldProps
+>(function RadioSelectInputField(
+  { options, selectedValue: selectedValueProp, onChange, ...props },
+  ref,
+) {
+  const [selectedValue, setSelectedValue] = useState<string>(
+    selectedValueProp ?? options[0]?.value,
+  );
 
   const handleChange = (value: string) => {
     setSelectedValue(value);
     onChange(value);
   };
+
+  useImperativeHandle(ref, () => ({
+    getValue: () => selectedValue,
+    setValue: (newValue: string) => {
+      setSelectedValue(newValue);
+    },
+  }));
 
   return (
     <FrameInputField {...props}>
@@ -57,4 +70,4 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
       </StyledRadioContainer>
     </FrameInputField>
   );
-};
+});

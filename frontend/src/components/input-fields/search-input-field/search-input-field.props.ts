@@ -9,3 +9,8 @@ export interface SearchInputFieldProps
   onChange: (value: string) => void;
   style?: React.CSSProperties;
 }
+
+export interface SearchInputFieldRef {
+  getValue: () => string;
+  setValue: (value: string) => void;
+}

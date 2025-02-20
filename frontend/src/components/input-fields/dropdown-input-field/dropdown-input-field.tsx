@@ -1,9 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { styled } from "styled-components";
 
-import { border, borderColors, size, spacing } from "../../../theme";
+import { border, borderColors, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
+import type {
+  DropdownInputFieldProps,
+  DropdownInputFieldRef,
+} from "./dropdown-input-field.props";
+import { Icon } from "../../icon";
 
 const DropdownContainer = styled.div`
   display: inline-block;
@@ -18,7 +28,6 @@ const OptionsList = styled.ul<{ width: number }>`
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   list-style: none;
   margin-top: ${spacing("verySmall")};
-  max-height: ${size("inputFieldListSmall")};
   overflow-y: auto;
   padding: 0;
   position: absolute;
@@ -56,28 +65,17 @@ const OptionItem = styled.li`
   }
 `;
 
-const DropdownIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="gray"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-);
-
-export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
-  options,
-  defaultValue = options[0],
-  onChange,
-  ...props
-}) => {
-  const [selectedValue, setSelectedValue] = useState<{ label: string; value: string }>(defaultValue);
+export const DropdownInputField = forwardRef<
+  DropdownInputFieldRef,
+  DropdownInputFieldProps
+>(function DropdownInputField(
+  { options, defaultValue = options[0], onChange, ...props },
+  ref,
+) {
+  const [selectedValue, setSelectedValue] = useState<{
+    label: string;
+    value: string;
+  }>(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
@@ -124,10 +122,24 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     }
   };
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      getValue: () => selectedValue.value,
+      setValue: (value: string) => {
+        const option = options.find((opt) => opt.value === value);
+        if (option) {
+          setSelectedValue(option);
+        }
+      },
+    }),
+    [selectedValue, options],
+  );
+
   return (
     <DropdownContainer>
       <div ref={inputRef} onClick={handleClick}>
-        <FrameInputField {...props} inlineSuffix={<DropdownIcon />}>
+        <FrameInputField {...props} inlineSuffix={<Icon icon="caretDown" />}>
           <p className="selected-value-text">{selectedValue.label}</p>
         </FrameInputField>
       </div>
@@ -152,4 +164,4 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
       )}
     </DropdownContainer>
   );
-};
+});

@@ -8,3 +8,8 @@ export interface DropdownInputFieldProps
   defaultValue?: { label: string; value: string };
   onChange: (value: string) => void;
 }
+
+export interface DropdownInputFieldRef {
+  getValue: () => string;
+  setValue: (value: string) => void;
+}

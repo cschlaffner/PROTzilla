@@ -8,3 +8,8 @@ export interface RadioSelectInputFieldProps
   selectedValue?: string;
   onChange: (value: string) => void;
 }
+
+export interface RadioSelectInputFieldRef {
+  getValue: () => string;
+  setValue: (value: string) => void;
+}

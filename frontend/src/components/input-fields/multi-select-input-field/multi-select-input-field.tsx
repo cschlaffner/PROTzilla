@@ -1,7 +1,10 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useImperativeHandle, useState } from "react";
 import { styled } from "styled-components";
 
-import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
+import {
+  MultiSelectInputFieldProps,
+  MultiSelectInputFieldRef,
+} from "./multi-select-input-field.props";
 import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { InputLabel } from "../../text";
@@ -115,9 +118,9 @@ const OptionsListComponent: React.FC<{
 };
 
 export const MultiSelectInputField = forwardRef<
-  HTMLInputElement,
+  MultiSelectInputFieldRef,
   MultiSelectInputFieldProps
->(function MultiSelectInputField({ options, onChange, ...props }) {
+>(function MultiSelectInputField({ options, onChange, ...props }, ref) {
   const [selectedOptions, setSelectedOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -136,14 +139,23 @@ export const MultiSelectInputField = forwardRef<
         ? prev.filter((item) => item.value !== option.value)
         : [...prev, option];
 
-        const sortedSelection = newSelection.sort((a, b) =>
-          a.value.localeCompare(b.value)
-        );
-    
-        onChange(sortedSelection.map((opt) => opt.value));
-        return sortedSelection;
+      const sortedSelection = newSelection.sort((a, b) =>
+        a.value.localeCompare(b.value),
+      );
+
+      onChange(sortedSelection.map((opt) => opt.value));
+      return sortedSelection;
     });
   };
+
+  useImperativeHandle(ref, () => ({
+    getValue: () => selectedOptions.map((opt) => opt.value),
+    setValue: (values: string[]) => {
+      const newSelection = options.filter((opt) => values.includes(opt.value));
+      setSelectedOptions(newSelection);
+    },
+  }));
+
   return (
     <FrameInputField {...props}>
       <FlexColumn style={{ width: "100%" }}>

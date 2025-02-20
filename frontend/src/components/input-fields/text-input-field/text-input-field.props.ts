@@ -8,3 +8,8 @@ export interface TextInputFieldProps
   placeholder?: string;
   onChange: (value: string) => void;
 }
+
+export interface TextInputFieldRef {
+  getValue: () => string;
+  setValue: (value: string) => void;
+}

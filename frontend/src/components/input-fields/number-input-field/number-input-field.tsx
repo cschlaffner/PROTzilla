@@ -1,21 +1,25 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import { NumberInputFieldProps } from "./number-input-field.props";
+import {
+  NumberInputFieldProps,
+  NumberInputFieldRef,
+} from "./number-input-field.props";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
 `;
 
 export const NumberInputField = forwardRef<
-  HTMLInputElement,
+  NumberInputFieldRef,
   NumberInputFieldProps
 >(function NumberInputField(
   { defaultValue = 0, placeholder, min, max, step, onChange, ...props },
   ref,
 ) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState<string>(String(defaultValue));
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,10 +37,17 @@ export const NumberInputField = forwardRef<
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    getValue: () => (value === "" || value === "-" ? null : Number(value)),
+    setValue: (newValue: number) => {
+      setValue(String(newValue));
+    },
+  }));
+
   return (
     <FrameInputField {...props}>
       <StyledInput
-        ref={ref}
+        ref={inputRef}
         type="number"
         inputMode="numeric"
         value={value}

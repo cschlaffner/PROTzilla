@@ -8,3 +8,8 @@ export interface MultiSelectInputFieldProps
   selectedOptions?: string[];
   onChange: (selectedValues: string[]) => void;
 }
+
+export interface MultiSelectInputFieldRef {
+  getValue: () => string[];
+  setValue: (values: string[]) => void;
+}
