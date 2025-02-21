@@ -9,3 +9,5 @@ export { default as burgerMenu } from "./burger-menu.svg?react";
 export { default as spinner } from "./spinner.svg?react";
 export { default as protzilla } from "./protzillablackwhite.svg?react";
 export { default as edit } from "./edit-icon.svg?react";
+export { default as github } from "./github-mark-white.svg?react";
+export { default as settings } from "./gear.svg?react";

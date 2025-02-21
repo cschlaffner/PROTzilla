@@ -8,6 +8,7 @@ import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
 import { Icon } from "../icon";
+import { SideMenu } from "../side-menu/side-menu.tsx";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -75,18 +76,6 @@ const NavbarCenterTitle = styled(Text)`
 `;
 
 // TODO create this component and add here
-const TempMenu = styled.div`
-  width: 100px;
-  height: 100px;
-  background: #1a1d20;
-  position: absolute;
-  top: ${spacing("navbarHeight")};
-  color: #fff;
-  align-self: self-end;
-  font-size: ${fontSize("small")};
-`;
-
-// TODO create this component and add here
 const TempRunSettings = styled.div`
   width: 100px;
   height: 100px;
@@ -116,7 +105,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
-  // on pointer down - undefined o. openMenu
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
@@ -158,13 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             icon={"burgerMenu"}
             onPointerDown={isMenuOpen ? undefined : openMenu}
           />
-          {isMenuOpen && (
-            <TempMenu ref={refMenu}>
-              {
-                "TODO: Create component to show menu, go to settings, add github icon etc. "
-              }
-            </TempMenu>
-          )}
+          {isMenuOpen && <SideMenu ref={refMenu} isMenuOpen={isMenuOpen} />}
         </NavbarRight>
       </NavbarBody>
     </FlexColumn>
