@@ -1,8 +1,9 @@
+import { forwardRef } from "react";
+import { styled } from "styled-components";
+
 import { SideMenuProps } from "./side-menu.props.ts";
-import styled from "styled-components";
 import { color, fontSize, spacing } from "../../theme";
 import { InvisibleButton } from "../button";
-import { forwardRef } from "react";
 
 const SideMenuWrapper = styled.div<{ isMenuOpen: boolean }>`
   position: absolute;
@@ -38,7 +39,7 @@ const Footer = styled.div`
 `;
 
 export const SideMenu = forwardRef<HTMLDivElement, SideMenuProps>(
-  ({ isMenuOpen, ...rest }, ref) => {
+  function SideMenu({ isMenuOpen, ...rest }, ref) {
     const onNavigateToSettings = () => {
       console.log("open settings");
     };

@@ -1,5 +1,5 @@
-import { SideMenu } from "./side-menu.tsx";
 import { SideMenuProps } from "./side-menu.props.ts";
+import { SideMenu } from "./side-menu.tsx";
 
 export default {
   component: SideMenu,
