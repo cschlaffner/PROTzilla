@@ -2,7 +2,7 @@ import React, {  useEffect, useState } from "react";
 import { Dropdown, Button, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
-import { callApi, callApiWithParameters } from "../utils";
+import { callApiWithParameters } from "../utils";
 //import { useFetch } from "../hooks";
 
 
@@ -40,6 +40,7 @@ export const IndexScreen: React.FC = () => {
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
     console.log(runs);
+    callApiWithParameters("add_run/", { run_name: newRunName, workflow_name: "standard", df_mode_name: "disk_memory"})
   };
 
   const handleContinueRun = () => {
@@ -116,7 +117,7 @@ export const IndexScreen: React.FC = () => {
                   className="mb-3"
                 />
                 <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-                <Button className="btn btn-primary w-100 mb-2" onClick={() => callApiWithParameters("do_something_with_element_from_frontend/", { element: "das_richtige" })}>Do something</Button>
+                <Button className="btn btn-primary w-100 mb-2" onClick={() => callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Do something</Button>
                 <Button className="btn btn-secondary w-100">Manage databases</Button>
               </div>
             </div>

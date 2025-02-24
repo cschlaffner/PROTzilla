@@ -49,7 +49,8 @@ def workflow_name_list(request):
 
     return JsonResponse(workflow_names, safe=False)
 
-def make_favourite(request):
+@csrf_exempt
+def toggle_favourite(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
@@ -71,7 +72,8 @@ def make_favourite(request):
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+@csrf_exempt    
 def add_tag(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -100,6 +102,7 @@ def add_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+@csrf_exempt
 def delete_tag(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -120,15 +123,16 @@ def delete_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+@csrf_exempt
 def add_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        worklow_name = data.get("workflow_name")
+        workflow_name = data.get("workflow_name")
         df_mode_name = data.get("df_mode_name")
 
         try:
-            run = Run(run_name, worklow_name, df_mode_name,)
+            run = Run(run_name, workflow_name, df_mode_name,)
             active_runs[run_name] = run
 
             return JsonResponse({"success": True, "message": "Created run"})
@@ -270,7 +274,7 @@ def download_plots(request):
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
     
-def download_plots(request):
+def download_table(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
