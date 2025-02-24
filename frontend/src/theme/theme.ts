@@ -17,14 +17,16 @@ export const defaultPalette = {
   protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#CE5A5A",
-  primaryActive: "#CE5A5A",
+  primaryHover: "#7883a1", //hover is 20% lighter than default color, selected via https://www.w3schools.com/colors/colors_picker.asp 
+  primaryActive: "#7883a1",
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#000000",
-  secondaryActive: "#E8EDF3",
+  secondaryHover: "#abbdd3",  //hover 18% darker than default color
+  secondaryActive: "#abbdd3",
   secondaryDisabled: "#F2F2F3",
+
+  caution: "#CE5A5A",
 
   link: "#2C2E34",
   linkDisabled: "#E4E4E4",
@@ -32,14 +34,14 @@ export const defaultPalette = {
   divider: "#EAEAEB",
 
   red: "#CE5A5A",
-  redHover: "#CE5A5A",
-  redActive: "#CE5A5A",
+  redHover: "#e29d9d",  //hover 17% lighter than default
+  redActive: "#e29d9d",
   redDisabled: "#CE5A5A",
 
   
   gray: "#E0E0E0",  
-  grayHover: "#FFFFFF",
-  grayActive: "#E0E0E0",
+  grayHover: "#b3b3b3", 	//hover 18% darker than default
+  grayActive: "#b3b3b3",
   grayDisabled: "#E0E0E0",
 
   yellow: "#ED9804",

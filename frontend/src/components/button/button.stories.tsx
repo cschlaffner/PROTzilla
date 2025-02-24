@@ -31,6 +31,16 @@ primary.args = {
   tag: "",
 };
 
+export const primaryCautious = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+primaryCautious.args = {
+  isCautious: true,
+  isDisabled: false,
+  text: "Primary Button",
+  tag: "",
+};
+
 export const secondary = (args: ButtonProps): React.ReactNode => (
   <SecondaryButton {...args} />
 );
@@ -44,6 +54,16 @@ export const gray = (args: ButtonProps): React.ReactNode => (
   <GrayButton {...args} />
 );
 gray.args = {
+  isDisabled: false,
+  text: "Gray Button",
+  tag: "",
+};
+
+export const grayShy = (args: ButtonProps): React.ReactNode => (
+  <GrayButton {...args} />
+);
+grayShy.args = {
+  isShy: true,
   isDisabled: false,
   text: "Gray Button",
   tag: "",
@@ -163,7 +183,8 @@ export const tooltip = (args: ButtonProps): React.ReactNode => (
   <Button {...args} />
 );
 tooltip.args = {
-  isDisabled: false,
+  isDisabled: false, 
+
   text: "Hover Me",
   tooltip: "Tooltip!",
 };
