@@ -184,6 +184,7 @@ export const tooltip = (args: ButtonProps): React.ReactNode => (
 );
 tooltip.args = {
   isDisabled: false, 
+
   text: "Hover Me",
   tooltip: "Tooltip!",
 };

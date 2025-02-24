@@ -82,7 +82,7 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
           txData={descriptionData}
         />
       )}
-      <CloseIcon icon="close" onPress={onClose} />
+      {isShown && <CloseIcon icon="close" onPress={onClose} />}
     </Container>
   );
 };

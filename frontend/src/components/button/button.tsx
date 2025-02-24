@@ -75,7 +75,8 @@ const StyledButton = styled.button.withConfig({
         `
       : css`
           cursor: pointer;
-          &&:active > * {
+          
+          &:active > * {
             opacity: 1;
           }
         `}
@@ -383,7 +384,6 @@ export const GreenButton = styled(Button)`
   &:hover {
     background-color: ${(props) =>
       color(props.isDisabled ? "greenDisabled" : "greenHover")};
-
   }
 
   &:active {
