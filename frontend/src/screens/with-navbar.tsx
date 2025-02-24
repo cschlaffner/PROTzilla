@@ -25,8 +25,12 @@ export const WithNavbar = observer(() => {
         onNavigateHome={() => {
           void navigate("/");
         }}
-        isDetailsPage={true}
+        onOpenSettings={() => {
+          void navigate("/api/ping/");
+        }}
+        showHomeButton={true}
         title={"my_runnnnnnn"}
+        allowRunEdit={true}
       />
       <FlexColumn>Put PROTzilla content here</FlexColumn>
     </div>

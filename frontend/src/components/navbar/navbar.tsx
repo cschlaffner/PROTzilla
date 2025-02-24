@@ -31,6 +31,9 @@ const NavbarLeft = styled.div`
 const NavbarCenter = styled.div`
   display: flex;
   flex-direction: row;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   justify-content: center;
   align-content: center;
   align-items: center;
@@ -68,22 +71,10 @@ const HomeIcon = styled(Icon)`
 
 const NavbarCenterTitle = styled(Text)`
   color: ${color("onPrimary")};
-  font-size: ${fontSize("h2")};
+  font-size: ${fontSize("h3")};
   font-weight: ${fontWeight("bold")};
   align-self: center;
   padding: ${spacing("buttonPadding")};
-`;
-
-// TODO create this component and add here
-const TempMenu = styled.div`
-  width: 100px;
-  height: 100px;
-  background: #1a1d20;
-  position: absolute;
-  top: ${spacing("navbarHeight")};
-  color: #fff;
-  align-self: self-end;
-  font-size: ${fontSize("small")};
 `;
 
 // TODO create this component and add here
@@ -99,29 +90,27 @@ const TempRunSettings = styled.div`
 `;
 
 export const Navbar: React.FC<NavbarProps> = ({
+  allowRunEdit,
   title,
   titleTx,
   titleData,
   titleComponents,
   onNavigateHome,
-  isDetailsPage,
+  onOpenSettings,
+  showHomeButton,
 
   ...rest
 }) => {
-  const [isMenuOpen, openMenu, closeMenu] = useToggleableState();
-  const refMenu = useRef<HTMLDivElement>(null);
-  useOutsidePress(refMenu, closeMenu, isMenuOpen, false);
-
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
     useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
-  // on pointer down - undefined o. openMenu
+
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
         <NavbarLeft>
-          {isDetailsPage ? (
+          {showHomeButton ? (
             <HomeButton
               icon={"protzilla"}
               text="Home"
@@ -133,12 +122,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarLeft>
         <NavbarCenter>
           <NavbarCenterTitle
-            text={isDetailsPage ? title : "PROTzilla"}
-            tx={isDetailsPage ? titleTx : "PROTzilla"}
-            txData={isDetailsPage ? titleData : undefined}
-            txComponents={isDetailsPage ? titleComponents : undefined}
+            text={allowRunEdit ? title : "PROTzilla"}
+            tx={allowRunEdit ? titleTx : "PROTzilla"}
+            txData={allowRunEdit ? titleData : undefined}
+            txComponents={allowRunEdit ? titleComponents : undefined}
           />
-          {isDetailsPage && (
+          {allowRunEdit && (
             <Button
               icon={"edit"}
               onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
@@ -154,17 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarCenter>
 
         <NavbarRight>
-          <Button
-            icon={"burgerMenu"}
-            onPointerDown={isMenuOpen ? undefined : openMenu}
-          />
-          {isMenuOpen && (
-            <TempMenu ref={refMenu}>
-              {
-                "TODO: Create component to show menu, go to settings, add github icon etc. "
-              }
-            </TempMenu>
-          )}
+          <Button icon={"settings"} onPress={onOpenSettings} />
         </NavbarRight>
       </NavbarBody>
     </FlexColumn>

@@ -36,8 +36,7 @@ export const defaultPalette = {
   redActive: "#CE5A5A",
   redDisabled: "#CE5A5A",
 
-  
-  gray: "#E0E0E0",  
+  gray: "#E0E0E0",
   grayHover: "#FFFFFF",
   grayActive: "#E0E0E0",
   grayDisabled: "#E0E0E0",
@@ -191,7 +190,7 @@ export const baseTheme = {
     medium: "20px",
     large: "50px",
 
-    navbarHeight: "75px",
+    navbarHeight: "60px",
   },
   zIndices: {
     drawer: 1200,

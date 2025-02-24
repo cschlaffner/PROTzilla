@@ -8,15 +8,16 @@ export default {
   title: "Navbar",
   argTypes: {
     onNavigateHome: { action: "back" },
-    onOpenMenu: { action: "menu" },
+    onOpenSettings: { action: "open settings" },
   },
 };
 
-export const primary = (args: NavbarProps): React.ReactNode => (
+export const run_overview = (args: NavbarProps): React.ReactNode => (
   <Navbar {...args} />
 );
-primary.args = {
-  isDetailsPage: false,
+run_overview.args = {
+  showHomeButton: false,
+  allowRunEdit: false,
 };
 
 export const details = (args: NavbarProps): React.ReactNode => (
@@ -24,5 +25,14 @@ export const details = (args: NavbarProps): React.ReactNode => (
 );
 details.args = {
   title: "my_favorite_run",
-  isDetailsPage: true,
+  showHomeButton: true,
+  allowRunEdit: true,
+};
+
+export const other = (args: NavbarProps): React.ReactNode => (
+  <Navbar {...args} />
+);
+other.args = {
+  showHomeButton: true,
+  allowRunEdit: false,
 };

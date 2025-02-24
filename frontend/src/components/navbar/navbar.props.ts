@@ -4,5 +4,7 @@ export interface NavbarProps
   extends Omit<React.HTMLAttributes<HTMLElement>, "title">,
     I18nTitleProps {
   onNavigateHome: () => void;
-  isDetailsPage: boolean;
+  onOpenSettings: () => void;
+  showHomeButton: boolean;
+  allowRunEdit: boolean;
 }
