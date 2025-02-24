@@ -92,7 +92,7 @@ def uniprot_columns(filename):
         EXTERNAL_DATA_PATH / "uniprot" / f"{filename}.tsv", sep="\t", nrows=0
     ).columns.tolist()
 
-
+  
 def check_biomart_availability() -> dict:
     """
     Checks if a BioMart server is available by querying the registry endpoint.
@@ -101,11 +101,13 @@ def check_biomart_availability() -> dict:
         - url: str, the URL where BioMart is available
     """
 
+
     mirror_list = [
         "http://ensembl.org/biomart",
         "http://asia.ensembl.org/biomart",
         "http://useast.ensembl.org/biomart",
     ]
+
     for url in mirror_list:
         try:
             # Requesting response the same way as server = BiomartServer(url)
