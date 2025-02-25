@@ -100,7 +100,7 @@ def critical_logger():
 
 @pytest.fixture
 def no_logging():
-    from ..protzilla.constants.protzilla_logging import logger
+    from backend.protzilla.constants.protzilla_logging import logger
 
     # highest used level is 50 -> 60 blocks everything
     logger.setLevel(60)
@@ -110,7 +110,7 @@ def no_logging():
 
 @pytest.fixture
 def error_logger():
-    from ..protzilla.constants.protzilla_logging import logger
+    from backend.protzilla.constants.protzilla_logging import logger
 
     logger.setLevel(logging.ERROR)
     yield
@@ -119,7 +119,7 @@ def error_logger():
 
 @pytest.fixture(scope="function")
 def debug_logger():
-    from ..protzilla.constants.protzilla_logging import logger
+    from backend.protzilla.constants.protzilla_logging import logger
 
     logger.setLevel(logging.DEBUG)
     yield

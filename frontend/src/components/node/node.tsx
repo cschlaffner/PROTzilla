@@ -76,7 +76,6 @@ export const Node: React.FC<NodeProps> = ({
   titleTx,
   titleData,
   titleComponents,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   inputSockets,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   outputSockets,
@@ -94,9 +93,8 @@ export const Node: React.FC<NodeProps> = ({
     </NodeHeader>
     <NodeBody>
       <Sockets>
-        <Input>text = {inputSockets[0].title}</Input>
-        {inputSockets.map(({ titleTx: itemTitle }) => (
-          <Input>text = {itemTitle}</Input>
+        {inputSockets.map(({ titleTx: itemTitle, id }) => (
+          <Input key={id}>text = {itemTitle}</Input>
         ))}
       </Sockets>
     </NodeBody>

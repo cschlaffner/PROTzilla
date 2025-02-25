@@ -36,3 +36,6 @@ beautifulsoup4==4.12.2
 sphinx==7.2.6
 sphinx-autoapi==3.0.0
 openpyxl==3.1.2
+pyyaml~=6.0.2
+matplotlib~=3.9.2
+seaborn~=0.13.2

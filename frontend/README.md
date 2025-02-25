@@ -150,4 +150,8 @@ pnpm add -D @babel/plugin-proposal-decorators
 pnpm add styled-components mobx mobx-react-lite
 pnpm add react-router-dom
 npx storybook@latest init
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> dev

@@ -11,7 +11,7 @@ export const useDelay = (
   callback: () => void,
   delay: number,
 ): [() => void, () => void] => {
-  const timerRef = useRef<number>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const cancel = useCallback(() => {
     if (timerRef.current !== undefined) {

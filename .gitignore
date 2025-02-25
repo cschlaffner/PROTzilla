@@ -1,5 +1,6 @@
 .DS_Store
 .idea/
+# ignore workflows for pushes from now on but keep explicit few on github for running tests
 backend/user_data/*
 backend/uploads/*
 .vscode/*

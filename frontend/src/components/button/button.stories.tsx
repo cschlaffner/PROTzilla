@@ -4,6 +4,8 @@ import {
   BorderButton,
   Button,
   CircularButton,
+  GrayButton,
+  GraySquareButton,
   GreenButton,
   InvisibleButton,
   RedButton,
@@ -29,12 +31,41 @@ primary.args = {
   tag: "",
 };
 
+export const primaryCautious = (args: ButtonProps): React.ReactNode => (
+  <Button {...args} />
+);
+primaryCautious.args = {
+  isCautious: true,
+  isDisabled: false,
+  text: "Primary Button",
+  tag: "",
+};
+
 export const secondary = (args: ButtonProps): React.ReactNode => (
   <SecondaryButton {...args} />
 );
 secondary.args = {
   isDisabled: false,
   text: "Secondary Button",
+  tag: "",
+};
+
+export const gray = (args: ButtonProps): React.ReactNode => (
+  <GrayButton {...args} />
+);
+gray.args = {
+  isDisabled: false,
+  text: "Gray Button",
+  tag: "",
+};
+
+export const grayShy = (args: ButtonProps): React.ReactNode => (
+  <GrayButton {...args} />
+);
+grayShy.args = {
+  isShy: true,
+  isDisabled: false,
+  text: "Gray Button",
   tag: "",
 };
 
@@ -59,7 +90,7 @@ red.args = {
 export const redSecondary = (args: ButtonProps): React.ReactNode => (
   <RedSecondaryButton {...args} />
 );
-red.args = {
+redSecondary.args = {
   isDisabled: false,
   text: "Red Secondary Button",
   tag: "",
@@ -80,6 +111,15 @@ export const icon = (args: ButtonProps): React.ReactNode => (
   <Button {...args} />
 );
 icon.args = {
+  isDisabled: false,
+  icon: "add",
+  tag: "",
+};
+
+export const grayIcon = (args: ButtonProps): React.ReactNode => (
+  <GrayButton {...args} />
+);
+grayIcon.args = {
   isDisabled: false,
   icon: "add",
   tag: "",
@@ -114,6 +154,14 @@ square.args = {
   text: "S",
 };
 
+export const graySquare = (args: ButtonProps): React.ReactNode => (
+  <GraySquareButton {...args} />
+);
+graySquare.args = {
+  isDisabled: false,
+  text: "1",
+};
+
 export const circular = (args: ButtonProps): React.ReactNode => (
   <CircularButton {...args} />
 );
@@ -127,7 +175,7 @@ export const invisible = (args: ButtonProps): React.ReactNode => (
 );
 invisible.args = {
   isDisabled: false,
-  icon: "home",
+  icon: "add",
   text: "Home",
 };
 
@@ -135,7 +183,8 @@ export const tooltip = (args: ButtonProps): React.ReactNode => (
   <Button {...args} />
 );
 tooltip.args = {
-  isDisabled: false,
+  isDisabled: false, 
+
   text: "Hover Me",
   tooltip: "Tooltip!",
 };
