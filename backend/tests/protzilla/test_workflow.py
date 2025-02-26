@@ -7,11 +7,11 @@ from backend.protzilla.constants import paths
 from backend.protzilla.workflow import get_available_workflow_names 
 
 @pytest.fixture
-def real_workflows_path(request):
-    return Path(request.config.rootdir) / "\tests\test_workflows"
+def workflows_path(request):
+    return Path(request.config.rootdir) / "/tests/test_workflows"
 
-def test_get_available_workflow_names_real(real_workflows_path):
-    with mock.patch.object(paths, "WORKFLOWS_PATH", real_workflows_path):
+def test_get_available_workflow_names(workflows_path):
+    with mock.patch.object(paths, "WORKFLOWS_PATH", paths.TEST_WORKFLOW_PATH):
         expected_files = [
             "example_workflow_short",
             "example_workflow"
