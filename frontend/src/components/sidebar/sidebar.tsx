@@ -13,8 +13,6 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   flex-direction: "column";
   padding-right: 10px;
   min-height: 500px;
-  width: ${({ collapsed }) => (collapsed ? "75px" : "300px")};
-  transition: "width 0.3s ease-in-out"
   border-right: 1px #000 solid;
 `;
 
