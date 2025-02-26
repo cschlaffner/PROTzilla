@@ -17,3 +17,7 @@ export { default as incomplete } from "./incomplete.svg?react"
 export { default as complete } from "./complete.svg?react"
 export { default as outdated } from "./outdated.svg?react"
 export { default as failed } from "./failed.svg?react"
+export { default as burgerMenu } from "./burger-menu.svg?react";
+export { default as protzilla } from "./protzillablackwhite.svg?react";
+export { default as edit } from "./edit-icon.svg?react";
+export { default as settings } from "./settings.svg?react";

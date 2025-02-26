@@ -33,7 +33,7 @@ const StyledSVG = styled.svg.withConfig({
   width: ${({ isSmall }) => size(isSmall ? "smallIcon" : "icon")};
   height: ${({ isSmall }) => size(isSmall ? "smallIcon" : "icon")};
 
-  ${(props) => 
+  ${(props) =>
     props.isDisabled &&
     css`
       opacity: ${opacity("disabled")};
