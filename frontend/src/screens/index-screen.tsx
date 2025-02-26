@@ -1,6 +1,7 @@
 import React, {  useEffect, useState } from "react";
 //import { useFetch } from "../hooks";
 import { Col, Container, Row } from "react-grid-system";
+
 import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
@@ -11,14 +12,19 @@ export const IndexScreen: React.FC = () => {
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<any>([]);
+  const [runs, setRuns] = useState<{ value: string; label: string}[]>([]);
 //  const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/jannesjsontest/')
       .then((response) => response.json())
       .then((data: { value: string; label: string }[]) => { setRuns(data); })
-      .catch((error) => { console.error('Error fetching data:', error); });
+      .catch((error: unknown) => { 
+        if (error instanceof Error) {
+          console.error("Error fetching data:", error.message);
+        } else {
+          console.error("An unknown error occurred:", error);
+        }});
   }, []);
 
   
@@ -39,7 +45,7 @@ export const IndexScreen: React.FC = () => {
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
     console.log(runs);
-    callApiWithParameters("add_run/", { run_name: newRunName, workflow_name: "standard", df_mode_name: "disk_memory"})
+    void callApiWithParameters("add_run/", { run_name: newRunName, workflow_name: "standard", df_mode_name: "disk_memory"})
   };
 
   const handleContinueRun = () => {
@@ -112,7 +118,7 @@ export const IndexScreen: React.FC = () => {
                 className="mb-3"
               />
               <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-              <Button className="btn btn-primary w-100 mb-2" onClick={() => callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Do something</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Do something</Button>
               <Button className="btn btn-secondary w-100">Manage databases</Button>
             </Card>
           </Col>
