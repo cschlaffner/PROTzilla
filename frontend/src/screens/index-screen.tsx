@@ -1,7 +1,10 @@
 import React, {  useEffect, useState } from "react";
+
 import { callApiWithParameters } from "../utils";
+
 //import { useFetch } from "../hooks";
 import { Col, Container, Row } from "react-grid-system";
+
 import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
@@ -17,8 +20,8 @@ export const IndexScreen: React.FC = () => {
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/jannesjsontest/')
       .then((response) => response.json())
-      .then((data: { value: string; label: string }[]) => setRuns(data))
-      .catch((error) => console.error('Error fetching data:', error));
+      .then((data: { value: string; label: string }[]) => { setRuns(data); })
+      .catch((error) => { console.error('Error fetching data:', error); });
   }, []);
 
   
