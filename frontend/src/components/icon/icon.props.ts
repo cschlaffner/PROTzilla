@@ -5,7 +5,7 @@ import type { Theme } from "../../theme";
 import type { UIStateProps } from "../types";
 
 export type IconType = keyof typeof icons;
-export type defaultColoredIconType = "complete"|"incomplete"|"failed"|"outdated";
+export type DefaultColoredIconType = "complete"|"incomplete"|"failed"|"outdated";
 export type Color = keyof Theme["colors"]
 
 export interface IconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
@@ -16,8 +16,8 @@ export interface IconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
   isSmall?: boolean;
 }
 
-export interface defaultColoredIconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
-  icon: defaultColoredIconType;
+export interface DefaultColoredIconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
+  icon: DefaultColoredIconType;
   isSmall?: boolean;
 }
 

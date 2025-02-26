@@ -1,28 +1,26 @@
-import { SidebarStepProps } from "./sidebar-step.props";
+//import { useState } from "react"
 import { styled } from "styled-components";
-import { ContentText } from "../../../text";
+
+import { SidebarStepProps } from "./sidebar-step.props";
 import { color } from "../../../../theme"
-import { useState } from "react"
-import { DefaultColoredIcon } from "../../../icon/icon"
 import { TrashButton } from "../../../button";
+import { DefaultColoredIcon } from "../../../icon/icon"
+import { ContentText } from "../../../text";
 
-// TODOS:
-//  -use standard text
-
-const StepContainer = styled.div<{ selected:boolean, collapsed:boolean }>`
+const StepContainer = styled.div<{ isSelected:boolean, isCollapsed:boolean }>`
   margin: 0 5px;  
   gap:10px;
   padding: 5px;
-  background-color:${({selected}) => selected ? color("protzillaLightGray"):""};
+  background-color:${({isSelected}) => isSelected ? color("protzillaLightGray"):""};
   display: flex;
-  justify-content: ${({ collapsed }) => (collapsed ? "center" : "left")};
+  justify-content: ${({ isCollapsed }) => (isCollapsed ? "center" : "left")};
   align-items: center;
   border-radius: 6px;
 `;
 
 export const SidebarStep: React.FC<SidebarStepProps> = ({
     text,
-    collapsed,
+    isCollapsed,
     sectionName,
     index,
     selectedStep,
@@ -30,7 +28,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
     deleteStep
 }: SidebarStepProps) => {
 
-    const [dragging, setDragging] = useState(false)
+    //const [dragging, setDragging] = useState(false)
 
     const handleClick = () => {
         setSelectedStep({
@@ -40,11 +38,11 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
     }
 
     const handleDragStart = () => {
-        setDragging(true)
+        //setDragging(true)
     }
 
     const handleDragEnd = () => {
-        setDragging(false)
+        //setDragging(false)
     }
 
     const handleDelete = (event: React.MouseEvent) => {
@@ -52,7 +50,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
         deleteStep(index)
     }
 
-    const selected =
+    const isSelected =
         selectedStep.section === sectionName &&
         selectedStep.index === index
 
@@ -62,15 +60,15 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onClick={handleClick}
-            selected={selected}
-            collapsed={collapsed}
+            isSelected={isSelected}
+            isCollapsed={isCollapsed}
         >
             <DefaultColoredIcon icon="complete"/>
             <ContentText
                 text={text}
                 style={{"userSelect":"none"}}
             />
-            {!collapsed && (<TrashButton onClick={handleDelete} isSmall={true} isShy={true} icon={"trash"} style={{marginLeft: "auto"}}/>)}
+            {!isCollapsed && (<TrashButton onClick={handleDelete} isSmall={true} isShy={true} icon={"trash"} style={{marginLeft: "auto"}}/>)}
         </StepContainer>
         )
 };

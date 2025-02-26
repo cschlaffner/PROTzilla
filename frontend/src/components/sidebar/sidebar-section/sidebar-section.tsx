@@ -1,15 +1,15 @@
+import React, { useState } from "react"
+import { styled } from "styled-components";
+
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step"
-import { styled } from "styled-components";
-import { H3 } from "../../text";
 import { useTheme } from "../../../theme";
-import { Icon } from "../../icon/icon"
-import { useState } from "react"
 import { Button } from "../../button";
-import React from "react"
+import { Icon } from "../../icon/icon"
+import { H3 } from "../../text";
 
-const TitleContainer = styled.div<{selected:boolean}>`
-  opacity: ${({selected}) => selected ? 1:1};
+const TitleContainer = styled.div<{isSelected:boolean}>`
+  opacity: ${({isSelected}) => isSelected ? 1:1};
   display: flex;
   flex-direction: row;
   margin: 10px;
@@ -23,26 +23,26 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   name,
   title,
   index,
-  collapsed,
+  isCollapsed,
   selectedStep,
   setSelectedStep
 }: SidebarSectionProps) => {
   
   const initialSteps = ["Step1","Step2","Step3"];
   const [steps, setSteps] = useState(initialSteps)
-  const [selected,setSelected] = useState(true)
+  const [isSelected,setIsSelected] = useState(true)
 
   const handleSelect = () => {
-    setTimeout(() => setSelected((prev) => !prev), 50);
+    setTimeout(() => { setIsSelected((prev) => !prev); }, 50);
   }
 
-  const selectedStepInSection = selectedStep.section === name
+  const hasSelectedStep = selectedStep.section === name
 
   const deleteStep = (index:number) => {
     const newSteps = [...steps]
     newSteps.splice(index,1)
     setSteps(newSteps)
-    if (selectedStepInSection) {
+    if (hasSelectedStep) {
       setSelectedStep({
         section: name,
         index: Math.min(selectedStep.index,newSteps.length-1)
@@ -52,7 +52,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   const addStep = () => {
     const newSteps = [...steps]
-    newSteps.splice(selectedStep.index+1,0,`new Step ${newSteps.length}`)
+    newSteps.splice(selectedStep.index+1,0,`new Step ${String(newSteps.length)}`)
     setSteps(newSteps)
   }
 
@@ -88,10 +88,10 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   }
 `;
 
-  if (!collapsed){
+  if (!isCollapsed){
     return(
       <SectionContainer>
-        <TitleContainer selected={selected} onClick={handleSelect}>
+        <TitleContainer isSelected={isSelected} onClick={handleSelect}>
           <Icon 
             icon={name}
           />
@@ -104,16 +104,18 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             style={{
               marginLeft: "auto",
               width: "30px",
-              transform: selected? "rotate(180deg)":"rotate(0deg)",
+              transform: isSelected? "rotate(180deg)":"rotate(0deg)",
               transition: "transform 0.3s ease"
             }}
           />
         </TitleContainer>
-        {selected && steps.map((step,j) => {
+        {isSelected && steps.map((step,j) => {
+            const number = `${String(index+1)}.${String(j+1)}`
             return (
               <SidebarStep 
-                text={`${index+1}.${j+1} ${step}`}
-                collapsed={collapsed}
+                key={`step_${number}`}
+                text={`${number} ${step}`}
+                isCollapsed={isCollapsed}
                 sectionName={name}
                 index={j}
                 selectedStep={selectedStep}
@@ -122,21 +124,23 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               />
             )
         })}
-        {selected && selectedStepInSection && (<Button icon={"add"} text={"add step"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"15px 10px"}} />)}
+        {isSelected && hasSelectedStep && (<Button icon={"add"} text={"add step"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"15px 10px"}} />)}
       </SectionContainer>
     );
   }
   else {
     return (
       <SectionContainer>
-        <TitleContainer selected={selected} onClick={handleSelect}>
+        <TitleContainer isSelected={isSelected} onClick={handleSelect}>
           <Icon icon={name} style={{width: "30px"}}/>        
         </TitleContainer>
-        {selected && steps.map((_, j) => {
+        {isSelected && steps.map((_, j) => {
+            const number = `${String(index+1)}.${String(j+1)}`
             return (
               <SidebarStep 
-                text={`${index+1}.${j+1}`} 
-                collapsed={collapsed}
+                key={`step_${number}`}
+                text={number}
+                isCollapsed={isCollapsed}
                 sectionName={name}
                 index={j}
                 selectedStep={selectedStep}
@@ -145,7 +149,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               />
             )
         })}
-        {selected && selectedStepInSection && (<Button icon={"add"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"10px"}}/>)}
+        {isSelected && hasSelectedStep && (<Button icon={"add"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"10px"}}/>)}
       </SectionContainer>
 
     )

@@ -1,4 +1,5 @@
 import { Meta } from "@storybook/react";
+
 import { Sidebar } from "./sidebar"
 
 export default {

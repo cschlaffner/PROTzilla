@@ -1,7 +1,7 @@
 import React from "react";
 import { css, styled } from "styled-components";
 
-import { defaultColoredIconProps, defaultColoredIconType, IconProps, Color } from "./icon.props";
+import { Color, DefaultColoredIconProps, DefaultColoredIconType, IconProps } from "./icon.props";
 import * as icons from "./icons";
 import { color, opacity, size, Theme } from "../../theme";
 
@@ -57,10 +57,10 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
   );
 });
 
-export const DefaultColoredIcon: React.FC<defaultColoredIconProps> = ({
+export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
   icon
 }) => {
-  const defaultColors:Record<defaultColoredIconType,Color> = {complete:"green",incomplete:"blue",outdated:"yellow",failed:"red"}
+  const defaultColors:Record<DefaultColoredIconType,Color> = {complete:"green",incomplete:"blue",outdated:"yellow",failed:"red"}
   return(
     <Icon icon={icon} color={defaultColors[icon]}/>
   )

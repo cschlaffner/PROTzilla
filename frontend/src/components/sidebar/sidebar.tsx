@@ -1,14 +1,14 @@
-import React from "react"
-import { Card } from ".././card"
+import React, { useState } from "react"
 import { styled } from "styled-components";
+
+import { Card } from ".././card"
 import SidebarSection from "./sidebar-section/sidebar-section"
-import { SidebarProps } from "./sidebar.props";
+//import { SidebarProps } from "./sidebar.props";
+import { SectionNames, SelectedStep } from "./types";
 import { Icon } from "../icon/icon";
-import { useState } from "react"
-import { SelectedStep } from "./types";
 
 
-const SidebarContainer = styled.div<{ collapsed: boolean }>`
+const SidebarContainer = styled.div<{ isCollapsed: boolean }>`
   display: "flex";
   flex-direction: "column";
   padding-right: 10px;
@@ -16,42 +16,43 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   border-right: 1px #000 solid;
 `;
 
-const SidebarHeader = styled.div<{ collapsed: boolean }>`
+const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
   display: flex;
-  justify-content: ${({ collapsed }) => (collapsed ? "center" : "flex-end")};
+  justify-content: ${({ isCollapsed }) => (isCollapsed ? "center" : "flex-end")};
   padding: 8px;
   padding-bottom: 16px;
   cursor: pointer;
 `;
 
-export const Sidebar: React.FC<SidebarProps> = ({}: SidebarProps) => {
+export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
 
-  const [collapsed, setCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedStep, setSelectedStep] = useState<SelectedStep>({section:"importing", index:0})
   
-  const sections = ["importing","data_preprocessing","data_analysis","data_integration"]
+  const sections:SectionNames[] = ["importing","data_preprocessing","data_analysis","data_integration"]
   const sectionTitles = ["Importing","Data Preprocessing","Data Analysis","Data Integration"]
 
   const handleClick = () => {
-    setCollapsed(!collapsed)
+    setIsCollapsed((prev) => !prev)
   }
 
   return(
     <Card>
-        <SidebarContainer collapsed={collapsed}>
-            <SidebarHeader collapsed={collapsed}>
+        <SidebarContainer isCollapsed={isCollapsed}>
+            <SidebarHeader isCollapsed={isCollapsed}>
                 <Icon 
-                    icon={collapsed ? "list" : "chevronDoubleLeft"} 
+                    icon={isCollapsed ? "list" : "chevronDoubleLeft"} 
                     onClick={handleClick}
                 />
             </SidebarHeader>
-            {sections.map((section:any, i:number) => {
+            {sections.map((section:SectionNames, i:number) => {
                     return (
                         <SidebarSection 
+                            key={section}
                             name={section} 
                             title={sectionTitles[i]} 
                             index={i} 
-                            collapsed={collapsed}
+                            isCollapsed={isCollapsed}
                             selectedStep={selectedStep}
                             setSelectedStep={setSelectedStep}
                         />  
