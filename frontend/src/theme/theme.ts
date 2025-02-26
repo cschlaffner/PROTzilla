@@ -17,7 +17,7 @@ export const defaultPalette = {
   protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#7883a1", //hover is 20% lighter than default color, selected via https://www.w3schools.com/colors/colors_picker.asp 
+  primaryHover: "#7883a1", //hover is 20% lighter than default color, selected via https://www.w3schools.com/colors/colors_picker.asp
   primaryActive: "#7883a1",
   primaryDisabled: "#C0C0C2",
 
@@ -69,7 +69,7 @@ export const defaultPalette = {
   invisibleHover: "#CE5A5A",
   transparent: "rgba(0,0,0,0)",
   popUpBackdrop: "rgba(0, 0, 0, 0.5)",
-
+  backdropLight: "rgba(255,255,255,0.10)",
 };
 
 const colorModes = {
@@ -192,6 +192,8 @@ export const baseTheme = {
     small: "10px",
     medium: "20px",
     large: "50px",
+
+    navbarHeight: "60px",
   },
   zIndices: {
     drawer: 1200,
