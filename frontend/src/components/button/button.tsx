@@ -488,6 +488,17 @@ export const GrayButton = styled(Button)`
   }
 `;
 
+export const TrashButton = styled(Button)`
+
+  .icon {
+    ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "gray50")}
+  }
+
+  :hover {
+    background-color: ${color("transparent")};
+  }
+`;
+
 export const RedSecondaryButton = styled(Button)`
   ${secondaryButtonMixin}
 

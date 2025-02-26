@@ -8,12 +8,14 @@ import { useState } from "react"
 import { SelectedStep } from "./types";
 
 
-const SidebarContainer = styled.div`
+const SidebarContainer = styled.div<{ collapsed: boolean }>`
   display: "flex";
   flex-direction: "column";
   padding-right: 10px;
   min-height: 500px;
-  border-right: 2px #000 solid;
+  width: ${({ collapsed }) => (collapsed ? "75px" : "300px")};
+  transition: "width 0.3s ease-in-out"
+  border-right: 1px #000 solid;
 `;
 
 const SidebarHeader = styled.div<{ collapsed: boolean }>`
@@ -38,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({}: SidebarProps) => {
 
   return(
     <Card>
-        <SidebarContainer>
+        <SidebarContainer collapsed={collapsed}>
             <SidebarHeader collapsed={collapsed}>
                 <Icon 
                     icon={collapsed ? "list" : "chevronDoubleLeft"} 

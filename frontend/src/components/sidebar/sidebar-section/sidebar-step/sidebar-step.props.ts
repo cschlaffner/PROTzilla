@@ -7,4 +7,5 @@ export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement>{
     index: number;
     selectedStep:SelectedStep;
     setSelectedStep: SetSelectedStep;
+    deleteStep: (index:number) => void;
 }

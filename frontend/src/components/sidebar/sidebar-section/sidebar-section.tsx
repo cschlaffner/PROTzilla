@@ -2,19 +2,21 @@ import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step"
 import { styled } from "styled-components";
 import { H3 } from "../../text";
+import { useTheme } from "../../../theme";
 import { Icon } from "../../icon/icon"
 import { useState } from "react"
+import { Button } from "../../button";
+import React from "react"
 
-// TODOS:
-//  -change line color,thickness
-//  -use standard text
-
-const TitleContainer = styled.div`
+const TitleContainer = styled.div<{selected:boolean}>`
+  opacity: ${({selected}) => selected ? 1:1};
   display: flex;
   flex-direction: row;
   margin: 10px;
   cursor: pointer;
-  gap: 10px
+  gap: 10px;
+  justify-content: center;
+  transition: opacity 0.3s ease;
 `;
 
 const SidebarSection: React.FC<SidebarSectionProps> = ({
@@ -26,18 +28,44 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   setSelectedStep
 }: SidebarSectionProps) => {
   
+  const initialSteps = ["Step1","Step2","Step3"];
+  const [steps, setSteps] = useState(initialSteps)
   const [selected,setSelected] = useState(true)
 
-  const steps = ["Step1","Step2","Step3"];
-
   const handleSelect = () => {
-    setSelected(!selected)
+    setTimeout(() => setSelected((prev) => !prev), 50);
+  }
+
+  const selectedStepInSection = selectedStep.section === name
+
+  const deleteStep = (index:number) => {
+    const newSteps = [...steps]
+    newSteps.splice(index,1)
+    setSteps(newSteps)
+    if (selectedStepInSection) {
+      setSelectedStep({
+        section: name,
+        index: Math.min(selectedStep.index,newSteps.length-1)
+      })
+    }
+  }
+
+  const addStep = () => {
+    const newSteps = [...steps]
+    newSteps.splice(selectedStep.index+1,0,`new Step ${newSteps.length}`)
+    setSteps(newSteps)
+  }
+
+  const baseTheme = useTheme();
+  const ContentTextStyle = {
+    "fontSize": baseTheme.fontSizes.h5,
+    "lineHeight": baseTheme.fontSizes.h5,
+    "fontWeight": baseTheme.fontWeights.medium
   }
 
   const SectionContainer = styled.div`
   display: flex;
   flex-direction: column;
-  padding-bottom: ${selected ? 10 : 0}px;
   position: relative;
   
   &::before {
@@ -63,7 +91,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   if (!collapsed){
     return(
       <SectionContainer>
-        <TitleContainer onClick={handleSelect}>
+        <TitleContainer selected={selected} onClick={handleSelect}>
           <Icon 
             icon={name}
           />
@@ -72,8 +100,13 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             style={{"userSelect":"none"}}
           />
           <Icon 
-            icon={selected ? "chevronUp" : "chevronDown"} 
-            style={{marginLeft: "auto", width: "30px"}}
+            icon={"chevronUp"} 
+            style={{
+              marginLeft: "auto",
+              width: "30px",
+              transform: selected? "rotate(180deg)":"rotate(0deg)",
+              transition: "transform 0.3s ease"
+            }}
           />
         </TitleContainer>
         {selected && steps.map((step,j) => {
@@ -85,19 +118,21 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                 index={j}
                 selectedStep={selectedStep}
                 setSelectedStep={setSelectedStep}
+                deleteStep={deleteStep}
               />
             )
         })}
+        {selected && selectedStepInSection && (<Button icon={"add"} text={"add step"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"15px 10px"}} />)}
       </SectionContainer>
     );
   }
   else {
     return (
       <SectionContainer>
-        <TitleContainer>
+        <TitleContainer selected={selected} onClick={handleSelect}>
           <Icon icon={name} style={{width: "30px"}}/>        
         </TitleContainer>
-        {steps.map((_, j) => {
+        {selected && steps.map((_, j) => {
             return (
               <SidebarStep 
                 text={`${index+1}.${j+1}`} 
@@ -106,9 +141,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                 index={j}
                 selectedStep={selectedStep}
                 setSelectedStep={setSelectedStep}
+                deleteStep={deleteStep}
               />
             )
         })}
+        {selected && selectedStepInSection && (<Button icon={"add"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"10px"}}/>)}
       </SectionContainer>
 
     )

@@ -12,3 +12,8 @@ export { default as data_analysis } from "./data_analysis.svg?react";
 export { default as data_integration } from "./data_integration.svg?react";
 export { default as list } from "./list.svg?react";
 export { default as chevronDoubleLeft } from "./chevron-double-left.svg?react";
+export { default as trash } from "./trash.svg?react"
+export { default as incomplete } from "./incomplete.svg?react"
+export { default as complete } from "./complete.svg?react"
+export { default as outdated } from "./outdated.svg?react"
+export { default as failed } from "./failed.svg?react"
