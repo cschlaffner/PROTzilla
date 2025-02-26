@@ -12,10 +12,10 @@ export default {
   },
 };
 
-export const run_overview = (args: NavbarProps): React.ReactNode => (
+export const runOverview = (args: NavbarProps): React.ReactNode => (
   <Navbar {...args} />
 );
-run_overview.args = {
+runOverview.args = {
   showHomeButton: false,
   allowRunEdit: false,
 };
