@@ -22,8 +22,6 @@ from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
 from backend.main.viewswithapihelper import parameters_from_post, get_all_possible_step_names
 
-#Most functions are not important right now, should be done when backend placement from protzilla2 is clear | by 10.02.
-
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
