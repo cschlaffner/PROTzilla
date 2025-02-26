@@ -1,13 +1,12 @@
 import React from "react";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
 import { shadow, spacing } from "../../theme";
 
-
 const StyledCard = styled.div`
   background: white;
-  border-radius: 8px; 
+  border-radius: 8px;
   box-shadow: ${shadow("box_shadow")};
   padding: ${spacing("small")};
 `; //${border("defaultRadius")}
@@ -26,7 +25,7 @@ const CardTitle = styled.div`
   padding: ${spacing("small")};
 `;
 
-export const Card: React.FC<CardProps> = ({ title , children, className }) => {
+export const Card: React.FC<CardProps> = ({ title, children, className }) => {
   return (
     <StyledCard className={className}>
       {title && <CardTitle>{title}</CardTitle>}
