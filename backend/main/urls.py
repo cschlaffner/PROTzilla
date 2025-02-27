@@ -45,6 +45,10 @@ urlpatterns = [
     path("api/export_workflow/", viewswithapi.export_workflow, name="export_workflow"),
     path("api/download_plots/", viewswithapi.download_plots, name="download_plots"), #might function?
     path("api/download_table/", viewswithapi.download_table, name="download_table"), #might function?
+    path("api/get_step_parameters/", viewswithapi.get_step_parameters, name="get_step_parameters"),
+    path("api/get_step_plots/", viewswithapi.get_step_plots, name="get_step_plots"),
+    path("api/get_step_table/", viewswithapi.get_step_table, name="get_step_table"),
+    path("api/get_run_data/", viewswithapi.get_run_data, name="get_run_data"),
 
     # TODO R API routes (if using Django for API)
     # path('api/', include('myapp.api.urls')),  # Example for API routes

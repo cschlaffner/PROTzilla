@@ -1,5 +1,7 @@
 import re
 from backend.protzilla.all_steps import get_all_methods
+from backend.protzilla.steps import StepManager
+from backend.protzilla.utilities.miscellaneous_utils import name_to_title
 
 def parameters_from_post(post):
     d = dict(post)
@@ -47,3 +49,47 @@ def get_all_possible_step_names() -> list[str]:
             step.__name__
         )
     return step_names
+
+def get_displayed_steps(
+    steps: StepManager,
+) -> list[dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
+    displayed_steps = []
+    index_global = 0
+
+    sections = [
+        "data_analysis",
+        "data_preprocessing",
+        "data_integration",
+        "importing"
+    ]
+
+    for section in sections:
+        workflow_steps = []
+
+        for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
+            workflow_steps.append(#maybe useless stuff wei z.b. index kram, weil besser wenn frontend kalkuliert? andererseits ist das auch teilweise input for step_remove
+                {
+                    "id": step.operation,
+                    "name": name_to_title(step.operation),
+                    "index": index_in_section,
+                    "index_global": index_global,
+                    "section": step.section,
+                    "method_name": step.display_name,
+                    "selected": step == steps.current_step,
+                    "finished": index_global < steps.current_step_index,
+                    "calculation_icon_path": "img/" + step.calculation_status + "_icon.svg"
+                }
+            )
+
+            index_global += 1
+        displayed_steps.append(
+            {
+                "id": section,
+                "name": name_to_title(section),
+                "steps": workflow_steps,
+                "selected": steps.current_section == section,
+                "finished": index_global - 1 < steps.current_step_index,
+                "calculation_status": step.calculation_status,
+            }
+        )
+    return displayed_steps

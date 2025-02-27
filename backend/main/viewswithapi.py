@@ -17,10 +17,10 @@ from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
-from backend.protzilla.utilities.miscellaneous_utils import format_trace
+from backend.protzilla.utilities.miscellaneous_utils import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.viewswithapihelper import parameters_from_post, get_all_possible_step_names
+from backend.main.viewswithapihelper import get_displayed_steps, parameters_from_post, get_all_possible_step_names
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -294,3 +294,64 @@ def download_table(request):
         return FileResponse(csv_bytes, content_type="text/csv")
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def get_run_data(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+
+        run = active_runs[run_name]
+
+        run_data = {}
+
+        run_data["displayed_steps"] = get_displayed_steps()
+        run_data["current_section"] = run.current_step.section
+        run_data["current_step"] = run.current_step
+        run_data["memory_usage"] = get_memory_usage()
+
+        return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def get_step_parameters(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
+
+        run = active_runs[run_name]
+        
+        #get parameters for the step
+
+        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": "placeholder"}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def get_step_plots(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
+
+        run = active_runs[run_name]
+        
+        #get parameters for the step
+
+        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": "placeholder"}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def get_step_table(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
+
+        run = active_runs[run_name]
+        
+        #get parameters for the step
+
+        return JsonResponse({"success": True, "message": "Got the table for the step", "data": "placeholder"}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
