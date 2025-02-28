@@ -5,7 +5,7 @@ import { Col, Container, Row } from "react-grid-system";
 import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
-import { callApiWithParameters } from "../utils";
+import { callApi, callApiWithParameters } from "../utils";
 
 export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
@@ -14,6 +14,18 @@ export const IndexScreen: React.FC = () => {
   const [existingRun, setExistingRun] = useState("nothing here yet");
   const [runs, setRuns] = useState<{ value: string; label: string}[]>([]);
 //  const [csrfToken, setCsrfToken] = useState("");
+  const [title, setTitle] = useState("Loading..."); // Default title
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("step_name_list");
+      if (data) {
+        setTitle(data); // Assuming 'data' is a string list of names
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/jannesjsontest/')
@@ -123,9 +135,9 @@ export const IndexScreen: React.FC = () => {
             </Card>
           </Col>
 
-          {/* Delete Run Section */}
+          {/* Delete Run Section "Delete an existing run:"*/}
           <Col md={4}>
-            <Card title="Delete an existing run:">
+            <Card title={title}>
               <Dropdown
                 label="Select run:"
                 options={runs}

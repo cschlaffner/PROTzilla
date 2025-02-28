@@ -1,8 +1,9 @@
+import { API_ROOT } from "../constants";
 
 
 export const callApiWithParameters = async (url: string, parameters: Record<string, string>) => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/" + url, {
+      const response = await fetch(API_ROOT + url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -18,20 +19,25 @@ export const callApiWithParameters = async (url: string, parameters: Record<stri
       } else {
         alert(data.message);
       }
+      return data
     } catch (error) {
-      console.error("Error deleting element:", error);
+      console.error("Error:", error);
     }
   };
   
-export const callApi = (url: string) => {
-    fetch("http://127.0.0.1:8000/api/" + url)
-      .then((response) => response.json())
-      .then((data: string) => {return data})
-      .catch((error: unknown) => { 
-        if (error instanceof Error) {
-          console.error("Error fetching data:", error.message);
-        } else {
-          console.error("An unknown error occurred", error);
-        }
-      });
+export const callApi = async (url: string) => {
+  try {
+    const response = await fetch(API_ROOT + url)
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert(data.message);
+    } else {
+      alert(data.message);
+    }
+    return data
+  } catch (error) {
+    console.error("Error:", error);
+  }
 };
