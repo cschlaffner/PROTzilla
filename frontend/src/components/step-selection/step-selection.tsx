@@ -3,8 +3,28 @@ import { StepSelectionProps } from "./step-selection.props.ts";
 import { styled } from "styled-components";
 import { useEffect, useState } from "react";
 
-const WideModal = styled(Modal)`
+const TestBorder = styled.div`
+  height: 50vh;
   width: 100%;
+  border: #1a1d20;
+  background: #1a1d20;
+  position: relative;
+`;
+
+const WideModal = styled(Modal)`
+  width: 90%;
+  max-height: 100vh;
+`;
+
+const TestDiv = styled.div`
+  height: 100%;
+  overflow: hidden;
+  overflow-y: auto;
+`;
+
+const StepList = styled.ul`
+  overflow: hidden;
+  overflow-y: scroll;
 `;
 
 export const StepSelection: React.FC<StepSelectionProps> = ({
@@ -33,22 +53,21 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   }, []);
 
   return (
-    <WideModal
-      isOpen={isOpen}
-      onClose={onClose}
-      className={""}
-      title={"Step Selection"}
-    >
-      <div>
-        <h1>List from Backend</h1>
-        <p>check if list is empty: {list.length}</p>
-
-        <ul>
-          {list.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      </div>
-    </WideModal>
+    <TestBorder>
+      <WideModal
+        isOpen={isOpen}
+        onClose={onClose}
+        className={""}
+        title={"Step Selection"}
+      >
+        <TestDiv>
+          <StepList>
+            {list.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </StepList>
+        </TestDiv>
+      </WideModal>
+    </TestBorder>
   );
 };
