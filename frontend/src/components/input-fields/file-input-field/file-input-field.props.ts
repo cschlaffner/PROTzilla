@@ -4,12 +4,12 @@ import { FrameInputFieldProps } from "../frame-input-field";
 export interface FileInputFieldProps
   extends FrameInputFieldProps,
     UIStateProps {
-  // defaultValue?: string;
-  // placeholder?: string;
-  onChange: (value: string) => void;
+  defaultValue?: File | null;
+  placeholder?: string;
+  onChange: (value: File) => void;
 }
 
 export interface FileInputFieldRef {
-  // getValue: () => string;
-  // setValue: (value: string) => void;
+  getValue: () => File | null;
+  setValue: (file: File) => void;
 }
