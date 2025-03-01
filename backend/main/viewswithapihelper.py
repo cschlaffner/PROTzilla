@@ -50,14 +50,18 @@ def get_all_possible_step_names() -> list[str]:
         )
     return step_names
 
-def get_all_possible_steps() -> list[str]:
+def get_all_possible_steps() -> list[dict]:
     """
-        Returns a list of all step classes and their fields. Allows spreading of information about these steps.
+        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
 
-        :return: List of step classes.
-        :rtype: String
+        :return: List of step dictionaries via the steps to_dict function.
+        :rtype: List[dict]
         """
-    return get_all_methods()
+    steps = get_all_methods()
+    step_list = []
+    for step in steps:
+        step_list.append(step.to_dict(step))
+    return step_list
 
 def get_displayed_steps(
     steps: StepManager,

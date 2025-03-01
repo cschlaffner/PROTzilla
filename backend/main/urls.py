@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/do_something_with_element_from_frontend/", views.do_something_with_element_from_frontend, name="do_something_with_element_from_frontend"),
     path("api/run_information/", viewswithapi.run_information_list, name="run_information"),
     path("api/step_name_list/", viewswithapi.step_name_list, name="step_name_list"),
+    path("api/step_list/", viewswithapi.all_steps, name="step_list"),
     path("api/workflow_name_list/", viewswithapi.workflow_name_list, name="workflow_name_list"),
     
     path("api/toggle_favourite/", viewswithapi.toggle_favourite, name="toggle_favourite"),

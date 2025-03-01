@@ -54,6 +54,21 @@ class Step:
             and self.output == other.output
         )
 
+    def to_dict(self):
+        """
+        Returns a dictionary representation of the step object with all meta information about the step.
+        TODO decide which fields are relevant for the frontend
+        :return: dict
+        """
+        return {
+            "section": self.section,
+            "display_name": self.display_name,
+            "operation": self.operation,
+            "method_description": self.method_description,
+            "input_keys": self.input_keys,
+            "output_keys": self.output_keys
+        }
+
     def calculate(self, steps: StepManager, inputs: dict) -> None:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
