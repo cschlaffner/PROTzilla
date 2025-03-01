@@ -12,7 +12,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   onClose,
 }) => {
   const [list, setList] = useState([]);
-  const [debug, setDebug] = useState("");
 
   useEffect(() => {
     const fetchList = async () => {
@@ -20,8 +19,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
         const response = await fetch(
           "http://127.0.0.1:8000/api/step_name_list/",
         );
-        setDebug("meep: ");
-
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -44,22 +41,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     >
       <div>
         <h1>List from Backend</h1>
-        <p>
-          check if list is empty: {list.length} + {debug}
-        </p>
+        <p>check if list is empty: {list.length}</p>
+
         <ul>
           {list.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
-        <p>
-          Step 1: Select your favorite run Select your favorite runSelect your
-          favorite runSelect your favorite runSelect your favorite runrite run
-          Srite run Srite run Srite run Srite run Srite run Srite run Srite run
-          Srite run S
-        </p>
-        <p>Step 2: Select your favorite shoes</p>
-        <p>Step 3: Select your favorite time</p>
       </div>
     </WideModal>
   );
