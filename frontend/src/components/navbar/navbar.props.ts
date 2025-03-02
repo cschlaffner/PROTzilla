@@ -5,6 +5,6 @@ export interface NavbarProps
     I18nTitleProps {
   onNavigateHome: () => void;
   onOpenSettings: () => void;
-  showHomeButton: boolean;
+  onOpenHelp: () => void;
   allowRunEdit: boolean;
 }
