@@ -45,7 +45,7 @@ def step_name_list(request):
 
 def all_steps(request):
     steps = get_all_possible_steps()
-    return JsonResponse("steps", safe=False)
+    return JsonResponse(steps, safe=False)
 
 def workflow_name_list(request):
     workflow_names = get_available_workflow_names()
