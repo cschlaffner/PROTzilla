@@ -7,7 +7,6 @@ import { FlexColumn } from "../box";
 import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
-import { Icon } from "../icon";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -47,28 +46,6 @@ const NavbarRight = styled.div`
   padding-right: ${spacing("medium")};
 `;
 
-const HomeButton = styled(Button)`
-  padding-top: 0;
-  padding-left: ${spacing("smallButtonIconPadding")};
-  padding-bottom: 0;
-  padding-right: ${spacing("buttonPadding")};
-  height: ${spacing("large")};
-  align-content: center;
-
-  .icon {
-    width: 100%;
-    height: 100%;
-  }
-`;
-
-const HomeIcon = styled(Icon)`
-  height: ${spacing("large")};
-  width: fit-content;
-  color: ${color("onPrimary")};
-  padding-left: ${spacing("smallButtonIconPadding")};
-  padding-right: ${spacing("buttonPadding")};
-`;
-
 const NavbarCenterTitle = styled(Text)`
   color: ${color("onPrimary")};
   font-size: ${fontSize("h3")};
@@ -97,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   titleComponents,
   onNavigateHome,
   onOpenSettings,
-  showHomeButton,
+  onOpenHelp,
 
   ...rest
 }) => {
@@ -110,15 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <FlexColumn {...rest}>
       <NavbarBody>
         <NavbarLeft>
-          {showHomeButton ? (
-            <HomeButton
-              icon={"protzilla"}
-              text="Home"
-              onPress={onNavigateHome}
-            />
-          ) : (
-            <HomeIcon icon={"protzilla"} color={"onPrimary"} />
-          )}
+          <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
           <NavbarCenterTitle
@@ -143,6 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarCenter>
 
         <NavbarRight>
+          <Button icon={"help"} onPress={onOpenHelp} />
           <Button icon={"settings"} onPress={onOpenSettings} />
         </NavbarRight>
       </NavbarBody>
