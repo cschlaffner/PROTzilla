@@ -1,11 +1,8 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputField } from "../frame-input-field";
-import {
-  RadioSelectInputFieldProps,
-  RadioSelectInputFieldRef,
-} from "./radio-select-input-field.props";
+import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
 const StyledRadioContainer = styled.div`
@@ -24,28 +21,23 @@ const StyledLabel = styled.label`
   user-select: none;
 `;
 
-export const RadioSelectInputField = forwardRef<
-  RadioSelectInputFieldRef,
-  RadioSelectInputFieldProps
->(function RadioSelectInputField(
-  { options, selectedValue: selectedValueProp, onChange, ...props },
-  ref,
-) {
-  const [selectedValue, setSelectedValue] = useState<string>(
-    selectedValueProp ?? options[0]?.value,
+export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
+  options,
+  defaultOption,
+  onChange,
+  ...props
+}) => {
+  const [value, setValue] = useState<string>(
+    defaultOption ?? options[0]?.value,
   );
 
-  const handleChange = (value: string) => {
-    setSelectedValue(value);
+  useEffect(() => {
     onChange(value);
-  };
+  }, [onChange, value]);
 
-  useImperativeHandle(ref, () => ({
-    getValue: () => selectedValue,
-    setValue: (newValue: string) => {
-      setSelectedValue(newValue);
-    },
-  }));
+  const handleChange = (value: string) => {
+    setValue(value);
+  };
 
   return (
     <FrameInputField {...props}>
@@ -58,7 +50,7 @@ export const RadioSelectInputField = forwardRef<
                 id={id}
                 type="radio"
                 value={option.value}
-                checked={selectedValue === option.value}
+                checked={value === option.value}
                 onChange={() => {
                   handleChange(option.value);
                 }}
@@ -70,4 +62,4 @@ export const RadioSelectInputField = forwardRef<
       </StyledRadioContainer>
     </FrameInputField>
   );
-});
+};

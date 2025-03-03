@@ -1,18 +1,11 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { border, borderColors, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import type {
-  DropdownInputFieldProps,
-  DropdownInputFieldRef,
-} from "./dropdown-input-field.props";
+import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
+import { useOutsidePress } from "../../../hooks/outside-press";
+import { useToggleableState } from "../../../hooks/toggleable-state";
 import { Icon } from "../../icon";
 
 const DropdownContainer = styled.div`
@@ -65,50 +58,44 @@ const OptionItem = styled.li`
   }
 `;
 
-export const DropdownInputField = forwardRef<
-  DropdownInputFieldRef,
-  DropdownInputFieldProps
->(function DropdownInputField(
-  { options, defaultValue = options[0], onChange, ...props },
-  ref,
-) {
+export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
+  options,
+  defaultOption,
+  onChange,
+  ...props
+}) => {
   const [selectedValue, setSelectedValue] = useState<{
     label: string;
     value: string;
-  }>(defaultValue);
-  const [isOpen, setIsOpen] = useState(false);
+  }>(options.find(option => option.value === defaultOption) || options[0]);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
   const [dropdownWidth, setDropdownWidth] = useState<number>(200);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
+  const [isOpen, , disable, toggle] = useToggleableState();
+  useOutsidePress(
+    [
+      dropdownRef as React.RefObject<HTMLElement>,
+      inputRef as React.RefObject<HTMLElement>,
+    ],
+    disable,
+    isOpen,
+  );
 
+  useEffect(() => {
     if (inputRef.current) {
       setDropdownWidth(inputRef.current.getBoundingClientRect().width);
     }
+  }, []);
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
+  useEffect(() => {
+    onChange(selectedValue.value);
+  }, [selectedValue, onChange]);
 
   const handleChange = (option: { label: string; value: string }) => {
     setSelectedValue(option);
     onChange(option.value);
-    setIsOpen(false);
+    disable();
   };
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -118,28 +105,19 @@ export const DropdownInputField = forwardRef<
       target.closest(".inline-suffix") ||
       target.closest(".selected-value-text")
     ) {
-      setIsOpen(!isOpen);
+      toggle();
     }
   };
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      getValue: () => selectedValue.value,
-      setValue: (value: string) => {
-        const option = options.find((opt) => opt.value === value);
-        if (option) {
-          setSelectedValue(option);
-        }
-      },
-    }),
-    [selectedValue, options],
-  );
 
   return (
     <DropdownContainer>
       <div ref={inputRef} onClick={handleClick}>
-        <FrameInputField {...props} inlineSuffix={<Icon icon="caretDown" />}>
+        <FrameInputField
+          {...props}
+          inlineSuffix={
+            <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
+          }
+        >
           <p className="selected-value-text">{selectedValue.label}</p>
         </FrameInputField>
       </div>
@@ -164,4 +142,4 @@ export const DropdownInputField = forwardRef<
       )}
     </DropdownContainer>
   );
-});
+};

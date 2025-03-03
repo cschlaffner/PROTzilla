@@ -5,11 +5,6 @@ export interface DropdownInputFieldProps
   extends FrameInputFieldProps,
     UIStateProps {
   options: { label: string; value: string }[];
-  defaultValue?: { label: string; value: string };
+  defaultOption?: string;
   onChange: (value: string) => void;
-}
-
-export interface DropdownInputFieldRef {
-  getValue: () => string;
-  setValue: (value: string) => void;
 }

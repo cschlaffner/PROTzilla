@@ -1,38 +1,30 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import {
-  TextInputFieldProps,
-  TextInputFieldRef,
-} from "./text-input-field.props";
+import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
   width: 100%;
 `;
 
-export const TextInputField = forwardRef<
-  TextInputFieldRef,
-  TextInputFieldProps
->(function TextInputField(
-  { defaultValue = "", placeholder, onChange, ...props },
-  ref,
-) {
+export const TextInputField: React.FC<TextInputFieldProps> = ({
+  defaultValue = "",
+  placeholder,
+  onChange,
+  ...props
+}) => {
   const [value, setValue] = useState<string>(defaultValue);
+
+  useEffect(() => {
+    onChange(value);
+  }, [onChange, value]);
 
   const handleChange = (value: string) => {
     setValue(value);
-    onChange(value);
   };
-
-  useImperativeHandle(ref, () => ({
-    getValue: () => value,
-    setValue: (newValue: string) => {
-      setValue(newValue);
-    },
-  }));
 
   return (
     <FrameInputField {...props}>
@@ -47,4 +39,4 @@ export const TextInputField = forwardRef<
       />
     </FrameInputField>
   );
-});
+};

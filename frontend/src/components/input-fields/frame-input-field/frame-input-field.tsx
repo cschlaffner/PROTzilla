@@ -35,14 +35,14 @@ const FlexContainer = styled.div`
 `;
 
 const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
-  background-color: white;
+  box-sizing: border-box;
+  background-color: ${color("transparent")};
   border: ${({ $smallBorder }) =>
       border($smallBorder ? "smallStrength" : "defaultStrength")}
     solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
   gap: ${spacing("verySmall")};
-  // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 100%;
 `;
 
