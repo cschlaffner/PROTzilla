@@ -56,25 +56,16 @@ export const Form: React.FC<FormProps> = ({
   const [isChanged, setIsChanged] = useState(false);
   const [formTouchedTriggered, setFormTouchedTriggered] = useState(false);
 
-  const inputRefs = useRef<{ [key: string]: any }>({});
-
-  useEffect(() => {
-    setTimeout(() => {
-      const initialValues: Record<string, any> = {};
-      Object.keys(inputRefs.current).forEach((key) => {
-        if (inputRefs.current[key]?.getValue) {
-          initialValues[key] = inputRefs.current[key].getValue();
-        }
-      });
-      setFormValues(initialValues);
-    }, 0);
-  }, []);
-
   const handleChange = (id: string, value: any) => {
     setFormValues((prevValues) => {
       const newValues = { ...prevValues, [id]: value };
       const hasChanges =
         JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+
+      const isFirstEntryForId = !(id in prevValues);
+      if (isFirstEntryForId) {
+        return newValues;
+      }
 
       if (!formData.submit) {
         onChange(newValues);
@@ -112,9 +103,6 @@ export const Form: React.FC<FormProps> = ({
           type={inputField.type}
           id={inputField.id}
           onChange={handleChange}
-          ref={(el) => {
-            if (el) inputRefs.current[inputField.id] = el;
-          }}
           {...inputField.props}
         />
       ))}
@@ -142,63 +130,57 @@ interface InputFieldProps {
   [key: string]: any;
 }
 
-const InputField = React.forwardRef<any, InputFieldProps>(
-  ({ type, id, onChange, options, ...props }, ref) => {
-    const handleInputChange = (value: any) => {
-      onChange(id, value);
-    };
+const InputField: React.FC<InputFieldProps> = ({
+  type,
+  id,
+  onChange,
+  options,
+  ...props
+}) => {
+  const handleInputChange = (value: any) => {
+    onChange(id, value);
+  };
 
-    switch (type) {
-      case "text":
-        return (
-          <TextInputField ref={ref} onChange={handleInputChange} {...props} />
-        );
-      case "number":
-        return (
-          <NumberInputField ref={ref} onChange={handleInputChange} {...props} />
-        );
-      case "search":
-        return (
-          <SearchInputField ref={ref} onChange={handleInputChange} {...props} />
-        );
-      case "radio-select":
-        return (
-          <RadioSelectInputField
-            ref={ref}
-            onChange={handleInputChange}
-            options={options ?? []}
-            {...props}
-          />
-        );
-      case "checkbox-select":
-        return (
-          <CheckboxSelectInputField
-            ref={ref}
-            onChange={handleInputChange}
-            options={options ?? []}
-            {...props}
-          />
-        );
-      case "dropdown":
-        return (
-          <DropdownInputField
-            ref={ref}
-            onChange={handleInputChange}
-            options={options ?? []}
-            {...props}
-          />
-        );
-      case "multi-select":
-        return (
-          <MultiSelectInputField
-            ref={ref}
-            onChange={handleInputChange}
-            options={options ?? []}
-            {...props}
-          />
-        );
-      default:
-        return null;
-    }
-  },
-);
+  switch (type) {
+    case "text":
+      return <TextInputField onChange={handleInputChange} {...props} />;
+    case "number":
+      return <NumberInputField onChange={handleInputChange} {...props} />;
+    case "search":
+      return <SearchInputField onChange={handleInputChange} {...props} />;
+    case "radio-select":
+      return (
+        <RadioSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
+    case "checkbox-select":
+      return (
+        <CheckboxSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
+    case "dropdown":
+      return (
+        <DropdownInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
+    case "multi-select":
+      return (
+        <MultiSelectInputField
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
+      );
+    default:
+      return null;
+  }
+};
