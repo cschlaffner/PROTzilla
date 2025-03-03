@@ -33,7 +33,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
-
       if (isInteger && newValue.includes(".")) {
         return;
       }

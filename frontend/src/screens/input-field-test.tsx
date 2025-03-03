@@ -109,7 +109,7 @@ export const InputFieldTestScreen: React.FC = () => {
             { label: "Green", value: "green" },
             { label: "Yellow", value: "yellow" },
           ]}
-          selectedValues={values.checkboxes}
+          defaultOptions={values.checkboxes}
           onChange={(e) => {
             handleChange("checkboxes", e);
           }}
@@ -126,7 +126,7 @@ export const InputFieldTestScreen: React.FC = () => {
             { label: "Green", value: "green" },
             { label: "Yellow", value: "yellow" },
           ]}
-          selectedValue={values.radio}
+          defaultOption={values.radio}
           onChange={(e) => {
             handleChange("radio", e);
           }}
