@@ -1,38 +1,30 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import {
-  SearchInputFieldProps,
-  SearchInputFieldRef,
-} from "./search-input-field.props";
+import { SearchInputFieldProps } from "./search-input-field.props";
 import { Icon } from "../../icon";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
 `;
 
-export const SearchInputField = forwardRef<
-  SearchInputFieldRef,
-  SearchInputFieldProps
->(function SearchInputField(
-  { defaultValue = "", placeholder, onChange, ...props },
-  ref,
-) {
+export const SearchInputField: React.FC<SearchInputFieldProps> = ({
+  defaultValue = "",
+  placeholder,
+  onChange,
+  ...props
+}) => {
   const [value, setValue] = useState<string>(defaultValue);
+
+  useEffect(() => {
+    onChange(value);
+  }, [onChange, value]);
 
   const handleChange = (value: string) => {
     setValue(value);
-    onChange(value);
   };
-
-  useImperativeHandle(ref, () => ({
-    getValue: () => value,
-    setValue: (newValue: string) => {
-      setValue(newValue);
-    },
-  }));
 
   return (
     <FrameInputField
@@ -55,4 +47,4 @@ export const SearchInputField = forwardRef<
       />
     </FrameInputField>
   );
-});
+};

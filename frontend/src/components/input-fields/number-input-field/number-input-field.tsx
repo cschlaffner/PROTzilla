@@ -1,56 +1,50 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import {
-  NumberInputFieldProps,
-  NumberInputFieldRef,
-} from "./number-input-field.props";
+import { NumberInputFieldProps } from "./number-input-field.props";
 
 const StyledInput = styled.input`
   font-size: ${fontSize("default")};
 `;
 
-export const NumberInputField = forwardRef<
-  NumberInputFieldRef,
-  NumberInputFieldProps
->(function NumberInputField(
-  { defaultValue = 0, placeholder, min, max, step, onChange, ...props },
-  ref,
-) {
+export const NumberInputField: React.FC<NumberInputFieldProps> = ({
+  defaultValue = 0,
+  placeholder,
+  min,
+  max,
+  step,
+  onChange,
+  ...props
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState<string>(String(defaultValue));
+  const [value, setValue] = useState<number>(defaultValue);
+  const [displayValue, setDisplayValue] = useState<string>(
+    String(defaultValue),
+  );
+
+  useEffect(() => {
+    onChange(value);
+  }, [onChange, value]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
+      setDisplayValue(newValue);
 
-    if (newValue === "-" || newValue === "") {
-      setValue(newValue);
-      return;
-    }
-
-    const numericValue = Number(newValue);
-    if (!isNaN(numericValue)) {
-      setValue(newValue);
-      onChange(numericValue);
+      const numericValue = Number(newValue);
+      setValue(isNaN(numericValue) ? 0 : numericValue);
     }
   };
-
-  useImperativeHandle(ref, () => ({
-    getValue: () => (value === "" || value === "-" ? null : Number(value)),
-    setValue: (newValue: number) => {
-      setValue(String(newValue));
-    },
-  }));
 
   return (
     <FrameInputField {...props}>
       <StyledInput
         ref={inputRef}
-        type="number"
+        type="text"
         inputMode="numeric"
-        value={value}
+        value={displayValue}
         placeholder={placeholder}
         min={min}
         max={max}
@@ -60,4 +54,4 @@ export const NumberInputField = forwardRef<
       />
     </FrameInputField>
   );
-});
+};

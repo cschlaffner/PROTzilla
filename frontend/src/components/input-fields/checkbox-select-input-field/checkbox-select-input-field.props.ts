@@ -5,11 +5,6 @@ export interface CheckboxSelectInputFieldProps
   extends Omit<FrameInputFieldProps, "inlinePrefix" | "inlineSuffix">,
     UIStateProps {
   options: { label: string; value: string }[];
-  selectedValues?: string[];
+  defaultOptions?: string[];
   onChange: (value: string[]) => void;
-}
-
-export interface CheckboxSelectInputFieldRef {
-  getValue: () => string[];
-  setValue: (values: string[]) => void;
 }

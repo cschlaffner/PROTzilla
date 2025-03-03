@@ -5,11 +5,6 @@ export interface MultiSelectInputFieldProps
   extends Omit<FrameInputFieldProps, "onChange">,
     UIStateProps {
   options: { label: string; value: string }[];
-  selectedOptions?: string[];
+  defaultOptions?: string[];
   onChange: (selectedValues: string[]) => void;
-}
-
-export interface MultiSelectInputFieldRef {
-  getValue: () => string[];
-  setValue: (values: string[]) => void;
 }

@@ -1,18 +1,15 @@
-import React, { forwardRef, useImperativeHandle, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  MultiSelectInputFieldProps,
-  MultiSelectInputFieldRef,
-} from "./multi-select-input-field.props";
+import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
+import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
 import { FrameInputField } from "../frame-input-field";
 import { SearchInputField } from "../search-input-field";
 
 const OptionsListContainer = styled.ul`
-  // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: ${border("defaultRadius")};
   border: ${border("smallStrength")} solid ${borderColors("default")};
   height: ${size("inputFieldListSmall")};
@@ -36,42 +33,6 @@ const OptionItem = styled.li`
 `;
 
 const ListLabel = styled(InputLabel)``;
-
-const LeftCaretIcon = () => (
-  <svg
-    width="10"
-    height="10"
-    viewBox="0 0 10 10"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M7 2L3 5L7 8"
-      stroke="black"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const RightCaretIcon = () => (
-  <svg
-    width="10"
-    height="10"
-    viewBox="0 0 10 10"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M3 2L7 5L3 8"
-      stroke="black"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const OptionsListComponent: React.FC<{
   titleLabel: string;
@@ -100,11 +61,12 @@ const OptionsListComponent: React.FC<{
               {isLeftList ? (
                 <>
                   <span>{option.label}</span>
-                  <RightCaretIcon />
+                  <Icon icon="chevronRight" isSmall />
                 </>
               ) : (
                 <>
-                  <LeftCaretIcon /> <span>{option.label}</span>
+                  <Icon icon="chevronLeft" isSmall />
+                  <span>{option.label}</span>
                 </>
               )}
             </OptionItem>
@@ -117,14 +79,28 @@ const OptionsListComponent: React.FC<{
   );
 };
 
-export const MultiSelectInputField = forwardRef<
-  MultiSelectInputFieldRef,
-  MultiSelectInputFieldProps
->(function MultiSelectInputField({ options, onChange, ...props }, ref) {
+export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
+  options,
+  defaultOptions = [],
+  onChange,
+  ...props
+}) => {
   const [selectedOptions, setSelectedOptions] = useState<
     { label: string; value: string }[]
   >([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const sortOptions = (options: { label: string; value: string }[]) =>
+    [...options].sort((a, b) => a.value.localeCompare(b.value));
+
+  useEffect(() => {
+    const initialSelected = options.filter((opt) =>
+      defaultOptions.includes(opt.value),
+    );
+    const sortedSelection = sortOptions(initialSelected);
+    setSelectedOptions(sortedSelection);
+    onChange(sortedSelection.map((opt) => opt.value));
+  }, [options, defaultOptions, onChange]);
 
   const unselectedOptions = options.filter(
     (option) =>
@@ -139,22 +115,12 @@ export const MultiSelectInputField = forwardRef<
         ? prev.filter((item) => item.value !== option.value)
         : [...prev, option];
 
-      const sortedSelection = newSelection.sort((a, b) =>
-        a.value.localeCompare(b.value),
-      );
-
+      const sortedSelection = sortOptions(newSelection);
+      setSelectedOptions(sortedSelection);
       onChange(sortedSelection.map((opt) => opt.value));
-      return sortedSelection;
+      return newSelection;
     });
   };
-
-  useImperativeHandle(ref, () => ({
-    getValue: () => selectedOptions.map((opt) => opt.value),
-    setValue: (values: string[]) => {
-      const newSelection = options.filter((opt) => values.includes(opt.value));
-      setSelectedOptions(newSelection);
-    },
-  }));
 
   return (
     <FrameInputField {...props}>
@@ -190,4 +156,4 @@ export const MultiSelectInputField = forwardRef<
       </FlexColumn>
     </FrameInputField>
   );
-});
+};
