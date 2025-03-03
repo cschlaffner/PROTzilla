@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputField } from "../frame-input-field";
@@ -27,16 +27,15 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
   onChange,
   ...props
 }) => {
-  const [value, setValue] = useState<string>(
-    defaultOption ?? options[0]?.value,
-  );
-
-  useEffect(() => {
-    onChange(value);
-  }, [onChange, value]);
+  const [value, setValue] = useState<string>(() => {
+    const initialValue = defaultOption ?? options[0]?.value;
+    onChange(initialValue);
+    return initialValue;
+  });
 
   const handleChange = (value: string) => {
     setValue(value);
+    onChange(value);
   };
 
   return (

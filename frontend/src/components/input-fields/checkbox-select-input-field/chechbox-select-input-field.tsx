@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
@@ -24,15 +24,13 @@ const StyledLabel = styled.label`
 export const CheckboxSelectInputField: React.FC<
   CheckboxSelectInputFieldProps
 > = ({ options, defaultOptions = [], onChange, ...props }) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
-
-  useEffect(() => {
-    const sortedDefaultOptions = defaultOptions.sort((a, b) =>
+  const [selectedValues, setSelectedValues] = useState(() => {
+    const sortedDefaultOptions = [...defaultOptions].sort((a, b) =>
       a.localeCompare(b),
     );
-    setSelectedValues(sortedDefaultOptions);
     onChange(sortedDefaultOptions);
-  }, [defaultOptions, onChange]);
+    return sortedDefaultOptions;
+  });
 
   const handleChange = (value: string) => {
     const newSelectedValues = selectedValues.includes(value)

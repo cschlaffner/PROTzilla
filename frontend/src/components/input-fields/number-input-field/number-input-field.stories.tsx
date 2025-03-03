@@ -39,4 +39,5 @@ unit.args = {
   max: 100,
   step: 5,
   separatePrefix: "%",
+  isInteger: true,
 };

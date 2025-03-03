@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
@@ -16,14 +16,14 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
   onChange,
   ...props
 }) => {
-  const [value, setValue] = useState<string>(defaultValue);
-
-  useEffect(() => {
-    onChange(value);
-  }, [onChange, value]);
+  const [value, setValue] = useState(() => {
+    onChange(defaultValue);
+    return defaultValue;
+  });
 
   const handleChange = (value: string) => {
     setValue(value);
+    onChange(value);
   };
 
   return (
