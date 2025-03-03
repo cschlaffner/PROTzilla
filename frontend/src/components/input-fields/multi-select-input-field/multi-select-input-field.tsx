@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
@@ -85,27 +85,24 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
   onChange,
   ...props
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
   const sortOptions = (options: { label: string; value: string }[]) =>
     [...options].sort((a, b) => a.value.localeCompare(b.value));
 
-  useEffect(() => {
+  const [selectedOptions, setSelectedOptions] = useState(() => {
     const initialSelected = options.filter((opt) =>
       defaultOptions.includes(opt.value),
     );
     const sortedSelection = sortOptions(initialSelected);
-    setSelectedOptions(sortedSelection);
     onChange(sortedSelection.map((opt) => opt.value));
-  }, [options, defaultOptions, onChange]);
+    return sortedSelection;
+  });
 
   const unselectedOptions = options.filter(
     (option) =>
       !selectedOptions.some((selected) => selected.value === option.value),
   );
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleItemClick = (option: { label: string; value: string }) => {
     setSelectedOptions((prev) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { fontSize } from "../../../theme";
@@ -15,26 +15,35 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   min,
   max,
   step,
+  isInteger = false,
   onChange,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState<number>(defaultValue);
+
+  const [, setValue] = useState<number>(() => {
+    onChange(defaultValue);
+    return defaultValue;
+  });
+
   const [displayValue, setDisplayValue] = useState<string>(
     String(defaultValue),
   );
 
-  useEffect(() => {
-    onChange(value);
-  }, [onChange, value]);
-
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
+
+      if (isInteger && newValue.includes(".")) {
+        return;
+      }
+
       setDisplayValue(newValue);
 
       const numericValue = Number(newValue);
-      setValue(isNaN(numericValue) ? 0 : numericValue);
+      const newNumericValue = isNaN(numericValue) ? 0 : numericValue;
+      setValue(newNumericValue);
+      onChange(newNumericValue);
     }
   };
 
