@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { InvisibleButton, ToggleableButton } from "../button";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
-import { addStepToWorkflow, getCookie } from "./api.ts";
+import { useAddStepToWorkflow } from "./api.ts";
+import { useCookie } from "../../hooks/use-cookie.ts";
 
 enum SectionModes {
   All = "all",
@@ -124,10 +125,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   };
 
   // - - - API calls - - -
+  const addStepToWorkflow = useAddStepToWorkflow();
 
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
-    const csrftoken = getCookie("csrftoken");
+    const csrftoken = useCookie("csrftoken");
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {

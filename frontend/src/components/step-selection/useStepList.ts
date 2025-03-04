@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { fetchStepList } from "./api";
 
 /**
  * Type definition for a step item.
@@ -13,6 +12,19 @@ export type StepItem = {
   method_description: string;
   input_keys: string[];
   output_keys: string[];
+};
+
+/**
+ * Fetches the list of steps from the API aka the backend.
+ * @returns {Promise<StepItem[]>} A promise that resolves to an array of StepItem objects.
+ * @throws Will throw an error if the network response is not ok.
+ */
+const fetchStepList = async (): Promise<StepItem[]> => {
+  const response = await fetch("http://127.0.0.1:8000/api/step_list/");
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return response.json();
 };
 
 /**
