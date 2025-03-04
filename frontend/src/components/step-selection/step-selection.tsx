@@ -69,10 +69,26 @@ const StepList = styled.dl`
   flex-direction: column;
 `;
 
+async function fetchCsrfToken() {
+  const response = await fetch("http://127.0.0.1:8000/api/get_csrf_token/", {
+    method: "GET",
+    credentials: "include", // Ensure cookies are included in the request
+  });
+  const data = await response.json();
+  return data.csrfToken;
+}
+
+// async function fetchCsrfTokenB() {
+//   const response = await fetch("http://127.0.0.1:8000/api/get_csrf_tokenB/", {
+//     method: "GET",
+//     credentials: "include", // Ensure cookies are included in the request
+//   });
+//   return response; // No need to parse JSON, just set the cookie
+// }
+
 export const StepSelection: React.FC<StepSelectionProps> = ({
   isOpen,
   onClose,
-  addStepToWorkflow,
 
   ...rest
 }) => {
@@ -165,9 +181,88 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     {} as Record<string, StepItem[]>,
   );
 
-  const handleAddStep = (step: string) => {
-    addStepToWorkflow(step);
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  }
+
+  const continueRunForDebugging = async (run_name: string) => {
+    const csrftoken = getCookie("csrftoken");
+    console.log(csrftoken);
+    console.log(document.cookie);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify({
+          run_name: run_name,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+    } catch (error) {
+      console.error("Error adding step to workflow:", error);
+    }
   };
+
+  const addStepToWorkflow = async (run_name: string, new_step: string) => {
+    const csrftoken = getCookie("csrftoken");
+    console.log(csrftoken);
+    console.log(document.cookie);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/add_step/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify({
+          run_name: run_name,
+          method: new_step,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      console.log("Step added to workflow:", data);
+    } catch (error) {
+      console.error("Error adding step to workflow:", error);
+    }
+  };
+
+  continueRunForDebugging("runrun");
 
   return (
     <WideModal
@@ -198,7 +293,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   {groupedSteps[operation].map((item, index) => (
                     <InvisibleButton
                       style={{ justifyContent: "left" }}
-                      onPress={() => handleAddStep(item.method_name)}
+                      onPress={() =>
+                        addStepToWorkflow("runrun", item.method_name)
+                      }
                       key={index}
                     >
                       {item.display_name}

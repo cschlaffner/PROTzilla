@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
@@ -189,7 +189,7 @@ def add_plot(request):
         return JsonResponse({"success": True, "message": "Created plot"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
 def add_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -200,7 +200,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Deleted step"})
+        return JsonResponse({"success": True, "message": "Added step" + method + "."})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
