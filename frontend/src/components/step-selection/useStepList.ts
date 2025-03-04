@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { fetchStepList } from "./api";
 
+/**
+ * Type definition for a step item.
+ * Contains relevant fields of step classes from the backend.
+ */
 export type StepItem = {
   method_name: string;
   section: string;
@@ -11,6 +15,10 @@ export type StepItem = {
   output_keys: string[];
 };
 
+/**
+ * Custom hook to fetch and manage step lists. It returns steps lists sorted by section, and a step list containing all steps.
+ * @returns {Object} An object containing all step lists and categorized step lists.
+ */
 export const useStepLists = () => {
   const [stepLists, setStepLists] = useState({
     allStepsList: [] as StepItem[],
