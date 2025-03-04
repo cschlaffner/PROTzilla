@@ -195,7 +195,6 @@ def add_step(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         method = data.get("method") #this is a bit different to the original, but frontend prob has to deal with it :)
-
         run = active_runs[run_name]
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)

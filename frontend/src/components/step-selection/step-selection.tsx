@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { InvisibleButton, ToggleableButton } from "../button";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
-import { useAddStepToWorkflow } from "./api.ts";
-import { useCookie } from "../../hooks/use-cookie.ts";
+import { callApiWithParameters } from "../../utils";
+import { getCookie } from "../../utils/get-cookie.ts";
 
 enum SectionModes {
   All = "all",
@@ -125,11 +125,17 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   };
 
   // - - - API calls - - -
-  const addStepToWorkflow = useAddStepToWorkflow();
+  //const addStepToWorkflow = useAddStepToWorkflow();
+  const handleAddStep = async (run_name: string, method_name: string) => {
+    callApiWithParameters("add_step/", {
+      run_name: run_name,
+      method: method_name,
+    });
+  };
 
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
-    const csrftoken = useCookie("csrftoken");
+    const csrftoken = getCookie("csrftoken") as string;
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
@@ -182,9 +188,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                 <OperationStepList>
                   {stepsGroupedByOperation[operation].map((item, index) => (
                     <StepButton
-                      onPress={() =>
-                        addStepToWorkflow(runName, item.method_name)
-                      }
+                      onPress={() => handleAddStep(runName, item.method_name)}
                       key={index}
                     >
                       {item.display_name}
