@@ -5,11 +5,18 @@ import { FrameInputField } from "../frame-input-field";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
-const StyledRadioContainer = styled.div`
+const StyledRadioContainer = styled.div<{ $isSmall: boolean }>`
   cursor: default;
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
+  padding-top: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-bottom: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
+  width: 100%;
 `;
 
 const StyledLabel = styled.label`
@@ -40,7 +47,7 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
 
   return (
     <FrameInputField {...props}>
-      <StyledRadioContainer>
+      <StyledRadioContainer $isSmall={props.isSmall ?? false}>
         {options.map((option) => {
           const id = `radio-${option.value}`;
           return (

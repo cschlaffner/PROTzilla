@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { border, borderColors, spacing } from "../../../theme";
+import {
+  border,
+  borderColors,
+  color,
+  fontSize,
+  size,
+  spacing,
+} from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { useOutsidePress } from "../../../hooks/outside-press";
@@ -11,6 +18,19 @@ import { Icon } from "../../icon";
 const DropdownContainer = styled.div`
   display: inline-block;
   position: relative;
+  width: 100%;
+`;
+
+const StyledInputLabel = styled.p<{ $isSmall: boolean }>`
+  font-size: ${fontSize("default")};
+  display: flex;
+  align-items: center;
+  padding: 0px ${spacing("small")};
+  background: ${color("transparent")};
+  border: none;
+  outline: none;
+  height: ${({ $isSmall }) =>
+    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -117,7 +137,12 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
             <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
           }
         >
-          <p className="selected-value-text">{selectedValue.label}</p>
+          <StyledInputLabel
+            className="selected-value-text"
+            $isSmall={props.isSmall ?? false}
+          >
+            {selectedValue.label}
+          </StyledInputLabel>
         </FrameInputField>
       </div>
 

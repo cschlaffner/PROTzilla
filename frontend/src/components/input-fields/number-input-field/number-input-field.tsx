@@ -1,12 +1,19 @@
 import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { fontSize } from "../../../theme";
+import { color, fontSize, size, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
 
-const StyledInput = styled.input`
+const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
+  padding: 0px ${spacing("small")};
+  background: ${color("transparent")};
+  border: none;
+  outline: none;
+  height: ${({ $isSmall }) =>
+    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  width: 100%;
 `;
 
 export const NumberInputField: React.FC<NumberInputFieldProps> = ({
@@ -58,6 +65,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         max={max}
         step={step}
         onInput={handleInput}
+        $isSmall={props.isSmall ?? false}
         {...props}
       />
     </FrameInputField>

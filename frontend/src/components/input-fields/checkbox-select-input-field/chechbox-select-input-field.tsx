@@ -5,11 +5,18 @@ import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.pro
 import { spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
 
-const StyledCheckboxContainer = styled.div`
+const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
   cursor: default;
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
+  padding-top: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-bottom: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
+  width: 100%;
 `;
 
 const StyledLabel = styled.label`
@@ -47,7 +54,7 @@ export const CheckboxSelectInputField: React.FC<
 
   return (
     <FrameInputField {...props}>
-      <StyledCheckboxContainer>
+      <StyledCheckboxContainer $isSmall={props.isSmall ?? false}>
         {options.map((option) => {
           const id = `checkbox-${option.value}`;
           return (

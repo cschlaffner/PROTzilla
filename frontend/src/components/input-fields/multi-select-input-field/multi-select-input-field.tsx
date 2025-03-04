@@ -9,6 +9,16 @@ import { InputLabel } from "../../text";
 import { FrameInputField } from "../frame-input-field";
 import { SearchInputField } from "../search-input-field";
 
+const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
+  padding-top: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-bottom: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
+  width: 100%;
+`;
+
 const OptionsListContainer = styled.ul`
   border-radius: ${border("defaultRadius")};
   border: ${border("smallStrength")} solid ${borderColors("default")};
@@ -121,7 +131,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
 
   return (
     <FrameInputField {...props}>
-      <FlexColumn style={{ width: "100%" }}>
+      <StyledFlexColumn $isSmall={props.isSmall ?? false}>
         <FlexRow style={{ width: "100%", gap: "10px" }}>
           <OptionsListComponent
             titleLabel="Unselected:"
@@ -147,10 +157,10 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
             }}
             placeholder="Search in lists"
             smallBorder={true}
-            smallFrame={true}
+            isSmall={true}
           />
         </div>
-      </FlexColumn>
+      </StyledFlexColumn>
     </FrameInputField>
   );
 };

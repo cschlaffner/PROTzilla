@@ -183,6 +183,8 @@ export const baseTheme = {
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
+    inputFieldHeightSmall: "20px",
+    inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
   },
