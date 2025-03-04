@@ -9,6 +9,7 @@ export default {
   argTypes: {
     onNavigateHome: { action: "back" },
     onOpenSettings: { action: "open settings" },
+    onOpenHelp: { action: "open help" },
   },
 };
 
@@ -16,7 +17,6 @@ export const runOverview = (args: NavbarProps): React.ReactNode => (
   <Navbar {...args} />
 );
 runOverview.args = {
-  showHomeButton: false,
   allowRunEdit: false,
 };
 
@@ -25,14 +25,5 @@ export const details = (args: NavbarProps): React.ReactNode => (
 );
 details.args = {
   title: "my_favorite_run",
-  showHomeButton: true,
   allowRunEdit: true,
-};
-
-export const other = (args: NavbarProps): React.ReactNode => (
-  <Navbar {...args} />
-);
-other.args = {
-  showHomeButton: true,
-  allowRunEdit: false,
 };
