@@ -1,10 +1,11 @@
 import { Modal } from "../modal";
-import { StepSelectionProps } from "./step-selection.props.ts";
 import { styled } from "styled-components";
 import { useEffect, useState } from "react";
-import { GrayButton, InvisibleButton } from "../button";
+import { InvisibleButton, ToggleableButton } from "../button";
+import { StepSelectionProps } from "./step-selection.props.ts";
 
 type StepItem = {
+  method_name: string;
   section: string;
   display_name: string;
   operation: string;
@@ -13,34 +14,54 @@ type StepItem = {
   output_keys: string[];
 };
 
+type StringStringRecord = Record<string, string>;
+
+const section_modes: StringStringRecord = {
+  all: "All available steps",
+  importing: "Importing",
+  data_preprocessing: "Data Preprocessing",
+  data_analysis: "Data Analysis",
+  data_integration: "Data Integration",
+};
+
 const WideModal = styled(Modal)`
   width: fit-content;
   max-width: 100%;
   height: fit-content;
   max-height: 100vh;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 10px;
+`;
+
+const BorderDiv = styled.div`
+  height: fit-content;
 `;
 
 const MakeRowDiv = styled.div`
   width: fit-content;
   display: flex;
+  height: 90%;
+  max-height: 90vh;
   flex-direction: row;
+  padding: 5px;
+  gap: 15px;
 `;
 
 const SectionSelection = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 3px;
 `;
 
-const SectionButton = styled(GrayButton)``;
+const SectionButton = styled(ToggleableButton)`
+  color: ${(props) => (props.isActive ? "white" : "black")};
+  justify-content: left;
+`;
 
 const TestDiv = styled.div`
-  height: 100%;
-  max-height: 80vh;
+  height: 80vh;
+  width: 60vh;
   overflow: hidden;
   overflow-y: auto;
+  gap: 50px;
 `;
 
 const StepList = styled.dl`
@@ -51,42 +72,68 @@ const StepList = styled.dl`
 export const StepSelection: React.FC<StepSelectionProps> = ({
   isOpen,
   onClose,
+  addStepToWorkflow,
+
+  ...rest
 }) => {
   const [stepList, setStepList] = useState<StepItem[]>([]);
 
   const [importingStepList, setImportingStepList] = useState<StepItem[]>([]);
+  const [dataPreprocessingStepList, setDataPreprocessingStepList] = useState<
+    StepItem[]
+  >([]);
   const [dataAnalysisStepList, setDataAnalysisStepList] = useState<StepItem[]>(
     [],
   );
   const [dataIntegrationStepList, setDataIntegrationStepList] = useState<
     StepItem[]
   >([]);
-  const [dataPreprocessingStepList, setDataPreprocessingStepList] = useState<
-    StepItem[]
-  >([]);
+
+  const [listMode, setListMode] = useState<keyof typeof section_modes>("all");
 
   function sortStepsToLists(step_list: StepItem[]) {
     let importingStepList: StepItem[] = [];
+    let dataPreprocessingStepList: StepItem[] = [];
     let dataAnalysisStepList: StepItem[] = [];
     let dataIntegrationStepList: StepItem[] = [];
-    let dataPreprocessingStepList: StepItem[] = [];
 
     for (let i = 0; i < step_list.length; i++) {
       if (step_list[i].section === "importing") {
         importingStepList.push(step_list[i]);
+      } else if (step_list[i].section === "data_preprocessing") {
+        dataPreprocessingStepList.push(step_list[i]);
       } else if (step_list[i].section === "data_analysis") {
         dataAnalysisStepList.push(step_list[i]);
       } else if (step_list[i].section === "data_integration") {
         dataIntegrationStepList.push(step_list[i]);
-      } else if (step_list[i].section === "data_preprocessing") {
-        dataPreprocessingStepList.push(step_list[i]);
       }
     }
 
     setImportingStepList(importingStepList);
+    setDataPreprocessingStepList(dataPreprocessingStepList);
     setDataAnalysisStepList(dataAnalysisStepList);
     setDataIntegrationStepList(dataIntegrationStepList);
-    setDataPreprocessingStepList(dataPreprocessingStepList);
+  }
+
+  function setCurrentListToDisplay(listMode: string) {
+    setListMode(listMode);
+    if (listMode === "all") {
+      setStepList(
+        importingStepList.concat(
+          dataPreprocessingStepList,
+          dataAnalysisStepList,
+          dataIntegrationStepList,
+        ),
+      );
+    } else if (listMode === "importing") {
+      setStepList(importingStepList);
+    } else if (listMode === "data_preprocessing") {
+      setStepList(dataPreprocessingStepList);
+    } else if (listMode === "data_analysis") {
+      setStepList(dataAnalysisStepList);
+    } else if (listMode === "data_integration") {
+      setStepList(dataIntegrationStepList);
+    }
   }
 
   useEffect(() => {
@@ -118,64 +165,51 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     {} as Record<string, StepItem[]>,
   );
 
+  const handleAddStep = (step: string) => {
+    addStepToWorkflow(step);
+  };
+
   return (
     <WideModal
       isOpen={isOpen}
       onClose={onClose}
       className={""}
       title={"Step Selection"}
+      {...rest}
     >
-      <MakeRowDiv>
-        <SectionSelection>
-          <SectionButton>Importing</SectionButton>
-          <SectionButton>Data Analysis</SectionButton>
-          <SectionButton>Data Integration</SectionButton>
-          <SectionButton>Data Preprocessing</SectionButton>
-        </SectionSelection>
-        <TestDiv>
-          {Object.keys(groupedSteps).map((operation) => (
-            <div key={operation}>
-              <h2>{operation}</h2>
-              <StepList>
-                {groupedSteps[operation].map((item, index) => (
-                  <GrayButton key={index}>{item.display_name}</GrayButton>
-                ))}
-              </StepList>
-            </div>
-          ))}
-        </TestDiv>
-        {/*<TestDiv>*/}
-        {/*  <span>Importing</span>*/}
-        {/*  <StepList>*/}
-        {/*    {importingStepList.map((item, index) => (*/}
-        {/*      <>*/}
-        {/*        <dt>*/}
-        {/*          <GrayButton key={index}>{item.display_name}</GrayButton>*/}
-        {/*        </dt>*/}
-        {/*        <dd>{item.operation}</dd>*/}
-        {/*      </>*/}
-        {/*    ))}*/}
-        {/*  </StepList>*/}
-        {/*  <span>Data Analysis</span>*/}
-        {/*  <StepList>*/}
-        {/*    {dataAnalysisStepList.map((item, index) => (*/}
-        {/*      <InvisibleButton key={index}>{item.display_name}</InvisibleButton>*/}
-        {/*    ))}*/}
-        {/*  </StepList>*/}
-        {/*  <span>Data Integration</span>*/}
-        {/*  <StepList>*/}
-        {/*    {dataIntegrationStepList.map((item, index) => (*/}
-        {/*      <li key={index}>{item.display_name}</li>*/}
-        {/*    ))}*/}
-        {/*  </StepList>*/}
-        {/*  <span>Data Preprocessing</span>*/}
-        {/*  <StepList>*/}
-        {/*    {dataPreprocessingStepList.map((item, index) => (*/}
-        {/*      <li key={index}>{item.display_name}</li>*/}
-        {/*    ))}*/}
-        {/*  </StepList>*/}
-        {/*</TestDiv>*/}
-      </MakeRowDiv>
+      <BorderDiv>
+        <MakeRowDiv>
+          <SectionSelection>
+            {Object.keys(section_modes).map((mode) => (
+              <SectionButton
+                key={mode}
+                isActive={listMode === mode}
+                onPress={() => setCurrentListToDisplay(mode)}
+              >
+                {section_modes[mode]}
+              </SectionButton>
+            ))}
+          </SectionSelection>
+          <TestDiv>
+            {Object.keys(groupedSteps).map((operation) => (
+              <div key={operation}>
+                <h2>{operation}</h2>
+                <StepList>
+                  {groupedSteps[operation].map((item, index) => (
+                    <InvisibleButton
+                      style={{ justifyContent: "left" }}
+                      onPress={() => handleAddStep(item.method_name)}
+                      key={index}
+                    >
+                      {item.display_name}
+                    </InvisibleButton>
+                  ))}
+                </StepList>
+              </div>
+            ))}
+          </TestDiv>
+        </MakeRowDiv>
+      </BorderDiv>
     </WideModal>
   );
 };
