@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { InvisibleButton, ToggleableButton } from "../button";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
-import { addStepToWorkflow } from "./api.ts";
+import { addStepToWorkflow, getCookie } from "./api.ts";
 
 enum SectionModes {
   All = "all",
@@ -75,6 +75,7 @@ const StepButton = styled(InvisibleButton)`
 export const StepSelection: React.FC<StepSelectionProps> = ({
   isOpen,
   onClose,
+  runName,
 
   ...rest
 }) => {
@@ -124,23 +125,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - API calls - - -
 
-  function getCookie(tokenName: string) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, tokenName.length + 1) === tokenName + "=") {
-          cookieValue = decodeURIComponent(
-            cookie.substring(tokenName.length + 1),
-          );
-          break;
-        }
-      }
-    }
-    return cookieValue as string;
-  }
-
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
     const csrftoken = getCookie("csrftoken");
@@ -166,7 +150,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   };
 
   // DEBUG - should be deleted before merge
-  continueRunForDebugging("runrun");
+  continueRunForDebugging(runName);
 
   return (
     <WideModal
@@ -197,11 +181,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   {stepsGroupedByOperation[operation].map((item, index) => (
                     <StepButton
                       onPress={() =>
-                        addStepToWorkflow(
-                          "runrun",
-                          item.method_name,
-                          getCookie("csrfToken"),
-                        )
+                        addStepToWorkflow(runName, item.method_name)
                       }
                       key={index}
                     >

@@ -14,4 +14,5 @@ export const firstTry = (args: StepSelectionProps): React.ReactNode => (
 );
 firstTry.args = {
   isOpen: true,
+  runName: "runrun",
 };

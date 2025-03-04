@@ -13,6 +13,23 @@ export const fetchStepList = async (): Promise<StepItem[]> => {
   return response.json();
 };
 
+export function getCookie(tokenName: string) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, tokenName.length + 1) === tokenName + "=") {
+        cookieValue = decodeURIComponent(
+          cookie.substring(tokenName.length + 1),
+        );
+        break;
+      }
+    }
+  }
+  return cookieValue as string;
+}
+
 /**
  * Adds a new step to the workflow via POST request to the backend.
  * Connection to the backend is tested with this function, csrftoken management works here.
@@ -22,24 +39,30 @@ export const fetchStepList = async (): Promise<StepItem[]> => {
  * @returns {Promise<any>} A promise that resolves to the response of the API call.
  * @throws Will throw an error if the network response is not ok.
  */
-export const addStepToWorkflow = async (
-  run_name: string,
-  new_step: string,
-  csrftoken: string,
-) => {
-  const response = await fetch("http://127.0.0.1:8000/api/add_step/", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrftoken,
-    },
-    body: JSON.stringify({ run_name, method: new_step }),
-  });
+export const addStepToWorkflow = async (run_name: string, new_step: string) => {
+  const csrftoken = getCookie("csrftoken");
 
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/add_step/", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({
+        run_name: run_name,
+        method: new_step,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+    console.log("Step added to workflow:", data);
+  } catch (error) {
+    console.error("Error adding step to workflow:", error);
   }
-
-  return response.json();
 };
