@@ -1,27 +1,25 @@
 import { Modal } from "../modal";
 import { styled } from "styled-components";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { InvisibleButton, ToggleableButton } from "../button";
 import { StepSelectionProps } from "./step-selection.props.ts";
+import { StepItem, useStepLists } from "./useStepList.ts";
+import { addStepToWorkflow } from "./api.ts";
 
-type StepItem = {
-  method_name: string;
-  section: string;
-  display_name: string;
-  operation: string;
-  method_description: string;
-  input_keys: string[];
-  output_keys: string[];
-};
+enum SectionModes {
+  All = "all",
+  Importing = "importing",
+  DataPreprocessing = "data_preprocessing",
+  DataAnalysis = "data_analysis",
+  DataIntegration = "data_integration",
+}
 
-type StringStringRecord = Record<string, string>;
-
-const section_modes: StringStringRecord = {
-  all: "All available steps",
-  importing: "Importing",
-  data_preprocessing: "Data Preprocessing",
-  data_analysis: "Data Analysis",
-  data_integration: "Data Integration",
+const sectionModes = {
+  [SectionModes.All]: "All available steps",
+  [SectionModes.Importing]: "Importing",
+  [SectionModes.DataPreprocessing]: "Data Preprocessing",
+  [SectionModes.DataAnalysis]: "Data Analysis",
+  [SectionModes.DataIntegration]: "Data Integration",
 };
 
 const WideModal = styled(Modal)`
@@ -81,97 +79,50 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   ...rest
 }) => {
   // - - - step lists and sorting - - -
+  const {
+    allStepsList,
+    importingStepList,
+    dataPreprocessingStepList,
+    dataAnalysisStepList,
+    dataIntegrationStepList,
+  } = useStepLists();
 
   const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+  useEffect(() => {
+    setActiveStepList(allStepsList);
+  }, [allStepsList]);
 
-  const [importingStepList, setImportingStepList] = useState<StepItem[]>([]);
-  const [dataPreprocessingStepList, setDataPreprocessingStepList] = useState<
-    StepItem[]
-  >([]);
-  const [dataAnalysisStepList, setDataAnalysisStepList] = useState<StepItem[]>(
-    [],
-  );
-  const [dataIntegrationStepList, setDataIntegrationStepList] = useState<
-    StepItem[]
-  >([]);
+  const [listMode, setListMode] = useState<SectionModes>(SectionModes.All);
 
-  const [listMode, setListMode] = useState<keyof typeof section_modes>("all");
+  const stepsGroupedByOperation = useMemo(() => {
+    return activeStepList.reduce(
+      (acc, step) => {
+        if (!acc[step.operation]) {
+          acc[step.operation] = [];
+        }
+        acc[step.operation].push(step);
+        return acc;
+      },
+      {} as Record<string, StepItem[]>,
+    );
+  }, [activeStepList]);
 
-  function sortStepsToLists(step_list: StepItem[]) {
-    let importingStepList: StepItem[] = [];
-    let dataPreprocessingStepList: StepItem[] = [];
-    let dataAnalysisStepList: StepItem[] = [];
-    let dataIntegrationStepList: StepItem[] = [];
-
-    for (let i = 0; i < step_list.length; i++) {
-      if (step_list[i].section === "importing") {
-        importingStepList.push(step_list[i]);
-      } else if (step_list[i].section === "data_preprocessing") {
-        dataPreprocessingStepList.push(step_list[i]);
-      } else if (step_list[i].section === "data_analysis") {
-        dataAnalysisStepList.push(step_list[i]);
-      } else if (step_list[i].section === "data_integration") {
-        dataIntegrationStepList.push(step_list[i]);
-      }
-    }
-
-    setImportingStepList(importingStepList);
-    setDataPreprocessingStepList(dataPreprocessingStepList);
-    setDataAnalysisStepList(dataAnalysisStepList);
-    setDataIntegrationStepList(dataIntegrationStepList);
-  }
-
-  function showSelectedListByListMode(listMode: string) {
-    setListMode(listMode);
-    if (listMode === "all") {
-      setActiveStepList(
-        importingStepList.concat(
-          dataPreprocessingStepList,
-          dataAnalysisStepList,
-          dataIntegrationStepList,
-        ),
-      );
-    } else if (listMode === "importing") {
+  const showSelectedListByListMode = (mode: SectionModes) => {
+    setListMode(mode);
+    if (mode === SectionModes.All) {
+      setActiveStepList(allStepsList);
+    } else if (mode === SectionModes.Importing) {
       setActiveStepList(importingStepList);
-    } else if (listMode === "data_preprocessing") {
+    } else if (mode === SectionModes.DataPreprocessing) {
       setActiveStepList(dataPreprocessingStepList);
-    } else if (listMode === "data_analysis") {
+    } else if (mode === SectionModes.DataAnalysis) {
       setActiveStepList(dataAnalysisStepList);
-    } else if (listMode === "data_integration") {
+    } else if (mode === SectionModes.DataIntegration) {
       setActiveStepList(dataIntegrationStepList);
     }
-  }
-
-  const stepsGroupedByOperation = activeStepList.reduce(
-    (acc, step) => {
-      if (!acc[step.operation]) {
-        acc[step.operation] = [];
-      }
-      acc[step.operation].push(step);
-      return acc;
-    },
-    {} as Record<string, StepItem[]>,
-  );
+  };
 
   // - - - API calls - - -
-
-  useEffect(() => {
-    const fetchList = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/step_list/");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data: StepItem[] = await response.json();
-        sortStepsToLists(data);
-        setActiveStepList(data);
-      } catch (error) {
-        console.error("Error fetching the list", error);
-      }
-    };
-
-    fetchList();
-  }, []);
 
   function getCookie(tokenName: string) {
     let cookieValue = null;
@@ -189,34 +140,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     }
     return cookieValue as string;
   }
-
-  const addStepToWorkflow = async (run_name: string, new_step: string) => {
-    const csrftoken = getCookie("csrftoken");
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/add_step/", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrftoken,
-        },
-        body: JSON.stringify({
-          run_name: run_name,
-          method: new_step,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = await response.json();
-      console.log("Step added to workflow:", data);
-    } catch (error) {
-      console.error("Error adding step to workflow:", error);
-    }
-  };
 
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
@@ -256,13 +179,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
       <BorderDiv>
         <MakeRowDiv>
           <SectionSelection>
-            {Object.keys(section_modes).map((mode) => (
+            {Object.keys(sectionModes).map((mode) => (
               <SectionButton
                 key={mode}
                 isActive={listMode === mode}
-                onPress={() => showSelectedListByListMode(mode)}
+                onPress={() => showSelectedListByListMode(mode as SectionModes)}
               >
-                {section_modes[mode]}
+                {sectionModes[mode as SectionModes]}
               </SectionButton>
             ))}
           </SectionSelection>
@@ -274,7 +197,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   {stepsGroupedByOperation[operation].map((item, index) => (
                     <StepButton
                       onPress={() =>
-                        addStepToWorkflow("runrun", item.method_name)
+                        addStepToWorkflow(
+                          "runrun",
+                          item.method_name,
+                          getCookie("csrfToken"),
+                        )
                       }
                       key={index}
                     >
