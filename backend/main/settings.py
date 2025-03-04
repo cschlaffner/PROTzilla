@@ -57,13 +57,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"
@@ -86,10 +86,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "main.wsgi.application"
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:6006',
+    'http://127.0.0.1:6006',
+]
+
 # Cross-Orgin Resource Sharing
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # pnpm start
+    "http://127.0.0.1:5173", # pnpm start
     "http://localhost:6006", # Storybook
+    "http://127.0.0.1:6006", # Storybook
     ]
 
 CORS_ALLOW_METHODS = [
@@ -103,9 +112,16 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = [
     "content-type",
     "authorization",
+    "X-CSRFToken",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_DOMAIN = None  # Allow any domain
+CSRF_COOKIE_SAMESITE = None  # Because frontend/backend run on different origins
+CSRF_COOKIE_HTTPONLY = False  # Set to True if you want the cookie to be inaccessible to JavaScript
+CSRF_COOKIE_SECURE = False  # Set to True if you are using HTTPS
+CSRF_USE_SESSIONS = False  # Set to True if you want to store the CSRF token in the session
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
