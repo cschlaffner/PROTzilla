@@ -20,11 +20,11 @@ export const IndexScreen: React.FC = () => {
     const fetchData = async () => {
       const data = await callApi("step_name_list");
       if (data) {
-        setTitle(data); // Assuming 'data' is a string list of names
+        setTitle(data);
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   useEffect(() => {
