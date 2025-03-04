@@ -182,14 +182,14 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {
         "django": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "backend.protzilla.constants.protzilla_logging.ProtzillaLoggingHandler",
         },
     },
     "loggers": {
         "django": {
             "handlers": ["django"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": False,
         },
     },

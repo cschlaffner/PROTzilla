@@ -9,12 +9,8 @@ export default {
   },
 };
 
-const addStepToWorkflow = (step: string) => {
-  console.log("Step added to workflow:", step);
-};
-
 export const firstTry = (args: StepSelectionProps): React.ReactNode => (
-  <StepSelection {...args} addStepToWorkflow={addStepToWorkflow} />
+  <StepSelection {...args} />
 );
 firstTry.args = {
   isOpen: true,

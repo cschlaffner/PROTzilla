@@ -56,7 +56,7 @@ const SectionButton = styled(ToggleableButton)`
   justify-content: left;
 `;
 
-const TestDiv = styled.div`
+const StepList = styled.div`
   height: 80vh;
   width: 60vh;
   overflow: hidden;
@@ -64,27 +64,15 @@ const TestDiv = styled.div`
   gap: 50px;
 `;
 
-const StepList = styled.dl`
+const OperationStepList = styled.dl`
   display: flex;
   flex-direction: column;
 `;
 
-async function fetchCsrfToken() {
-  const response = await fetch("http://127.0.0.1:8000/api/get_csrf_token/", {
-    method: "GET",
-    credentials: "include", // Ensure cookies are included in the request
-  });
-  const data = await response.json();
-  return data.csrfToken;
-}
-
-// async function fetchCsrfTokenB() {
-//   const response = await fetch("http://127.0.0.1:8000/api/get_csrf_tokenB/", {
-//     method: "GET",
-//     credentials: "include", // Ensure cookies are included in the request
-//   });
-//   return response; // No need to parse JSON, just set the cookie
-// }
+const StepButton = styled(InvisibleButton)`
+  justify-content: left;
+  text-align: left;
+`;
 
 export const StepSelection: React.FC<StepSelectionProps> = ({
   isOpen,
@@ -92,7 +80,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   ...rest
 }) => {
-  const [stepList, setStepList] = useState<StepItem[]>([]);
+  // - - - step lists and sorting - - -
+
+  const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
 
   const [importingStepList, setImportingStepList] = useState<StepItem[]>([]);
   const [dataPreprocessingStepList, setDataPreprocessingStepList] = useState<
@@ -131,10 +121,10 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     setDataIntegrationStepList(dataIntegrationStepList);
   }
 
-  function setCurrentListToDisplay(listMode: string) {
+  function showSelectedListByListMode(listMode: string) {
     setListMode(listMode);
     if (listMode === "all") {
-      setStepList(
+      setActiveStepList(
         importingStepList.concat(
           dataPreprocessingStepList,
           dataAnalysisStepList,
@@ -142,35 +132,17 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
         ),
       );
     } else if (listMode === "importing") {
-      setStepList(importingStepList);
+      setActiveStepList(importingStepList);
     } else if (listMode === "data_preprocessing") {
-      setStepList(dataPreprocessingStepList);
+      setActiveStepList(dataPreprocessingStepList);
     } else if (listMode === "data_analysis") {
-      setStepList(dataAnalysisStepList);
+      setActiveStepList(dataAnalysisStepList);
     } else if (listMode === "data_integration") {
-      setStepList(dataIntegrationStepList);
+      setActiveStepList(dataIntegrationStepList);
     }
   }
 
-  useEffect(() => {
-    const fetchList = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/step_list/");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data: StepItem[] = await response.json();
-        sortStepsToLists(data);
-        setStepList(data);
-      } catch (error) {
-        console.error("Error fetching the list", error);
-      }
-    };
-
-    fetchList();
-  }, []);
-
-  const groupedSteps = stepList.reduce(
+  const stepsGroupedByOperation = activeStepList.reduce(
     (acc, step) => {
       if (!acc[step.operation]) {
         acc[step.operation] = [];
@@ -181,61 +153,45 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     {} as Record<string, StepItem[]>,
   );
 
-  function getCookie(name) {
+  // - - - API calls - - -
+
+  useEffect(() => {
+    const fetchList = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/step_list/");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data: StepItem[] = await response.json();
+        sortStepsToLists(data);
+        setActiveStepList(data);
+      } catch (error) {
+        console.error("Error fetching the list", error);
+      }
+    };
+
+    fetchList();
+  }, []);
+
+  function getCookie(tokenName: string) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== "") {
       const cookies = document.cookie.split(";");
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        if (cookie.substring(0, tokenName.length + 1) === tokenName + "=") {
+          cookieValue = decodeURIComponent(
+            cookie.substring(tokenName.length + 1),
+          );
           break;
         }
       }
     }
-    return cookieValue;
+    return cookieValue as string;
   }
-
-  function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-      const date = new Date();
-      date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-      expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "") + expires + "; path=/";
-  }
-
-  const continueRunForDebugging = async (run_name: string) => {
-    const csrftoken = getCookie("csrftoken");
-    console.log(csrftoken);
-    console.log(document.cookie);
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrftoken,
-        },
-        body: JSON.stringify({
-          run_name: run_name,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    } catch (error) {
-      console.error("Error adding step to workflow:", error);
-    }
-  };
 
   const addStepToWorkflow = async (run_name: string, new_step: string) => {
     const csrftoken = getCookie("csrftoken");
-    console.log(csrftoken);
-    console.log(document.cookie);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/add_step/", {
@@ -262,6 +218,31 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     }
   };
 
+  // DEBUG - should be deleted before merge
+  const continueRunForDebugging = async (run_name: string) => {
+    const csrftoken = getCookie("csrftoken");
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify({
+          run_name: run_name,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+    } catch (error) {
+      console.error("Error adding step to workflow:", error);
+    }
+  };
+
+  // DEBUG - should be deleted before merge
   continueRunForDebugging("runrun");
 
   return (
@@ -279,32 +260,31 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
               <SectionButton
                 key={mode}
                 isActive={listMode === mode}
-                onPress={() => setCurrentListToDisplay(mode)}
+                onPress={() => showSelectedListByListMode(mode)}
               >
                 {section_modes[mode]}
               </SectionButton>
             ))}
           </SectionSelection>
-          <TestDiv>
-            {Object.keys(groupedSteps).map((operation) => (
+          <StepList>
+            {Object.keys(stepsGroupedByOperation).map((operation) => (
               <div key={operation}>
                 <h2>{operation}</h2>
-                <StepList>
-                  {groupedSteps[operation].map((item, index) => (
-                    <InvisibleButton
-                      style={{ justifyContent: "left" }}
+                <OperationStepList>
+                  {stepsGroupedByOperation[operation].map((item, index) => (
+                    <StepButton
                       onPress={() =>
                         addStepToWorkflow("runrun", item.method_name)
                       }
                       key={index}
                     >
                       {item.display_name}
-                    </InvisibleButton>
+                    </StepButton>
                   ))}
-                </StepList>
+                </OperationStepList>
               </div>
             ))}
-          </TestDiv>
+          </StepList>
         </MakeRowDiv>
       </BorderDiv>
     </WideModal>
