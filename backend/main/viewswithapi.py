@@ -228,6 +228,22 @@ def update_step(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+def navigate_to_step(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        section = data.get("section") #this is a bit different to the original, but frontend prob has to deal with it :)
+        index = data.get("index")
+
+        index = int(index) 
+        run = active_runs[run_name]
+        run.step_goto(index, section)
+
+        return JsonResponse({"success": True, "message": "Navigated successfully"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+
 def export_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)

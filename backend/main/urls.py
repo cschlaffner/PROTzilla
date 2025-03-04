@@ -42,6 +42,7 @@ urlpatterns = [
     path("api/add_step/", viewswithapi.add_step, name="add_step"),
     path("api/delete_step/", viewswithapi.delete_step, name="delete_step"),
     path("api/update_step/", viewswithapi.update_step, name="update_step"),
+    path("api/navigate_to_step/", viewswithapi.navigate_to_step, name="navigate_to_step"),
     path("api/export_workflow/", viewswithapi.export_workflow, name="export_workflow"),
     path("api/download_plots/", viewswithapi.download_plots, name="download_plots"), #might function?
     path("api/download_table/", viewswithapi.download_table, name="download_table"), #might function?
