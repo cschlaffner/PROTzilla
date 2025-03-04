@@ -7,7 +7,6 @@ import {
   borderColors,
   color,
   fontSize,
-  size,
   spacing,
 } from "../../../theme";
 import { InputLabel, Text } from "../../text";
@@ -17,7 +16,6 @@ const GridContainer = styled.div`
   display: grid;
   gap: 0px ${spacing("verySmall")};
   grid-template-columns: auto 1fr;
-  max-width: ${size("inputFieldsMaxWidth")};
   padding: ${spacing("verySmall")} 0px;
 `;
 
