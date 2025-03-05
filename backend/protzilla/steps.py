@@ -12,7 +12,7 @@ import pandas as pd
 import plotly
 from PIL import Image
 
-from backend.protzilla.utilities.miscellaneous_utils import format_trace
+from backend.protzilla.utilities import format_trace
 
 
 class Section(Enum):

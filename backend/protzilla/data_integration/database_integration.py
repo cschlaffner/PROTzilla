@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from backend.protzilla.data_integration import database_query
-from backend.protzilla.utilities.miscellaneous_utils import clean_uniprot_id, unique_justseen
+from backend.protzilla.utilities import clean_uniprot_id, unique_justseen
 
 
 def add_uniprot_data(dataframe, database_name=None, fields=None):
