@@ -20,25 +20,25 @@ export const primary = Template.bind({});
 primary.args = {
   formData: {
     label: "Formular Demo",
-    submit: false,
+    isAutoSubmit: true,
     input_fields: [
       {
         type: "text",
-        id: "username",
+        name: "username",
         props: {
           label: "Benutzername",
         },
       },
       {
         type: "number",
-        id: "age",
+        name: "age",
         props: {
           label: "Alter",
         },
       },
       {
         type: "multi-select",
-        id: "country",
+        name: "country",
         props: {
           label: "Land",
           options: [
@@ -58,25 +58,25 @@ export const submit = Template.bind({});
 submit.args = {
   formData: {
     label: "Formular Demo",
-    submit: true,
+    isAutoSubmit: false,
     input_fields: [
       {
         type: "text",
-        id: "username",
+        name: "username",
         props: {
           label: "Benutzername",
         },
       },
       {
         type: "number",
-        id: "age",
+        name: "age",
         props: {
           label: "Alter",
         },
       },
       {
         type: "multi-select",
-        id: "country",
+        name: "country",
         props: {
           label: "Land",
           options: [

@@ -8,50 +8,50 @@ import { TextInputFieldProps } from "../../input-fields/text-input-field";
 
 export interface FormProps {
   formData: FormData;
-  onChange: (data: Record<string, any>) => void;
+  onChange: (data: Record<string, InputValueType>) => void;
   onFormTouched?: (hasChanged: boolean) => void;
 }
 
 export interface FormData {
   label: string;
-  submit: boolean;
+  isAutoSubmit: boolean;
   input_fields: InputField[];
 }
 
 export type InputField =
-  | { type: "text"; id: string; props: Omit<TextInputFieldProps, "onChange"> }
+  | { type: "text"; name: string; props: Omit<TextInputFieldProps, "onChange"> }
   | {
       type: "number";
-      id: string;
+      name: string;
       props: Omit<NumberInputFieldProps, "onChange">;
     }
   | {
       type: "search";
-      id: string;
+      name: string;
       props: Omit<SearchInputFieldProps, "onChange">;
     }
   | {
       type: "radio-select";
-      id: string;
+      name: string;
       props: Omit<RadioSelectInputFieldProps, "onChange">;
     }
   | {
       type: "checkbox-select";
-      id: string;
+      name: string;
       props: Omit<CheckboxSelectInputFieldProps, "onChange">;
     }
   | {
       type: "multi-select";
-      id: string;
+      name: string;
       props: Omit<MultiSelectInputFieldProps, "onChange">;
     }
   | {
       type: "dropdown";
-      id: string;
+      name: string;
       props: Omit<DropdownInputFieldProps, "onChange">;
     };
 
-export type InputFieldProps =
+type InputFields =
   | TextInputFieldProps
   | NumberInputFieldProps
   | SearchInputFieldProps
@@ -59,3 +59,15 @@ export type InputFieldProps =
   | CheckboxSelectInputFieldProps
   | MultiSelectInputFieldProps
   | DropdownInputFieldProps;
+
+type ExtractValueType<T> = T extends { value?: infer U } ? U : never;
+
+export type InputValueType = ExtractValueType<InputFields>;
+
+export interface InputFieldProps {
+  type: string;
+  name: string;
+  onChange: (name: string, value: InputValueType) => void;
+  options?: { label: string; value: string }[];
+  key: string;
+}

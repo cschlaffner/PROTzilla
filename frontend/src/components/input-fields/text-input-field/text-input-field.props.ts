@@ -4,7 +4,7 @@ import { FrameInputFieldProps } from "../frame-input-field";
 export interface TextInputFieldProps
   extends FrameInputFieldProps,
     UIStateProps {
-  defaultValue?: string;
+  value?: string;
   placeholder?: string;
   onChange: (value: string) => void;
 }

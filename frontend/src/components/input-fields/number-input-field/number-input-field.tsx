@@ -17,7 +17,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
 `;
 
 export const NumberInputField: React.FC<NumberInputFieldProps> = ({
-  defaultValue = 0,
+  value = 0,
   placeholder,
   min,
   max,
@@ -29,13 +29,11 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [, setValue] = useState<number>(() => {
-    onChange(defaultValue);
-    return defaultValue;
+    onChange(value);
+    return value;
   });
 
-  const [displayValue, setDisplayValue] = useState<string>(
-    String(defaultValue),
-  );
+  const [displayValue, setDisplayValue] = useState<string>(String(value));
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

@@ -30,11 +30,9 @@ const StyledLabel = styled.label`
 
 export const CheckboxSelectInputField: React.FC<
   CheckboxSelectInputFieldProps
-> = ({ options, defaultOptions = [], onChange, ...props }) => {
+> = ({ options, value = [], onChange, ...props }) => {
   const [selectedValues, setSelectedValues] = useState(() => {
-    const sortedDefaultOptions = [...defaultOptions].sort((a, b) =>
-      a.localeCompare(b),
-    );
+    const sortedDefaultOptions = [...value].sort((a, b) => a.localeCompare(b));
     onChange(sortedDefaultOptions);
     return sortedDefaultOptions;
   });

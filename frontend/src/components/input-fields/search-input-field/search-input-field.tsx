@@ -18,14 +18,14 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
 `;
 
 export const SearchInputField: React.FC<SearchInputFieldProps> = ({
-  defaultValue = "",
+  value: initialValue = "",
   placeholder,
   onChange,
   ...props
 }) => {
   const [value, setValue] = useState(() => {
-    onChange(defaultValue);
-    return defaultValue;
+    onChange(initialValue);
+    return initialValue;
   });
 
   const handleChange = (value: string) => {

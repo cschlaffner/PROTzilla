@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { styled } from "styled-components";
 
-import { FormProps } from "./form.props";
+import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
@@ -49,37 +49,39 @@ export const Form: React.FC<FormProps> = ({
   onChange,
   onFormTouched,
 }) => {
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [submittedValues, setSubmittedValues] = useState<Record<string, any>>(
+  const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
     {},
   );
+  const [submittedValues, setSubmittedValues] = useState<
+    Record<string, InputValueType>
+  >({});
   const [isChanged, setIsChanged] = useState(false);
-  const [formTouchedTriggered, setFormTouchedTriggered] = useState(false);
+  const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
-  const handleChange = (id: string, value: any) => {
+  const handleChange = (name: string, value: InputValueType) => {
     setFormValues((prevValues) => {
-      const newValues = { ...prevValues, [id]: value };
+      const newValues = { ...prevValues, [name]: value };
       const hasChanges =
         JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
-      const isFirstEntryForId = !(id in prevValues);
+      const isFirstEntryForId = !(name in prevValues);
       if (isFirstEntryForId) {
         return newValues;
       }
 
-      if (!formData.submit) {
+      if (formData.isAutoSubmit) {
         onChange(newValues);
       } else {
         setIsChanged(hasChanges);
 
         if (hasChanges) {
-          if (!formTouchedTriggered) {
+          if (!hasformTouchedTriggered) {
             onFormTouched?.(true);
-            setFormTouchedTriggered(true);
+            setHasFormTouchedTriggered(true);
           }
         } else {
           onFormTouched?.(false);
-          setFormTouchedTriggered(false);
+          setHasFormTouchedTriggered(false);
         }
       }
 
@@ -91,7 +93,7 @@ export const Form: React.FC<FormProps> = ({
     onChange(formValues);
     setSubmittedValues(formValues);
     setIsChanged(false);
-    setFormTouchedTriggered(false);
+    setHasFormTouchedTriggered(false);
   };
 
   return (
@@ -99,14 +101,14 @@ export const Form: React.FC<FormProps> = ({
       <FormLabel as="h2">{formData.label}</FormLabel>
       {formData.input_fields.map((inputField) => (
         <InputField
-          key={inputField.id}
           type={inputField.type}
-          id={inputField.id}
+          name={inputField.name}
+          key={inputField.name}
           onChange={handleChange}
           {...inputField.props}
         />
       ))}
-      {formData.submit && (
+      {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
           {isChanged && (
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
@@ -122,23 +124,15 @@ export const Form: React.FC<FormProps> = ({
   );
 };
 
-interface InputFieldProps {
-  type: string;
-  id: string;
-  onChange: (id: string, value: any) => void;
-  options?: { label: string; value: string }[];
-  [key: string]: any;
-}
-
 const InputField: React.FC<InputFieldProps> = ({
   type,
-  id,
+  name,
   onChange,
   options,
   ...props
 }) => {
-  const handleInputChange = (value: any) => {
-    onChange(id, value);
+  const handleInputChange = (value: InputValueType) => {
+    onChange(name, value);
   };
 
   switch (type) {

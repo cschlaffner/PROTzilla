@@ -30,12 +30,12 @@ const StyledLabel = styled.label`
 
 export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
   options,
-  defaultOption,
+  value: initialOption,
   onChange,
   ...props
 }) => {
   const [value, setValue] = useState<string>(() => {
-    const initialValue = defaultOption ?? options[0]?.value;
+    const initialValue = initialOption ?? options[0]?.value;
     onChange(initialValue);
     return initialValue;
   });

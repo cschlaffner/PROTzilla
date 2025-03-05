@@ -5,6 +5,6 @@ export interface DropdownInputFieldProps
   extends FrameInputFieldProps,
     UIStateProps {
   options: { label: string; value: string }[];
-  defaultOption?: string;
+  value?: string;
   onChange: (value: string) => void;
 }

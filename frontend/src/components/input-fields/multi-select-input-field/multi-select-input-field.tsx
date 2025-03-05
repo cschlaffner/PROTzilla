@@ -91,7 +91,7 @@ const OptionsListComponent: React.FC<{
 
 export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
   options,
-  defaultOptions = [],
+  value = [],
   onChange,
   ...props
 }) => {
@@ -99,9 +99,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
     [...options].sort((a, b) => a.value.localeCompare(b.value));
 
   const [selectedOptions, setSelectedOptions] = useState(() => {
-    const initialSelected = options.filter((opt) =>
-      defaultOptions.includes(opt.value),
-    );
+    const initialSelected = options.filter((opt) => value.includes(opt.value));
     const sortedSelection = sortOptions(initialSelected);
     onChange(sortedSelection.map((opt) => opt.value));
     return sortedSelection;
@@ -151,7 +149,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
         <div style={{ width: "100%" }}>
           <SearchInputField
             style={{ padding: "0", gap: "0" }}
-            defaultValue={searchTerm}
+            value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e);
             }}

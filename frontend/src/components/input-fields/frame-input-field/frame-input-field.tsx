@@ -8,7 +8,6 @@ import { InputLabel, Text } from "../../text";
 const GridContainer = styled.div`
   align-items: center;
   display: grid;
-  // gap: 0px ${spacing("verySmall")};
   grid-template-columns: auto 1fr;
   padding: ${spacing("verySmall")} 0px;
 `;
@@ -81,6 +80,10 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
   padding-right: ${spacing("small")};
 `;
 
+const StyledInputLabel = styled(InputLabel)`
+  margin-bottom: 1px;
+`;
+
 const StyledSubtitle = styled(Text)`
   color: ${color("gray50")};
   font-size: ${fontSize("small")};
@@ -129,21 +132,26 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
     return child;
   });
 
-
   return (
     <GridContainer {...props}>
       {labelPosition === "top" ? (
         <GridItem row={1} col={2}>
-          {label && <InputLabel className="label" text={label} />}
+          {label && (
+            <FlexContainer>
+              <StyledInputLabel className="label" text={label} />
+            </FlexContainer>
+          )}
         </GridItem>
       ) : (
         <GridItem row={2} col={1}>
           {label && (
-            <InputLabel
-              className="label"
-              text={label + ":"}
-              style={{ paddingRight: `5px` }}
-            />
+            <FlexContainer>
+              <StyledInputLabel
+                className="label"
+                text={label + ":"}
+                style={{ paddingRight: `5px` }}
+              />
+            </FlexContainer>
           )}
         </GridItem>
       )}

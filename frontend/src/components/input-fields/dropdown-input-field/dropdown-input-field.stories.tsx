@@ -23,5 +23,5 @@ primary.args = {
     { label: "Date", value: "date" },
     { label: "Grapes", value: "grapes" },
   ],
-  defaultOption: "cherry",
+  value: "cherry",
 };

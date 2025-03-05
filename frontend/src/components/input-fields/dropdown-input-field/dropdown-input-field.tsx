@@ -80,13 +80,13 @@ const OptionItem = styled.li`
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   options,
-  defaultOption,
+  value,
   onChange,
   ...props
 }) => {
   const [selectedValue, setSelectedValue] = useState(() => {
     const initialValue =
-      options.find((option) => option.value === defaultOption) ?? options[0];
+      options.find((option) => option.value === value) ?? options[0];
     onChange(initialValue.value);
     return initialValue;
   });

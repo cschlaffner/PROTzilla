@@ -16,14 +16,14 @@ const Template: StoryFn<NumberInputFieldProps> = (args) => {
 export const primary = Template.bind({});
 primary.args = {
   label: "Your Number",
-  defaultValue: 5,
+  value: 5,
   placeholder: "Enter a number",
 };
 
 export const steppingMinMax = Template.bind({});
 steppingMinMax.args = {
   label: "Your Number",
-  defaultValue: 5,
+  value: 5,
   placeholder: "Enter a number",
   min: 1,
   max: 10,
@@ -34,7 +34,7 @@ export const unit = Template.bind({});
 unit.args = {
   label: "Percentage",
   placeholder: "Enter percentage",
-  defaultValue: 31,
+  value: 31,
   min: 0,
   max: 100,
   step: 5,
