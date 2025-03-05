@@ -1,7 +1,8 @@
 import { SectionNames, SelectedStep, SetSelectedStep } from "../../types";
 
 export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement>{
-    text:string;
+    number:string;
+    name:string;
     isCollapsed:boolean;
     sectionName: SectionNames
     index: number;

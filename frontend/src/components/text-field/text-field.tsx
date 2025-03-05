@@ -9,6 +9,7 @@ import { EditTag } from "../edit-tag";
 import { Icon } from "../icon";
 import { InputLabel, Text } from "../text";
 import { MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
+import { motion } from "framer-motion";
 import {
   color,
   font,
@@ -729,3 +730,26 @@ export const MultilineTextField = styled(
     padding: 12px 16px;
   }
 `;
+
+const CollapsibleContainer = styled(motion.div)`
+  overflow: hidden;
+  white-space: nowrap;
+  padding-bottom:1px;
+`;
+
+export const CollapsibleLabel:React.FC<{width:number|string, collapsedWidth?:number, isCollapsed:boolean, children?: React.ReactNode }> = ({
+  width,
+  collapsedWidth=0,
+  isCollapsed, 
+  children
+}) => {
+  return (
+    <CollapsibleContainer
+      initial={{ width: isCollapsed ? collapsedWidth : width}}
+      animate={{ width: isCollapsed ? collapsedWidth : width }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {children}
+    </CollapsibleContainer>
+  )
+}

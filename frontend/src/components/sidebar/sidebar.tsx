@@ -1,26 +1,28 @@
 import React, { useState } from "react"
 import { styled } from "styled-components";
-
-import { Card } from ".././card"
 import SidebarSection from "./sidebar-section/sidebar-section"
 //import { SidebarProps } from "./sidebar.props";
 import { SectionNames, SelectedStep } from "./types";
 import { Icon } from "../icon/icon";
+import { motion } from "framer-motion";
 
 
-const SidebarContainer = styled.div<{ isCollapsed: boolean }>`
+const SidebarContainer = styled(motion.div)<{ isCollapsed: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
   display: "flex";
   flex-direction: "column";
-  padding-right: 10px;
-  min-height: 500px;
+  padding: 0px 5px;
   border-right: 1px #000 solid;
+  overflow:hidden;
 `;
 
 const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
   display: flex;
-  justify-content: ${({ isCollapsed }) => (isCollapsed ? "center" : "flex-end")};
-  padding: 8px;
-  padding-bottom: 16px;
+  justify-content: ${({ isCollapsed }) => (isCollapsed ? "left" : "flex-end")};
+  padding: 5px;
+  margin:5px;
   cursor: pointer;
 `;
 
@@ -37,8 +39,12 @@ export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
   }
 
   return(
-    <Card>
-        <SidebarContainer isCollapsed={isCollapsed}>
+        <SidebarContainer 
+          isCollapsed={isCollapsed}
+          initial={{width:300}}
+          animate={{ width: isCollapsed ? 77.5 : 300 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
             <SidebarHeader isCollapsed={isCollapsed}>
                 <Icon 
                     icon={isCollapsed ? "list" : "chevronDoubleLeft"} 
@@ -59,6 +65,5 @@ export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
                     )
             })}
         </SidebarContainer>
-    </Card>
   );
 };

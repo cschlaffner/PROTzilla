@@ -58,10 +58,11 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
 });
 
 export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
-  icon
+  icon,
+  style
 }) => {
   const defaultColors:Record<DefaultColoredIconType,Color> = {complete:"green",incomplete:"blue",outdated:"yellow",failed:"red"}
   return(
-    <Icon icon={icon} color={defaultColors[icon]}/>
+    <Icon icon={icon} color={defaultColors[icon]} style={style}/>
   )
 }

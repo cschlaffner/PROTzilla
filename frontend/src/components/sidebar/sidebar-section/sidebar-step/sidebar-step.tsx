@@ -6,20 +6,27 @@ import { color } from "../../../../theme"
 import { TrashButton } from "../../../button";
 import { DefaultColoredIcon } from "../../../icon/icon"
 import { ContentText } from "../../../text";
+import { CollapsibleLabel } from "../../../text-field";
 
 const StepContainer = styled.div<{ isSelected:boolean, isCollapsed:boolean }>`
   margin: 0 5px;  
-  gap:10px;
+  gap: 10px;
   padding: 5px;
   background-color:${({isSelected}) => isSelected ? color("protzillaLightGray"):""};
   display: flex;
-  justify-content: ${({ isCollapsed }) => (isCollapsed ? "center" : "left")};
   align-items: center;
   border-radius: 6px;
 `;
 
+const TextContainer = styled.div`
+    display: flex;
+    gap: 5px;
+    marginLeft: "auto";
+`;
+
 export const SidebarStep: React.FC<SidebarStepProps> = ({
-    text,
+    number,
+    name,
     isCollapsed,
     sectionName,
     index,
@@ -63,12 +70,20 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
             isSelected={isSelected}
             isCollapsed={isCollapsed}
         >
-            <DefaultColoredIcon icon="complete"/>
+            <DefaultColoredIcon icon="complete" style={{flexShrink:0}}/>
+            <TextContainer>
             <ContentText
-                text={text}
-                style={{"userSelect":"none"}}
-            />
-            {!isCollapsed && (<TrashButton onClick={handleDelete} isSmall={true} isShy={true} icon={"trash"} style={{marginLeft: "auto"}}/>)}
+                    text={number}
+                    style={{userSelect:"none", whiteSpace: "nowrap"}}
+                />
+            <CollapsibleLabel width={200} isCollapsed={isCollapsed}>
+                <ContentText
+                    text={name}
+                    style={{userSelect:"none", whiteSpace: "nowrap"}}
+                />
+            </CollapsibleLabel>
+            </TextContainer>
+            {/* {!isCollapsed && (<TrashButton onClick={handleDelete} isSmall={true} isShy={true} icon={"trash"} style={{marginLeft: "auto"}}/>)} */}
         </StepContainer>
         )
 };
