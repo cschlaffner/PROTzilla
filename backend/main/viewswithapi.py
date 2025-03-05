@@ -17,7 +17,7 @@ from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
-from backend.protzilla.utilities.miscellaneous_utils import format_trace, get_memory_usage
+from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
 from backend.main.viewswithapihelper import get_displayed_steps, parameters_from_post, get_all_possible_step_names, \
@@ -231,6 +231,22 @@ def update_step(request):
         return JsonResponse({"success": True, "message": "Updated step method"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def navigate_to_step(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        section = data.get("section") #this is a bit different to the original, but frontend prob has to deal with it :)
+        index = data.get("index")
+
+        index = int(index) 
+        run = active_runs[run_name]
+        run.step_goto(index, section)
+
+        return JsonResponse({"success": True, "message": "Navigated successfully"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def export_workflow(request):
     if request.method == "POST":

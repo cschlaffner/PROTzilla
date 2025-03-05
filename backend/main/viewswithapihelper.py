@@ -1,7 +1,7 @@
 import re
 from backend.protzilla.all_steps import get_all_methods
 from backend.protzilla.steps import StepManager
-from backend.protzilla.utilities.miscellaneous_utils import name_to_title
+from backend.protzilla.utilities import name_to_title
 
 def parameters_from_post(post):
     d = dict(post)

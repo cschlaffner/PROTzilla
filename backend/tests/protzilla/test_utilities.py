@@ -1,4 +1,4 @@
-from backend.protzilla.utilities.miscellaneous_utils import name_to_title
+from backend.protzilla.utilities import name_to_title
 
 
 def test_name_to_title():
