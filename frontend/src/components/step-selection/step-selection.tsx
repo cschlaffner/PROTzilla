@@ -1,12 +1,13 @@
-import { Modal } from "../modal";
-import { styled } from "styled-components";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { styled } from "styled-components";
+
 import { CircularButton, InvisibleButton, ToggleableButton } from "../button";
+import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
+import { useOutsidePress, useToggleableState } from "../../hooks";
 import { callApiWithParameters } from "../../utils";
 import { getCookie } from "../../utils/get-cookie.ts";
-import { useOutsidePress, useToggleableState } from "../../hooks";
 
 enum SectionModes {
   All = "all",
@@ -75,7 +76,6 @@ const StepButton = styled(InvisibleButton)`
 `;
 
 export const StepSelection: React.FC<StepSelectionProps> = ({
-  onClose,
   runName,
 
   ...rest
@@ -97,7 +97,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   const [listMode, setListMode] = useState<SectionModes>(SectionModes.All);
 
   const stepsGroupedByOperation = useMemo(() => {
-    return activeStepList.reduce(
+    return activeStepList.reduce<Record<string, StepItem[]>>(
       (acc, step) => {
         if (!acc[step.operation]) {
           acc[step.operation] = [];
@@ -105,7 +105,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
         acc[step.operation].push(step);
         return acc;
       },
-      {} as Record<string, StepItem[]>,
+      {},
     );
   }, [activeStepList]);
 
@@ -135,7 +135,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
-    const csrftoken = getCookie("csrftoken") as string;
+    const csrftoken = getCookie("csrftoken")!;
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
@@ -162,9 +162,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // Modal handling
   const [isModalOpen, openModal, closeModal] = useToggleableState(false);
-  onClose = () => {
-    closeModal();
-  };
   const refModal = useRef<HTMLDivElement>(null);
   useOutsidePress(refModal, closeModal, isModalOpen, false);
 
@@ -179,7 +176,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
       <div ref={refModal}>
         <WideModal
           isOpen={isModalOpen}
-          onClose={onClose}
+          onClose={closeModal}
           className={""}
           title={"Step Selection"}
           {...rest}
@@ -192,7 +189,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     key={mode}
                     isActive={listMode === mode}
                     onPress={() =>
-                      showSelectedListByListMode(mode as SectionModes)
+                      { showSelectedListByListMode(mode as SectionModes); }
                     }
                   >
                     {sectionModes[mode as SectionModes]}

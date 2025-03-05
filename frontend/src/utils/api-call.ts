@@ -5,7 +5,7 @@ export const callApiWithParameters = async (
   parameters: Record<string, string>,
 ) => {
   try {
-    const csrfToken = getCookie("csrftoken") as string;
+    const csrfToken = getCookie("csrftoken")!;
     const response = await fetch("http://127.0.0.1:8000/api/" + url, {
       method: "POST",
       credentials: "include",

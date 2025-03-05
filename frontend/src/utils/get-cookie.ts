@@ -15,5 +15,5 @@ export const getCookie = (tokenName: string): string | null => {
       }
     }
   }
-  return value as string;
+  return value;
 };

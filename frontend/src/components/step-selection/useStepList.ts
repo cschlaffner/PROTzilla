@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Type definition for a step item.
  * Contains relevant fields of step classes from the backend.
  */
-export type StepItem = {
+export interface StepItem {
   method_name: string;
   section: string;
   display_name: string;
@@ -12,7 +12,7 @@ export type StepItem = {
   method_description: string;
   input_keys: string[];
   output_keys: string[];
-};
+}
 
 /**
  * Fetches the list of steps from the API aka the backend.
