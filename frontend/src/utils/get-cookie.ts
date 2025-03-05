@@ -7,13 +7,12 @@ export const getCookie = (tokenName: string): string | null => {
   let value = null;
   if (document.cookie && document.cookie !== "") {
     const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
+    for (const cookie of cookies) {
       if (cookie.substring(0, tokenName.length + 1) === tokenName + "=") {
         value = decodeURIComponent(cookie.substring(tokenName.length + 1));
         break;
       }
     }
   }
-  return value as string;
+  return value;
 };
