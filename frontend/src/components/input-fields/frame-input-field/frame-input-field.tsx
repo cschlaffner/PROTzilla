@@ -109,11 +109,11 @@ const FixedText = styled(StyledSubtitle)`
 `;
 
 const getChildStyle = (smallFrame: boolean) => ({
-  // background: "transparent",
-  // border: "none",
-  // outline: "none",
-  // padding: smallFrame ? "5px" : "10px",
-  // width: "100%",
+  background: "transparent",
+  border: "none",
+  outline: "none",
+  padding: smallFrame ? "5px" : "10px",
+  width: "100%",
 });
 
 export const FrameInputField: React.FC<FrameInputFieldProps> = ({
