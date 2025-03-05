@@ -4,15 +4,12 @@ import { StepSelection } from "./step-selection.tsx";
 export default {
   component: StepSelection,
   title: "StepSelection",
-  argTypes: {
-    onClose: { action: "close" },
-  },
+  argTypes: {},
 };
 
-export const firstTry = (args: StepSelectionProps): React.ReactNode => (
+export const viaAddButton = (args: StepSelectionProps): React.ReactNode => (
   <StepSelection {...args} />
 );
-firstTry.args = {
-  isOpen: true,
+viaAddButton.args = {
   runName: "runrun",
 };

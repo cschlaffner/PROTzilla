@@ -1,11 +1,12 @@
 import { Modal } from "../modal";
 import { styled } from "styled-components";
-import { useEffect, useMemo, useState } from "react";
-import { InvisibleButton, ToggleableButton } from "../button";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CircularButton, InvisibleButton, ToggleableButton } from "../button";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
 import { callApiWithParameters } from "../../utils";
 import { getCookie } from "../../utils/get-cookie.ts";
+import { useOutsidePress, useToggleableState } from "../../hooks";
 
 enum SectionModes {
   All = "all",
@@ -74,7 +75,6 @@ const StepButton = styled(InvisibleButton)`
 `;
 
 export const StepSelection: React.FC<StepSelectionProps> = ({
-  isOpen,
   onClose,
   runName,
 
@@ -160,46 +160,68 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // DEBUG - should be deleted before merge
   continueRunForDebugging(runName);
 
+  // Modal handling
+  const [isModalOpen, openModal, closeModal] = useToggleableState(false);
+  onClose = () => {
+    closeModal();
+  };
+  const refModal = useRef<HTMLDivElement>(null);
+  useOutsidePress(refModal, closeModal, isModalOpen, false);
+
   return (
-    <WideModal
-      isOpen={isOpen}
-      onClose={onClose}
-      className={""}
-      title={"Step Selection"}
-      {...rest}
-    >
-      <BorderDiv>
-        <MakeRowDiv>
-          <SectionSelection>
-            {Object.keys(sectionModes).map((mode) => (
-              <SectionButton
-                key={mode}
-                isActive={listMode === mode}
-                onPress={() => showSelectedListByListMode(mode as SectionModes)}
-              >
-                {sectionModes[mode as SectionModes]}
-              </SectionButton>
-            ))}
-          </SectionSelection>
-          <StepList>
-            {Object.keys(stepsGroupedByOperation).map((operation) => (
-              <div key={operation}>
-                <h2>{operation}</h2>
-                <OperationStepList>
-                  {stepsGroupedByOperation[operation].map((item, index) => (
-                    <StepButton
-                      onPress={() => handleAddStep(runName, item.method_name)}
-                      key={index}
-                    >
-                      {item.display_name}
-                    </StepButton>
-                  ))}
-                </OperationStepList>
-              </div>
-            ))}
-          </StepList>
-        </MakeRowDiv>
-      </BorderDiv>
-    </WideModal>
+    <div>
+      <CircularButton
+        icon={"add"}
+        onPress={() => {
+          openModal();
+        }}
+      />
+      <div ref={refModal}>
+        <WideModal
+          isOpen={isModalOpen}
+          onClose={onClose}
+          className={""}
+          title={"Step Selection"}
+          {...rest}
+        >
+          <BorderDiv>
+            <MakeRowDiv>
+              <SectionSelection>
+                {Object.keys(sectionModes).map((mode) => (
+                  <SectionButton
+                    key={mode}
+                    isActive={listMode === mode}
+                    onPress={() =>
+                      showSelectedListByListMode(mode as SectionModes)
+                    }
+                  >
+                    {sectionModes[mode as SectionModes]}
+                  </SectionButton>
+                ))}
+              </SectionSelection>
+              <StepList>
+                {Object.keys(stepsGroupedByOperation).map((operation) => (
+                  <div key={operation}>
+                    <h2>{operation}</h2>
+                    <OperationStepList>
+                      {stepsGroupedByOperation[operation].map((item, index) => (
+                        <StepButton
+                          onPress={() =>
+                            handleAddStep(runName, item.method_name)
+                          }
+                          key={index}
+                        >
+                          {item.display_name}
+                        </StepButton>
+                      ))}
+                    </OperationStepList>
+                  </div>
+                ))}
+              </StepList>
+            </MakeRowDiv>
+          </BorderDiv>
+        </WideModal>
+      </div>
+    </div>
   );
 };
