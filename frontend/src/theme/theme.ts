@@ -3,12 +3,12 @@ import { action, makeObservable, observable } from "mobx";
 export const defaultPalette = {
   mode: "light",
 
-  background: "#FFF",
+  background: "#FFFFFF",
   backgroundOffset: "#F8F8F8",
 
   text: "#2C2E34",
   textDisabled: "#C0C0C2",
-  onPrimary: "#FFF",
+  onPrimary: "#FFFFFF",
 
   protzillaGray: "#E0E0E0",
   protzillaLightGray: "#E8EDF3",
@@ -17,7 +17,7 @@ export const defaultPalette = {
   protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#4A536A",
+  primaryHover: "#282c38",
   primaryActive: "#4A536A",
   primaryDisabled: "#C0C0C2",
 
