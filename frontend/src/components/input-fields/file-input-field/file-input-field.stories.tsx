@@ -6,7 +6,11 @@ import { FileInputFieldProps } from "./file-input-field.props";
 export default {
   component: FileInputField,
   title: "Input Fields / File Input Field",
-  argTypes: { onChange: { action: "changed" } },
+  argTypes: { 
+    placeholder: {control: 'text'},
+    onChange: { action: "changed" },
+    value: {control: {type: 'file', accept: '*/*'}},
+  },
 } as Meta<FileInputFieldProps>;
 
 const Template: StoryFn<FileInputFieldProps> = (args) => {
@@ -16,13 +20,4 @@ const Template: StoryFn<FileInputFieldProps> = (args) => {
 export const primary = Template.bind({});
 primary.args = {
   label: "Funny data file",
-};
-
-export const allAffix = Template.bind({});
-allAffix.args = {
-  label: "Your Input",
-  inlinePrefix: "%",
-  inlineSuffix: "%",
-  separatePrefix: "%",
-  separateSuffix: "%",
 };
