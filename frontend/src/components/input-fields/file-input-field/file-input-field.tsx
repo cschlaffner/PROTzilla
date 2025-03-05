@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { size, spacing} from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
+import { size, spacing } from "../../../theme";
+import { InputContainer } from "../frame-input-field";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
 import { Button } from "../../button";
-
 
 const StyledDiv = styled.div`
   display: flex;
@@ -44,18 +43,16 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     }
   };
 
-  const openFilePicker = useFilePicker(
-    handleFileSelection,
-    "*/*",
-    false,
-  );
+  const openFilePicker = useFilePicker(handleFileSelection, "*/*", false);
 
   return (
-    <FrameInputField {...props}>
+    <InputContainer {...props}>
       <StyledDiv>
         <StyledSpan>{file ? file.name : placeholder}</StyledSpan>
-        <Button isSmall onClick={openFilePicker}>Choose File</Button>
+        <Button isSmall onClick={openFilePicker}>
+          Choose File
+        </Button>
       </StyledDiv>
-    </FrameInputField>
+    </InputContainer>
   );
 };

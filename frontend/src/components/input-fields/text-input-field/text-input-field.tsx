@@ -2,7 +2,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
@@ -33,7 +33,7 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   };
 
   return (
-    <FrameInputField {...props}>
+    <InputContainer {...props}>
       <StyledInput
         type="text"
         value={value}
@@ -44,6 +44,6 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
         $isSmall={props.isSmall ?? false}
         {...props}
       />
-    </FrameInputField>
+    </InputContainer>
   );
 };

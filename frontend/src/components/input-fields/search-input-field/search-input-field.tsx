@@ -2,7 +2,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import { SearchInputFieldProps } from "./search-input-field.props";
 import { Icon } from "../../icon";
 
@@ -34,7 +34,7 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
   };
 
   return (
-    <FrameInputField
+    <InputContainer
       {...props}
       inlinePrefix={
         <Icon icon="searchLens" {...(props.isSmall ? { isSmall: true } : {})} />
@@ -50,6 +50,6 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
         $isSmall={props.isSmall ?? false}
         {...props}
       />
-    </FrameInputField>
+    </InputContainer>
   );
 };

@@ -103,7 +103,7 @@ const FixedText = styled(StyledSubtitle)`
   margin-left: 8px;
 `;
 
-export const FrameInputField: React.FC<FrameInputFieldProps> = ({
+export const InputContainer: React.FC<FrameInputFieldProps> = ({
   children,
   label,
   labelPosition = "top",

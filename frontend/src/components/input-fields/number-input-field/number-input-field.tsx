@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
@@ -52,7 +52,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   };
 
   return (
-    <FrameInputField {...props}>
+    <InputContainer {...props}>
       <StyledInput
         ref={inputRef}
         type="text"
@@ -66,6 +66,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         $isSmall={props.isSmall ?? false}
         {...props}
       />
-    </FrameInputField>
+    </InputContainer>
   );
 };

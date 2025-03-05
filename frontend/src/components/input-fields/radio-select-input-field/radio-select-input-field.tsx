@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
@@ -46,7 +46,7 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
   };
 
   return (
-    <FrameInputField {...props}>
+    <InputContainer {...props}>
       <StyledRadioContainer $isSmall={props.isSmall ?? false}>
         {options.map((option) => {
           const id = `radio-${option.value}`;
@@ -66,6 +66,6 @@ export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
           );
         })}
       </StyledRadioContainer>
-    </FrameInputField>
+    </InputContainer>
   );
 };

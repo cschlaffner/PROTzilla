@@ -6,13 +6,13 @@ import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
+import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
 import { RadioSelectInputField } from "../../input-fields/radio-select-input-field";
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { Text } from "../../text";
-import { FileInputField } from "../../input-fields/file-input-field";
 
 const StyledForm = styled.div`
   width: 100%;

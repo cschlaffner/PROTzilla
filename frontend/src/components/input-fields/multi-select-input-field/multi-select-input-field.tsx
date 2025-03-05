@@ -6,7 +6,7 @@ import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import { SearchInputField } from "../search-input-field";
 
 const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
@@ -128,7 +128,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
   };
 
   return (
-    <FrameInputField {...props}>
+    <InputContainer {...props}>
       <StyledFlexColumn $isSmall={props.isSmall ?? false}>
         <FlexRow style={{ width: "100%", gap: "10px" }}>
           <OptionsListComponent
@@ -159,6 +159,6 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
           />
         </div>
       </StyledFlexColumn>
-    </FrameInputField>
+    </InputContainer>
   );
 };

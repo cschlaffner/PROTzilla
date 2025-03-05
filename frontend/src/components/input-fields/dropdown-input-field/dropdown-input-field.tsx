@@ -9,7 +9,7 @@ import {
   size,
   spacing,
 } from "../../../theme";
-import { FrameInputField } from "../frame-input-field";
+import { InputContainer } from "../frame-input-field";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { useOutsidePress } from "../../../hooks/outside-press";
 import { useToggleableState } from "../../../hooks/toggleable-state";
@@ -131,7 +131,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   return (
     <DropdownContainer>
       <div ref={inputRef} onClick={handleClick}>
-        <FrameInputField
+        <InputContainer
           {...props}
           inlineSuffix={
             <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
@@ -143,7 +143,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
           >
             {selectedValue.label}
           </StyledInputLabel>
-        </FrameInputField>
+        </InputContainer>
       </div>
 
       {isOpen && (
