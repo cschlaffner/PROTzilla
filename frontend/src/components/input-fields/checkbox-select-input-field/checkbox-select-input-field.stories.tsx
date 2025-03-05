@@ -23,5 +23,5 @@ primary.args = {
     { label: "Green", value: "green" },
     { label: "Yellow", value: "yellow" },
   ],
-  selectedValues: ["orange"],
+  defaultOptions: ["orange"],
 };

@@ -1,18 +1,22 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputField } from "../frame-input-field";
-import {
-  RadioSelectInputFieldProps,
-  RadioSelectInputFieldRef,
-} from "./radio-select-input-field.props";
+import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
-const StyledRadioContainer = styled.div`
+const StyledRadioContainer = styled.div<{ $isSmall: boolean }>`
   cursor: default;
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
+  padding-top: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-bottom: ${({ $isSmall }) =>
+    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
+  width: 100%;
 `;
 
 const StyledLabel = styled.label`
@@ -24,32 +28,26 @@ const StyledLabel = styled.label`
   user-select: none;
 `;
 
-export const RadioSelectInputField = forwardRef<
-  RadioSelectInputFieldRef,
-  RadioSelectInputFieldProps
->(function RadioSelectInputField(
-  { options, selectedValue: selectedValueProp, onChange, ...props },
-  ref,
-) {
-  const [selectedValue, setSelectedValue] = useState<string>(
-    selectedValueProp ?? options[0]?.value,
-  );
+export const RadioSelectInputField: React.FC<RadioSelectInputFieldProps> = ({
+  options,
+  defaultOption,
+  onChange,
+  ...props
+}) => {
+  const [value, setValue] = useState<string>(() => {
+    const initialValue = defaultOption ?? options[0]?.value;
+    onChange(initialValue);
+    return initialValue;
+  });
 
   const handleChange = (value: string) => {
-    setSelectedValue(value);
+    setValue(value);
     onChange(value);
   };
 
-  useImperativeHandle(ref, () => ({
-    getValue: () => selectedValue,
-    setValue: (newValue: string) => {
-      setSelectedValue(newValue);
-    },
-  }));
-
   return (
     <FrameInputField {...props}>
-      <StyledRadioContainer>
+      <StyledRadioContainer $isSmall={props.isSmall ?? false}>
         {options.map((option) => {
           const id = `radio-${option.value}`;
           return (
@@ -58,7 +56,7 @@ export const RadioSelectInputField = forwardRef<
                 id={id}
                 type="radio"
                 value={option.value}
-                checked={selectedValue === option.value}
+                checked={value === option.value}
                 onChange={() => {
                   handleChange(option.value);
                 }}
@@ -70,4 +68,4 @@ export const RadioSelectInputField = forwardRef<
       </StyledRadioContainer>
     </FrameInputField>
   );
-});
+};

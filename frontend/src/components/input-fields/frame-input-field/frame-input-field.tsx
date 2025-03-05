@@ -2,22 +2,14 @@ import React, { useRef } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputFieldProps } from "./frame-input-field.props";
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  size,
-  spacing,
-} from "../../../theme";
+import { border, borderColors, color, fontSize, spacing } from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styled.div`
   align-items: center;
   display: grid;
-  gap: 0px ${spacing("verySmall")};
+  // gap: 0px ${spacing("verySmall")};
   grid-template-columns: auto 1fr;
-  max-width: ${size("inputFieldsMaxWidth")};
   padding: ${spacing("verySmall")} 0px;
 `;
 
@@ -35,14 +27,14 @@ const FlexContainer = styled.div`
 `;
 
 const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
-  background-color: white;
+  box-sizing: border-box;
+  background-color: ${color("transparent")};
   border: ${({ $smallBorder }) =>
       border($smallBorder ? "smallStrength" : "defaultStrength")}
     solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
   gap: ${spacing("verySmall")};
-  // box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 100%;
 `;
 
@@ -108,14 +100,6 @@ const FixedText = styled(StyledSubtitle)`
   margin-left: 8px;
 `;
 
-const getChildStyle = (smallFrame: boolean) => ({
-  background: "transparent",
-  border: "none",
-  outline: "none",
-  padding: smallFrame ? "5px" : "10px",
-  width: "100%",
-});
-
 export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   children,
   label,
@@ -127,7 +111,6 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   separatePrefix,
   separateSuffix,
   smallBorder = false,
-  smallFrame = false,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -140,24 +123,18 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
   const styledChildren = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
       return React.cloneElement(child as React.ReactElement, {
-        style: getChildStyle(smallFrame),
         ref: inputRef,
       });
     }
     return child;
   });
 
+
   return (
     <GridContainer {...props}>
       {labelPosition === "top" ? (
         <GridItem row={1} col={2}>
-          {label && (
-            <InputLabel
-              className="label"
-              text={label}
-              style={{ padding: `0 ${String(spacing("verySmall"))}` }}
-            />
-          )}
+          {label && <InputLabel className="label" text={label} />}
         </GridItem>
       ) : (
         <GridItem row={2} col={1}>
@@ -165,7 +142,7 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
             <InputLabel
               className="label"
               text={label + ":"}
-              style={{ padding: `0 ${String(spacing("small"))}` }}
+              style={{ paddingRight: `5px` }}
             />
           )}
         </GridItem>
@@ -197,17 +174,19 @@ export const FrameInputField: React.FC<FrameInputFieldProps> = ({
           )}
         </StyledInputFrame>
       </GridItem>
-      <GridItem row={3} col={2}>
-        <FlexContainer>
-          <StyledSubscriptText
-            className="subscript"
-            text={subscript}
-            style={{ whiteSpace: "normal" }}
-          />
+      {(subscript ?? optional) && (
+        <GridItem row={3} col={2}>
+          <FlexContainer>
+            <StyledSubscriptText
+              className="subscript"
+              text={subscript}
+              style={{ whiteSpace: "normal" }}
+            />
 
-          {optional && <FixedText text="optional" />}
-        </FlexContainer>
-      </GridItem>
+            {optional && <FixedText text="optional" />}
+          </FlexContainer>
+        </GridItem>
+      )}
     </GridContainer>
   );
 };

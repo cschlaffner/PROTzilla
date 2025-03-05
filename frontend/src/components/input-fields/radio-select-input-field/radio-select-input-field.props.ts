@@ -5,11 +5,6 @@ export interface RadioSelectInputFieldProps
   extends Omit<FrameInputFieldProps, "inlinePrefix" | "inlineSuffix">,
     UIStateProps {
   options: { label: string; value: string }[];
-  selectedValue?: string;
+  defaultOption?: string;
   onChange: (value: string) => void;
-}
-
-export interface RadioSelectInputFieldRef {
-  getValue: () => string;
-  setValue: (value: string) => void;
 }

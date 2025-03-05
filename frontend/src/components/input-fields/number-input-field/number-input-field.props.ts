@@ -9,10 +9,6 @@ export interface NumberInputFieldProps
   min?: number;
   max?: number;
   step?: number;
+  isInteger?: boolean;
   onChange: (value: number) => void;
-}
-
-export interface NumberInputFieldRef {
-  getValue: () => number | null;
-  setValue: (value: number) => void;
 }

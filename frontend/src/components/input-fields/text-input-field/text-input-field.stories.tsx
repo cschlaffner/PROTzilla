@@ -27,4 +27,5 @@ allAffix.args = {
   inlineSuffix: "%",
   separatePrefix: "%",
   separateSuffix: "%",
+  isSmall: true,
 };

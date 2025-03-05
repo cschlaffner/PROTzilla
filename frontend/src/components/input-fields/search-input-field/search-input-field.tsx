@@ -1,47 +1,43 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
-import { fontSize } from "../../../theme";
+import { color, fontSize, size, spacing } from "../../../theme";
 import { FrameInputField } from "../frame-input-field";
-import {
-  SearchInputFieldProps,
-  SearchInputFieldRef,
-} from "./search-input-field.props";
+import { SearchInputFieldProps } from "./search-input-field.props";
 import { Icon } from "../../icon";
 
-const StyledInput = styled.input`
+const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
+  padding: 0px ${spacing("small")};
+  background: ${color("transparent")};
+  border: none;
+  outline: none;
+  height: ${({ $isSmall }) =>
+    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  width: 100%;
 `;
 
-export const SearchInputField = forwardRef<
-  SearchInputFieldRef,
-  SearchInputFieldProps
->(function SearchInputField(
-  { defaultValue = "", placeholder, onChange, ...props },
-  ref,
-) {
-  const [value, setValue] = useState<string>(defaultValue);
+export const SearchInputField: React.FC<SearchInputFieldProps> = ({
+  defaultValue = "",
+  placeholder,
+  onChange,
+  ...props
+}) => {
+  const [value, setValue] = useState(() => {
+    onChange(defaultValue);
+    return defaultValue;
+  });
 
   const handleChange = (value: string) => {
     setValue(value);
     onChange(value);
   };
 
-  useImperativeHandle(ref, () => ({
-    getValue: () => value,
-    setValue: (newValue: string) => {
-      setValue(newValue);
-    },
-  }));
-
   return (
     <FrameInputField
       {...props}
       inlinePrefix={
-        <Icon
-          icon="searchLens"
-          {...(props.smallFrame ? { isSmall: true } : {})}
-        />
+        <Icon icon="searchLens" {...(props.isSmall ? { isSmall: true } : {})} />
       }
     >
       <StyledInput
@@ -51,8 +47,9 @@ export const SearchInputField = forwardRef<
         onChange={(e) => {
           handleChange(e.target.value);
         }}
+        $isSmall={props.isSmall ?? false}
         {...props}
       />
     </FrameInputField>
   );
-});
+};
