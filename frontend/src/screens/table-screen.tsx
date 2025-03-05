@@ -17,16 +17,16 @@ const theme = createTheme({
         styleOverrides: {
             root: {
               "& .MuiDataGrid-sortIcon": {
-                color: "#FFFFFF", // Farbe des Sortier-Pfeils
+                color: "#FFFFFF",
               },
               "& .MuiDataGrid-menuIconButton": {
-                color: "#FFFFFF", // Menü-Icon (drei Punkte)
+                color: "#FFFFFF",
               },
               "& .MuiDataGrid-filterIcon": {
-                color: "#FFFFFF", // Filter-Icon
+                color: "#FFFFFF",
               },
               "& .MuiSvgIcon-root": {
-                color: "#FFFFFF", // 🎯 Standardfarbe aller Icons (Sortierung, Filter, etc.)
+                color: "#FFFFFF",
               },
             },
           },
@@ -280,11 +280,14 @@ export default function TableScreen() {
                 columns={columns}
                 sx={{
                     "& .MuiDataGrid-columnHeaders": {
-                    color: "white",
+                        color: "white",
+                    },
+                    "& .MuiDataGrid-columnHeaderTitle": {
+                        fontWeight: "bold",
                     },
                     "& .MuiDataGrid-row": {
-                    backgroundColor: protzillaTheme.colors.backgroundOffset,
-                    color: protzillaTheme.colors.text, // Zeilen-Textfarbe
+                        backgroundColor: protzillaTheme.colors.backgroundOffset,
+                        color: protzillaTheme.colors.text,
                     },
                 }}
             />
