@@ -40,7 +40,7 @@ const OptionsList = styled.ul<{ width: number }>`
   border: ${border("defaultStrength")} solid ${borderColors("default")};
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   list-style: none;
-  margin-top: ${spacing("verySmall")};
+  margin-top: 0;
   overflow-y: auto;
   padding: 0;
   position: absolute;

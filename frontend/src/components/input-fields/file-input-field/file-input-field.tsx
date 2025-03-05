@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { size, spacing} from "../../../theme";
@@ -15,13 +15,13 @@ const StyledDiv = styled.div`
   gap: ${spacing("verySmall")};
   width: 100%;
   padding: 0px ${spacing("verySmall")};
-  white-space: nowrap; /* Prevents text from wrapping */
+  white-space: nowrap;
   height: ${size("inputFieldHeightDefault")};
 `;
 
 const StyledSpan = styled.span`
-  overflow-x: auto; /* Shows scrollbar only when necessary */
-  white-space: nowrap; /* Prevents text from wrapping */
+  overflow-x: auto;
+  white-space: nowrap;
 `;
 
 export const FileInputField: React.FC<FileInputFieldProps> = ({

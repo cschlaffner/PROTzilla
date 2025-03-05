@@ -26,21 +26,21 @@ primary.args = {
         type: "text",
         name: "username",
         props: {
-          label: "Benutzername",
+          label: "Username",
         },
       },
       {
         type: "number",
         name: "age",
         props: {
-          label: "Alter",
+          label: "Age",
         },
       },
       {
         type: "multi-select",
         name: "country",
         props: {
-          label: "Land",
+          label: "Country",
           options: [
             { label: "Deutschland", value: "DE" },
             { label: "Österreich", value: "AT" },
@@ -64,21 +64,42 @@ submit.args = {
         type: "text",
         name: "username",
         props: {
-          label: "Benutzername",
+          label: "Username",
         },
       },
       {
         type: "number",
         name: "age",
         props: {
-          label: "Alter",
+          label: "Age",
         },
       },
       {
         type: "multi-select",
         name: "country",
         props: {
-          label: "Land",
+          label: "Country",
+          options: [
+            { label: "Deutschland", value: "DE" },
+            { label: "Österreich", value: "AT" },
+            { label: "Schweiz", value: "CH" },
+            { label: "Frankreich", value: "FR" },
+            { label: "Italien", value: "IT" },
+          ],
+        },
+      },
+      {
+        type: "file",
+        name: "file",
+        props: {
+          label: "File",
+        },
+      },
+      {
+        type: "dropdown",
+        name: "country-drop",
+        props: {
+          label: "Dropdown",
           options: [
             { label: "Deutschland", value: "DE" },
             { label: "Österreich", value: "AT" },

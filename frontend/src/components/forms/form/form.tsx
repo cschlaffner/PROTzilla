@@ -12,6 +12,7 @@ import { RadioSelectInputField } from "../../input-fields/radio-select-input-fie
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { Text } from "../../text";
+import { FileInputField } from "../../input-fields/file-input-field";
 
 const StyledForm = styled.div`
   width: 100%;
@@ -32,6 +33,7 @@ const StyledSubmitDiv = styled.div`
   justify-content: flex-end;
   align-items: center;
   gap: ${spacing("small")};
+  padding-top: ${spacing("small")};
 `;
 
 const SubmitButton = styled(Button)`
@@ -174,6 +176,8 @@ const InputField: React.FC<InputFieldProps> = ({
           {...props}
         />
       );
+    case "file":
+      return <FileInputField onChange={handleInputChange} {...props} />;
     default:
       return null;
   }

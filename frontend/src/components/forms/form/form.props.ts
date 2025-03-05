@@ -1,5 +1,6 @@
 import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputFieldProps } from "../../input-fields/dropdown-input-field";
+import { FileInputFieldProps } from "../../input-fields/file-input-field";
 import { MultiSelectInputFieldProps } from "../../input-fields/multi-select-input-field";
 import { NumberInputFieldProps } from "../../input-fields/number-input-field";
 import { RadioSelectInputFieldProps } from "../../input-fields/radio-select-input-field";
@@ -49,6 +50,11 @@ export type InputField =
       type: "dropdown";
       name: string;
       props: Omit<DropdownInputFieldProps, "onChange">;
+    }
+  | {
+      type: "file";
+      name: string;
+      props: Omit<FileInputFieldProps, "onChange">;
     };
 
 type InputFields =
@@ -58,7 +64,8 @@ type InputFields =
   | RadioSelectInputFieldProps
   | CheckboxSelectInputFieldProps
   | MultiSelectInputFieldProps
-  | DropdownInputFieldProps;
+  | DropdownInputFieldProps
+  | FileInputFieldProps;
 
 type ExtractValueType<T> = T extends { value?: infer U } ? U : never;
 
