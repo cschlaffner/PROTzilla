@@ -9,7 +9,6 @@ from pathlib import Path
 import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
-from django.views.decorators.csrf import csrf_exempt
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
@@ -30,6 +29,7 @@ active_runs: dict[str, Run] = {}
 def run_information_list(request):
     run_info = get_available_runinfo()
     if not run_info:
+
         return JsonResponse(None, safe=False) #not clean, maybe use error message or smth
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
@@ -47,7 +47,6 @@ def workflow_name_list(request):
 
     return JsonResponse(workflow_names, safe=False)
 
-@csrf_exempt
 def toggle_favourite(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -71,7 +70,6 @@ def toggle_favourite(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
-@csrf_exempt    
 def add_tag(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -100,7 +98,6 @@ def add_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
-@csrf_exempt
 def delete_tag(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -121,7 +118,6 @@ def delete_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
-@csrf_exempt
 def add_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -157,12 +153,13 @@ def delete_run(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
-def continue_run(request): #not sure if this is relevant, should check if those active_runs shenigans are useful
+def continue_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
         active_runs[run_name] = Run(run_name)
+        
 
         return JsonResponse({"success": True, "message": "Continued run"})
     else:
@@ -189,7 +186,7 @@ def add_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        method = data.get("method") #this is a bit different to the original, but frontend prob has to deal with it :)
+        method = data.get("method")
 
         run = active_runs[run_name]
         step = StepFactory.create_step(method, run.steps)
@@ -206,7 +203,7 @@ def delete_step(request):
         section = data.get("section") #this is a bit different to the original, but frontend prob has to deal with it :)
         index = data.get("index")
 
-        index = int(index) #does it havve to be?
+        index = int(index)
         run = active_runs[run_name]
         run.step_remove(step_index=index, section=section)
 
@@ -333,7 +330,6 @@ def get_step_parameters(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
 
         run = active_runs[run_name]
         
@@ -347,7 +343,6 @@ def get_step_plots(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
 
         run = active_runs[run_name]
         
@@ -361,7 +356,6 @@ def get_step_table(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
 
         run = active_runs[run_name]
         
