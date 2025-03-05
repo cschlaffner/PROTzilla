@@ -29,10 +29,11 @@ export const primary = (args: SwitchProps): React.ReactNode => (
 
 primary.args = {
   options: [
-    { value: "cat", label: "CAT!" },
-    { value: "dog", label: "Dog!" },
+    { value: "list", label: "List" },
+    { value: "node", label: "Node" },
   ],
-  defaultValue: "dog",
+  defaultValue: "list",
+
   isDisabled: false,
 };
 
@@ -41,9 +42,8 @@ export const disabledOption = (args: SwitchProps): React.ReactNode => (
 );
 disabledOption.args = {
   options: [
-    { value: "editor", label: "Editor", isDisabled: false },
-    { value: "extra", label: "Extra", isDisabled: true },
-    { value: "vorschau", label: "Vorschau", isDisabled: false },
+    { value: "list", label: "List", isDisabled: false },
+    { value: "node", label: "Node", isDisabled: true },
   ],
   isDisabled: false,
 };

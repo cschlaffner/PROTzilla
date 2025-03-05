@@ -24,7 +24,7 @@ const SwitchOptionContainer = styled(InvisibleButton)<{
 const SwitchOptionLabel = styled(Text).withConfig({
   shouldForwardProp: (prop) => prop !== "isActive",
 })<{ isActive?: boolean }>`
-  font-size: ${fontSize("small")};
+  font-size: ${fontSize("h6")};
   line-height: ${fontSize("small")};
   font-weight: ${fontWeight("bold")};
   color: ${(props) => color(props.isActive ? "onPrimary" : "primary")};
@@ -33,7 +33,7 @@ const SwitchOptionLabel = styled(Text).withConfig({
 
 export const SwitchOption: React.FC<SwitchOptionProps> = ({
   labelTx,
-  label: label,
+  label,
   labelComponents,
   labelData,
   value,

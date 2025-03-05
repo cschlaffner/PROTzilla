@@ -92,7 +92,7 @@ def uniprot_columns(filename):
         EXTERNAL_DATA_PATH / "uniprot" / f"{filename}.tsv", sep="\t", nrows=0
     ).columns.tolist()
 
-
+  
 def check_biomart_availability() -> dict:
     """
     Checks if a BioMart server is available by querying the registry endpoint.
