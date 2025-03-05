@@ -93,8 +93,18 @@ export const baseTheme = {
    */
   iconColorAttribute: "stroke",
 
-  borders: {},
-  borderWidths: {},
+  borders: {
+    smallStrength: "1px",
+    defaultStrength: "2px",
+    defaultType: "solid",
+    defaultRadius: "8px",
+  },
+  borderWidths: {
+    default: "2px",
+  },
+  borderColors: {
+    default: "#ccc",
+  },
   breakpoints: {
     /** Phone. */
     xs: 0,
@@ -179,6 +189,10 @@ export const baseTheme = {
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
+    inputFieldHeightSmall: "20px",
+    inputFieldHeightDefault: "30px",
+    inputFieldsMaxWidth: "500px",
+    inputFieldListSmall: "100px",
   },
   spacing: {
     listIndentation: "14px",
@@ -189,10 +203,11 @@ export const baseTheme = {
     buttonGap: "8px",
     smallButtonGap: "6px",
 
+    verySmall: "5px",
     small: "10px",
     medium: "20px",
     large: "50px",
-
+    
     navbarHeight: "60px",
   },
   zIndices: {
