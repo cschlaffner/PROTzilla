@@ -22,6 +22,7 @@ from . import viewswithapi
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
+    path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/ping/", views.ping, name="ping"),
     path("api/jannesjsontest/", views.jannesjsontest, name="jannesjsontest"),
     path("api/do_something_with_element_from_frontend/", views.do_something_with_element_from_frontend, name="do_something_with_element_from_frontend"),
