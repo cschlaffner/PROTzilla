@@ -8,7 +8,6 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.middleware.csrf import get_token
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
@@ -19,15 +18,10 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 def ping(request):
     return HttpResponse("pong")
 
-# API to fetch CSRF token
+# API to write csrf token into cookies via decorator
 @ensure_csrf_cookie
 def get_csrf_token(request):
-    csrf_token = get_token(request)
-    return JsonResponse({"csrfToken": csrf_token})
-
-@ensure_csrf_cookie
-def get_csrf_tokenB(request):
-    return JsonResponse({"message": "CSRF cookie set"})
+    return JsonResponse({"message": "CSRF cookie set."})
 
 def jannesjsontest(request):
     listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]

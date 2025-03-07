@@ -12,6 +12,15 @@ export async function ensureCSRFToken() {
   return response;
 }
 
+export async function ensureCSRFToken() {
+  const response = await fetch(`${API_ROOT}get_csrf_token/`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to fetch CSRF token");
+  return response;
+}
+
 export const callApiWithParameters = async (
   url: string,
   parameters: Record<string, string>,

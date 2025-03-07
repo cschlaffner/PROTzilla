@@ -20,11 +20,9 @@ from django.views.generic import RedirectView
 from . import views
 from . import viewswithapi
 
-# TODO R If you have views that handle API requests, you can import those here
-# from myapp import views
-
 urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
+    path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/ping/", views.ping, name="ping"),
     path("api/jannesjsontest/", views.jannesjsontest, name="jannesjsontest"),
     path("api/do_something_with_element_from_frontend/", views.do_something_with_element_from_frontend, name="do_something_with_element_from_frontend"),
@@ -54,10 +52,7 @@ urlpatterns = [
     path("api/get_step_table/", viewswithapi.get_step_table, name="get_step_table"),
     path("api/get_run_data/", viewswithapi.get_run_data, name="get_run_data"),
 
-    # TODO R API routes (if using Django for API)
-    # path('api/', include('myapp.api.urls')),  # Example for API routes
-
-
+    #old routes, not yet implemented as api endpints, see notion card 
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),
