@@ -2,14 +2,12 @@ import axios, { isAxiosError } from "axios";
 import { action, observable, runInAction } from "mobx";
 
 import type { I18nMessage } from "../components";
-import { fetch_API_ROOT } from "../constants";
+import { API_ROOT } from "../constants";
 import { i18n, SupportedLanguage } from "../i18n";
 import { type ColorMode, getTheme, Theme } from "../theme";
 import { isPromise } from "../utils";
 import { defaultStorageClient } from "./sync-engine";
 import { RESTAdapter } from "./sync-engine/rest-adapter";
-
-const API_ROOT = fetch_API_ROOT();
 
 export class RootStore {
   public axios = axios.create({ baseURL: API_ROOT });

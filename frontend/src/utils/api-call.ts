@@ -1,16 +1,5 @@
 import { getCookie } from "./get-cookie.ts";
-import { fetch_API_ROOT } from "../constants";
-
-const API_ROOT = fetch_API_ROOT();
-
-export async function ensureCSRFToken() {
-  const response = await fetch(`${API_ROOT}get_csrf_tokenB/`, {
-    method: "GET",
-    credentials: "include",
-  });
-  if (!response.ok) throw new Error("Failed to fetch CSRF token");
-  return response;
-}
+import { API_ROOT } from "../constants";
 
 export async function ensureCSRFToken() {
   const response = await fetch(`${API_ROOT}get_csrf_token/`, {
