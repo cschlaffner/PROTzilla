@@ -56,11 +56,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -117,11 +117,11 @@ CORS_ALLOW_HEADERS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+CSRF_COOKIE_NAME = "csrftoken"  # The name of the CSRF cookie
 CSRF_COOKIE_DOMAIN = None  # Allow any domain
-CSRF_COOKIE_SAMESITE = None  # Because frontend/backend run on different origins
 CSRF_COOKIE_HTTPONLY = False  # Set to True if you want the cookie to be inaccessible to JavaScript
 CSRF_COOKIE_SECURE = False  # Set to True if you are using HTTPS
-CSRF_USE_SESSIONS = False  # Set to True if you want to store the CSRF token in the session
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

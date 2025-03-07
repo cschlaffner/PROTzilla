@@ -1,13 +1,15 @@
 import axios, { isAxiosError } from "axios";
-import {action, observable, runInAction} from "mobx";
+import { action, observable, runInAction } from "mobx";
 
 import type { I18nMessage } from "../components";
-import { API_ROOT } from "../constants";
+import { fetch_API_ROOT } from "../constants";
 import { i18n, SupportedLanguage } from "../i18n";
 import { type ColorMode, getTheme, Theme } from "../theme";
 import { isPromise } from "../utils";
 import { defaultStorageClient } from "./sync-engine";
 import { RESTAdapter } from "./sync-engine/rest-adapter";
+
+const API_ROOT = fetch_API_ROOT();
 
 export class RootStore {
   public axios = axios.create({ baseURL: API_ROOT });
@@ -22,7 +24,10 @@ export class RootStore {
 
   public shouldPersist = false;
 
-  protected messageTimeouts: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
+  protected messageTimeouts: Record<
+    string,
+    ReturnType<typeof setTimeout> | undefined
+  > = {};
   @observable protected accessor messages: Record<
     string,
     I18nMessage | undefined

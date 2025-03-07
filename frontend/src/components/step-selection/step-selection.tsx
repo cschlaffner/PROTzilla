@@ -7,7 +7,6 @@ import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { callApiWithParameters } from "../../utils";
-import { getCookie } from "../../utils/get-cookie.ts";
 
 enum SectionModes {
   All = "all",
@@ -97,16 +96,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   const [listMode, setListMode] = useState<SectionModes>(SectionModes.All);
 
   const stepsGroupedByOperation = useMemo(() => {
-    return activeStepList.reduce<Record<string, StepItem[]>>(
-      (acc, step) => {
-        if (!acc[step.operation]) {
-          acc[step.operation] = [];
-        }
-        acc[step.operation].push(step);
-        return acc;
-      },
-      {},
-    );
+    return activeStepList.reduce<Record<string, StepItem[]>>((acc, step) => {
+      if (!acc[step.operation]) {
+        acc[step.operation] = [];
+      }
+      acc[step.operation].push(step);
+      return acc;
+    }, {});
   }, [activeStepList]);
 
   const showSelectedListByListMode = (mode: SectionModes) => {
@@ -125,9 +121,8 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   };
 
   // - - - API calls - - -
-  //const addStepToWorkflow = useAddStepToWorkflow();
   const handleAddStep = async (run_name: string, method_name: string) => {
-    callApiWithParameters("add_step/", {
+    await callApiWithParameters("add_step/", {
       run_name: run_name,
       method: method_name,
     });
@@ -135,30 +130,12 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // DEBUG - should be deleted before merge
   const continueRunForDebugging = async (run_name: string) => {
-    const csrftoken = getCookie("csrftoken")!;
-
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/continue_run/", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrftoken,
-        },
-        body: JSON.stringify({
-          run_name: run_name,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      await callApiWithParameters("continue_run/", { run_name: run_name });
     } catch (error) {
       console.error("Error adding step to workflow:", error);
     }
   };
-
-  // DEBUG - should be deleted before merge
-  continueRunForDebugging(runName);
 
   // Modal handling
   const [isModalOpen, openModal, closeModal] = useToggleableState(false);
@@ -171,6 +148,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
         icon={"add"}
         onPress={() => {
           openModal();
+          continueRunForDebugging(runName);
         }}
       />
       <div ref={refModal}>
@@ -188,9 +166,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   <SectionButton
                     key={mode}
                     isActive={listMode === mode}
-                    onPress={() =>
-                      { showSelectedListByListMode(mode as SectionModes); }
-                    }
+                    onPress={() => {
+                      showSelectedListByListMode(mode as SectionModes);
+                    }}
                   >
                     {sectionModes[mode as SectionModes]}
                   </SectionButton>

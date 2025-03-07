@@ -162,6 +162,7 @@ def delete_run(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+@ensure_csrf_cookie
 def continue_run(request): #not sure if this is relevant, should check if those active_runs shenigans are useful
     if request.method == "POST":
         data = json.loads(request.body)
