@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DataGrid, GridColDef, GridColumnVisibilityModel, GridRowsProp } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridRowsProp } from "@mui/x-data-grid";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
@@ -25,6 +25,10 @@ const theme = createTheme({
 export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
     const [rows, setRows] = useState<GridRowsProp>(data);
     const [columns, setColumns] = useState<GridColDef[]>([]);
+    const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+        page: 0,
+        pageSize: pageSize ?? 10,
+    });
     const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
         id: false,
     });
@@ -51,7 +55,10 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
             columns={columns}
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(newModel) => { setColumnVisibilityModel(newModel); }}
-            paginationModel={{ pageSize: pageSize ?? 10, page: 0 }}
+            paginationModel={paginationModel} 
+            onPaginationModelChange={(newModel) => 
+                { setPaginationModel((prev) => ({ ...prev, ...newModel })); }
+            }
             pageSizeOptions={pageSizeOptions}
             sx={{
                 "& .MuiDataGrid-columnHeaders": { color: "white" },
