@@ -40,6 +40,7 @@ export default function TableScreen() {
                 const dynamicColumns = Object.keys(data[0]).map((key) => ({
                     field: key,
                     headerName: key,
+                    minWidth: 200,
                     flex: 1,
                 }));
                 setColumns(dynamicColumns);
