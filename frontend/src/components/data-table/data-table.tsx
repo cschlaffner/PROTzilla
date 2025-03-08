@@ -16,7 +16,6 @@ const theme = createTheme({
                 "& .MuiDataGrid-sortIcon": { color: "#FFFFFF" },
                 "& .MuiDataGrid-menuIconButton": { color: "#FFFFFF" },
                 "& .MuiDataGrid-filterIcon": { color: "#FFFFFF" },
-                "& .MuiSvgIcon-root": { color: "#FFFFFF" },
                 },
             },
       },
