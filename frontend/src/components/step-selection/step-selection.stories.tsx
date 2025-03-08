@@ -1,5 +1,5 @@
 import { StepSelectionProps } from "./step-selection.props.ts";
-import { StepSelection } from "./step-selection.tsx";
+import { SectionModes, StepSelection } from "./step-selection.tsx";
 
 export default {
   component: StepSelection,
@@ -12,4 +12,5 @@ export const viaAddButton = (args: StepSelectionProps): React.ReactNode => (
 );
 viaAddButton.args = {
   runName: "runrun",
+  section: SectionModes.Importing,
 };

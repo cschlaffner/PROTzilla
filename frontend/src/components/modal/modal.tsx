@@ -29,7 +29,7 @@ const CloseButton = styled(CircularButton)`
   background-color: ${color("protzillaGray")};
   color: ${color("primary")};
   display: flex;
-  justif-content: center;
+  justify-content: center;
   margin-right: 20px;
   width: 40px;
   height: 30px;

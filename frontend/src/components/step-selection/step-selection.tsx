@@ -7,8 +7,9 @@ import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepItem, useStepLists } from "./useStepList.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { callApiWithParameters } from "../../utils";
+import { shadow } from "../../theme";
 
-enum SectionModes {
+export const enum SectionModes {
   All = "all",
   Importing = "importing",
   DataPreprocessing = "data_preprocessing",
@@ -23,6 +24,8 @@ const sectionModes = {
   [SectionModes.DataAnalysis]: "Data Analysis",
   [SectionModes.DataIntegration]: "Data Integration",
 };
+
+const all_steps = "All steps";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -74,51 +77,85 @@ const StepButton = styled(InvisibleButton)`
   text-align: left;
 `;
 
+const StepDescriptionDropdown = styled.div`
+  box-shadow: ${shadow("tooltip")};
+  padding: 10px;
+  max-width: 95%;
+`;
+
 export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
+  section,
 
   ...rest
 }) => {
   // - - - step lists and sorting - - -
   const {
-    allStepsList,
+    allStepsList, //TODO maybe remove
     importingStepList,
     dataPreprocessingStepList,
     dataAnalysisStepList,
     dataIntegrationStepList,
   } = useStepLists();
 
+  // step list only to distingusih between sections
   const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
   useEffect(() => {
-    setActiveStepList(allStepsList);
+    if (section === SectionModes.All) {
+      // todo maybe dont allow all here?
+      setActiveStepList(allStepsList);
+    } else if (section === SectionModes.Importing) {
+      setActiveStepList(importingStepList);
+    } else if (section === SectionModes.DataPreprocessing) {
+      setActiveStepList(dataPreprocessingStepList);
+    } else if (section === SectionModes.DataAnalysis) {
+      setActiveStepList(dataAnalysisStepList);
+    } else if (section === SectionModes.DataIntegration) {
+      setActiveStepList(dataIntegrationStepList);
+    }
   }, [allStepsList]);
 
-  const [listMode, setListMode] = useState<SectionModes>(SectionModes.All);
+  const [activeOperationStepList, setActiveOperationStepList] = useState<
+    StepItem[]
+  >([]);
+  useEffect(() => {
+    setActiveOperationStepList(activeStepList); //visible list set on "all" for the active section list
+  }, [activeStepList]);
+
+  const [listMode, setListMode] = useState<string>(); // now for operations
+  useEffect(() => {
+    setListMode(all_steps);
+  }, [activeStepList]);
 
   const stepsGroupedByOperation = useMemo(() => {
     return activeStepList.reduce<Record<string, StepItem[]>>((acc, step) => {
+      if (!acc[all_steps]) {
+        acc[all_steps] = [];
+      }
       if (!acc[step.operation]) {
         acc[step.operation] = [];
       }
       acc[step.operation].push(step);
+      acc[all_steps].push(step);
       return acc;
     }, {});
   }, [activeStepList]);
 
-  const showSelectedListByListMode = (mode: SectionModes) => {
+  const operationModes: string[] = useMemo(
+    () => Object.keys(stepsGroupedByOperation),
+    [stepsGroupedByOperation],
+  );
+
+  //todo
+  const showSelectedListByListMode = (mode: string) => {
     setListMode(mode);
-    if (mode === SectionModes.All) {
-      setActiveStepList(allStepsList);
-    } else if (mode === SectionModes.Importing) {
-      setActiveStepList(importingStepList);
-    } else if (mode === SectionModes.DataPreprocessing) {
-      setActiveStepList(dataPreprocessingStepList);
-    } else if (mode === SectionModes.DataAnalysis) {
-      setActiveStepList(dataAnalysisStepList);
-    } else if (mode === SectionModes.DataIntegration) {
-      setActiveStepList(dataIntegrationStepList);
-    }
+
+    setActiveOperationStepList(stepsGroupedByOperation[mode] || []);
   };
+
+  const [visibleDescription, setVisibleDescription] = useState<string | null>(
+    null,
+  );
 
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
@@ -150,11 +187,15 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           openModal();
           continueRunForDebugging(runName);
         }}
+        tooltip={"meep"}
       />
       <div ref={refModal}>
         <WideModal
           isOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={() => {
+            closeModal();
+            showSelectedListByListMode(all_steps);
+          }}
           className={""}
           title={"Step Selection"}
           {...rest}
@@ -162,36 +203,74 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           <BorderDiv>
             <MakeRowDiv>
               <SectionSelection>
-                {Object.keys(sectionModes).map((mode) => (
+                {operationModes.map((mode: string) => (
                   <SectionButton
                     key={mode}
                     isActive={listMode === mode}
                     onPress={() => {
-                      showSelectedListByListMode(mode as SectionModes);
+                      showSelectedListByListMode(mode);
                     }}
                   >
-                    {sectionModes[mode as SectionModes]}
+                    {mode}
                   </SectionButton>
                 ))}
               </SectionSelection>
               <StepList>
-                {Object.keys(stepsGroupedByOperation).map((operation) => (
-                  <div key={operation}>
-                    <h2>{operation}</h2>
-                    <OperationStepList>
-                      {stepsGroupedByOperation[operation].map((item, index) => (
-                        <StepButton
-                          onPress={() =>
-                            handleAddStep(runName, item.method_name)
-                          }
-                          key={index}
-                        >
-                          {item.display_name}
-                        </StepButton>
-                      ))}
-                    </OperationStepList>
-                  </div>
-                ))}
+                <h1>{sectionModes[section]}</h1>
+                {listMode === all_steps ? (
+                  Object.keys(stepsGroupedByOperation)
+                    .filter((op) => op !== all_steps)
+                    .map((operation) => (
+                      <div key={operation}>
+                        <h2>{operation}</h2>
+                        <OperationStepList>
+                          {stepsGroupedByOperation[operation].map(
+                            (item, index) => (
+                              <div>
+                                <StepButton
+                                  onPress={() =>
+                                    handleAddStep(runName, item.method_name)
+                                  }
+                                  key={index}
+                                  // tooltip={item.method_description}
+                                  // tooltipPosition={"top"}
+                                >
+                                  {item.display_name}
+                                </StepButton>
+                                <CircularButton
+                                  icon={"help"}
+                                  onPress={() =>
+                                    setVisibleDescription(
+                                      visibleDescription === item.method_name
+                                        ? null
+                                        : item.method_name,
+                                    )
+                                  }
+                                />
+                                {visibleDescription === item.method_name && (
+                                  <StepDescriptionDropdown>
+                                    {item.method_description}
+                                  </StepDescriptionDropdown>
+                                )}
+                              </div>
+                            ),
+                          )}
+                        </OperationStepList>
+                      </div>
+                    ))
+                ) : (
+                  <OperationStepList>
+                    {activeOperationStepList.map((item, index) => (
+                      <StepButton
+                        onPress={() => handleAddStep(runName, item.method_name)}
+                        key={index}
+                        tooltip={item.method_description}
+                      >
+                        {item.display_name}
+                      </StepButton>
+                    ))}
+                  </OperationStepList>
+                )}
               </StepList>
             </MakeRowDiv>
           </BorderDiv>

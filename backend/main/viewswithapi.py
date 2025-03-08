@@ -195,7 +195,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Deleted step"})
+        return JsonResponse({"success": True, "message": "Added step " + method})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

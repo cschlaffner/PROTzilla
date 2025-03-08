@@ -27,7 +27,6 @@ urlpatterns = [
     path("api/jannesjsontest/", views.jannesjsontest, name="jannesjsontest"),
     path("api/do_something_with_element_from_frontend/", views.do_something_with_element_from_frontend, name="do_something_with_element_from_frontend"),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
-    path("api/get_csrf_tokenB/", views.get_csrf_tokenB, name="get_csrf_tokenB"),
     path("api/run_information/", viewswithapi.run_information_list, name="run_information"),
     path("api/step_name_list/", viewswithapi.step_name_list, name="step_name_list"),
     path("api/step_list/", viewswithapi.all_steps, name="step_list"),

@@ -66,7 +66,7 @@ export const useStepLists = () => {
       }
     };
 
-    fetchList();
+    fetchList().then();
   }, []);
 
   return stepLists;
