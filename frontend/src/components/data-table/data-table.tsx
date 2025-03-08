@@ -23,7 +23,7 @@ const theme = createTheme({
     },
   });
 
-export const DataTable: React.FC<DataTableProps> = ({ data }) => {
+export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
     const [rows, setRows] = useState<GridRowsProp>(data);
     const [columns, setColumns] = useState<GridColDef[]>([]);
     const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
@@ -52,13 +52,15 @@ export const DataTable: React.FC<DataTableProps> = ({ data }) => {
             columns={columns}
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(newModel) => { setColumnVisibilityModel(newModel); }}
+            paginationModel={{ pageSize: pageSize ?? 10, page: 0 }}
+            pageSizeOptions={pageSizeOptions}
             sx={{
-            "& .MuiDataGrid-columnHeaders": { color: "white" },
-            "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
-            "& .MuiDataGrid-row": {
-                backgroundColor: protzillaTheme.colors.backgroundOffset,
-                color: protzillaTheme.colors.text,
-            },
+                "& .MuiDataGrid-columnHeaders": { color: "white" },
+                "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+                "& .MuiDataGrid-row": {
+                    backgroundColor: protzillaTheme.colors.backgroundOffset,
+                    color: protzillaTheme.colors.text,
+                },
             }}
         />
         </ThemeProvider>

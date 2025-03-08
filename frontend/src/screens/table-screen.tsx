@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { DataTable } from "../components/data-table";
 
 export default function TableScreen() {
-    const [rows, setRows] = useState<GridRowsProp>([]);
+    const [data, setData] = useState<GridRowsProp>([]);
 
     useEffect(() => {
         fetch("/data.json")
             .then((res) => res.json())
-            .then((data) => { setRows(data) }) 
+            .then((data) => { setData(data) }) 
             .catch((error: unknown) => {
                 console.error("Error loading data:", error);
             });
@@ -17,7 +17,7 @@ export default function TableScreen() {
 
     return (
         <div>
-            <DataTable data={rows}/>
+            <DataTable data={data} pageSize={10} pageSizeOptions={[5, 10, 25]}/>
         </div>
     );
 }
