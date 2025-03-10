@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 import { EditorCardProps } from "./editor-card.props";
 import { spacing } from "../../../theme";
 import { Switch } from "../../switch";
-import { Card } from "../../card";
+import { Card } from "../../cards/card";
 
 const SwitchDiv = styled.div`
   width: 100%;

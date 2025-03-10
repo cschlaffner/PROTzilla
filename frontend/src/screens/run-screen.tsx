@@ -1,60 +1,85 @@
 import { Row, Container, Col } from "react-grid-system";
-import { Card, FlexColumn, Navbar, PlotComponent } from "./../components";
-import { EditorCard, ContentCard } from "./../components";
+import { Navbar, PlotComponent, ListEditor, SwitchCard } from "./../components";
 import { data, useNavigate } from "react-router-dom";
 import { lineHeight, spacing } from "../theme";
+import { styled } from "styled-components";
+import { mockFormDataParameters, mockFormDataPlotSettings, mockPlotData, mockPlotLayout } from "./mockUpData";
+import { InputValueType } from "../components/forms/form";
+import React, { useState } from "react";
+
+const StyledCardsRow = styled(Row)`
+  margin-top: ${spacing("small")};
+  height: 85vh;
+  align: stretch;
+`;
 
 export const RunScreen: React.FC = () => {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
 
+  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  const [plotKey, setPlotKey] = useState(0);
 
-    // TEMPORÄR
+  function onChangePlotSettings(data: Record<string, InputValueType>) {
+    setPlotLayout((prevLayout) => ({ ...prevLayout, ...data }));
+    setPlotKey((prevKey) => prevKey + 1); 
+    console.log(plotLayout);
+  }
 
-    const plotData: Partial<Plotly.Data>[] = [
-        {
-          x: ["A", "B", "C", "D"],
-          y: [10, 20, 30, 40],
-          type: "bar",
-          marker: { color: "purple" },
-        },
-      ];
-      
-      const plotLayout: Partial<Plotly.Layout> = {
-        title: { text: "Title" },
-        xaxis: {
-          anchor: "y",
-          domain: [0.0, 1.0],
-          title: { text: "Categories" },
-        },
-        yaxis: {
-          anchor: "x",
-          domain: [0.0, 1.0],
-          title: { text: "Values" },
-        },
-      };
-
-      const plotComponent =  <PlotComponent data={plotData} layout={plotLayout} />
-
-    return (
-        <div>
-            <Navbar
-                allowRunEdit={true}
-                title="New Run"
-                onNavigateHome={() => navigate("/")}
-                onOpenSettings={() => {}}
-                onOpenHelp={() => {}}
-            />
-            <Container fluid style={{margin: 0}}>
-                <Row align="stretch" style={{height: "85vh", paddingTop: '8px'}}>
-                    <Col md={"content"}>
-                        <EditorCard />
-                    </Col>
-                    <Col>
-                        <ContentCard plotComponent={plotComponent}/>
-                    </Col>
-                </Row>
+  const plotComponent = (
+    <div key={plotKey}> {/* WICHTIG: Key ans übergeordnete Element hängen */}
+      <PlotComponent data={mockPlotData} layout={plotLayout} />
+    </div>
+  );
    
-            </Container>
-        </div>
-    )
-}
+  const listEditorComponent = (
+    <ListEditor
+      formDataParameters={mockFormDataParameters}
+      onChangeParamters={() => {}}
+      formDataPlotSettings={mockFormDataPlotSettings}
+      onChangePlotSettings={onChangePlotSettings}
+    />
+  );
+
+  return (
+    <div>
+      <Navbar
+        allowRunEdit={true}
+        title="New Run"
+        onNavigateHome={() => navigate("/")}
+        onOpenSettings={() => {}}
+        onOpenHelp={() => {}}
+      />
+      <Container fluid style={{ margin: 0 }}>
+        <StyledCardsRow>
+          <Col md={"content"}>
+            <SwitchCard
+              nameComponent1="List"
+              component1={listEditorComponent}
+              nameComponent2="Node"
+              component2={
+                <p>
+                  😲 Ohh you shouldn't come here - we're not finished yet.{" "}
+                  <br />
+                  Quickly click on the switch again. 👀
+                </p>
+              }
+            />
+          </Col>
+          <Col>
+            <SwitchCard
+              nameComponent1="Plot"
+              component1={plotComponent}
+              nameComponent2="Table"
+              component2={
+                <p>
+                  🚧 Construction is still going on here and there is absolutely
+                  nothing to see 🚧
+                </p>
+              }
+            />
+          </Col>
+        </StyledCardsRow>
+      </Container>
+    </div>
+  );
+};

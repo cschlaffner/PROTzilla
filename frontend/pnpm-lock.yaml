@@ -26,6 +26,9 @@ importers:
       i18next-http-backend:
         specifier: ^3.0.1
         version: 3.0.1
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
       mobx:
         specifier: ^6.13.5
         version: 6.13.5
