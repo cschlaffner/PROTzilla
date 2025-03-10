@@ -11,7 +11,7 @@ export const IndexScreen: React.FC = () => {
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<{ value: string; label: string}[]>([]);
+  const [runs, setRuns] = useState<{ value: string; label: string}[]>([{value : "run", label:  "run"}]);
   const [title, setTitle] = useState("Loading...");
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export const IndexScreen: React.FC = () => {
                 className="mb-3"
               />
               <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Delete Tag "test"</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Delete Tag: test</Button>
               <Button className="btn btn-secondary w-100">Manage databases</Button>
             </Card>
           </Col>
