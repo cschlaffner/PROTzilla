@@ -20,6 +20,7 @@ export const lookup =
 
 export const border = lookup("borders");
 export const borderWidths = lookup("borderWidths");
+export const borderColors = lookup("borderColors");
 export const color = lookup("colors");
 export const duration = lookup("durations");
 export const font = lookup("fonts");
