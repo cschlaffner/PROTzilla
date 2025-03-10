@@ -76,10 +76,6 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         else:
             runs.append(run)
 
-    #for run in runs + runs_favourited:  #this functionality could be done in frontend?
-     #   possible_tags = list(all_tags - run["run_tags"])
-      #  run["addable_tags"] = possible_tags 
-
     all_tags = list(all_tags)
 
     return (runs, runs_favourited, all_tags)

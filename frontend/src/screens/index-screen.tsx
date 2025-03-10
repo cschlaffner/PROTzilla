@@ -25,18 +25,6 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/jannesjsontest/')
-      .then((response) => response.json())
-      .then((data: { value: string; label: string }[]) => { setRuns(data); })
-      .catch((error: unknown) => { 
-        if (error instanceof Error) {
-          console.error("Error fetching data:", error.message);
-        } else {
-          console.error("An unknown error occurred:", error);
-        }});
-  }, []);
-
   const handleCreateRun = () => {
     if (runs.some((run: { value: string; }) => run.value === newRunName)) {
         alert("A run with this name already exists!");
@@ -118,7 +106,7 @@ export const IndexScreen: React.FC = () => {
                 className="mb-3"
               />
               <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Do something</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Delete Tag "test"</Button>
               <Button className="btn btn-secondary w-100">Manage databases</Button>
             </Card>
           </Col>
