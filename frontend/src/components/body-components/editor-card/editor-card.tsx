@@ -1,32 +1,47 @@
 import React, { useState } from "react";
+import { styled } from "styled-components";
+
 import { EditorCardProps } from "./editor-card.props";
+import { spacing } from "../../../theme";
+import { Switch } from "../../switch";
 import { Card } from "../../card";
-import styled from "styled-components";
-import { motion } from "framer-motion"
 
+const SwitchDiv = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: ${spacing("small")};
+`;
 
-export const EditorCard: React.FC<EditorCardProps> = () => {
+const StyledCard = styled(Card)`
+  height: 100%;
+`;
 
-    const [isCollapsed, setIsCollapsed] = useState(true)
+export const EditorCard: React.FC<EditorCardProps> = ({
+  listEditorComponent,
+  nodeEditorComponent = <p>Caution, construction is in progress here! Come back later</p>
+}) => {
+  const [switchState, setSwitchState] = useState<string>(
+    "list",
+  );
 
-    const [switchState, setSwitchState] = useState<string>()
-
-    const StyledCard = styled(Card)`
-        height: 100%;
-    `
-
-    return (
-        <motion.div
-                layoutId="sidebar"
-                initial={{width:50}}
-                animate={{width: isCollapsed ? 50:300}}
-                transition={{duration:0.3 , ease: "easeInOut"}}
-            >
-            <StyledCard>
-                <button onClick={() => setIsCollapsed(!isCollapsed)}></button>
-
-            </StyledCard>
-        </motion.div>
-
-    )
-}
+  return (
+    <div>
+      <SwitchDiv>
+        <Switch
+          options={[
+            { value: "list", label: "List" },
+            { value: "node", label: "Node"},
+          ]}
+          value={switchState}
+          onChange={setSwitchState}
+          defaultValue="plot"
+          isDisabled={false}
+        />
+      </SwitchDiv>
+      <StyledCard title={switchState === "list" ? "List" : "Node"}>
+        {switchState === "list" ? listEditorComponent : nodeEditorComponent}
+      </StyledCard>
+    </div>
+  );
+};
