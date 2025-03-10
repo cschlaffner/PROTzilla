@@ -14,14 +14,14 @@ const SwitchDiv = styled.div`
 `;
 
 const StyledCard = styled(Card)`
-  flex-grow: 1;
+  height: 100%;
 `;
 
 export const ContentCard: React.FC<ContentCardProps> = ({
   plotComponent,
   tableComponent = <p>Caution, construction is in progress here! Come back later</p>
 }) => {
-  const [listNodeSwitch, setListNodeSwitch] = useState<string>(
+  const [switchState, setSwitchState] = useState<string>(
     "plot",
   );
 
@@ -33,14 +33,14 @@ export const ContentCard: React.FC<ContentCardProps> = ({
             { value: "plot", label: "Plot" },
             { value: "table", label: "Table"},
           ]}
-          value={listNodeSwitch}
-          onChange={setListNodeSwitch}
+          value={switchState}
+          onChange={setSwitchState}
           defaultValue="plot"
           isDisabled={false}
         />
       </SwitchDiv>
-      <StyledCard title={listNodeSwitch === "plot" ? "Plot" : "Table"}>
-        {listNodeSwitch === "plot" ? plotComponent : tableComponent}
+      <StyledCard title={switchState === "plot" ? "Plot" : "Table"}>
+        {switchState === "plot" ? plotComponent : tableComponent}
       </StyledCard>
     </div>
   );

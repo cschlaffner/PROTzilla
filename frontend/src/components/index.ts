@@ -3,12 +3,15 @@ export * from "./button";
 export * from "./card"
 export * from "./dropdown";
 export * from "./edit-tag";
+export * from "./body-components/editor-card"
+export * from "./body-components/content-card"
 export * from "./error-notification";
 export * from "./icon";
 export * from "./mixins";
 export * from "./node";
 export * from "./navbar";
 export * from "./notification-bubble";
+export * from "./plot"
 export * from "./popup";
 export * from "./screen";
 export * from "./section";
