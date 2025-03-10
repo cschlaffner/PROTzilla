@@ -1,11 +1,13 @@
 export * from "./box";
 export * from "./button";
+export * from "./card"
 export * from "./dropdown";
 export * from "./edit-tag";
 export * from "./error-notification";
 export * from "./icon";
 export * from "./mixins";
 export * from "./node";
+export * from "./navbar";
 export * from "./notification-bubble";
 export * from "./popup";
 export * from "./screen";
@@ -17,6 +19,5 @@ export * from "./text";
 export * from "./text-field";
 export * from "./tooltip";
 export * from "./types";
-export * from "./card"
 
 export * from "./main-screen";
