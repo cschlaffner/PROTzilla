@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
+import { useNavigate } from "react-router-dom";
 
 import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -11,6 +12,7 @@ export const IndexScreen: React.FC = () => {
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
   const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/jannesjsontest/")
@@ -35,6 +37,7 @@ export const IndexScreen: React.FC = () => {
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
+    void navigate("/run");
   };
 
   const handleDeleteRun = () => {
