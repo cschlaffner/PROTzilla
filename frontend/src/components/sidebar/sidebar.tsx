@@ -28,28 +28,24 @@ const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
 export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
 
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section:"importing", index:0})
+  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section: "importing", index: 0})
   
-  const sections:SectionNames[] = ["importing","data_preprocessing","data_analysis","data_integration"]
-  const sectionTitles = ["Importing","Data Preprocessing","Data Analysis","Data Integration"]
-
-  const handleClick = () => {
-    setIsCollapsed((prev) => !prev)
-  }
+  const sections: SectionNames[] = ["importing", "data_preprocessing", "data_analysis", "data_integration"]
+  const sectionTitles = ["Importing", "Data Preprocessing", "Data Analysis", "Data Integration"]
 
   return(
         <SidebarContainer 
-          initial={{width:300}}
+          initial={{ width: 300 }}
           animate={{ width: isCollapsed ? 77.5 : 300 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
             <SidebarHeader isCollapsed={isCollapsed}>
                 <Icon 
                     icon={isCollapsed ? "list" : "chevronDoubleLeft"} 
-                    onClick={handleClick}
+                    onClick={() => setIsCollapsed((prev) => !prev)}
                 />
             </SidebarHeader>
-            {sections.map((section:SectionNames, i:number) => {
+            {sections.map((section: SectionNames, i: number) => {
                     return (
                         <SidebarSection 
                             key={section}

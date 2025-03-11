@@ -1,6 +1,6 @@
 import type React from "react";
 
-import type { Theme } from "../../theme";
+import type { Color } from "../../theme";
 import type { IconType } from "../icon";
 import type { NotificationBubbleProps } from "../notification-bubble";
 import type { TooltippedProps } from "../tooltip";
@@ -19,7 +19,7 @@ export interface ButtonProps
     Pick<NotificationBubbleProps, "notifications"> {
   /** The key of the button's icon (if any). */
   icon?: IconType;
-  color?: keyof Theme["colors"];
+  color?: Color;
   /** Position of icon left of text or Right of text default to Left */
   iconRight?: boolean;
   /**
@@ -52,7 +52,7 @@ export interface ButtonProps
    */
   showFocusOutline?: boolean;
 
-  notificationColor?: keyof Theme["colors"];
+  notificationColor?: Color;
 
   /**
    * An event listener that fires when the button is pressed using a pointer

@@ -1,14 +1,14 @@
 import React, {useState} from "react";
 import { css, styled } from "styled-components";
 
-import { Color, DefaultColoredIconProps, DefaultColoredIconType, IconProps, IconButtonProps } from "./icon.props";
+import { DefaultColoredIconProps, DefaultColoredIconType, IconButtonProps, IconProps } from "./icon.props";
 import * as icons from "./icons";
-import { color, opacity, size, Theme } from "../../theme";
+import { color, opacity, size, Theme, Color } from "../../theme";
 
 /** Icon color mixin. */
 // eslint-disable-next-line react-refresh/only-export-components
 export const iconColor =
-  <CK extends keyof Theme["colors"]>(colorKey?: CK) =>
+  <CK extends Color>(colorKey?: CK) =>
   (props: { theme: Theme }) => css`
     fill: none;
     ${props.theme.iconColorAttribute}: ${color(colorKey ?? "primary")};
@@ -67,24 +67,20 @@ export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
   )
 }
 
-export const IconButton: React.FC<IconButtonProps> = ({
-  icon,
-  color = "primary",
-  hoverColor = "primaryHover",
-  style,
-  onClick
-}) => {
+export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(function IconButton(
+  { children, icon, color="primary", hoverColor = "primaryHover", ...rest },
+  ref,
+){
   const [isHovered, setIsHovered] = useState(false)
 
   return(
     <Icon 
       icon={icon}
       color={isHovered ? hoverColor : color} 
-      data-group-id="step-group"
+      {...rest}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
-      style={style}
+      ref={ref}
     />
   )
-}
+})

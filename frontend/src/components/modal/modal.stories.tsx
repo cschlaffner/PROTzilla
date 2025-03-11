@@ -7,7 +7,7 @@ import { Button } from "../button";
 
 export default {
   component: Modal,
-  title: "Overlay / Modal",
+  title: "Modal",
 } as Meta<ModalProps>;
 
 const Template: StoryFn<ModalProps> = (args) => {

@@ -478,8 +478,6 @@ export const GrayButton = styled(Button)`
     ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "black")}
   }
 
-  :hover {
-    background-color: ${color("transparent")};
   &:hover {
     background-color: ${(props) =>
       color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayHover")};
@@ -490,7 +488,6 @@ export const GrayButton = styled(Button)`
       color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayActive")};
   }
 `;
-
 
 export const RedSecondaryButton = styled(Button)`
   ${secondaryButtonMixin}

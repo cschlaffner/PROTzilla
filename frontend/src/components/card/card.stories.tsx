@@ -5,7 +5,7 @@ import { CardProps } from "./card.props";
 
 export default {
   component: Card,
-  title: "Layout / Card",
+  title: "Card",
 } as Meta<CardProps>;
 
 const Template: StoryFn<CardProps> = (args) => <Card {...args} />;

@@ -1,6 +1,6 @@
 import type React from "react";
 
-import type { Theme } from "../../theme";
+import type { Color } from "../../theme";
 
 export interface NotificationBubbleProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -14,5 +14,5 @@ export interface NotificationBubbleProps
    * The color of the notification bubble.
    * Defaults to `"red"`.
    */
-  color?: keyof Theme["colors"];
+  color?: Color;
 }
