@@ -1,4 +1,5 @@
 import Plot from "react-plotly.js";
+
 import { PlotProps } from "./plot.props";
 
 export const PlotComponent: React.FC<PlotProps> = ({ data, layout }) => {

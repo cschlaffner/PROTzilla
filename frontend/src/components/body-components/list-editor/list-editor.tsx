@@ -1,13 +1,13 @@
+// @ts-expect-error - required for ploty resizing
+import Plotly from "plotly.js-dist-min";
 import React, { useState } from "react";
+import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
-import { Form } from "../../forms/form";
+
 import { ListEditorProps } from "./list-editor.props";
 import { spacing } from "../../../theme";
+import { Form } from "../../forms/form";
 import { Icon } from "../../icon";
-import { Col, Row } from "react-grid-system";
-// @ts-ignore
-import Plotly from "plotly.js-dist-min";
-
 
 const StyledRow = styled(Row)`
   gap: ${spacing("small")};
@@ -35,22 +35,21 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   formDataPlotSettings,
   onChangePlotSettings,
 }) => {
-
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleClick = () => {
-    setIsCollapsed((prev) => !prev)
+    setIsCollapsed((prev) => !prev);
     const plotElement = document.querySelector(".js-plotly-plot");
     if (plotElement instanceof HTMLElement) {
       Plotly.Plots.resize(plotElement);
     }
-  }
+  };
 
   return (
     <StyledRow>
       <SidebarHeader isCollapsed={isCollapsed}>
-        <Icon 
-          icon={isCollapsed ? "chevronRight" : "chevronLeft"} 
+        <Icon
+          icon={isCollapsed ? "chevronRight" : "chevronLeft"}
           onClick={handleClick}
         />
       </SidebarHeader>

@@ -1,20 +1,28 @@
-import { Row, Container, Col } from "react-grid-system";
-import { Navbar, PlotComponent, ListEditor, SwitchCard } from "./../components";
+import React, { useState } from "react";
+import { Col, Container, Row } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
-import { spacing } from "../theme";
 import { styled } from "styled-components";
+
+import { spacing } from "../theme";
+import { ListEditor, Navbar, PlotComponent, SwitchCard } from "./../components";
 import {
+  dummyTextComponent1,
+  dummyTextComponent2,
+  footerMessages,
   mockFormDataParameters,
   mockFormDataPlotSettings,
   mockPlotData,
   mockPlotLayout,
 } from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
-import React, { useState } from "react";
 
+const StyledNavbar = styled(Navbar)`
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+`;
 const StyledCardsRow = styled(Row)`
   margin-top: ${spacing("small")};
-  height: 85vh;
   display: flex;
   flex-wrap: nowrap;
 `;
@@ -22,39 +30,50 @@ const StyledCardsRow = styled(Row)`
 const StyledCol = styled(Col)`
   display: flex;
   flex-direction: column;
-  min-width: 0; 
+  min-width: 0;
 `;
 
 const StyledPlotContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+`;
 
+const FooterText = styled.div`
+  text-align: center;
+  padding: ${spacing("small")};
+  font-size: 14px;
+  color: gray;
+  position: sticky;
+  bottom: 0;
+  margin-top: ${spacing("large")};
 `;
 
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
 
+  const randomMessage =
+    footerMessages[Math.floor(Math.random() * footerMessages.length)];
 
   const [plotData, setPlotData] = useState(mockPlotData);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
-    let new_colors: string | string[] = "purple";
+    let newColors: string | string[] = "purple";
 
-  if (Array.isArray(data.colors)) {
-    if (data.colors.length === 1) {
-      new_colors = data.colors[0];
-    } else if (data.colors.length > 1) {
-      new_colors = data.colors;
+    if (Array.isArray(data.colors)) {
+      if (data.colors.length === 1) {
+        newColors = data.colors[0];
+      } else if (data.colors.length > 1) {
+        newColors = data.colors;
+      }
     }
-  }
 
-    const plotType = data.type as "scatter" || "bar";
+    const plotType = data.type as "scatter";
 
     const updatedMockPlotData: Partial<Plotly.Data>[] = [
       {
-        ...mockPlotData[0] as Plotly.ScatterData,
+        ...(mockPlotData[0] as Plotly.ScatterData),
         type: plotType,
-        marker: { color: new_colors } ,
+        marker: { color: newColors },
       },
     ];
 
@@ -78,27 +97,22 @@ export const RunScreen: React.FC = () => {
 
   return (
     <div>
-      <Navbar
+      <StyledNavbar
         allowRunEdit={true}
         title="New Run"
         onNavigateHome={() => navigate("/")}
         onOpenSettings={() => {}}
         onOpenHelp={() => {}}
       />
-      <Container fluid style={{ margin: 0}}>
+
+      <Container fluid>
         <StyledCardsRow>
-          <StyledCol md={"content"} style={{paddingRight:0}}>
+          <StyledCol md={"content"} style={{ paddingRight: 0 }}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
               nameComponent2="Node"
-              component2={
-                <p>
-                  😲 Ohh you shouldn't come here - we're not finished yet.{" "}
-                  <br />
-                  Quickly click on the switch again. 👀
-                </p>
-              }
+              component2={dummyTextComponent1}
             />
           </StyledCol>
           <StyledCol>
@@ -106,15 +120,15 @@ export const RunScreen: React.FC = () => {
               nameComponent1="Plot"
               component1={plotComponent}
               nameComponent2="Table"
-              component2={
-                <p>
-                  🚧 Construction is still going on here and there is absolutely
-                  nothing to see 🚧
-                </p>
-              }
+              component2={dummyTextComponent2}
             />
           </StyledCol>
         </StyledCardsRow>
+        <Row>
+          <Col>
+            <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
+          </Col>
+        </Row>
       </Container>
     </div>
   );

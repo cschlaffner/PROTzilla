@@ -14,7 +14,7 @@ const SwitchDiv = styled.div`
 `;
 
 const StyledCard = styled(Card)`
-  height: 100%;
+  height: auto;
 `;
 
 export const SwitchCard: React.FC<SwitchCardProps> = ({
