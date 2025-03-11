@@ -1,41 +1,51 @@
-//import { useState } from "react"
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
 import { color } from "../../../../theme"
-import { TrashButton } from "../../../button";
-import { DefaultColoredIcon } from "../../../icon/icon"
+import { InvisibleButton } from "../../../button";
+import { DefaultColoredIcon, IconButton } from "../../../icon/icon"
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
+import { motion } from "framer-motion"
+import { forwardRef, useState, useRef } from "react";
 
-const StepContainer = styled.div<{ isSelected:boolean, isCollapsed:boolean }>`
+const StepContainer = styled(motion.div)<{isSelected:boolean}>`
   margin: 0 5px;  
   gap: 10px;
-  padding: 5px;
+  padding: 10px 5px;
   background-color:${({isSelected}) => isSelected ? color("protzillaLightGray"):""};
   display: flex;
   align-items: center;
   border-radius: 6px;
+  position: relative;
 `;
 
 const TextContainer = styled.div`
     display: flex;
     gap: 5px;
     marginLeft: "auto";
+    max-width: 225px;
+    whiteSpace: normal;
+    max-height: 3em;
 `;
 
-export const SidebarStep: React.FC<SidebarStepProps> = ({
+export const SidebarStep = forwardRef<HTMLDivElement,SidebarStepProps>(({
     number,
     name,
     isCollapsed,
     sectionName,
+    sectionLength,
     index,
     selectedStep,
     setSelectedStep,
-    deleteStep
-}: SidebarStepProps) => {
+    deleteStep,
+    setHandlePosition,
+    setIsStepHovered,
+    setHoveredStepIndex
+},ref) => {
 
-    //const [dragging, setDragging] = useState(false)
+    const [isHovered, setIsHovered] = useState<boolean>(false)
+    const stepRef = useRef<HTMLDivElement | null>(null)
 
     const handleClick = () => {
         setSelectedStep({
@@ -44,13 +54,31 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
         })
     }
 
-    const handleDragStart = () => {
-        //setDragging(true)
-    }
+    const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!stepRef.current || !stepRef.current.parentElement?.parentElement) return;
+    
+        const rect = stepRef.current.getBoundingClientRect();
+        const parentRect = stepRef.current.parentElement.parentElement.getBoundingClientRect(); 
+        const xMidpoint = rect.left + rect.width / 2 - parentRect.left;
+        const yMidpoint = rect.top + rect.height / 2;
+    
+        if (event.clientY < yMidpoint || index === sectionLength-1) {
+            setHandlePosition({left:xMidpoint, top: rect.top - parentRect.top });
+            setHoveredStepIndex(index-1)
+        } else {
+            setHandlePosition({left:xMidpoint, top: rect.bottom  - parentRect.top});
+            setHoveredStepIndex(index)
+        }
+    };
 
-    const handleDragEnd = () => {
-        //setDragging(false)
-    }
+    const handleMouseLeave = (event: React.MouseEvent) => {
+        // Check if the new hovered element is still within the "group"
+        setIsHovered(false)
+        const relatedTarget = event.relatedTarget as HTMLElement | null;
+        if (!relatedTarget?.closest(`[data-group-id="step-group"]`)) {
+            setIsStepHovered(false)
+        }
+      };
 
     const handleDelete = (event: React.MouseEvent) => {
         event.stopPropagation()
@@ -63,12 +91,15 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
     return(
         <StepContainer
-            draggable
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
             onClick={handleClick}
             isSelected={isSelected}
-            isCollapsed={isCollapsed}
+            onMouseEnter={() => {
+                setIsHovered(true)
+                setIsStepHovered(true)
+                }}
+            onMouseLeave={handleMouseLeave}
+            onMouseMove={handleMouseMove}
+            ref={stepRef}
         >
             <DefaultColoredIcon icon="complete" style={{flexShrink:0}}/>
             <TextContainer>
@@ -79,11 +110,12 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
             <CollapsibleLabel width={200} isCollapsed={isCollapsed}>
                 <ContentText
                     text={name}
-                    style={{userSelect:"none", whiteSpace: "nowrap"}}
+                    style={{userSelect:"none", whiteSpace: isCollapsed ? "nowrap":"normal"}}
                 />
             </CollapsibleLabel>
             </TextContainer>
-            {/* {!isCollapsed && (<TrashButton onClick={handleDelete} isSmall={true} isShy={true} icon={"trash"} style={{marginLeft: "auto"}}/>)} */}
+            {!isCollapsed && isHovered && (<InvisibleButton onClick={handleDelete} color={"gray50"} isSmall={true} isShy={true} icon={"trash"} style={{position: "absolute", left: "100%", transform: "translateX(-130%)"}}/>)}
+                
         </StepContainer>
         )
-};
+});

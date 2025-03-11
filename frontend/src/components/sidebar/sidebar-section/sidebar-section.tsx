@@ -1,11 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step"
 import { useTheme } from "../../../theme";
 import { Button } from "../../button";
-import { Icon } from "../../icon/icon"
+import { Icon, IconButton } from "../../icon/icon"
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
 import { motion } from "framer-motion";
@@ -63,6 +63,10 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const initialSteps = ["super mega ultra super long step name","Step2","Step3"];
   const [steps, setSteps] = useState(initialSteps)
   const [isSelected,setIsSelected] = useState(true)
+  const [handlePosition,setHandlePosition] = useState({top:0, left:0})
+  const [hoveredStepIndex,setHoveredStepIndex] = useState(0)
+  const [isStepHovered, setIsStepHovered] = useState(false)
+  const [isHandleHovered, setIsHandleHovered] = useState(false)
 
   const handleSelect = () => {
     setTimeout(() => { setIsSelected((prev) => !prev); }, 50);
@@ -82,18 +86,12 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
     }
   }
 
-  const addStep = () => {
+  const addStep = (index:number) => {
     const newSteps = [...steps]
-    newSteps.splice(selectedStep.index+1,0,`new Step ${String(newSteps.length)}`)
+    newSteps.splice(index+1,0,"new Step")
     setSteps(newSteps)
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    console.log(event)
-    if (event.key === 'Delete') {
-      deleteStep(index)
-    }
-  };
 
   const baseTheme = useTheme();
   const ContentTextStyle = {
@@ -104,7 +102,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   }
 
     return(
-      <SectionContainer onKeyDown={handleKeyDown}>
+      <SectionContainer>
         <TitleContainer onClick={handleSelect}>
           <Icon 
             icon={name}
@@ -130,20 +128,40 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               const number = `${String(index+1)}.${String(j+1)}`
               return (
                 <SidebarStep 
-                  key={`step_${number}`}
+                  key={number}
                   number={number}
                   name={step}
                   isCollapsed={isCollapsed}
                   sectionName={name}
+                  sectionLength={steps.length}
                   index={j}
                   selectedStep={selectedStep}
                   setSelectedStep={setSelectedStep}
                   deleteStep={deleteStep}
+                  setHandlePosition={setHandlePosition}
+                  setIsStepHovered={setIsStepHovered}
+                  setHoveredStepIndex={setHoveredStepIndex}
                 />
               )
           })}
-          {hasSelectedStep && (<Button icon={"add"} text={isCollapsed ? undefined:"add step"} isSmall={true} textStyle={ContentTextStyle} onClick={addStep} style={{margin:"5px", padding:"15px 10px", overflow:"hidden"}} />)}
+          {hasSelectedStep && (<Button icon={"add"} text={isCollapsed ? undefined:"add step"} isSmall={false} textStyle={ContentTextStyle} onClick={() => addStep(steps.length)} style={{margin:"5px", padding:`${handlePosition}px`, overflow:"hidden"}} />)}
+          
         </StepsContainer>
+        {(isStepHovered || isHandleHovered) && (
+            <IconButton 
+              icon="add" 
+              data-group-id="step-group"
+              onClick={() => addStep(hoveredStepIndex)}
+              onMouseEnter={() => setIsStepHovered(true)}
+              onMouseLeave={() => setIsStepHovered(false)}
+              style={{
+                position: "absolute", 
+                left:handlePosition.left, 
+                top:handlePosition.top, 
+                transform: "translateX(-50%) translateY(-50%)"
+              }}
+            />
+          )}
       </SectionContainer>
     );
   }

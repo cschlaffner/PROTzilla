@@ -1,7 +1,7 @@
-import React from "react";
+import React, {useState} from "react";
 import { css, styled } from "styled-components";
 
-import { Color, DefaultColoredIconProps, DefaultColoredIconType, IconProps } from "./icon.props";
+import { Color, DefaultColoredIconProps, DefaultColoredIconType, IconProps, IconButtonProps } from "./icon.props";
 import * as icons from "./icons";
 import { color, opacity, size, Theme } from "../../theme";
 
@@ -64,5 +64,27 @@ export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
   const defaultColors:Record<DefaultColoredIconType,Color> = {complete:"green",incomplete:"blue",outdated:"yellow",failed:"red"}
   return(
     <Icon icon={icon} color={defaultColors[icon]} style={style}/>
+  )
+}
+
+export const IconButton: React.FC<IconButtonProps> = ({
+  icon,
+  color = "primary",
+  hoverColor = "primaryHover",
+  style,
+  onClick
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return(
+    <Icon 
+      icon={icon}
+      color={isHovered ? hoverColor : color} 
+      data-group-id="step-group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      style={style}
+    />
   )
 }

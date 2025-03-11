@@ -1,19 +1,18 @@
 import React, { useState } from "react"
 import { styled } from "styled-components";
 import SidebarSection from "./sidebar-section/sidebar-section"
-//import { SidebarProps } from "./sidebar.props";
 import { SectionNames, SelectedStep } from "./types";
 import { Icon } from "../icon/icon";
 import { motion } from "framer-motion";
 
 
-const SidebarContainer = styled(motion.div)<{ isCollapsed: boolean }>`
+const SidebarContainer = styled(motion.div)`
   position: fixed;
   top: 0;
   left: 0;
   display: "flex";
   flex-direction: "column";
-  padding: 0px 5px;
+  padding: 0px 3px;
   border-right: 1px #000 solid;
   overflow:hidden;
 `;
@@ -40,7 +39,6 @@ export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
 
   return(
         <SidebarContainer 
-          isCollapsed={isCollapsed}
           initial={{width:300}}
           animate={{ width: isCollapsed ? 77.5 : 300 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}

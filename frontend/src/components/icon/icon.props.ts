@@ -21,3 +21,6 @@ export interface DefaultColoredIconProps extends React.SVGProps<SVGSVGElement>, 
   isSmall?: boolean;
 }
 
+export interface IconButtonProps extends IconProps {
+  hoverColor?: Color
+}

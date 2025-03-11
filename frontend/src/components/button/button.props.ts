@@ -19,7 +19,7 @@ export interface ButtonProps
     Pick<NotificationBubbleProps, "notifications"> {
   /** The key of the button's icon (if any). */
   icon?: IconType;
-
+  color?: keyof Theme["colors"];
   /** Position of icon left of text or Right of text default to Left */
   iconRight?: boolean;
   /**

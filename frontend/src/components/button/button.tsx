@@ -491,12 +491,6 @@ export const GrayButton = styled(Button)`
   }
 `;
 
-export const TrashButton = styled(Button)`
-
-  .icon {
-    ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "gray50")}
-  }
-`;
 
 export const RedSecondaryButton = styled(Button)`
   ${secondaryButtonMixin}
@@ -550,7 +544,7 @@ export const InvisibleButton = styled(BaseButton)`
   }
 
   .icon {
-    ${iconColor("primary")}
+    color: ${({color}) => iconColor(color ?? "primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
   }
   
