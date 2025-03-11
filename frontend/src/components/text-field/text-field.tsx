@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React, { useCallback, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
@@ -8,8 +9,7 @@ import { InvisibleButton } from "../button";
 import { EditTag } from "../edit-tag";
 import { Icon } from "../icon";
 import { InputLabel, Text } from "../text";
-import { MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
-import { motion } from "framer-motion";
+import { CollapsibleLabelProps, MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
 import {
   color,
   font,
@@ -737,12 +737,13 @@ const CollapsibleContainer = styled(motion.div)`
   padding-bottom:1px;
 `;
 
-export const CollapsibleLabel:React.FC<{width:number|string, collapsedWidth?:number, isCollapsed:boolean, children?: React.ReactNode }> = ({
+export const CollapsibleLabel:React.FC<CollapsibleLabelProps> = ({
   width,
-  collapsedWidth=0,
+  collapsedWidth = 0,
   isCollapsed, 
   children
-}) => {
+}: CollapsibleLabelProps) => {
+  
   return (
     <CollapsibleContainer
       initial={{ width: isCollapsed ? collapsedWidth : width}}

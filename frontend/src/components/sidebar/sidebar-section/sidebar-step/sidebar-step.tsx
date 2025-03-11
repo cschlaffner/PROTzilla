@@ -1,3 +1,5 @@
+import { motion } from "framer-motion"
+import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
@@ -6,8 +8,6 @@ import { InvisibleButton } from "../../../button";
 import { DefaultColoredIcon } from "../../../icon/icon"
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
-import { motion } from "framer-motion"
-import { useState, useRef } from "react";
 
 const StepContainer = styled(motion.div)<{isSelected:boolean}>`
   margin: 0 5px;  
@@ -49,7 +49,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
     const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
 
-        if (!stepRef.current || !stepRef.current.parentElement?.parentElement) return;
+        if (!stepRef.current?.parentElement?.parentElement) return;
     
         const rect = stepRef.current.getBoundingClientRect();
         const parentRect = stepRef.current.parentElement.parentElement.getBoundingClientRect(); 

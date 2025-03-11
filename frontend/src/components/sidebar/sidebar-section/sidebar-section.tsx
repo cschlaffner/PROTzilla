@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React, { useState } from "react"
 import { styled } from "styled-components";
 
@@ -8,7 +9,6 @@ import { Button } from "../../button";
 import { Icon, IconButton } from "../../icon/icon"
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
-import { motion } from "framer-motion";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -97,7 +97,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
     return(
       <SectionContainer>
-        <TitleContainer onClick={() => setIsMinimized((prev) => !prev)}>
+        <TitleContainer onClick={() => { setIsMinimized((prev) => !prev); }}>
           <Icon 
             icon={name}
             style={{ flexShrink: 0, marginRight: "10px" }}
@@ -143,7 +143,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               icon={"add"} 
               text={isCollapsed ? undefined : "add step"} 
               isSmall={false} textStyle={ContentTextStyle} 
-              onClick={() => addStep(steps.length)} 
+              onClick={() => { addStep(steps.length); }} 
               style={{
                 margin: "5px", 
                 overflow:"hidden"
@@ -156,8 +156,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               icon="add" 
               data-group-id="step-group"
               onClick={() => {addStep(hoveredStepIndex)}}
-              onMouseEnter={() => setShowHandle(true)}
-              onMouseLeave={() => setShowHandle(false)}
+              onMouseEnter={() => { setShowHandle(true); }}
+              onMouseLeave={() => { setShowHandle(false); }}
               style={{
                 position: "absolute", 
                 left:handlePosition.left, 

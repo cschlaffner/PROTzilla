@@ -1,9 +1,10 @@
+import { motion } from "framer-motion";
 import React, { useState } from "react"
 import { styled } from "styled-components";
+
 import SidebarSection from "./sidebar-section/sidebar-section"
 import { SectionNames, SelectedStep } from "./types";
 import { Icon } from "../icon/icon";
-import { motion } from "framer-motion";
 
 
 const SidebarContainer = styled(motion.div)`
@@ -42,7 +43,7 @@ export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
             <SidebarHeader isCollapsed={isCollapsed}>
                 <Icon 
                     icon={isCollapsed ? "list" : "chevronDoubleLeft"} 
-                    onClick={() => setIsCollapsed((prev) => !prev)}
+                    onClick={() => { setIsCollapsed((prev) => !prev); }}
                 />
             </SidebarHeader>
             {sections.map((section: SectionNames, i: number) => {

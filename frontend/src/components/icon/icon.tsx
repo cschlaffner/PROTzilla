@@ -3,7 +3,7 @@ import { css, styled } from "styled-components";
 
 import { DefaultColoredIconProps, DefaultColoredIconType, IconButtonProps, IconProps } from "./icon.props";
 import * as icons from "./icons";
-import { color, opacity, size, Theme, Color } from "../../theme";
+import { Color, color, opacity, size, Theme } from "../../theme";
 
 /** Icon color mixin. */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -68,7 +68,7 @@ export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
 }
 
 export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(function IconButton(
-  { children, icon, color="primary", hoverColor = "primaryHover", ...rest },
+  {icon, color="primary", hoverColor = "primaryHover", ...rest },
   ref,
 ){
   const [isHovered, setIsHovered] = useState(false)
@@ -78,8 +78,8 @@ export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(funct
       icon={icon}
       color={isHovered ? hoverColor : color} 
       {...rest}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => { setIsHovered(true); }}
+      onMouseLeave={() => { setIsHovered(false); }}
       ref={ref}
     />
   )
