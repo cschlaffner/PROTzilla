@@ -14,8 +14,22 @@ import React, { useState } from "react";
 
 const StyledCardsRow = styled(Row)`
   margin-top: ${spacing("small")};
+  height: 85vh;
+  display: flex;
+  flex-wrap: nowrap;
+`;
+
+const StyledCol = styled(Col)`
+  display: flex;
+  flex-direction: column;
+  min-width: 0; 
+`;
+
+const StyledPlotContainer = styled.div`
+  width: 100%;
   height: 100%;
-  align: stretch;
+  display: flex;
+
 `;
 
 export const RunScreen: React.FC = () => {
@@ -48,7 +62,9 @@ export const RunScreen: React.FC = () => {
   }
 
   const plotComponent = (
-    <PlotComponent data={plotData} layout={mockPlotLayout} />
+    <StyledPlotContainer>
+      <PlotComponent data={plotData} layout={mockPlotLayout} />
+    </StyledPlotContainer>
   );
 
   const listEditorComponent = (
@@ -71,8 +87,7 @@ export const RunScreen: React.FC = () => {
       />
       <Container fluid style={{ margin: 0}}>
         <StyledCardsRow>
-          <StyledCol md={"content"}>
-          <Col md={"content"} style={{ paddingRight: 0 }}>
+          <StyledCol md={"content"} style={{paddingRight:0}}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
