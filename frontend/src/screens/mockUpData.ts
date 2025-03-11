@@ -60,12 +60,28 @@ export const mockFormDataPlotSettings: FormData = {
   input_fields: [
     {
       type: "dropdown",
-      name: "title",
+      name: "type",
       props: {
         label: "Select a Plot type",
         options: [
           { label: "Bar", value: "bar" },
-          { label: "Line", value: "line" },
+          { label: "Line", value: "scatter" },
+        ],
+      },
+    },
+    {
+      type: "multi-select",
+      name: "colors",
+      props: {
+        label: "Select colors for the plot",
+        options: [
+          { label: "Purple", value: "purple" },
+          { label: "Blue", value: "blue" },
+          { label: "Red", value: "red" },
+          { label: "Yellow", value: "yellow" },
+          { label: "Green", value: "green" },
+          { label: "Cyan", value: "cyan" },
+          { label: "Black", value: "black" },
         ],
       },
     },

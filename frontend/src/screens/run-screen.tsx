@@ -1,9 +1,14 @@
 import { Row, Container, Col } from "react-grid-system";
 import { Navbar, PlotComponent, ListEditor, SwitchCard } from "./../components";
-import { data, useNavigate } from "react-router-dom";
-import { lineHeight, spacing } from "../theme";
+import { useNavigate } from "react-router-dom";
+import { spacing } from "../theme";
 import { styled } from "styled-components";
-import { mockFormDataParameters, mockFormDataPlotSettings, mockPlotData, mockPlotLayout } from "./mockUpData";
+import {
+  mockFormDataParameters,
+  mockFormDataPlotSettings,
+  mockPlotData,
+  mockPlotLayout,
+} from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
 import React, { useState } from "react";
 
@@ -16,21 +21,36 @@ const StyledCardsRow = styled(Row)`
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
 
-  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
-  const [plotKey, setPlotKey] = useState(0);
 
+  const [plotData, setPlotData] = useState(mockPlotData);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
-    setPlotLayout((prevLayout) => ({ ...prevLayout, ...data }));
-    setPlotKey((prevKey) => prevKey + 1); 
-    console.log(plotLayout);
+    let new_colors: string | string[] = "purple";
+
+  if (Array.isArray(data.colors)) {
+    if (data.colors.length === 1) {
+      new_colors = data.colors[0];
+    } else if (data.colors.length > 1) {
+      new_colors = data.colors;
+    }
+  }
+
+    const plotType = data.type as Plotly.PlotType || "bar";
+
+    const updatedMockPlotData: Partial<Plotly.Data>[] = [
+      {
+        ...mockPlotData[0],
+        type: plotType,
+        marker: { color: new_colors },
+      },
+    ];
+
+    setPlotData(updatedMockPlotData);
   }
 
   const plotComponent = (
-    <div key={plotKey}> {/* WICHTIG: Key ans übergeordnete Element hängen */}
-      <PlotComponent data={mockPlotData} layout={plotLayout} />
-    </div>
+    <PlotComponent data={plotData} layout={mockPlotLayout} />
   );
-   
+
   const listEditorComponent = (
     <ListEditor
       formDataParameters={mockFormDataParameters}
