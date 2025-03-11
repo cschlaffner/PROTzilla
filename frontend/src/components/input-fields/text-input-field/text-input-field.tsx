@@ -2,7 +2,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`

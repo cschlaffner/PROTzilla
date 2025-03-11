@@ -20,8 +20,8 @@ const StyledForm = styled.div`
 `;
 
 const FormLabel = styled(Text)`
-  font-size: ${fontSize("h2")};
-  line-height: ${fontSize("h2")};
+  font-size: ${fontSize("h3")};
+  line-height: ${fontSize("h3")};
   font-weight: ${fontWeight("bold")};
   color: ${color("primary")};
   padding-bottom: ${spacing("small")};
@@ -62,6 +62,8 @@ export const Form: React.FC<FormProps> = ({
 
   const handleChange = (name: string, value: InputValueType) => {
     setFormValues((prevValues) => {
+      if (prevValues[name] === value) return prevValues;
+
       const newValues = { ...prevValues, [name]: value };
       const hasChanges =
         JSON.stringify(newValues) !== JSON.stringify(submittedValues);

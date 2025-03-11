@@ -6,7 +6,7 @@ import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { SearchInputField } from "../search-input-field";
 
 const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
