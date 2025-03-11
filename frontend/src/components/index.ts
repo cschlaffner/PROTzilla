@@ -4,8 +4,6 @@ export * from "./cards/card";
 export * from "./cards/switch-card";
 export * from "./dropdown";
 export * from "./edit-tag";
-export * from "./body-components/editor-card"
-export * from "./body-components/content-card"
 export * from "./body-components/list-editor";
 export * from "./error-notification";
 export * from "./icon";
