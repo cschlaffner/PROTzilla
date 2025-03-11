@@ -15,6 +15,7 @@ const StyledFormColumn = styled(Col)`
   display: flex;
   flex-direction: column;
   gap: ${spacing("large")};
+  min-width: 300px;
 `;
 
 const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
@@ -43,14 +44,14 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     <StyledRow>
       <SidebarHeader isCollapsed={isCollapsed}>
         <Icon 
-            icon={isCollapsed ? "chevronRight" : "chevronLeft"} 
-            onClick={handleClick}
+          icon={isCollapsed ? "chevronRight" : "chevronLeft"} 
+          onClick={handleClick}
         />
       </SidebarHeader>
-        <StyledFormColumn>
-            <Form formData={formDataParameters} onChange={onChangeParamters} />
-            <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
-        </StyledFormColumn>
+      <StyledFormColumn>
+        <Form formData={formDataParameters} onChange={onChangeParamters} />
+        <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
+      </StyledFormColumn>
     </StyledRow>
   );
 };
