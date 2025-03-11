@@ -37,7 +37,7 @@ export const IndexScreen: React.FC = () => {
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
-    void navigate("/run");
+    void navigate("/run", { state: { existingRun } });
   };
 
   const handleDeleteRun = () => {

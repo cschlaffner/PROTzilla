@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { spacing } from "../theme";
@@ -51,10 +51,12 @@ const FooterText = styled.div`
 
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
 
+  const [runName] =  useState<string>(location.state?.existingRun);
   const [plotData, setPlotData] = useState(mockPlotData);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
     let newColors: string | string[] = "purple";
@@ -99,7 +101,7 @@ export const RunScreen: React.FC = () => {
     <div>
       <StyledNavbar
         allowRunEdit={true}
-        title="New Run"
+        title={runName}
         onNavigateHome={() => navigate("/")}
         onOpenSettings={() => {}}
         onOpenHelp={() => {}}
