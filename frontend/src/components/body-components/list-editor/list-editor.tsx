@@ -1,18 +1,30 @@
 import React, { useState } from "react";
 import { styled } from "styled-components";
-
-import { FlexColumn, FlexRow } from "../../box";
 import { Form } from "../../forms/form";
 import { ListEditorProps } from "./list-editor.props";
 import { spacing } from "../../../theme";
+import { Icon } from "../../icon";
+import { Col, Row } from "react-grid-system";
 
 
-const StyledFlexRow = styled(FlexRow)`
-    gap: ${spacing("small")};
+const StyledRow = styled(Row)`
+  gap: ${spacing("small")};
 `;
 
-const StyledFormColumn = styled(FlexColumn)`
-    gap: ${spacing("large")};
+const StyledFormColumn = styled(Col)`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing("large")};
+  min-width: 300px;
+`;
+
+const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
+  display: flex;
+  justify-content: ${({ isCollapsed }) => (isCollapsed ? "left" : "flex-end")};
+  width: ${({ isCollapsed }) => (isCollapsed ? "50px" : "250px")};
+  padding: 5px;
+  margin: 5px;
+  cursor: pointer;
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
@@ -22,13 +34,24 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   onChangePlotSettings,
 }) => {
 
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const handleClick = () => {
+    setIsCollapsed((prev) => !prev)
+  }
+
   return (
-    <StyledFlexRow>
-        <p>Sidebar</p>
-        <StyledFormColumn>
-            <Form formData={formDataParameters} onChange={onChangeParamters} />
-            <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
-        </StyledFormColumn>
-    </StyledFlexRow>
+    <StyledRow>
+      <SidebarHeader isCollapsed={isCollapsed}>
+        <Icon 
+          icon={isCollapsed ? "chevronRight" : "chevronLeft"} 
+          onClick={handleClick}
+        />
+      </SidebarHeader>
+      <StyledFormColumn>
+        <Form formData={formDataParameters} onChange={onChangeParamters} />
+        <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
+      </StyledFormColumn>
+    </StyledRow>
   );
 };
