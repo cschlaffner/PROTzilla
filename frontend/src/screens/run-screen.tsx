@@ -1,7 +1,7 @@
 import { Row, Container, Col } from "react-grid-system";
 import { Navbar, PlotComponent, ListEditor, SwitchCard } from "./../components";
-import { data, useNavigate } from "react-router-dom";
-import { lineHeight, spacing } from "../theme";
+import { useNavigate } from "react-router-dom";
+import { spacing } from "../theme";
 import { styled } from "styled-components";
 import { mockFormDataParameters, mockFormDataPlotSettings, mockPlotData, mockPlotLayout } from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
@@ -10,7 +10,21 @@ import React, { useState } from "react";
 const StyledCardsRow = styled(Row)`
   margin-top: ${spacing("small")};
   height: 85vh;
-  align: stretch;
+  display: flex;
+  flex-wrap: nowrap;
+`;
+
+const StyledCol = styled(Col)`
+  display: flex;
+  flex-direction: column;
+  min-width: 0; 
+`;
+
+const StyledPlotContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+
 `;
 
 export const RunScreen: React.FC = () => {
@@ -26,9 +40,9 @@ export const RunScreen: React.FC = () => {
   }
 
   const plotComponent = (
-    <div key={plotKey}> {/* WICHTIG: Key ans übergeordnete Element hängen */}
+    <StyledPlotContainer key={plotKey}> {/* WICHTIG: Key ans übergeordnete Element hängen */}
       <PlotComponent data={mockPlotData} layout={plotLayout} />
-    </div>
+    </StyledPlotContainer>
   );
    
   const listEditorComponent = (
@@ -49,9 +63,9 @@ export const RunScreen: React.FC = () => {
         onOpenSettings={() => {}}
         onOpenHelp={() => {}}
       />
-      <Container fluid style={{ margin: 0 }}>
+      <Container fluid style={{ margin: 0}}>
         <StyledCardsRow>
-          <Col md={"content"}>
+          <StyledCol md={"content"}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
@@ -64,8 +78,8 @@ export const RunScreen: React.FC = () => {
                 </p>
               }
             />
-          </Col>
-          <Col>
+          </StyledCol>
+          <StyledCol>
             <SwitchCard
               nameComponent1="Plot"
               component1={plotComponent}
@@ -77,7 +91,7 @@ export const RunScreen: React.FC = () => {
                 </p>
               }
             />
-          </Col>
+          </StyledCol>
         </StyledCardsRow>
       </Container>
     </div>

@@ -5,6 +5,8 @@ import { ListEditorProps } from "./list-editor.props";
 import { spacing } from "../../../theme";
 import { Icon } from "../../icon";
 import { Col, Row } from "react-grid-system";
+// @ts-ignore
+import Plotly from "plotly.js-dist-min";
 
 
 const StyledRow = styled(Row)`
@@ -38,6 +40,10 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
   const handleClick = () => {
     setIsCollapsed((prev) => !prev)
+    const plotElement = document.querySelector(".js-plotly-plot");
+    if (plotElement instanceof HTMLElement) {
+      Plotly.Plots.resize(plotElement);
+    }
   }
 
   return (
