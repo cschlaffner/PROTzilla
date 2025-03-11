@@ -41,6 +41,7 @@ export const EditorCard: React.FC<EditorCardProps> = ({
       </SwitchDiv>
       <StyledCard title={switchState === "list" ? "List" : "Node"}>
         {switchState === "list" ? listEditorComponent : nodeEditorComponent}
+        
       </StyledCard>
     </div>
   );
