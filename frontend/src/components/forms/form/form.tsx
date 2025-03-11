@@ -62,6 +62,8 @@ export const Form: React.FC<FormProps> = ({
 
   const handleChange = (name: string, value: InputValueType) => {
     setFormValues((prevValues) => {
+      if (prevValues[name] === value) return prevValues;
+
       const newValues = { ...prevValues, [name]: value };
       const hasChanges =
         JSON.stringify(newValues) !== JSON.stringify(submittedValues);

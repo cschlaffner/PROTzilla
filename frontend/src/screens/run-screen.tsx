@@ -14,7 +14,7 @@ import React, { useState } from "react";
 
 const StyledCardsRow = styled(Row)`
   margin-top: ${spacing("small")};
-  height: 85vh;
+  height: 100%;
   align: stretch;
 `;
 
@@ -71,7 +71,7 @@ export const RunScreen: React.FC = () => {
       />
       <Container fluid style={{ margin: 0 }}>
         <StyledCardsRow>
-          <Col md={"content"}>
+          <Col md={"content"} style={{ paddingRight: 0 }}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
