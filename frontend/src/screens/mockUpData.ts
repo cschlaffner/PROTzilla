@@ -24,35 +24,43 @@ export const mockPlotLayout: Partial<Plotly.Layout> = {
 };
 
 export const mockFormDataParameters: FormData = {
-  label: "Max ",
-  isAutoSubmit: true,
+  label: "Parameters",
+  isAutoSubmit: false,
   input_fields: [
     {
-      type: "text",
-      name: "username",
-      props: { label: "Username" },
-    },
-    {
-      type: "number",
-      name: "age",
-      props: { label: "Age" },
-    },
-    {
-      type: "multi-select",
-      name: "country",
+      type: "dropdown",
+      name: "method",
       props: {
-        label: "Country",
+        label: "Protein Data Import MaxQuant",
         options: [
-          { label: "Deutschland", value: "DE" },
-          { label: "Österreich", value: "AT" },
-          { label: "Schweiz", value: "CH" },
-          { label: "Frankreich", value: "FR" },
-          { label: "Italien", value: "IT" },
+          { label: "MaxQuant Protein Groups Import", value: "maxQuant" },
+          { label: "MaxQuant Peptide Groups Import", value: "maxQuantPeptides" },
+          { label: "MaxQuant MS/MS Data Import", value: "maxQuantMSMS" },
+          { label: "MaxQuant Post-Processing", value: "maxQuantPostProcessing" },
+        ],
+      },
+    },
+    {
+      type: "file",
+      name: "file",
+      props: { label: "MaxQuant intensities file (proteinGroups.txt):" },
+    },
+    {
+      type: "dropdown",
+      name: "intensity",
+      props: {
+        label: "Intensity",
+        options: [
+          { label: "iBAQ", value: "ibaq" },
+          { label: "LFQ Intensity", value: "lfq" },
+          { label: "Total Intensity", value: "totalIntensity" },
+          { label: "Normalized Intensity", value: "normalizedIntensity" },
         ],
       },
     },
   ],
 };
+
 
 export const mockFormDataPlotSettings: FormData = {
   label: "Plot Settings",

@@ -9,7 +9,7 @@ import {
   size,
   spacing,
 } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { useOutsidePress } from "../../../hooks/outside-press";
 import { useToggleableState } from "../../../hooks/toggleable-state";

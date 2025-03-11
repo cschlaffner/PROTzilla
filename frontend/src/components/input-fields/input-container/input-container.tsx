@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { styled } from "styled-components";
 
-import { FrameInputFieldProps } from "./frame-input-field.props";
+import { InputContainerProps } from "./input-container.props";
 import { border, borderColors, color, fontSize, spacing } from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
@@ -103,7 +103,7 @@ const FixedText = styled(StyledSubtitle)`
   margin-left: 8px;
 `;
 
-export const InputContainer: React.FC<FrameInputFieldProps> = ({
+export const InputContainer: React.FC<InputContainerProps> = ({
   children,
   label,
   labelPosition = "top",

@@ -136,8 +136,7 @@ export const H6 = styled(({ ...rest }: TextProps) => (
 `;
 
 export const InputLabel = styled(Text)`
-  font-size: ${fontSize("default")};
-  font-weight: ${fontWeight("bold")};
+  font-size: ${fontSize("h6")};
   color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
   margin: 4px 0;
 `;

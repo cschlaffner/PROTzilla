@@ -20,8 +20,8 @@ const StyledForm = styled.div`
 `;
 
 const FormLabel = styled(Text)`
-  font-size: ${fontSize("h2")};
-  line-height: ${fontSize("h2")};
+  font-size: ${fontSize("h3")};
+  line-height: ${fontSize("h3")};
   font-weight: ${fontWeight("bold")};
   color: ${color("primary")};
   padding-bottom: ${spacing("small")};

@@ -34,13 +34,13 @@ export const RunScreen: React.FC = () => {
     }
   }
 
-    const plotType = data.type as Plotly.PlotType || "bar";
+    const plotType = data.type as "scatter" || "bar";
 
     const updatedMockPlotData: Partial<Plotly.Data>[] = [
       {
-        ...mockPlotData[0],
+        ...mockPlotData[0] as Plotly.ScatterData,
         type: plotType,
-        marker: { color: new_colors },
+        marker: { color: new_colors } ,
       },
     ];
 
