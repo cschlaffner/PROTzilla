@@ -15,7 +15,6 @@ import { TextInputField } from "../../input-fields/text-input-field";
 import { Text } from "../../text";
 
 const StyledForm = styled.div`
-  width: 100%;
   max-width: ${size("inputFieldsMaxWidth")};
 `;
 

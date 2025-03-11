@@ -13,11 +13,13 @@ const StyledRow = styled(Row)`
   gap: ${spacing("small")};
 `;
 
-const StyledFormColumn = styled(Col)`
+const StyledFormColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("large")};
-  min-width: 300px;
+  width: 20vw;
+  min-width: 250px;
+  max-width: 500px;
 `;
 
 const SidebarHeader = styled.div<{ isCollapsed: boolean }>`

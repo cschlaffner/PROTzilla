@@ -7,7 +7,6 @@ import { Switch } from "../../switch";
 import { Card } from "../card";
 
 const SwitchDiv = styled.div`
-  width: 100%;
   display: flex;
   justify-content: flex-end;
   padding-bottom: ${spacing("small")};
@@ -15,6 +14,7 @@ const SwitchDiv = styled.div`
 
 const StyledCard = styled(Card)`
   height: auto;
+  width: auto;
 `;
 
 export const SwitchCard: React.FC<SwitchCardProps> = ({
@@ -28,7 +28,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   );
 
   return (
-    <div style={{ height: "100%" }}>
+    <div>
       <SwitchDiv>
         <Switch
           options={[
