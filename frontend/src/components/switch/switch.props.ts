@@ -27,7 +27,6 @@ export interface SwitchProps<T = any>
 
   /** The default value which is used if no value is provided. */
   defaultValue?: T;
-  color?: Color;
 
   /**
    * If provided, this handler will be called when the selected option changes.
