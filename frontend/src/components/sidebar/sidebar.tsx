@@ -5,16 +5,16 @@ import { styled } from "styled-components";
 import SidebarSection from "./sidebar-section/sidebar-section"
 import { SectionNames, SelectedStep } from "./types";
 import { Icon } from "../icon/icon";
+import { color } from "../../theme";
 
 
 const SidebarContainer = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: relative;
   display: "flex";
   flex-direction: "column";
   padding: 0px 3px;
-  border-right: 1px #000 solid;
+  border-right: 1px ${color("secondary")} solid;
+  width: 100%;
   overflow:hidden;
 `;
 
