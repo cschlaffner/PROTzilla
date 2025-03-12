@@ -35,19 +35,21 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
 
     useEffect(() => {
         if (data.length > 0) {
-        const dynamicColumns = Object.keys(data[0]).map((key) => ({
-            field: key,
-            headerName: key,
-            minWidth: 200,
-            flex: 1,
-            valueFormatter: (value: number | null ) => {
-                if (value == null ) {
-                    return "NaN";
-                }
-                return value;
-            },
-        }));
-        setColumns(dynamicColumns);
+            const dynamicColumns = Object.keys(data[0]).map((key) => ({
+                field: key,
+                headerName: key,
+                minWidth: 200,
+                flex: 1,
+                align: "left",
+                headerAlign: "left",
+                valueFormatter: (value: number | null ) => {
+                    if (value == null ) {
+                        return "NaN";
+                    }
+                    return value;
+                },
+            }));
+            setColumns(dynamicColumns);
         }
         setRows(data);
     }, [data]);
