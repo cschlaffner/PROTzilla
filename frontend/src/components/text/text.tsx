@@ -58,8 +58,8 @@ export const SmallText = styled(Text)`
 `;
 
 export const ContentText = styled(Text)`
-  font-size: ${fontSize("h5")};
-`
+  font-size: ${fontSize("h6")};
+`;
 
 export const Link = styled(({ ...rest }: LinkProps) => (
   <Text as="a" target="_blank" rel="noreferrer" {...rest} />

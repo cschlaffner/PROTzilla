@@ -51,13 +51,13 @@ export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <SidebarHeader isCollapsed={isCollapsed}>
-        {!isCollapsed && (<H3>List</H3>)}
+        {!isCollapsed && <H3>List</H3>}
         <Icon
           icon={isCollapsed ? "list" : "chevronDoubleLeft"}
           onClick={() => {
             setIsCollapsed((prev) => !prev);
           }}
-          style={{marginLeft: isCollapsed ? "0":"auto"}}
+          style={{ marginLeft: isCollapsed ? "0" : "auto" }}
         />
       </SidebarHeader>
       {sections.map((section: SectionNames, i: number) => {

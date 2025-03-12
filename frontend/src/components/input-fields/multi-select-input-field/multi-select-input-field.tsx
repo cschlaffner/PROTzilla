@@ -109,7 +109,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
     options.filter(
       (option) =>
         !selectedOptions.some((selected) => selected.value === option.value),
-    )
+    ),
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
 

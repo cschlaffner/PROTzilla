@@ -1,2 +1,2 @@
-export * from "./list-editor"
-export * from "./list-editor.props"
+export * from "./list-editor";
+export * from "./list-editor.props";

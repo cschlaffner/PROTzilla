@@ -3,6 +3,7 @@ import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
 import { shadow, spacing } from "../../../theme";
+import { H3 } from "../../text";
 
 const StyledCard = styled.div`
   background: white;
@@ -19,14 +20,11 @@ const CardBody = styled.div<{ hasTitle: boolean }>`
   overflow-y: auto;
 `;
 
-
-const CardTitle = styled.div`
+const CardTitle = styled(H3)`
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  font-size: 18px;
-  font-weight: bold;
   padding: ${spacing("small")};
 `;
 

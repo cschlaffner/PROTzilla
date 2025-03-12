@@ -11,12 +11,12 @@ export * from "./mixins";
 export * from "./node";
 export * from "./navbar";
 export * from "./notification-bubble";
-export * from "./plot"
+export * from "./plot";
 export * from "./popup";
 export * from "./screen";
 export * from "./section";
 export * from "./section-title";
-export * from "./sidebar"
+export * from "./sidebar";
 export * from "./switch";
 export * from "./table";
 export * from "./text";

@@ -150,5 +150,5 @@ export const footerMessages = [
   "Made with love and a bit of nerdy magic 🧙‍♀️❤️",
   "Created with love, Wi-Fi, and endless inspiration 💡❤️",
   "Made with love, but don’t ask us to explain how 😅❤️",
-  "Built with love, creativity, and a sprinkle of brilliance ✨❤️"
+  "Built with love, creativity, and a sprinkle of brilliance ✨❤️",
 ];

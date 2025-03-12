@@ -16,11 +16,11 @@ const StyledRow = styled(FlexRow)`
 `;
 
 const StyledDivider = styled.div`
-  width: 1px; 
+  width: 1px;
   background-color: ${color("secondary")};
-  flex-grow: 1; 
+  flex-grow: 1;
   align-self: stretch;
-  margin-right: ${spacing("medium")};
+  margin-right: ${spacing("small")};
 `;
 
 const StyledFormColumn = styled.div`
@@ -31,6 +31,7 @@ const StyledFormColumn = styled.div`
   min-width: 250px;
   max-width: 500px;
   padding-top: ${spacing("small")};
+  margin: 0 ${spacing("small")};
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
@@ -39,14 +40,12 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   formDataPlotSettings,
   onChangePlotSettings,
 }) => {
-
-
   return (
     <StyledRow>
-      <Sidebar/>
+      <Sidebar />
 
       <StyledDivider />
-      
+
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParamters} />
         <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
