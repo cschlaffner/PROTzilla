@@ -51,10 +51,10 @@ def get_displayed_steps(
     index_global = 0
 
     sections = [
-        "data_analysis",
+        "importing",
         "data_preprocessing",
-        "data_integration",
-        "importing"
+        "data_analysis",
+        "data_integration"
     ]
 
     for section in sections:
@@ -63,13 +63,13 @@ def get_displayed_steps(
         for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
             workflow_steps.append(#maybe useless stuff wei z.b. index kram, weil besser wenn frontend kalkuliert? andererseits ist das auch teilweise input for step_remove
                 {
-                    "id": step.operation,
-                    "name": name_to_title(step.operation),
-                    "index": index_in_section,
-                    "index_global": index_global,
-                    "section": step.section,
-                    "method_name": step.display_name,
-                    "selected": step == steps.current_step,
+                    "id": step.instance_identifier,
+                    "name": step.display_name,
+                    # "index": index_in_section,
+                    # "index_global": index_global,
+                    # "section": step.section,
+                    "method_name": name_to_title(step.operation),
+                    # "selected": step == steps.current_step,
                     "finished": index_global < steps.current_step_index,
                 }
             )
@@ -80,8 +80,8 @@ def get_displayed_steps(
                 "id": section,
                 "name": name_to_title(section),
                 "steps": workflow_steps,
-                "selected": steps.current_section == section,
-                "finished": index_global - 1 < steps.current_step_index,
+                #"selected": steps.current_section == section,
+                #"finished": index_global - 1 < steps.current_step_index,
                 #"calculation_status": step.calculation_status,
                 #TODO merge changes from old Repos
             }

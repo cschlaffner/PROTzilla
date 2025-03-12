@@ -30,25 +30,22 @@ const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
 
 export const Sidebar: React.FC<SidebarProps> = ({runName}:SidebarProps) => {
 
-  const sections: SectionNames[] = ["importing", "data_preprocessing", "data_analysis", "data_integration"]
-  const sectionTitles = ["Importing", "Data Preprocessing", "Data Analysis", "Data Integration"]
+  const [sections, setSections] = useState([])
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section: "importing", index: 0})
 
   useEffect(() => {
-      console.log(runName)
       const fetchData = async () => {
-        if (runName="") return;
-         //const asd = await callApi("run_information");
-        const data = await callApiWithParameters("get_run_data/",{run_name:runName});
+        if (runName==="") return;
+        const data = await callApiWithParameters("get_run_data/",{ run_name: runName });
         if (data) {
-          console.log(data);
+          setSections(data.data.displayed_steps)
         }
       };
   
       void fetchData();
     }, []);
 
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section: "importing", index: 0})
   
 
   return (
@@ -67,19 +64,20 @@ export const Sidebar: React.FC<SidebarProps> = ({runName}:SidebarProps) => {
           style={{ marginLeft: isCollapsed ? "0" : "auto" }}
         />
       </SidebarHeader>
-      {sections.map((section: SectionNames, i: number) => {
+      {sections && (sections.map((section:any, i: number) => {
         return (
           <SidebarSection
-            key={section}
-            name={section}
-            title={sectionTitles[i]}
+            key={section.id}
+            name={section.id}
+            title={section.name}
             index={i}
             isCollapsed={isCollapsed}
             selectedStep={selectedStep}
             setSelectedStep={setSelectedStep}
+            steps={section.steps}
           />
         );
-      })}
+      }))}
     </SidebarContainer>
   );
 };

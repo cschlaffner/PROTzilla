@@ -318,10 +318,8 @@ def get_run_data(request):
 
         run_data["displayed_steps"] = get_displayed_steps(run.steps)
         run_data["current_section"] = run.current_step.section
-        run_data["current_step"] = run.current_step
+        run_data["current_step"] = run.current_step.instance_identifier
         run_data["memory_usage"] = get_memory_usage()
-
-        print(run_data)
 
         return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
     else:

@@ -59,30 +59,26 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   isCollapsed,
   selectedStep,
   setSelectedStep,
+  steps
 }: SidebarSectionProps) => {
-  const initialSteps = [
-    "super mega ultra super long step name",
-    "Step2",
-    "Step3",
-  ];
   const hasSelectedStep = selectedStep.section === name;
 
-  const [steps, setSteps] = useState(initialSteps);
+  const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
   const [showHandle, setShowHandle] = useState(false);
 
   const addStep = (index: number) => {
-    const newSteps = [...steps];
+    const newSteps = [...currentSteps];
     newSteps.splice(index + 1, 0, "new Step");
-    setSteps(newSteps);
+    setCurrentSteps(newSteps);
   };
 
   const deleteStep = (index: number) => {
     const newSteps = [...steps];
     newSteps.splice(index, 1);
-    setSteps(newSteps);
+    setCurrentSteps(newSteps);
     if (hasSelectedStep) {
       setSelectedStep({
         section: name,
@@ -123,13 +119,13 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {steps.map((step, j) => {
+        {currentSteps.map((step:any, j:number) => {
           const number = `${String(index + 1)}.${String(j + 1)}`;
           return (
             <SidebarStep
               key={number}
               number={number}
-              name={step}
+              name={step.name}
               isCollapsed={isCollapsed}
               sectionName={name}
               sectionLength={steps.length}

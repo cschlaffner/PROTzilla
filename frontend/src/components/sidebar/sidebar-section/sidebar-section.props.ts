@@ -8,4 +8,5 @@ export interface SidebarSectionProps
   isCollapsed: boolean;
   selectedStep: SelectedStep;
   setSelectedStep: SetSelectedStep;
+  steps: any;
 }

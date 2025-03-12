@@ -57,7 +57,7 @@ export const IndexScreen: React.FC = () => {
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
-    void callApiWithParameters("continue_run", { run_name: existingRun });
+    void callApiWithParameters("continue_run/", { run_name: existingRun });
     void navigate("/run", { state: { existingRun } });
   };
 
