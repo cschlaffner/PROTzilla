@@ -126,7 +126,6 @@ export const IndexScreen: React.FC = () => {
           </Col>
         </Row>
       </Container>
-
     </div>
   );
 };
