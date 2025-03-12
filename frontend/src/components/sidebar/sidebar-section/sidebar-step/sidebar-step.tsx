@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
@@ -45,7 +45,18 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 }: SidebarStepProps) => {
 
     const [isHovered, setIsHovered] = useState<boolean>(false)
+    const [whiteSpace, setWhiteSpace] = useState("normal")
     const stepRef = useRef<HTMLDivElement | null>(null)
+
+    
+    useEffect(() => {
+        if (isCollapsed) {
+            setWhiteSpace("nowrap")
+        } else {
+            setTimeout(() => { setWhiteSpace("normal"); },300)
+        }
+        
+    },[isCollapsed])
 
     const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
 
@@ -111,7 +122,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
             <CollapsibleLabel width={200} isCollapsed={isCollapsed}>
                 <ContentText
                     text={name}
-                    style={{userSelect:"none", whiteSpace: isCollapsed ? "nowrap":"normal"}}
+                    style={{userSelect:"none", whiteSpace: whiteSpace}}
                 />
             </CollapsibleLabel>
             </TextContainer>
