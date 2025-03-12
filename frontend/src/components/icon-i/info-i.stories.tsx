@@ -13,13 +13,4 @@ export const onHover = (args: InfoIProps): React.ReactNode => (
 );
 onHover.args = {
     text: "Das ist ein Text zur Information!",
-    position: "top"
-};
-
-export const onClick = (args: InfoIProps): React.ReactNode => (
-    <InfoIComponent {...args} />
-);
-onClick.args = {
-    text: "Das ist ein Text zur Information!",
-    position: "top"
 };

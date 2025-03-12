@@ -5,7 +5,7 @@ import { DataTableProps } from "./data-table.props";
 
 export default {
     component: DataTable,
-    title: "DataTable",
+    title: "Data Table",
 };
 
 export const Default = (args: DataTableProps): React.ReactNode => (
