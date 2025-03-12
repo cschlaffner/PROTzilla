@@ -7,17 +7,19 @@
 | backend/\_\_init\_\_.py                                                          |        0 |        0 |    100% |           |
 | backend/main/\_\_init\_\_.py                                                     |        0 |        0 |    100% |           |
 | backend/main/asgi.py                                                             |        4 |        4 |      0% |     10-16 |
-| backend/main/settings.py                                                         |       32 |       32 |      0% |    13-152 |
+| backend/main/settings.py                                                         |       42 |       42 |      0% |    13-192 |
 | backend/main/upload\_handler.py                                                  |       37 |       37 |      0% |      1-73 |
-| backend/main/urls.py                                                             |        5 |        5 |      0% |     16-24 |
-| backend/main/views.py                                                            |       76 |       76 |      0% |     1-118 |
+| backend/main/urls.py                                                             |        6 |        6 |      0% |     16-23 |
+| backend/main/views.py                                                            |       78 |       78 |      0% |     1-121 |
+| backend/main/views\_with\_api.py                                                 |      252 |      252 |      0% |     1-465 |
+| backend/main/views\_with\_api\_helper.py                                         |       43 |       37 |     14% |7-37, 41, 51-92 |
 | backend/main/wsgi.py                                                             |        4 |        4 |      0% |     10-16 |
 | backend/manage.py                                                                |       13 |       13 |      0% |      3-24 |
 | backend/protzilla/\_\_init\_\_.py                                                |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                                  |        7 |        1 |     86% |        84 |
 | backend/protzilla/constants/\_\_init\_\_.py                                      |        0 |        0 |    100% |           |
 | backend/protzilla/constants/colors.py                                            |        2 |        0 |    100% |           |
-| backend/protzilla/constants/paths.py                                             |       10 |        2 |     80% |     12-13 |
+| backend/protzilla/constants/paths.py                                             |       11 |        2 |     82% |     13-14 |
 | backend/protzilla/constants/protzilla\_logging.py                                |       43 |       16 |     63% |5-14, 20, 36, 41, 45, 47-49, 51-53, 55-57, 59-61, 63-70 |
 | backend/protzilla/data\_analysis/\_\_init\_\_.py                                 |        0 |        0 |    100% |           |
 | backend/protzilla/data\_analysis/classification.py                               |       65 |       32 |     51% |33-52, 54, 56-66, 263-313 |
@@ -39,7 +41,7 @@
 | backend/protzilla/data\_analysis/ptm\_quantification.py                          |      213 |      195 |      8% |41-313, 349-405, 436-542, 553-572, 583-598, 609 |
 | backend/protzilla/data\_integration/\_\_init\_\_.py                              |        0 |        0 |    100% |           |
 | backend/protzilla/data\_integration/database\_integration.py                     |       58 |       10 |     83% |73, 101-114 |
-| backend/protzilla/data\_integration/database\_query.py                           |      129 |       78 |     40% |28-81, 85-87, 91, 110, 113, 118-129, 139-151, 153-161, 184, 187-192, 201, 203-206, 215, 219, 232-238, 258, 263, 268-274 |
+| backend/protzilla/data\_integration/database\_query.py                           |      129 |       78 |     40% |28-81, 85-87, 91, 114, 119-127, 137-149, 151-160, 182, 185-190, 199, 201-202, 217-218, 229-237, 256, 261, 264-273 |
 | backend/protzilla/data\_integration/di\_plots.py                                 |      127 |       39 |     69% |94-97, 111, 113, 125, 173, 177, 179-181, 183-184, 187, 189-194, 197, 217-221, 239-244, 288, 292, 296, 298-300, 303, 308-310, 313, 331, 363, 377, 392 |
 | backend/protzilla/data\_integration/enrichment\_analysis.py                      |      338 |       91 |     73% |24-25, 178-179, 215, 222, 277-281, 329, 397-400, 415-416, 431-432, 538-541, 550-551, 556-558, 561-565, 567, 570-576, 589-590, 602-612, 616-617, 619-622, 634-635, 638-648, 651-652, 668, 749-750, 759-760, 773-774, 776-777, 779-782, 786-787, 789-792, 805, 823-824, 836-837, 840-841, 851-854 |
 | backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py                |      132 |        9 |     93% |154-156, 159, 209-211, 392, 395 |
@@ -63,7 +65,7 @@
 | backend/protzilla/methods/data\_integration.py                                   |      127 |       36 |     72% |15, 22-24, 44, 47-59, 84, 87-103, 124, 127-139, 166, 193, 205, 208-211, 223, 244, 247-253, 274, 295, 313 |
 | backend/protzilla/methods/data\_preprocessing.py                                 |      205 |       40 |     80% |37, 43-44, 61, 74, 77, 88, 91, 104, 107, 118, 121, 132, 135, 146, 149, 160, 163, 174, 177, 188, 191, 202, 205, 216, 219, 230, 233, 244, 247, 272, 275, 289, 292, 307, 310, 321, 324, 336, 339 |
 | backend/protzilla/methods/importing.py                                           |       85 |       24 |     72% |21, 58, 61-62, 67, 70, 73, 77-78, 83, 86, 89, 93-94, 112, 120, 125, 128, 131-132, 137, 140, 143-144 |
-| backend/protzilla/run.py                                                         |      161 |       79 |     51% |28-89, 104, 108, 128-135, 146, 149, 151, 163-168, 171, 178, 182, 187, 190-192, 202, 206, 208, 218, 223, 227, 231, 236, 240, 243-244, 248, 252-262 |
+| backend/protzilla/run.py                                                         |      160 |       78 |     51% |28-88, 103, 107, 127-134, 145, 148, 150, 162-167, 170, 177, 181, 186, 189-191, 201, 205, 207, 217, 222, 226, 230, 235, 239, 242-243, 247, 251-261 |
 | backend/protzilla/run\_helper.py                                                 |       12 |        1 |     92% |        26 |
 | backend/protzilla/runner.py                                                      |       77 |       10 |     87% |109-117, 125-127, 140-141 |
 | backend/protzilla/stepfactory.py                                                 |       15 |        3 |     80% |21, 26, 35 |
@@ -73,7 +75,7 @@
 | backend/protzilla/utilities/dunn\_score.py                                       |       10 |        6 |     40% | 25, 41-48 |
 | backend/protzilla/utilities/transform\_dfs.py                                    |       25 |       11 |     56% |23-44, 60-79, 83, 101, 104 |
 | backend/protzilla/utilities/utilities.py                                         |       56 |       10 |     82% |29-30, 71, 82, 100, 126, 135-138 |
-| backend/protzilla/workflow.py                                                    |        5 |        5 |      0% |       1-7 |
+| backend/protzilla/workflow.py                                                    |        5 |        1 |     80% |         6 |
 | backend/runner\_cli.py                                                           |       24 |        5 |     79% | 60-63, 67 |
 | backend/tests/\_\_init\_\_.py                                                    |        0 |        0 |    100% |           |
 | backend/tests/conftest.py                                                        |      109 |       23 |     79% |103-108, 113-117, 122-126, 487-501 |
@@ -92,7 +94,7 @@
 | backend/tests/protzilla/data\_integration/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | backend/tests/protzilla/data\_integration/test\_database\_integration.py         |       25 |        0 |    100% |           |
 | backend/tests/protzilla/data\_integration/test\_database\_query.py               |       37 |        0 |    100% |           |
-| backend/tests/protzilla/data\_integration/test\_enrichment\_analysis.py          |      401 |       41 |     90% |170, 182, 194, 200, 212, 215, 219, 228, 239, 243, 259, 263, 279, 283, 299, 306, 322, 326, 332, 339, 345, 352, 373, 380, 392, 399, 412-415, 430, 434, 440, 445-446, 478, 489-491, 497-499, 503, 508-510 |
+| backend/tests/protzilla/data\_integration/test\_enrichment\_analysis.py          |      401 |       41 |     90% |169, 181, 193, 199, 211, 214, 218, 227, 238, 242, 258, 262, 278, 282, 298, 305, 321, 325, 331, 338, 344, 351, 372, 379, 391, 398, 411-414, 429, 433, 439, 444-445, 477, 488-490, 496-498, 502, 507-509 |
 | backend/tests/protzilla/data\_integration/test\_plots\_data\_integration.py      |      128 |       27 |     79% |31, 41, 56, 86, 106, 123, 155-156, 171, 181-182, 198, 264, 275, 284, 311-312, 318, 332-347 |
 | backend/tests/protzilla/data\_preprocessing/\_\_init\_\_.py                      |        0 |        0 |    100% |           |
 | backend/tests/protzilla/data\_preprocessing/conftest.py                          |       18 |        2 |     89% |    45, 65 |
@@ -108,16 +110,18 @@
 | backend/tests/protzilla/importing/test\_metadata\_import.py                      |       44 |        5 |     89% |12, 25, 62, 85-86 |
 | backend/tests/protzilla/importing/test\_ms\_data\_import.py                      |       84 |        9 |     89% |232-233, 256-259, 262, 271, 275-276, 315 |
 | backend/tests/protzilla/importing/test\_peptide\_import.py                       |       39 |        6 |     85% |135-137, 165-167 |
+| backend/tests/protzilla/test\_apihelper.py                                       |        4 |        2 |     50% |     4, 73 |
 | backend/tests/protzilla/test\_run.py                                             |       74 |        0 |    100% |           |
 | backend/tests/protzilla/test\_runner.py                                          |      124 |       41 |     67% |49-53, 58-66, 80, 87-89, 150, 163, 166-168, 172, 188-190, 218, 228-231, 242-245, 252, 287-288, 290-330 |
 | backend/tests/protzilla/test\_runner\_cli.py                                     |       67 |       22 |     67% |16, 19-20, 26-27, 37, 41, 44, 55-56, 67-68, 80-81, 87-88, 96-97, 102, 106, 111-112 |
 | backend/tests/protzilla/test\_steps.py                                           |      102 |        0 |    100% |           |
 | backend/tests/protzilla/test\_transform\_dfs.py                                  |       47 |        0 |    100% |           |
 | backend/tests/protzilla/test\_utilities.py                                       |        7 |        0 |    100% |           |
+| backend/tests/protzilla/test\_workflow.py                                        |       12 |        2 |     83% |    12, 18 |
 | backend/tests/ui/\_\_init\_\_.py                                                 |        0 |        0 |    100% |           |
 | backend/tests/ui/test\_views.py                                                  |       18 |       12 |     33% |5, 106, 115-121, 127-129, 135-137, 143-145 |
 | frontend/\_\_init\_\_.py                                                         |        0 |        0 |    100% |           |
-|                                                                        **TOTAL** | **8204** | **2084** | **75%** |           |
+|                                                                        **TOTAL** | **8528** | **2385** | **72%** |           |
 
 
 ## Setup coverage badge
