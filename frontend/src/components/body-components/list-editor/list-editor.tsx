@@ -1,5 +1,3 @@
-// @ts-expect-error - required for ploty resizing
-import Plotly from "plotly.js-dist-min";
 import React from "react";
 import { styled } from "styled-components";
 
