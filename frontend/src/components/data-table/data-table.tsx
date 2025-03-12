@@ -5,23 +5,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { DataTableProps } from "./data-table.props";
 import { getTheme } from "../../theme";
 
-const theme = createTheme({
-    mixins: {
-        MuiDataGrid: { containerBackground: "#4A536A" },
-    },
-    components: {
-        MuiDataGrid: {
-            styleOverrides: {
-                root: {
-                "& .MuiDataGrid-sortIcon": { color: "#FFFFFF" },
-                "& .MuiDataGrid-menuIconButton": { color: "#FFFFFF" },
-                "& .MuiDataGrid-filterIcon": { color: "#FFFFFF" },
-                },
-            },
-      },
-    },
-  });
-
 export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
     const [rows, setRows] = useState<GridRowsProp>(data);
     const [columns, setColumns] = useState<GridColDef[]>([]);
@@ -62,6 +45,23 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
 
     const protzillaTheme = useMemo(() => getTheme("light"), []);
 
+    const theme = createTheme({
+        mixins: {
+            MuiDataGrid: { containerBackground: protzillaTheme.colors.primary },
+        },
+        components: {
+            MuiDataGrid: {
+                styleOverrides: {
+                    root: {
+                    "& .MuiDataGrid-sortIcon": { color: protzillaTheme.colors.background },
+                    "& .MuiDataGrid-menuIconButton": { color: protzillaTheme.colors.background },
+                    "& .MuiDataGrid-filterIcon": { color: protzillaTheme.colors.background },
+                    },
+                },
+          },
+        },
+      });
+
     return (
         <ThemeProvider theme={theme}>
         <DataGrid
@@ -75,11 +75,24 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
             }
             pageSizeOptions={pageSizeOptions}
             sx={{
-                "& .MuiDataGrid-columnHeaders": { color: "white" },
-                "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+                fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
                 "& .MuiDataGrid-row": {
-                    backgroundColor: protzillaTheme.colors.backgroundOffset,
-                    color: protzillaTheme.colors.text,
+                    backgroundColor: protzillaTheme.colors.background,
+                    color: protzillaTheme.colors.text
+                },
+                "& .MuiSelect-select": {
+                    fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
+                    color: protzillaTheme.colors.text
+                },
+                "& .MuiDataGrid-columnHeaders": { color: protzillaTheme.colors.background },
+                "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+                "& .MuiTablePagination-selectLabel": { 
+                    fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
+                    color: protzillaTheme.colors.text
+                },
+                "& .MuiTablePagination-displayedRows": {
+                    fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
+                    color: protzillaTheme.colors.text
                 },
             }}
         />
