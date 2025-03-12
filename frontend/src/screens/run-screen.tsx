@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -15,6 +15,7 @@ import {
   mockPlotLayout,
 } from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
+import { callApiWithParameters } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -58,6 +59,7 @@ export const RunScreen: React.FC = () => {
 
   const [runName] = useState<string>(location.state?.existingRun);
   const [plotData, setPlotData] = useState(mockPlotData);
+  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
     let newColors: string | string[] = "purple";
 
@@ -82,9 +84,20 @@ export const RunScreen: React.FC = () => {
     setPlotData(updatedMockPlotData);
   }
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApiWithParameters("get_step_plots/", {run_name: runName});
+      if (data) {
+        setPlotData(data.data); 
+        setPlotLayout(data.layout);
+      }
+    };
+    void fetchData();
+  }, []);
+
   const plotComponent = (
     <StyledPlotContainer>
-      <PlotComponent data={plotData} layout={mockPlotLayout} />
+      <PlotComponent data={plotData} layout={plotLayout} />
     </StyledPlotContainer>
   );
 

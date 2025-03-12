@@ -115,6 +115,7 @@ python install_scripts/database_download.py
 REM starting frontend
 cd frontend
 pnpm build
+start /B pnpm dev
 cd .. 
 
 REM Run Django server

@@ -4,6 +4,8 @@ import io
 import tempfile
 import traceback
 import zipfile
+
+from plotly.io import to_json
 from pathlib import Path
 
 import pandas as pd
@@ -344,10 +346,9 @@ def get_step_plots(request):
         run_name = data.get("run_name")
 
         run = active_runs[run_name]
-        
-        #get parameters for the step
+        plots = [to_json(plot) for plot in run.current_plots.plots]
 
-        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": "placeholder"}, safe=False)
+        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
