@@ -19,7 +19,7 @@ const IconButton = styled.button`
   cursor: pointer;
 `;
 
-export const InfoIComponent: React.FC<InfoIProps> = ({ text, triggerType = "hover" }) => {
+export const InfoIComponent: React.FC<InfoIProps> = ({ text }) => {
   const [isShown, setIsShown] = useState<boolean>(false);
   const iconRef = useRef<HTMLButtonElement>(null);
 
@@ -27,8 +27,8 @@ export const InfoIComponent: React.FC<InfoIProps> = ({ text, triggerType = "hove
     <Wrapper>
       <IconButton
         ref={iconRef}
-        onMouseEnter={triggerType === "hover" ? () => { setIsShown(true); } : undefined}
-        onMouseLeave={triggerType === "hover" ? () => { setIsShown(false); } : undefined} >
+        onMouseEnter={() => { setIsShown(true)}}
+        onMouseLeave={() => { setIsShown(false)}} >
         <Icon icon="info" color="primary" />
       </IconButton>
 

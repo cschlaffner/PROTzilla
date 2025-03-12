@@ -8,7 +8,6 @@ import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 import { setupRootStore, StoreProvider } from "./store";
 import { CountersScreen, IndexScreen } from "../screens";
-import TableScreen from "../screens/table-screen";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -38,7 +37,6 @@ function App() {
               <Route path="/" element={<MainScreen />}>
                 <Route path="/" element={<IndexScreen />} />
                 <Route path="/counters" element={<CountersScreen />} />
-                <Route path="/table" element={<TableScreen />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
