@@ -13,7 +13,6 @@ const SidebarContainer = styled(motion.div)`
   display: "flex";
   flex-direction: "column";
   padding: 0px 3px;
-  border-right: 1px ${color("secondary")} solid;
   width: 100%;
   overflow: hidden;
 `;

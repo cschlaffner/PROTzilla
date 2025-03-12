@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
-import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
+import { color, fontSize, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
@@ -12,7 +12,7 @@ import { NumberInputField } from "../../input-fields/number-input-field";
 import { RadioSelectInputField } from "../../input-fields/radio-select-input-field";
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
-import { H3, Text } from "../../text";
+import { H3 } from "../../text";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

@@ -4,14 +4,23 @@ import React from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
-import { spacing } from "../../../theme";
+import { color, spacing } from "../../../theme";
 import { FlexRow } from "../../box";
 import { Form } from "../../forms/form";
 import { Sidebar } from "../../sidebar";
 
 const StyledRow = styled(FlexRow)`
-  gap: ${spacing("medium")};
+  gap: ${spacing("verySmall")};
   align-items: flex-start;
+  height: 100%;
+`;
+
+const StyledDivider = styled.div`
+  width: 1px; 
+  background-color: ${color("secondary")};
+  flex-grow: 1; 
+  align-self: stretch;
+  margin-right: ${spacing("medium")};
 `;
 
 const StyledFormColumn = styled.div`
@@ -32,17 +41,12 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 }) => {
 
 
-  // const handleClick = () => {
-  //   setIsCollapsed((prev) => !prev);
-  //   const plotElement = document.querySelector(".js-plotly-plot");
-  //   if (plotElement instanceof HTMLElement) {
-  //     Plotly.Plots.resize(plotElement);
-  //   }
-  // };
-
   return (
     <StyledRow>
       <Sidebar/>
+
+      <StyledDivider />
+      
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParamters} />
         <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />

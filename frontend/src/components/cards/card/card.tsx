@@ -11,12 +11,14 @@ const StyledCard = styled.div`
   padding: ${spacing("small")};
 `;
 
-const CardBody = styled.div`
+const CardBody = styled.div<{ hasTitle: boolean }>`
   padding: ${spacing("small")};
   width: auto;
-  max-height: calc(100vh - 225px);
+  max-height: ${({ hasTitle }) =>
+    hasTitle ? "calc(100vh - 225px)" : "calc(100vh - 178px)"};
   overflow-y: auto;
 `;
+
 
 const CardTitle = styled.div`
   display: flex;
@@ -32,7 +34,7 @@ export const Card: React.FC<CardProps> = ({ title, children, className }) => {
   return (
     <StyledCard className={className}>
       {title && <CardTitle>{title}</CardTitle>}
-      <CardBody>{children}</CardBody>
+      <CardBody hasTitle={Boolean(title)}>{children}</CardBody>
     </StyledCard>
   );
 };
