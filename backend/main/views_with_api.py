@@ -19,7 +19,7 @@ from backend.protzilla.data_integration.database_query import uniprot_columns, u
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.viewswithapihelper import get_displayed_steps, parameters_from_post, get_all_possible_step_names
+from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_step_names
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -215,7 +215,7 @@ def update_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        method = data.get(method)
+        method = data.get("method")
 
         run = active_runs[run_name]
 

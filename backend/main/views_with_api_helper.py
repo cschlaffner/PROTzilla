@@ -42,13 +42,7 @@ def get_all_possible_step_names() -> list[str]:
     :return: List of names.
     :rtype: String
     """
-    step_classes = get_all_methods()
-    step_names = []
-    for step in step_classes:
-        step_names.append(
-            step.__name__
-        )
-    return step_names
+    return [step.__name__ for step in get_all_methods()]
 
 def get_displayed_steps(
     steps: StepManager,
