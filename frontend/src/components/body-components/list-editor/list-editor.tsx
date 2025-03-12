@@ -8,9 +8,11 @@ import { ListEditorProps } from "./list-editor.props";
 import { spacing } from "../../../theme";
 import { Form } from "../../forms/form";
 import { Icon } from "../../icon";
+import { FlexRow } from "../../box";
 
-const StyledRow = styled(Row)`
+const StyledRow = styled(FlexRow)`
   gap: ${spacing("small")};
+  align-items: flex-start;
 `;
 
 const StyledFormColumn = styled.div`

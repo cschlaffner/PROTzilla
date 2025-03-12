@@ -9,10 +9,13 @@ const StyledCard = styled.div`
   border-radius: 8px;
   box-shadow: ${shadow("box_shadow")};
   padding: ${spacing("small")};
-`; //${border("defaultRadius")}
+`;
 
 const CardBody = styled.div`
   padding: ${spacing("small")};
+  width: auto;
+  max-height: calc(100vh - 225px);
+  overflow-y: auto;
 `;
 
 const CardTitle = styled.div`

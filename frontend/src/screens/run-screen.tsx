@@ -44,9 +44,9 @@ const FooterText = styled.div`
   padding: ${spacing("small")};
   font-size: 14px;
   color: gray;
-  position: sticky;
+  position: absolute;
+  width: 100%;
   bottom: 0;
-  margin-top: ${spacing("large")};
 `;
 
 export const RunScreen: React.FC = () => {
@@ -109,7 +109,7 @@ export const RunScreen: React.FC = () => {
 
       <Container fluid>
         <StyledCardsRow>
-          <StyledCol md={"content"} style={{ paddingRight: 0 }}>
+          <StyledCol md={"content"} style={{ paddingRight: 0}}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
@@ -126,12 +126,9 @@ export const RunScreen: React.FC = () => {
             />
           </StyledCol>
         </StyledCardsRow>
-        <Row>
-          <Col>
-            <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
-          </Col>
-        </Row>
+        
       </Container>
+      <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
     </div>
   );
 };
