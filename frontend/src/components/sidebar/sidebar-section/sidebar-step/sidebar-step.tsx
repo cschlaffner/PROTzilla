@@ -26,7 +26,9 @@ const TextContainer = styled.div`
     marginLeft: "auto";
     max-width: 225px;
     whiteSpace: normal;
-    max-height: 3em;
+    line-height: 150%;
+
+    max-height: 4em;
 `;
 
 export const SidebarStep: React.FC<SidebarStepProps> = ({
