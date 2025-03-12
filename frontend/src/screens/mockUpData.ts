@@ -95,6 +95,7 @@ export const mockFormDataPlotSettings: FormData = {
           { label: "Green", value: "green" },
           { label: "Cyan", value: "cyan" },
           { label: "Black", value: "black" },
+          { label: "Aqua", value: "aqua" },
         ],
       },
     },

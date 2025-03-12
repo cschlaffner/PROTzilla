@@ -1,13 +1,13 @@
 // @ts-expect-error - required for ploty resizing
 import Plotly from "plotly.js-dist-min";
-import React, { useState } from "react";
+import React from "react";
 import { styled } from "styled-components";
-import { Sidebar } from "../../sidebar";
+
 import { ListEditorProps } from "./list-editor.props";
 import { spacing } from "../../../theme";
-import { Form } from "../../forms/form";
-import { Icon } from "../../icon";
 import { FlexRow } from "../../box";
+import { Form } from "../../forms/form";
+import { Sidebar } from "../../sidebar";
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("medium")};
@@ -21,15 +21,7 @@ const StyledFormColumn = styled.div`
   width: 20vw;
   min-width: 250px;
   max-width: 500px;
-`;
-
-const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
-  display: flex;
-  justify-content: ${({ isCollapsed }) => (isCollapsed ? "left" : "flex-end")};
-  width: auto;
-  padding: 5px;
-  margin: 5px;
-  cursor: pointer;
+  padding-top: ${spacing("small")};
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({

@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import React, { useState } from "react"
+import React, { useState } from "react";
 import { styled } from "styled-components";
 
-import SidebarSection from "./sidebar-section/sidebar-section"
+import SidebarSection from "./sidebar-section/sidebar-section";
 import { SectionNames, SelectedStep } from "./types";
+import { color, spacing } from "../../theme";
 import { Icon } from "../icon/icon";
-import { color } from "../../theme";
-
+import { H3 } from "../text";
 
 const SidebarContainer = styled(motion.div)`
   position: relative;
@@ -15,50 +15,65 @@ const SidebarContainer = styled(motion.div)`
   padding: 0px 3px;
   border-right: 1px ${color("secondary")} solid;
   width: 100%;
-  overflow:hidden;
+  overflow: hidden;
 `;
 
 const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
   display: flex;
-  justify-content: ${({ isCollapsed }) => (isCollapsed ? "left" : "flex-end")};
-  padding: 5px;
-  margin:5px;
+  justify-content: left;
+  padding: ${spacing("small")};
   cursor: pointer;
 `;
 
 export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedStep, setSelectedStep] = useState<SelectedStep>({
+    section: "importing",
+    index: 0,
+  });
 
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section: "importing", index: 0})
-  
-  const sections: SectionNames[] = ["importing", "data_preprocessing", "data_analysis", "data_integration"]
-  const sectionTitles = ["Importing", "Data Preprocessing", "Data Analysis", "Data Integration"]
+  const sections: SectionNames[] = [
+    "importing",
+    "data_preprocessing",
+    "data_analysis",
+    "data_integration",
+  ];
+  const sectionTitles = [
+    "Importing",
+    "Data Preprocessing",
+    "Data Analysis",
+    "Data Integration",
+  ];
 
-  return(
-        <SidebarContainer 
-          initial={{ width: 300 }}
-          animate={{ width: isCollapsed ? 77.5 : 300 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-            <SidebarHeader isCollapsed={isCollapsed}>
-                <Icon 
-                    icon={isCollapsed ? "list" : "chevronDoubleLeft"} 
-                    onClick={() => { setIsCollapsed((prev) => !prev); }}
-                />
-            </SidebarHeader>
-            {sections.map((section: SectionNames, i: number) => {
-                    return (
-                        <SidebarSection 
-                            key={section}
-                            name={section} 
-                            title={sectionTitles[i]} 
-                            index={i} 
-                            isCollapsed={isCollapsed}
-                            selectedStep={selectedStep}
-                            setSelectedStep={setSelectedStep}
-                        />  
-                    )
-            })}
-        </SidebarContainer>
+  return (
+    <SidebarContainer
+      initial={{ width: 300 }}
+      animate={{ width: isCollapsed ? 77.5 : 300 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      <SidebarHeader isCollapsed={isCollapsed}>
+        {!isCollapsed && (<H3>List</H3>)}
+        <Icon
+          icon={isCollapsed ? "list" : "chevronDoubleLeft"}
+          onClick={() => {
+            setIsCollapsed((prev) => !prev);
+          }}
+          style={{marginLeft: isCollapsed ? "0":"auto"}}
+        />
+      </SidebarHeader>
+      {sections.map((section: SectionNames, i: number) => {
+        return (
+          <SidebarSection
+            key={section}
+            name={section}
+            title={sectionTitles[i]}
+            index={i}
+            isCollapsed={isCollapsed}
+            selectedStep={selectedStep}
+            setSelectedStep={setSelectedStep}
+          />
+        );
+      })}
+    </SidebarContainer>
   );
 };

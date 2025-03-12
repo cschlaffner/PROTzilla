@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { spacing } from "../theme";
@@ -56,7 +56,7 @@ export const RunScreen: React.FC = () => {
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
 
-  const [runName] =  useState<string>(location.state?.existingRun);
+  const [runName] = useState<string>(location.state?.existingRun);
   const [plotData, setPlotData] = useState(mockPlotData);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
     let newColors: string | string[] = "purple";
@@ -109,13 +109,13 @@ export const RunScreen: React.FC = () => {
 
       <Container fluid>
         <StyledCardsRow>
-          <StyledCol md={"content"} style={{ paddingRight: 0}}>
+          <StyledCol md={"content"} style={{ paddingRight: 0 }}>
             <SwitchCard
               nameComponent1="List"
               component1={listEditorComponent}
               nameComponent2="Node"
               component2={dummyTextComponent1}
-              alignStart={true}
+              hasCardTitle={false}
             />
           </StyledCol>
           <StyledCol>
@@ -124,11 +124,9 @@ export const RunScreen: React.FC = () => {
               component1={plotComponent}
               nameComponent2="Table"
               component2={dummyTextComponent2}
-              alignStart={true}
             />
           </StyledCol>
         </StyledCardsRow>
-        
       </Container>
       <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
     </div>
