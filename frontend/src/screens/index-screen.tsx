@@ -26,6 +26,17 @@ export const IndexScreen: React.FC = () => {
 
     void fetchData();
   }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("run_information");
+      if (data) {
+        const runs: string[] = data[0].map((run: Record<string, string | string[]>) => run.run_name)
+        setRuns(runs.map(run_name => ({value: run_name, label: run_name})));
+      }
+    };
+
+    void fetchData();
+  }, []);
 
   const handleCreateRun = () => {
     if (runs.some((run: { value: string; }) => run.value === newRunName)) {
@@ -40,10 +51,12 @@ export const IndexScreen: React.FC = () => {
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
+    void callApiWithParameters("continue_run", { run_name: existingRun });
     void navigate("/run", { state: { existingRun } });
   };
 
   const handleDeleteRun = () => {
+    void callApiWithParameters("delete_run/", { run_name: existingRun });
     setRuns(runs.filter((run: { value: string; }) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
     console.log(runs)
@@ -109,7 +122,9 @@ export const IndexScreen: React.FC = () => {
                 className="mb-3"
               />
               <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
-              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Delete Tag: test</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("toggle_favourite/", { run_name: existingRun })}>Toggle Favourite</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("add_tag/", { run_name: existingRun, tag_name: "test" })}>Add Tag: test</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: existingRun, tag_name: "test" })}>Delete Tag: test</Button>
               <Button className="btn btn-secondary w-100">Manage databases</Button>
             </Card>
           </Col>
