@@ -1,7 +1,7 @@
 // @ts-expect-error - required for ploty resizing
 import Plotly from "plotly.js-dist-min";
 import React, { useState } from "react";
-import { Col, Row } from "react-grid-system";
+import { Row } from "react-grid-system";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
