@@ -6,9 +6,9 @@ import { spacing } from "../../../theme";
 import { Switch } from "../../switch";
 import { Card } from "../card";
 
-const SwitchDiv = styled.div`
+const SwitchDiv = styled.div<{ alignStart: boolean }>`
   display: flex;
-  justify-content: flex-end;
+  justify-content: ${({ alignStart }) => (alignStart ? "flex-start" : "flex-end")};
   padding-bottom: ${spacing("small")};
 `;
 
@@ -22,6 +22,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   component1,
   nameComponent2,
   component2,
+  alignStart = true,
 }) => {
   const [switchState, setSwitchState] = useState<string>(
     "component1",
@@ -29,7 +30,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
 
   return (
     <div>
-      <SwitchDiv>
+      <SwitchDiv alignStart={alignStart}>
         <Switch
           options={[
             { value: "component1", label: nameComponent1 },
@@ -38,7 +39,6 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
           value={switchState}
           onChange={setSwitchState}
           defaultValue="component1"
-          isDisabled={false}
         />
       </SwitchDiv>
       <StyledCard title={switchState === "component1" ? nameComponent1 : nameComponent2}>

@@ -115,6 +115,7 @@ export const RunScreen: React.FC = () => {
               component1={listEditorComponent}
               nameComponent2="Node"
               component2={dummyTextComponent1}
+              alignStart={true}
             />
           </StyledCol>
           <StyledCol>
@@ -123,6 +124,7 @@ export const RunScreen: React.FC = () => {
               component1={plotComponent}
               nameComponent2="Table"
               component2={dummyTextComponent2}
+              alignStart={true}
             />
           </StyledCol>
         </StyledCardsRow>
