@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { spacing } from "../theme";
@@ -45,9 +45,9 @@ const FooterText = styled.div`
   padding: ${spacing("small")};
   font-size: 14px;
   color: gray;
-  position: sticky;
+  position: absolute;
+  width: 100%;
   bottom: 0;
-  margin-top: ${spacing("large")};
 `;
 
 export const RunScreen: React.FC = () => {
@@ -57,7 +57,7 @@ export const RunScreen: React.FC = () => {
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
 
-  const [runName] =  useState<string>(location.state?.existingRun);
+  const [runName] = useState<string>(location.state?.existingRun);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   function onChangePlotSettings(data: Record<string, InputValueType>) {
@@ -128,6 +128,7 @@ export const RunScreen: React.FC = () => {
               component1={listEditorComponent}
               nameComponent2="Node"
               component2={dummyTextComponent1}
+              hasCardTitle={false}
             />
           </StyledCol>
           <StyledCol>
@@ -139,12 +140,8 @@ export const RunScreen: React.FC = () => {
             />
           </StyledCol>
         </StyledCardsRow>
-        <Row>
-          <Col>
-            <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
-          </Col>
-        </Row>
       </Container>
+      <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
     </div>
   );
 };

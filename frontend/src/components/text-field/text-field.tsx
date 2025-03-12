@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React, { useCallback, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
@@ -8,7 +9,11 @@ import { InvisibleButton } from "../button";
 import { EditTag } from "../edit-tag";
 import { Icon } from "../icon";
 import { InputLabel, Text } from "../text";
-import { MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
+import {
+  CollapsibleLabelProps,
+  MultilineTextFieldProps,
+  TextFieldProps,
+} from "./text-field.props";
 import {
   color,
   font,
@@ -729,3 +734,26 @@ export const MultilineTextField = styled(
     padding: 12px 16px;
   }
 `;
+
+const CollapsibleContainer = styled(motion.div)`
+  overflow: hidden;
+  white-space: nowrap;
+  padding-bottom: 1px;
+`;
+
+export const CollapsibleLabel: React.FC<CollapsibleLabelProps> = ({
+  width,
+  collapsedWidth = 0,
+  isCollapsed,
+  children,
+}: CollapsibleLabelProps) => {
+  return (
+    <CollapsibleContainer
+      initial={{ width: isCollapsed ? collapsedWidth : width }}
+      animate={{ width: isCollapsed ? collapsedWidth : width }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {children}
+    </CollapsibleContainer>
+  );
+};

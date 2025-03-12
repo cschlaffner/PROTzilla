@@ -5,7 +5,7 @@ import { size, spacing } from "../../../theme";
 import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
-import { Button } from "../../button";
+import { SecondaryButton } from "../../button";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -49,9 +49,9 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     <InputContainer {...props}>
       <StyledDiv>
         <StyledSpan>{file ? file.name : placeholder}</StyledSpan>
-        <Button isSmall onClick={openFilePicker}>
+        <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
-        </Button>
+        </SecondaryButton>
       </StyledDiv>
     </InputContainer>
   );

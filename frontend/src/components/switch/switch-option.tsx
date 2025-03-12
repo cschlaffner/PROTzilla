@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
 import { css, styled } from "styled-components";
 
-import { InvisibleButton } from "../button";
+import { Button } from "../button";
 import { Text } from "../text";
 import { SwitchOptionProps } from "./switch-option.props";
 import { color, duration, fontSize, fontWeight, opacity } from "../../theme";
 
-const SwitchOptionContainer = styled(InvisibleButton)<{
+const SwitchOptionContainer = styled(Button)<{
   isDisabled?: boolean;
 }>`
   cursor: ${(props) => (props.isDisabled ? "not-allowed" : "pointer")};
@@ -51,6 +51,8 @@ export const SwitchOption: React.FC<SwitchOptionProps> = ({
       {...rest}
       isDisabled={isDisabled}
       onPress={changeHandler}
+      isShy={true}
+      isSmall={true}
     >
       <SwitchOptionLabel
         isActive={isActive}

@@ -5,4 +5,6 @@ export interface SwitchCardProps {
   component1: ReactNode;
   nameComponent2: string;
   component2: ReactNode;
+  hasSwitchAlginStart?: boolean;
+  hasCardTitle?: boolean;
 }

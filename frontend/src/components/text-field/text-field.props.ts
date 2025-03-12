@@ -136,3 +136,10 @@ export interface MultilineTextFieldProps extends TextFieldProps {
    */
   height?: string;
 }
+
+export interface CollapsibleLabelProps {
+  width: number | string;
+  collapsedWidth?: number;
+  isCollapsed: boolean;
+  children?: React.ReactNode;
+}

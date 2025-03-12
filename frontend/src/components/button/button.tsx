@@ -75,7 +75,7 @@ const StyledButton = styled.button.withConfig({
         `
       : css`
           cursor: pointer;
-          
+
           &:active > * {
             opacity: 1;
           }
@@ -362,12 +362,24 @@ export const Button = styled(BaseButton)`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryHover")};
+      color(
+        props.isDisabled
+          ? "primaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "primaryHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryActive")};
+      color(
+        props.isDisabled
+          ? "primaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "primaryActive",
+      )};
   }
 `;
 
@@ -442,12 +454,24 @@ const secondaryButtonMixin = css<ButtonProps>`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryHover")};
+      color(
+        props.isDisabled
+          ? "secondaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "secondaryHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryActive")};
+      color(
+        props.isDisabled
+          ? "secondaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "secondaryActive",
+      )};
   }
 
   .text {
@@ -471,21 +495,41 @@ export const GrayButton = styled(Button)`
     )};
 
   .text {
-    color: ${({ isDisabled }) => color(isDisabled ? "blackDisabled" : "black")};
+    color: ${(props) =>
+      color(
+        props.color
+          ? props.color
+          : props.isDisabled
+            ? "blackDisabled"
+            : "black",
+      )};
   }
 
   .icon {
-    ${({ isDisabled }) => iconColor(isDisabled ? "blackDisabled" : "black")}
+    ${({ color, isDisabled }) =>
+      iconColor(color ? color : isDisabled ? "blackDisabled" : "black")}
   }
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayHover")};
+      color(
+        props.isDisabled
+          ? "grayDisabled"
+          : props.isCautious
+            ? "caution"
+            : "grayHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayActive")};
+      color(
+        props.isDisabled
+          ? "grayDisabled"
+          : props.isCautious
+            ? "caution"
+            : "grayActive",
+      )};
   }
 `;
 
@@ -541,7 +585,7 @@ export const InvisibleButton = styled(BaseButton)`
   }
 
   .icon {
-    ${iconColor("primary")}
+    color: ${({ color }) => iconColor(color ?? "primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
   }
   

@@ -105,11 +105,12 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
     return sortedSelection;
   });
 
-  const unselectedOptions = options.filter(
-    (option) =>
-      !selectedOptions.some((selected) => selected.value === option.value),
+  const unselectedOptions = sortOptions(
+    options.filter(
+      (option) =>
+        !selectedOptions.some((selected) => selected.value === option.value),
+    ),
   );
-
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleItemClick = (option: { label: string; value: string }) => {
@@ -123,7 +124,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
       const sortedSelection = sortOptions(newSelection);
       setSelectedOptions(sortedSelection);
       onChange(sortedSelection.map((opt) => opt.value));
-      return newSelection;
+      return sortedSelection;
     });
   };
 

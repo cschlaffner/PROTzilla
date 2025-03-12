@@ -1,16 +1,24 @@
-// @ts-expect-error - required for ploty resizing
-import Plotly from "plotly.js-dist-min";
-import React, { useState } from "react";
-import { Row } from "react-grid-system";
+import React from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
-import { spacing } from "../../../theme";
+import { color, spacing } from "../../../theme";
+import { FlexRow } from "../../box";
 import { Form } from "../../forms/form";
-import { Icon } from "../../icon";
+import { Sidebar } from "../../sidebar";
 
-const StyledRow = styled(Row)`
-  gap: ${spacing("small")};
+const StyledRow = styled(FlexRow)`
+  gap: ${spacing("verySmall")};
+  align-items: flex-start;
+  height: 100%;
+`;
+
+const StyledDivider = styled.div`
+  width: 1px;
+  background-color: ${color("secondary")};
+  flex-grow: 1;
+  align-self: stretch;
+  margin-right: ${spacing("small")};
 `;
 
 const StyledFormColumn = styled.div`
@@ -20,15 +28,8 @@ const StyledFormColumn = styled.div`
   width: 20vw;
   min-width: 250px;
   max-width: 500px;
-`;
-
-const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
-  display: flex;
-  justify-content: ${({ isCollapsed }) => (isCollapsed ? "left" : "flex-end")};
-  width: ${({ isCollapsed }) => (isCollapsed ? "50px" : "250px")};
-  padding: 5px;
-  margin: 5px;
-  cursor: pointer;
+  padding-top: ${spacing("small")};
+  margin: 0 ${spacing("small")};
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
@@ -37,24 +38,12 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   formDataPlotSettings,
   onChangePlotSettings,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleClick = () => {
-    setIsCollapsed((prev) => !prev);
-    const plotElement = document.querySelector(".js-plotly-plot");
-    if (plotElement instanceof HTMLElement) {
-      Plotly.Plots.resize(plotElement);
-    }
-  };
-
   return (
     <StyledRow>
-      <SidebarHeader isCollapsed={isCollapsed}>
-        <Icon
-          icon={isCollapsed ? "chevronRight" : "chevronLeft"}
-          onClick={handleClick}
-        />
-      </SidebarHeader>
+      <Sidebar />
+
+      <StyledDivider />
+
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParamters} />
         <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
