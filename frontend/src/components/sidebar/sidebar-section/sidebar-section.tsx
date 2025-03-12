@@ -69,6 +69,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
   const [showHandle, setShowHandle] = useState(false);
 
+  //WIP add and delete wont work for now
   const addStep = (index: number) => {
     const newSteps = [...currentSteps];
     newSteps.splice(index + 1, 0, "new Step");
