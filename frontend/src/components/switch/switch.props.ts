@@ -1,5 +1,6 @@
 import type React from "react";
 
+import { Color } from "../../theme";
 import { I18nLabelProps, UIStateProps } from "../types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,6 +11,7 @@ export interface ISwitchOption<T = any> extends UIStateProps, I18nLabelProps {
    *
    */
   value: T;
+  color?: Color;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

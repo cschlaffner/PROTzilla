@@ -1,11 +1,11 @@
 import React from "react";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import { ModalProps } from "./modal.props";
 import { color, zIndex } from "../../theme";
 import { CircularButton } from "../button";
-import { Card } from "../card"; 
-import { Icon } from "../icon"
+import { Card } from "../card";
+import { Icon } from "../icon";
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -33,7 +33,7 @@ const CloseButton = styled(CircularButton)`
   margin-right: 20px;
   width: 40px;
   height: 30px;
-`
+`;
 
 const CardHeader = styled.div`
   display: flex;
@@ -42,17 +42,31 @@ const CardHeader = styled.div`
   width: 100%;
 `;
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+}) => {
   return (
     <Backdrop isOpen={isOpen} onClick={onClose}>
-      <ModalContent className={className} onClick={(e) => { e.stopPropagation(); }}>
-        <Card 
+      <ModalContent
+        className={className}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <Card
           title={
             <CardHeader>
               <span>{title}</span>
-              <CloseButton onClick={onClose}><Icon icon="close"></Icon></CloseButton>
+              <CloseButton onClick={onClose}>
+                <Icon icon="close"></Icon>
+              </CloseButton>
             </CardHeader>
-          }>
+          }
+        >
           {children}
         </Card>
       </ModalContent>

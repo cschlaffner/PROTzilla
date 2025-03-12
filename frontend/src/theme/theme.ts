@@ -17,7 +17,7 @@ export const defaultPalette = {
   protzillaRed: "#CE5A5A",
 
   primary: "#4A536A",
-  primaryHover: "#7883a1", //hover is 20% lighter than default color, selected via https://www.w3schools.com/colors/colors_picker.asp 
+  primaryHover: "#7883a1", //hover is 20% lighter than default color, selected via https://www.w3schools.com/colors/colors_picker.asp
   primaryActive: "#7883a1",
   primaryDisabled: "#C0C0C2",
 
@@ -69,7 +69,7 @@ export const defaultPalette = {
   invisibleHover: "#CE5A5A",
   transparent: "rgba(0,0,0,0)",
   popUpBackdrop: "rgba(0, 0, 0, 0.5)",
-
+  backdropLight: "rgba(255,255,255,0.10)",
 };
 
 const colorModes = {
@@ -93,8 +93,18 @@ export const baseTheme = {
    */
   iconColorAttribute: "stroke",
 
-  borders: {},
-  borderWidths: {},
+  borders: {
+    smallStrength: "1px",
+    defaultStrength: "2px",
+    defaultType: "solid",
+    defaultRadius: "8px",
+  },
+  borderWidths: {
+    default: "2px",
+  },
+  borderColors: {
+    default: "#ccc",
+  },
   breakpoints: {
     /** Phone. */
     xs: 0,
@@ -179,6 +189,10 @@ export const baseTheme = {
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
+    inputFieldHeightSmall: "20px",
+    inputFieldHeightDefault: "30px",
+    inputFieldsMaxWidth: "500px",
+    inputFieldListSmall: "100px",
   },
   spacing: {
     listIndentation: "14px",
@@ -189,9 +203,12 @@ export const baseTheme = {
     buttonGap: "8px",
     smallButtonGap: "6px",
 
+    verySmall: "5px",
     small: "10px",
     medium: "20px",
     large: "50px",
+    
+    navbarHeight: "60px",
   },
   zIndices: {
     drawer: 1200,
@@ -207,6 +224,7 @@ export const baseTheme = {
   },
 };
 
+export type Color = keyof typeof defaultPalette;
 export type ColorMode = keyof typeof colorModes;
 
 export type BreakpointQueries<T> = {

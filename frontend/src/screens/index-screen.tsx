@@ -1,36 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
 
 import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
+import { callApi, callApiWithParameters } from "../utils";
 
 export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
+  const [runs, setRuns] = useState<{ value: string; label: string}[]>([{value : "run", label:  "run"}]);
+  const [title, setTitle] = useState("Loading...");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/jannesjsontest/")
-      .then((response) => response.json())
-      .then((data: { value: string; label: string }[]) => {
-        setRuns(data);
-      })
-      .catch((error: unknown) => {
-        console.error("Error fetching data:", error);
-      });
+    const fetchData = async () => {
+      const data = await callApi("step_name_list");
+      if (data) {
+        setTitle(data);
+      }
+    };
+
+    void fetchData();
   }, []);
 
   const handleCreateRun = () => {
-    if (runs.some((run) => run.value === newRunName)) {
-      alert("A run with this name already exists!");
-      return;
+    if (runs.some((run: { value: string; }) => run.value === newRunName)) {
+        alert("A run with this name already exists!");
+        return;
     }
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
     console.log(runs);
+    void callApiWithParameters("add_run/", { run_name: newRunName, workflow_name: "standard", df_mode_name: "disk_memory"})
   };
 
   const handleContinueRun = () => {
@@ -38,14 +41,15 @@ export const IndexScreen: React.FC = () => {
   };
 
   const handleDeleteRun = () => {
-    setRuns(runs.filter((run) => run.value !== existingRun));
+    setRuns(runs.filter((run: { value: string; }) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
-    console.log(runs);
+    console.log(runs)
   };
+
 
   return (
     <div className="min-vh-100 w-100 bg-light">
-      <header
+      <header 
         style={{
           backgroundColor: defaultPalette.primary, // Verwendung der Theme-Farbe
           color: defaultPalette.onPrimary,
@@ -102,13 +106,14 @@ export const IndexScreen: React.FC = () => {
                 className="mb-3"
               />
               <Button className="btn btn-primary w-100 mb-2" onClick={handleContinueRun}>Continue</Button>
+              <Button className="btn btn-primary w-100 mb-2" onClick={() => void callApiWithParameters("delete_tag/", { run_name: "BingChilling", tag_name: "test" })}>Delete Tag: test</Button>
               <Button className="btn btn-secondary w-100">Manage databases</Button>
             </Card>
           </Col>
 
-          {/* Delete Run Section */}
+          {/* Delete Run Section "Delete an existing run:"*/}
           <Col md={4}>
-            <Card title="Delete an existing run:">
+            <Card title={title}>
               <Dropdown
                 label="Select run:"
                 options={runs}
@@ -121,7 +126,6 @@ export const IndexScreen: React.FC = () => {
           </Col>
         </Row>
       </Container>
-
     </div>
   );
 };
