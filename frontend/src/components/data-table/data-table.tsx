@@ -75,6 +75,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
             }
             pageSizeOptions={pageSizeOptions}
             sx={{
+                width: "100%",
+                height: "100%",
                 fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
                 "& .MuiDataGrid-row": {
                     backgroundColor: protzillaTheme.colors.background,
@@ -93,6 +95,9 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
                 "& .MuiTablePagination-displayedRows": {
                     fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
                     color: protzillaTheme.colors.text
+                },
+                "& .MuiDataGrid-footerContainer": {
+                    backgroundColor: protzillaTheme.colors.gray,
                 },
             }}
         />
