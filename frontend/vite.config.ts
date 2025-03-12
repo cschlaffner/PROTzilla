@@ -16,6 +16,16 @@ const viteConfig = defineViteConfig({
     }),
     svgr(),
   ],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000", // Backend Django server
+        changeOrigin: true,
+        secure: false, // Needed if backend runs on HTTP
+        cookieDomainRewrite: "localhost", // Ensures CSRF cookies work correctly
+      },
+    },
+  },
 });
 
 const vitestConfig = defineVitestConfig({
@@ -24,14 +34,6 @@ const vitestConfig = defineVitestConfig({
     globals: true,
     environment: "jsdom",
     include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-  },
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://127.0.0.1:8000", // Replace with your backend server URL
-        changeOrigin: true,
-      },
-    },
   },
 });
 

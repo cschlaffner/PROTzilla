@@ -60,6 +60,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         for tag in tags:
             all_tags.add(tag)
 
+        tags = list(tags) #sets are not json serializable
         run = { 
             "run_name": name,
             "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
@@ -75,9 +76,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         else:
             runs.append(run)
 
-    for run in runs + runs_favourited:
-        possible_tags = list(all_tags - run["run_tags"])
-        run["addable_tags"] = possible_tags
+    all_tags = list(all_tags)
 
     return (runs, runs_favourited, all_tags)
 
