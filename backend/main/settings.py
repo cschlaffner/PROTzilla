@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import os
 import sys
+import corsheaders
 from pathlib import Path
 
 PROJECT_PATH = Path(__file__).resolve().parent.parent.parent # path to the root of the project
@@ -51,13 +52,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -83,6 +86,42 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "main.wsgi.application"
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:6006',
+    'http://127.0.0.1:6006',
+]
+
+# Cross-Orgin Resource Sharing
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173", # pnpm start
+    "http://127.0.0.1:5173", # pnpm start
+    "http://localhost:6006", # Storybook
+    "http://127.0.0.1:6006", # Storybook
+    ]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+    "X-CSRFToken",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_NAME = "csrftoken"  # The name of the CSRF cookie
+CSRF_COOKIE_DOMAIN = None  # Allow any domain
+CSRF_COOKIE_HTTPONLY = False  # Set to True if you want the cookie to be inaccessible to JavaScript
+CSRF_COOKIE_SECURE = False  # Set to True if you are using HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
