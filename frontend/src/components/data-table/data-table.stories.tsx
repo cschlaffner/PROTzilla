@@ -13,7 +13,7 @@ export const Default = (args: DataTableProps): React.ReactNode => {
     const [data, setData] = useState<GridRowsProp>([]);
 
     useEffect(() => {
-        fetch("/data.json") // <-- Pfad zur JSON-Datei
+        fetch("/data.json")
             .then((res) => res.json())
             .then((data) => { setData(data); }) 
             .catch((error: unknown) => {

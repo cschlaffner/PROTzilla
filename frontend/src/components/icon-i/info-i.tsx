@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import { Icon } from "../icon";
 import { Tooltip } from "../tooltip";
