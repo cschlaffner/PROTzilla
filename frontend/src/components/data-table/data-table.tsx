@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DataGrid, GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridRowsProp } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridRowsProp, GridRenderCellParams } from "@mui/x-data-grid";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
@@ -40,6 +40,12 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
             headerName: key,
             minWidth: 200,
             flex: 1,
+            valueFormatter: (value: number | null ) => {
+                if (value == null ) {
+                    return "NaN";
+                }
+                return value;
+            },
         }));
         setColumns(dynamicColumns);
         }
