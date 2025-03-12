@@ -18,7 +18,7 @@ export const IndexScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("step_name_list");
+      const data = await callApi("step_name_list/");
       if (data) {
         setTitle(data);
       }
@@ -28,7 +28,7 @@ export const IndexScreen: React.FC = () => {
   }, []);
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("run_information");
+      const data = await callApi("run_information/");
       if (data) {
         const runs: string[] = data[0].map((run: Record<string, string | string[]>) => run.run_name)
         setRuns(runs.map(run_name => ({value: run_name, label: run_name})));
@@ -51,8 +51,9 @@ export const IndexScreen: React.FC = () => {
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
-    void callApiWithParameters("continue_run", { run_name: existingRun });
-    void navigate("/run", { state: { existingRun } });
+    callApiWithParameters("continue_run/", { run_name: existingRun }).then(
+      void navigate("/run", { state: { existingRun } })
+    );
   };
 
   const handleDeleteRun = () => {
