@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
-import { SectionNames, SelectedStep } from "./types";
+import { SelectedStep } from "./types";
 import { spacing } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
