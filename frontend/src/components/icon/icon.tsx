@@ -72,14 +72,21 @@ export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(funct
   ref,
 ){
   const [isHovered, setIsHovered] = useState(false)
+  const { onMouseEnter, onMouseLeave } = rest
 
   return(
     <Icon 
       icon={icon}
       color={isHovered ? hoverColor : color} 
       {...rest}
-      onMouseEnter={() => { setIsHovered(true); }}
-      onMouseLeave={() => { setIsHovered(false); }}
+      onMouseEnter={(e) => { 
+        setIsHovered(true);
+        if (onMouseEnter) onMouseEnter(e);
+      }}
+      onMouseLeave={(e) => { 
+        setIsHovered(false); 
+        if (onMouseLeave) onMouseLeave(e);
+      }}
       ref={ref}
     />
   )

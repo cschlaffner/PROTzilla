@@ -5,7 +5,7 @@ import { styled } from "styled-components";
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step"
 import { useTheme } from "../../../theme";
-import { Button } from "../../button";
+import { GrayButton } from "../../button";
 import { Icon, IconButton } from "../../icon/icon"
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
@@ -30,6 +30,7 @@ const SectionContainer = styled.div`
 display: flex;
 flex-direction: column;
 position: relative;
+margin: 5px 0px;
 
 &::before {
   content: "";
@@ -138,20 +139,20 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                 />
               )
           })}
-          {hasSelectedStep && (
-            <Button 
-              icon={"add"} 
-              text={isCollapsed ? undefined : "add step"} 
-              isSmall={false} textStyle={ContentTextStyle} 
-              onClick={() => { addStep(steps.length); }} 
-              style={{
-                margin: "5px", 
-                overflow:"hidden"
-              }} 
-            />
-          )}
+          <GrayButton
+            icon={"add"} 
+            isShy={true}
+            color={"protzillaDarkBlue"}
+            text={isCollapsed ? undefined : "add step"} 
+            isSmall={false} textStyle={ContentTextStyle} 
+            onClick={() => { addStep(steps.length); }} 
+            style={{
+              margin: "0px 5px", 
+              overflow:"hidden"
+            }} 
+          />
         </StepsContainer>
-        {showHandle && (
+        {showHandle && steps.length !== 0 && (
             <IconButton 
               icon="add" 
               data-group-id="step-group"
