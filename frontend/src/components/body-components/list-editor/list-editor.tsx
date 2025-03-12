@@ -37,10 +37,11 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   onChangeParamters,
   formDataPlotSettings,
   onChangePlotSettings,
+  runName
 }) => {
   return (
     <StyledRow>
-      <Sidebar />
+      <Sidebar runName={runName} />
 
       <StyledDivider />
 

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"
 import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
@@ -7,6 +7,10 @@ import { SectionNames, SelectedStep } from "./types";
 import { spacing } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
+import { SidebarProps } from "./sidebar.props";
+import { callApiWithParameters } from "../../utils";
+
+
 
 const SidebarContainer = styled(motion.div)`
   position: relative;
@@ -24,25 +28,28 @@ const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
   cursor: pointer;
 `;
 
-export const Sidebar: React.FC<React.HTMLAttributes<HTMLDivElement>> = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedStep, setSelectedStep] = useState<SelectedStep>({
-    section: "importing",
-    index: 0,
-  });
+export const Sidebar: React.FC<SidebarProps> = ({runName}:SidebarProps) => {
 
-  const sections: SectionNames[] = [
-    "importing",
-    "data_preprocessing",
-    "data_analysis",
-    "data_integration",
-  ];
-  const sectionTitles = [
-    "Importing",
-    "Data Preprocessing",
-    "Data Analysis",
-    "Data Integration",
-  ];
+  const sections: SectionNames[] = ["importing", "data_preprocessing", "data_analysis", "data_integration"]
+  const sectionTitles = ["Importing", "Data Preprocessing", "Data Analysis", "Data Integration"]
+
+  useEffect(() => {
+      console.log(runName)
+      const fetchData = async () => {
+        if (runName="") return;
+         //const asd = await callApi("run_information");
+        const data = await callApiWithParameters("get_run_data/",{run_name:runName});
+        if (data) {
+          console.log(data);
+        }
+      };
+  
+      void fetchData();
+    }, []);
+
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [selectedStep, setSelectedStep] = useState<SelectedStep>({section: "importing", index: 0})
+  
 
   return (
     <SidebarContainer

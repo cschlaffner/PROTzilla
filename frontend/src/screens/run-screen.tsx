@@ -94,6 +94,7 @@ export const RunScreen: React.FC = () => {
       onChangeParamters={() => {}}
       formDataPlotSettings={mockFormDataPlotSettings}
       onChangePlotSettings={onChangePlotSettings}
+      runName={runName}
     />
   );
 
