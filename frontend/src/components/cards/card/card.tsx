@@ -1,8 +1,7 @@
 import React from "react";
-import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
-import { shadow, spacing } from "../../../theme";
+import { shadow, spacing, styled } from "../../../theme";
 import { H3 } from "../../text";
 
 const StyledCard = styled.div`

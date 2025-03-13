@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useCallback, useRef, useState } from "react";
-import { css, styled } from "styled-components";
+import { css } from "styled-components";
 
 import { useEnableDisable, useMultiRef } from "../../hooks";
 import { useTranslation } from "../../i18n";
@@ -22,6 +22,7 @@ import {
   opacity,
   radius,
   spacing,
+  styled
 } from "../../theme";
 
 // TODO: Add translations for built-in texts
@@ -105,7 +106,7 @@ const InputContainer = styled.div<{ isFocused?: boolean }>`
   }
 
   .show-password {
-    display: ${(props) => (props.isFocused ? "inline-flex" : "none")};
+    display: ${({isFocused}) => (isFocused ? "inline-flex" : "none")};
   }
 
   &:hover {

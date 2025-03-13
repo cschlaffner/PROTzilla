@@ -1,8 +1,7 @@
 import React, { useRef } from "react";
-import { styled } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import { border, borderColors, color, fontSize, spacing } from "../../../theme";
+import { border, borderColors, color, fontSize, spacing, styled } from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styled.div`
