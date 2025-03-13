@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useCallback, useRef, useState } from "react";
-import { css } from "styled-components";
+import { css, styled } from "styled-components";
 
 import { useEnableDisable, useMultiRef } from "../../hooks";
 import { useTranslation } from "../../i18n";
@@ -22,7 +22,7 @@ import {
   opacity,
   radius,
   spacing,
-  styled
+  styledDiv
 } from "../../theme";
 
 // TODO: Add translations for built-in texts
@@ -96,7 +96,7 @@ const StyledLabel = styled.label`
   flex-direction: column;
 `;
 
-const InputContainer = styled.div<{ isFocused?: boolean }>`
+const InputContainer = styledDiv.div<{ isFocused?: boolean }>`
   display: flex;
   align-items: center;
   position: relative;
@@ -182,7 +182,7 @@ const SubscriptSpacer = styled(Spacer)<{ hasMinWidth?: boolean }>`
     `}
 `;
 
-const TagContainer = styled.div<{
+const TagContainer = styledDiv.div<{
   isFocused?: boolean;
   isDisabled?: boolean;
   hasError?: boolean;

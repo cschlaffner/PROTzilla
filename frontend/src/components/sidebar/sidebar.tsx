@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect } from "react"
 
+import { styled } from "styled-components"
 import SidebarSection from "./sidebar-section/sidebar-section";
 import { SelectedStep } from "./types";
-import { spacing, styled } from "../../theme";
+import { spacing, styledDiv } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";
@@ -20,7 +21,7 @@ const SidebarContainer = styled(motion.div)`
   overflow: hidden;
 `;
 
-const SidebarHeader = styled.div<{ isCollapsed: boolean }>`
+const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
   display: flex;
   justify-content: left;
   padding: ${spacing("small")};

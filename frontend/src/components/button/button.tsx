@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { css } from "styled-components";
+import { css, styled } from "styled-components";
 
 import { useMultiRef } from "../../hooks";
 import { useTranslation } from "../../i18n";
@@ -21,12 +21,15 @@ import {
   opacity,
   radius,
   size,
-  spacing,
-  styled
+  spacing
 } from "../../theme";
 import { FocusOutline } from "../box";
 
-const StyledButton = styled.button<
+const StyledButton = styled.button.withConfig({
+  shouldForwardProp: (prop:string) => 
+    !["isDisabled","isActive", "onlyIcon", "onlyText", "isShy", "isSmall"].includes(prop.toString())
+
+})<
   Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall"> & {
     onlyIcon?: boolean;
     onlyText?: boolean;

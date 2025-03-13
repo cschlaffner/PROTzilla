@@ -1,22 +1,23 @@
 import React, { useRef } from "react";
 
+import { styled } from "styled-components"
 import { InputContainerProps } from "./input-container.props";
-import { border, borderColors, color, fontSize, spacing, styled } from "../../../theme";
+import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
-const GridContainer = styled.div`
+const GridContainer = styledDiv.div`
   align-items: center;
   display: grid;
   grid-template-columns: auto 1fr;
   padding: ${spacing("verySmall")} 0px;
 `;
 
-const GridItem = styled.div<{ row: number; col: number }>`
+const GridItem = styledDiv.div<{ row: number; col: number }>`
   grid-column: ${({ col }) => col};
   grid-row: ${({ row }) => row};
 `;
 
-const FlexContainer = styled.div`
+const FlexContainer = styledDiv.div`
   align-items: flex-start;
   display: flex;
   gap: ${spacing("verySmall")};
@@ -24,11 +25,13 @@ const FlexContainer = styled.div`
   width: 100%;
 `;
 
-const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
+const StyledInputFrame = styled.div.withConfig({
+  shouldForwardProp: (prop:string) => prop.toString() !== "smallBorder"
+})<{ smallBorder: boolean }>`
   box-sizing: border-box;
   background-color: ${color("transparent")};
-  border: ${({ $smallBorder }) =>
-      border($smallBorder ? "smallStrength" : "defaultStrength")}
+  border: ${({ smallBorder }) =>
+      border(smallBorder ? "smallStrength" : "defaultStrength")}
     solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
@@ -36,7 +39,7 @@ const StyledInputFrame = styled.div<{ $smallBorder: boolean }>`
   width: 100%;
 `;
 
-const StyledSeparateAffix = styled.div`
+const StyledSeparateAffix = styledDiv.div`
   align-items: center;
   background: ${color("gray6")};
   box-sizing: content-box;
@@ -58,7 +61,7 @@ const StyledSeparateSuffix = styled(StyledSeparateAffix)`
     calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0;
 `;
 
-const StyledInputContainer = styled.div`
+const StyledInputContainer = styledDiv.div`
   align-items: center;
   cursor: pointer;
   display: flex;
@@ -155,7 +158,7 @@ export const InputContainer: React.FC<InputContainerProps> = ({
         </GridItem>
       )}
       <GridItem row={2} col={2}>
-        <StyledInputFrame $smallBorder={smallBorder}>
+        <StyledInputFrame smallBorder={smallBorder}>
           {separatePrefix && (
             <StyledSeparatePrefix className="separate-prefix">
               {separatePrefix}

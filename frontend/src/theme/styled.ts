@@ -1,21 +1,17 @@
-import styledComponents from 'styled-components';
+import styled from 'styled-components';
 
-// const isValidHtmlProp = (prop: string,component:string|symbol) =>  {
-//   console.log(String(component))
-//   console.log(document.createElement(String(component)))
-//   console.log(prop,prop in document.createElement(String(component)))
-//   return (prop in document.createElement(String(component))); 
-// }
-    
+const isValidHtmlProp = (prop: string) =>  {
+  return (prop in document.createElement("div")); 
+}
 
-//importing styled from here instead from "styled-components" directly makes sure only properties which React recognizes on a DOM Element are passed down
+//This component is to ensure only properties which React recognizes on a DOM Element are passed down to divs.
+//We need this so we dont get a warning and dont need to specify a Config everytime we use a styled div
 
-
-export const styled = new Proxy(styledComponents, {
+export const styledDiv = new Proxy(styled, {
   get(target, component) {
     return (...args: any[]) =>
       (target as any)[component].withConfig({
-        //shouldForwardProp: (prop:string) => isValidHtmlProp(prop, component),
+        shouldForwardProp: (prop:string) => isValidHtmlProp(prop),
       })(...args);
   },
-}) as typeof styledComponents;
+}) as typeof styled;

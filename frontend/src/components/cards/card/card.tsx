@@ -1,17 +1,18 @@
 import React from "react";
 
+import { styled } from "styled-components"
 import { CardProps } from "./card.props";
-import { shadow, spacing, styled } from "../../../theme";
+import { shadow, spacing, styledDiv } from "../../../theme";
 import { H3 } from "../../text";
 
-const StyledCard = styled.div`
+const StyledCard = styledDiv.div`
   background: white;
   border-radius: 8px;
   box-shadow: ${shadow("box_shadow")};
   padding: ${spacing("small")};
 `;
 
-const CardBody = styled.div<{ hasTitle: boolean }>`
+const CardBody = styledDiv.div<{ hasTitle: boolean }>`
   padding: ${spacing("small")};
   width: auto;
   max-height: ${({ hasTitle }) =>
