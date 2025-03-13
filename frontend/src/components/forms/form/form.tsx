@@ -52,14 +52,14 @@ export const Form: React.FC<FormProps> = ({
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
   const handleChange = (name: string, value: InputValueType) => {
-    setFormValues((prevValues) => {
-      if (prevValues[name] === value) return prevValues;
+    
+      if (formValues[name] === value) return;
 
-      const newValues = { ...prevValues, [name]: value };
+      const newValues = { ...formValues, [name]: value };
       const hasChanges =
         JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
-      const isFirstEntryForId = !(name in prevValues);
+      const isFirstEntryForId = !(name in formValues);
       if (isFirstEntryForId) {
         return newValues;
       }
@@ -79,9 +79,7 @@ export const Form: React.FC<FormProps> = ({
           setHasFormTouchedTriggered(false);
         }
       }
-
-      return newValues;
-    });
+      setFormValues(newValues)
   };
 
   const handleSubmit = () => {
