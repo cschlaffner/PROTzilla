@@ -5,15 +5,17 @@ import {
   Button,
   CircularButton,
   InvisibleButton,
+  SecondaryButton,
   ToggleableButton,
 } from "../button";
 import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
-import { shadow } from "../../theme";
+import { shadow, size, spacing } from "../../theme";
 import { callApi, callApiWithParameters } from "../../utils";
 import { iconColor } from "../icon";
 import { SectionModes } from "./section-modes.tsx";
+import { SectionTitle } from "../section-title";
 
 const sectionModes = {
   [SectionModes.All]: "All available steps",
@@ -56,14 +58,14 @@ const MakeRowDiv = styled.div`
   height: 90%;
   max-height: 90vh;
   flex-direction: row;
-  padding: 5px;
-  gap: 15px;
+  padding: ${spacing("medium")};
+  gap: ${spacing("medium")};
 `;
 
 const SectionSelection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: ${spacing("smallButtonGap")};
 `;
 
 const SectionButton = styled(ToggleableButton)`
@@ -76,7 +78,10 @@ const StepList = styled.div`
   width: 60vh;
   overflow: hidden;
   overflow-y: auto;
-  gap: 50px;
+`;
+
+const StepWrapper = styled.div`
+  padding: ${spacing("listButtonPadding")};
 `;
 
 const HelpButton = styled(Button)`
@@ -87,15 +92,15 @@ const HelpButton = styled(Button)`
   }
 
   .icon {
-    width: 12px;
-    height: 12px;
+    width: ${size("smallIcon")};
+    height: ${size("smallIcon")};
     ${iconColor("protzillaGray")}
   }
 `;
 
 const StepDescriptionDropdown = styled.div`
   box-shadow: ${shadow("tooltip")};
-  padding: 10px;
+  padding: ${spacing("small")};
   max-width: 95%;
 `;
 
@@ -184,6 +189,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     null,
   );
 
+  // - - - Render - - -
   return (
     <div>
       <CircularButton
@@ -201,7 +207,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
             selectList(allSteps);
           }}
           className={""}
-          title={"Step Selection"}
+          title={"Add steps"}
           {...rest}
         >
           <BorderDiv>
@@ -214,24 +220,29 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     onPress={() => {
                       selectList(mode);
                     }}
-                  >
-                    {mode}
-                  </SectionButton>
+                    text={mode}
+                  ></SectionButton>
                 ))}
               </SectionSelection>
               <StepList>
-                <h2>{sectionModes[section]}</h2>
+                <SectionTitle
+                  baseComponent={"h2"}
+                  title={sectionModes[section]}
+                ></SectionTitle>
                 {listMode === allSteps ? (
                   Object.keys(stepsGroupedByOperation)
                     .filter((op) => op !== allSteps)
                     .map((operation) => (
                       <div key={operation}>
-                        <h3>{operation}</h3>
-                        <div>
+                        <SectionTitle
+                          baseComponent={"h3"}
+                          description={operation}
+                        ></SectionTitle>
+                        <div style={{ padding: "10px 10px 10px 20px" }}>
                           {stepsGroupedByOperation[operation].map(
                             (item, index) => (
-                              <div key={`step_${String(index)}`}>
-                                <InvisibleButton
+                              <StepWrapper key={`step_${String(index)}`}>
+                                <SecondaryButton
                                   style={{
                                     textAlign: "left",
                                     justifyContent: "left",
@@ -243,9 +254,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                     )
                                   }
                                   key={index}
-                                >
-                                  {item.display_name}
-                                </InvisibleButton>
+                                  text={item.display_name}
+                                  tooltip={item.method_description}
+                                />
                                 <HelpButton
                                   icon={"help"}
                                   onPress={() => {
@@ -261,7 +272,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                     {item.method_description}
                                   </StepDescriptionDropdown>
                                 )}
-                              </div>
+                              </StepWrapper>
                             ),
                           )}
                         </div>
@@ -269,35 +280,43 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     ))
                 ) : (
                   <div>
-                    {activeStepList.map((item, index) => (
-                      <div key={`step_${String(index)}`}>
-                        <InvisibleButton
-                          style={{ textAlign: "left", justifyContent: "left" }}
-                          onPress={() =>
-                            void handleAddStep(runName, item.method_name)
-                          }
-                          key={index}
-                          tooltip={item.method_description}
-                        >
-                          {item.display_name}
-                        </InvisibleButton>
-                        <HelpButton
-                          icon={"help"}
-                          onPress={() => {
-                            setVisibleDescription(
-                              visibleDescription === item.method_name
-                                ? null
-                                : item.method_name,
-                            );
-                          }}
-                        />
-                        {visibleDescription === item.method_name && (
-                          <StepDescriptionDropdown>
-                            {item.method_description}
-                          </StepDescriptionDropdown>
-                        )}
-                      </div>
-                    ))}
+                    <SectionTitle
+                      baseComponent={"h3"}
+                      description={listMode}
+                    ></SectionTitle>
+                    <div style={{ padding: "10px 10px 10px 20px" }}>
+                      {activeStepList.map((item, index) => (
+                        <StepWrapper key={`step_${String(index)}`}>
+                          <SecondaryButton
+                            style={{
+                              textAlign: "left",
+                              justifyContent: "left",
+                            }}
+                            onPress={() =>
+                              void handleAddStep(runName, item.method_name)
+                            }
+                            key={index}
+                            text={item.display_name}
+                            tooltip={item.method_description}
+                          />
+                          <HelpButton
+                            icon={"help"}
+                            onPress={() => {
+                              setVisibleDescription(
+                                visibleDescription === item.method_name
+                                  ? null
+                                  : item.method_name,
+                              );
+                            }}
+                          />
+                          {visibleDescription === item.method_name && (
+                            <StepDescriptionDropdown>
+                              {item.method_description}
+                            </StepDescriptionDropdown>
+                          )}
+                        </StepWrapper>
+                      ))}
+                    </div>
                   </div>
                 )}
               </StepList>
