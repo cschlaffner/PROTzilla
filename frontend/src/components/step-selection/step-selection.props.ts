@@ -1,4 +1,4 @@
-import { SectionModes } from "./step-selection.tsx";
+import { SectionModes } from "./section-modes.tsx";
 
 export interface StepSelectionProps
   extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {

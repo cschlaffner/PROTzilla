@@ -1,4 +1,4 @@
-const fetch_API_ROOT = () => {
+const fetchApiRoot = () => {
   const currentHost = window.location.hostname;
   const currentPort = window.location.port;
   if (currentPort === "6006") {
@@ -14,4 +14,4 @@ const fetch_API_ROOT = () => {
   return "/api/";
 };
 
-export const API_ROOT = fetch_API_ROOT();
+export const API_ROOT = fetchApiRoot();

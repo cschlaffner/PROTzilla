@@ -10,17 +10,10 @@ import {
 import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
-import { callApi, callApiWithParameters } from "../../utils";
 import { shadow } from "../../theme";
+import { callApi, callApiWithParameters } from "../../utils";
 import { iconColor } from "../icon";
-
-export const enum SectionModes {
-  All = "all",
-  Importing = "importing",
-  DataPreprocessing = "data_preprocessing",
-  DataAnalysis = "data_analysis",
-  DataIntegration = "data_integration",
-}
+import { SectionModes } from "./section-modes.tsx";
 
 const sectionModes = {
   [SectionModes.All]: "All available steps",
@@ -30,7 +23,7 @@ const sectionModes = {
   [SectionModes.DataIntegration]: "Data Integration",
 };
 
-const all_steps = "All steps";
+const allSteps = "All steps";
 
 export interface StepItem {
   method_name: string;
@@ -114,41 +107,41 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 }) => {
   // - - - Step list handling - - -
   const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
+  const [listMode, setListMode] = useState<string>(); // now for operations
+  const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+
   useEffect(() => {
     const fetchSteps = async () => {
       const data = await fetchStepList();
-      const list = data.filter((step) => step.section === section);
+      const list = data.filter(
+        (step) => (step.section as SectionModes) === section,
+      );
       setAllStepsList(list);
     };
 
-    fetchSteps().then();
-  }, []);
+    void fetchSteps();
+  }, [section]);
 
-  const [listMode, setListMode] = useState<string>(); // now for operations
-  useEffect(() => {
-    setListMode(all_steps);
-  }, [allStepsList]);
-  const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
   useEffect(() => {
     setActiveStepList(allStepsList);
   }, [allStepsList]);
 
+  useEffect(() => {
+    setListMode(allSteps);
+  }, [allStepsList]);
+
   const selectList = (mode: string) => {
     setListMode(mode);
-    setActiveStepList(stepsGroupedByOperation[mode] || []);
+    setActiveStepList(stepsGroupedByOperation[mode]);
   };
 
   // - - - Step grouping - - -
   const stepsGroupedByOperation = useMemo(() => {
     return allStepsList.reduce<Record<string, StepItem[]>>((acc, step) => {
-      if (!acc[all_steps]) {
-        acc[all_steps] = [];
-      }
-      if (!acc[step.operation]) {
-        acc[step.operation] = [];
-      }
+      acc[allSteps] = [];
+      acc[step.operation] = [];
       acc[step.operation].push(step);
-      acc[all_steps].push(step);
+      acc[allSteps].push(step);
       return acc;
     }, {});
   }, [allStepsList]);
@@ -191,16 +184,15 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
         icon={"add"}
         onPress={() => {
           openModal();
-          continueRunForDebugging(runName);
+          void continueRunForDebugging(runName);
         }}
-        tooltip={"meep"}
       />
       <div ref={refModal}>
         <WideModal
           isOpen={isModalOpen}
           onClose={() => {
             closeModal();
-            selectList(all_steps);
+            selectList(allSteps);
           }}
           className={""}
           title={"Step Selection"}
@@ -223,23 +215,26 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
               </SectionSelection>
               <StepList>
                 <h2>{sectionModes[section]}</h2>
-                {listMode === all_steps ? (
+                {listMode === allSteps ? (
                   Object.keys(stepsGroupedByOperation)
-                    .filter((op) => op !== all_steps)
+                    .filter((op) => op !== allSteps)
                     .map((operation) => (
                       <div key={operation}>
                         <h3>{operation}</h3>
                         <div>
                           {stepsGroupedByOperation[operation].map(
                             (item, index) => (
-                              <div>
+                              <div key={`step_${String(index)}`}>
                                 <InvisibleButton
                                   style={{
                                     textAlign: "left",
                                     justifyContent: "left",
                                   }}
                                   onPress={() =>
-                                    handleAddStep(runName, item.method_name)
+                                    void handleAddStep(
+                                      runName,
+                                      item.method_name,
+                                    )
                                   }
                                   key={index}
                                 >
@@ -247,13 +242,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                 </InvisibleButton>
                                 <HelpButton
                                   icon={"help"}
-                                  onPress={() =>
+                                  onPress={() => {
                                     setVisibleDescription(
                                       visibleDescription === item.method_name
                                         ? null
                                         : item.method_name,
-                                    )
-                                  }
+                                    );
+                                  }}
                                 />
                                 {visibleDescription === item.method_name && (
                                   <StepDescriptionDropdown>
@@ -269,11 +264,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                 ) : (
                   <div>
                     {activeStepList.map((item, index) => (
-                      <div>
+                      <div key={`step_${String(index)}`}>
                         <InvisibleButton
                           style={{ textAlign: "left", justifyContent: "left" }}
                           onPress={() =>
-                            handleAddStep(runName, item.method_name)
+                            void handleAddStep(runName, item.method_name)
                           }
                           key={index}
                           tooltip={item.method_description}
@@ -282,13 +277,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                         </InvisibleButton>
                         <HelpButton
                           icon={"help"}
-                          onPress={() =>
+                          onPress={() => {
                             setVisibleDescription(
                               visibleDescription === item.method_name
                                 ? null
                                 : item.method_name,
-                            )
-                          }
+                            );
+                          }}
                         />
                         {visibleDescription === item.method_name && (
                           <StepDescriptionDropdown>
