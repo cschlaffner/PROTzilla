@@ -137,13 +137,19 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - Step grouping - - -
   const stepsGroupedByOperation = useMemo(() => {
-    return allStepsList.reduce<Record<string, StepItem[]>>((acc, step) => {
-      acc[allSteps] = [];
-      acc[step.operation] = [];
-      acc[step.operation].push(step);
-      acc[allSteps].push(step);
-      return acc;
-    }, {});
+    const result: Record<string, StepItem[]> = {
+      [allSteps]: [],
+    };
+
+    for (const step of allStepsList) {
+      if (!Object.prototype.hasOwnProperty.call(result, step.operation)) {
+        result[step.operation] = [];
+      }
+      result[step.operation].push(step);
+      result[allSteps].push(step);
+    }
+
+    return result;
   }, [allStepsList]);
 
   const operationModes: string[] = useMemo(
