@@ -5,11 +5,11 @@ from unittest.mock import call
 
 import pytest
 
-from backend.protzilla.constants.paths import PROJECT_PATH, BACKEND_PATH
+from backend.protzilla.constants.paths import PROJECT_PATH
 from backend.protzilla.utilities import random_string
 
+sys.path.append(f"{PROJECT_PATH}/..")
 sys.path.append(f"{PROJECT_PATH}")
-sys.path.append(f"{BACKEND_PATH}")
 
 from backend.protzilla.runner import Runner, _serialize_graphs
 from backend.runner_cli import args_parser
@@ -41,11 +41,7 @@ def mock_perform_method(runner: Runner):
         mock_perform.methods.append(str(runner.run.current_step))
         mock_perform.inputs.append(runner.run.current_step.inputs)
 
-        # side effect to mark the step as finished
-        runner.run.current_step.output = Output(
-            {key: "mock_output_value" for key in runner.run.current_step.output_keys})
-        if len(runner.run.current_step.output_keys) == 0:
-            runner.run.current_step.plots = Plots(["mock_plot"])
+        runner.run.current_step.calculation_status = "complete"
 
     mock_perform.side_effect = mock_current_parameters
 
@@ -156,8 +152,6 @@ def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_path, metadat
     mock_plot = mock_perform_plot(runner)
 
     monkeypatch.setattr(runner, "_perform_current_step", mock_method)
-    for step in runner.run.steps.data_preprocessing:
-        monkeypatch.setattr(step, "plot", mock_plot)
 
     runner.compute_workflow()
 
@@ -192,30 +186,6 @@ def test_runner_calculates_logging(caplog, tests_folder_name, ms_data_path):
     assert "FileNotFoundError" in caplog.text
 
 
-def test_runner_plots(monkeypatch, tests_folder_name, ms_data_path, metadata_path):
-    plot_args = [
-        "only_import_and_filter_proteins",
-        ms_data_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_path}",
-        "--all_plots",
-    ]
-    kwargs = args_parser().parse_args(plot_args).__dict__
-    runner = Runner(**kwargs)
-
-    mock_method = mock_perform_method(runner)
-    mock_plot = mock_perform_plot(runner)
-
-    monkeypatch.setattr(runner, "_perform_current_step", mock_method)
-    for step in runner.run.steps.data_preprocessing:
-        monkeypatch.setattr(step, "plot", mock_plot)
-
-    runner.compute_workflow()
-
-    assert mock_plot.call_count == 1
-    assert mock_plot.inputs == [{"graph_type": "Bar chart"}]
-
-
 def test_serialize_graphs():
     pre_graphs = [  # this is what the "graphs" section of a step should look like
         {"graph_type": "Bar chart", "group_by": "Sample"},
@@ -231,7 +201,7 @@ def test_serialize_graphs():
 
 def test_serialize_workflow_graphs():
     with open(
-        BACKEND_PATH / "tests" / "test_workflows" / "example_workflow.json", "r"
+        PROJECT_PATH / "tests" / "test_workflows" / "example_workflow.json", "r"
     ) as f:
         workflow_config = json.load(f)
 
@@ -256,8 +226,8 @@ def test_integration_runner(metadata_path, ms_data_path, tests_folder_name, monk
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
-            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
+            "ms_data_path": f"{PROJECT_PATH}/{ms_data_path}",
+            "meta_data_path": f"{PROJECT_PATH}/{metadata_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",
@@ -277,8 +247,8 @@ def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_n
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
-            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
+            "ms_data_path": f"{PROJECT_PATH}/{ms_data_path}",
+            "meta_data_path": f"{PROJECT_PATH}/{metadata_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",

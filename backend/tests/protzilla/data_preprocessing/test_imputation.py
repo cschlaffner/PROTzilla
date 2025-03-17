@@ -26,6 +26,68 @@ def protein_group_intensities(dataframe, protein_group_name):
 
 
 @pytest.fixture
+def input_imputation_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", np.nan],
+        ["Sample1", "Protein2", "Gene2", 20],
+        ["Sample1", "Protein3", "Gene3", 10],
+        ["Sample2", "Protein1", "Gene1", 1],
+        ["Sample2", "Protein2", "Gene2", np.nan],
+        ["Sample2", "Protein3", "Gene3", 2],
+        ["Sample3", "Protein1", "Gene1", 100],
+        ["Sample3", "Protein2", "Gene2", np.nan],
+        ["Sample3", "Protein3", "Gene3", 80],
+    )
+
+    input_imputation_df = pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    return input_imputation_df
+
+
+@pytest.fixture
+def assertion_df_knn():
+    assertion_list = (
+        ["Sample1", "Protein1", "Gene1", 50.5],
+        ["Sample1", "Protein2", "Gene2", 20],
+        ["Sample1", "Protein3", "Gene3", 10],
+        ["Sample2", "Protein1", "Gene1", 1.0],
+        ["Sample2", "Protein2", "Gene2", 20],
+        ["Sample2", "Protein3", "Gene3", 2],
+        ["Sample3", "Protein1", "Gene1", 100],
+        ["Sample3", "Protein2", "Gene2", 20],
+        ["Sample3", "Protein3", "Gene3", 80],
+    )
+    assertion_df = pd.DataFrame(
+        data=assertion_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+    return assertion_df
+
+
+@pytest.fixture
+def assertion_df_min_value_per_df():
+    assertion_list = (
+        ["Sample1", "Protein1", "Gene1", 0.1],
+        ["Sample1", "Protein2", "Gene2", 20],
+        ["Sample1", "Protein3", "Gene3", 10],
+        ["Sample2", "Protein1", "Gene1", 1],
+        ["Sample2", "Protein2", "Gene2", 0.1],
+        ["Sample2", "Protein3", "Gene3", 2],
+        ["Sample3", "Protein1", "Gene1", 100],
+        ["Sample3", "Protein2", "Gene2", 0.1],
+        ["Sample3", "Protein3", "Gene3", 80],
+    )
+    assertion_df = pd.DataFrame(
+        data=assertion_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+    return assertion_df
+
+
+@pytest.fixture
 def assertion_df_min_value_per_sample():
     assertion_list = (
         ["Sample1", "Protein1", "Gene1", 2],
@@ -97,8 +159,8 @@ def test_imputation_min_value_per_df(
     method_outputs = by_min_per_dataset(**method_inputs)
 
     fig1, fig2 = by_min_per_dataset_plot(
-        method_inputs,
-        method_outputs,
+        input_imputation_df,
+        method_outputs["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -132,8 +194,8 @@ def test_imputation_min_value_per_sample(
     method_outputs = by_min_per_sample(**method_inputs)
 
     fig1, fig2 = by_min_per_sample_plot(
-        method_inputs,
-        method_outputs,
+        input_imputation_df,
+        method_outputs["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -167,8 +229,8 @@ def test_imputation_min_value_per_protein(
     method_outputs = by_min_per_protein(**method_inputs)
 
     fig1, fig2 = by_min_per_protein_plot(
-        method_inputs,
-        method_outputs,
+        input_imputation_df,
+        method_outputs["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -202,8 +264,8 @@ def test_imputation_mean_per_protein(
     method_outputs = by_simple_imputer(**method_inputs)
 
     fig1, fig2 = by_simple_imputer_plot(
-        method_inputs,
-        method_outputs,
+        input_imputation_df,
+        method_outputs["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -235,8 +297,8 @@ def test_imputation_knn(show_figures, input_imputation_df, assertion_df_knn):
     method_outputs = by_knn(**method_inputs)
 
     fig1, fig2 = by_knn_plot(
-        method_inputs,
-        method_outputs,
+        input_imputation_df,
+        method_outputs["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -277,8 +339,8 @@ def test_imputation_normal_distribution_sampling(show_figures, input_imputation_
     )
 
     fig1, fig2 = by_normal_distribution_sampling_plot(
-        method_inputs_perProtein,
-        method_outputs_perProtein,
+        input_imputation_df,
+        method_outputs_perProtein["protein_df"],
         "Boxplot",
         "Bar chart",
         "Sample",
