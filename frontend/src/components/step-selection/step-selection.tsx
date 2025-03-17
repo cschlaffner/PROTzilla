@@ -242,7 +242,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                           {stepsGroupedByOperation[operation].map(
                             (item, index) => (
                               <StepWrapper key={`step_${String(index)}`}>
-                                <SecondaryButton
+                                <InvisibleButton
                                   style={{
                                     textAlign: "left",
                                     justifyContent: "left",
