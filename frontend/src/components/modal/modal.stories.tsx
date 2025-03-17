@@ -15,8 +15,20 @@ const Template: StoryFn<ModalProps> = (args) => {
 
   return (
     <>
-      <Button onClick={() => { setIsOpen(true); }}>Open Modal</Button>
-      <Modal {...args} isOpen={isOpen} onClose={() => { setIsOpen(false); }}>
+      <Button
+        onClick={() => {
+          setIsOpen(true);
+        }}
+      >
+        Open Modal
+      </Button>
+      <Modal
+        {...args}
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+        }}
+      >
         <p>This is a modal with some content.</p>
       </Modal>
     </>

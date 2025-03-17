@@ -138,8 +138,8 @@ export interface MultilineTextFieldProps extends TextFieldProps {
 }
 
 export interface CollapsibleLabelProps {
-  width: number|string, 
-  collapsedWidth?: number, 
-  isCollapsed:boolean, 
-  children?: React.ReactNode 
+  width: number | string;
+  collapsedWidth?: number;
+  isCollapsed: boolean;
+  children?: React.ReactNode;
 }

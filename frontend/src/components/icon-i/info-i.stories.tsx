@@ -1,16 +1,16 @@
 import React from "react";
 
-import { InfoIComponent } from "./info-i"
-import { InfoIProps } from "./info-i.props"
+import { InfoIComponent } from "./info-i";
+import { InfoIProps } from "./info-i.props";
 
 export default {
-    component: InfoIComponent,
-    title: "Info I"
+  component: InfoIComponent,
+  title: "Info I",
 };
 
 export const onHover = (args: InfoIProps): React.ReactNode => (
-    <InfoIComponent {...args} />
+  <InfoIComponent {...args} />
 );
 onHover.args = {
-    text: "Das ist ein Text zur Information!",
+  text: "Das ist ein Text zur Information!",
 };

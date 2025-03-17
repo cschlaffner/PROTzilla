@@ -8,5 +8,5 @@ export interface SwitchOptionProps<T = any>
   extends ISwitchOption<T>,
     React.HTMLAttributes<HTMLButtonElement> {
   isActive?: boolean;
-  color?: Color
+  color?: Color;
 }

@@ -27,18 +27,24 @@ export const InfoIComponent: React.FC<InfoIProps> = ({ text }) => {
     <Wrapper>
       <IconButton
         ref={iconRef}
-        onMouseEnter={() => { setIsShown(true)}}
-        onMouseLeave={() => { setIsShown(false)}} >
+        onMouseEnter={() => {
+          setIsShown(true);
+        }}
+        onMouseLeave={() => {
+          setIsShown(false);
+        }}
+      >
         <Icon icon="info" color="primary" />
       </IconButton>
 
       {isShown && (
-          <Tooltip
-            text={<div>{text}</div>}
-            isShown={true}
-            distance={25}
-            anchor={iconRef.current ?? undefined}
-            position="top"/>
+        <Tooltip
+          text={<div>{text}</div>}
+          isShown={true}
+          distance={25}
+          anchor={iconRef.current ?? undefined}
+          position="top"
+        />
       )}
     </Wrapper>
   );
