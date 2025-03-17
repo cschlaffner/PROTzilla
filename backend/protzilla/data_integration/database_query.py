@@ -101,13 +101,11 @@ def check_biomart_availability() -> dict:
         - url: str, the URL where BioMart is available
     """
 
-
     mirror_list = [
         "http://ensembl.org/biomart",
         "http://asia.ensembl.org/biomart",
         "http://useast.ensembl.org/biomart",
     ]
-
     for url in mirror_list:
         try:
             # Requesting response the same way as server = BiomartServer(url)

@@ -33,12 +33,8 @@ export const callApiWithParameters = async (
 
     const data = await response.json();
 
-    if (response.ok) {
-      alert(data.message);
-    } else {
-      alert(data.message);
-    }
     return data;
+
   } catch (error) {
     console.error("Error:", error);
   }
@@ -50,12 +46,8 @@ export const callApi = async (url: string) => {
 
     const data = await response.json();
 
-    if (response.ok) {
-      alert(data.message);
-    } else {
-      alert(data.message);
-    }
     return data;
+
   } catch (error) {
     console.error("Error:", error);
   }

@@ -29,7 +29,6 @@ from backend.protzilla.data_integration.enrichment_analysis_gsea import (
     gsea_preranked,
     create_ranked_df,
 )
-
 from backend.protzilla.data_integration.database_query import check_biomart_availability
 
 # isort:end_skip_file

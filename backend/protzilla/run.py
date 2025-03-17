@@ -61,7 +61,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             all_tags.add(tag)
 
         tags = list(tags) #sets are not json serializable
-        run = { 
+        run = {
             "run_name": name,
             "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
             "modification_date": datetime.datetime.fromtimestamp(modification_time).strftime("%d %m %Y"),
@@ -75,10 +75,6 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             runs_favourited.append(run)
         else:
             runs.append(run)
-
-    #for run in runs + runs_favourited:  #this functionality could be done in frontend?
-     #   possible_tags = list(all_tags - run["run_tags"])
-      #  run["addable_tags"] = possible_tags 
 
     all_tags = list(all_tags)
 

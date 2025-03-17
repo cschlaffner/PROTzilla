@@ -1,4 +1,4 @@
-from backend.main.viewswithapihelper import get_all_possible_step_names
+from backend.main.views_with_api_helper import get_all_possible_step_names
 def test_get_all_possible_step_names():
     expected_step_names = ["MaxQuantImport", 
                            "DiannImport", 

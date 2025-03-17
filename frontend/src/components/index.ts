@@ -11,6 +11,7 @@ export * from "./popup";
 export * from "./screen";
 export * from "./section";
 export * from "./section-title";
+export * from "./sidebar"
 export * from "./switch";
 export * from "./table";
 export * from "./text";
