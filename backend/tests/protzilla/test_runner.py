@@ -5,7 +5,7 @@ from unittest.mock import call
 
 import pytest
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import BACKEND_PATH, PROJECT_PATH, TEST_WORKFLOW_PATH
 from backend.protzilla.utilities import random_string
 
 sys.path.append(f"{PROJECT_PATH}/..")
@@ -201,7 +201,7 @@ def test_serialize_graphs():
 
 def test_serialize_workflow_graphs():
     with open(
-        PROJECT_PATH / "tests" / "test_workflows" / "example_workflow.json", "r"
+        TEST_WORKFLOW_PATH / "example_workflow.json", "r"
     ) as f:
         workflow_config = json.load(f)
 
@@ -226,8 +226,8 @@ def test_integration_runner(metadata_path, ms_data_path, tests_folder_name, monk
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{PROJECT_PATH}/{ms_data_path}",
-            "meta_data_path": f"{PROJECT_PATH}/{metadata_path}",
+            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
+            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",
@@ -247,8 +247,8 @@ def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_n
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{PROJECT_PATH}/{ms_data_path}",
-            "meta_data_path": f"{PROJECT_PATH}/{metadata_path}",
+            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
+            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",

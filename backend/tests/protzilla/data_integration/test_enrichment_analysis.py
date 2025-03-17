@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import requests
 
-from backend.protzilla.constants.paths import PROJECT_PATH
+from backend.protzilla.constants.paths import BACKEND_PATH, TEST_DATA_PATH
 
 # order is important to ensure correctness of patched functions
 # isort:skip_file
@@ -29,16 +29,16 @@ from backend.protzilla.data_integration.enrichment_analysis_gsea import (
     gsea_preranked,
     create_ranked_df,
 )
-from backend.protzilla.data_integration.database_query import is_biomart_available
+from backend.protzilla.data_integration.database_query import check_biomart_availability
 
 # isort:end_skip_file
 
-biomart_availability = is_biomart_available()
+biomart_availability = check_biomart_availability()
 
 
 @pytest.fixture
 def data_folder_tests():
-    return PROJECT_PATH / "tests/test_data/enrichment_data"
+    return BACKEND_PATH / "tests/test_data/enrichment_data"
 
 
 @patch("restring.restring.get_functional_enrichment")
@@ -160,14 +160,13 @@ def test_merge_up_down_regulated_dfs_restring():
 
 
 @patch(
-    "protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
+    "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
 @pytest.mark.parametrize(
     "background",
     [
         None,
-        PROJECT_PATH
-        / "tests/test_data/enrichment_data/background_imported_proteins.csv",
+        TEST_DATA_PATH / "enrichment_data/background_imported_proteins.csv",
     ],
 )
 def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests):
@@ -591,9 +590,9 @@ def offline_mock_mapping():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.json",
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
     ],
 )
 def test_GO_analysis_offline_protein_sets(
@@ -650,8 +649,8 @@ def test_GO_analysis_offline_protein_sets(
 @pytest.mark.parametrize(
     "background_path",
     [
-        PROJECT_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
-        PROJECT_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
     ],
 )
 def test_GO_analysis_offline_background(
@@ -821,9 +820,9 @@ def test_merge_up_down_regulated_proteins_results():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.json",
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
-        PROJECT_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
     ],
 )
 def test_read_protein_or_gene_sets_file(protein_sets_path):
@@ -877,8 +876,8 @@ def test_read_protein_or_gene_sets_file_invalid_filetype(data_folder_tests):
 @pytest.mark.parametrize(
     "background_path",
     [
-        PROJECT_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
-        PROJECT_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
     ],
 )
 def test_read_background_file(background_path):

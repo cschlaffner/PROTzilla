@@ -1,7 +1,7 @@
 import pytest
 import plotly.graph_objects as go
 
-from backend.settings import (
+from backend.settings.plot_template import (
     determine_font,
     resize_for_display,
     get_scale_factor

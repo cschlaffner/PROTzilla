@@ -28,7 +28,7 @@ def precision_recall_curve_plot(model, input_test_df, labels_test_df, plot_title
     display = PrecisionRecallDisplay.from_estimator(
         model, input_test_df, labels_test_df["Encoded Label"]
     )
-    display.plot(color=PLOT_PRIMARY_COLOR[0])
+    display.plot(color=PLOT_PRIMARY_COLOR)
     plot.title(plot_title)
     return [fig_to_base64(display.figure_)]
 
@@ -55,6 +55,6 @@ def roc_curve_plot(model, input_test_df, labels_test_df, plot_title=None):
     display = RocCurveDisplay.from_estimator(
         model, input_test_df, labels_test_df["Encoded Label"]
     )
-    display.plot(color=PLOT_PRIMARY_COLOR[0])
+    display.plot(color=PLOT_PRIMARY_COLOR)
     plot.title(plot_title)
     return [fig_to_base64(display.figure_)]

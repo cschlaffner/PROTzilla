@@ -1,17 +1,17 @@
 from django.http import HttpRequest
 
-import protzilla.methods.data_analysis as data_analysis
-import protzilla.methods.data_integration as data_integration
-import protzilla.methods.data_preprocessing as data_preprocessing
-import protzilla.methods.importing as importing
-import ui.runs.forms.data_analysis as data_analysis_forms
-import ui.runs.forms.data_integration as data_integration_forms
-import ui.runs.forms.data_preprocessing as data_preprocessing_forms
-import ui.runs.forms.importing as importing_forms
-from protzilla.run import Run
-from protzilla.steps import Step
+import backend.protzilla.methods.data_analysis as data_analysis
+import backend.protzilla.methods.data_integration as data_integration
+import backend.protzilla.methods.data_preprocessing as data_preprocessing
+import backend.protzilla.methods.importing as importing
+import backend.main.forms.data_analysis as data_analysis_forms
+import backend.main.forms.data_integration as data_integration_forms
+import backend.main.forms.data_preprocessing as data_preprocessing_forms
+import backend.main.forms.importing as importing_forms
+from backend.protzilla.run import Run
+from backend.protzilla.steps import Step
 
-from .forms.base import MethodForm
+from backend.main.forms.base import MethodForm
 
 _forward_mapping = {
     importing.MaxQuantImport: importing_forms.MaxQuantImportForm,
