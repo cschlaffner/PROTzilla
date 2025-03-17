@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { spacing } from "../theme";
-import { ListEditor, Navbar, PlotComponent, PlotProps, SwitchCard } from "./../components";
+import { ListEditor, Navbar, PlotComponent, SwitchCard } from "./../components";
 import {
   dummyTextComponent1,
   dummyTextComponent2,
