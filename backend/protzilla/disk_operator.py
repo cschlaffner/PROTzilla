@@ -240,7 +240,7 @@ class DiskOperator:
         with ErrorHandler():
             step_output = {}
             for key, value in output.items():
-                if isinstance(value, str) and Path(value).exists():
+                if isinstance(value, str) and Path(self.dataframe_dir / value).exists():
                     step_output[key] = self.dataframe_operator.read(value)
                 else:
                     step_output[key] = value
@@ -251,9 +251,10 @@ class DiskOperator:
             output_data = {}
             for key, value in output:
                 if isinstance(value, pd.DataFrame):
-                    file_path = self.dataframe_dir / f"{instance_identifier}_{key}.csv"
+                    file = f"{instance_identifier}_{key}.csv"
+                    file_path = self.dataframe_dir / file
                     self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path)
+                    output_data[key] = file
                 else:
                     output_data[key] = value
             return output_data
