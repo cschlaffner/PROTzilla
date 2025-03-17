@@ -56,8 +56,7 @@ class Step:
 
     def to_dict(self):
         """
-        Returns a dictionary representation of the step object with all meta information about the step.
-        TODO decide which fields are relevant for the frontend
+        Returns a dictionary representation of the step object with some meta information about the step.
         :return: dict
         """
         return {
