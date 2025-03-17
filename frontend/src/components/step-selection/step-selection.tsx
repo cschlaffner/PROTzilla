@@ -225,10 +225,15 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                 ))}
               </SectionSelection>
               <StepList>
-                <SectionTitle
-                  baseComponent={"h2"}
-                  title={sectionModes[section]}
-                ></SectionTitle>
+                {allStepsList.length === 0 ? (
+                  <SectionTitle baseComponent={"h2"} title={"Loading..."} />
+                ) : (
+                  <SectionTitle
+                    baseComponent={"h2"}
+                    title={sectionModes[section]}
+                  />
+                )}
+
                 {listMode === allSteps ? (
                   Object.keys(stepsGroupedByOperation)
                     .filter((op) => op !== allSteps)

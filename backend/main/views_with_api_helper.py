@@ -44,6 +44,19 @@ def get_all_possible_step_names() -> list[str]:
     """
     return [step.__name__ for step in get_all_methods()]
 
+def get_all_possible_steps() -> list[dict]:
+    """
+        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
+
+        :return: List of step dictionaries via the steps to_dict function.
+        :rtype: List[dict]
+        """
+    steps = get_all_methods()
+    step_list = []
+    for step in steps:
+        step_list.append(step.to_dict(step))
+    return step_list
+
 def get_displayed_steps(
     steps: StepManager,
 ) -> list[dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
