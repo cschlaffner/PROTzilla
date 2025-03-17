@@ -347,7 +347,6 @@ def get_step_plots(request):
 
         run = active_runs[run_name]
         plots = [to_json(plot) for plot in run.current_plots.plots]
-        print(plots)
 
         return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
     else:

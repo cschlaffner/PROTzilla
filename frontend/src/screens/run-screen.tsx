@@ -86,38 +86,20 @@ export const RunScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApiWithParameters("get_step_plots/", {run_name: runName});
-      if (data) {
-        const { data: rawData, layout: rawLayout } = data;
-        console.log(data);
-        const parsedData = parsePlotlyJson(rawData);
-        const parsedLayout = parsePlotlyJson(rawLayout);
-        setPlotData(parsedData);
-        setPlotLayout(parsedLayout);
-        console.log("Gute Daten", parsedData);
-        console.log("Viele Daten", parsedLayout);
+      const response = await callApiWithParameters("get_step_plots/", { run_name: runName });
+      if (response) {
+        const data = response.data;
+        const parsedData = JSON.parse(data[0]);
+        const { data: rawData, layout: rawLayout } = parsedData;
+  
+        setPlotData(rawData);
+        setPlotLayout(rawLayout);
+        }
       }
-    };
+  
     void fetchData();
   }, []);
 
-  const parsePlotlyJson = (input: any) => {
-    if (typeof input === "string") {
-      try {
-        const parsed = JSON.parse(input);
-  
-        // If it's an array, parse its elements if needed
-        if (Array.isArray(parsed)) {
-          return parsed.map((item) => (typeof item === "string" ? JSON.parse(item) : item));
-        }
-        return parsed;
-      } catch (error) {
-        console.error("JSON parsing error:", error);
-        return input; // Return as-is if parsing fails
-      }
-    }
-    return input; // If already an object, return as-is
-  };
 
   const plotComponent = (
     <StyledPlotContainer>
