@@ -252,3 +252,7 @@ class Run:
     @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+    
+    @property
+    def current_form(self) -> dict:
+        return self.steps.current_step.get_form()

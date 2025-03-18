@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import asdict
 import inspect
 import logging
 import traceback
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
+import json
 
 import pandas as pd
 import plotly
 from PIL import Image
 
+from backend.protzilla.form import FormData, InputField, InputType
 from backend.protzilla.utilities import format_trace
 
 
@@ -197,6 +200,11 @@ class Step:
                 else:
                     return False
         return True
+    
+    form = None
+
+    def get_form(self)->str:
+        return json.dumps(asdict(self.form), indent=4, ensure_ascii=False)
 
     @property
     def finished(self) -> bool:
