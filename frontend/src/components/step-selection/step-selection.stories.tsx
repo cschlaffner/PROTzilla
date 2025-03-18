@@ -14,6 +14,7 @@ export const importingSteps = (args: StepSelectionProps): React.ReactNode => (
 importingSteps.args = {
   runName: "runrun",
   section: SectionModes.Importing,
+  isSmallButton: true,
 };
 
 export const dataAnalysisSteps = (
@@ -22,6 +23,7 @@ export const dataAnalysisSteps = (
 dataAnalysisSteps.args = {
   runName: "runrun",
   section: SectionModes.DataAnalysis,
+  isSmallButton: true,
 };
 
 export const dataIntegrationSteps = (
@@ -30,12 +32,23 @@ export const dataIntegrationSteps = (
 dataIntegrationSteps.args = {
   runName: "runrun",
   section: SectionModes.DataIntegration,
+  isSmallButton: true,
 };
 
-export const dataPreproscessingSteps = (
+export const dataPreprocessingSteps = (
   args: StepSelectionProps,
 ): React.ReactNode => <StepSelection {...args} />;
-dataPreproscessingSteps.args = {
+dataPreprocessingSteps.args = {
   runName: "runrun",
   section: SectionModes.DataPreprocessing,
+  isSmallButton: true,
+};
+
+export const withBiggerButton = (args: StepSelectionProps): React.ReactNode => (
+  <StepSelection {...args} />
+);
+withBiggerButton.args = {
+  runName: "runrun",
+  section: SectionModes.DataPreprocessing,
+  isSmallButton: false,
 };

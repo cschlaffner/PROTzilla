@@ -4,6 +4,7 @@ import { styled } from "styled-components";
 import {
   Button,
   CircularButton,
+  GrayButton,
   InvisibleButton,
   SecondaryButton,
   ToggleableButton,
@@ -110,6 +111,7 @@ const StepDescriptionDropdown = styled.div`
 export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
   section,
+  isSmallButton,
 
   ...rest
 }) => {
@@ -195,13 +197,25 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - Render - - -
   return (
     <div>
-      <CircularButton
-        icon={"add"}
-        onPress={() => {
-          openModal();
-          void continueRunForDebugging(runName);
-        }}
-      />
+      {isSmallButton ? (
+        <CircularButton
+          icon={"add"}
+          onPress={() => {
+            openModal();
+            void continueRunForDebugging(runName);
+          }}
+        />
+      ) : (
+        <GrayButton
+          isShy={true}
+          icon={"add"}
+          text={"Add steps"}
+          onPress={() => {
+            openModal();
+            void continueRunForDebugging(runName);
+          }}
+        />
+      )}
       <div ref={refModal}>
         <WideModal
           isOpen={isModalOpen}
