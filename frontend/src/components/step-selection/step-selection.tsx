@@ -89,6 +89,9 @@ const HelpButton = styled(Button)`
   width: fit-content;
   &:hover {
     background-color: transparent;
+    .icon {
+      ${iconColor("protzillaDarkBlue")}
+    }
   }
 
   .icon {
