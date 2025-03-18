@@ -14,14 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.views.generic import RedirectView
+from django.urls import path, re_path
+from django.views.generic import RedirectView, TemplateView
 
 from . import views
 from . import views_with_api
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/static/index.html')),
+    path('admin/', admin.site.urls),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views_with_api.run_information_list, name="run_information"),
     path("api/step_name_list/", views_with_api.step_name_list, name="step_name_list"),
@@ -50,5 +50,7 @@ urlpatterns = [
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),
-    path("admin/", admin.site.urls),
+
+    # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]

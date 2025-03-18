@@ -5,7 +5,7 @@ import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vite.dev/config/
 const viteConfig = defineViteConfig({
-  base: "./",
+  base: "/static/",
   plugins: [
     react({
       babel: {
