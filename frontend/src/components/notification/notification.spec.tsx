@@ -1,26 +1,27 @@
 import { render, screen } from "@testing-library/react";
 import { ThemeProvider } from "styled-components";
 
-import { ErrorNotification } from "./error-notification";
 import { getTheme } from "../../theme";
+import { Notification } from "./notification";
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(<ThemeProvider theme={getTheme("light")}>{component}</ThemeProvider>);
 
-describe("ErrorNotification", () => {
+describe("Notification", () => {
   const defaultProps = {
     isShown: true,
     title: "Error",
-    description: "An error has occurred.",
+    message: "An error has occurred.",
+    type: 'error' | 'success' | 'warning' | 'info',
   };
 
   it("should render successfully when shown", () => {
-    renderWithTheme(<ErrorNotification {...defaultProps} />);
+    renderWithTheme(<Notification {...defaultProps} />);
 
     const title = screen.queryByText("Error");
-    const description = screen.queryByText("An error has occurred.");
+    const message = screen.queryByText("An error has occurred.");
 
     expect(title).not.toBeNull();
-    expect(description).not.toBeNull();
+    expect(message).not.toBeNull();
   });
 });
