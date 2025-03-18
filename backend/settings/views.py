@@ -10,6 +10,7 @@ from backend.main.views_with_api_helper import parameters_from_post
 from backend.protzilla.data_preprocessing.plots import create_bar_plot
 from backend.settings.plot_template import template, load_settings, save_settings
 
+# TODO adapt to api call usage - not ready as is
 
 SECTIONS = [
     {
