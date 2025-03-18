@@ -329,20 +329,18 @@ def get_run_data(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
     
-def get_step_parameters(request):
+def get_step_form(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        #step is probably needed, cause how would backend track current_step reliably when navigate, back, next dont exist anymore
-
         run = active_runs[run_name]
         
-        #get parameters for the step
+        form = run.current_form
 
-        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": "placeholder"}, safe=False)
+        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": form}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
 def get_step_plots(request):
     if request.method == "POST":
         data = json.loads(request.body)
