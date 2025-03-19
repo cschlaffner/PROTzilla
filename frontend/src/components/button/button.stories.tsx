@@ -1,6 +1,7 @@
 import React from "react";
 
 import {
+  BigButton,
   BorderButton,
   Button,
   CircularButton,
@@ -69,6 +70,15 @@ grayShy.args = {
   tag: "",
 };
 
+export const big = (args: ButtonProps): React.ReactNode => (
+  <BigButton {...args} />
+);
+big.args = {
+  isDisabled: false,
+  icon: "add",
+  isBig: true,
+};
+
 export const green = (args: ButtonProps): React.ReactNode => (
   <GreenButton {...args} />
 );
@@ -76,6 +86,7 @@ green.args = {
   isDisabled: false,
   text: "Green Button",
   tag: "",
+
 };
 
 export const red = (args: ButtonProps): React.ReactNode => (

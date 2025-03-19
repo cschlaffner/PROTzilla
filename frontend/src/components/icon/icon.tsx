@@ -29,9 +29,9 @@ const StyledSVG = styled.svg.withConfig({
     prop.toString() !== "isDisabled" &&
     prop.toString() !== "color" &&
     prop.toString() !== "isSmall",
-})<Pick<IconProps, "color" | "isDisabled" | "isSmall">>`
-  width: ${({ isSmall }) => size(isSmall ? "smallIcon" : "icon")};
-  height: ${({ isSmall }) => size(isSmall ? "smallIcon" : "icon")};
+})<Pick<IconProps, "color" | "isDisabled" | "isSmall" | "isBig">>`
+  width: ${({ isSmall, isBig }) => size(isSmall ? "smallIcon" : isBig ? "bigIcon" : "icon")};
+  height: ${({ isSmall, isBig }) => size(isSmall ? "smallIcon" : isBig ? "bigIcon" : "icon")};
 
   ${(props) =>
     props.isDisabled &&
