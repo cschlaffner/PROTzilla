@@ -193,6 +193,10 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+
+    // Input Screen
+    templateSelectionHeight: "300px",
+    runSelectionMinHeight: "300px",
   },
   spacing: {
     listIndentation: "14px",

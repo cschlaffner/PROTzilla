@@ -1,10 +1,10 @@
-import React, {  useEffect, useState } from "react";
-import { Col, Container, Row } from "react-grid-system";
+import React from "react";
+import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components";
-
+import { size, spacing } from "../theme";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -13,23 +13,30 @@ const StyledNavbar = styled(Navbar)`
 `;
 
 const StyledContainer = styled(Container)`
-  padding: 15px;
-  gap: 10px;
+  padding: ${spacing("small")};
+  gap: ${spacing("small")};
   display: flex;
   flex-direction: column;
 `;
 
 const StyledTemplateCard = styled(Card)`
-  height: 300px;
+  height: ${size("templateSelectionHeight")};
 `;
 
 const StyledRunSelectionCard = styled(Card)`
-  height: calc(100vh - 440px);
+  height: calc(
+    100vh -
+      (
+        ${spacing("navbarHeight")} + 7 * ${spacing("small")} +
+          ${size("templateSelectionHeight")}
+      )
+  );
+  min-height: ${size("runSelectionMinHeight")};
 `;
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
- 
+
   return (
     <div>
       <StyledNavbar
@@ -40,11 +47,11 @@ export const IndexScreen: React.FC = () => {
       />
 
       <StyledContainer fluid>
-
         <StyledTemplateCard title="Template Workflows">NEIN</StyledTemplateCard>
 
-        <StyledRunSelectionCard title="Run Selection">Jannes</StyledRunSelectionCard>
-
+        <StyledRunSelectionCard title="Run Selection">
+          Jannes
+        </StyledRunSelectionCard>
       </StyledContainer>
     </div>
   );
