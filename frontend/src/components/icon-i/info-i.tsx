@@ -10,22 +10,13 @@ const Wrapper = styled.div`
   display: inline-block;
 `;
 
-const IconButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-`;
-
 export const InfoIComponent: React.FC<InfoIProps> = ({ text }) => {
   const [isShown, setIsShown] = useState<boolean>(false);
-  const iconRef = useRef<HTMLButtonElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
 
   return (
     <Wrapper>
-      <IconButton
+      <div
         ref={iconRef}
         onMouseEnter={() => {
           setIsShown(true);
@@ -35,7 +26,7 @@ export const InfoIComponent: React.FC<InfoIProps> = ({ text }) => {
         }}
       >
         <Icon icon="info" color="primary" />
-      </IconButton>
+      </div>
 
       {isShown && (
         <Tooltip
