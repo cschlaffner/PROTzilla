@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 import logging
 import traceback
 
@@ -14,6 +15,49 @@ from backend.protzilla.data_preprocessing import (
 )
 from backend.protzilla.steps import Plots, Step, StepManager
 from backend.protzilla.utilities import format_trace
+from backend.protzilla.form import DropdownField, Form, NumberField
+
+
+class LogTransformationBaseType(Enum):
+    log2 = "log2"
+    log10 = "log10"
+
+
+class SimpleImputerStrategyType(Enum):
+    mean = "mean"
+    median = "median"
+    most_frequent = "most_frequent"
+
+
+class ImputationByNormalDistributionSamplingStrategyType(Enum):
+    per_protein = "perProtein"
+    per_dataset = "perDataset"
+
+
+class BarAndPieChart(Enum):
+    bar_plot = "Bar chart"
+    pie_chart = "Pie chart"
+
+
+class BoxAndHistogramGraph(Enum):
+    boxplot = "Boxplot"
+    histogram = "Histogram"
+
+
+class GroupBy(Enum):
+    no_grouping = "None"
+    sample = "Sample"
+    protein_id = "Protein ID"
+
+
+class VisualTrasformations(Enum):
+    log10 = "log10"
+    linear = "linear"
+
+
+class VisulaTransformations(Enum):
+    linear = "linear"
+    log10 = "log10"
 
 
 class DataPreprocessingStep(Step):
@@ -69,6 +113,27 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     )
 
     input_keys = ["protein_df", "peptide_df", "percentage"]
+
+    def create_form(self):
+        return Form(
+            label="Filter Proteins by Samples Missing",
+            fields=[
+                NumberField(
+                    name="percentage",
+                    label="Percentage of minimum non-missing samples per protein",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return filter_proteins.by_samples_missing(**inputs)

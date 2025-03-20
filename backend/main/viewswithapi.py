@@ -331,11 +331,14 @@ def get_run_data(request):
     
 def get_step_form(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        data:dict = json.loads(request.body)
         run_name = data.get("run_name")
+        data = data.get("data")
+
+        active_runs[run_name] = Run(run_name)
         run = active_runs[run_name]
-        
-        form = run.current_form
+
+        form = run.current_form(data)
 
         return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": form}, safe=False)
     else:

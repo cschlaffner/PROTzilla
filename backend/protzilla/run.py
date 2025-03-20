@@ -253,6 +253,6 @@ class Run:
     def current_step(self) -> Step | None:
         return self.steps.current_step
     
-    @property
-    def current_form(self) -> dict:
-        return self.steps.current_step.get_form()
+    def get_current_form(self, data) -> dict:
+        self.steps.current_step.form.update_values(self, data)
+        return self.steps.current_step.form.to_json()

@@ -8,14 +8,21 @@ import traceback
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
-import json
+from types import MethodType
+from typing import Any
 
 import pandas as pd
 import plotly
 from PIL import Image
 
-from backend.protzilla.form import FormData, InputField, InputType
+from backend.protzilla.form import Form
 from backend.protzilla.utilities import format_trace
+
+# to avoid circular imports
+from typing import TYPE_CHECKING
+if (TYPE_CHECKING):
+    from backend.protzilla.run import Run
+    from backend.protzilla.disk_operator import DiskOperator
 
 
 class Section(Enum):
@@ -40,6 +47,9 @@ class Step:
         self.output: Output = Output()
         self.plots: Plots = Plots()
         self.instance_identifier = instance_identifier
+        
+        self.form: Form = self.create_form()
+        self.form.modify_form = MethodType(self.modify_form, self.form)
 
         if self.instance_identifier is None:
             logging.warning(
@@ -201,10 +211,14 @@ class Step:
                     return False
         return True
     
-    form = None
+    def create_form(self) -> Form:
+        # must be implemented by the subclass
+        raise NotImplementedError("createForm must be implemented by the step subclass - please contact developer")
 
-    def get_form(self)->str:
-        return json.dumps(asdict(self.form), indent=4, ensure_ascii=False)
+    def modify_form(self, form: Form, run:Run) -> None:
+        # can be implemented by the subclass to modify the form fields
+        # gets called by the form itself to manipulate the form fields
+        pass
 
     @property
     def finished(self) -> bool:
