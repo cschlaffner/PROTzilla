@@ -24,7 +24,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views_with_api.run_information_list, name="run_information"),
-    path("api/step_name_list/", views_with_api.step_name_list, name="step_name_list"),
     path("api/step_list/", views_with_api.all_steps, name="step_list"),
     path("api/workflow_name_list/", views_with_api.workflow_name_list, name="workflow_name_list"),
 

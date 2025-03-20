@@ -19,7 +19,7 @@ from backend.protzilla.data_integration.database_query import uniprot_columns, u
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_step_names, get_all_possible_steps
+from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -36,11 +36,6 @@ def run_information_list(request):
     available_runinfo = [all_available_runs, all_tags]
 
     return JsonResponse(available_runinfo, safe=False)
-
-def step_name_list(request):
-    step_names = get_all_possible_step_names()
-
-    return JsonResponse(step_names, safe=False)
 
 def all_steps(request):
     steps = get_all_possible_steps()
