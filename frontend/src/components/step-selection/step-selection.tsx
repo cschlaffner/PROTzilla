@@ -5,14 +5,12 @@ import {
   Button,
   CircularButton,
   GrayButton,
-  InvisibleButton,
-  SecondaryButton,
   ToggleableButton,
 } from "../button";
 import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
-import { shadow, size, spacing } from "../../theme";
+import { color, shadow, size, spacing } from "../../theme";
 import { callApi, callApiWithParameters } from "../../utils";
 import { iconColor } from "../icon";
 import { SectionModes } from "./section-modes.tsx";
@@ -83,6 +81,10 @@ const StepList = styled.div`
 
 const StepWrapper = styled.div`
   padding: ${spacing("listButtonPadding")};
+`;
+
+const LightGrayButton = styled(GrayButton)`
+  background-color: ${color("backgroundOffset")};
 `;
 
 const HelpButton = styled(Button)`
@@ -236,6 +238,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     isActive={listMode === mode}
                     onPress={() => {
                       selectList(mode);
+                      setVisibleDescription(null);
                     }}
                     text={mode}
                   ></SectionButton>
@@ -264,7 +267,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                           {stepsGroupedByOperation[operation].map(
                             (item, index) => (
                               <StepWrapper key={`step_${String(index)}`}>
-                                <InvisibleButton
+                                <LightGrayButton
                                   style={{
                                     textAlign: "left",
                                     justifyContent: "left",
@@ -277,7 +280,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                   }
                                   key={index}
                                   text={item.display_name}
-                                  tooltip={item.method_description}
                                 />
                                 <HelpButton
                                   icon={"help"}
@@ -309,7 +311,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     <div style={{ padding: "10px 10px 10px 20px" }}>
                       {activeStepList.map((item, index) => (
                         <StepWrapper key={`step_${String(index)}`}>
-                          <SecondaryButton
+                          <LightGrayButton
                             style={{
                               textAlign: "left",
                               justifyContent: "left",
@@ -319,7 +321,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                             }
                             key={index}
                             text={item.display_name}
-                            tooltip={item.method_description}
                           />
                           <HelpButton
                             icon={"help"}
