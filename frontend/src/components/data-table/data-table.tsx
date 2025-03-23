@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import {
   DataGrid,
   GridColDef,
@@ -9,7 +9,7 @@ import {
 import React, { useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
-import { getTheme } from "../../theme";
+import { getMuiTheme } from "../../theme";
 
 export const DataTable: React.FC<DataTableProps> = ({
   data,
@@ -48,30 +48,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     });
     
 
-  const protzillaTheme = useMemo(() => getTheme("light"), []);
-
-  const theme = createTheme({
-    mixins: {
-      MuiDataGrid: { containerBackground: protzillaTheme.colors.primary },
-    },
-    components: {
-      MuiDataGrid: {
-        styleOverrides: {
-          root: {
-            "& .MuiDataGrid-sortIcon": {
-              color: protzillaTheme.colors.background,
-            },
-            "& .MuiDataGrid-menuIconButton": {
-              color: protzillaTheme.colors.background,
-            },
-            "& .MuiDataGrid-filterIcon": {
-              color: protzillaTheme.colors.background,
-            },
-          },
-        },
-      },
-    },
-  });
+  const theme = useMemo(() => getMuiTheme(), []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -90,30 +67,6 @@ export const DataTable: React.FC<DataTableProps> = ({
         sx={{
           width: "100%",
           height: "100%",
-          fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
-          "& .MuiDataGrid-row": {
-            backgroundColor: protzillaTheme.colors.background,
-            color: protzillaTheme.colors.text,
-          },
-          "& .MuiSelect-select": {
-            fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
-            color: protzillaTheme.colors.text,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            color: protzillaTheme.colors.background,
-          },
-          "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
-          "& .MuiTablePagination-selectLabel": {
-            fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
-            color: protzillaTheme.colors.text,
-          },
-          "& .MuiTablePagination-displayedRows": {
-            fontFamily: protzillaTheme.fonts.defaultWithFallbacks,
-            color: protzillaTheme.colors.text,
-          },
-          "& .MuiDataGrid-footerContainer": {
-            backgroundColor: protzillaTheme.colors.gray,
-          },
         }}
       />
     </ThemeProvider>
