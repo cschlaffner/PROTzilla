@@ -429,7 +429,7 @@ def test_GO_analysis_with_no_gene_sets_input():
     assert "messages" in current_out
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
-@pytest.mark.skip(reason="The api dosn't work")
+@pytest.mark.skip(reason="The API doesn't work.")
 @patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
     if biomart_availability == False:
