@@ -1,6 +1,7 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   DataGrid,
+  GridColDef,
   GridColumnVisibilityModel,
   GridPaginationModel,
   GridRowsProp,
@@ -43,7 +44,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           }
           return value;
         },
-      };
+      } as GridColDef;
     });
     
 
