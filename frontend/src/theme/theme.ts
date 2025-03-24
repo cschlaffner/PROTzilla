@@ -224,6 +224,7 @@ export const baseTheme = {
   },
 };
 
+export type Color = keyof typeof defaultPalette;
 export type ColorMode = keyof typeof colorModes;
 
 export type BreakpointQueries<T> = {
