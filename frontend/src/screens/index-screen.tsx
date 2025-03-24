@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { Card } from "../components";
+import { Card, Workflow } from "../components";
 import { size, spacing } from "../theme";
+import { callApi } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -19,8 +20,30 @@ const StyledContainer = styled(Container)`
   flex-direction: column;
 `;
 
+const StyledWorkflowContainer = styled.div`
+  display: flex;
+  gap: ${spacing("small")}; /* Adds spacing between workflows */
+  overflow-x: auto; /* Enables horizontal scrolling */
+  white-space: nowrap; /* Prevents wrapping */
+  padding-bottom: ${spacing("small")}; /* Adds padding for better scrolling UX */
+  scrollbar-width: thin; /* Makes scrollbar thinner (for Firefox) */
+  scrollbar-color: #888 transparent; /* Custom scrollbar color */
+
+  /* Custom scrollbar for WebKit browsers (Chrome, Safari) */
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+`;
+
+
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
+
+  
 `;
 
 const StyledRunSelectionCard = styled(Card)`
@@ -36,6 +59,19 @@ const StyledRunSelectionCard = styled(Card)`
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [workflows, setWorkflows] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("workflow_name_list/");
+      if (data) {
+        console.log(data);
+        setWorkflows(data);
+        }
+      }
+
+    void fetchData();
+  }, []);
 
   return (
     <div>
@@ -47,7 +83,18 @@ export const IndexScreen: React.FC = () => {
       />
 
       <StyledContainer fluid>
-        <StyledTemplateCard title="Template Workflows">NEIN</StyledTemplateCard>
+      <StyledTemplateCard title="Template Workflows">
+        <StyledWorkflowContainer>
+          {workflows.map((workflow) => (
+            <Workflow
+              key={workflow}
+              icon="add"
+              workflow={workflow}
+              onPress={() => {}}
+            />
+          ))}
+        </StyledWorkflowContainer>
+      </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
           Jannes
