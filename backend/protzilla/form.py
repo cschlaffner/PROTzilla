@@ -73,38 +73,36 @@ class Form:
 
     def __post_init__(self):
         "create a field map for easy access by fieldname"
+
         self.field_map = {field.name: field for field in self.fields}
 
     def modify_form(self, run:Run) -> None:
         "to be implemented by the step"
         pass
 
-    def update_values(self, run:Run, values: Dict[str, str]) -> None:
-        "insert values into the form and applies modify_form"
+    def update_values(self, run:Run, values: Dict[str, str] = {}) -> None:
+        "insert new values into the form"
 
         if values:
             for field in self.fields:
-                field.value = values.get(field.name, field.value)
+                if (values.get(field.name) is not None):
+                    field.value = values.get(field.name, field.value)
         
         self.modify_form(run)
-    
-    def to_json(self) -> str:
-        "return json representation of the form"
 
-        class CustomEncoder(json.JSONEncoder):
-            """Custom JSON encoder that handles Enum classes and functions"""
-            def default(self, obj):
-                #serialize functions
-                if callable(obj) and type(obj) != type(Enum):
-                    return obj()
-                
-                # Serialize Enums as their values
-                if isinstance(obj, Enum):
-                    return obj.value
-                
-                # Serialize Enum class as dict
-                if type(obj) == type(Enum):
-                    return {item.name: item.value for item in obj}
-                return super().default(obj)
-
-        return json.dumps(asdict(self), cls=CustomEncoder, indent=4)
+    class CustomEncoder(json.JSONEncoder):
+        """Custom JSON encoder that handles Enum classes and functions"""
+        def default(self, obj):
+            #serialize functions
+            if callable(obj) and type(obj) != type(Enum):
+                return obj()
+            
+            # Serialize Enums as their values
+            if isinstance(obj, Enum):
+                return obj.value
+            
+            # Serialize Enum class as dict
+            if type(obj) == type(Enum):
+                return {item.name: item.value for item in obj}
+            
+            return super().default(obj)

@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import json
 import os
 import io
@@ -13,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
+from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
@@ -334,13 +336,13 @@ def get_step_form(request):
         data:dict = json.loads(request.body)
         run_name = data.get("run_name")
         data = data.get("data")
-
-        active_runs[run_name] = Run(run_name)
+        if (run_name not in active_runs):
+            active_runs[run_name] = Run(run_name)
         run = active_runs[run_name]
 
         form = run.current_form(data)
 
-        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": form}, safe=False)
+        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
