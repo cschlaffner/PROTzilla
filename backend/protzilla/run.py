@@ -233,6 +233,12 @@ class Run:
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
 
+    
+    @auto_save
+    def current_form(self, data = {}) -> dict:
+        self.steps.current_step.form.update_values(self, data)
+        return self.steps.current_step.form
+
     @property
     def current_messages(self) -> Messages:
         return self.steps.current_step.messages
@@ -249,6 +255,3 @@ class Run:
     def current_step(self) -> Step | None:
         return self.steps.current_step
     
-    def current_form(self, data = {}) -> dict:
-        self.steps.current_step.form.update_values(self, data)
-        return self.steps.current_step.form
