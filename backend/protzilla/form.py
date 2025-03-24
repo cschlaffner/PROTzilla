@@ -60,6 +60,7 @@ class DropdownField(_baseInputField):
 @dataclass
 class FileInput(_baseInputField):
     type: str = "file"
+    filedata: str = ""
 
 
 InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
@@ -92,7 +93,7 @@ class Form:
                 self._field_map[key].value = value
 
     
-    def update_value(self, key:str, value:Any) -> None:
+    def update_value(self, key:str, value: Any) -> None:
         "insert new value into the form"
         
         if self._field_map.get(key):
@@ -101,6 +102,9 @@ class Form:
         
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)
+    
+    def field_by_name(self, fieldname: str) -> Any:
+        return self._field_map.get(fieldname)
 
     @property
     def values(self) -> Dict[str, str]:
