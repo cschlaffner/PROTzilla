@@ -211,7 +211,7 @@ class Step:
     
     def create_form(self) -> Form:
         # must be implemented by the subclass
-        raise NotImplementedError("createForm must be implemented by the step subclass - please contact developer")
+        return Form("No form defined.", [])
 
     def modify_form(self, form: Form, run:Run) -> None:
         # can be implemented by the subclass to modify the form fields

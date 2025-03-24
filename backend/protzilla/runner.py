@@ -98,7 +98,7 @@ class Runner:
 
     def _insert_commandline_inputs(self, step : Step):
         if step.operation == "Protein Data Import":
-            step.form.update_values({"file_path":self.ms_data_path})
+            step.form.update_value("file_path", self.ms_data_path)
 
         elif step.operation == "metadataimport":
             if self.meta_data_path is None:
@@ -106,14 +106,14 @@ class Runner:
                     f"meta_data_path (--meta_data_path=<path/to/data) is not specified,"
                     f" but is required for {step.operation} with {step.display_name}"
                 )
-            step.form.update_values({"file_path":self.ms_data_path})
+            step.form.update_value("file_path", self.ms_data_path)
         elif step.operation == "peptideimport":
             if self.peptides_path is None:
                 raise ValueError(
                     f"peptide_path (--peptide_path=<path/to/data>) is not specified, "
                     f"but is required for {step.operation} with {step.display_name}"
                 )
-            step.form.update_values({"file_path":self.peptides_path})
+            step.form.update_value("file_path", self.peptides_path)
         else:
             raise ValueError(
                 f"Cannot find step with name {step.operation} with {step.display_name} in importing"

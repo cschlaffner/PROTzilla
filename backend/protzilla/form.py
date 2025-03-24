@@ -2,7 +2,7 @@ from __future__ import annotations
 from enum import Enum
 import json
 from dataclasses import asdict, dataclass, field
-from typing import List, Dict, Union, TYPE_CHECKING
+from typing import Any, List, Dict, Union, TYPE_CHECKING
 
 # to avoid circular imports
 if TYPE_CHECKING:
@@ -71,31 +71,50 @@ class Form:
     fields: List[InputField]    
     isAutoSubmit: bool = True
 
+
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
-        self.field_map = {field.name: field for field in self.fields}
+        self._field_map = {field.name: field for field in self.fields}
+
 
     def modify_form(self, run:Run) -> None:
-        "to be implemented by the step"
+        "to be overridden by the step"
+
         pass
 
-    def update_values(self, run:Run, values: Dict[str, str] = {}) -> None:
+
+    def update_values(self, values: Dict[str, Any]) -> None:
         "insert new values into the form"
 
-        if values:
-            for field in self.fields:
-                if (values.get(field.name) is not None):
-                    field.value = values.get(field.name, field.value)
-        
-        self.modify_form(run)
+        for key, value in values.items():
+            if self._field_map.get(key):
+                self._field_map[key].value = value
+
     
+    def update_value(self, key:str, value:Any) -> None:
+        "insert new value into the form"
+
+        self._field_map[key].value = value
+        
+        
+    def apply_modification(self, run:Run) -> None:
+        self.modify_form(run)
+
     @property
     def values(self) -> Dict[str, str]:
-        return {field.name: field.value for field in self.fields}
+        values = {}
+        for field in self.fields:
+            if isinstance(field.value, Enum):
+                values[field.name] = field.value.value
+            else:
+                values[field.name] = field.value
+
+        return values
 
     class CustomEncoder(json.JSONEncoder):
-        """Custom JSON encoder that handles Enum classes and functions"""
+        "Custom JSON encoder that handles Enum classes and functions"
+
         def default(self, obj):
             #serialize functions
             if callable(obj) and type(obj) != type(Enum):

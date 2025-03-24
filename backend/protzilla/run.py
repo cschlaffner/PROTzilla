@@ -236,7 +236,8 @@ class Run:
     
     @auto_save
     def current_form(self, data = {}) -> dict:
-        self.steps.current_step.form.update_values(self, data)
+        self.steps.current_step.form.update_values(data)
+        self.steps.current_step.form.apply_modification(self)
         return self.steps.current_step.form
 
     @property
