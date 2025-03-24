@@ -214,7 +214,7 @@ class DiskOperator:
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
-            step.form_inputs = step_data.get(KEYS.STEP_FORM_INPUTS, {})
+            step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
             return step
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:

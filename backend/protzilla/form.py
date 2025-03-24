@@ -89,6 +89,10 @@ class Form:
                     field.value = values.get(field.name, field.value)
         
         self.modify_form(run)
+    
+    @property
+    def values(self) -> Dict[str, str]:
+        return {field.name: field.value for field in self.fields}
 
     class CustomEncoder(json.JSONEncoder):
         """Custom JSON encoder that handles Enum classes and functions"""

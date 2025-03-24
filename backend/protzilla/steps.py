@@ -41,7 +41,6 @@ class Step:
     output_keys: list[str] = []
 
     def __init__(self, instance_identifier: str | None = None):
-        self.form_inputs: dict = {}
         self.inputs: dict = {}
         self.messages: Messages = Messages([])
         self.output: Output = Output()
@@ -79,7 +78,6 @@ class Step:
 
         if inputs:
             self.inputs = inputs.copy()
-        self.form_inputs = self.inputs.copy()
 
         try:
             self.messages.clear()
@@ -230,7 +228,10 @@ class Step:
         if len(self.output_keys) == 0:
             return not self.plots.empty
         return self.validate_outputs(soft_check=True)
-
+    
+    @property
+    def form_inputs(self) -> dict:
+        return self.form.values
 
 class Output:
     def __init__(self, output: dict = None):
