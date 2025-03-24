@@ -94,8 +94,9 @@ class Form:
     
     def update_value(self, key:str, value:Any) -> None:
         "insert new value into the form"
-
-        self._field_map[key].value = value
+        
+        if self._field_map.get(key):
+            self._field_map[key].value = value
         
         
     def apply_modification(self, run:Run) -> None:
