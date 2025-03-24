@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
@@ -15,32 +15,10 @@ from backend.protzilla.data_integration.database_query import uniprot_columns, u
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
-def ping(request):
-    return HttpResponse("pong")
-
-# API to fetch CSRF token
+# API to write csrf token into cookies via decorator
+@ensure_csrf_cookie
 def get_csrf_token(request):
-    csrf_token = "not_here"
-    return JsonResponse({"csrfToken": csrf_token})
-
-def jannesjsontest(request):
-    listdict = [{"value": "bong", "label": "2"}, {"value": "bing", "label": "chilling"}, {"value": "bing2", "label": "chilling2"}]
-    return JsonResponse(listdict, safe=False)
-
-@csrf_exempt
-def do_something_with_element_from_frontend(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        element = data.get("element")
-
-        print(element)
-        if element == "das_richtige":
-            #do_something(element)
-            return JsonResponse({"success": True, "message": "Done something"})
-        else:
-            return JsonResponse({"success": False, "message": ":("}, status=404)
-    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-
+    return JsonResponse({"message": "CSRF cookie set."})
 
 def databases(request):
     databases = uniprot_databases()
