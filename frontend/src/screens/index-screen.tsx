@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef} from "react";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
@@ -20,16 +20,13 @@ const StyledContainer = styled(Container)`
   flex-direction: column;
 `;
 
-const StyledWorkflowContainer = styled.div`
+const StyledWorkflowContainer = styled(Container)`
   display: flex;
-  gap: ${spacing("small")}; /* Adds spacing between workflows */
-  overflow-x: auto; /* Enables horizontal scrolling */
-  white-space: nowrap; /* Prevents wrapping */
-  padding-bottom: ${spacing("small")}; /* Adds padding for better scrolling UX */
-  scrollbar-width: thin; /* Makes scrollbar thinner (for Firefox) */
-  scrollbar-color: #888 transparent; /* Custom scrollbar color */
+  overflow-x: hidden;
 
-  /* Custom scrollbar for WebKit browsers (Chrome, Safari) */
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+
   &::-webkit-scrollbar {
     height: 6px;
   }
@@ -37,13 +34,14 @@ const StyledWorkflowContainer = styled.div`
     background: #888;
     border-radius: 4px;
   }
+  &:hover {
+    overflow-x: auto;
+  }
 `;
 
 
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
-
-  
 `;
 
 const StyledRunSelectionCard = styled(Card)`
@@ -60,6 +58,7 @@ const StyledRunSelectionCard = styled(Card)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +72,19 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleWheelScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      container.scrollLeft += event.deltaY; // Convert vertical scroll to horizontal
+    };
+
+    container.addEventListener("wheel", handleWheelScroll);
+    return () => container.removeEventListener("wheel", handleWheelScroll);
+  }, []);
+
   return (
     <div>
       <StyledNavbar
@@ -84,7 +96,7 @@ export const IndexScreen: React.FC = () => {
 
       <StyledContainer fluid>
       <StyledTemplateCard title="Template Workflows">
-        <StyledWorkflowContainer>
+        <StyledWorkflowContainer ref={scrollContainerRef}>
           {workflows.map((workflow) => (
             <Workflow
               key={workflow}
