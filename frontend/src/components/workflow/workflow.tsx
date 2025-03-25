@@ -3,7 +3,9 @@ import { WorkflowProps } from "./workflow.props";
 import { BigButton } from "../button";
 import { Container } from "react-grid-system";
 import { spacing } from "../../theme";
-import { H4 } from "../text";
+import { H5 } from "../text";
+import { Tooltip, useTooltipScheduling } from "../tooltip";
+import { useState } from "react";
 
 const StyledContainer = styled(Container)`
   padding: ${spacing("small")};
@@ -14,15 +16,12 @@ const StyledContainer = styled(Container)`
   width: 200px;
 `;
 
-const FadingText = styled(H4)`
+const CutoffText = styled(H5)`
   user-select: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-  
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 80%, rgba(0, 0, 0, 0));
-  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 80%, rgba(0, 0, 0, 0));
 `;
 
 export const Workflow: React.FC<WorkflowProps> = ({
@@ -30,7 +29,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
   onPress,
   icon,
 }) => {
-
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true)
   return (
     <StyledContainer>
         <BigButton
@@ -38,9 +38,19 @@ export const Workflow: React.FC<WorkflowProps> = ({
             isBig={true}
             onPress={onPress}
             />
-        <FadingText 
+        <CutoffText
             text={workflow}
-        />
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
+        >
+          <Tooltip
+            text={workflow}
+            isShown={showTooltip}
+            anchor={mouseAnchor}
+            position="bottomRight"
+            distance={13}
+          />
+        </CutoffText>
     </StyledContainer>
   );
 };
