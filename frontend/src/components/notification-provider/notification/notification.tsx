@@ -1,22 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { Text } from "../text";
-import { color, fontSize, fontWeight, radius, zIndex } from "../../theme";
-import { InvisibleButton } from "../button";
-import { iconColor } from "../icon/icon";
+import { Text } from "../../text";
+import {
+  color,
+  fontSize,
+  fontWeight,
+  radius,
+  spacing,
+  zIndex,
+} from "../../../theme";
+import { InvisibleButton } from "../../button";
+import { iconColor } from "../../icon/icon";
 import { NotificationProps } from "./notification.props";
+import { FlexColumn, FlexRow } from "../../box";
 
-const Container = styled.div<{ isShown: boolean, type: string  }>`
+const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   background-color: ${({ type }) =>
-    type === "error" ? color("red") : (type === "success" ? color("green") : (type === "warning" ? color("yellow") : color("blue")))};
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 12px 20px;
+    type === "error"
+      ? color("protzillaRed")
+      : type === "success"
+        ? color("green")
+        : type === "warning"
+          ? color("protzillaDarkBlue")
+          : color("gray50")};
+  padding: ${spacing("small")};
   border-radius: ${radius("default")};
-  width: 240px;
-  position: relative;
+  width: 200px;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
@@ -27,23 +37,30 @@ const Container = styled.div<{ isShown: boolean, type: string  }>`
   z-index: ${zIndex("notification")};
 `;
 
+const TextContainer = styled(FlexColumn)`
+  width: 85%;
+  gap: ${spacing("verySmall")};
+`;
+
 const TitleText = styled(Text)`
   color: ${color("onPrimary")};
   font-size: ${fontSize("h6")};
   font-weight: ${fontWeight("bold")};
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
 `;
 
 const DescriptionText = styled(Text)`
   color: ${color("onPrimary")};
   font-size: ${fontSize("h6")};
-  margin-top: 4px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
 `;
 
 const CloseIcon = styled(InvisibleButton)`
-  top: 10px;
-  right: 10px;
-  position: absolute;
-  height: auto;
+  width: 15%;
 
   .icon {
     ${iconColor("onPrimary")}
@@ -53,9 +70,8 @@ const CloseIcon = styled(InvisibleButton)`
 export const Notification: React.FC<NotificationProps> = ({
   title,
   message,
-  type = 'error',
+  type = "error",
   isShown: propIsShown = false,
-  closeable = true,
   closeAfterMs = -1,
   onClose,
   ...rest
@@ -77,20 +93,14 @@ export const Notification: React.FC<NotificationProps> = ({
     setIsShown(false);
     onClose?.();
   };
-  
+
   return (
     <Container isShown={isShown} type={type} {...rest}>
-      {(title) && (
-        <TitleText
-          text={title}
-        />
-      )}
-      {(message) && (
-        <DescriptionText
-          text={message}
-        />
-      )}
-      {isShown && closeable && <CloseIcon icon="close" onPress={handleClose} />}
+      <TextContainer>
+        {title && <TitleText text={title} />}
+        {message && <DescriptionText text={message} />}
+      </TextContainer>
+      {isShown && <CloseIcon icon="close" onPress={handleClose} isShy />}
     </Container>
   );
 };

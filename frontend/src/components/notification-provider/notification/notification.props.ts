@@ -1,10 +1,9 @@
 
 export interface NotificationProps{
   title: string;
-  message: string;
+  message?: string;
   type : 'error' | 'success' | 'warning' | 'info';
   isShown?: boolean;
-  closeable?: boolean;
   closeAfterMs?: number;
   onClose?: () => void;
 }
