@@ -5,7 +5,6 @@ import { Container } from "react-grid-system";
 import { spacing } from "../../theme";
 import { H5 } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
-import { useState } from "react";
 
 const StyledContainer = styled(Container)`
   padding: ${spacing("small")};
