@@ -61,7 +61,8 @@ const StyledRunSelectionCard = styled(Card)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
 
   useEffect(() => {
@@ -96,11 +97,11 @@ export const IndexScreen: React.FC = () => {
               workflow={workflow}
               onPress={() => { 
                 setSelectedWorkflow(workflow);
-                setIsOpen(true); }}
+                setIsWorkflowModalOpen(true); }}
             />
           ))}
         </StyledWorkflowContainer>
-        <Modal title="Create run:" isOpen={isOpen} onClose={() => { setIsOpen(false); }}>
+        <Modal title="Create run:" isOpen={isWorkflowModalOpen} onClose={() => { setIsWorkflowModalOpen(false); }}>
           <Test>
           <Form formData={{
             label: "",
@@ -143,6 +144,7 @@ export const IndexScreen: React.FC = () => {
 
         <StyledRunSelectionCard title="Run Selection">
           Jannes
+          <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>bing</Modal>
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
