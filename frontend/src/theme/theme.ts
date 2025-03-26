@@ -22,7 +22,7 @@ export const defaultPalette = {
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#abbdd3",  //hover 18% darker than default color
+  secondaryHover: "#abbdd3", //hover 18% darker than default color
   secondaryActive: "#abbdd3",
   secondaryDisabled: "#F2F2F3",
 
@@ -34,13 +34,12 @@ export const defaultPalette = {
   divider: "#EAEAEB",
 
   red: "#CE5A5A",
-  redHover: "#e29d9d",  //hover 17% lighter than default
+  redHover: "#e29d9d", //hover 17% lighter than default
   redActive: "#e29d9d",
   redDisabled: "#CE5A5A",
 
-  
-  gray: "#E0E0E0",  
-  grayHover: "#b3b3b3", 	//hover 18% darker than default
+  gray: "#E0E0E0",
+  grayHover: "#b3b3b3", //hover 18% darker than default
   grayActive: "#b3b3b3",
   grayDisabled: "#E0E0E0",
 
@@ -206,6 +205,7 @@ export const baseTheme = {
     buttonIconPadding: "10px",
     smallButtonPadding: "6px 10px",
     smallButtonIconPadding: "8px",
+    listButtonPadding: "2px 0 2px 0",
     buttonGap: "8px",
     smallButtonGap: "6px",
 

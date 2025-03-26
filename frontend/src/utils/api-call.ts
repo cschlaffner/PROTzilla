@@ -47,7 +47,7 @@ export const callApi = async (url: string) => {
     const data = await response.json();
 
     return data;
-    
+
   } catch (error) {
     console.error("Error:", error);
   }
