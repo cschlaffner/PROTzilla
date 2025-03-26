@@ -58,7 +58,6 @@ const StyledRunSelectionCard = styled(Card)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,18 +71,6 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleWheelScroll = (event: WheelEvent) => {
-      event.preventDefault();
-      container.scrollLeft += event.deltaY; // Convert vertical scroll to horizontal
-    };
-
-    container.addEventListener("wheel", handleWheelScroll);
-    return () => container.removeEventListener("wheel", handleWheelScroll);
-  }, []);
 
   return (
     <div>
@@ -96,7 +83,7 @@ export const IndexScreen: React.FC = () => {
 
       <StyledContainer fluid>
       <StyledTemplateCard title="Template Workflows">
-        <StyledWorkflowContainer ref={scrollContainerRef}>
+        <StyledWorkflowContainer >
           {workflows.map((workflow) => (
             <Workflow
               key={workflow}
