@@ -52,49 +52,21 @@ const Tag = styled.span`
 `
 
 
-export const RunsTable: React.FC<RunsTableProps> = ({}) => {
-  // Dummy-Daten
-  const initialData = [
-    {
-      id: 1,
-      runName: "Jannes",
-      edited: "yesterday",
-      tags: ["HBSC"],
-      favorite: false,
-    },
-    {
-      id: 2,
-      runName: "Leonardo",
-      edited: "21.03.2025",
-      tags: ["04", "Tag 1"],
-      favorite: false,
-    },
-    {
-      id: 3,
-      runName: "Lennotani",
-      edited: "17.02.2025",
-      tags: ["DasIstEinTag"],
-      favorite: false,
-    },
-  ]
+export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns}) => {
 
-  const removeTag = (runId: number, tagToRemove: string) => {
+  const removeTag = (runName: string, tagToRemove: string) => {
     setRuns((prevRuns) =>
       prevRuns.map((run) =>
-        run.id === runId
-          ? { ...run, tags: run.tags.filter((tag) => tag !== tagToRemove) }
+        run.run_name === runName
+          ? { ...run, tags: run.run_tags.filter((tag) => tag !== tagToRemove) }
           : run
       )
     )
   }
-  
 
-  // Local state
-  const [runs, setRuns] = useState(initialData)
-
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = (runName: string) => {
     const updated = runs.map((run) =>
-      run.id === id ? { ...run, favorite: !run.favorite } : run
+      run.run_name === runName ? { ...run, favorite: !run.favourite_status } : run
     )
     setRuns(updated)
   }
@@ -113,35 +85,35 @@ export const RunsTable: React.FC<RunsTableProps> = ({}) => {
       </TableHeader>
 
       {[...runs]
-        .sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0)) // Favoriten oben
+        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0)) // Favoriten oben
         .map((run) => (
         
             
-        <TableRow key={run.id}>
+        <TableRow key={run.run_name}>
           <TableCol 
             width="50px" 
-            onClick={() => toggleFavorite(run.id)}
+            onClick={() => toggleFavorite(run.run_name)}
             style={{ cursor: "pointer"}}
             >            
             <Icon
               icon="starFill"
               style={{
                 height: "15px",
-                fill: run.favorite ? "gold" : "none",
+                fill: run.favourite_status ? "gold" : "none",
               }}
             />
           </TableCol>
-          <TableCol width="200px">{run.runName}</TableCol>
-          <TableCol width="150px">{run.edited}</TableCol>
+          <TableCol width="200px">{run.run_name}</TableCol>
+          <TableCol width="150px">{run.modification_date}</TableCol>
           <TableCol>
             <TagList>
-            {run.tags.map((tag, i) => (
+            {run.run_tags.map((tag, i) => (
                 <Tag key={i}>
                     {tag}
                     <Icon 
                       icon="close"
                       color="gray"
-                      onClick={() => removeTag(run.id, tag)}
+                      onClick={() => removeTag(run.run_name, tag)}
                       aria-label={`Remove tag ${tag}`}
                       style={{
                         height: "15px",

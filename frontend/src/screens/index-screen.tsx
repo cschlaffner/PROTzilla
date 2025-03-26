@@ -5,7 +5,7 @@ import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
 import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { size, spacing } from "../theme";
-import { callApi } from "../utils";
+import { callApi, Run } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -64,6 +64,18 @@ export const IndexScreen: React.FC = () => {
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
+  const [runs, setRuns] = useState<Run[]>({} as Run[]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("run_information/");
+      if (data) {
+        setRuns(data);
+      }
+    };
+
+    void fetchData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,7 +157,7 @@ export const IndexScreen: React.FC = () => {
         <StyledRunSelectionCard title="Run Selection">
           Jannes
           <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>bing</Modal>
-          <RunsTable />
+          <RunsTable runs={runs} setRuns={setRuns}/>
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
