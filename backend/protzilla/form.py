@@ -30,13 +30,6 @@ class NumberField(_baseInputField):
     max: int|None = None
     step: float = 1
 
-@dataclass
-class FloatField(_baseInputField):
-    type: str = "number"
-    min: int|None = None
-    max: int|None = None
-    step: float = 1
-
 
 @dataclass
 class SearchField(_baseInputField):
@@ -79,27 +72,33 @@ class Form:
     fields: List[InputField]    
     isAutoSubmit: bool = True
 
+
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
         self._field_map = {field.name: field for field in self.fields}
+
 
     def modify_form(self, run:Run) -> None:
         """
         This method should be defined in Step classes to modify the form based on the current state of the run.
         """
         
+
         pass
+
 
     def update_values(self, values: Dict[str, Any]) -> None:
         "insert new values into the form"
 
-        for fieldname, value in values.items():
-            self.update_value(fieldname, value)
+        for key, value in values.items():
+            if self._field_map.get(key):
+                self._field_map[key].value = value
 
+    
     def update_value(self, fieldname:str, value: Any) -> None:
-        if fieldname in self._field_map:
-            self._field_map[fieldname].value = value
+        self.update_values({fieldname: value})
+        
         
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)

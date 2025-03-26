@@ -15,7 +15,7 @@ from backend.protzilla.data_preprocessing import (
 )
 from backend.protzilla.steps import Plots, Step, StepManager
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.form import *
+from backend.protzilla.form import DropdownField, Form, NumberField
 
 
 class LogTransformationBaseType(Enum):
@@ -149,25 +149,6 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
 
-    def create_form(self):
-        return Form(
-            label="Filter Samples by Protein Count",
-            fields=[
-                NumberField(
-                    name="deviation_threshold",
-                    label="Number of standard deviations from the median",
-                    value=2,
-                    min=0,
-                ),
-                DropdownField(
-                    name="graph_type",
-                    value=BarAndPieChart.pie_chart,
-                    label="Graph type",
-                    options=BarAndPieChart,
-                ),
-            ],
-        )
-
     def method(self, inputs):
         return filter_samples.by_protein_count(**inputs)
 
@@ -184,27 +165,6 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "percentage"]
 
-    def create_form(self):
-        return Form(
-            label="Filter Samples by Proteins Missing",
-            fields=[
-                FloatField(
-                    name="percentage",
-                    label="Percentage of minimum non-missing proteins per sample",
-                    value=0.5,
-                    min=0,
-                    max=1,
-                    step=0.1,
-                ),
-                DropdownField(
-                    name="graph_type",
-                    value=BarAndPieChart.pie_chart,
-                    label="Graph type",
-                    options=BarAndPieChart,
-                ),
-            ],
-        )
-
     def method(self, inputs):
         return filter_samples.by_proteins_missing(**inputs)
 
@@ -218,25 +178,6 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     method_description = "Filter by sum of protein intensities per sample"
 
     input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
-
-    def create_form(self):
-        return Form(
-            label="Filter Samples by Protein Intensity Sum",
-            fields=[
-                FloatField(
-                    name="deviation_threshold",
-                    label="Number of standard deviations from the median",
-                    value=2,
-                    min=0,
-                ),
-                DropdownField(
-                    name="graph_type",
-                    value=BarAndPieChart.pie_chart,
-                    label="Graph type",
-                    options=BarAndPieChart,
-                ),
-            ],
-        )
 
     def method(self, inputs):
         return filter_samples.by_protein_intensity_sum(**inputs)
@@ -252,27 +193,6 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "number_of_components", "threshold"]
 
-    def create_form(self):
-        return Form(
-            label="Outlier Detection by PCA",
-            fields=[
-                FloatField(
-                    name="threshold",
-                    label="Threshold for number of standard deviations from the median:",
-                    value=2,
-                    min=0,
-                ),
-                NumberField(
-                    name="number_of_components",
-                    label="Number of components",
-                    value=3,
-                    min=2,
-                    max=3,
-                    step=1,
-                ),
-            ],
-        )
-
     def method(self, inputs):
         return outlier_detection.by_pca(**inputs)
 
@@ -287,20 +207,6 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "number_of_neighbors"]
 
-    def create_form(self):
-        return Form(
-            label="Outlier Detection by Local Outlier Factor",
-            fields=[
-                NumberField(
-                    name="number_of_neighbors",
-                    label="Number of neighbors",
-                    value=20,
-                    min=1,
-                    step=1,
-                ),
-            ],
-        )
-
     def method(self, inputs):
         return outlier_detection.by_local_outlier_factor(**inputs)
 
@@ -314,20 +220,6 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
     method_description = "Detect outliers using Isolation Forest"
 
     input_keys = ["protein_df", "peptide_df", "n_estimators"]
-
-    def create_form(self):
-        return Form(
-            label="Outlier Detection by Isolation Forest",
-            fields=[
-                NumberField(
-                    name="n_estimators",
-                    label="Number of estimators",
-                    value=100,
-                    min=1,
-                    step=1,
-                ),
-            ],
-        )
 
     def method(self, inputs):
         return outlier_detection.by_isolation_forest(**inputs)
