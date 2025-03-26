@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { color } from "../../theme"
-import { Button, SecondaryButton } from "../button"
+import { callApiWithParameters, Run } from "../../utils"
+import { SecondaryButton } from "../button"
 import { Icon } from "../icon"
 import { RunsTableProps } from "./runs-table.props"
 import styled from "styled-components"
@@ -52,23 +53,48 @@ const Tag = styled.span`
 `
 
 
-export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns}) => {
+export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, setSelectedRun}) => {
+  const navigate = useNavigate();
 
-  const removeTag = (runName: string, tagToRemove: string) => {
-    setRuns((prevRuns) =>
-      prevRuns.map((run) =>
+  const handleDeleteTag = (runName: string, tagToDelete: string) => {
+    void callApiWithParameters("delete_tag/", {
+      run_name: runName,
+      tag_name: tagToDelete,
+    })
+    setRuns((runs) =>
+      runs.map((run) =>
         run.run_name === runName
-          ? { ...run, tags: run.run_tags.filter((tag) => tag !== tagToRemove) }
+          ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) }
           : run
       )
     )
-  }
+  };
 
-  const toggleFavorite = (runName: string) => {
+  const handleToggleFavourite = (runName: string) => {
+    void callApiWithParameters("toggle_favourite/", {
+      run_name: runName,
+    })
     const updated = runs.map((run) =>
-      run.run_name === runName ? { ...run, favorite: !run.favourite_status } : run
+      run.run_name === runName ? { ...run, favourite_status: !run.favourite_status } : run
     )
     setRuns(updated)
+  };
+
+  const handleDeleteRun = (runName: string) => {
+    void callApiWithParameters("delete_run/", { run_name: runName });
+    const updated = runs.filter((run) => run.run_name !== runName);
+    setRuns(updated);
+  };
+
+  const handleContinueRun = (runName: string) => {
+    callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
+      navigate("/run", { state: { runName } });
+    });
+  };
+
+  const handleModal = (run: Run) => {
+    setSelectedRun(run);
+    openModal(true)
   }
 
   
@@ -92,7 +118,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns}) => {
         <TableRow key={run.run_name}>
           <TableCol 
             width="50px" 
-            onClick={() => toggleFavorite(run.run_name)}
+            onClick={() => handleToggleFavourite(run.run_name)}
             style={{ cursor: "pointer"}}
             >            
             <Icon
@@ -113,7 +139,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns}) => {
                     <Icon 
                       icon="close"
                       color="gray"
-                      onClick={() => removeTag(run.run_name, tag)}
+                      onClick={() => handleDeleteTag(run.run_name, tag)}
                       aria-label={`Remove tag ${tag}`}
                       style={{
                         height: "15px",
@@ -121,15 +147,21 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns}) => {
                     />
                 </Tag>
             ))}
+              <SecondaryButton isSmall={true} isShy={true} onClick={() => handleModal(run)}>
+                <Icon icon={"add"} style={{ height: "15px" }} />
+              </SecondaryButton>
             </TagList>
           </TableCol>
           <TableCol width="80px">
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
             </SecondaryButton>
+            <SecondaryButton isSmall={true} isShy={true} isCautious={true} onClick={() => handleDeleteRun(run.run_name)}>
+              <Icon icon={"trash"} style={{ height: "15px" }} />
+            </SecondaryButton>
           </TableCol>
           <TableCol width="100px">
-            <SecondaryButton isSmall={true}>Continue</SecondaryButton>
+            <SecondaryButton isSmall={true} onClick={() => handleContinueRun(run.run_name)}>Continue</SecondaryButton>
           </TableCol>
         </TableRow>
       ))}

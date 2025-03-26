@@ -3,9 +3,28 @@ import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { Card, Form, Modal, RunsTable, Workflow } from "../components";
-import { size, spacing } from "../theme";
-import { callApi, Run } from "../utils";
+import { Card, Form, Icon, Modal, RunsTable, Workflow } from "../components";
+import { color, size, spacing } from "../theme";
+import { callApi, callApiWithParameters, Run } from "../utils";
+
+//this will be a tag component, do before merge
+const TagList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`
+//this will be a tag component, do before merge
+const Tag = styled.span`
+  background-color: ${color("protzillaDarkBlue")};
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -64,13 +83,22 @@ export const IndexScreen: React.FC = () => {
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
-  const [runs, setRuns] = useState<Run[]>({} as Run[]);
+  const [runs, setRuns] = useState<Run[]>([] as Run[]);
+  const [selectedRun, setSelectedRun] = useState<Run>(() => ({          //lazy initialization to prevent .map() error
+    run_name: "",
+    creation_date: "",
+    modification_date: "",
+    memory_mode: "",
+    run_steps: [],
+    favourite_status: false,
+    run_tags: [],
+  }));
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await callApi("run_information/");
       if (data) {
-        setRuns(data);
+        setRuns(data[0]);
       }
     };
 
@@ -81,7 +109,6 @@ export const IndexScreen: React.FC = () => {
     const fetchData = async () => {
       const data = await callApi("workflow_name_list/");
       if (data) {
-        console.log(data);
         setWorkflows(data);
         }
       }
@@ -89,6 +116,36 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
+  const handleAddTag = (tag: string) => {
+    void callApiWithParameters("add_tag/", {
+      run_name: selectedRun.run_name,
+      tag_name: tag,
+    });
+    const updated = runs.map((run) =>
+      run.run_name === selectedRun.run_name ? { ...run, run_tags: [...run.run_tags, tag] } : run
+    );
+    setRuns(updated);
+    setSelectedRun((run) => 
+      run ? { ...run, run_tags: [...run.run_tags, tag] } : run
+    );
+  }
+  //grrr code duplikation grrrr
+  const handleDeleteTag = (runName: string, tagToDelete: string) => {
+    void callApiWithParameters("delete_tag/", {
+      run_name: runName,
+      tag_name: tagToDelete,
+    });
+    setRuns((runs) =>
+      runs.map((run) =>
+        run.run_name === runName
+          ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) }
+          : run
+      )
+    );
+    setSelectedRun((run) => 
+      run ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) } : run
+    );
+  };
 
   return (
     <div>
@@ -128,7 +185,7 @@ export const IndexScreen: React.FC = () => {
               },
               {
                 type: "dropdown",
-                name: "workflow-drop",
+                name: "workflow",
                 props: {
                   label: "With workflow:",
                   options: [
@@ -149,14 +206,49 @@ export const IndexScreen: React.FC = () => {
               },
             ],
           }} 
-          onChange={ () => {}}></Form>
+          onChange={ (data) => { void callApiWithParameters("add_run/", {
+                run_name: data.runname ?? "",
+                workflow_name: data.workflow ?? "",
+                df_mode_name: data.df_mode ?? "disk",
+              })}}></Form>
           </Test>
         </Modal>
       </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
-          <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>bing</Modal>
-          <RunsTable runs={runs} setRuns={setRuns}/>
+          <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>
+          <TagList>
+            {selectedRun.run_tags.map((tag, i) => (
+              <Tag key={i}>
+                {tag}
+                <Icon 
+                  icon="close"
+                  color="gray"
+                  onClick={() => handleDeleteTag(selectedRun.run_name, tag)}
+                  aria-label={`Remove tag ${tag}`}
+                  style={{
+                  height: "15px",
+                  }}
+                />
+              </Tag>
+            ))}
+            </TagList>
+          <Form formData={{
+            label: "",
+            isAutoSubmit: false,
+            input_fields: [
+              {
+                type: "text",
+                name: "tag",
+                props: {
+                  label: "Add a new tag:",
+                },
+              },
+            ],
+          }} 
+          onChange={ (data) => {handleAddTag(data.tag as string) }}></Form>
+          </Modal>
+          <RunsTable runs={runs} setRuns={setRuns} openModal={setIsTagModalOpen} setSelectedRun={setSelectedRun}/>
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
