@@ -3,7 +3,7 @@ import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { Card, Form, Modal, Workflow } from "../components";
+import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { size, spacing } from "../theme";
 import { callApi } from "../utils";
 
@@ -145,6 +145,7 @@ export const IndexScreen: React.FC = () => {
         <StyledRunSelectionCard title="Run Selection">
           Jannes
           <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>bing</Modal>
+          <RunsTable />
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
