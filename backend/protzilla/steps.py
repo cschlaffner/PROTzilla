@@ -210,12 +210,45 @@ class Step:
         return True
     
     def create_form(self) -> Form:
-        # must be implemented by the subclass
+        """
+        This method must be overidden in Step classes to define a form for the step.
+        exmaple:
+        
+        return Form(
+            label="Filter Proteins by Samples Missing",
+            fields=[
+                NumberField(
+                    name="percentage",
+                    label="Percentage of minimum non-missing samples per protein",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+        """
         return Form("No form defined.", [])
 
     def modify_form(self, form: Form, run:Run) -> None:
-        # can be implemented by the subclass to modify the form fields
-        # gets called by the form itself to manipulate the form fields
+        """
+        This method can be overidden in Step classes to modify the form based on the current state of the run.
+        examples:
+        - disable a field based on the current state of the run
+            form.field_by_name("field_name").disabled = True
+        - change the options of a dropdown based on the current state of the run
+            form.field_by_name("field_name").options = {"option1": "Option 1", "option2": "Option 2"}
+        - change the value of a field based on the current state of the run
+            form.field_by_name("field_name").value = "new_value"
+        
+        run can be used to access the current state of the run, e.g. the previous steps, the current section, etc.
+        """
         pass
 
     @property
