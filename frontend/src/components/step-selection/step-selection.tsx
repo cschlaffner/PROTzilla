@@ -1,27 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  Button,
-  CircularButton,
-  GrayButton,
-  ToggleableButton,
-} from "../button";
+import { Button, GrayButton, ToggleableButton } from "../button";
 import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, shadow, size, spacing } from "../../theme";
 import { callApi, callApiWithParameters } from "../../utils";
-import { iconColor } from "../icon";
-import { SectionModes } from "./section-modes.tsx";
+import { IconButton, iconColor } from "../icon";
+import { Sections } from "./sections.tsx";
 import { SectionTitle } from "../section-title";
 
 const sectionModes = {
-  [SectionModes.All]: "All available steps",
-  [SectionModes.Importing]: "Importing",
-  [SectionModes.DataPreprocessing]: "Data Preprocessing",
-  [SectionModes.DataAnalysis]: "Data Analysis",
-  [SectionModes.DataIntegration]: "Data Integration",
+  [Sections.Importing]: "Importing",
+  [Sections.DataPreprocessing]: "Data Preprocessing",
+  [Sections.DataAnalysis]: "Data Analysis",
+  [Sections.DataIntegration]: "Data Integration",
 };
 
 const allSteps = "All steps";
@@ -112,234 +106,268 @@ const StepDescriptionDropdown = styled.div`
   max-width: 95%;
 `;
 
-export const StepSelection: React.FC<StepSelectionProps> = ({
-  runName,
-  section,
-  isSmallButton,
+export const StepSelection: React.FC<StepSelectionProps> = React.memo(
+  ({
+    runName,
+    section,
+    index,
+    isSmallButton,
+    onAddStep,
+    handlePosition,
+    setShowHandle,
 
-  ...rest
-}) => {
-  // - - - Step list handling - - -
-  const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
-  const [listMode, setListMode] = useState<string>(); // now for operations
-  const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+    ...rest
+  }) => {
+    // - - -
+    const [selectedSection, setSelectedSection] = useState<Sections | null>(
+      null,
+    );
 
-  useEffect(() => {
-    const fetchSteps = async () => {
-      const data = await fetchStepList();
-      const list = data.filter(
-        (step) => (step.section as SectionModes) === section,
-      );
-      setAllStepsList(list);
+    // - - - Step list handling - - -
+    const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
+    const [listMode, setListMode] = useState<string>(); // now for operations
+    const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+
+    useEffect(() => {
+      if (!selectedSection) return;
+      const fetchSteps = async () => {
+        const data = await fetchStepList();
+        const list = data.filter(
+          (step) => (step.section as Sections) === section,
+        );
+        setAllStepsList(list);
+      };
+
+      void fetchSteps();
+    }, [selectedSection]);
+
+    useEffect(() => {
+      setActiveStepList(allStepsList);
+    }, [allStepsList]);
+
+    useEffect(() => {
+      setListMode(allSteps);
+    }, [allStepsList]);
+
+    const selectList = (mode: string) => {
+      setListMode(mode);
+      setActiveStepList(stepsGroupedByOperation[mode]);
     };
 
-    void fetchSteps();
-  }, [section]);
+    // - - - Step grouping - - -
+    const stepsGroupedByOperation = useMemo(() => {
+      const result: Record<string, StepItem[]> = {
+        [allSteps]: [],
+      };
 
-  useEffect(() => {
-    setActiveStepList(allStepsList);
-  }, [allStepsList]);
-
-  useEffect(() => {
-    setListMode(allSteps);
-  }, [allStepsList]);
-
-  const selectList = (mode: string) => {
-    setListMode(mode);
-    setActiveStepList(stepsGroupedByOperation[mode]);
-  };
-
-  // - - - Step grouping - - -
-  const stepsGroupedByOperation = useMemo(() => {
-    const result: Record<string, StepItem[]> = {
-      [allSteps]: [],
-    };
-
-    for (const step of allStepsList) {
-      if (!Object.prototype.hasOwnProperty.call(result, step.operation)) {
-        result[step.operation] = [];
+      for (const step of allStepsList) {
+        if (!Object.prototype.hasOwnProperty.call(result, step.operation)) {
+          result[step.operation] = [];
+        }
+        result[step.operation].push(step);
+        result[allSteps].push(step);
       }
-      result[step.operation].push(step);
-      result[allSteps].push(step);
-    }
 
-    return result;
-  }, [allStepsList]);
+      return result;
+    }, [allStepsList]);
 
-  const operationModes: string[] = useMemo(
-    () => Object.keys(stepsGroupedByOperation),
-    [stepsGroupedByOperation],
-  );
+    const operationModes: string[] = useMemo(
+      () => Object.keys(stepsGroupedByOperation),
+      [stepsGroupedByOperation],
+    );
 
-  // - - - API calls - - -
-  const handleAddStep = async (run_name: string, method_name: string) => {
-    await callApiWithParameters("add_step/", {
-      run_name: run_name,
-      method: method_name,
-    });
-  };
+    // - - - API calls - - -
+    const handleAddStep = async (run_name: string, method_name: string) => {
+      await callApiWithParameters("add_step/", {
+        // TODO add index
+        run_name: run_name,
+        method: method_name,
+      }).then(() => {
+        onAddStep();
+      });
+    };
 
-  // - - - Modal handling - - -
-  const [isModalOpen, openModal, closeModal] = useToggleableState(false);
-  const refModal = useRef<HTMLDivElement>(null);
-  useOutsidePress(refModal, closeModal, isModalOpen, false);
+    // - - - Modal handling - - -
+    const [isModalOpen, openModal, closeModal] = useToggleableState(false);
+    const refModal = useRef<HTMLDivElement>(null);
+    useOutsidePress(refModal, closeModal, isModalOpen, false);
 
-  // - - - Step description dropdown - - -
-  const [visibleDescription, setVisibleDescription] = useState<string | null>(
-    null,
-  );
+    const handleOpenModal = () => {
+      openModal();
+      setSelectedSection(section);
+    };
 
-  // - - - Render - - -
-  return (
-    <div>
-      {isSmallButton ? (
-        <CircularButton
-          icon={"add"}
-          onPress={() => {
-            openModal();
-          }}
-        />
-      ) : (
-        <GrayButton
-          isShy={true}
-          icon={"add"}
-          text={"Add steps"}
-          onPress={() => {
-            openModal();
-          }}
-        />
-      )}
-      <div ref={refModal}>
-        <WideModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            closeModal();
-            selectList(allSteps);
-          }}
-          className={""}
-          title={"Add steps"}
-          {...rest}
-        >
-          <BorderDiv>
-            <MakeRowDiv>
-              <SectionSelection>
-                {operationModes.map((mode: string) => (
-                  <SectionButton
-                    key={mode}
-                    isActive={listMode === mode}
-                    onPress={() => {
-                      selectList(mode);
-                      setVisibleDescription(null);
-                    }}
-                    text={mode}
-                  ></SectionButton>
-                ))}
-              </SectionSelection>
-              <div>
-                {allStepsList.length === 0 ? (
-                  <SectionTitle baseComponent={"h2"} title={"Loading..."} />
-                ) : (
-                  <SectionTitle
-                    baseComponent={"h2"}
-                    title={sectionModes[section]}
-                    // style={{ paddingLeft: "100px" }}
-                  />
-                )}
-                <StepList>
-                  {listMode === allSteps ? (
-                    Object.keys(stepsGroupedByOperation)
-                      .filter((op) => op !== allSteps)
-                      .map((operation) => (
-                        <div key={operation}>
-                          <SectionTitle
-                            baseComponent={"h3"}
-                            description={operation}
-                          ></SectionTitle>
-                          <div style={{ padding: "10px 10px 10px 20px" }}>
-                            {stepsGroupedByOperation[operation].map(
-                              (item, index) => (
-                                <StepWrapper key={`step_${String(index)}`}>
-                                  <LightGrayButton
-                                    style={{
-                                      textAlign: "left",
-                                      justifyContent: "left",
-                                    }}
-                                    onPress={() =>
-                                      void handleAddStep(
-                                        runName,
-                                        item.method_name,
-                                      )
-                                    }
-                                    key={index}
-                                    text={item.display_name}
-                                  />
-                                  <HelpButton
-                                    icon={"help"}
-                                    onPress={() => {
-                                      setVisibleDescription(
-                                        visibleDescription === item.method_name
-                                          ? null
-                                          : item.method_name,
-                                      );
-                                    }}
-                                  />
-                                  {visibleDescription === item.method_name && (
-                                    <StepDescriptionDropdown>
-                                      {item.method_description}
-                                    </StepDescriptionDropdown>
-                                  )}
-                                </StepWrapper>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      ))
+    // - - - Step description dropdown - - -
+    const [visibleDescription, setVisibleDescription] = useState<string | null>(
+      null,
+    );
+
+    // - - - Render - - -
+    return (
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {isSmallButton ? (
+          <IconButton
+            icon={"add"}
+            onPointerDown={isModalOpen ? undefined : handleOpenModal}
+            style={{
+              position: "absolute",
+              left: handlePosition.left,
+              top: handlePosition.top,
+              transform: "translateX(-50%) translateY(-50%)",
+            }}
+            onMouseEnter={() => {
+              setShowHandle(true);
+            }}
+          />
+        ) : (
+          <GrayButton
+            color={"protzillaDarkBlue"}
+            isShy={true}
+            icon={"add"}
+            text={"Add steps"}
+            onPointerDown={() => {
+              openModal();
+              handleOpenModal();
+            }}
+            style={{
+              display: "flex",
+            }}
+          />
+        )}
+        <div ref={refModal}>
+          <WideModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              closeModal();
+              selectList(allSteps);
+            }}
+            className={""}
+            title={"Add steps"}
+            {...rest}
+          >
+            <BorderDiv>
+              <MakeRowDiv>
+                <SectionSelection>
+                  {operationModes.map((mode: string) => (
+                    <SectionButton
+                      key={mode}
+                      isActive={listMode === mode}
+                      onPress={() => {
+                        selectList(mode);
+                        setVisibleDescription(null);
+                      }}
+                      text={mode}
+                    ></SectionButton>
+                  ))}
+                </SectionSelection>
+                <div>
+                  {allStepsList.length === 0 ? (
+                    <SectionTitle baseComponent={"h2"} title={"Loading..."} />
                   ) : (
-                    <div>
-                      <SectionTitle
-                        baseComponent={"h3"}
-                        description={listMode}
-                      ></SectionTitle>
-                      <div style={{ padding: "10px 10px 10px 20px" }}>
-                        {activeStepList.map((item, index) => (
-                          <StepWrapper key={`step_${String(index)}`}>
-                            <LightGrayButton
-                              style={{
-                                textAlign: "left",
-                                justifyContent: "left",
-                              }}
-                              onPress={() =>
-                                void handleAddStep(runName, item.method_name)
-                              }
-                              key={index}
-                              text={item.display_name}
-                            />
-                            <HelpButton
-                              icon={"help"}
-                              onPress={() => {
-                                setVisibleDescription(
-                                  visibleDescription === item.method_name
-                                    ? null
-                                    : item.method_name,
-                                );
-                              }}
-                            />
-                            {visibleDescription === item.method_name && (
-                              <StepDescriptionDropdown>
-                                {item.method_description}
-                              </StepDescriptionDropdown>
-                            )}
-                          </StepWrapper>
-                        ))}
-                      </div>
-                    </div>
+                    <SectionTitle
+                      baseComponent={"h2"}
+                      title={sectionModes[section]}
+                      // style={{ paddingLeft: "100px" }}
+                    />
                   )}
-                </StepList>
-              </div>
-            </MakeRowDiv>
-          </BorderDiv>
-        </WideModal>
+                  <StepList>
+                    {listMode === allSteps ? (
+                      Object.keys(stepsGroupedByOperation)
+                        .filter((op) => op !== allSteps)
+                        .map((operation) => (
+                          <div key={operation}>
+                            <SectionTitle
+                              baseComponent={"h3"}
+                              description={operation}
+                            ></SectionTitle>
+                            <div style={{ padding: "10px 10px 10px 20px" }}>
+                              {stepsGroupedByOperation[operation].map(
+                                (item, index) => (
+                                  <StepWrapper key={`step_${String(index)}`}>
+                                    <LightGrayButton
+                                      style={{
+                                        textAlign: "left",
+                                        justifyContent: "left",
+                                      }}
+                                      onPress={() =>
+                                        void handleAddStep(
+                                          runName,
+                                          item.method_name,
+                                        )
+                                      }
+                                      key={index}
+                                      text={item.display_name}
+                                    />
+                                    <HelpButton
+                                      icon={"help"}
+                                      onPress={() => {
+                                        setVisibleDescription(
+                                          visibleDescription ===
+                                            item.method_name
+                                            ? null
+                                            : item.method_name,
+                                        );
+                                      }}
+                                    />
+                                    {visibleDescription ===
+                                      item.method_name && (
+                                      <StepDescriptionDropdown>
+                                        {item.method_description}
+                                      </StepDescriptionDropdown>
+                                    )}
+                                  </StepWrapper>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <div>
+                        <SectionTitle
+                          baseComponent={"h3"}
+                          description={listMode}
+                        ></SectionTitle>
+                        <div style={{ padding: "10px 10px 10px 20px" }}>
+                          {activeStepList.map((item, index) => (
+                            <StepWrapper key={`step_${String(index)}`}>
+                              <LightGrayButton
+                                style={{
+                                  textAlign: "left",
+                                  justifyContent: "left",
+                                }}
+                                onPress={() =>
+                                  void handleAddStep(runName, item.method_name)
+                                }
+                                key={index}
+                                text={item.display_name}
+                              />
+                              <HelpButton
+                                icon={"help"}
+                                onPress={() => {
+                                  setVisibleDescription(
+                                    visibleDescription === item.method_name
+                                      ? null
+                                      : item.method_name,
+                                  );
+                                }}
+                              />
+                              {visibleDescription === item.method_name && (
+                                <StepDescriptionDropdown>
+                                  {item.method_description}
+                                </StepDescriptionDropdown>
+                              )}
+                            </StepWrapper>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </StepList>
+                </div>
+              </MakeRowDiv>
+            </BorderDiv>
+          </WideModal>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);

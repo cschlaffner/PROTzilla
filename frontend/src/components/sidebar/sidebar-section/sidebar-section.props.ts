@@ -7,7 +7,7 @@ export interface SidebarSectionProps
   index: number;
   title: string;
   isCollapsed: boolean;
-  selectedStep: SelectedStep;
+  selectedStep: SelectedStep | null;
   setSelectedStep: SetSelectedStep;
   steps: any;
 }

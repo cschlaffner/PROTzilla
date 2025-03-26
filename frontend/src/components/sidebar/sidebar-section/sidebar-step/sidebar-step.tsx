@@ -100,7 +100,9 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const isSelected =
-    selectedStep.section === sectionName && selectedStep.index === index;
+    selectedStep !== null &&
+    selectedStep.section === sectionName &&
+    selectedStep.index === index;
 
   return (
     <StepContainer

@@ -4,12 +4,12 @@ import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
-import { useTheme } from "../../../theme";
-import { GrayButton } from "../../button";
-import { Icon, IconButton } from "../../icon/icon";
+import { Icon } from "../../icon/icon";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
 import { callApiWithParameters } from "../../../utils";
+import { StepSelection } from "../../step-selection";
+import { Sections } from "../../step-selection/sections.tsx";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -63,19 +63,30 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   setSelectedStep,
   steps,
 }: SidebarSectionProps) => {
-  const hasSelectedStep = selectedStep.section === name;
+  let hasSelectedStep = selectedStep !== null && selectedStep.section === name;
 
   const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
+
   const [showHandle, setShowHandle] = useState(false);
 
-  //WIP add wont work for now
-  const addStep = (index: number) => {
-    const newSteps = [...currentSteps];
-    newSteps.splice(index + 1, 0, "new Step");
-    setCurrentSteps(newSteps);
+  const updateSteps = async () => {
+    const data = await callApiWithParameters("get_run_data/", {
+      run_name: runName,
+    });
+    if (data) {
+      if (data.data.displayed_steps.length === 0) {
+        setCurrentSteps([]);
+      } else {
+        setCurrentSteps(data.data.displayed_steps[index].steps);
+      }
+    }
+  };
+
+  const addStep = async () => {
+    await updateSteps();
   };
 
   const deleteStep = async (index: number) => {
@@ -84,24 +95,18 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-
-    const newSteps = currentSteps;
-    newSteps.splice(index, 1);
-    setCurrentSteps(newSteps);
+    await updateSteps();
     if (hasSelectedStep) {
-      setSelectedStep({
-        section: name,
-        index: Math.min(selectedStep.index, newSteps.length - 1),
-      });
+      if (currentSteps.length === 0) {
+        hasSelectedStep = false;
+        setSelectedStep(null);
+      } else {
+        setSelectedStep({
+          section: name,
+          index: Math.min(selectedStep!.index, currentSteps.length - 1),
+        });
+      }
     }
-  };
-
-  const baseTheme = useTheme();
-  const ContentTextStyle = {
-    fontSize: baseTheme.fontSizes.h5,
-    lineHeight: baseTheme.fontSizes.h5,
-    fontWeight: baseTheme.fontWeights.medium,
-    whiteSpace: "nowrap",
   };
 
   return (
@@ -128,61 +133,50 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {currentSteps.map((step: any, j: number) => {
-          const number = `${String(index + 1)}.${String(j + 1)}`;
-          return (
-            <SidebarStep
-              key={number}
-              number={number}
-              name={step.name}
-              isCollapsed={isCollapsed}
-              sectionName={name}
-              sectionLength={steps.length}
-              index={j}
-              selectedStep={selectedStep}
-              setSelectedStep={setSelectedStep}
-              deleteStep={deleteStep}
-              setHandlePosition={setHandlePosition}
-              setShowHandle={setShowHandle}
-              setHoveredStepIndex={setHoveredStepIndex}
-            />
-          );
-        })}
-        <GrayButton
-          icon={"add"}
-          isShy={true}
-          color={"protzillaDarkBlue"}
-          text={isCollapsed ? undefined : "add step"}
-          isSmall={false}
-          textStyle={ContentTextStyle}
-          onClick={() => {
-            addStep(steps.length);
-          }}
-          style={{
-            margin: "0px 5px",
-            overflow: "hidden",
-          }}
+        {currentSteps ? (
+          currentSteps.map((step: any, j: number) => {
+            const number = `${String(index + 1)}.${String(j + 1)}`;
+            return (
+              <SidebarStep
+                key={number}
+                number={number}
+                name={step.name}
+                isCollapsed={isCollapsed}
+                sectionName={name}
+                sectionLength={steps.length}
+                index={j}
+                selectedStep={selectedStep}
+                setSelectedStep={setSelectedStep}
+                deleteStep={deleteStep}
+                setHandlePosition={setHandlePosition}
+                setShowHandle={setShowHandle}
+                setHoveredStepIndex={setHoveredStepIndex}
+              />
+            );
+          })
+        ) : (
+          <div></div>
+        )}
+        <StepSelection
+          runName={runName}
+          section={name as Sections}
+          index={currentSteps.length}
+          isSmallButton={false}
+          handlePosition={handlePosition}
+          onAddStep={addStep}
+          setShowHandle={setShowHandle}
         />
       </StepsContainer>
-      {showHandle && steps.length !== 0 && (
-        <IconButton
-          icon="add"
+      {showHandle && currentSteps.length !== 0 && (
+        <StepSelection
+          runName={runName}
+          section={name as Sections}
+          index={hoveredStepIndex}
+          isSmallButton={true}
+          handlePosition={handlePosition}
+          onAddStep={addStep}
+          setShowHandle={setShowHandle}
           data-group-id="step-group"
-          onClick={() => {
-            addStep(hoveredStepIndex);
-          }}
-          onMouseEnter={() => {
-            setShowHandle(true);
-          }}
-          onMouseLeave={() => {
-            setShowHandle(false);
-          }}
-          style={{
-            position: "absolute",
-            left: handlePosition.left,
-            top: handlePosition.top,
-            transform: "translateX(-50%) translateY(-50%)",
-          }}
         />
       )}
     </SectionContainer>

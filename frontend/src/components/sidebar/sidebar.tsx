@@ -9,6 +9,7 @@ import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";
 import { callApiWithParameters } from "../../utils";
+import { Section, Sections } from "../step-selection/sections.tsx";
 
 const SidebarContainer = styled(motion.div)`
   position: relative;
@@ -27,10 +28,32 @@ const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
 `;
 
 export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
-  const [sections, setSections] = useState([]);
+  const emptySections: Section[] = [
+    {
+      id: Sections.Importing,
+      name: "Importing",
+      steps: [],
+    },
+    {
+      id: Sections.DataPreprocessing,
+      name: "Data Preprocessing",
+      steps: [],
+    },
+    {
+      id: Sections.DataAnalysis,
+      name: "Data Analysis",
+      steps: [],
+    },
+    {
+      id: Sections.DataIntegration,
+      name: "Data Integration",
+      steps: [],
+    },
+  ];
+  const [sections, setSections] = useState<Section[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedStep, setSelectedStep] = useState<SelectedStep>({
-    section: "importing",
+  const [selectedStep, setSelectedStep] = useState<SelectedStep | null>({
+    section: Sections.Importing,
     index: 0,
   });
 
@@ -41,12 +64,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
         run_name: runName,
       });
       if (data) {
-        setSections(data.data.displayed_steps);
+        const sections = data.data.displayed_steps;
+        if (sections.length === 0) {
+          setSections(emptySections);
+        } else {
+          setSections(sections);
+        }
       }
     };
 
     void fetchData();
-  }, []);
+  }, [runName]);
 
   return (
     <SidebarContainer

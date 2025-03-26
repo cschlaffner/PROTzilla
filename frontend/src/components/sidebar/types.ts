@@ -8,5 +8,5 @@ export interface SelectedStep {
   index: number;
 }
 export type SetSelectedStep = React.Dispatch<
-  React.SetStateAction<SelectedStep>
+  React.SetStateAction<SelectedStep | null>
 >;

@@ -317,10 +317,16 @@ def get_run_data(request):
         run = active_runs[run_name]
         run_data = {}
 
-        run_data["displayed_steps"] = get_displayed_steps(run.steps)
-        run_data["current_section"] = run.current_step.section
-        run_data["current_step"] = run.current_step.instance_identifier
-        run_data["memory_usage"] = get_memory_usage()
+        if run.current_step is not None:
+            run_data["displayed_steps"] = get_displayed_steps(run.steps)
+            run_data["current_section"] = run.current_step.section
+            run_data["current_step"] = run.current_step.instance_identifier
+            run_data["memory_usage"] = get_memory_usage()
+        else:
+            run_data["displayed_steps"] = []
+            run_data["current_section"] = None
+            run_data["current_step"] = None
+            run_data["memory_usage"] = get_memory_usage()
 
         return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
     else:
@@ -345,7 +351,10 @@ def get_step_plots(request):
         run_name = data.get("run_name")
 
         run = active_runs[run_name]
-        plots = [to_json(plot) for plot in run.current_plots.plots]
+        if run.current_step is not None:
+            plots = [to_json(plot) for plot in run.current_plots.plots]
+        else:
+            plots = []
 
         return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
     else:
