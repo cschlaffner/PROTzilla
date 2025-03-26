@@ -61,7 +61,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             all_tags.add(tag)
 
         tags = list(tags) #sets are not json serializable
-        run = { 
+        run = {
             "run_name": name,
             "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
             "modification_date": datetime.datetime.fromtimestamp(modification_time).strftime("%d %m %Y"),
