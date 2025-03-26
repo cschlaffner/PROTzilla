@@ -106,7 +106,9 @@ const HelpButton = styled(Button)`
 
 const StepDescriptionDropdown = styled.div`
   box-shadow: ${shadow("tooltip")};
+  margin-top: ${spacing("verySmall")};
   padding: ${spacing("small")};
+  background-color: ${color("backgroundOffset")};
   max-width: 95%;
 `;
 
@@ -177,15 +179,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     });
   };
 
-  // DEBUG - should be deleted before merge
-  const continueRunForDebugging = async (run_name: string) => {
-    try {
-      await callApiWithParameters("continue_run/", { run_name: run_name });
-    } catch (error) {
-      console.error("Error adding step to workflow:", error);
-    }
-  };
-
   // - - - Modal handling - - -
   const [isModalOpen, openModal, closeModal] = useToggleableState(false);
   const refModal = useRef<HTMLDivElement>(null);
@@ -204,7 +197,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           icon={"add"}
           onPress={() => {
             openModal();
-            void continueRunForDebugging(runName);
           }}
         />
       ) : (
@@ -214,7 +206,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           text={"Add steps"}
           onPress={() => {
             openModal();
-            void continueRunForDebugging(runName);
           }}
         />
       )}
@@ -244,105 +235,107 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   ></SectionButton>
                 ))}
               </SectionSelection>
-              <StepList>
+              <div>
                 {allStepsList.length === 0 ? (
                   <SectionTitle baseComponent={"h2"} title={"Loading..."} />
                 ) : (
                   <SectionTitle
                     baseComponent={"h2"}
                     title={sectionModes[section]}
+                    // style={{ paddingLeft: "100px" }}
                   />
                 )}
-
-                {listMode === allSteps ? (
-                  Object.keys(stepsGroupedByOperation)
-                    .filter((op) => op !== allSteps)
-                    .map((operation) => (
-                      <div key={operation}>
-                        <SectionTitle
-                          baseComponent={"h3"}
-                          description={operation}
-                        ></SectionTitle>
-                        <div style={{ padding: "10px 10px 10px 20px" }}>
-                          {stepsGroupedByOperation[operation].map(
-                            (item, index) => (
-                              <StepWrapper key={`step_${String(index)}`}>
-                                <LightGrayButton
-                                  style={{
-                                    textAlign: "left",
-                                    justifyContent: "left",
-                                  }}
-                                  onPress={() =>
-                                    void handleAddStep(
-                                      runName,
-                                      item.method_name,
-                                    )
-                                  }
-                                  key={index}
-                                  text={item.display_name}
-                                />
-                                <HelpButton
-                                  icon={"help"}
-                                  onPress={() => {
-                                    setVisibleDescription(
-                                      visibleDescription === item.method_name
-                                        ? null
-                                        : item.method_name,
-                                    );
-                                  }}
-                                />
-                                {visibleDescription === item.method_name && (
-                                  <StepDescriptionDropdown>
-                                    {item.method_description}
-                                  </StepDescriptionDropdown>
-                                )}
-                              </StepWrapper>
-                            ),
-                          )}
+                <StepList>
+                  {listMode === allSteps ? (
+                    Object.keys(stepsGroupedByOperation)
+                      .filter((op) => op !== allSteps)
+                      .map((operation) => (
+                        <div key={operation}>
+                          <SectionTitle
+                            baseComponent={"h3"}
+                            description={operation}
+                          ></SectionTitle>
+                          <div style={{ padding: "10px 10px 10px 20px" }}>
+                            {stepsGroupedByOperation[operation].map(
+                              (item, index) => (
+                                <StepWrapper key={`step_${String(index)}`}>
+                                  <LightGrayButton
+                                    style={{
+                                      textAlign: "left",
+                                      justifyContent: "left",
+                                    }}
+                                    onPress={() =>
+                                      void handleAddStep(
+                                        runName,
+                                        item.method_name,
+                                      )
+                                    }
+                                    key={index}
+                                    text={item.display_name}
+                                  />
+                                  <HelpButton
+                                    icon={"help"}
+                                    onPress={() => {
+                                      setVisibleDescription(
+                                        visibleDescription === item.method_name
+                                          ? null
+                                          : item.method_name,
+                                      );
+                                    }}
+                                  />
+                                  {visibleDescription === item.method_name && (
+                                    <StepDescriptionDropdown>
+                                      {item.method_description}
+                                    </StepDescriptionDropdown>
+                                  )}
+                                </StepWrapper>
+                              ),
+                            )}
+                          </div>
                         </div>
+                      ))
+                  ) : (
+                    <div>
+                      <SectionTitle
+                        baseComponent={"h3"}
+                        description={listMode}
+                      ></SectionTitle>
+                      <div style={{ padding: "10px 10px 10px 20px" }}>
+                        {activeStepList.map((item, index) => (
+                          <StepWrapper key={`step_${String(index)}`}>
+                            <LightGrayButton
+                              style={{
+                                textAlign: "left",
+                                justifyContent: "left",
+                              }}
+                              onPress={() =>
+                                void handleAddStep(runName, item.method_name)
+                              }
+                              key={index}
+                              text={item.display_name}
+                            />
+                            <HelpButton
+                              icon={"help"}
+                              onPress={() => {
+                                setVisibleDescription(
+                                  visibleDescription === item.method_name
+                                    ? null
+                                    : item.method_name,
+                                );
+                              }}
+                            />
+                            {visibleDescription === item.method_name && (
+                              <StepDescriptionDropdown>
+                                {item.method_description}
+                              </StepDescriptionDropdown>
+                            )}
+                          </StepWrapper>
+                        ))}
                       </div>
-                    ))
-                ) : (
-                  <div>
-                    <SectionTitle
-                      baseComponent={"h3"}
-                      description={listMode}
-                    ></SectionTitle>
-                    <div style={{ padding: "10px 10px 10px 20px" }}>
-                      {activeStepList.map((item, index) => (
-                        <StepWrapper key={`step_${String(index)}`}>
-                          <LightGrayButton
-                            style={{
-                              textAlign: "left",
-                              justifyContent: "left",
-                            }}
-                            onPress={() =>
-                              void handleAddStep(runName, item.method_name)
-                            }
-                            key={index}
-                            text={item.display_name}
-                          />
-                          <HelpButton
-                            icon={"help"}
-                            onPress={() => {
-                              setVisibleDescription(
-                                visibleDescription === item.method_name
-                                  ? null
-                                  : item.method_name,
-                              );
-                            }}
-                          />
-                          {visibleDescription === item.method_name && (
-                            <StepDescriptionDropdown>
-                              {item.method_description}
-                            </StepDescriptionDropdown>
-                          )}
-                        </StepWrapper>
-                      ))}
                     </div>
-                  </div>
-                )}
-              </StepList>
+                  )}
+                </StepList>
+              </div>
             </MakeRowDiv>
           </BorderDiv>
         </WideModal>
