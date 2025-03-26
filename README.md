@@ -11,8 +11,8 @@
 | backend/main/upload\_handler.py                                                  |       37 |       37 |      0% |      1-73 |
 | backend/main/urls.py                                                             |        6 |        6 |      0% |     16-23 |
 | backend/main/views.py                                                            |       78 |       78 |      0% |     1-121 |
-| backend/main/views\_with\_api.py                                                 |      252 |      252 |      0% |     1-465 |
-| backend/main/views\_with\_api\_helper.py                                         |       43 |       37 |     14% |7-37, 41, 51-92 |
+| backend/main/views\_with\_api.py                                                 |      252 |      252 |      0% |     1-464 |
+| backend/main/views\_with\_api\_helper.py                                         |       47 |       38 |     19% |7-37, 41, 50, 55-96 |
 | backend/main/wsgi.py                                                             |        4 |        4 |      0% |     10-16 |
 | backend/manage.py                                                                |       13 |       13 |      0% |      3-24 |
 | backend/protzilla/\_\_init\_\_.py                                                |        0 |        0 |    100% |           |
@@ -69,7 +69,7 @@
 | backend/protzilla/run\_helper.py                                                 |       12 |        1 |     92% |        26 |
 | backend/protzilla/runner.py                                                      |       77 |       10 |     87% |109-117, 125-127, 140-141 |
 | backend/protzilla/stepfactory.py                                                 |       15 |        3 |     80% |21, 26, 35 |
-| backend/protzilla/steps.py                                                       |      342 |       91 |     73% |82, 97-106, 118, 121, 132, 135, 149, 227, 234, 249, 252, 281-311, 316, 339-340, 358-371, 411, 413-425, 443-458, 469, 506-508, 513-521, 537, 549, 551-558, 563, 607-609, 638, 657-660 |
+| backend/protzilla/steps.py                                                       |      344 |       91 |     74% |97, 112-121, 133, 136, 147, 150, 164, 242, 249, 264, 267, 296-326, 331, 354-355, 373-386, 426, 428-440, 458-473, 484, 521-523, 528-536, 552, 564, 566-573, 578, 622-624, 653, 672-675 |
 | backend/protzilla/utilities/\_\_init\_\_.py                                      |        1 |        0 |    100% |           |
 | backend/protzilla/utilities/clustergram.py                                       |      375 |       99 |     74% |82, 97, 99, 106, 150-151, 153, 155, 190, 205, 209, 213, 217, 227, 231-236, 244, 246, 248, 259-270, 273, 275, 277-296, 315-318, 331, 383-384, 386-387, 402-403, 405-406, 486, 503, 523, 696, 698, 728-735, 744-757, 767-771, 929-941, 944-956, 982-998, 1012-1028 |
 | backend/protzilla/utilities/dunn\_score.py                                       |       10 |        6 |     40% | 25, 41-48 |
@@ -110,7 +110,7 @@
 | backend/tests/protzilla/importing/test\_metadata\_import.py                      |       44 |        5 |     89% |12, 25, 62, 85-86 |
 | backend/tests/protzilla/importing/test\_ms\_data\_import.py                      |       84 |        9 |     89% |232-233, 256-259, 262, 271, 275-276, 315 |
 | backend/tests/protzilla/importing/test\_peptide\_import.py                       |       39 |        6 |     85% |135-137, 165-167 |
-| backend/tests/protzilla/test\_apihelper.py                                       |        4 |        2 |     50% |     4, 73 |
+| backend/tests/protzilla/test\_apihelper.py                                       |        6 |        4 |     33% |  4, 73-75 |
 | backend/tests/protzilla/test\_run.py                                             |       74 |        0 |    100% |           |
 | backend/tests/protzilla/test\_runner.py                                          |      124 |       41 |     67% |49-53, 58-66, 80, 87-89, 150, 163, 166-168, 172, 188-190, 218, 228-231, 242-245, 252, 287-288, 290-330 |
 | backend/tests/protzilla/test\_runner\_cli.py                                     |       67 |       22 |     67% |16, 19-20, 26-27, 37, 41, 44, 55-56, 67-68, 80-81, 87-88, 96-97, 102, 106, 111-112 |
@@ -121,7 +121,7 @@
 | backend/tests/ui/\_\_init\_\_.py                                                 |        0 |        0 |    100% |           |
 | backend/tests/ui/test\_views.py                                                  |       18 |       12 |     33% |5, 106, 115-121, 127-129, 135-137, 143-145 |
 | frontend/\_\_init\_\_.py                                                         |        0 |        0 |    100% |           |
-|                                                                        **TOTAL** | **8528** | **2385** | **72%** |           |
+|                                                                        **TOTAL** | **8536** | **2388** | **72%** |           |
 
 
 ## Setup coverage badge
