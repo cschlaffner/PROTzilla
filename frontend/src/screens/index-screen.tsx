@@ -155,7 +155,6 @@ export const IndexScreen: React.FC = () => {
       </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
-          Jannes
           <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>bing</Modal>
           <RunsTable runs={runs} setRuns={setRuns}/>
         </StyledRunSelectionCard>
