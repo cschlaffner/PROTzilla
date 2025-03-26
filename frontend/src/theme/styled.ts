@@ -14,4 +14,4 @@ export const styledDiv = new Proxy(styled, {
         shouldForwardProp: (prop:string) => isValidHtmlProp(prop),
       })(...args);
   },
-}) as typeof styled;
+});

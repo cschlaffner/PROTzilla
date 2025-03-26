@@ -4,12 +4,11 @@ import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
+import { callApiWithParameters } from "../../../utils";
 import { Icon } from "../../icon/icon";
+import { StepSelection } from "../../step-selection";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
-import { callApiWithParameters } from "../../../utils";
-import { StepSelection } from "../../step-selection";
-import { Sections } from "../../step-selection/sections.tsx";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -101,9 +100,12 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         hasSelectedStep = false;
         setSelectedStep(null);
       } else {
+        const newIndex = selectedStep
+          ? Math.min(selectedStep.index, currentSteps.length - 1)
+          : 0;
         setSelectedStep({
           section: name,
-          index: Math.min(selectedStep!.index, currentSteps.length - 1),
+          index: newIndex,
         });
       }
     }
@@ -134,6 +136,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         {currentSteps ? (
+          //eslint-disable-next-line
           currentSteps.map((step: any, j: number) => {
             const number = `${String(index + 1)}.${String(j + 1)}`;
             return (
@@ -147,7 +150,9 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                 index={j}
                 selectedStep={selectedStep}
                 setSelectedStep={setSelectedStep}
-                deleteStep={deleteStep}
+                deleteStep={() => {
+                  void deleteStep(j);
+                }}
                 setHandlePosition={setHandlePosition}
                 setShowHandle={setShowHandle}
                 setHoveredStepIndex={setHoveredStepIndex}
@@ -159,22 +164,26 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         )}
         <StepSelection
           runName={runName}
-          section={name as Sections}
+          section={name}
           index={currentSteps.length}
           isSmallButton={false}
           handlePosition={handlePosition}
-          onAddStep={addStep}
+          onAddStep={() => {
+            void addStep();
+          }}
           setShowHandle={setShowHandle}
         />
       </StepsContainer>
       {showHandle && currentSteps.length !== 0 && (
         <StepSelection
           runName={runName}
-          section={name as Sections}
+          section={name}
           index={hoveredStepIndex}
           isSmallButton={true}
           handlePosition={handlePosition}
-          onAddStep={addStep}
+          onAddStep={() => {
+            void addStep();
+          }}
           setShowHandle={setShowHandle}
           data-group-id="step-group"
         />

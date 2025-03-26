@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-
 import { styled } from "styled-components"
+
 import { SwitchCardProps } from "./switch-card.props";
 import { spacing, styledDiv } from "../../../theme";
 import { Switch } from "../../switch";

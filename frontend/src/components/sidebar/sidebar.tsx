@@ -1,15 +1,14 @@
 import { motion } from "framer-motion";
-import React, { useState, useEffect } from "react";
-
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
+
 import SidebarSection from "./sidebar-section/sidebar-section";
-import { SelectedStep } from "./types";
+import { emptySections, Section, Sections, SelectedStep } from "./types";
 import { spacing, styledDiv } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";
 import { callApiWithParameters } from "../../utils";
-import { Section, Sections } from "../step-selection/sections.tsx";
 
 const SidebarContainer = styled(motion.div)`
   position: relative;
@@ -28,28 +27,6 @@ const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
 `;
 
 export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
-  const emptySections: Section[] = [
-    {
-      id: Sections.Importing,
-      name: "Importing",
-      steps: [],
-    },
-    {
-      id: Sections.DataPreprocessing,
-      name: "Data Preprocessing",
-      steps: [],
-    },
-    {
-      id: Sections.DataAnalysis,
-      name: "Data Analysis",
-      steps: [],
-    },
-    {
-      id: Sections.DataIntegration,
-      name: "Data Integration",
-      steps: [],
-    },
-  ];
   const [sections, setSections] = useState<Section[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedStep, setSelectedStep] = useState<SelectedStep | null>({
@@ -92,8 +69,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
           style={{ marginLeft: isCollapsed ? "0" : "auto" }}
         />
       </SidebarHeader>
+      {/*eslint-disable-next-line*/}
       {sections &&
-        sections.map((section: any, i: number) => {
+        sections.map((section: Section, i: number) => {
           return (
             <SidebarSection
               runName={runName}

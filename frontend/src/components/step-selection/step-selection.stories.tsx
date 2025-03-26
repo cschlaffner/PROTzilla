@@ -1,6 +1,6 @@
-import { Sections } from "./sections.tsx";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepSelection } from "./step-selection.tsx";
+import { Sections } from "../sidebar/types.ts";
 
 export default {
   component: StepSelection,
