@@ -8,6 +8,7 @@ export * from "./mixins";
 export * from "./node";
 export * from "./notification-bubble";
 export * from "./popup";
+export * from "./runs-table"
 export * from "./screen";
 export * from "./section";
 export * from "./section-title";
