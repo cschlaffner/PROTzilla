@@ -44,7 +44,8 @@ const OptionsList = styled.ul<{ width: number }>`
   overflow-y: auto;
   padding: 0;
   position: absolute;
-  width: ${({ width }) => `${width.toString()}px`};
+ // width: ${({ width }) => `${width.toString()}px`};
+  width: 500px;
   z-index: 1000;
 `;
 
