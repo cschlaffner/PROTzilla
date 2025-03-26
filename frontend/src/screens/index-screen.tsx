@@ -1,9 +1,10 @@
 import React, { useEffect, useState} from "react";
 import { Container } from "react-grid-system";
-import { styled } from "styled-components";
-import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
+import { styled } from "styled-components";
+
 import { Card, Form, Icon, Modal, RunsTable, Workflow } from "../components";
+import { Navbar } from "../components/navbar";
 import { color, size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
@@ -125,9 +126,7 @@ export const IndexScreen: React.FC = () => {
       run.run_name === selectedRun.run_name ? { ...run, run_tags: [...run.run_tags, tag] } : run
     );
     setRuns(updated);
-    setSelectedRun((run) => 
-      run ? { ...run, run_tags: [...run.run_tags, tag] } : run
-    );
+    setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
   }
   //grrr code duplikation grrrr
   const handleDeleteTag = (runName: string, tagToDelete: string) => {
@@ -143,7 +142,7 @@ export const IndexScreen: React.FC = () => {
       )
     );
     setSelectedRun((run) => 
-      run ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) } : run
+      ({ ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) })
     );
   };
 
@@ -151,9 +150,9 @@ export const IndexScreen: React.FC = () => {
     <div>
       <StyledNavbar
         allowRunEdit={false}
-        onNavigateHome={() => navigate("/")}
-        onOpenSettings={() => {}}
-        onOpenHelp={() => {}}
+        onNavigateHome={() => void navigate("/")}
+        onOpenSettings={() => void navigate("/")}
+        onOpenHelp={() => void navigate("/")}
       />
 
       <StyledContainer fluid>
@@ -224,7 +223,7 @@ export const IndexScreen: React.FC = () => {
                 <Icon 
                   icon="close"
                   color="gray"
-                  onClick={() => handleDeleteTag(selectedRun.run_name, tag)}
+                  onClick={() => { handleDeleteTag(selectedRun.run_name, tag); }}
                   aria-label={`Remove tag ${tag}`}
                   style={{
                   height: "15px",

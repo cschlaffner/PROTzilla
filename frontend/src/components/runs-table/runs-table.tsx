@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom"
+import styled from "styled-components"
+
 import { color } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
 import { SecondaryButton } from "../button"
 import { Icon } from "../icon"
 import { RunsTableProps } from "./runs-table.props"
-import styled from "styled-components"
 
 const TableContainer = styled.div`
   display: flex;
@@ -87,8 +88,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
   };
 
   const handleContinueRun = (runName: string) => {
-    callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
-      navigate("/run", { state: { runName } });
+    void callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
+      void navigate("/run", { state: { runName } });
     });
   };
 
@@ -118,7 +119,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
         <TableRow key={run.run_name}>
           <TableCol 
             width="50px" 
-            onClick={() => handleToggleFavourite(run.run_name)}
+            onClick={() => { handleToggleFavourite(run.run_name); }}
             style={{ cursor: "pointer"}}
             >            
             <Icon
@@ -139,7 +140,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
                     <Icon 
                       icon="close"
                       color="gray"
-                      onClick={() => handleDeleteTag(run.run_name, tag)}
+                      onClick={() => { handleDeleteTag(run.run_name, tag); }}
                       aria-label={`Remove tag ${tag}`}
                       style={{
                         height: "15px",
@@ -147,7 +148,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
                     />
                 </Tag>
             ))}
-              <SecondaryButton isSmall={true} isShy={true} onClick={() => handleModal(run)}>
+              <SecondaryButton isSmall={true} isShy={true} onClick={() => { handleModal(run); }}>
                 <Icon icon={"add"} style={{ height: "15px" }} />
               </SecondaryButton>
             </TagList>
@@ -156,12 +157,12 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
             </SecondaryButton>
-            <SecondaryButton isSmall={true} isShy={true} isCautious={true} onClick={() => handleDeleteRun(run.run_name)}>
+            <SecondaryButton isSmall={true} isShy={true} isCautious={true} onClick={() => { handleDeleteRun(run.run_name); }}>
               <Icon icon={"trash"} style={{ height: "15px" }} />
             </SecondaryButton>
           </TableCol>
           <TableCol width="100px">
-            <SecondaryButton isSmall={true} onClick={() => handleContinueRun(run.run_name)}>Continue</SecondaryButton>
+            <SecondaryButton isSmall={true} onClick={() => { handleContinueRun(run.run_name); }}>Continue</SecondaryButton>
           </TableCol>
         </TableRow>
       ))}

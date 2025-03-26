@@ -4,7 +4,7 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 export type MaybeArrayElement<ArrayType> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : ArrayType;
 
-export type Run = {
+export interface Run {
   run_name: string;
   creation_date: string;
   modification_date: string;
