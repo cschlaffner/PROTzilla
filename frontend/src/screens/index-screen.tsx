@@ -3,7 +3,7 @@ import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { Card, RunsTable, Workflow } from "../components";
+import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { size, spacing } from "../theme";
 import { callApi } from "../utils";
 
@@ -11,6 +11,9 @@ const StyledNavbar = styled(Navbar)`
   position: sticky;
   top: 0;
   z-index: 1000;
+`;
+
+const Test = styled.div`
 `;
 
 const StyledContainer = styled(Container)`
@@ -58,6 +61,8 @@ const StyledRunSelectionCard = styled(Card)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,10 +94,51 @@ export const IndexScreen: React.FC = () => {
               key={workflow}
               icon="add"
               workflow={workflow}
-              onPress={() => {}}
+              onPress={() => { 
+                setSelectedWorkflow(workflow);
+                setIsOpen(true); }}
             />
           ))}
         </StyledWorkflowContainer>
+        <Modal title="Create run:" isOpen={isOpen} onClose={() => { setIsOpen(false); }}>
+          <Test>
+          <Form formData={{
+            label: "",
+            isAutoSubmit: false,
+            input_fields: [
+              {
+                type: "text",
+                name: "runname",
+                props: {
+                  label: "With name:",
+                },
+              },
+              {
+                type: "dropdown",
+                name: "workflow-drop",
+                props: {
+                  label: "With workflow:",
+                  options: [
+                    { label: selectedWorkflow, value: selectedWorkflow },
+                  ],
+                },
+              },
+              {
+                type: "dropdown",
+                name: "df_mode",
+                props: {
+                  label: "With memory mode:",
+                  options: [
+                    { label: "Standard", value: "disk" },
+                    { label: "Low Memory", value: "disk_memory" },
+                  ],
+                },
+              },
+            ],
+          }} 
+          onChange={ () => {}}></Form>
+          </Test>
+        </Modal>
       </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
