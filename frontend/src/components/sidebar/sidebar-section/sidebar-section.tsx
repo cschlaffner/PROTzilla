@@ -9,6 +9,7 @@ import { GrayButton } from "../../button";
 import { Icon, IconButton } from "../../icon/icon";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
+import { callApiWithParameters } from "../../../utils";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -53,13 +54,14 @@ const SectionContainer = styled.div`
 `;
 
 const SidebarSection: React.FC<SidebarSectionProps> = ({
+  runName,
   name,
   title,
   index,
   isCollapsed,
   selectedStep,
   setSelectedStep,
-  steps
+  steps,
 }: SidebarSectionProps) => {
   const hasSelectedStep = selectedStep.section === name;
 
@@ -69,15 +71,21 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
   const [showHandle, setShowHandle] = useState(false);
 
-  //WIP add and delete wont work for now
+  //WIP add wont work for now
   const addStep = (index: number) => {
     const newSteps = [...currentSteps];
     newSteps.splice(index + 1, 0, "new Step");
     setCurrentSteps(newSteps);
   };
 
-  const deleteStep = (index: number) => {
-    const newSteps = [...steps];
+  const deleteStep = async (index: number) => {
+    await callApiWithParameters("delete_step/", {
+      run_name: runName,
+      section: name,
+      index: index.toString(),
+    });
+
+    const newSteps = currentSteps;
     newSteps.splice(index, 1);
     setCurrentSteps(newSteps);
     if (hasSelectedStep) {
@@ -120,7 +128,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {currentSteps.map((step:any, j:number) => {
+        {currentSteps.map((step: any, j: number) => {
           const number = `${String(index + 1)}.${String(j + 1)}`;
           return (
             <SidebarStep
