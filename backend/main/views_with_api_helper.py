@@ -35,14 +35,18 @@ def convert_str_if_possible(s):
             return numbers
         return s
 
-def get_all_possible_step_names() -> list[str]:
+def get_all_possible_steps() -> list[dict]:
     """
-    Returns a list of names of step classes. Not to be confused with class display names.
+        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
 
-    :return: List of names.
-    :rtype: String
-    """
-    return [step.__name__ for step in get_all_methods()]
+        :return: List of step dictionaries via the steps to_dict function.
+        :rtype: List[dict]
+        """
+    steps = get_all_methods()
+    step_list = []
+    for step in steps:
+        step_list.append(step.to_dict(step))
+    return step_list
 
 def get_displayed_steps(
     steps: StepManager,

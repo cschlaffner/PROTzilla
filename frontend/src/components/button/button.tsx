@@ -75,7 +75,7 @@ const StyledButton = styled.button.withConfig({
         `
       : css`
           cursor: pointer;
-          
+
           &:active > * {
             opacity: 1;
           }
@@ -364,12 +364,24 @@ export const Button = styled(BaseButton)`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryHover")};
+      color(
+        props.isDisabled
+          ? "primaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "primaryHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "primaryDisabled" : props.isCautious ? "caution" : "primaryActive")};
+      color(
+        props.isDisabled
+          ? "primaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "primaryActive",
+      )};
   }
 `;
 
@@ -444,12 +456,24 @@ const secondaryButtonMixin = css<ButtonProps>`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryHover")};
+      color(
+        props.isDisabled
+          ? "secondaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "secondaryHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "secondaryDisabled" : props.isCautious ? "caution" : "secondaryActive")};
+      color(
+        props.isDisabled
+          ? "secondaryDisabled"
+          : props.isCautious
+            ? "caution"
+            : "secondaryActive",
+      )};
   }
 
   .text {
@@ -487,12 +511,24 @@ export const GrayButton = styled(Button)`
 
   &:hover {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayHover")};
+      color(
+        props.isDisabled
+          ? "grayDisabled"
+          : props.isCautious
+            ? "caution"
+            : "grayHover",
+      )};
   }
 
   &:active {
     background-color: ${(props) =>
-      color(props.isDisabled ? "grayDisabled" : props.isCautious ? "caution" : "grayActive")};
+      color(
+        props.isDisabled
+          ? "grayDisabled"
+          : props.isCautious
+            ? "caution"
+            : "grayActive",
+      )};
   }
 `;
 
@@ -528,7 +564,7 @@ export const CircularButton = styled(Button)`
   }
 `;
 
-export const InvisibleButton = styled(BaseButton)`
+export const InvisibleButton = styled(Button)`
   background: none;
   border: none;
   outline: none;
@@ -551,9 +587,10 @@ export const InvisibleButton = styled(BaseButton)`
     color: ${({color}) => iconColor(color ?? "primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
   }
-  
+
   &:hover {
-    border-radius: ${({ isSmall }) => radius(isSmall ? "smallButton" : "button")};
+    border-radius: ${({ isSmall }) =>
+      radius(isSmall ? "smallButton" : "button")};
     display: inline-flex;
     height: ${({ isSmall }) =>
       size(isSmall ? "smallButtonHeight" : "buttonHeight")};

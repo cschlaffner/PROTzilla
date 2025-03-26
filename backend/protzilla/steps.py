@@ -12,7 +12,7 @@ import pandas as pd
 import plotly
 from PIL import Image
 
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities import format_trace, name_to_title
 
 
 class Section(Enum):
@@ -53,6 +53,21 @@ class Step:
             and self.instance_identifier == other.instance_identifier
             and self.output == other.output
         )
+
+    def to_dict(self):
+        """
+        Returns a dictionary representation of the step object with some meta information about the step.
+        :return: dict
+        """
+        return {
+            "method_name": self.__name__,
+            "section": self.section,
+            "display_name": self.display_name,
+            "operation": name_to_title(self.operation),
+            "method_description": self.method_description,
+            "input_keys": self.input_keys,
+            "output_keys": self.output_keys
+        }
 
     def calculate(self, steps: StepManager, inputs: dict) -> None:
         """
