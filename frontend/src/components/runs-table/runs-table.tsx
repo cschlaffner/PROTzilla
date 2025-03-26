@@ -33,6 +33,25 @@ const TableHeader = styled(TableRow)`
   padding-bottom: 4px;
 `
 
+const TagList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`
+
+const Tag = styled.span`
+  background-color: ${color("protzillaDarkBlue")};
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`
+
+
 export const RunsTable: React.FC<RunsTableProps> = ({}) => {
   // Dummy-Daten
   const initialData = [
@@ -40,24 +59,35 @@ export const RunsTable: React.FC<RunsTableProps> = ({}) => {
       id: 1,
       runName: "Jannes",
       edited: "yesterday",
-      tags: "HBSC",
+      tags: ["HBSC"],
       favorite: false,
     },
     {
       id: 2,
       runName: "Leonardo",
       edited: "21.03.2025",
-      tags: "04, Tag 1",
+      tags: ["04", "Tag 1"],
       favorite: false,
     },
     {
       id: 3,
       runName: "Lennotani",
       edited: "17.02.2025",
-      tags: "DasIstEinTag",
+      tags: ["DasIstEinTag"],
       favorite: false,
     },
   ]
+
+  const removeTag = (runId: number, tagToRemove: string) => {
+    setRuns((prevRuns) =>
+      prevRuns.map((run) =>
+        run.id === runId
+          ? { ...run, tags: run.tags.filter((tag) => tag !== tagToRemove) }
+          : run
+      )
+    )
+  }
+  
 
   // Local state
   const [runs, setRuns] = useState(initialData)
@@ -68,6 +98,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({}) => {
     )
     setRuns(updated)
   }
+
+  
 
   return (
     <TableContainer>
@@ -83,6 +115,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({}) => {
       {[...runs]
         .sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0)) // Favoriten oben
         .map((run) => (
+        
+            
         <TableRow key={run.id}>
           <TableCol 
             width="50px" 
@@ -99,7 +133,24 @@ export const RunsTable: React.FC<RunsTableProps> = ({}) => {
           </TableCol>
           <TableCol width="200px">{run.runName}</TableCol>
           <TableCol width="150px">{run.edited}</TableCol>
-          <TableCol>{run.tags}</TableCol>
+          <TableCol>
+            <TagList>
+            {run.tags.map((tag, i) => (
+                <Tag key={i}>
+                    {tag}
+                    <Icon 
+                      icon="close"
+                      color="gray"
+                      onClick={() => removeTag(run.id, tag)}
+                      aria-label={`Remove tag ${tag}`}
+                      style={{
+                        height: "15px",
+                      }}
+                    />
+                </Tag>
+            ))}
+            </TagList>
+          </TableCol>
           <TableCol width="80px">
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
