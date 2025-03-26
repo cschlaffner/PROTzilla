@@ -53,7 +53,7 @@ class MultiSelectField(_baseInputField):
 
 @dataclass
 class DropdownField(_baseInputField):
-    options: Dict[str, str] = field(default_factory=dict)
+    options: Dict[str, str] | Enum = field(default_factory=dict)
     type: str = "dropdown"
 
 
@@ -80,7 +80,10 @@ class Form:
 
 
     def modify_form(self, run:Run) -> None:
-        "to be overridden by the step"
+        """
+        This method should be defined in Step classes to modify the form based on the current state of the run.
+        """
+        
 
         pass
 
@@ -93,11 +96,8 @@ class Form:
                 self._field_map[key].value = value
 
     
-    def update_value(self, key:str, value: Any) -> None:
-        "insert new value into the form"
-        
-        if self._field_map.get(key):
-            self._field_map[key].value = value
+    def update_value(self, fieldname:str, value: Any) -> None:
+        self.update_values({fieldname: value})
         
         
     def apply_modification(self, run:Run) -> None:
