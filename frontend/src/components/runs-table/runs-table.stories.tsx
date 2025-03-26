@@ -4,7 +4,12 @@ import { RunsTableProps } from "./runs-table.props";
 
 export default {
     component: RunsTable,
-    title: "Run Table"
+    parameters: {
+        backgrounds: {
+          default: "white",
+        },
+      },    
+      title: "Run Table"
 };
 
 const Template: StoryFn<RunsTableProps> = (args) => <RunsTable {...args} />;

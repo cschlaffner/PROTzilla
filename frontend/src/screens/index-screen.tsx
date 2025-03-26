@@ -3,7 +3,7 @@ import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 import { Navbar } from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { Card, Workflow } from "../components";
+import { Card, RunsTable, Workflow } from "../components";
 import { size, spacing } from "../theme";
 import { callApi } from "../utils";
 
@@ -96,7 +96,7 @@ export const IndexScreen: React.FC = () => {
       </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
-          Jannes
+          <RunsTable />
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
