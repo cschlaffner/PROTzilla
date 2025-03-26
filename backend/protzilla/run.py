@@ -9,6 +9,7 @@ import shutil
 import datetime
 
 import backend.protzilla.constants.paths as paths
+from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.disk_operator import DiskOperator, YamlOperator
@@ -235,7 +236,7 @@ class Run:
 
     
     @auto_save
-    def current_form(self, new_form_values = {}) -> dict:
+    def current_form(self, new_form_values = {}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
         self.steps.current_step.form.apply_modification(self)
         return self.steps.current_step.form
