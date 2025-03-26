@@ -332,7 +332,7 @@ def get_step_form(request):
     if request.method == "POST":
         data:dict = json.loads(request.body)
         run_name = data.get("run_name")
-        new_form_values = data.get("new_form_values")
+        new_form_values = data.get("data")
         
         if (run_name not in active_runs):
             return JsonResponse({"success": False, "message": "Run not in active runs"})
@@ -341,7 +341,7 @@ def get_step_form(request):
 
         form = run.current_form(new_form_values)
 
-        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
