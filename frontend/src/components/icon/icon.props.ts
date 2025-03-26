@@ -11,13 +11,15 @@ export interface IconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
   icon: IconType;
   color?: Color;
 
-  /** If set to `true`, displays a small icon. */
+  /** If set to `true`, displays a different sized icon. */
   isSmall?: boolean;
+  isBig?: boolean;
 }
 
 export interface DefaultColoredIconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
   icon: DefaultColoredIconType;
   isSmall?: boolean;
+  isBig?: boolean;
 }
 
 export interface IconButtonProps extends IconProps {

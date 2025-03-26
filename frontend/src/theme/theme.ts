@@ -183,9 +183,11 @@ export const baseTheme = {
   sizes: {
     icon: "20px",
     smallIcon: "12px",
+    bigIcon:"50px",
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
+    bigButtonDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -193,6 +195,10 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+
+    // Input Screen
+    templateSelectionHeight: "300px",
+    runSelectionMinHeight: "300px",
   },
   spacing: {
     listIndentation: "14px",
