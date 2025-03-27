@@ -72,8 +72,7 @@ class Step:
             "display_name": self.display_name,
             "operation": name_to_title(self.operation),
             "method_description": self.method_description,
-            "input_keys": self.input_keys,
-            "output_keys": self.output_keys
+            "calculation_status": self.calculation_status
         }
 
     def calculate(self, steps: StepManager, inputs: dict) -> None:
