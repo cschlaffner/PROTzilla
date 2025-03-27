@@ -34,7 +34,7 @@ const StyledFormColumn = styled.div`
 
 export const ListEditor: React.FC<ListEditorProps> = ({
   formDataParameters,
-  onChangeParamters,
+  onChangeParameters,
   formDataPlotSettings,
   onChangePlotSettings,
   runName
@@ -46,7 +46,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       <StyledDivider />
 
       <StyledFormColumn>
-        <Form formData={formDataParameters} onChange={onChangeParamters} />
+        <Form formData={formDataParameters} onChange={onChangeParameters} />
         <Form formData={formDataPlotSettings} onChange={onChangePlotSettings} />
       </StyledFormColumn>
     </StyledRow>

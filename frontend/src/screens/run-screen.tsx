@@ -60,6 +60,8 @@ export const RunScreen: React.FC = () => {
   const [runName] = useState<string>(location.state?.existingRun);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  
+  
   function onChangePlotSettings(data: Record<string, InputValueType>) {
     let newColors: string | string[] = "purple";
 
@@ -82,6 +84,10 @@ export const RunScreen: React.FC = () => {
     ];
 
     setPlotData(updatedMockPlotData);
+  }
+
+  function onChangeParameters() {
+    //to be implemented
   }
 
   useEffect(() => {
@@ -110,7 +116,7 @@ export const RunScreen: React.FC = () => {
   const listEditorComponent = (
     <ListEditor
       formDataParameters={mockFormDataParameters}
-      onChangeParamters={() => {}}
+      onChangeParameters={onChangeParameters}
       formDataPlotSettings={mockFormDataPlotSettings}
       onChangePlotSettings={onChangePlotSettings}
       runName={runName}
@@ -122,9 +128,9 @@ export const RunScreen: React.FC = () => {
       <StyledNavbar
         allowRunEdit={true}
         title={runName}
-        onNavigateHome={() => navigate("/")}
-        onOpenSettings={() => {}}
-        onOpenHelp={() => {}}
+        onNavigateHome={() => void navigate("/")}
+        onOpenSettings={() => void navigate("/")}
+        onOpenHelp={() => void navigate("/")}
       />
 
       <Container fluid>
