@@ -1,4 +1,3 @@
-# WIP how to deal with forms
 
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
