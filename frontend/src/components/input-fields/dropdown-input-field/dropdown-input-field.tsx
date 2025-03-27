@@ -85,13 +85,19 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   onChange,
   ...props
 }) => {
-  const [selectedValue, setSelectedValue] = useState(() => {
-    const initialValue =
-      options.find((option) => option.value === value) ?? options[0];
-    onChange(initialValue.value);
-    return initialValue;
-  });
-
+  const [selectedValue, setSelectedValue] = useState(
+    options.find((option) => option.value === value) ?? options[0]
+  );
+  
+  useEffect(() => {
+    const initialOption = options.find((option) => option.value === value) ?? options[0];
+    setSelectedValue(initialOption);
+  
+    if (initialOption && initialOption.value !== value) {
+      onChange(initialOption.value);
+    }
+  }, [value, options]);
+  
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
   const [dropdownWidth, setDropdownWidth] = useState<number>(200);
