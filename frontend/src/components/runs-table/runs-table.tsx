@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import styled from "styled-components"
 
-import { color } from "../../theme"
+import { color, defaultPalette } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
 import { SecondaryButton } from "../button"
 import { Icon } from "../icon"
@@ -114,7 +114,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
               icon="starFill"
               style={{
                 height: "15px",
-                fill: run.favourite_status ? "gold" : "none",
+                fill: run.favourite_status ? defaultPalette.primary : "none",
               }}
             />
           </TableCol>
@@ -124,7 +124,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
             <StyledList>
               <TagList run={run} handleDeleteTag={handleDeleteTag}/>
               <SecondaryButton isSmall={true} isShy={true} onClick={() => { handleModal(run); }}>
-                <Icon icon={"add"} style={{ height: "15px" }} />
+                <Icon icon={"threeDots"} style={{ height: "15px", fill: defaultPalette.primary }} />
               </SecondaryButton>
             </StyledList>
           </TableCol>
