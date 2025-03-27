@@ -17,6 +17,7 @@ export * from "./section-title";
 export * from "./sidebar"
 export * from "./switch";
 export * from "./table";
+export * from "./taglist";
 export * from "./text";
 export * from "./text-field";
 export * from "./tooltip";

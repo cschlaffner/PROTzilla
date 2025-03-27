@@ -6,6 +6,7 @@ import { callApiWithParameters, Run } from "../../utils"
 import { SecondaryButton } from "../button"
 import { Icon } from "../icon"
 import { RunsTableProps } from "./runs-table.props"
+import { TagList } from "../taglist"
 
 const TableContainer = styled.div`
   display: flex;
@@ -34,25 +35,12 @@ const TableHeader = styled(TableRow)`
   border-bottom: 2px solid #ccc;
   padding-bottom: 4px;
 `
-
-const TagList = styled.div`
+//this is only used for the  column with tags, could this  be incorporated with TableCol?
+const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 `
-
-const Tag = styled.span`
-  background-color: ${color("protzillaDarkBlue")};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`
-
 
 export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, setSelectedRun}) => {
   const navigate = useNavigate();
@@ -133,25 +121,12 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
           <TableCol width="200px">{run.run_name}</TableCol>
           <TableCol width="150px">{run.modification_date}</TableCol>
           <TableCol>
-            <TagList>
-            {run.run_tags.map((tag, i) => (
-                <Tag key={i}>
-                    {tag}
-                    <Icon 
-                      icon="close"
-                      color="gray"
-                      onClick={() => { handleDeleteTag(run.run_name, tag); }}
-                      aria-label={`Remove tag ${tag}`}
-                      style={{
-                        height: "15px",
-                      }}
-                    />
-                </Tag>
-            ))}
+            <StyledList>
+              <TagList run={run} handleDeleteTag={handleDeleteTag}/>
               <SecondaryButton isSmall={true} isShy={true} onClick={() => { handleModal(run); }}>
                 <Icon icon={"add"} style={{ height: "15px" }} />
               </SecondaryButton>
-            </TagList>
+            </StyledList>
           </TableCol>
           <TableCol width="80px">
             <SecondaryButton isSmall={true} isShy={true}>

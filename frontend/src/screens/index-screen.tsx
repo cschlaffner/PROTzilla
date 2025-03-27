@@ -3,30 +3,13 @@ import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { Card, Form, Icon, Modal, RunsTable, Workflow } from "../components";
+import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { Navbar } from "../components/navbar";
-import { color, size, spacing } from "../theme";
+import { size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
+import { TagList } from "../components/taglist";
 
 
-//this will be a tag component, do before merge
-const TagList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-`
-//this will be a tag component, do before merge
-const Tag = styled.span`
-  background-color: ${color("protzillaDarkBlue")};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -217,22 +200,7 @@ export const IndexScreen: React.FC = () => {
 
         <StyledRunSelectionCard title="Run Selection">
           <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>
-          <TagList>
-            {selectedRun.run_tags.map((tag, i) => (
-              <Tag key={i}>
-                {tag}
-                <Icon 
-                  icon="close"
-                  color="gray"
-                  onClick={() => { handleDeleteTag(selectedRun.run_name, tag); }}
-                  aria-label={`Remove tag ${tag}`}
-                  style={{
-                  height: "15px",
-                  }}
-                />
-              </Tag>
-            ))}
-            </TagList>
+          <TagList run={selectedRun} handleDeleteTag={handleDeleteTag}/>
           <Form formData={{
             label: "",
             isAutoSubmit: false,
