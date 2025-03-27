@@ -93,7 +93,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     const initialOption = options.find((option) => option.value === value) ?? options[0];
     setSelectedValue(initialOption);
   
-    if (initialOption && initialOption.value !== value) {
+    if (initialOption.value !== value) {
       onChange(initialOption.value);
     }
   }, [value, options]);

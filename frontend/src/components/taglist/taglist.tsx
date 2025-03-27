@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 import { Icon } from "../icon";
 import { TagListProps } from "./taglist.props";
 import { color } from "../../theme";

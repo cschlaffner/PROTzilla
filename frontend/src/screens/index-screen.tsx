@@ -5,9 +5,9 @@ import { styled } from "styled-components";
 
 import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { Navbar } from "../components/navbar";
+import { TagList } from "../components/taglist";
 import { size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
-import { TagList } from "../components/taglist";
 
 
 
