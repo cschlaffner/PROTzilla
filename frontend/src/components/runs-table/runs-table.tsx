@@ -42,7 +42,7 @@ const StyledList = styled.div`
   gap: 4px;
 `
 
-export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, setSelectedRun}) => {
+export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns, openModal, setSelectedRun}) => {
   const navigate = useNavigate();
 
   const handleDeleteTag = (runName: string, tagToDelete: string) => {
@@ -99,7 +99,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, setRuns, openModal, s
         <TableCol width="100px">Continue</TableCol>
       </TableHeader>
 
-      {[...runs]
+      {[...filteredRuns]
         .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0)) // Favoriten oben
         .map((run) => (
         

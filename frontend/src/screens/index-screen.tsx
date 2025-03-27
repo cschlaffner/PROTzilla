@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { Card, Form, Modal, RunsTable, Workflow } from "../components";
+import { SearchInputField } from "../components/input-fields/search-input-field";
 import { Navbar } from "../components/navbar";
 import { TagList } from "../components/taglist";
 import { size, spacing } from "../theme";
@@ -64,7 +65,9 @@ const StyledRunSelectionCard = styled(Card)`
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [workflows, setWorkflows] = useState([]);
+  const [workflows, setWorkflows] = useState<string[]>([]);
+  const [searchTermTop, setSearchTermTop] = useState<string>("");
+  const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
@@ -100,6 +103,17 @@ export const IndexScreen: React.FC = () => {
 
     void fetchData();
   }, []);
+
+  const filteredWorkflows = workflows.filter((workflow) =>
+    workflow.toLowerCase().includes(searchTermTop.toLowerCase()),
+  );
+
+  const filteredRuns = runs.filter((run) =>
+    run.run_name.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
+    run.modification_date.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
+    run.run_tags.some(tag => tag.toLowerCase().includes(searchTermRuns.toLowerCase())) ||
+    run.run_steps.some(step => step.toLowerCase().includes(searchTermRuns.toLowerCase())),
+  );
 
   const handleAddTag = (tag: string) => {
     void callApiWithParameters("add_tag/", {
@@ -141,8 +155,18 @@ export const IndexScreen: React.FC = () => {
 
       <StyledContainer fluid>
       <StyledTemplateCard title="Template Workflows">
+        <SearchInputField
+                    style={{ padding: "0", gap: "0", width: "30%"}}
+                    value={searchTermTop}
+                    onChange={(e) => {
+                      setSearchTermTop(e);
+                    }}
+                    placeholder="Search workflows"
+                    smallBorder={true}
+                    isSmall={true}
+                  />
         <StyledWorkflowContainer >
-          {workflows.map((workflow) => (
+          {filteredWorkflows.map((workflow) => (
             <Workflow
               key={workflow}
               icon="add"
@@ -216,7 +240,17 @@ export const IndexScreen: React.FC = () => {
           }} 
           onChange={ (data) => {handleAddTag(data.tag as string) }}></Form>
           </Modal>
-          <RunsTable runs={runs} setRuns={setRuns} openModal={setIsTagModalOpen} setSelectedRun={setSelectedRun}/>
+          <SearchInputField
+            style={{ padding: "0", gap: "0", width: "30%"}}
+            value={searchTermRuns}
+            onChange={(e) => {
+              setSearchTermRuns(e);
+            }}
+            placeholder="Search runs"
+            smallBorder={true}
+            isSmall={true}
+          />
+          <RunsTable runs={runs} filteredRuns={filteredRuns} setRuns={setRuns} openModal={setIsTagModalOpen} setSelectedRun={setSelectedRun}/>
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>

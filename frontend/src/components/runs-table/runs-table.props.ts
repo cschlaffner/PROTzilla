@@ -5,6 +5,7 @@ import { Run } from "../../utils";
 export interface RunsTableProps
   extends React.HTMLAttributes<HTMLDivElement> {
     runs: Run[];
+    filteredRuns: Run[];
     setRuns: React.Dispatch<React.SetStateAction<Run[]>>;
     openModal: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedRun: React.Dispatch<React.SetStateAction<Run>>;
