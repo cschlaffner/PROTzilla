@@ -111,6 +111,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
     }
   };
 
+  console.log("currentSteps", currentSteps);
+
   return (
     <SectionContainer>
       <TitleContainer
@@ -143,6 +145,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               <SidebarStep
                 key={number}
                 number={number}
+                // stepStatus={step.status}
+                stepStatus={step.finsihed ? "complete" : "incomplete"}
                 name={step.name}
                 isCollapsed={isCollapsed}
                 sectionName={name}

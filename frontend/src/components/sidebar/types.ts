@@ -13,6 +13,8 @@ export const enum Sections {
   DataIntegration = "data_integration",
 }
 
+export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
+
 export interface Section {
   id: Sections;
   name: string;
