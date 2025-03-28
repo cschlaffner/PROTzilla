@@ -65,15 +65,11 @@ def get_displayed_steps(
         workflow_steps = []
 
         for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
-            workflow_steps.append(#maybe useless stuff wei z.b. index kram, weil besser wenn frontend kalkuliert? andererseits ist das auch teilweise input for step_remove
+            workflow_steps.append(
                 {
                     "id": step.instance_identifier,
                     "name": step.display_name,
-                    # "index": index_in_section,
-                    # "index_global": index_global,
-                    # "section": step.section,
                     "method_name": name_to_title(step.operation),
-                    # "selected": step == steps.current_step,
                     "status": step.calculation_status,
                 }
             )

@@ -2,9 +2,19 @@ export interface SelectedStep {
   section: Sections;
   index: number;
 }
+
 export type SetSelectedStep = React.Dispatch<
   React.SetStateAction<SelectedStep | null>
 >;
+
+export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
+
+export interface Step {
+  id: string;
+  name: string;
+  method_name: string;
+  status: StepStatus;
+}
 
 export const enum Sections {
   Importing = "importing",
@@ -13,12 +23,10 @@ export const enum Sections {
   DataIntegration = "data_integration",
 }
 
-export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
-
 export interface Section {
   id: Sections;
   name: string;
-  steps: string[];
+  steps: Step[];
 }
 
 export const emptySections: Section[] = [

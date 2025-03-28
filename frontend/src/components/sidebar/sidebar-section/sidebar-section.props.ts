@@ -1,4 +1,4 @@
-import { Sections, SelectedStep, SetSelectedStep } from "../types";
+import { Sections, SelectedStep, SetSelectedStep, Step } from "../types";
 
 export interface SidebarSectionProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -9,5 +9,5 @@ export interface SidebarSectionProps
   isCollapsed: boolean;
   selectedStep: SelectedStep | null;
   setSelectedStep: SetSelectedStep;
-  steps: any; //eslint-disable-line
+  steps: Step[];
 }

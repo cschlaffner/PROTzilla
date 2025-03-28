@@ -9,6 +9,7 @@ import { Icon } from "../../icon/icon";
 import { StepSelection } from "../../step-selection";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
+import { Step } from "../types.ts";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -135,34 +136,36 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {currentSteps ? (
-          //eslint-disable-next-line
-          currentSteps.map((step: any, j: number) => {
-            const number = `${String(index + 1)}.${String(j + 1)}`;
-            return (
-              <SidebarStep
-                key={number}
-                number={number}
-                stepStatus={step.status}
-                name={step.name}
-                isCollapsed={isCollapsed}
-                sectionName={name}
-                sectionLength={steps.length}
-                index={j}
-                selectedStep={selectedStep}
-                setSelectedStep={setSelectedStep}
-                deleteStep={() => {
-                  void deleteStep(j);
-                }}
-                setHandlePosition={setHandlePosition}
-                setShowHandle={setShowHandle}
-                setHoveredStepIndex={setHoveredStepIndex}
-              />
-            );
-          })
-        ) : (
-          <div></div>
-        )}
+        {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          currentSteps ? (
+            currentSteps.map((step: Step, j: number) => {
+              const number = `${String(index + 1)}.${String(j + 1)}`;
+              return (
+                <SidebarStep
+                  key={number}
+                  number={number}
+                  stepStatus={step.status}
+                  name={step.method_name + ": " + step.name}
+                  isCollapsed={isCollapsed}
+                  sectionName={name}
+                  sectionLength={steps.length}
+                  index={j}
+                  selectedStep={selectedStep}
+                  setSelectedStep={setSelectedStep}
+                  deleteStep={() => {
+                    void deleteStep(j);
+                  }}
+                  setHandlePosition={setHandlePosition}
+                  setShowHandle={setShowHandle}
+                  setHoveredStepIndex={setHoveredStepIndex}
+                />
+              );
+            })
+          ) : (
+            <div></div>
+          )
+        }
         <StepSelection
           runName={runName}
           section={name}

@@ -7,5 +7,5 @@ export default {
   title: "Sidebar",
 } as Meta;
 
-const Template = () => <Sidebar runName={""}/>;
+const Template = () => <Sidebar runName={""} />;
 export const Default = Template.bind({});

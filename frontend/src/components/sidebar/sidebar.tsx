@@ -34,6 +34,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
     index: 0,
   });
 
+  const translateGlobalToSectionIndex = (
+    globalIndex: number,
+    sections: Section[],
+  ): [Section, number] | undefined => {
+    let i = 0;
+    for (const section of sections) {
+      i = i + section.steps.length;
+      if (i >= globalIndex) {
+        return [section, globalIndex - (i - section.steps.length)];
+      }
+    }
+    return undefined;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (runName === "") return;
@@ -41,11 +55,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
         run_name: runName,
       });
       if (data) {
+        // get sections and their steps
         const sections = data.data.displayed_steps;
         if (sections.length === 0) {
           setSections(emptySections);
         } else {
           setSections(sections);
+        }
+
+        // get selected step
+        const currentStepIndex = data.data.current_step_index;
+        const currentStep = translateGlobalToSectionIndex(
+          currentStepIndex,
+          sections,
+        );
+        if (currentStep !== undefined) {
+          const [section, index] = currentStep;
+          setSelectedStep({
+            section: section.id,
+            index: index,
+          });
         }
       }
     };
