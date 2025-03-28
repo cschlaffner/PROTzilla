@@ -15,7 +15,6 @@ from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
-from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
