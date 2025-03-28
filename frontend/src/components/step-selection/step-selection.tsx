@@ -32,8 +32,7 @@ export interface StepItem {
   display_name: string;
   operation: string;
   method_description: string;
-  input_keys: string[];
-  output_keys: string[];
+  calculation_status: string;
 }
 
 const fetchStepList = async (): Promise<StepItem[]> => {

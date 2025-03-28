@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views.generic import RedirectView
 
 from . import views
@@ -46,7 +46,9 @@ urlpatterns = [
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
 
-    #old routes, not yet implemented as api endpints, see notion card
+    path("api/settings/", include("settings.urls")),
+
+    #old routes, not yet implemented as api endpints, see notion card 
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),
