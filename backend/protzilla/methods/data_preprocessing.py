@@ -101,8 +101,8 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
                     label="Graph type",
+                    value=BarAndPieChart.pie_chart,
                     options=BarAndPieChart,
                 ),
             ],
@@ -131,8 +131,8 @@ class FilterByProteinsCount(DataPreprocessingStep):
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
                     label="Graph type",
+                    value=BarAndPieChart.pie_chart,
                     options=BarAndPieChart,
                 ),
             ],
@@ -165,8 +165,8 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
                     label="Graph type",
+                    value=BarAndPieChart.pie_chart,
                     options=BarAndPieChart,
                 ),
             ],
@@ -195,8 +195,8 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
                     label="Graph type",
+                    value=BarAndPieChart.pie_chart,
                     options=BarAndPieChart,
                 ),
             ],

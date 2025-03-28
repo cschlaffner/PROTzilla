@@ -84,8 +84,7 @@ class FormDivider():
     `label` is the shown title of the section.
     """
     label: str
-    type: str = "section"
-
+    type: str = "form-divider"
 
 InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
 StructualField = Union[FormDivider]
@@ -99,7 +98,7 @@ class Form:
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
-        self._field_map = {field.name: field for field in self.fields}
+        self._field_map = {field.name: field for field in self.fields if isinstance(field, _baseField)}
 
     def modify_form(self, run:Run) -> None:
         """

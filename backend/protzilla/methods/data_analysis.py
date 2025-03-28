@@ -216,7 +216,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     name="ttest_type",
                     label="T-test type",
                     value=TTestType.welchs_t_test,
-                    choices=TTestType,
+                    options=TTestType,
                 ),
                 DropdownField(
                     name="protein_df",
@@ -227,7 +227,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     value=MultipleTestingCorrectionMethod.benjamini_hochberg,
-                    choices=MultipleTestingCorrectionMethod,
+                    options=MultipleTestingCorrectionMethod,
                 ),
                 NumberField(
                     name="alpha",
@@ -559,7 +559,7 @@ class PlotProtQuant(DataAnalysisStep):
                     name="similarity_measure",
                     label="Similarity Measurement: choose how to compare protein groups",
                     value=SimilarityMeasure.euclidean_distance,
-                    choices=SimilarityMeasure,
+                    options=SimilarityMeasure,
                 ),
                 NumberField(
                     name="similarity",

@@ -119,6 +119,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 DropdownField(
                     name="proteins_df",
                     label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                    value=None,
                 ),
                 NumberField(
                     name="differential_expression_threshold",
@@ -140,8 +141,8 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 DropdownField(
                     name="direction",
                     label="Direction of the analysis",
-                    options=Direction,
                     value=Direction.both,
+                    options=Direction,
                 ),
                 FileInput(
                     name="background_path",
@@ -294,7 +295,6 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                     name="input_df_step_instance",
                     label="Choose dataframe to be plotted",
                     value=None,
-                    choices=[],
                 ),
                 # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
                 MultiSelectWithDropdownsField(
@@ -307,8 +307,8 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 DropdownField(
                     name="value",
                     label="Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
-                    options=GOEnrichmentBarPlotValue,
                     value=GOEnrichmentBarPlotValue.p_value,
+                    options=GOEnrichmentBarPlotValue,
                 ),
                 NumberField(
                     name="top_terms",

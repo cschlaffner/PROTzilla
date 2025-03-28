@@ -133,10 +133,10 @@ class MetadataImport(ImportingStep):
                     label="Metadata file"
                 ),
                 DropdownField(
-                    "feature_orientation",
-                    label="Feature orientation",
-                    options=FeatureOrientationType,
-                    value=FeatureOrientationType.COLUMNS,
+                    name = "feature_orientation",
+                    label = "Feature orientation",
+                    options = FeatureOrientationType,
+                    value = FeatureOrientationType.COLUMNS,
                 ),
             ],
         )
