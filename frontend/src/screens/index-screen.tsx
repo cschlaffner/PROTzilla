@@ -18,9 +18,6 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const Test = styled.div`
-`;
-
 const StyledContainer = styled(Container)`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
@@ -178,7 +175,6 @@ export const IndexScreen: React.FC = () => {
           ))}
         </StyledWorkflowContainer>
         <Modal title="Create run:" isOpen={isWorkflowModalOpen} onClose={() => { setIsWorkflowModalOpen(false); }}>
-          <Test>
           <Form formData={{
             label: "",
             isAutoSubmit: false,
@@ -218,7 +214,6 @@ export const IndexScreen: React.FC = () => {
                 workflow_name: data.workflow ?? "",
                 df_mode_name: data.df_mode ?? "disk",
               })}}></Form>
-          </Test>
         </Modal>
       </StyledTemplateCard>
 

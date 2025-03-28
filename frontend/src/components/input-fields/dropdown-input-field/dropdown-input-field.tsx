@@ -44,8 +44,7 @@ const OptionsList = styled.ul<{ width: number }>`
   overflow-y: auto;
   padding: 0;
   position: absolute;
- // width: ${({ width }) => `${width.toString()}px`};
-  width: 500px;
+  width: ${({ width }) => `${width.toString()}px`};
   z-index: 1000;
 `;
 
@@ -116,7 +115,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     if (inputRef.current) {
       setDropdownWidth(inputRef.current.getBoundingClientRect().width);
     }
-  }, []);
+  }, [inputRef]);
 
   const handleChange = (option: { label: string; value: string }) => {
     setSelectedValue(option);
