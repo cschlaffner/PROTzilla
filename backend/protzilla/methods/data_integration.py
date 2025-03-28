@@ -288,48 +288,48 @@ class PlotGOEnrichmentBarPlot(PlotStep):
 
     def create_form(self):
         return Form(
-            label="Bar plot for GO enrichment analysis",
-            fields=[
+            label = "Bar plot for GO enrichment analysis",
+            fields = [
                 # TODO: input:df fill dynamic with fill_forms
                 DropdownField(
-                    name="input_df_step_instance",
-                    label="Choose dataframe to be plotted",
-                    value=None,
+                    name = "input_df_step_instance",
+                    label = "Choose dataframe to be plotted",
+                    value = None,
                 ),
                 # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
                 MultiSelectWithDropdownsField(
-                    name="gene_sets",
-                    label="Sets to be plotted",
-                    value=[],
-                    options=[],
-                    dropdown_choices=[(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
+                    name = "gene_sets",
+                    label = "Sets to be plotted",
+                    value = [],
+                    options = [],
+                    dropdown_choices = [(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
                 ),
                 DropdownField(
-                    name="value",
-                    label="Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
-                    value=GOEnrichmentBarPlotValue.p_value,
-                    options=GOEnrichmentBarPlotValue,
+                    name = "value",
+                    label = "Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
+                    value = GOEnrichmentBarPlotValue.p_value,
+                    options = GOEnrichmentBarPlotValue,
                 ),
                 NumberField(
-                    name="top_terms",
-                    label="Number of top enriched terms per category",
-                    min=1,
-                    max=100,
-                    step=1,
-                    value=10,
+                    name = "top_terms",
+                    label = "Number of top enriched terms per category",
+                    min = 1,
+                    max = 100,
+                    step = 1,
+                    value = 10,
                 ),
                 FloatField(
-                    name="cutoff",
-                    label="Only terms with adjusted p-value (or FDR) < cutoff will be shown",
-                    min_value=0,
-                    max_value=1,
-                    step_size=0.01,
-                    value=0.05,
+                    name = "cutoff",
+                    label = "Only terms with adjusted p-value (or FDR) < cutoff will be shown",
+                    min_value = 0,
+                    max_value = 1,
+                    step_size = 0.01,
+                    value = 0.05,
                 ),
                 TextField(
-                    name="title",
-                    label="Title of the plot (optional)",
-                    value="",
+                    name = "title",
+                    label = "Title of the plot (optional)",
+                    value = "",
                 ),
             ]
         )
