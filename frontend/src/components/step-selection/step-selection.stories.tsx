@@ -15,6 +15,8 @@ importingSteps.args = {
   runName: "runrun",
   section: Sections.Importing,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataAnalysisSteps = (
@@ -24,6 +26,8 @@ dataAnalysisSteps.args = {
   runName: "runrun",
   section: Sections.DataAnalysis,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataIntegrationSteps = (
@@ -33,6 +37,8 @@ dataIntegrationSteps.args = {
   runName: "runrun",
   section: Sections.DataIntegration,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataPreprocessingSteps = (
@@ -42,6 +48,8 @@ dataPreprocessingSteps.args = {
   runName: "runrun",
   section: Sections.DataPreprocessing,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const withBiggerButton = (args: StepSelectionProps): React.ReactNode => (
@@ -51,4 +59,6 @@ withBiggerButton.args = {
   runName: "runrun",
   section: Sections.DataPreprocessing,
   isSmallButton: false,
+  index: 0,
+  handlePosition: { top: 0, left: 0 },
 };
