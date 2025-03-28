@@ -23,18 +23,20 @@ const Tag = styled.span`
 `
 
 export const TagList: React.FC<TagListProps> = ({
-  run,
-  handleDeleteTag,
+  runName,
+  tags,
+  icon,
+  handleTag,
 }) => {
   return (
     <StyledList>
-        {run.run_tags.map((tag, i) => (
+        {tags.map((tag, i) => (
         <Tag key={i}>
             {tag}
             <Icon 
-                icon="close"
+                icon={icon}
                 color="gray"
-                onClick={() => { handleDeleteTag(run.run_name, tag); }}
+                onClick={() => { handleTag(tag, runName); }}
                 aria-label={`Remove tag ${tag}`}
                 style={{
                 height: "15px",

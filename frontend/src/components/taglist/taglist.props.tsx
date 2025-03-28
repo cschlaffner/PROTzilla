@@ -1,6 +1,9 @@
-import { Run } from "../../utils";
+import { IconType } from "../icon";
 
 export interface TagListProps {
-  run: Run;
-  handleDeleteTag: (runName: string, tag: string) => void;
+  runName: string;
+  tags: string[]; 
+  icon: IconType;
+  handleTag: (tag: string, _runName: string) => void;
+  
 }

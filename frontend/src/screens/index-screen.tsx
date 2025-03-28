@@ -10,7 +10,9 @@ import { TagList } from "../components/taglist";
 import { size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
-
+const StyledModalChild = styled.div`
+  padding: ${spacing("small")};
+`;
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -44,7 +46,6 @@ const StyledWorkflowContainer = styled(Container)`
   }
 `;
 
-
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
 `;
@@ -63,12 +64,14 @@ const StyledRunSelectionCard = styled(Card)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState<string[]>([]);
+  const [searchTermTags, setSearchTermTags] = useState<string>("");
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
   const [runs, setRuns] = useState<Run[]>([] as Run[]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
   const [selectedRun, setSelectedRun] = useState<Run>(() => ({          //lazy initialization to prevent .map() error
     run_name: "",
     creation_date: "",
@@ -84,6 +87,7 @@ export const IndexScreen: React.FC = () => {
       const data = await callApi("run_information/");
       if (data) {
         setRuns(data[0]);
+        setExistingTags(data[1]);
       }
     };
 
@@ -112,6 +116,11 @@ export const IndexScreen: React.FC = () => {
     run.run_steps.some(step => step.toLowerCase().includes(searchTermRuns.toLowerCase())),
   );
 
+  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
+  const filteredAddableTags = addableTags.filter((tag) =>
+    tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
+  );
+
   const handleAddTag = (tag: string) => {
     void callApiWithParameters("add_tag/", {
       run_name: selectedRun.run_name,
@@ -122,16 +131,17 @@ export const IndexScreen: React.FC = () => {
     );
     setRuns(updated);
     setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
+    setExistingTags((tags) => tags.includes(tag) ? tags : [...tags, tag]);
   }
   //grrr code duplikation grrrr
-  const handleDeleteTag = (runName: string, tagToDelete: string) => {
+  const handleDeleteTag = (tagToDelete: string) => {
     void callApiWithParameters("delete_tag/", {
-      run_name: runName,
+      run_name: selectedRun.run_name,
       tag_name: tagToDelete,
     });
     setRuns((runs) =>
       runs.map((run) =>
-        run.run_name === runName
+        run.run_name === selectedRun.run_name
           ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) }
           : run
       )
@@ -219,21 +229,35 @@ export const IndexScreen: React.FC = () => {
 
         <StyledRunSelectionCard title="Run Selection">
           <Modal title="Run tags:" isOpen={isTagModalOpen} onClose={() => { setIsTagModalOpen(false); }}>
-          <TagList run={selectedRun} handleDeleteTag={handleDeleteTag}/>
-          <Form formData={{
-            label: "",
-            isAutoSubmit: false,
-            input_fields: [
-              {
-                type: "text",
-                name: "tag",
-                props: {
-                  label: "Add a new tag:",
+            <TagList runName={selectedRun.run_name} tags={selectedRun.run_tags} icon="close" handleTag={handleDeleteTag}/>
+            <Form formData={{
+              label: "",
+              isAutoSubmit: false,
+              input_fields: [
+                {
+                  type: "text",
+                  name: "tag",
+                  props: {
+                    label: "Add a new tag:",
+                  },
                 },
-              },
-            ],
-          }} 
-          onChange={ (data) => {handleAddTag(data.tag as string) }}></Form>
+              ],
+            }} 
+            onChange={ (data) => {handleAddTag(data.tag as string) }}></Form>
+            <SearchInputField
+              label="Or choose from existing tags:"
+              style={{ padding: "0", gap: "0"}}
+              value={searchTermTags}
+              onChange={(e) => {
+                setSearchTermTags(e);
+              }}
+              placeholder="Search existing tags"
+              smallBorder={true}
+              isSmall={true}
+            />
+            <StyledModalChild>
+              <TagList runName={selectedRun.run_name} tags={filteredAddableTags} icon="add" handleTag={handleAddTag}/>
+            </StyledModalChild>
           </Modal>
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%"}}

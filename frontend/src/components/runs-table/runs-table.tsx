@@ -45,18 +45,18 @@ const StyledList = styled.div`
 export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns, openModal, setSelectedRun}) => {
   const navigate = useNavigate();
 
-  const handleDeleteTag = (runName: string, tagToDelete: string) => {
+  const handleDeleteTag = (tagToDelete: string, runName: string) => {
     void callApiWithParameters("delete_tag/", {
       run_name: runName,
       tag_name: tagToDelete,
-    })
+    });
     setRuns((runs) =>
       runs.map((run) =>
         run.run_name === runName
           ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) }
           : run
       )
-    )
+    );
   };
 
   const handleToggleFavourite = (runName: string) => {
@@ -122,7 +122,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns
           <TableCol width="150px">{run.modification_date}</TableCol>
           <TableCol>
             <StyledList>
-              <TagList run={run} handleDeleteTag={handleDeleteTag}/>
+              <TagList runName={run.run_name} tags={run.run_tags} icon="close" handleTag={handleDeleteTag}/>
               <SecondaryButton isSmall={true} isShy={true} onClick={() => { handleModal(run); }}>
                 <Icon icon={"threeDots"} style={{ height: "15px", fill: defaultPalette.primary }} />
               </SecondaryButton>
