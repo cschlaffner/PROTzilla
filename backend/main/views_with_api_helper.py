@@ -74,8 +74,7 @@ def get_displayed_steps(
                     # "section": step.section,
                     "method_name": name_to_title(step.operation),
                     # "selected": step == steps.current_step,
-                    "finished": index_global < steps.current_step_index,
-                    "calculation_icon_path": "img/" + step.calculation_status + "_icon.svg"
+                    "status": step.calculation_status,
                 }
             )
 
