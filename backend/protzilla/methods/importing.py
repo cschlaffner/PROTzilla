@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from backend.protzilla.form import *
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
     metadata_import_method,
@@ -12,6 +13,39 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
+
+
+class IntensityType(Enum):
+    IBAQ = "iBAQ"
+    INTENSITY = "Intensity"
+    LFQ_INTENSITY = "LFQ intensity"
+
+
+class IntensityNameType(Enum):
+    INTENSITY = "Intensity"
+    MAXLFQ_TOTAL_iNTENSITY = "MaxLFQ Total Intensity"
+    MAXLFQ_INTENSITY = "MaxLFQ Intensity"
+    TOTAL_INTENSITY = "Total Intensity"
+    MAXLFQ_UNIQUE_INTENSITY = "MaxLFQ Unique Intensity"
+    UNIQUE_SPECTRAL_COUNT = "Unique Spectral Count"
+    UNIQUE_INTENSITY = "Unique Intensity"
+    SPECTRAL_COUNT = "Spectral Count"
+    TOTAL_SPECTRAL_COUNT = "Total Spectral Count"
+
+
+class FeatureOrientationType(Enum):
+    COLUMNS = "Columns (samples in rows, features in columns)"
+    ROWS = "Rows (features in rows, samples in columns)"
+
+
+class EmptyEnum(Enum):
+    pass
+
+
+class AggregationMethods(Enum):
+    sum = "Sum"
+    median = "Median"
+    mean = "Mean"
 
 
 class ImportingStep(Step):
@@ -31,6 +65,35 @@ class MaxQuantImport(ImportingStep):
 
     input_keys = ["file_path", "map_to_uniprot", "intensity_name", "aggregation_method"]
     output_keys = ["protein_df"]
+
+    def create_form(self):
+        return Form(
+            label="MaxQuant Protein Groups Import",
+            fields=[
+                FileInput(
+                    name = "file_path",
+                    label = "MaxQuant intensities file (proteinGroups.txt)",
+                    value = None,
+                ),
+                DropdownField(
+                    name = "intensity_name",
+                    label = "Intensity parameter",
+                    value = IntensityNameType.MAXLFQ_INTENSITY,
+                    options = IntensityType
+                ),
+                CheckboxField(
+                    name = "map_to_uniprot",
+                    label = "Map to Uniprot IDs using Biomart (online)",
+                    value = False
+                ),
+                DropdownField(
+                    name = "aggregation_method",
+                    label = "Aggregation method used to aggregate duplicate values for protein groups",
+                    value = AggregationMethods.sum,
+                    options = AggregationMethods,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return max_quant_import(**inputs)
@@ -67,6 +130,23 @@ class MetadataImport(ImportingStep):
 
     input_keys = ["file_path", "feature_orientation", "protein_df"]
     output_keys = ["metadata_df"]
+
+    def create_form(self):
+        return Form(
+            label="Metadata Import",
+            fields=[
+                FileInput(
+                    name = "file_path",
+                    label="Metadata file"
+                ),
+                DropdownField(
+                    "feature_orientation",
+                    label="Feature orientation",
+                    options=FeatureOrientationType,
+                    value=FeatureOrientationType.COLUMNS,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return metadata_import_method(**inputs)

@@ -15,7 +15,7 @@ from backend.protzilla.data_preprocessing import (
 )
 from backend.protzilla.steps import Plots, Step, StepManager
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.form import DropdownField, Form, NumberField
+from backend.protzilla.form import *
 
 
 class LogTransformationBaseType(Enum):
@@ -149,6 +149,25 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
 
+    def create_form(self):
+        return Form(
+            label="Filter Samples by Protein Count",
+            fields=[
+                NumberField(
+                    name="deviation_threshold",
+                    label="Number of standard deviations from the median",
+                    value=2,
+                    min=0,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
     def method(self, inputs):
         return filter_samples.by_protein_count(**inputs)
 
@@ -165,6 +184,27 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "percentage"]
 
+    def create_form(self):
+        return Form(
+            label="Filter Samples by Proteins Missing",
+            fields=[
+                FloatField(
+                    name="percentage",
+                    label="Percentage of minimum non-missing proteins per sample",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
     def method(self, inputs):
         return filter_samples.by_proteins_missing(**inputs)
 
@@ -178,6 +218,25 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     method_description = "Filter by sum of protein intensities per sample"
 
     input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
+
+    def create_form(self):
+        return Form(
+            label="Filter Samples by Protein Intensity Sum",
+            fields=[
+                FloatField(
+                    name="deviation_threshold",
+                    label="Number of standard deviations from the median",
+                    value=2,
+                    min=0,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return filter_samples.by_protein_intensity_sum(**inputs)
@@ -193,6 +252,27 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "number_of_components", "threshold"]
 
+    def create_form(self):
+        return Form(
+            label="Outlier Detection by PCA",
+            fields=[
+                FloatField(
+                    name="threshold",
+                    label="Threshold for number of standard deviations from the median:",
+                    value=2,
+                    min=0,
+                ),
+                NumberField(
+                    name="number_of_components",
+                    label="Number of components",
+                    value=3,
+                    min=2,
+                    max=3,
+                    step=1,
+                ),
+            ],
+        )
+
     def method(self, inputs):
         return outlier_detection.by_pca(**inputs)
 
@@ -206,6 +286,20 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     method_description = "Detect outliers using the local outlier factor"
 
     input_keys = ["protein_df", "peptide_df", "number_of_neighbors"]
+
+    def create_form(self):
+        return Form(
+            label="Outlier Detection by Local Outlier Factor",
+            fields=[
+                NumberField(
+                    name="number_of_neighbors",
+                    label="Number of neighbors",
+                    value=20,
+                    min=1,
+                    step=1,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return outlier_detection.by_local_outlier_factor(**inputs)
@@ -221,6 +315,20 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
 
     input_keys = ["protein_df", "peptide_df", "n_estimators"]
 
+    def create_form(self):
+        return Form(
+            label="Outlier Detection by Isolation Forest",
+            fields=[
+                NumberField(
+                    name="n_estimators",
+                    label="Number of estimators",
+                    value=100,
+                    min=1,
+                    step=1,
+                ),
+            ],
+        )
+
     def method(self, inputs):
         return outlier_detection.by_isolation_forest(**inputs)
 
@@ -234,6 +342,33 @@ class TransformationLog(DataPreprocessingStep):
     method_description = "Transform data by log"
 
     input_keys = [ "protein_df", "peptide_df", "log_base"]
+
+    def create_form(self):
+        return Form(
+            label="Log Transformation",
+            fields=[
+                DropdownField(
+                    name="log_base",
+                    label="Log transformation base",
+                    value=LogTransformationBaseType.log2,
+                    options=LogTransformationBaseType,
+                ),
+                FormDivider("Plot settings"),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+            ],
+        )
+
 
     def method(self, inputs):
         return transformation.by_log(**inputs)
@@ -276,6 +411,40 @@ class NormalisationByMedian(DataPreprocessingStep):
     method_description = "Normalise data by median"
 
     input_keys = ["protein_df", "percentile"]
+
+    def create_form(self):
+        return Form(
+            label="Normalisation by Median",
+            fields=[
+                FloatField(
+                    name="percentile",
+                    label="Percentile for normalisation",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                ),
+                FormDivider("Plot settings"),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return normalisation.by_median(**inputs)
@@ -367,6 +536,39 @@ class ImputationByKNN(DataPreprocessingStep):
     )
 
     input_keys = ["protein_df", "number_of_neighbours"]
+
+    def create_form(self):
+        return Form(
+            label="Imputation by KNN",
+            fields=[
+                NumberField(
+                    name="number_of_neighbours",
+                    label="Number of neighbours",
+                    value=5,
+                    min=1,
+                    step=1,
+                ),
+                FormDivider("Plot settings"),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
 
     def method(self, inputs):
         return imputation.by_knn(**inputs)

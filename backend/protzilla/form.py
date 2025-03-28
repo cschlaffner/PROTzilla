@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     
 
 @dataclass
-class _baseInputField:
+class _baseField:
     name: str
     label: str
     value: object
@@ -19,19 +19,19 @@ class _baseInputField:
 
 
 @dataclass
-class TextField(_baseInputField):
+class TextField(_baseField):
     type: str = "text"
 
 
 @dataclass
-class NumberField(_baseInputField):
+class NumberField(_baseField):
     type: str = "number"
     min: int|None = None
     max: int|None = None
     step: float = 1
 
 @dataclass
-class FloatField(_baseInputField):
+class FloatField(_baseField):
     type: str = "number"
     min: int|None = None
     max: int|None = None
@@ -39,44 +39,61 @@ class FloatField(_baseInputField):
 
 
 @dataclass
-class SearchField(_baseInputField):
+class SearchField(_baseField):
     type: str = "search"
 
 
 @dataclass
-class RadioSelectField(_baseInputField):
+class RadioSelectField(_baseField):
     type: str = "radio-select"
 
 
 @dataclass
-class CheckboxField(_baseInputField):
+class CheckboxField(_baseField):
     type: str = "checkbox-select"
 
 
 @dataclass
-class MultiSelectField(_baseInputField):
+class MultiSelectField(_baseField):
     type: str = "multi-select"
+    choices: List[str] = field(default_factory=list)
 
 
 @dataclass
-class DropdownField(_baseInputField):
+class DropdownField(_baseField):
     options: Dict[str, str] | Enum = field(default_factory=dict)
     type: str = "dropdown"
 
+@dataclass
+class MultiSelectWithDropdownsField(_baseField):
+    type: str = "multi-select-dropdown"
+    options: Dict[str, str] | Enum = field(default_factory=dict)
+    dropdown_choices: List[str] = field(default_factory=list)
+
 
 @dataclass
-class FileInput(_baseInputField):
+class FileInput(_baseField):
     type: str = "file"
     filedata: str = ""
 
 
-InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
+@dataclass
+class FormDivider():
+    """
+    To separate the form into sections.
+    `label` is the shown title of the section.
+    """
+    label: str
+    type: str = "section"
 
+
+InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
+StructualField = Union[FormDivider]
 
 @dataclass
 class Form:
     label: str
-    fields: List[InputField]    
+    fields: List[InputField|StructualField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
@@ -104,14 +121,23 @@ class Form:
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)
     
-    def field_by_name(self, fieldname: str) -> Any:
-        return self._field_map.get(fieldname)
+    def __getitem__(self, fieldname: str) -> InputField:
+        return self._field_map[fieldname]
+    
+    def __setitem__(self, fieldname: str, field: Any) -> None:
+        if fieldname in self._field_map:
+            self._field_map[fieldname] = field
+    
+    def __contains__(self, fieldname: str) -> bool:
+        return fieldname in self._field_map
 
     @property
     def values(self) -> Dict[str, str]:
         values = {}
         for field in self.fields:
-            if isinstance(field.value, Enum):
+            if isinstance(field, FormDivider):
+                continue
+            elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:
                 values[field.name] = field.value

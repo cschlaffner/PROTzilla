@@ -1,11 +1,92 @@
 from __future__ import annotations
 
+from backend.protzilla import form_helper
+from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
 from backend.protzilla.data_integration import (
     database_integration,
     di_plots,
     enrichment_analysis,
 )
+from backend.protzilla.form import *
 from backend.protzilla.steps import Plots, Step, StepManager
+import matplotlib.colors as mcolors
+
+PROTEIN_DF = "protein_df"
+DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
+
+
+class Direction(Enum):
+    up = "up"
+    down = "down"
+    both = "both"
+
+
+class GeneSetsField(Enum):
+    upload_a_file = "Upload a file"
+    choose_from_enrichr_options = "Choose from Enrichr options"
+
+
+class Organism(Enum):
+    human = "Human"
+    mouse = "Mouse"
+    rat = "Rat"
+    yeast = "Yeast"
+    fly = "Fly"
+    fish = "Fish"
+    worm = "Worm"
+
+
+class PermutationTypeField(Enum):
+    phenotype = "Phenotype"
+    gene_set = "Gene Set"
+
+
+class RankingMethodField(Enum):
+    log2_ratio_of_classes = "Log2 Ratio of classes"
+    signal_to_noise = "Signal to noise"
+    t_test = "t-Test"
+    ratio_of_classes = "Ratio of classes"
+    diff_of_classes = "Difference of classes"
+
+
+class RankingDirectionField(Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+
+class GOAnalysisWithEnrichrBackgroundField(Enum):
+    upload_a_file = "Upload a file (recommended)"
+    choose_biomart_dataset = "Choose Biomart dataset"
+    number_of_expressed_genes = "Specify number of expressed genes (not recommended)"
+    all_genes = "Use all genes in the gene set"
+
+
+class GOEnrichmentBarPlotValue(Enum):
+    p_value = "p-value"
+    fdr = "FDR"
+
+
+class GOEnrichmentDotPlotXAxisType(Enum):
+    gene_sets = "Gene Sets"
+    combined_score = "Combined Score"
+
+
+class GSEADotPlotDotColorValue(Enum):
+    fdr_q_val = "FDR q-val"
+    nom_p_val = "NOM p-val"
+
+
+class GSEADotPlotXAxisValue(Enum):
+    es = "ES"
+    nes = "NES"
+
+
+class PlotColors(Enum):
+    PROTzilla_default = PLOT_COLOR_SEQUENCE
+
+
+class EmptyEnum(Enum):
+    pass
 
 
 class DataIntegrationStep(Step):
@@ -40,6 +121,54 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
     ]
     output_keys = ["enrichment_df"]
 
+    def create_form(self):
+        return Form(
+            label="GO analysis with STRING",
+            fields=[
+                DropdownField(
+                    name="proteins_df",
+                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                ),
+                NumberField(
+                    name="differential_expression_threshold",
+                    label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
+                    value=0,
+                    min_value=0,
+                    max_value=4294967295,
+                ),
+                MultiSelectField(
+                    name="gene_sets_restring",
+                    label="Knowledge bases for enrichment",
+                    choices=[],
+                ),
+                NumberField(
+                    name="organism",
+                    label="Organism / NCBI taxon identifiers (e.g. Human is 9606)",
+                    value=9606,
+                ),
+                DropdownField(
+                    name="direction",
+                    label="Direction of the analysis",
+                    options=Direction,
+                    value=Direction.both,
+                ),
+                FileInput(
+                    name="background_path",
+                    label="Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
+                    required=False,
+                ),
+            ]
+        )
+
+    def modify_form(self, form, run):
+        form["proteins_df"].options = form_helper.get_choices(
+            run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
+        )  # TODO maybe a step type? and maybe rename protein_df to something better
+
+        form["gene_sets_restring"].options = form_helper.to_choices(
+            enrichment_analysis.restring.settings.file_types
+        )
+        
     def method(self, inputs: dict) -> dict:
         return enrichment_analysis.GO_analysis_with_STRING(**inputs)
 
@@ -239,6 +368,69 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     ]
     # TODO: input figsize optional?
     output_keys = ["plots"]
+
+    def create_form(self):
+        return Form(
+            label="Bar plot for GO enrichment analysis",
+            fields=[
+                # TODO: input:df fill dynamic with fill_forms
+                DropdownField(
+                    name="input_df_step_instance",
+                    label="Choose dataframe to be plotted",
+                    value=None,
+                    choices=[],
+                ),
+                # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
+                MultiSelectWithDropdownsField(
+                    name="gene_sets",
+                    label="Sets to be plotted",
+                    values=[],
+                    options=[],
+                    dropdown_choices=[(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
+                ),
+                DropdownField(
+                    name="value",
+                    label="Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
+                    options=GOEnrichmentBarPlotValue,
+                    value=GOEnrichmentBarPlotValue.p_value,
+                ),
+                NumberField(
+                    name="top_terms",
+                    label="Number of top enriched terms per category",
+                    min_value=1,
+                    max_value=100,
+                    step_size=1,
+                    value=10,
+                ),
+                FloatField(
+                    name="cutoff",
+                    label="Only terms with adjusted p-value (or FDR) < cutoff will be shown",
+                    min_value=0,
+                    max_value=1,
+                    step_size=0.01,
+                    value=0.05,
+                ),
+                TextField(
+                    name="title",
+                    label="Title of the plot (optional)",
+                    value="",
+                ),
+            ]
+        )
+    
+    def modify_form(self, form, run):
+        form["input_df_step_instance"].options = form_helper.get_choices(
+            run, "enrichment_df"
+        )
+        if(not form["input_df_step_instance"].value) and form["input_df_step_instance"].options:
+            form["input_df_step_instance"].value = form["input_df_step_instance"].options[0][0]
+
+        if form["input_df_step_instance"].value:
+            form["gene_sets"].options = form_helper.to_choices(
+                run.steps.get_step_output(
+                    Step, "enrichment_df", form["input_df_step_instance"]
+                )["Gene_set"].unique()
+            )
 
     def method(self, inputs: dict) -> dict:
         return di_plots.GO_enrichment_bar_plot(**inputs)
