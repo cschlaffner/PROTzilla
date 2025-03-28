@@ -130,7 +130,8 @@ class MetadataImport(ImportingStep):
             fields=[
                 FileInput(
                     name = "file_path",
-                    label="Metadata file"
+                    label = "Metadata file",
+                    value = None,
                 ),
                 DropdownField(
                     name = "feature_orientation",

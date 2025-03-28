@@ -603,9 +603,9 @@ class PlotProtQuant(DataAnalysisStep):
                 name="similarity",
                 label="Euclidean Distance",
                 value=1,
-                min_value=0,
-                max_value=999,
-                step_size=1,
+                min=0,
+                max=999,
+                step=1,
             )
         
 

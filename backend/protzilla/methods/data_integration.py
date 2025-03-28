@@ -117,37 +117,37 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
             label="GO analysis with STRING",
             fields=[
                 DropdownField(
-                    name="proteins_df",
-                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
-                    value=None,
+                    name = "proteins_df",
+                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                    value = None,
                 ),
                 NumberField(
-                    name="differential_expression_threshold",
-                    label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    value=0,
-                    min_value=0,
-                    max_value=4294967295,
+                    name = "differential_expression_threshold",
+                    label = "Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
+                    value = 0,
+                    min = 0,
+                    max = 4294967295,
                 ),
                 MultiSelectField(
-                    name="gene_sets_restring",
-                    label="Knowledge bases for enrichment",
-                    choices=[],
+                    name = "gene_sets_restring",
+                    label = "Knowledge bases for enrichment",
+                    choices = [],
                 ),
                 NumberField(
-                    name="organism",
-                    label="Organism / NCBI taxon identifiers (e.g. Human is 9606)",
-                    value=9606,
+                    name = "organism",
+                    label = "Organism / NCBI taxon identifiers (e.g. Human is 9606)",
+                    value = 9606,
                 ),
                 DropdownField(
-                    name="direction",
-                    label="Direction of the analysis",
-                    value=Direction.both,
-                    options=Direction,
+                    name = "direction",
+                    label = "Direction of the analysis",
+                    value = Direction.both,
+                    options = Direction,
                 ),
                 FileInput(
-                    name="background_path",
-                    label="Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
-                    required=False,
+                    name = "background_path",
+                    label = "Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
+                    value = None,
                 ),
             ]
         )
@@ -300,7 +300,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 MultiSelectWithDropdownsField(
                     name="gene_sets",
                     label="Sets to be plotted",
-                    values=[],
+                    value=[],
                     options=[],
                     dropdown_choices=[(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
                 ),
@@ -313,9 +313,9 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 NumberField(
                     name="top_terms",
                     label="Number of top enriched terms per category",
-                    min_value=1,
-                    max_value=100,
-                    step_size=1,
+                    min=1,
+                    max=100,
+                    step=1,
                     value=10,
                 ),
                 FloatField(
