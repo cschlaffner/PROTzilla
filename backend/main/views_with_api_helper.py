@@ -75,6 +75,7 @@ def get_displayed_steps(
                     "method_name": name_to_title(step.operation),
                     # "selected": step == steps.current_step,
                     "finished": index_global < steps.current_step_index,
+                    "calculation_icon_path": "img/" + step.calculation_status + "_icon.svg"
                 }
             )
 
@@ -91,3 +92,52 @@ def get_displayed_steps(
             }
         )
     return displayed_steps
+
+# TODO display_message, display_messages, clear_messages
+
+# TODO @Lennard, please check if suitable/needed in new repo as well
+def get_filtered_data(run, index, key, reset=False):
+    """
+    Retrieves the corresponding output data and creates a copy for the filtered data in the data table
+
+    :param run: the corresponding run
+    :param index: the index of the current step
+    :param key: the key of the datatable
+    :param reset: the option to reload the real output data
+
+    :return: a dict with the filtered data for the table
+    """
+    if index < len(run.steps.previous_steps):
+        if key not in run.steps.previous_steps[index].datatable_filtered_output or reset:
+            outputs = run.steps.previous_steps[index].output[key]
+            filtered_data = outputs.copy()
+            filtered_data = filtered_data.replace(np.nan, None)
+            run.steps.previous_steps[index].datatable_filtered_output[key] = filtered_data
+        else:
+            filtered_data = run.steps.previous_steps[index].datatable_filtered_output[key]
+
+    else:
+        if key not in run.current_filtered_data or reset:
+            outputs = run.current_outputs[key]
+            filtered_data = outputs.copy()
+            filtered_data = filtered_data.replace(np.nan, None)
+            run.current_filtered_data[key] = filtered_data
+        else:
+            filtered_data = run.current_filtered_data[key]
+
+    return filtered_data
+
+
+def set_filtered_data(run, index, key, filtered_data):
+    """
+    Saves the filtered data from the table
+
+    :param run: the corresponding run
+    :param index: the index of the current step
+    :param key: the key of the datatable
+    :param filtered_data: the filtered data from the table
+    """
+    if index < len(run.steps.previous_steps):
+        run.steps.previous_steps[index].datatable_filtered_output[key] = filtered_data
+    else:
+        run.current_filtered_data[key] = filtered_data

@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 from django.views.generic import RedirectView, TemplateView
+from django.urls import path, include
+from django.views.generic import RedirectView
 
 from . import views
 from . import views_with_api
@@ -45,6 +47,8 @@ urlpatterns = [
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
+
+    path("api/settings/", include("settings.urls")),
 
     #old routes, not yet implemented as api endpints, see notion card
     path("databases", views.databases, name="databases"),
