@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
 
 import { Button, Card, Dropdown, TextField } from "../components";
@@ -49,7 +49,7 @@ export const IndexScreen: React.FC = () => {
 
   return (
     <div className="min-vh-100 w-100 bg-light">
-      <header 
+      <header
         style={{
           backgroundColor: defaultPalette.primary, // Verwendung der Theme-Farbe
           color: defaultPalette.onPrimary,

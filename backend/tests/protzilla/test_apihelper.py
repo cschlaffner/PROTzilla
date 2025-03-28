@@ -1,4 +1,4 @@
-from backend.main.views_with_api_helper import get_all_possible_step_names
+from backend.main.views_with_api_helper import get_all_possible_steps
 def test_get_all_possible_step_names():
     expected_step_names = ["MaxQuantImport", 
                            "DiannImport", 
@@ -66,5 +66,7 @@ def test_get_all_possible_step_names():
                            "PlotGSEADotPlot", 
                            "PlotGSEAEnrichmentPlot"
                            ]
-    
-    assert get_all_possible_step_names() == expected_step_names
+
+    steps = get_all_possible_steps()
+    step_names = [step["method_name"] for step in steps]
+    assert step_names == expected_step_names
