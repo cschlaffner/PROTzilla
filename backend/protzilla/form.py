@@ -30,6 +30,7 @@ class NumberField(_baseField):
     max: int|None = None
     step: float = 1
 
+
 @dataclass
 class FloatField(_baseField):
     type: str = "number"
@@ -64,6 +65,7 @@ class DropdownField(_baseField):
     options: Dict[str, str] | Enum = field(default_factory=dict)
     type: str = "dropdown"
 
+
 @dataclass
 class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
@@ -89,6 +91,7 @@ class FormDivider():
 InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
 StructualField = Union[FormDivider]
 
+
 @dataclass
 class Form:
     label: str
@@ -111,23 +114,25 @@ class Form:
         "insert new values into the form"
 
         for fieldname, value in values.items():
-            self.update_value(fieldname, value)
-
-    def update_value(self, fieldname:str, value: Any) -> None:
-        if fieldname in self._field_map:
-            self._field_map[fieldname].value = value
+            self[fieldname].value = value
         
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)
     
     def __getitem__(self, fieldname: str) -> InputField:
+        "to do form[fieldname] to get the field object"
+
         return self._field_map[fieldname]
     
     def __setitem__(self, fieldname: str, field: Any) -> None:
+        "to do form[fieldname] = field to set the field object"
+        
         if fieldname in self._field_map:
             self._field_map[fieldname] = field
     
     def __contains__(self, fieldname: str) -> bool:
+        "to do fieldname in form to check if the field exists"
+        
         return fieldname in self._field_map
 
     @property
