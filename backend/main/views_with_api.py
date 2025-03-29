@@ -17,11 +17,10 @@ from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
-from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_step_names
+from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -39,10 +38,9 @@ def run_information_list(request):
 
     return JsonResponse(available_runinfo, safe=False)
 
-def step_name_list(request):
-    step_names = get_all_possible_step_names()
-
-    return JsonResponse(step_names, safe=False)
+def all_steps(request):
+    steps = get_all_possible_steps()
+    return JsonResponse(steps, safe=False)
 
 def workflow_name_list(request):
     workflow_names = get_available_workflow_names()
@@ -194,7 +192,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Deleted step"})
+        return JsonResponse({"success": True, "message": "Added step: " + method})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -318,10 +316,16 @@ def get_run_data(request):
         run = active_runs[run_name]
         run_data = {}
 
-        run_data["displayed_steps"] = get_displayed_steps(run.steps)
-        run_data["current_section"] = run.current_step.section
-        run_data["current_step"] = run.current_step.instance_identifier
-        run_data["memory_usage"] = get_memory_usage()
+        if run.current_step is not None:
+            run_data["displayed_steps"] = get_displayed_steps(run.steps)
+            run_data["current_section"] = run.current_step.section
+            run_data["current_step_index"] = run.steps.current_step_index
+            run_data["memory_usage"] = get_memory_usage()
+        else:
+            run_data["displayed_steps"] = []
+            run_data["current_section"] = None
+            run_data["current_step"] = None
+            run_data["memory_usage"] = get_memory_usage()
 
         return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
     else:
@@ -346,7 +350,10 @@ def get_step_plots(request):
         run_name = data.get("run_name")
 
         run = active_runs[run_name]
-        plots = [to_json(plot) for plot in run.current_plots.plots]
+        if run.current_step is not None:
+            plots = [to_json(plot) for plot in run.current_plots.plots]
+        else:
+            plots = []
 
         return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
     else:

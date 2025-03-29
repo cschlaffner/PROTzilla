@@ -4,11 +4,12 @@ import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
-import { useTheme } from "../../../theme";
-import { GrayButton } from "../../button";
-import { Icon, IconButton } from "../../icon/icon";
+import { callApiWithParameters } from "../../../utils";
+import { Icon } from "../../icon/icon";
+import { StepSelection } from "../../step-selection";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
+import { Step } from "../types.ts";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -53,47 +54,62 @@ const SectionContainer = styled.div`
 `;
 
 const SidebarSection: React.FC<SidebarSectionProps> = ({
+  runName,
   name,
   title,
   index,
   isCollapsed,
   selectedStep,
   setSelectedStep,
-  steps
+  steps,
 }: SidebarSectionProps) => {
-  const hasSelectedStep = selectedStep.section === name;
+  let hasSelectedStep = selectedStep !== null && selectedStep.section === name;
 
   const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
+
   const [showHandle, setShowHandle] = useState(false);
 
-  //WIP add and delete wont work for now
-  const addStep = (index: number) => {
-    const newSteps = [...currentSteps];
-    newSteps.splice(index + 1, 0, "new Step");
-    setCurrentSteps(newSteps);
-  };
-
-  const deleteStep = (index: number) => {
-    const newSteps = [...steps];
-    newSteps.splice(index, 1);
-    setCurrentSteps(newSteps);
-    if (hasSelectedStep) {
-      setSelectedStep({
-        section: name,
-        index: Math.min(selectedStep.index, newSteps.length - 1),
-      });
+  const updateSteps = async () => {
+    const data = await callApiWithParameters("get_run_data/", {
+      run_name: runName,
+    });
+    if (data) {
+      if (data.data.displayed_steps.length === 0) {
+        setCurrentSteps([]);
+      } else {
+        setCurrentSteps(data.data.displayed_steps[index].steps);
+      }
     }
   };
 
-  const baseTheme = useTheme();
-  const ContentTextStyle = {
-    fontSize: baseTheme.fontSizes.h5,
-    lineHeight: baseTheme.fontSizes.h5,
-    fontWeight: baseTheme.fontWeights.medium,
-    whiteSpace: "nowrap",
+  const addStep = async () => {
+    await updateSteps();
+  };
+
+  const deleteStep = async (index: number) => {
+    await callApiWithParameters("delete_step/", {
+      run_name: runName,
+      section: name,
+      index: index.toString(),
+    });
+    await updateSteps();
+    if (hasSelectedStep) {
+      if (currentSteps.length === 0) {
+        hasSelectedStep = false;
+        setSelectedStep(null);
+      } else {
+        const newIndex = selectedStep
+          ? Math.min(selectedStep.index, currentSteps.length - 1)
+          : 0;
+        setSelectedStep({
+          section: name,
+          index: newIndex,
+        });
+      }
+    }
   };
 
   return (
@@ -120,61 +136,60 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {currentSteps.map((step:any, j:number) => {
-          const number = `${String(index + 1)}.${String(j + 1)}`;
-          return (
-            <SidebarStep
-              key={number}
-              number={number}
-              name={step.name}
-              isCollapsed={isCollapsed}
-              sectionName={name}
-              sectionLength={steps.length}
-              index={j}
-              selectedStep={selectedStep}
-              setSelectedStep={setSelectedStep}
-              deleteStep={deleteStep}
-              setHandlePosition={setHandlePosition}
-              setShowHandle={setShowHandle}
-              setHoveredStepIndex={setHoveredStepIndex}
-            />
-          );
-        })}
-        <GrayButton
-          icon={"add"}
-          isShy={true}
-          color={"protzillaDarkBlue"}
-          text={isCollapsed ? undefined : "add step"}
-          isSmall={false}
-          textStyle={ContentTextStyle}
-          onClick={() => {
-            addStep(steps.length);
+        {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          currentSteps ? (
+            currentSteps.map((step: Step, j: number) => {
+              const number = `${String(index + 1)}.${String(j + 1)}`;
+              return (
+                <SidebarStep
+                  key={number}
+                  number={number}
+                  stepStatus={step.status}
+                  name={step.method_name + ": " + step.name}
+                  isCollapsed={isCollapsed}
+                  sectionName={name}
+                  sectionLength={steps.length}
+                  index={j}
+                  selectedStep={selectedStep}
+                  setSelectedStep={setSelectedStep}
+                  deleteStep={() => {
+                    void deleteStep(j);
+                  }}
+                  setHandlePosition={setHandlePosition}
+                  setShowHandle={setShowHandle}
+                  setHoveredStepIndex={setHoveredStepIndex}
+                />
+              );
+            })
+          ) : (
+            <div></div>
+          )
+        }
+        <StepSelection
+          runName={runName}
+          section={name}
+          index={currentSteps.length}
+          isSmallButton={false}
+          handlePosition={handlePosition}
+          onAddStep={() => {
+            void addStep();
           }}
-          style={{
-            margin: "0px 5px",
-            overflow: "hidden",
-          }}
+          setShowHandle={setShowHandle}
         />
       </StepsContainer>
-      {showHandle && steps.length !== 0 && (
-        <IconButton
-          icon="add"
+      {showHandle && currentSteps.length !== 0 && (
+        <StepSelection
+          runName={runName}
+          section={name}
+          index={hoveredStepIndex}
+          isSmallButton={true}
+          handlePosition={handlePosition}
+          onAddStep={() => {
+            void addStep();
+          }}
+          setShowHandle={setShowHandle}
           data-group-id="step-group"
-          onClick={() => {
-            addStep(hoveredStepIndex);
-          }}
-          onMouseEnter={() => {
-            setShowHandle(true);
-          }}
-          onMouseLeave={() => {
-            setShowHandle(false);
-          }}
-          style={{
-            position: "absolute",
-            left: handlePosition.left,
-            top: handlePosition.top,
-            transform: "translateX(-50%) translateY(-50%)",
-          }}
         />
       )}
     </SectionContainer>

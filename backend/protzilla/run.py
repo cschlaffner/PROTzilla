@@ -61,7 +61,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             all_tags.add(tag)
 
         tags = list(tags) #sets are not json serializable
-        run = { 
+        run = {
             "run_name": name,
             "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
             "modification_date": datetime.datetime.fromtimestamp(modification_time).strftime("%d %m %Y"),
@@ -212,6 +212,11 @@ class Run:
 
     @error_handling
     @auto_save
+    def update_inputs(self, inputs: dict) -> None:
+        self.steps.current_step.updateInputs(inputs)
+
+    @error_handling
+    @auto_save
     def step_plot(self, inputs: dict | None = None) -> None:
         self.steps.current_step.plot(inputs)
 
@@ -229,6 +234,10 @@ class Run:
         self.steps.goto_step(step_index, section)
 
     @error_handling
+    def step_set_outdated(self, offset: int = 0) -> int:
+        return self.steps.set_steps_outdated(offset)
+
+    @error_handling
     @auto_save
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
@@ -244,6 +253,10 @@ class Run:
     @property
     def current_outputs(self) -> Output:
         return self.steps.current_step.output
+    
+    @property
+    def current_filtered_data(self) -> dict:
+        return self.steps.current_step.filtered_datatable
 
     @property
     def current_step(self) -> Step | None:

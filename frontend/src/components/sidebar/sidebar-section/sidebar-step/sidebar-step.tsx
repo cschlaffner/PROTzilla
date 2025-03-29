@@ -35,6 +35,7 @@ const TextContainer = styled.div`
 export const SidebarStep: React.FC<SidebarStepProps> = ({
   number,
   name,
+  stepStatus,
   isCollapsed,
   sectionName,
   sectionLength,
@@ -100,7 +101,9 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const isSelected =
-    selectedStep.section === sectionName && selectedStep.index === index;
+    selectedStep !== null &&
+    selectedStep.section === sectionName &&
+    selectedStep.index === index;
 
   return (
     <StepContainer
@@ -114,7 +117,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
       onMouseMove={handleMouseMove}
       ref={stepRef}
     >
-      <DefaultColoredIcon icon="complete" style={{ flexShrink: 0 }} />
+      <DefaultColoredIcon icon={stepStatus} style={{ flexShrink: 0 }} />
       <TextContainer>
         <ContentText
           text={number}

@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 from django.views.generic import RedirectView, TemplateView
+from django.urls import path, include
+from django.views.generic import RedirectView
 
 from . import views
 from . import views_with_api
@@ -24,9 +26,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views_with_api.run_information_list, name="run_information"),
-    path("api/step_name_list/", views_with_api.step_name_list, name="step_name_list"),
+    path("api/step_list/", views_with_api.all_steps, name="step_list"),
     path("api/workflow_name_list/", views_with_api.workflow_name_list, name="workflow_name_list"),
-    
+
     path("api/toggle_favourite/", views_with_api.toggle_favourite, name="toggle_favourite"),
     path("api/add_tag/", views_with_api.add_tag, name="add_tag"),
     path("api/delete_tag/", views_with_api.delete_tag, name="delete_tag"),
@@ -46,7 +48,9 @@ urlpatterns = [
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
 
-    #old routes, not yet implemented as api endpints, see notion card 
+    path("api/settings/", include("settings.urls")),
+
+    #old routes, not yet implemented as api endpints, see notion card
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),
