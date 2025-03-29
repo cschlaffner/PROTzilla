@@ -131,6 +131,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 MultiSelectField(
                     name = "gene_sets_restring",
                     label = "Knowledge bases for enrichment",
+                    value = [],
                     choices = [],
                 ),
                 NumberField(
@@ -321,9 +322,9 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 FloatField(
                     name = "cutoff",
                     label = "Only terms with adjusted p-value (or FDR) < cutoff will be shown",
-                    min_value = 0,
-                    max_value = 1,
-                    step_size = 0.01,
+                    min = 0,
+                    max = 1,
+                    step = 0.01,
                     value = 0.05,
                 ),
                 TextField(
