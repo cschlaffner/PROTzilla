@@ -51,13 +51,6 @@ const StyledTemplateCard = styled(Card)`
 `;
 
 const StyledRunSelectionCard = styled(Card)`
-  height: calc(
-    100vh -
-      (
-        ${spacing("navbarHeight")} + 7 * ${spacing("small")} +
-          ${size("templateSelectionHeight")}
-      )
-  );
   min-height: ${size("runSelectionMinHeight")};
 `;
 
