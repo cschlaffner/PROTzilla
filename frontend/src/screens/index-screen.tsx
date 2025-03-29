@@ -188,6 +188,7 @@ export const IndexScreen: React.FC = () => {
           <Form formData={{
             label: "",
             isAutoSubmit: false,
+            hasChangeIndicator: false,
             input_fields: [
               {
                 type: "text",
@@ -233,6 +234,7 @@ export const IndexScreen: React.FC = () => {
             <Form formData={{
               label: "",
               isAutoSubmit: false,
+              hasChangeIndicator: false,
               input_fields: [
                 {
                   type: "text",

@@ -34,17 +34,18 @@ const StyledInputLabel = styled.p<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
-const OptionsList = styled.ul<{ width: number }>`
+const OptionsList = styled.ul`
   background: white;
   border-radius: ${border("defaultRadius")};
   border: ${border("defaultStrength")} solid ${borderColors("default")};
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
   list-style: none;
   margin-top: 0;
   overflow-y: auto;
   padding: 0;
   position: absolute;
-  width: ${({ width }) => `${width.toString()}px`};
+  width: 100%;
   z-index: 1000;
 `;
 
@@ -99,7 +100,6 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
-  const [dropdownWidth, setDropdownWidth] = useState<number>(200);
 
   const [isOpen, , disable, toggle] = useToggleableState();
   useOutsidePress(
@@ -110,12 +110,6 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     disable,
     isOpen,
   );
-
-  useEffect(() => {
-    if (inputRef.current) {
-      setDropdownWidth(inputRef.current.getBoundingClientRect().width);
-    }
-  }, [inputRef]);
 
   const handleChange = (option: { label: string; value: string }) => {
     setSelectedValue(option);
@@ -153,7 +147,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
       </div>
 
       {isOpen && (
-        <OptionsList width={dropdownWidth} ref={dropdownRef}>
+        <OptionsList ref={dropdownRef}>
           {options.length > 0 ? (
             options.map((option) => (
               <OptionItem

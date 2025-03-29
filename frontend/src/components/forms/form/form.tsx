@@ -112,13 +112,13 @@ export const Form: React.FC<FormProps> = ({
       ))}
       {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
-          {isChanged && (
+          {isChanged && formData.hasChangeIndicator &&(
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
             text="Submit"
             onClick={handleSubmit}
-            isDisabled={!isChanged}
+            isDisabled={!isChanged && formData.hasChangeIndicator}
           />
         </StyledSubmitDiv>
       )}
