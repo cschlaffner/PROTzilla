@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Col, Container, Row } from "react-grid-system";
+import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { spacing } from "../theme";
-import { ListEditor, Navbar, PlotComponent, SwitchCard } from "./../components";
+import {
+  FlexColumn,
+  FlexRow,
+  ListEditor,
+  Navbar,
+  PlotComponent,
+  SwitchCard,
+} from "./../components";
 import {
   dummyTextComponent1,
   dummyTextComponent2,
@@ -22,16 +29,25 @@ const StyledNavbar = styled(Navbar)`
   top: 0;
   z-index: 1000;
 `;
-const StyledCardsRow = styled(Row)`
-  margin-top: ${spacing("small")};
-  display: flex;
-  flex-wrap: nowrap;
+const StyledCardRow = styled(FlexRow)`
+  padding: ${spacing("small")};
+  gap: ${spacing("small")};
+  flex: 1;
+  height: 100%;
+`;
+
+const StyledFlexColumn = styled(FlexColumn)`
+  height: 100%;
 `;
 
 const StyledCol = styled(Col)`
   display: flex;
   flex-direction: column;
   min-width: 0;
+`;
+
+const StyledListSwitchCard = styled(SwitchCard)`
+  height: 100%;
 `;
 
 const StyledPlotContainer = styled.div`
@@ -45,9 +61,7 @@ const FooterText = styled.div`
   padding: ${spacing("small")};
   font-size: 14px;
   color: gray;
-  position: absolute;
   width: 100%;
-  bottom: 0;
 `;
 
 export const RunScreen: React.FC = () => {
@@ -86,20 +100,21 @@ export const RunScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await callApiWithParameters("get_step_plots/", { run_name: runName });
+      const response = await callApiWithParameters("get_step_plots/", {
+        run_name: runName,
+      });
       if (response) {
         const data = response.data;
         const parsedData = JSON.parse(data[0]);
         const { data: rawData, layout: rawLayout } = parsedData;
-  
+
         setPlotData(rawData);
         setPlotLayout(rawLayout);
-        }
       }
-  
+    };
+
     void fetchData();
   }, []);
-
 
   const plotComponent = (
     <StyledPlotContainer>
@@ -118,7 +133,7 @@ export const RunScreen: React.FC = () => {
   );
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <StyledNavbar
         allowRunEdit={true}
         title={runName}
@@ -127,17 +142,25 @@ export const RunScreen: React.FC = () => {
         onOpenHelp={() => {}}
       />
 
-      <Container fluid>
-        <StyledCardsRow>
-          <StyledCol md={"content"} style={{ paddingRight: 0 }}>
-            <SwitchCard
-              nameComponent1="List"
-              component1={listEditorComponent}
-              nameComponent2="Node"
-              component2={dummyTextComponent1}
-              hasCardTitle={false}
-            />
-          </StyledCol>
+      <StyledCardRow>
+        <StyledFlexColumn>
+          <StyledListSwitchCard
+            nameComponent1="List"
+            component1={listEditorComponent}
+            nameComponent2="Node"
+            component2={dummyTextComponent1}
+            hasCardTitle={false}
+            styleProps={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+            }}
+            
+          />
+        </StyledFlexColumn>
+        <StyledFlexColumn
+          style={{ flex: 1}}
+        >
           <StyledCol>
             <SwitchCard
               nameComponent1="Plot"
@@ -146,9 +169,9 @@ export const RunScreen: React.FC = () => {
               component2={dummyTextComponent2}
             />
           </StyledCol>
-        </StyledCardsRow>
-      </Container>
-      <FooterText dangerouslySetInnerHTML={{ __html: randomMessage }} />
+          <FooterText>{randomMessage}</FooterText>
+        </StyledFlexColumn>
+      </StyledCardRow>
     </div>
   );
 };

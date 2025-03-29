@@ -1,6 +1,6 @@
 import React from "react";
-
 import { styled } from "styled-components"
+
 import { CardProps } from "./card.props";
 import { shadow, spacing, styledDiv } from "../../../theme";
 import { H3 } from "../../text";
@@ -10,13 +10,14 @@ const StyledCard = styledDiv.div`
   border-radius: 8px;
   box-shadow: ${shadow("box_shadow")};
   padding: ${spacing("small")};
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 `;
 
 const CardBody = styledDiv.div<{ hasTitle: boolean }>`
   padding: ${spacing("small")};
-  width: auto;
-  max-height: ${({ hasTitle }) =>
-    hasTitle ? "calc(100vh - 225px)" : "calc(100vh - 178px)"};
+  flex: 1;
   overflow-y: auto;
 `;
 

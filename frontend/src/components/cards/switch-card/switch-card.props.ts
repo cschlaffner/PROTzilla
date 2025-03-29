@@ -7,4 +7,5 @@ export interface SwitchCardProps {
   component2: ReactNode;
   hasSwitchAlginStart?: boolean;
   hasCardTitle?: boolean;
+  styleProps?: React.CSSProperties;
 }

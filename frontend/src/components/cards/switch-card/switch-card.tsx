@@ -1,21 +1,16 @@
 import React, { useState } from "react";
-
 import { styled } from "styled-components"
+
 import { SwitchCardProps } from "./switch-card.props";
-import { spacing, styledDiv } from "../../../theme";
+import { spacing } from "../../../theme";
 import { Switch } from "../../switch";
 import { Card } from "../card";
 
-const SwitchDiv = styledDiv.div<{ hasSwitchAlginStart: boolean }>`
+const SwitchDiv = styled.div<{ hasSwitchAlginStart: boolean }>`
   display: flex;
   justify-content: ${({ hasSwitchAlginStart }) =>
     hasSwitchAlginStart ? "flex-start" : "flex-end"};
   padding-bottom: ${spacing("small")};
-`;
-
-const StyledCard = styled(Card)`
-  height: auto;
-  width: auto;
 `;
 
 export const SwitchCard: React.FC<SwitchCardProps> = ({
@@ -25,11 +20,17 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   component2,
   hasSwitchAlginStart = true,
   hasCardTitle = true,
+  styleProps,
 }) => {
   const [switchState, setSwitchState] = useState<string>("component1");
 
   return (
-    <div>
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      height: "auto",
+      ...(styleProps ?? {}),
+    }}>
       <SwitchDiv hasSwitchAlginStart={hasSwitchAlginStart}>
         <Switch
           options={[
@@ -41,7 +42,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
           defaultValue="component1"
         />
       </SwitchDiv>
-      <StyledCard
+      <Card
         {...(hasCardTitle
           ? {
               title:
@@ -50,7 +51,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
           : {})}
       >
         {switchState === "component1" ? component1 : component2}
-      </StyledCard>
+      </Card>
     </div>
   );
 };
