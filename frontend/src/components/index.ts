@@ -1,5 +1,6 @@
 export * from "./box";
 export * from "./button";
+export * from "./card";
 export * from "./dropdown";
 export * from "./forms/form";
 export * from "./edit-tag";
@@ -22,7 +23,6 @@ export * from "./text";
 export * from "./text-field";
 export * from "./tooltip";
 export * from "./types";
-export * from "./card";
 export * from "./workflow";
 
 export * from "./main-screen";

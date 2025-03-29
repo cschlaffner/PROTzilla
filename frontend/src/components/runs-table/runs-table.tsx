@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import styled from "styled-components"
+import {styled } from "styled-components"
 
 import { color, defaultPalette } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
@@ -42,7 +42,9 @@ const StyledList = styled.div`
   gap: 4px;
 `
 
-export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns, openModal, setSelectedRun}) => {
+export const RunsTable: React.FC<RunsTableProps> = ({
+  runs, filteredRuns, setRuns, openModal, setSelectedRun
+}) => {
   const navigate = useNavigate();
 
   const handleDeleteTag = (tagToDelete: string, runName: string) => {
@@ -100,7 +102,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns
       </TableHeader>
 
       {[...filteredRuns]
-        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0)) // Favoriten oben
+      // Favourites on top
+        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0))
         .map((run) => (
         
             
@@ -132,12 +135,22 @@ export const RunsTable: React.FC<RunsTableProps> = ({runs, filteredRuns, setRuns
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
             </SecondaryButton>
-            <SecondaryButton isSmall={true} isShy={true} isCautious={true} onClick={() => { handleDeleteRun(run.run_name); }}>
+            <SecondaryButton 
+              isSmall={true} 
+              isShy={true} 
+              isCautious={true} 
+              onClick={() => { handleDeleteRun(run.run_name); }}
+            >
               <Icon icon={"trash"} style={{ height: "15px" }} />
             </SecondaryButton>
           </TableCol>
           <TableCol width="100px">
-            <SecondaryButton isSmall={true} onClick={() => { handleContinueRun(run.run_name); }}>Continue</SecondaryButton>
+            <SecondaryButton 
+            isSmall={true} 
+            onClick={() => { handleContinueRun(run.run_name); }}
+            >
+              Continue
+            </SecondaryButton>
           </TableCol>
         </TableRow>
       ))}

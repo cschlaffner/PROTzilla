@@ -1,5 +1,5 @@
 import { Container } from "react-grid-system";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import { WorkflowProps } from "./workflow.props";
 import { spacing } from "../../theme";

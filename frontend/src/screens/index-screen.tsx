@@ -72,7 +72,8 @@ export const IndexScreen: React.FC = () => {
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
   const [runs, setRuns] = useState<Run[]>([] as Run[]);
   const [existingTags, setExistingTags] = useState<string[]>([]);
-  const [selectedRun, setSelectedRun] = useState<Run>(() => ({          //lazy initialization to prevent .map() error
+  //lazy initialization to prevent .map() error
+  const [selectedRun, setSelectedRun] = useState<Run>(() => ({
     run_name: "",
     creation_date: "",
     modification_date: "",
@@ -133,7 +134,7 @@ export const IndexScreen: React.FC = () => {
     setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
     setExistingTags((tags) => tags.includes(tag) ? tags : [...tags, tag]);
   }
-  //grrr code duplikation grrrr
+
   const handleDeleteTag = (tagToDelete: string) => {
     void callApiWithParameters("delete_tag/", {
       run_name: selectedRun.run_name,
@@ -271,7 +272,13 @@ export const IndexScreen: React.FC = () => {
             smallBorder={true}
             isSmall={true}
           />
-          <RunsTable runs={runs} filteredRuns={filteredRuns} setRuns={setRuns} openModal={setIsTagModalOpen} setSelectedRun={setSelectedRun}/>
+          <RunsTable 
+            runs={runs} 
+            filteredRuns={filteredRuns} 
+            setRuns={setRuns} 
+            openModal={setIsTagModalOpen} 
+            setSelectedRun={setSelectedRun}
+          />
         </StyledRunSelectionCard>
       </StyledContainer>
     </div>
