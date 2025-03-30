@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import json
 import os
 import io
@@ -12,6 +13,7 @@ from django.http import JsonResponse, FileResponse
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
+from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
@@ -324,19 +326,23 @@ def get_run_data(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
     
-def get_step_parameters(request):
+def get_step_form(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        data:dict = json.loads(request.body)
         run_name = data.get("run_name")
+        new_form_values = data.get("data")
+        
+        if (run_name not in active_runs):
+            return JsonResponse({"success": False, "message": "Run not in active runs"})
 
         run = active_runs[run_name]
-        
-        #get parameters for the step
 
-        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": "placeholder"}, safe=False)
+        form = run.current_form(new_form_values)
+
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
 def get_step_plots(request):
     if request.method == "POST":
         data = json.loads(request.body)

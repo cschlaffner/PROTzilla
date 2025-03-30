@@ -1,5 +1,6 @@
 import logging
 
+from backend.protzilla import form_helper
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -30,8 +31,137 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_sample,
 )
 from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
+from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Plots, Step, StepManager
+
+
+class TTestType(Enum):
+    welchs_t_test = "Welch's t-Test"
+    students_t_test = "Student's t-Test"
+
+
+class AnalysisLevel(Enum):
+    protein = "Protein"
+
+
+class MultipleTestingCorrectionMethod(Enum):
+    benjamini_hochberg = "Benjamini-Hochberg"
+    bonferroni = "Bonferroni"
+
+
+class PValueCalculationMethod(Enum):
+    auto = "Auto"
+    exact = "Exact"
+    asymptotic = "Asymptotic"
+
+
+class YesNo(Enum):
+    yes = "Yes"
+    no = "No"
+
+
+class ProteinsOfInterest(Enum):
+    # TODO: Add the proteins of interest
+    pass
+
+
+class DynamicProteinFill(Enum):
+    # TODO: Add the dynamic protein fill options
+    pass
+
+
+class SimilarityMeasure(Enum):
+    euclidean_distance = "euclidean distance"
+    cosine_similarity = "cosine similarity"
+
+
+class ModelSelection(Enum):
+    grid_search = "Grid search"
+    randomized_search = "Randomized search"
+    Manual = "Manual"
+
+
+class ClusteringCriterion(Enum):
+    gini = "gini"
+    log_loss = "log_loss"
+    entropy = "entropy"
+
+
+class ClusteringScoring(Enum):
+    adjusted_rand_score = "Adjusted Rand Score"
+    completeness_score = "Completeness Score"
+    fowlkes_mallows_score = "Fowlkes Mallows Score"
+    homogeneity_score = "Homogeneity Score"
+    mutual_info_score = "Mutual Info Score"
+    normalized_mutual_info_score = "Normalized Mutual Info Score"
+    rand_score = "Rand Score"
+    v_measure_score = "V Measure Score"
+
+
+class InitCentroidStrategy(Enum):
+    kmeans_plus_plus = "k-means++"
+    random = "random"
+
+
+class ClusteringCovarianceType(Enum):
+    full = "full"
+    tied = "tied"
+    diag = "diag"
+    spherical = "spherical"
+
+
+class ClusteringInitParams(Enum):
+    kmeans = "kmeans"
+    kmeans_plus_plus = "kmeans++"
+    random = "random"
+    random_from_data = "random from data"
+
+
+class ClusteringMetric(Enum):
+    euclidean = "euclidean"
+    manhattan = "manhattan"
+    cosine = "cosine"
+    l1 = "l1"
+    l2 = "l2"
+
+
+class ClusteringLinkage(Enum):
+    ward = "ward"
+    complete = "complete"
+    average = "average"
+    single = "single"
+
+
+class ClassificationValidationStrategy(Enum):
+    k_fold = "KFold"
+    repeated_k_fold = "repeated K-Fold"
+    stratified_k_fold = "Stratified K-Fold"
+    leave_one_out = "Leave One Out"
+    leave_p_out = "Leave P Out"
+    manual = "Manual"
+
+
+class ClassificationScoring(Enum):
+    accuracy = "accuracy"
+    precision = "precision"
+    recall = "recall"
+    mathews_correlation_coefficient = "mathews correlation coefficient"
+
+
+class ClassificationKernel(Enum):
+    linear = "linear"
+    poly = "poly"
+    rbf = "rbf"
+    sigmoid = "sigmoid"
+    precomputed = "precomputed"
+
+
+class DimensionReductionMetric(Enum):
+    euclidean = "euclidean"
+    manhattan = "manhattan"
+    cosine = "cosine"
+    havensine = "havensine"
 
 
 class DataAnalysisStep(Step):
@@ -77,6 +207,74 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         "log2_fold_change_df",
         "corrected_alpha",
     ]
+
+    def create_form(self):
+        return Form(
+            label="t-Test",
+            fields=[
+                DropdownField(
+                    name="ttest_type",
+                    label="T-test type",
+                    value=TTestType.welchs_t_test,
+                    options=TTestType,
+                ),
+                DropdownField(
+                    name="protein_df",
+                    label="Step to use protein intensities from",
+                    value=None,
+                ),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                    options=MultipleTestingCorrectionMethod,
+                ),
+                NumberField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                    value=None,
+                ),
+                DropdownField(
+                    name="group1",
+                    label="Group 1",
+                    value=None,
+                ),
+                DropdownField(
+                    name="group2",
+                    label="Group 2",
+                    value=None,
+                ),
+            ],
+        )
+    
+    def modify_form(self, form, run):
+        form["protein_df"].options = form_helper.get_choices_for_protein_df_steps(run)
+        form["grouping"].options = form_helper.get_choices_for_metadata_non_sample_columns(run)
+
+        grouping = form["grouping"].value
+
+        # Set choices for group1 field based on selected grouping
+        form["group1"].options = form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+
+        #set choices for group2 field based on selected grouping and group1
+        if (form["group1"].value in run.steps.metadata_df[grouping].unique()):
+            form["group2"].options = [
+                (el, el)
+                for el in run.steps.metadata_df[grouping].unique()
+                if el != form["group1"].value
+            ]
+        else:
+            form["group2"].options = reversed(
+                form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+            )
 
     calc_method = staticmethod(t_test)
 
@@ -231,6 +429,54 @@ class PlotVolcano(DataAnalysisStep):
     
     output_keys = []
 
+    def create_form(self):
+        return Form(
+            label="Volcano Plot",
+            fields=[
+                DropdownField(
+                    name="input_dict",
+                    label="Input data dict (generated by t-Test or Linear Model Diff Exp)",
+                    value=None,
+                ),
+                NumberField(
+                    name="fc_threshold",
+                    label="Log2 fold change threshold",
+                    value=0,
+                    min=0,
+                ),
+                MultiSelectField(
+                    name="items_of_interest",
+                    label="Items of interest (will be highlighted)",
+                    value=[],
+                )
+            ],
+        )
+    
+    def modify_form(self, form, run):
+        form["input_dict"].options = form_helper.to_choices(
+            run.steps.get_instance_identifiers(
+                Step, ["corrected_p_values_df", "log2_fold_change_df"],
+            )
+        )
+        if (form["input_dict"].value is None):
+            form["input_dict"].value = form["input_dict"].options[0][0]
+
+        input_dict_instance_id = form["input_dict"].value
+
+        items_of_interest = []
+        step_output = run.steps.get_step_output(
+            Step, "differentially_expressed_proteins_df", input_dict_instance_id
+        )
+        if step_output is not None:
+            items_of_interest = step_output["Protein ID"].unique()
+        step_output = run.steps.get_step_output(
+            Step, "differentially_expressed_ptm_df", input_dict_instance_id
+        )
+        if step_output is not None:
+            items_of_interest = step_output["PTM"].unique()
+
+        form["items_of_interest"].options = form_helper.to_choices(items_of_interest)
+
     plot_method = staticmethod(create_volcano_plot)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -291,6 +537,77 @@ class PlotProtQuant(DataAnalysisStep):
     method_description = (
         "Creates a line chart for intensity across samples for protein groups"
     )
+
+    input_keys = ["input_df", "protein_group", "similarity_measure", "similarity"]
+    output_keys = []
+
+    def create_form(self):
+        return Form(
+            label="Protein Quantification Plot",
+            fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                    value=None,
+                ),
+                DropdownField(
+                    name="protein_group",
+                    label="Protein group: choose highlighted protein group",
+                    value=None,
+                ),
+                DropdownField(
+                    name="similarity_measure",
+                    label="Similarity Measurement: choose how to compare protein groups",
+                    value=SimilarityMeasure.euclidean_distance,
+                    options=SimilarityMeasure,
+                ),
+                NumberField(
+                    name="similarity",
+                    label="Similarity",
+                    value=1,
+                    min=-1,
+                    max=999,
+                    step=1,
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(
+            run
+        )
+
+        if (form["input_df"].options):
+            if (not form["input_df"].value):
+                form["input_df"].value = form["input_df"].options[0][0]      
+
+            form["protein_group"].options = form_helper.to_choices(
+                run.steps.get_step_output(
+                    step_type=Step,
+                    output_key="protein_df",
+                    instance_identifier=form["input_df"].value,
+                )["Protein ID"].unique()
+            )
+
+        if form["similarity_measure"].value == SimilarityMeasure.cosine_similarity:
+            form["similarity"] = FloatField(
+                name="similarity",
+                label="Cosine Similarity",
+                value=0,
+                min=-1,
+                max=1,
+                step=0.1,
+            )
+        else:
+            form["similarity"] = NumberField(
+                name="similarity",
+                label="Euclidean Distance",
+                value=1,
+                min=0,
+                max=999,
+                step=1,
+            )
+        
 
     plot_method = staticmethod(prot_quant_plot)
 
