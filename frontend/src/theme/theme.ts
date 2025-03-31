@@ -1,3 +1,4 @@
+import { createTheme } from "@mui/material";
 import { action, makeObservable, observable } from "mobx";
 
 export const defaultPalette = {
@@ -207,7 +208,7 @@ export const baseTheme = {
     small: "10px",
     medium: "20px",
     large: "50px",
-    
+
     navbarHeight: "60px",
   },
   zIndices: {
@@ -309,3 +310,57 @@ export const getTheme = (
   );
 
 export type Theme = ReturnType<typeof getTheme>;
+
+export const getMuiTheme = () => {
+  return createTheme({
+    typography: {
+      fontFamily: baseTheme.fonts.defaultWithFallbacks,
+    },
+    mixins: {
+      MuiDataGrid: { containerBackground: baseTheme.colors.primary },
+    },
+    components: {
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            // Icons styling
+            "& .MuiDataGrid-sortIcon": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-menuIconButton": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-filterIcon": {
+              color: baseTheme.colors.background,
+            },
+            // General styling
+            "& .MuiDataGrid-row": {
+              backgroundColor: baseTheme.colors.background,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiSelect-select": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+            // Footer styling
+            "& .MuiTablePagination-selectLabel": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiTablePagination-displayedRows": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiDataGrid-footerContainer": {
+              backgroundColor: baseTheme.colors.gray,
+            },
+          },
+        },
+      },
+    },
+  })
+}

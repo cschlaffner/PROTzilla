@@ -21,16 +21,16 @@ primary.args = {
     },
   ],
   layout: {
-    title: { text: "Title"},
+    title: { text: "Title" },
     xaxis: {
       anchor: "y",
       domain: [0.0, 1.0],
-      title: { text: "Categories" }
+      title: { text: "Categories" },
     },
     yaxis: {
       anchor: "x",
       domain: [0.0, 1.0],
-      title: { text: "Values" }
-    }
-  }
+      title: { text: "Values" },
+    },
+  },
 };
