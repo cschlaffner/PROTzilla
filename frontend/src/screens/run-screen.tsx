@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -73,6 +73,7 @@ export const RunScreen: React.FC = () => {
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
 
   const [runName] = useState<string>(location.state?.existingRun);
+  const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   
@@ -104,12 +105,17 @@ export const RunScreen: React.FC = () => {
   const handleStepSelection = (selectedStep: SelectedStep | null) => {
     if (selectedStep) {
       void callApiWithParameters("navigate_to_step/", {run_name: runName, section: selectedStep.section, index: String(selectedStep.index)})
-        .then(getStepPlots)
+        .then(() => {
+          return getStepForm({});
+        })
+        .then(() => {
+          return getStepPlots();
+        });
     }
   };
 
   function onChangeParameters() {
-    //to be implemented
+    //do nothing
   }
 
 
@@ -127,6 +133,20 @@ export const RunScreen: React.FC = () => {
     }
   };
 
+  const getStepForm = async (userInput: Record<string, string> ) => {
+    const response = await callApiWithParameters("get_step_form/", {
+      run_name: runName,
+      data: userInput,
+    });
+    if (response) {
+      const data = response.data
+
+      setFormData(data);
+    }
+  };
+  useEffect(() => {
+    console.log(formData)
+  }, [formData])
 
   const plotComponent = (
     <StyledPlotContainer>
