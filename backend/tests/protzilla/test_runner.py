@@ -99,19 +99,19 @@ def test_runner_imports(
         'PlotGOEnrichmentBarPlot'
     ]
     expected_method_parameters = [
-        call({'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_mode': 'Sum', 'file_path': 'tests/proteinGroups_small_cut.txt'}),
-        call({'feature_orientation': 'Columns (samples in rows, features in columns)', 'file_path': 'tests/metadata_cut_columns.csv'}),
-        call({'percentage': 0.5}),
-        call({'deviation_threshold': 2.0}),
-        call({'number_of_neighbours': 5}),
+        call({'file_path': 'tests/proteinGroups_small_cut.txt', 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'}),
+        call({'file_path': 'tests/metadata_cut_columns.csv', 'feature_orientation': 'Columns (samples in rows, features in columns)'}),
+        call({'percentage': 0.5, 'graph_type': 'Pie chart'}),
+        call({'deviation_threshold': 2.0, 'graph_type': 'Pie chart'}),
+        call({'number_of_neighbours': 5, 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'}),
         call({'number_of_neighbors': 20}),
-        call({'log_base': 'log2'}),
-        call({'percentile': 0.5}),
-        call({'similarity_measure': 'euclidean distance'}),
-        call({'alpha': 0.05}),
-        call({'fc_threshold': 1}),
-        call({'differential_expression_threshold': 1, 'direction': 'both', 'gene_sets_restring': [], 'organism': 9606}),
-        call({'colors': [], 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'top_terms': 10, 'value': 'p-value'})
+        call({'log_base': 'log2', 'graph_type': 'Pie chart', 'group_by': 'None'}),
+        call({'percentile': 0.5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10'}),
+        call({'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1}),
+        call({'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None}),
+        call({'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []}),
+        call({'proteins_df': None, 'differential_expression_threshold': 1, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None}),
+        call({'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''})
     ]
 
     assert mock_method.call_count == 13
@@ -162,10 +162,9 @@ def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_path, metadat
         "FilterProteinsBySamplesMissing",
     ]
     assert mock_method.call_args_list == [
-        call({'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum', 'file_path': 'tests/proteinGroups_small_cut.txt'}),
-        call({'feature_orientation': 'Columns (samples in rows, features in columns)',
-              'file_path': 'tests/metadata_cut_columns.csv'}),
-        call({'percentage': 0.5})
+        call({'file_path': 'tests/proteinGroups_small_cut.txt', 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'}),
+        call({'file_path': 'tests/metadata_cut_columns.csv', 'feature_orientation': 'Columns (samples in rows, features in columns)'}),
+        call({'percentage': 0.5, 'graph_type': 'Pie chart'}),
     ]
     mock_plot.assert_not_called()
 
@@ -242,7 +241,7 @@ def test_integration_runner(metadata_path, ms_data_path, tests_folder_name, monk
     runner.compute_workflow()
 
 
-def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_name):
+def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_name, monkeypatch):
     name = tests_folder_name + "/test_runner_integration" + random_string()
     runner = Runner(
         **{
@@ -256,4 +255,6 @@ def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_n
             "verbose": False,
         }
     )
+    mock_write = mock.MagicMock()
+    monkeypatch.setattr(runner.run, "_run_write", mock_write)
     runner.compute_workflow()

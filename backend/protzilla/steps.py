@@ -1,20 +1,29 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import asdict
 import inspect
 import logging
 import traceback
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
-from typing import Literal
+from types import MethodType
+from typing import Any, Literal
 
 import pandas as pd
 import plotly.io as pio
 import plotly.graph_objects as go
 from PIL import Image
 
+from backend.protzilla.form import Form
 from backend.protzilla.utilities import format_trace, name_to_title
+
+# to avoid circular imports
+from typing import TYPE_CHECKING
+if (TYPE_CHECKING):
+    from backend.protzilla.run import Run
+    from backend.protzilla.disk_operator import DiskOperator
 
 
 class Section(Enum):
@@ -33,13 +42,15 @@ class Step:
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = "incomplete"
 
     def __init__(self, instance_identifier: str | None = None):
-        self.form_inputs: dict = {}
         self.inputs: dict = {}
         self.output: Output = Output()
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
         self.instance_identifier = instance_identifier
+        
+        self.form: Form = self.create_form()
+        self.form.modify_form = MethodType(self.modify_form, self.form)
 
         if self.instance_identifier is None:
             logging.warning(
@@ -269,7 +280,63 @@ class Step:
                 else:
                     return False
         return True
+    
+    def create_form(self) -> Form:
+        """
+        This method must be overidden in Step classes to define a form for the step.
+        exmaple:
+        
+        return Form(
+            label="Filter Proteins by Samples Missing",
+            fields=[
+                NumberField(
+                    name="percentage",
+                    label="Percentage of minimum non-missing samples per protein",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    value=BarAndPieChart.pie_chart,
+                    label="Graph type",
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+        """
+        return Form("No form defined.", [])
 
+    def modify_form(self, form: Form, run:Run) -> None:
+        """
+        This method can be overidden in Step classes to modify the form based on the current state of the run.
+        examples:
+        - disable a field based on the current state of the run
+            form["field_name"].disabled = True
+        - change the options of a dropdown based on the current state of the run
+            form["field_name"].options = {"option1": "Option 1", "option2": "Option 2"}
+        - change the value of a field based on the current state of the run
+            form["field_name"].value = "new_value"
+        
+        run can be used to access the current state of the run, e.g. the previous steps, the current section, etc.
+        """
+        pass
+
+    @property
+    def finished(self) -> bool:
+        """
+        Return whether the step has valid outputs and is therefore considered finished.
+        Plot steps without required outputs are considered finished if they have plots.
+        :return: True if the step is finished, False otherwise
+        """
+        if len(self.output_keys) == 0:
+            return not self.plots.empty
+        return self.validate_outputs(soft_check=True)
+    
+    @property
+    def form_inputs(self) -> dict:
+        return self.form.values
 
 class Output:
 

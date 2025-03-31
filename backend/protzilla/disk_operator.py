@@ -210,7 +210,7 @@ class DiskOperator:
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
-            step.form_inputs = step_data.get(KEYS.STEP_FORM_INPUTS, {})
+            step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
             step.calculation_status = step_data.get(KEYS.STEP_CALCULATION_STATUS,"incomplete")
             return step
 

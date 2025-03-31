@@ -9,6 +9,7 @@ import shutil
 import datetime
 
 import backend.protzilla.constants.paths as paths
+from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.disk_operator import DiskOperator, YamlOperator
@@ -242,6 +243,13 @@ class Run:
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
 
+    
+    @auto_save
+    def current_form(self, new_form_values = {}) -> Form:
+        self.steps.current_step.form.update_values(new_form_values)
+        self.steps.current_step.form.apply_modification(self)
+        return self.steps.current_step.form
+
     @property
     def current_messages(self) -> Messages:
         return self.steps.current_step.messages
@@ -261,3 +269,4 @@ class Run:
     @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+    
