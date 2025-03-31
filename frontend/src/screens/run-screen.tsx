@@ -77,30 +77,6 @@ export const RunScreen: React.FC = () => {
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   
-  
-  function onChangePlotSettings(data: Record<string, InputValueType>) {
-    let newColors: string | string[] = "purple";
-
-    if (Array.isArray(data.colors)) {
-      if (data.colors.length === 1) {
-        newColors = data.colors[0];
-      } else if (data.colors.length > 1) {
-        newColors = data.colors;
-      }
-    }
-
-    const plotType = data.type as "scatter";
-
-    const updatedMockPlotData: Partial<Plotly.Data>[] = [
-      {
-        ...(mockPlotData[0] as Plotly.ScatterData),
-        type: plotType,
-        marker: { color: newColors },
-      },
-    ];
-
-    setPlotData(updatedMockPlotData);
-  }
 
   const handleStepSelection = (selectedStep: SelectedStep | null) => {
     if (selectedStep) {
@@ -156,10 +132,8 @@ export const RunScreen: React.FC = () => {
 
   const listEditorComponent = (
     <ListEditor
-      formDataParameters={mockFormDataParameters}
+      formDataParameters={formData}
       onChangeParameters={onChangeParameters}
-      formDataPlotSettings={mockFormDataPlotSettings}
-      onChangePlotSettings={onChangePlotSettings}
       runName={runName}
       handleStepSelection={handleStepSelection}
     />

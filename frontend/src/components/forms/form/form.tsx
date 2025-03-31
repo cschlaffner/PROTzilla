@@ -94,11 +94,9 @@ export const Form: React.FC<FormProps> = ({
       <H3>{formData.label}</H3>
       {formData.input_fields.map((inputField) => (
         <InputField
-          type={inputField.type}
-          name={inputField.name}
           key={inputField.name}
           onChange={handleChange}
-          {...inputField.props}
+          {...inputField}
         />
       ))}
       {!formData.isAutoSubmit && (
@@ -120,6 +118,7 @@ export const Form: React.FC<FormProps> = ({
 const InputField: React.FC<InputFieldProps> = ({
   type,
   name,
+  is
   onChange,
   options,
   ...props

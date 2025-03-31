@@ -4,8 +4,6 @@ import { SelectedStep } from "../../sidebar/types";
 export interface ListEditorProps {
     formDataParameters: FormData;
     onChangeParameters: (data: Record<string, InputValueType>) => void;
-    formDataPlotSettings: FormData;
-    onChangePlotSettings: (data: Record<string, InputValueType>) => void;
     runName: string;
     handleStepSelection: (selectedStep: SelectedStep | null) => void;
 }
