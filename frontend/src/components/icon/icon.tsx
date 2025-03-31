@@ -1,7 +1,12 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { css, styled } from "styled-components";
 
-import { DefaultColoredIconProps, DefaultColoredIconType, IconButtonProps, IconProps } from "./icon.props";
+import {
+  DefaultColoredIconProps,
+  DefaultColoredIconType,
+  IconButtonProps,
+  IconProps,
+} from "./icon.props";
 import * as icons from "./icons";
 import { Color, color, opacity, size, Theme } from "../../theme";
 
@@ -59,35 +64,40 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
 
 export const DefaultColoredIcon: React.FC<DefaultColoredIconProps> = ({
   icon,
-  style
+  style,
 }) => {
-  const defaultColors:Record<DefaultColoredIconType,Color> = {complete:"green",incomplete:"blue",outdated:"yellow",failed:"red"}
-  return(
-    <Icon icon={icon} color={defaultColors[icon]} style={style}/>
-  )
-}
+  const defaultColors: Record<DefaultColoredIconType, Color> = {
+    complete: "green",
+    incomplete: "blue",
+    outdated: "yellow",
+    failed: "red",
+  };
+  return <Icon icon={icon} color={defaultColors[icon]} style={style} />;
+};
 
-export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(function IconButton(
-  {icon, color="primary", hoverColor = "primaryHover", ...rest },
-  ref,
-){
-  const [isHovered, setIsHovered] = useState(false)
-  const { onMouseEnter, onMouseLeave } = rest
+export const IconButton = React.forwardRef<SVGSVGElement, IconButtonProps>(
+  function IconButton(
+    { icon, color = "primary", hoverColor = "primaryHover", ...rest },
+    ref,
+  ) {
+    const [isHovered, setIsHovered] = useState(false);
+    const { onMouseEnter, onMouseLeave } = rest;
 
-  return(
-    <Icon 
-      icon={icon}
-      color={isHovered ? hoverColor : color} 
-      {...rest}
-      onMouseEnter={(e) => { 
-        setIsHovered(true);
-        if (onMouseEnter) onMouseEnter(e);
-      }}
-      onMouseLeave={(e) => { 
-        setIsHovered(false); 
-        if (onMouseLeave) onMouseLeave(e);
-      }}
-      ref={ref}
-    />
-  )
-})
+    return (
+      <Icon
+        icon={icon}
+        color={isHovered ? hoverColor : color}
+        {...rest}
+        onMouseEnter={(e) => {
+          setIsHovered(true);
+          if (onMouseEnter) onMouseEnter(e);
+        }}
+        onMouseLeave={(e) => {
+          setIsHovered(false);
+          if (onMouseLeave) onMouseLeave(e);
+        }}
+        ref={ref}
+      />
+    );
+  },
+);

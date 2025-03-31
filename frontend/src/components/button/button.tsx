@@ -495,11 +495,19 @@ export const GrayButton = styled(Button)`
     )};
 
   .text {
-    color: ${(props) => color(props.color ? props.color : props.isDisabled ? "blackDisabled" : "black")};
+    color: ${(props) =>
+      color(
+        props.color
+          ? props.color
+          : props.isDisabled
+            ? "blackDisabled"
+            : "black",
+      )};
   }
 
   .icon {
-    ${({color, isDisabled}) => iconColor(color ? color : isDisabled ? "blackDisabled" : "black")}
+    ${({ color, isDisabled }) =>
+      iconColor(color ? color : isDisabled ? "blackDisabled" : "black")}
   }
 
   &:hover {
@@ -577,7 +585,7 @@ export const InvisibleButton = styled(Button)`
   }
 
   .icon {
-    color: ${({color}) => iconColor(color ?? "primary")}
+    color: ${({ color }) => iconColor(color ?? "primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
   }
 
