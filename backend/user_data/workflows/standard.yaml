@@ -2,7 +2,7 @@ steps:
   - form_inputs:
       intensity_name: iBAQ
       map_to_uniprot: false
-      aggregation_mode: Sum
+      aggregation_method: Sum
     inputs: { }
     type: MaxQuantImport
   - form_inputs:
@@ -70,7 +70,6 @@ steps:
     inputs: { }
     type: EnrichmentAnalysisGOAnalysisWithString
   - form_inputs:
-      colors: [ ]
       cutoff: 0.05
       gene_sets:
         - Process

@@ -200,6 +200,7 @@ export const baseTheme = {
     buttonIconPadding: "10px",
     smallButtonPadding: "6px 10px",
     smallButtonIconPadding: "8px",
+    listButtonPadding: "2px 0 2px 0",
     buttonGap: "8px",
     smallButtonGap: "6px",
 

@@ -565,7 +565,7 @@ export const CircularButton = styled(Button)`
   }
 `;
 
-export const InvisibleButton = styled(BaseButton)`
+export const InvisibleButton = styled(Button)`
   background: none;
   border: none;
   outline: none;
@@ -588,9 +588,10 @@ export const InvisibleButton = styled(BaseButton)`
     color: ${({ color }) => iconColor(color ?? "primary")}
     opacity: ${({ isDisabled }) => (isDisabled ? opacity("disabled") : 1)};
   }
-  
+
   &:hover {
-    border-radius: ${({ isSmall }) => radius(isSmall ? "smallButton" : "button")};
+    border-radius: ${({ isSmall }) =>
+      radius(isSmall ? "smallButton" : "button")};
     display: inline-flex;
     height: ${({ isSmall }) =>
       size(isSmall ? "smallButtonHeight" : "buttonHeight")};

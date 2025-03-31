@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views.generic import RedirectView
 
 from . import views
@@ -24,9 +24,9 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/static/index.html')),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views_with_api.run_information_list, name="run_information"),
-    path("api/step_name_list/", views_with_api.step_name_list, name="step_name_list"),
+    path("api/step_list/", views_with_api.all_steps, name="step_list"),
     path("api/workflow_name_list/", views_with_api.workflow_name_list, name="workflow_name_list"),
-    
+
     path("api/toggle_favourite/", views_with_api.toggle_favourite, name="toggle_favourite"),
     path("api/add_tag/", views_with_api.add_tag, name="add_tag"),
     path("api/delete_tag/", views_with_api.delete_tag, name="delete_tag"),
@@ -41,10 +41,12 @@ urlpatterns = [
     path("api/export_workflow/", views_with_api.export_workflow, name="export_workflow"),
     path("api/download_plots/", views_with_api.download_plots, name="download_plots"), #might function?
     path("api/download_table/", views_with_api.download_table, name="download_table"), #might function?
-    path("api/get_step_parameters/", views_with_api.get_step_parameters, name="get_step_parameters"),
+    path("api/get_step_form/", views_with_api.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
+
+    path("api/settings/", include("settings.urls")),
 
     #old routes, not yet implemented as api endpints, see notion card 
     path("databases", views.databases, name="databases"),
