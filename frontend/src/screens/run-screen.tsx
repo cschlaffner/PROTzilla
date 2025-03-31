@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -22,8 +22,8 @@ import {
   mockPlotLayout,
 } from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
-import { callApiWithParameters } from "../utils";
 import { SelectedStep } from "../components/sidebar/types";
+import { callApiWithParameters } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
