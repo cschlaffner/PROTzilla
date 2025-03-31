@@ -26,7 +26,7 @@ const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
   cursor: pointer;
 `;
 
-export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
+export const Sidebar: React.FC<SidebarProps> = ({ runName, handleStepSelection }: SidebarProps) => {
   const [sections, setSections] = useState<Section[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedStep, setSelectedStep] = useState<SelectedStep | null>({
@@ -81,6 +81,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ runName }: SidebarProps) => {
 
     void fetchData();
   }, [runName]);
+
+  useEffect(() => {
+    handleStepSelection(selectedStep);
+  }, [selectedStep])
 
   return (
     <SidebarContainer

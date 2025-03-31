@@ -23,6 +23,7 @@ import {
 } from "./mockUpData";
 import { InputValueType } from "../components/forms/form";
 import { callApiWithParameters } from "../utils";
+import { SelectedStep } from "../components/sidebar/types";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -100,27 +101,32 @@ export const RunScreen: React.FC = () => {
     setPlotData(updatedMockPlotData);
   }
 
+  const handleStepSelection = (selectedStep: SelectedStep | null) => {
+    if (selectedStep) {
+      void callApiWithParameters("navigate_to_step/", {run_name: runName, section: selectedStep.section, index: String(selectedStep.index)})
+        .then(getStepPlots)
+    }
+  };
+
   function onChangeParameters() {
     //to be implemented
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await callApiWithParameters("get_step_plots/", {
-        run_name: runName,
-      });
-      if (response) {
-        const data = response.data;
-        const parsedData = JSON.parse(data[0]);
-        const { data: rawData, layout: rawLayout } = parsedData;
 
-        setPlotData(rawData);
-        setPlotLayout(rawLayout);
-      }
-    };
+  const getStepPlots = async () => {
+    const response = await callApiWithParameters("get_step_plots/", {
+      run_name: runName,
+    });
+    if (response) {
+      const data = response.data;
+      const parsedData = JSON.parse(data[0]);
+      const { data: rawData, layout: rawLayout } = parsedData;
 
-    void fetchData();
-  }, []);
+      setPlotData(rawData);
+      setPlotLayout(rawLayout);
+    }
+  };
+
 
   const plotComponent = (
     <StyledPlotContainer>
@@ -135,6 +141,7 @@ export const RunScreen: React.FC = () => {
       formDataPlotSettings={mockFormDataPlotSettings}
       onChangePlotSettings={onChangePlotSettings}
       runName={runName}
+      handleStepSelection={handleStepSelection}
     />
   );
 

@@ -1,4 +1,5 @@
 import { FormData, InputValueType } from "../../forms/form";
+import { SelectedStep } from "../../sidebar/types";
 
 export interface ListEditorProps {
     formDataParameters: FormData;
@@ -6,4 +7,5 @@ export interface ListEditorProps {
     formDataPlotSettings: FormData;
     onChangePlotSettings: (data: Record<string, InputValueType>) => void;
     runName: string;
+    handleStepSelection: (selectedStep: SelectedStep | null) => void;
 }
