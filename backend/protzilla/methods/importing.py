@@ -68,7 +68,7 @@ class MaxQuantImport(ImportingStep):
     def create_form(self):
         return Form(
             label="MaxQuant Protein Groups Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "MaxQuant intensities file (proteinGroups.txt)",
@@ -127,7 +127,7 @@ class MetadataImport(ImportingStep):
     def create_form(self):
         return Form(
             label="Metadata Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "Metadata file",

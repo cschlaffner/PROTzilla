@@ -115,7 +115,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
     def create_form(self):
         return Form(
             label="GO analysis with STRING",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name = "proteins_df",
                     label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
@@ -290,7 +290,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     def create_form(self):
         return Form(
             label = "Bar plot for GO enrichment analysis",
-            fields = [
+            input_fields = [
                 # TODO: input:df fill dynamic with fill_forms
                 DropdownField(
                     name = "input_df_step_instance",
