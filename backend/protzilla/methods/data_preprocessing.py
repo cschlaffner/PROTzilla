@@ -460,6 +460,12 @@ class ImputationByKNN(DataPreprocessingStep):
                 ),
                 FormDivider("Plot settings"),
                 DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
                     name="group_by",
                     label="Group by",
                     value=GroupBy.no_grouping,
@@ -471,6 +477,7 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=VisualTrasformations.log10,
                     options=VisualTrasformations,
                 ),
+
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
