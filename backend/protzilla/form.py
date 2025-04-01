@@ -45,12 +45,17 @@ class SearchField(_baseField):
 
 
 @dataclass
+class CheckboxField(_baseField):
+    type: str = "checkbox"
+
+
+@dataclass
 class RadioSelectField(_baseField):
     type: str = "radio-select"
 
 
 @dataclass
-class CheckboxField(_baseField):
+class CheckboxMultiSelectField(_baseField):
     type: str = "checkbox-select"
 
 
