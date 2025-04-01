@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, List, Dict, Union, TYPE_CHECKING
 
 # to avoid circular imports
@@ -126,9 +126,9 @@ class Form:
 
     def update_values(self, values: Dict[str, Any]) -> None:
         "insert new values into the form"
-
-        for fieldname, value in values.items():
-            self[fieldname].value = value
+        if values:
+            for fieldname, value in values.items():
+                self[fieldname].value = value
         
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)
@@ -169,6 +169,9 @@ class Form:
             #serialize functions
             if callable(obj) and type(obj) != type(Enum):
                 return obj()
+            
+            if is_dataclass(obj):
+                return asdict(obj)
             
             # Serialize Enums as their values
             if isinstance(obj, Enum):
