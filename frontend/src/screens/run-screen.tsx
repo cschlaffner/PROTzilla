@@ -74,11 +74,14 @@ export const RunScreen: React.FC = () => {
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
-  
 
   const handleStepSelection = (selectedStep: SelectedStep | null) => {
     if (selectedStep) {
-      void callApiWithParameters("navigate_to_step/", {run_name: runName, section: selectedStep.section, index: String(selectedStep.index)})
+      void callApiWithParameters("navigate_to_step/", {
+        run_name: runName,
+        section: selectedStep.section,
+        index: String(selectedStep.index),
+      })
         .then(() => {
           return getStepForm({});
         })
@@ -92,35 +95,40 @@ export const RunScreen: React.FC = () => {
     //do nothing
   }
 
-
   const getStepPlots = async () => {
     const response = await callApiWithParameters("get_step_plots/", {
       run_name: runName,
     });
     if (response) {
       const data = response.data;
-      const parsedData = JSON.parse(data[0]);
-      const { data: rawData, layout: rawLayout } = parsedData;
+
+      let rawData = [];
+      let rawLayout = [];
+      if (data.length > 0) {
+        const paredData = JSON.parse(data[0]);
+        rawData = paredData.data;
+        rawLayout = paredData.layout;
+      }
 
       setPlotData(rawData);
       setPlotLayout(rawLayout);
     }
   };
 
-  const getStepForm = async (userInput: Record<string, string> ) => {
+  const getStepForm = async (userInput: Record<string, string>) => {
     const response = await callApiWithParameters("get_step_form/", {
       run_name: runName,
       data: userInput,
     });
     if (response) {
-      const data = response.data
+      const data = response.data;
 
       setFormData(data);
     }
   };
   useEffect(() => {
-    console.log(formData)
-  }, [formData])
+    console.log(formData);
+  }, [formData]);
 
   const plotComponent = (
     <StyledPlotContainer>
@@ -160,12 +168,9 @@ export const RunScreen: React.FC = () => {
               flexDirection: "column",
               height: "100%",
             }}
-            
           />
         </StyledFlexColumn>
-        <StyledFlexColumn
-          style={{ flex: 1}}
-        >
+        <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
               nameComponent1="Plot"
