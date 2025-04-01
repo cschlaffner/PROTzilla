@@ -130,7 +130,7 @@ export const RunScreen: React.FC = () => {
 
   const listEditorComponent = (
     <ListEditor
-      formDataParameters={mockFormDataParameters}
+      formDataParameters={formData}
       onChangeParameters={onChangeParameters}
       runName={runName}
       handleStepSelection={handleStepSelection}
