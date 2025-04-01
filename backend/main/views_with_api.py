@@ -378,3 +378,14 @@ def get_step_table(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+def calculate_step(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+
+        run = active_runs[run_name]
+        run.step_calculate()
+
+        return JsonResponse({"success": True, "message": "Calculated step"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)

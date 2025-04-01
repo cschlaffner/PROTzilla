@@ -6,6 +6,7 @@ import { color, spacing } from "../../../theme";
 import { FlexRow } from "../../box";
 import { Form } from "../../forms/form";
 import { Sidebar } from "../../sidebar";
+import { SecondaryButton } from "../../button";
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -36,18 +37,18 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   formDataParameters,
   onChangeParameters,
   runName,
-  handleStepSelection
+  handleStepSelection,
+  onCalculateStep,
 }) => {
   return (
     <StyledRow>
-      <Sidebar runName={runName}
-        handleStepSelection={handleStepSelection}
-      />
+      <Sidebar runName={runName} handleStepSelection={handleStepSelection} />
 
       <StyledDivider />
 
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParameters} />
+        <SecondaryButton text={"Calculate"} onPress={onCalculateStep} />
       </StyledFormColumn>
     </StyledRow>
   );

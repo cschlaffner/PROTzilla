@@ -47,6 +47,7 @@ urlpatterns = [
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
+    path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
 
     path("api/settings/", include("settings.urls")),
 

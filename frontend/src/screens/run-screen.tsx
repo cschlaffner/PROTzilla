@@ -130,6 +130,12 @@ export const RunScreen: React.FC = () => {
     console.log(formData);
   }, [formData]);
 
+  const calculateStep = async () => {
+    await callApiWithParameters("calculate_step/", {
+      run_name: runName,
+    });
+  };
+
   const plotComponent = (
     <StyledPlotContainer>
       <PlotComponent data={plotData} layout={plotLayout} />
@@ -142,6 +148,7 @@ export const RunScreen: React.FC = () => {
       onChangeParameters={onChangeParameters}
       runName={runName}
       handleStepSelection={handleStepSelection}
+      onCalculateStep={calculateStep}
     />
   );
 
