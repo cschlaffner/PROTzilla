@@ -102,7 +102,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart,
+                    value=BarAndPieChart.pie_chart.name,
                     options=BarAndPieChart,
                 ),
             ],
