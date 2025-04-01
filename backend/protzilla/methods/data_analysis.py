@@ -579,7 +579,7 @@ class PlotProtQuant(DataAnalysisStep):
 
         if (form["input_df"].options):
             if (not form["input_df"].value):
-                form["input_df"].value = form["input_df"].options[0][0]      
+                form["input_df"].value = form["input_df"].options[0].label
 
             form["protein_group"].options = form_helper.to_choices(
                 run.steps.get_step_output(

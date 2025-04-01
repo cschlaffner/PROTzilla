@@ -7,7 +7,16 @@ from typing import Any, List, Dict, Union, TYPE_CHECKING
 # to avoid circular imports
 if TYPE_CHECKING:
     from backend.protzilla.run import Run
-    
+
+
+@dataclass
+class Option:
+    """
+    Options for the dropdown and multi-select fields.
+    `value` is the value of the option, `label` is the label shown to the user.
+    """
+    value: str
+    label: str
 
 @dataclass
 class _baseField:
@@ -67,14 +76,14 @@ class MultiSelectField(_baseField):
 
 @dataclass
 class DropdownField(_baseField):
-    options: Dict[str, str] | Enum = field(default_factory=dict)
+    options: list[Option] | Enum = field(default_factory=dict)
     type: str = "dropdown"
 
 
 @dataclass
 class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
-    options: Dict[str, str] | Enum = field(default_factory=dict)
+    options: list[Option] | Enum = field(default_factory=dict)
     dropdown_choices: List[str] = field(default_factory=list)
 
 
@@ -167,6 +176,6 @@ class Form:
             
             # Serialize Enum class as dict
             if type(obj) == type(Enum):
-                return [{"value": item.name, "label": item.value} for item in obj]
+                return [Option(item.name, item.value) for item in obj]
             
             return super().default(obj)
