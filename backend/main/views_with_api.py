@@ -346,7 +346,7 @@ def get_step_form(request):
 
         form = run.current_form(new_form_values)
 
-        return JsonResponse({"success": True, "message": "Received input parameters", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": form}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
