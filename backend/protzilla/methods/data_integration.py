@@ -340,7 +340,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
             run, "enrichment_df"
         )
         if(not form["input_df_step_instance"].value) and form["input_df_step_instance"].options:
-            form["input_df_step_instance"].value = form["input_df_step_instance"].options[0][0]
+            form["input_df_step_instance"].value = form["input_df_step_instance"].options[0].label
 
         if form["input_df_step_instance"].value:
             form["gene_sets"].options = form_helper.to_choices(
