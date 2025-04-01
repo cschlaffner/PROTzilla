@@ -118,57 +118,58 @@ export const Form: React.FC<FormProps> = ({
 const InputField: React.FC<InputFieldProps> = ({
   type,
   name,
-  is
   onChange,
   options,
+  isVisible,
   ...props
 }) => {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
 
-  switch (type) {
-    case "text":
-      return <TextInputField onChange={handleInputChange} {...props} />;
-    case "number":
-      return <NumberInputField onChange={handleInputChange} {...props} />;
-    case "search":
-      return <SearchInputField onChange={handleInputChange} {...props} />;
-    case "radio-select":
-      return (
-        <RadioSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "checkbox-select":
-      return (
-        <CheckboxSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "dropdown":
-      return (
-        <DropdownInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "multi-select":
-      return (
-        <MultiSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
-    case "file":
-      return <FileInputField onChange={handleInputChange} {...props} />;
-    default:
-      return null;
+    switch (type) {
+      case "text":
+        return <TextInputField onChange={handleInputChange} {...props} />;
+      case "number":
+        return <NumberInputField onChange={handleInputChange} {...props} />;
+      case "search":
+        return <SearchInputField onChange={handleInputChange} {...props} />;
+      case "radio-select":
+        return (
+          <RadioSelectInputField
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "checkbox-select":
+        return (
+          <CheckboxSelectInputField
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "dropdown":
+        return (
+          <DropdownInputField
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "multi-select":
+        return (
+          <MultiSelectInputField
+            onChange={handleInputChange}
+            options={options ?? []}
+            {...props}
+          />
+        );
+      case "file":
+        return <FileInputField onChange={handleInputChange} {...props} />;
+      default:
+        return null;
   }
+  //}
 };

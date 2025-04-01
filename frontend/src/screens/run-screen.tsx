@@ -17,11 +17,9 @@ import {
   dummyTextComponent2,
   footerMessages,
   mockFormDataParameters,
-  mockFormDataPlotSettings,
   mockPlotData,
   mockPlotLayout,
 } from "./mockUpData";
-import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
 
@@ -132,7 +130,7 @@ export const RunScreen: React.FC = () => {
 
   const listEditorComponent = (
     <ListEditor
-      formDataParameters={formData}
+      formDataParameters={mockFormDataParameters}
       onChangeParameters={onChangeParameters}
       runName={runName}
       handleStepSelection={handleStepSelection}

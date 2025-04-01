@@ -15,7 +15,7 @@ class _baseField:
     label: str
     value: object
     type: str
-    isvisible: bool = True
+    isVisible: bool = True
 
 
 @dataclass
@@ -95,13 +95,13 @@ StructualField = Union[FormDivider]
 @dataclass
 class Form:
     label: str
-    fields: List[InputField|StructualField]
+    input_fields: List[InputField|StructualField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
-        self._field_map = {field.name: field for field in self.fields if isinstance(field, _baseField)}
+        self._field_map = {field.name: field for field in self.input_fields if isinstance(field, _baseField)}
 
     def modify_form(self, run:Run) -> None:
         """
@@ -138,7 +138,7 @@ class Form:
     @property
     def values(self) -> Dict[str, str]:
         values = {}
-        for field in self.fields:
+        for field in self.input_fields:
             if isinstance(field, FormDivider):
                 continue
             elif isinstance(field.value, Enum):

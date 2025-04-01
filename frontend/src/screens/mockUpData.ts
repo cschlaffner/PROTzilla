@@ -24,37 +24,38 @@ export const mockPlotLayout: Partial<Plotly.Layout> = {
 };
 
 export const mockFormDataParameters: FormData = {
-  label: "Parameters",
+  label: "TESSST Parameters",
   isAutoSubmit: false,
   input_fields: [
     {
       type: "dropdown",
       name: "method",
-      props: {
-        label: "Protein Data Import MaxQuant",
-        options: [
-          { label: "MaxQuant Protein Groups Import", value: "maxQuant" },
-          {
-            label: "MaxQuant Peptide Groups Import",
-            value: "maxQuantPeptides",
-          },
-          { label: "MaxQuant MS/MS Data Import", value: "maxQuantMSMS" },
-          {
-            label: "MaxQuant Post-Processing",
-            value: "maxQuantPostProcessing",
-          },
-        ],
-      },
+      isVisible: true,
+      label: "Protein Data Import MaxQuant",
+      options: [
+        { label: "MaxQuant Protein Groups Import", value: "maxQuant" },
+        {
+          label: "MaxQuant Peptide Groups Import",
+          value: "maxQuantPeptides",
+        },
+        { label: "MaxQuant MS/MS Data Import", value: "maxQuantMSMS" },
+        {
+          label: "MaxQuant Post-Processing",
+          value: "maxQuantPostProcessing",
+        },
+      ],
+
     },
     {
       type: "file",
       name: "file",
-      props: { label: "MaxQuant intensities file (proteinGroups.txt):" },
+      isVisible: true,
+      label: "MaxQuant intensities file (proteinGroups.txt):",
     },
     {
       type: "dropdown",
       name: "intensity",
-      props: {
+      isVisible: true,
         label: "Intensity",
         options: [
           { label: "iBAQ", value: "ibaq" },
@@ -63,44 +64,10 @@ export const mockFormDataParameters: FormData = {
           { label: "Normalized Intensity", value: "normalizedIntensity" },
         ],
       },
-    },
   ],
 };
 
-export const mockFormDataPlotSettings: FormData = {
-  label: "Plot Settings",
-  isAutoSubmit: true,
-  input_fields: [
-    {
-      type: "dropdown",
-      name: "type",
-      props: {
-        label: "Select a Plot type",
-        options: [
-          { label: "Bar", value: "bar" },
-          { label: "Line", value: "scatter" },
-        ],
-      },
-    },
-    {
-      type: "multi-select",
-      name: "colors",
-      props: {
-        label: "Select colors for the plot",
-        options: [
-          { label: "Purple", value: "purple" },
-          { label: "Blue", value: "blue" },
-          { label: "Red", value: "red" },
-          { label: "Yellow", value: "yellow" },
-          { label: "Green", value: "green" },
-          { label: "Cyan", value: "cyan" },
-          { label: "Black", value: "black" },
-          { label: "Aqua", value: "aqua" },
-        ],
-      },
-    },
-  ],
-};
+
 
 export const dummyTextComponent1 =
   "😲 Ohh you shouldn't come here - we're not finished yet. \n Quickly click on the switch again. 👀";

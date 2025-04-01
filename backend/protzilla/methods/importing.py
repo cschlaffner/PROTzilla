@@ -68,7 +68,7 @@ class MaxQuantImport(ImportingStep):
     def create_form(self):
         return Form(
             label="MaxQuant Protein Groups Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "MaxQuant intensities file (proteinGroups.txt)",
@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityNameType.MAXLFQ_INTENSITY,
+                    value = IntensityNameType.MAXLFQ_INTENSITY.name,
                     options = IntensityType
                 ),
                 CheckboxField(
@@ -88,7 +88,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum,
+                    value = AggregationMethods.sum.name,
                     options = AggregationMethods,
                 ),
             ],
@@ -127,7 +127,7 @@ class MetadataImport(ImportingStep):
     def create_form(self):
         return Form(
             label="Metadata Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "Metadata file",
