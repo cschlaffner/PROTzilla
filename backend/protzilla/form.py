@@ -162,6 +162,6 @@ class Form:
             
             # Serialize Enum class as dict
             if type(obj) == type(Enum):
-                return {item.name: item.value for item in obj}
+                return [{"value": item.name, "label": item.value} for item in obj]
             
             return super().default(obj)
