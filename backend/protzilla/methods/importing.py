@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityNameType.MAXLFQ_INTENSITY.name,
+                    value = IntensityNameType.MAXLFQ_INTENSITY,
                     options = IntensityType
                 ),
                 CheckboxField(
@@ -88,7 +88,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum.name,
+                    value = AggregationMethods.sum,
                     options = AggregationMethods,
                 ),
             ],
