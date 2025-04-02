@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
@@ -51,6 +51,10 @@ export const Form: React.FC<FormProps> = ({
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
+  useEffect(() => {
+      setFormValues({});
+    }, [formData]);
+
   const handleChange = (name: string, value: InputValueType) => {
     
       if (formValues[name] === value) return;
@@ -61,7 +65,7 @@ export const Form: React.FC<FormProps> = ({
 
       const isFirstEntryForId = !(name in formValues);
       if (isFirstEntryForId) {
-        return newValues;
+        setFormValues(newValues);
       }
 
       if (formData.isAutoSubmit) {

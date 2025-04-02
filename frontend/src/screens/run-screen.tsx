@@ -22,6 +22,7 @@ import {
 } from "./mockUpData";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
+import { InputValueType } from "../components/forms/form";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -69,11 +70,11 @@ export const RunScreen: React.FC = () => {
 
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
-
   const [runName] = useState<string>(location.state?.existingRun);
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  const [userInput, setUserInput] = useState<Record<string, InputValueType>>({});
 
   const handleStepSelection = (selectedStep: SelectedStep | null) => {
     if (selectedStep) {
@@ -91,8 +92,8 @@ export const RunScreen: React.FC = () => {
     }
   };
 
-  function onChangeParameters() {
-    //do nothing
+  const onChangeParameters = (data: Record<string, InputValueType>) => {
+    setUserInput(data);
   }
 
   const getStepPlots = async () => {
