@@ -231,6 +231,7 @@ class Run:
         self.steps.previous_step()
 
     @error_handling
+    @auto_save
     def step_goto(self, step_index: int, section: str) -> None:
         self.steps.goto_step(step_index, section)
 

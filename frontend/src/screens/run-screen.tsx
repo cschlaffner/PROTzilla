@@ -116,7 +116,7 @@ export const RunScreen: React.FC = () => {
     }
   };
 
-  const getStepForm = async (userInput: Record<string, string>) => {
+  const getStepForm = async (userInput: Record<string, InputValueType>) => {
     const response = await callApiWithParameters("get_step_form/", {
       run_name: runName,
       data: userInput,
@@ -134,6 +134,7 @@ export const RunScreen: React.FC = () => {
   const calculateStep = async () => {
     await callApiWithParameters("calculate_step/", {
       run_name: runName,
+      data: userInput,
     });
   };
 
