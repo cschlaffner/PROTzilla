@@ -496,6 +496,19 @@ class StepManager:
             + self.data_integration
         )
 
+    @property
+    def current_step_index_in_section(self) -> int:
+        """
+        Returns the index of the current step in the current section.
+        :return: an integer for the index of the current step in the current section
+        """
+
+        return self.current_step_index - sum(
+            len(self.sections[section])
+            for section in self.sections
+            if section != self.current_section and section not in [step.section for step in self.future_steps]
+        )
+
     def get_instance_identifiers(
         self, step_type: type[Step], output_key: str | list[str] = None
     ) -> list[str]:

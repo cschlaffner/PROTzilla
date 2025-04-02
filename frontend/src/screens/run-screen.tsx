@@ -25,7 +25,6 @@ import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
 import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
-import { translateGlobalToSectionIndex } from "../utils/step_index_helper.ts";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -151,12 +150,8 @@ export const RunScreen: React.FC = () => {
     });
     if (response) {
       const data = response.data;
-      const calculatedStepData = translateGlobalToSectionIndex(
-        data.index,
-        data.displayed_steps,
-      );
-      const indexInSection = calculatedStepData ? calculatedStepData[1] : -1;
-      setIcon(data.current_section_name + "-" + indexInSection, data.status);
+
+      setIcon(data.section + "-" + data.index, data.status);
     }
   };
 

@@ -387,10 +387,8 @@ def calculate_step(request):
         run.step_calculate()
 
         calculation_data = {}
-        calculation_data["current_section_name"] = run.current_step.section
-        calculation_data["index"] = run.steps.current_step_index
-
-        calculation_data["displayed_steps"] = get_displayed_steps(run.steps)
+        calculation_data["section"] = run.current_step.section
+        calculation_data["index"] = run.steps.current_step_index_in_section
         calculation_data["status"] = run.current_step.calculation_status
 
         return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
