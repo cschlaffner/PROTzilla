@@ -85,6 +85,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
     }
   };
 
+  // useEffect(() => {
+  //   console.log("selectedStep", selectedStep);
+  //   updateSteps().then();
+  // }, [selectedStep]);
+
   const addStep = async () => {
     await updateSteps();
   };

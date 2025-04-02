@@ -24,6 +24,8 @@ import { DataTable } from "../components/data-table";
 import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
+import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
+import { translateGlobalToSectionIndex } from "../utils/step_index_helper.ts";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -85,6 +87,7 @@ export const RunScreen: React.FC = () => {
   const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
     {},
   );
+  const { setIcon } = useIconContext();
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
@@ -142,10 +145,19 @@ export const RunScreen: React.FC = () => {
   }, [formData]);
 
   const calculateStep = async () => {
-    await callApiWithParameters("calculate_step/", {
+    const response = await callApiWithParameters("calculate_step/", {
       run_name: runName,
       data: userInput,
     });
+    if (response) {
+      const data = response.data;
+      const calculatedStepData = translateGlobalToSectionIndex(
+        data.index,
+        data.displayed_steps,
+      );
+      const indexInSection = calculatedStepData ? calculatedStepData[1] : -1;
+      setIcon(data.current_section_name + "-" + indexInSection, data.status);
+    }
   };
 
   const plotComponent = (

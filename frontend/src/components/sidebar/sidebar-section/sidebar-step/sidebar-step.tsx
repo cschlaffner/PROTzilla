@@ -8,6 +8,8 @@ import { InvisibleButton } from "../../../button";
 import { DefaultColoredIcon } from "../../../icon/icon";
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
+import { useIconContext } from "../../step-icon-context.tsx";
+import { DefaultColoredIconType } from "../../../icon";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
@@ -50,6 +52,10 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
+
+  const { icons } = useIconContext();
+  const stepID = `${sectionName}-${index}`;
+  const icon = icons[stepID] || stepStatus;
 
   useEffect(() => {
     if (isCollapsed) {
@@ -117,7 +123,10 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
       onMouseMove={handleMouseMove}
       ref={stepRef}
     >
-      <DefaultColoredIcon icon={stepStatus} style={{ flexShrink: 0 }} />
+      <DefaultColoredIcon
+        icon={icon as DefaultColoredIconType}
+        style={{ flexShrink: 0 }}
+      />
       <TextContainer>
         <ContentText
           text={number}

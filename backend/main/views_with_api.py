@@ -386,6 +386,13 @@ def calculate_step(request):
         run = active_runs[run_name]
         run.step_calculate()
 
-        return JsonResponse({"success": True, "message": "Calculated step"})
+        calculation_data = {}
+        calculation_data["current_section_name"] = run.current_step.section
+        calculation_data["index"] = run.steps.current_step_index
+
+        calculation_data["displayed_steps"] = get_displayed_steps(run.steps)
+        calculation_data["status"] = run.current_step.calculation_status
+
+        return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
