@@ -1,1 +1,4 @@
-export interface SettingsProps {}
+export interface SettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+}

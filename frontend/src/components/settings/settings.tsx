@@ -4,6 +4,7 @@ import { spacing } from "../../theme";
 import { ToggleableButton } from "../button";
 import { SettingsProps } from "./settings.props.ts";
 import { useState } from "react";
+import { SectionTitle } from "../section-title";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -37,17 +38,66 @@ const SectionButton = styled(ToggleableButton)`
   justify-content: left;
 `;
 
-export const Settings: React.FC<SettingsProps> = ({}) => {
-  //const [selectedSetting, setSelectedSetting] = useState("General");
+const SpecificSettings = styled.div`
+  height: 80vh;
+  width: 60vh;
+  overflow: hidden;
+  overflow-y: auto;
+`;
+
+//const settingsSections = ["plot", "database"];
+
+export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
+  const [selectedSetting, setSelectedSetting] = useState("General");
 
   return (
-    <WideModal isOpen={true} onClose={() => {}} title="Settings">
+    <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
       <BorderDiv>
         <MakeRowDiv>
           <SectionSelection>
-            <SectionButton isActive={false}>General</SectionButton>
-            <SectionButton isActive={false}>Advanced</SectionButton>
+            <SectionButton
+              id={"plot"}
+              isActive={selectedSetting === "plot"}
+              text={"Plot Settings"}
+              onPress={() => {
+                setSelectedSetting("plot");
+              }}
+            />
+            <SectionButton
+              id={"database"}
+              isActive={selectedSetting === "database"}
+              text={"Database Upload"}
+              onPress={() => {
+                setSelectedSetting("database");
+              }}
+            />
+            <SectionButton
+              id={"github"}
+              isActive={selectedSetting === "github"}
+              text={"Github"}
+              onPress={() => {
+                setSelectedSetting("github");
+              }}
+            />
           </SectionSelection>
+          <SpecificSettings>
+            <SectionTitle baseComponent={"h2"} title={"Settings"} />
+            {selectedSetting === "plot" && (
+              <div>
+                <p>Plot settings content goes here.</p>
+              </div>
+            )}
+            {selectedSetting === "database" && (
+              <div>
+                <p>Database upload settings content goes here.</p>
+              </div>
+            )}
+            {selectedSetting === "github" && (
+              <div>
+                <p>Github settings content goes here.</p>
+              </div>
+            )}
+          </SpecificSettings>
         </MakeRowDiv>
       </BorderDiv>
     </WideModal>
