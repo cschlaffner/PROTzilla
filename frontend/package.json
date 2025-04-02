@@ -18,6 +18,11 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.6",
+    "@mui/styled-engine-sc": "^6.4.6",
+    "@mui/x-data-grid": "^7.27.2",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "framer-motion": "^12.4.10",
