@@ -119,7 +119,7 @@ class Runner:
             )
 
     def _perform_current_step(self, params=None):
-        self.run.current_step.calculate(self.run.steps, params)
+        self.run.current_step.calculate(self.run.steps)
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):

@@ -382,8 +382,10 @@ def calculate_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
+        user_input = data.get("data")
 
         run = active_runs[run_name]
+        run.current_form(user_input)
         run.step_calculate()
 
         return JsonResponse({"success": True, "message": "Calculated step"})

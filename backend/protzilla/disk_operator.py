@@ -173,8 +173,7 @@ class DiskOperator:
         """
         # if we are writing the run, chances are the outputs of the current step
         # have recently been (re)calculcated, therefore invalidating the existing file
-        if steps.current_step.instance_identifier in file.name:
-            return False
+        
         return any(
             step.instance_identifier in file.name and step.calculation_status!="incomplete"
             for step in steps.all_steps

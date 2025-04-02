@@ -86,7 +86,7 @@ class Step:
             "calculation_status": self.calculation_status
         }
 
-    def calculate(self, steps: StepManager, inputs: dict) -> bool:
+    def calculate(self, steps: StepManager) -> bool:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
 
@@ -98,11 +98,11 @@ class Step:
         previousStep = steps.all_steps[stepIndex-1]
         
         if (previousStep.calculation_status == "outdated" ):
-            if not previousStep.calculate(steps,inputs):
+            if not previousStep.calculate(steps):
                 return False
 
         if (steps.current_step_index == stepIndex):
-            self.updateInputs(inputs)
+            self.updateInputs(self.form_inputs)
         self.messages.clear()
         
 
