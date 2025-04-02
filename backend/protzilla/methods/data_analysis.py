@@ -459,7 +459,7 @@ class PlotVolcano(DataAnalysisStep):
             )
         )
         if (form["input_dict"].value is None):
-            form["input_dict"].value = form["input_dict"].options[0][0]
+            form["input_dict"].value = form["input_dict"].options[0].label
 
         input_dict_instance_id = form["input_dict"].value
 

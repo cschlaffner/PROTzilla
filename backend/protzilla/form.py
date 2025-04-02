@@ -76,7 +76,7 @@ class MultiSelectField(_baseField):
 
 @dataclass
 class DropdownField(_baseField):
-    options: list[Option] | Enum = field(default_factory=dict)
+    options: list[Option] | Enum = field(default_factory=list)
     type: str = "dropdown"
 
 
