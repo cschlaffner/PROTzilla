@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
 import { css, styled } from "styled-components";
 
-import { Button } from "../button";
+import { SecondaryButton } from "../button";
 import { Text } from "../text";
 import { SwitchOptionProps } from "./switch-option.props";
 import { color, duration, fontSize, fontWeight, opacity } from "../../theme";
 
-const SwitchOptionContainer = styled(Button)<{
+const SwitchOptionContainer = styled(SecondaryButton)<{
   isDisabled?: boolean;
 }>`
   cursor: ${(props) => (props.isDisabled ? "not-allowed" : "pointer")};

@@ -9,7 +9,7 @@ import {
 import React, { useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
-import { getMuiTheme } from "../../theme";
+import { baseTheme, getMuiTheme } from "../../theme";
 
 export const DataTable: React.FC<DataTableProps> = ({
   data,
@@ -33,7 +33,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       return {
         field: key,
         headerName: key,
-        minWidth: 200,
+        minWidth: 180,
         flex: 1,
         type: isNumeric ? "number" : "string",
         align: "left",
@@ -49,6 +49,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     
 
   const theme = useMemo(() => getMuiTheme(), []);
+  const height = parseInt(baseTheme.sizes.tableRow, 10);
 
   return (
     <ThemeProvider theme={theme}>
@@ -68,6 +69,8 @@ export const DataTable: React.FC<DataTableProps> = ({
           width: "100%",
           height: "100%",
         }}
+        rowHeight={height}
+        columnHeaderHeight={height}
       />
     </ThemeProvider>
   );

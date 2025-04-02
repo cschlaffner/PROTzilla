@@ -193,6 +193,7 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    tableRow: "40px",
   },
   spacing: {
     listIndentation: "14px",
@@ -315,8 +316,10 @@ export const getMuiTheme = () => {
   return createTheme({
     typography: {
       fontFamily: baseTheme.fonts.defaultWithFallbacks,
+      fontSize: parseInt(baseTheme.fontSizes.default, 10),
     },
     mixins: {
+      // Header background styling
       MuiDataGrid: { containerBackground: baseTheme.colors.primary },
     },
     components: {
@@ -349,14 +352,15 @@ export const getMuiTheme = () => {
             // Footer styling
             "& .MuiTablePagination-selectLabel": {
               fontFamily: baseTheme.fonts.defaultWithFallbacks,
-              color: baseTheme.colors.text,
+              color: baseTheme.colors.primary,
             },
             "& .MuiTablePagination-displayedRows": {
               fontFamily: baseTheme.fonts.defaultWithFallbacks,
-              color: baseTheme.colors.text,
+              color: baseTheme.colors.primary,
             },
             "& .MuiDataGrid-footerContainer": {
-              backgroundColor: baseTheme.colors.gray,
+              backgroundColor: baseTheme.colors.secondary,
+              minHeight: baseTheme.sizes.tableRow,
             },
           },
         },
