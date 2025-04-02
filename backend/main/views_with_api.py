@@ -388,6 +388,11 @@ def calculate_step(request):
         run.current_form(user_input)
         run.step_calculate()
 
-        return JsonResponse({"success": True, "message": "Calculated step"})
+        calculation_data = {}
+        calculation_data["section"] = run.current_step.section
+        calculation_data["index"] = run.steps.current_step_index_in_section
+        calculation_data["status"] = run.current_step.calculation_status
+
+        return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)

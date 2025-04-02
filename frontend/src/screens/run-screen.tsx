@@ -24,6 +24,7 @@ import { DataTable } from "../components/data-table";
 import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
+import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -82,9 +83,12 @@ export const RunScreen: React.FC = () => {
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData] = useState(mockTableData);
-  const [userInput, setUserInput] = useState<Record<string, InputValueType>>({});
+  const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
+    {},
+  );
+  const { setIcon } = useIconContext();
 
-  const handleStepSelection = (selectedStep: SelectedStep | null) => {
+  const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
@@ -102,7 +106,7 @@ export const RunScreen: React.FC = () => {
 
   const onChangeParameters = (data: Record<string, InputValueType>) => {
     setUserInput(data);
-  }
+  };
 
   const getStepPlots = async () => {
     const response = await callApiWithParameters("get_step_plots/", {
@@ -140,10 +144,15 @@ export const RunScreen: React.FC = () => {
   }, [formData]);
 
   const calculateStep = async () => {
-    await callApiWithParameters("calculate_step/", {
+    const response = await callApiWithParameters("calculate_step/", {
       run_name: runName,
       data: userInput,
     });
+    if (response) {
+      const data = response.data;
+
+      setIcon(data.section + "-" + data.index, data.status);
+    }
   };
 
   const plotComponent = (
@@ -154,9 +163,9 @@ export const RunScreen: React.FC = () => {
 
   const tableComponent = (
     <StyledTableContainer>
-      <DataTable data={tableData}/>
+      <DataTable data={tableData} />
     </StyledTableContainer>
-  )
+  );
 
   const listEditorComponent = (
     <ListEditor
