@@ -1,3 +1,5 @@
+import { GridRowsProp } from "@mui/x-data-grid";
+
 import { FormData } from "../components/forms/form";
 
 export const mockPlotData: Partial<Plotly.Data>[] = [
@@ -22,6 +24,44 @@ export const mockPlotLayout: Partial<Plotly.Layout> = {
     title: { text: "Values" },
   },
 };
+
+export const mockTableData: GridRowsProp = [
+  {
+    "Sample": "AD01_C1_INSOLUBLE_01",
+    "Protein ID": "A0A075B6S2",
+    "Gene": null,
+    "iBAQ": 1297700.0,
+    "id": 0
+  },
+  {
+    "Sample": "AD01_C1_INSOLUBLE_01",
+    "Protein ID": "A0A0A0MRZ8",
+    "Gene": null,
+    "iBAQ": 408600.0,
+    "id": 1
+  },
+  {
+    "Sample": "AD01_C1_INSOLUBLE_01",
+    "Protein ID": "A0A0B4J1X5",
+    "Gene": null,
+    "iBAQ": 911520.0,
+    "id": 2
+  },
+  {
+    "Sample": "AD01_C1_INSOLUBLE_01",
+    "Protein ID": "A0A0B4J1Y9",
+    "Gene": null,
+    "iBAQ": 225580.0,
+    "id": 3
+  },
+  {
+    "Sample": "AD01_C1_INSOLUBLE_01",
+    "Protein ID": "A0A0C4DH68",
+    "Gene": null,
+    "iBAQ": null,
+    "id": 4
+  },
+];
 
 export const mockFormDataParameters: FormData = {
   label: "TESSST Parameters",

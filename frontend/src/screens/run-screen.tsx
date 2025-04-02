@@ -14,15 +14,16 @@ import {
 } from "./../components";
 import {
   dummyTextComponent1,
-  dummyTextComponent2,
   footerMessages,
   mockFormDataParameters,
   mockPlotData,
   mockPlotLayout,
+  mockTableData,
 } from "./mockUpData";
+import { DataTable } from "../components/data-table";
+import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
-import { InputValueType } from "../components/forms/form";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -56,6 +57,12 @@ const StyledPlotContainer = styled.div`
   display: flex;
 `;
 
+const StyledTableContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+`;
+
 const FooterText = styled.div`
   text-align: center;
   padding: ${spacing("small")};
@@ -74,6 +81,7 @@ export const RunScreen: React.FC = () => {
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  const [tableData] = useState(mockTableData);
   const [userInput, setUserInput] = useState<Record<string, InputValueType>>({});
 
   const handleStepSelection = (selectedStep: SelectedStep | null) => {
@@ -144,6 +152,12 @@ export const RunScreen: React.FC = () => {
     </StyledPlotContainer>
   );
 
+  const tableComponent = (
+    <StyledTableContainer>
+      <DataTable data={tableData}/>
+    </StyledTableContainer>
+  )
+
   const listEditorComponent = (
     <ListEditor
       formDataParameters={formData}
@@ -185,7 +199,7 @@ export const RunScreen: React.FC = () => {
               nameComponent1="Plot"
               component1={plotComponent}
               nameComponent2="Table"
-              component2={dummyTextComponent2}
+              component2={tableComponent}
             />
           </StyledCol>
           <FooterText>{randomMessage}</FooterText>
