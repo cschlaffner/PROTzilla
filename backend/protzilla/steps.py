@@ -86,13 +86,13 @@ class Step:
             "calculation_status": self.calculation_status
         }
 
-    def calculate(self, steps: StepManager, inputs: dict) -> None:
+    def calculate(self, steps: StepManager, inputs: dict) -> bool:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
 
         :param steps: The StepManager object that contains all steps
         :param inputs: These inputs will be supplied to the method. Only keys in the input_keys of the method class will actually be supplied to the method
-        :return: None
+        :return: bool: True if the calculation was successful, False otherwise
         """
         stepIndex = steps.all_steps.index(self)
         previousStep = steps.all_steps[stepIndex-1]
