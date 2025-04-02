@@ -63,7 +63,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   setSelectedStep,
   steps,
 }: SidebarSectionProps) => {
-  let hasSelectedStep = selectedStep !== null && selectedStep.section === name;
+  let hasSelectedStep = selectedStep !== null && selectedStep!.section === name;
 
   const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
@@ -99,7 +99,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
     if (hasSelectedStep) {
       if (currentSteps.length === 0) {
         hasSelectedStep = false;
-        setSelectedStep(null);
+        setSelectedStep(undefined);
       } else {
         const newIndex = selectedStep
           ? Math.min(selectedStep.index, currentSteps.length - 1)

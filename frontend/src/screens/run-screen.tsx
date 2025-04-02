@@ -82,9 +82,11 @@ export const RunScreen: React.FC = () => {
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData] = useState(mockTableData);
-  const [userInput, setUserInput] = useState<Record<string, InputValueType>>({});
+  const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
+    {},
+  );
 
-  const handleStepSelection = (selectedStep: SelectedStep | null) => {
+  const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
@@ -102,7 +104,7 @@ export const RunScreen: React.FC = () => {
 
   const onChangeParameters = (data: Record<string, InputValueType>) => {
     setUserInput(data);
-  }
+  };
 
   const getStepPlots = async () => {
     const response = await callApiWithParameters("get_step_plots/", {
@@ -154,9 +156,9 @@ export const RunScreen: React.FC = () => {
 
   const tableComponent = (
     <StyledTableContainer>
-      <DataTable data={tableData}/>
+      <DataTable data={tableData} />
     </StyledTableContainer>
-  )
+  );
 
   const listEditorComponent = (
     <ListEditor

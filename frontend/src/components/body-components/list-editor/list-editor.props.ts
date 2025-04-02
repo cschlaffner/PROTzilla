@@ -5,6 +5,6 @@ export interface ListEditorProps {
   formDataParameters: FormData;
   onChangeParameters: (data: Record<string, InputValueType>) => void;
   runName: string;
-  handleStepSelection: (selectedStep: SelectedStep | null) => void;
+  handleStepSelection: (selectedStep: SelectedStep | undefined) => void;
   onCalculateStep: () => void;
 }
