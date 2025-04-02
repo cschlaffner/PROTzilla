@@ -4,7 +4,7 @@ export interface SelectedStep {
 }
 
 export type SetSelectedStep = React.Dispatch<
-  React.SetStateAction<SelectedStep | null>
+  React.SetStateAction<SelectedStep | undefined>
 >;
 
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
