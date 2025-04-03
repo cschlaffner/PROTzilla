@@ -176,7 +176,8 @@ def add_plot(request):
         run = active_runs[run_name]
         if run.current_step.display_name == "plot":
             del parameters["chosen_method"]
-            run.step_calculate(parameters)
+            run.current_form(parameters)
+            run.step_calculate()
         else:
             run.current_step.plot(parameters)
 

@@ -208,7 +208,7 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_calculate(self, inputs: dict | None = None) -> None:
+    def step_calculate(self) -> None:
         self.steps.current_step.calculate(self.steps)
 
     @error_handling
