@@ -1,3 +1,4 @@
+import { createTheme } from "@mui/material";
 import { action, makeObservable, observable } from "mobx";
 
 export const defaultPalette = {
@@ -22,7 +23,7 @@ export const defaultPalette = {
   primaryDisabled: "#C0C0C2",
 
   secondary: "#E8EDF3",
-  secondaryHover: "#abbdd3",  //hover 18% darker than default color
+  secondaryHover: "#abbdd3", //hover 18% darker than default color
   secondaryActive: "#abbdd3",
   secondaryDisabled: "#F2F2F3",
 
@@ -34,13 +35,12 @@ export const defaultPalette = {
   divider: "#EAEAEB",
 
   red: "#CE5A5A",
-  redHover: "#e29d9d",  //hover 17% lighter than default
+  redHover: "#e29d9d", //hover 17% lighter than default
   redActive: "#e29d9d",
   redDisabled: "#CE5A5A",
 
-  
-  gray: "#E0E0E0",  
-  grayHover: "#b3b3b3", 	//hover 18% darker than default
+  gray: "#E0E0E0",
+  grayHover: "#b3b3b3", //hover 18% darker than default
   grayActive: "#b3b3b3",
   grayDisabled: "#E0E0E0",
 
@@ -200,6 +200,7 @@ export const baseTheme = {
     buttonIconPadding: "10px",
     smallButtonPadding: "6px 10px",
     smallButtonIconPadding: "8px",
+    listButtonPadding: "2px 0 2px 0",
     buttonGap: "8px",
     smallButtonGap: "6px",
 
@@ -207,7 +208,7 @@ export const baseTheme = {
     small: "10px",
     medium: "20px",
     large: "50px",
-    
+
     navbarHeight: "60px",
   },
   zIndices: {
@@ -309,3 +310,57 @@ export const getTheme = (
   );
 
 export type Theme = ReturnType<typeof getTheme>;
+
+export const getMuiTheme = () => {
+  return createTheme({
+    typography: {
+      fontFamily: baseTheme.fonts.defaultWithFallbacks,
+    },
+    mixins: {
+      MuiDataGrid: { containerBackground: baseTheme.colors.primary },
+    },
+    components: {
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            // Icons styling
+            "& .MuiDataGrid-sortIcon": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-menuIconButton": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-filterIcon": {
+              color: baseTheme.colors.background,
+            },
+            // General styling
+            "& .MuiDataGrid-row": {
+              backgroundColor: baseTheme.colors.background,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiSelect-select": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              color: baseTheme.colors.background,
+            },
+            "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+            // Footer styling
+            "& .MuiTablePagination-selectLabel": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiTablePagination-displayedRows": {
+              fontFamily: baseTheme.fonts.defaultWithFallbacks,
+              color: baseTheme.colors.text,
+            },
+            "& .MuiDataGrid-footerContainer": {
+              backgroundColor: baseTheme.colors.gray,
+            },
+          },
+        },
+      },
+    },
+  })
+}

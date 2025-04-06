@@ -5,6 +5,7 @@ from pathlib import Path
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.run import Run
 from backend.protzilla.run_helper import log_messages
+from backend.protzilla.steps import Step
 from backend.protzilla.utilities import random_string
 
 
@@ -81,23 +82,22 @@ class Runner:
             if step.section == "importing":
                 self._insert_commandline_inputs(step)
             self._perform_current_step(step.form_inputs)
-            if self.all_plots and step.section == "data_preprocessing":
-                step.plot()
+
             if step.plots and not step.plots.empty:
                 self._save_plots_html(step)
 
             log_messages(self.run.current_messages)
             self.run.current_messages.clear()
 
-            if not step.finished:
+            if step.calculation_status!="complete":
                 break
 
             self.run.step_next()
         self.run._run_write()
 
-    def _insert_commandline_inputs(self, step):
+    def _insert_commandline_inputs(self, step : Step):
         if step.operation == "Protein Data Import":
-            step.form_inputs["file_path"] = self.ms_data_path
+            step.form["file_path"].value = self.ms_data_path
 
         elif step.operation == "metadataimport":
             if self.meta_data_path is None:
@@ -105,14 +105,14 @@ class Runner:
                     f"meta_data_path (--meta_data_path=<path/to/data) is not specified,"
                     f" but is required for {step.operation} with {step.display_name}"
                 )
-            step.form_inputs["file_path"] = self.meta_data_path
+            step.form["file_path"].value = self.meta_data_path
         elif step.operation == "peptideimport":
             if self.peptides_path is None:
                 raise ValueError(
                     f"peptide_path (--peptide_path=<path/to/data>) is not specified, "
                     f"but is required for {step.operation} with {step.display_name}"
                 )
-            step.form_inputs["file_path"] = self.peptides_path
+            step.form["file_path"].value = self.peptides_path
         else:
             raise ValueError(
                 f"Cannot find step with name {step.operation} with {step.display_name} in importing"

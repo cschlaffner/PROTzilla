@@ -5,7 +5,11 @@ import type { Color } from "../../theme";
 import type { UIStateProps } from "../types";
 
 export type IconType = keyof typeof icons;
-export type DefaultColoredIconType = "complete"|"incomplete"|"failed"|"outdated";
+export type DefaultColoredIconType =
+  | "complete"
+  | "incomplete"
+  | "failed"
+  | "outdated";
 
 export interface IconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
   icon: IconType;
@@ -15,11 +19,13 @@ export interface IconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
   isSmall?: boolean;
 }
 
-export interface DefaultColoredIconProps extends React.SVGProps<SVGSVGElement>, UIStateProps {
+export interface DefaultColoredIconProps
+  extends React.SVGProps<SVGSVGElement>,
+    UIStateProps {
   icon: DefaultColoredIconType;
   isSmall?: boolean;
 }
 
 export interface IconButtonProps extends IconProps {
-  hoverColor?: Color
+  hoverColor?: Color;
 }
