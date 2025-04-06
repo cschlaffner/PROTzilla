@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { Text } from "../../text";
+import { ScreenNotificationProps } from "./screen-notification.props";
 import {
   color,
   fontSize,
@@ -10,10 +10,10 @@ import {
   spacing,
   zIndex,
 } from "../../../theme";
+import { FlexColumn, FlexRow } from "../../box";
 import { InvisibleButton } from "../../button";
 import { iconColor } from "../../icon/icon";
-import { NotificationProps } from "./notification.props";
-import { FlexColumn, FlexRow } from "../../box";
+import { Text } from "../../text";
 
 const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   background-color: ${({ type }) =>
@@ -67,14 +67,14 @@ const CloseIcon = styled(InvisibleButton)`
   }
 `;
 
-export const Notification: React.FC<NotificationProps> = ({
+export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   title,
   message,
   type = "error",
   isShown: propIsShown = false,
   closeAfterMs = -1,
   onClose,
-  ...rest
+  ...props
 }) => {
   const [isShown, setIsShown] = useState(propIsShown);
 
@@ -85,7 +85,7 @@ export const Notification: React.FC<NotificationProps> = ({
         onClose?.();
       }, closeAfterMs);
 
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(timer); };
     }
   }, [isShown, closeAfterMs, onClose]);
 
@@ -95,7 +95,7 @@ export const Notification: React.FC<NotificationProps> = ({
   };
 
   return (
-    <Container isShown={isShown} type={type} {...rest}>
+    <Container isShown={isShown} type={type} {...props}>
       <TextContainer>
         {title && <TitleText text={title} />}
         {message && <DescriptionText text={message} />}
