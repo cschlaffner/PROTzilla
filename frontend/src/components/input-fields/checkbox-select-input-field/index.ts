@@ -1,2 +1,2 @@
-export * from "./chechbox-select-input-field";
+export * from "./checkbox-select-input-field.tsx";
 export * from "./checkbox-select-input-field.props";
