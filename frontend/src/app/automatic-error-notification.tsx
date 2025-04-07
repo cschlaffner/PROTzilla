@@ -18,13 +18,13 @@ export const AutomaticErrorNotification = observer(() => {
   if (store.error) {
     cachedError.current = store.error;
   }
-/*   const dismissError = useCallback(() => {
+  /*   const dismissError = useCallback(() => {
     store.setError();
   }, [store]); */
 
   return (
     <Container>
-{/*       <ErrorNotification
+      {/*       <ErrorNotification
         isShown={Boolean(store.error)}
         {...(cachedError.current ?? {})}
         onClose={dismissError}

@@ -27,19 +27,19 @@ function App() {
     <ThemeProvider theme={theme}>
       <StoreProvider value={rootStoreRef.current}>
         <NotificationCenter>
-        <GlobalStyles theme={theme} />
-        {isReady && (
-          <Suspense fallback={null}>
-            <ModalRoot />
-            <Routes>
-              <Route path="/" element={<MainScreen />}>
-                <Route path="/" element={<IndexScreen />} />
-                <Route path="/counters" element={<CountersScreen />} />
-              </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        )}
+          <GlobalStyles theme={theme} />
+          {isReady && (
+            <Suspense fallback={null}>
+              <ModalRoot />
+              <Routes>
+                <Route path="/" element={<MainScreen />}>
+                  <Route path="/" element={<IndexScreen />} />
+                  <Route path="/counters" element={<CountersScreen />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          )}
         </NotificationCenter>
       </StoreProvider>
     </ThemeProvider>

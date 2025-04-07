@@ -1,8 +1,9 @@
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+
 import { useStore } from "../app/store";
 import { useNotification } from "../components";
-import { useTranslation } from "react-i18next";
 
 export const AutomaticErrorNotification = observer(() => {
   const store = useStore();
@@ -19,7 +20,9 @@ export const AutomaticErrorNotification = observer(() => {
   useEffect(() => {
     const error = store.error;
 
-    const currentKey = error?.descriptionTx ?? String(error?.description ?? "");
+    const currentKey =
+      error?.descriptionTx ??
+      (typeof error?.description === "string" ? error.description : "");
 
     if (error && currentKey !== cachedKey.current) {
       cachedKey.current = currentKey;

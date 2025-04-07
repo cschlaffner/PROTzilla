@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
 
-import { Button, Card, Dropdown, TextField, useNotification } from "../components";
+import {
+  Button,
+  Card,
+  Dropdown,
+  TextField,
+  useNotification,
+} from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
 import { callApi, callApiWithParameters } from "../utils";
@@ -28,6 +34,10 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
+  const onCreateClick = () => {
+    void handleCreateRun();
+  };
+
   const handleCreateRun = async () => {
     if (runs.some((run: { value: string }) => run.value === newRunName)) {
       alert("A run with this name already exists!");
@@ -48,7 +58,6 @@ export const IndexScreen: React.FC = () => {
       message: `Congratulations! New Run "${newRunName}" created!`,
       closeAfterMs: 5000,
     });
-
   };
 
   const handleContinueRun = () => {
@@ -117,10 +126,7 @@ export const IndexScreen: React.FC = () => {
                 }}
                 className="mb-3"
               />
-              <Button
-                className="btn btn-primary w-100"
-                onClick={handleCreateRun}
-              >
+              <Button className="btn btn-primary w-100" onClick={onCreateClick}>
                 Create
               </Button>
             </Card>

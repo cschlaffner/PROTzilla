@@ -26,7 +26,7 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
           : color("gray50")};
   padding: ${spacing("small")};
   border-radius: ${radius("default")};
-  width: 200px;
+  width: 100%;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
@@ -85,7 +85,9 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
         onClose?.();
       }, closeAfterMs);
 
-      return () => { clearTimeout(timer); };
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isShown, closeAfterMs, onClose]);
 
