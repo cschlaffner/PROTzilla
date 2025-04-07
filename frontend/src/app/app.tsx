@@ -7,6 +7,7 @@ import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
 import { CountersScreen, IndexScreen } from "../screens";
+import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -31,6 +32,7 @@ function App() {
           {isReady && (
             <Suspense fallback={null}>
               <ModalRoot />
+              <AutomaticErrorNotification />
               <Routes>
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
