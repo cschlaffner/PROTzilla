@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
 
-import { Button, Card, Dropdown, TextField } from "../components";
+import { Button, Card, Dropdown, TextField, useNotification } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
 import { callApi, callApiWithParameters } from "../utils";
@@ -15,6 +15,7 @@ export const IndexScreen: React.FC = () => {
     { value: "run", label: "run" },
   ]);
   const [title, setTitle] = useState("Loading...");
+  const notify = useNotification();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,7 +28,7 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, []);
 
-  const handleCreateRun = () => {
+  const handleCreateRun = async () => {
     if (runs.some((run: { value: string }) => run.value === newRunName)) {
       alert("A run with this name already exists!");
       return;
@@ -35,11 +36,19 @@ export const IndexScreen: React.FC = () => {
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
     console.log(runs);
-    void callApiWithParameters("add_run/", {
+    const data = await callApiWithParameters("add_run/", {
       run_name: newRunName,
       workflow_name: "standard",
       df_mode_name: "disk_memory",
     });
+    console.log(data.message);
+    notify({
+      type: data.success ? "success" : "error",
+      title: data.message,
+      message: `Congratulations! New Run "${newRunName}" created!`,
+      closeAfterMs: 5000,
+    });
+
   };
 
   const handleContinueRun = () => {

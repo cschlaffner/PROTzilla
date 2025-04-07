@@ -1,9 +1,9 @@
 import { observer } from "mobx-react-lite";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { styled } from "styled-components";
 
 import { useStore } from "../app/store";
-import { ErrorNotification, I18nMessage } from "../components";
+import { I18nMessage } from "../components";
 
 const Container = styled.div`
   position: absolute;
@@ -18,17 +18,17 @@ export const AutomaticErrorNotification = observer(() => {
   if (store.error) {
     cachedError.current = store.error;
   }
-  const dismissError = useCallback(() => {
+/*   const dismissError = useCallback(() => {
     store.setError();
-  }, [store]);
+  }, [store]); */
 
   return (
     <Container>
-      <ErrorNotification
+{/*       <ErrorNotification
         isShown={Boolean(store.error)}
         {...(cachedError.current ?? {})}
         onClose={dismissError}
-      />
+      /> */}
     </Container>
   );
 });
