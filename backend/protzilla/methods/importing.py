@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityNameType.MAXLFQ_INTENSITY,
+                    value = IntensityType.IBAQ,
                     options = IntensityType
                 ),
                 CheckboxField(

@@ -2,7 +2,10 @@ from __future__ import annotations
 from enum import Enum
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
+from pathlib import Path
 from typing import Any, List, Dict, Union, TYPE_CHECKING
+
+from backend.main import settings
 
 # to avoid circular imports
 if TYPE_CHECKING:
@@ -151,10 +154,19 @@ class Form:
 
     @property
     def values(self) -> Dict[str, str]:
+        """
+        Returns a dictionary with the values of the form fields.
+        The keys are the field names and the values are the field values.
+        if the field is a file input, the value is the temporary path to the file.
+        """
+
         values = {}
         for field in self.input_fields:
             if isinstance(field, FormDivider):
                 continue
+            elif isinstance(field, FileInput):
+                values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None
+                print("Path", (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None)
             elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:

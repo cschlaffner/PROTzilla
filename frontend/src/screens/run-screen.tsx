@@ -90,6 +90,7 @@ export const RunScreen: React.FC = () => {
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
+      setUserInput({});
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
         section: selectedStep.section,

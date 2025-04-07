@@ -246,6 +246,10 @@ class Run:
 
     
     @auto_save
+    def step_upload_file(self, inputname: str, file) -> None:
+        self.steps.current_step.upload_file(inputname, file)
+
+    @auto_save
     def current_form(self, new_form_values = {}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
         self.steps.current_step.form.apply_modification(self)

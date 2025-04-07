@@ -2,7 +2,7 @@ import type { UIStateProps } from "../../types";
 import { InputContainerProps } from "../input-container";
 
 export interface FileInputFieldProps extends InputContainerProps, UIStateProps {
-  value?: File | null;
+  value?: string | null; // The filename
   placeholder?: string;
-  onChange: (value: File | null) => void;
+  onChange: (value: string) => void;
 }

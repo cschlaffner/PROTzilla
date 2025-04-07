@@ -16,6 +16,7 @@ import plotly.io as pio
 import plotly.graph_objects as go
 from PIL import Image
 
+from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -120,6 +121,11 @@ class Step:
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
+            
+            # delete tempfiles
+            for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
+                if file.is_file():
+                    file.unlink()
 
         except NotImplementedError as e:
             self.messages.append(

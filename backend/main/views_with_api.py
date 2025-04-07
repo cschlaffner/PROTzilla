@@ -13,6 +13,7 @@ import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
+from backend.main.upload_handler import CustomFileUploadHandler
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
@@ -393,7 +394,14 @@ def calculate_step(request):
         calculation_data["section"] = run.current_step.section
         calculation_data["index"] = run.steps.current_step_index_in_section
         calculation_data["status"] = run.current_step.calculation_status
+        calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
 
         return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def upload_file(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        return JsonResponse({"success": True, "message": "File uploaded successfully!"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method or no file provided"}, status=400)
