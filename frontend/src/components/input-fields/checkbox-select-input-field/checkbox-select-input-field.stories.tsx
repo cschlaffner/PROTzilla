@@ -1,6 +1,6 @@
 import { Meta, StoryFn } from "@storybook/react";
 
-import { CheckboxSelectInputField } from "./chechbox-select-input-field";
+import { CheckboxSelectInputField } from "./checkbox-select-input-field.tsx";
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props";
 
 export default {

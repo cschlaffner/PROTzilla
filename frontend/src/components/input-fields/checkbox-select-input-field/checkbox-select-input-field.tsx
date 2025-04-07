@@ -5,7 +5,7 @@ import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.pro
 import { spacing } from "../../../theme";
 import { InputContainer } from "../frame-input-field";
 
-const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
+export const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
   cursor: default;
   display: inline-flex;
   flex-direction: column;
@@ -19,7 +19,7 @@ const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
-const StyledLabel = styled.label`
+export const StyledLabel = styled.label`
   align-items: center;
   cursor: pointer;
   display: inline-flex;
