@@ -1,6 +1,7 @@
+import { useState } from "react";
+
 import { InputContainer } from "../frame-input-field";
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
-import { useState } from "react";
 import {
   StyledCheckboxContainer,
   StyledLabel,
@@ -9,6 +10,7 @@ import {
 export const SingleCheckboxInputField: React.FC<
   SingleCheckboxInputFieldProps
 > = ({ value: initialValue, text, onChange, isShy, ...props }) => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   const [value, setValue] = useState<boolean>(() => {
     onChange(initialValue);
     return initialValue;

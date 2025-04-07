@@ -1,5 +1,5 @@
-import { SingleCheckboxInputField } from "./single-checkbox-input-field.tsx";
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
+import { SingleCheckboxInputField } from "./single-checkbox-input-field.tsx";
 
 export default {
   component: "SingleCheckboxInputField",
