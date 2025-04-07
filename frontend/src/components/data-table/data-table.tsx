@@ -26,27 +26,26 @@ export const DataTable: React.FC<DataTableProps> = ({
       id: false,
     });
 
-    const columns = Object.keys(data[0]).map((key) => {
-      const isNumeric = data.every(
-        (row) => typeof row[key] === "number" || row[key] === null,
-      );
-      return {
-        field: key,
-        headerName: key,
-        minWidth: 200,
-        flex: 1,
-        type: isNumeric ? "number" : "string",
-        align: "left",
-        headerAlign: "left",
-        valueFormatter: (value: number | null) => {
-          if (value == null) {
-            return 'NaN';
-          }
-          return value;
-        },
-      } as GridColDef;
-    });
-    
+  const columns = Object.keys(data[0]).map((key) => {
+    const isNumeric = data.every(
+      (row) => typeof row[key] === "number" || row[key] === null,
+    );
+    return {
+      field: key,
+      headerName: key,
+      minWidth: 200,
+      flex: 1,
+      type: isNumeric ? "number" : "string",
+      align: "left",
+      headerAlign: "left",
+      valueFormatter: (value: number | null) => {
+        if (value == null) {
+          return "NaN";
+        }
+        return value;
+      },
+    } as GridColDef;
+  });
 
   const theme = useMemo(() => getMuiTheme(), []);
 
