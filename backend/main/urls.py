@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 
-from . import views
+from . import views, views_database
 from . import views_with_api
 
 urlpatterns = [
@@ -48,9 +48,8 @@ urlpatterns = [
 
     path("api/settings/", include("settings.urls")),
 
-    #old routes, not yet implemented as api endpints, see notion card 
-    path("databases", views.databases, name="databases"),
-    path("databases/upload", views.database_upload, name="database_upload"),
-    path("databases/delete", views.database_delete, name="database_delete"),
+    path("api/databases", views_database.get_databases, name="get_databases"),
+    # path("databases/upload", views.database_upload, name="database_upload"),
+    # path("databases/delete", views.database_delete, name="database_delete"),
     path("admin/", admin.site.urls),
 ]

@@ -4,7 +4,7 @@ import { spacing } from "../../theme";
 import { ToggleableButton } from "../button";
 import { SettingsProps } from "./settings.props.ts";
 import { useState } from "react";
-import { SectionTitle } from "../section-title";
+import { DatabaseSettings } from "./specific-settings/database-settings/database-settings.tsx";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -40,7 +40,7 @@ const SectionButton = styled(ToggleableButton)`
 
 const SpecificSettings = styled.div`
   height: 80vh;
-  width: 60vh;
+  width: 70vh;
   overflow: hidden;
   overflow-y: auto;
 `;
@@ -48,7 +48,7 @@ const SpecificSettings = styled.div`
 //const settingsSections = ["plot", "database"];
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-  const [selectedSetting, setSelectedSetting] = useState("General");
+  const [selectedSetting, setSelectedSetting] = useState("plot");
 
   return (
     <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
@@ -81,17 +81,12 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             />
           </SectionSelection>
           <SpecificSettings>
-            <SectionTitle baseComponent={"h2"} title={"Settings"} />
             {selectedSetting === "plot" && (
               <div>
                 <p>Plot settings content goes here.</p>
               </div>
             )}
-            {selectedSetting === "database" && (
-              <div>
-                <p>Database upload settings content goes here.</p>
-              </div>
-            )}
+            {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && (
               <div>
                 <p>Github settings content goes here.</p>
