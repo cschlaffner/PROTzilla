@@ -362,5 +362,5 @@ export const getMuiTheme = () => {
         },
       },
     },
-  })
-}
+  });
+};
