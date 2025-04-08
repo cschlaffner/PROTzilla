@@ -6,7 +6,9 @@ import { SecondaryButton } from "../../../button";
 import { styled } from "styled-components";
 import { spacing } from "../../../../theme";
 import { useEffect, useState } from "react";
-import { callApi } from "../../../../utils";
+import { callApi, callApiWithParameters } from "../../../../utils";
+import { SingleCheckboxInputField } from "../../../input-fields/single-checkbox/single-checkbox-input-field.tsx";
+import { InputValueType } from "../../../forms/form";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -34,6 +36,7 @@ interface DatabaseEntryProps {
   filesize: number;
   cols: string[];
   name: string;
+  handleDelete?: () => void;
 }
 
 const DatabaseEntryContainer = styled.div`
@@ -65,6 +68,7 @@ const DatabaseEntry = ({
   filesize,
   cols,
   name,
+  handleDelete,
 }: DatabaseEntryProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,26 +113,57 @@ const DatabaseEntry = ({
           <Text text={cols.join(", ")} />
         </ColumnContainer>
       </DatabaseEntryInfo>
-      <SecondaryButton text={"Delete"} isCautious={true} onPress={() => {}} />
+      <SecondaryButton
+        text={"Delete"}
+        isCautious={true}
+        onPress={handleDelete}
+      />
     </DatabaseEntryContainer>
   );
 };
 
 export const DatabaseSettings = ({}) => {
   const [databaseList, setDatabaseList] = useState<DatabaseEntryProps[]>([]);
+  const [verificationCheckbox, setVerificationCheckbox] = useState(false);
+  const [databaseName, setDatabaseName] = useState<string>("");
+  const [, setDatabaseFile] = useState<File | null>(null);
 
   const fetchDatabases = async () => {
     const databases = await callApi("databases");
     if (databases) {
       setDatabaseList(databases);
-    } else {
-      console.error("Failed to fetch databases");
     }
   };
 
   useEffect(() => {
     void fetchDatabases();
   }, []);
+
+  const handleNameChange = (value: InputValueType) => {
+    setDatabaseName(value as string);
+  };
+
+  const handleFileChange = (value: File | null) => {
+    setDatabaseFile(value);
+  };
+
+  const handleCheckboxChange = (value: boolean) => {
+    setVerificationCheckbox(value);
+  };
+
+  const handleAddDatabase = async () => {
+    await callApiWithParameters("upload_database", {
+      name: databaseName,
+      just_copy: verificationCheckbox ? "True" : "False",
+    });
+  };
+
+  const handleDeleteDatabase = async (name: string) => {
+    await callApiWithParameters("delete_database", {
+      name: name,
+    });
+    void fetchDatabases();
+  };
 
   return (
     <div>
@@ -146,21 +181,22 @@ export const DatabaseSettings = ({}) => {
       />
       <SettingsDiv>
         <TextInputField
-          onChange={() => {}}
+          onChange={handleNameChange}
           label={"Name for new database (required):"}
         />
         <FileInputField
-          onChange={() => {}}
+          onChange={handleFileChange}
           label={"Database file (required):"}
         />
-        <Text
-          text={
-            "TODO CLICK FIELD Copy file without verification and protein count"
-          }
+        <SingleCheckboxInputField
+          value={verificationCheckbox}
+          text={"Copy file without verification and protein count"}
+          onChange={handleCheckboxChange}
+          label={"Verification"}
         />
         <SecondaryButton
           text={"Add database"}
-          onPress={() => {}}
+          onPress={handleAddDatabase}
           style={{ width: "30%" }}
         />
       </SettingsDiv>
@@ -177,6 +213,7 @@ export const DatabaseSettings = ({}) => {
             filesize={db.filesize}
             cols={db.cols}
             name={db.name}
+            handleDelete={() => handleDeleteDatabase(db.name)}
           />
         ))}
         <DatabaseEntry
