@@ -1,8 +1,13 @@
+import { useState } from "react";
+import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import { spacing } from "../../../theme";
+import { color, fontSize, fontWeight, spacing } from "../../../theme";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
+import { NumberInputField } from "../../input-fields/number-input-field";
+import { TextInputField } from "../../input-fields/text-input-field";
 import { SectionTitle } from "../../section-title";
+import { Text } from "../../text";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -10,10 +15,46 @@ const SettingsDiv = styled.div`
   gap: ${spacing("verySmall")};
 `;
 
+export const Label = styled(Text)`
+  font-size: ${fontSize("default")};
+  font-weight: ${fontWeight("bold")};
+  color: ${color("primary")};
+  margin: 4px 0;
+`;
+
 export const PlotSettings = () => {
+    const [selectedFont, setSelectedFont] = useState<string>("Arial");
+
     function handleFileFormatChange(value: string): void {
         console.log(value);
     }
+    function handleWidthChange(value: number): void {
+        console.log(value);
+    }
+    function handleHeightChange(value: number): void {
+        console.log(value);
+    }
+    function handleHeadingSizeChange(value: number): void {
+        console.log(value);
+    }
+    function handleTextSizeChange(value: number): void {
+        console.log(value);
+    }
+    const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedFont(event.target.value);
+    };
+    const handleCustomFontChange = (value: string) => {
+        console.log(value);
+    };
+    
+    const fonts = [
+        "Arial",
+        "Courier New",
+        "Helvetica",
+        "Sans Serif",
+        "Times New Roman"
+    ];
+    const isCustomSelected = !fonts.includes(selectedFont);
 
     return (
         <div>
@@ -46,7 +87,107 @@ export const PlotSettings = () => {
                     onChange={handleFileFormatChange}
                     label={"File format"}
                 />
-                
+                <Row
+                    justify="between"
+                    align="center"
+                >
+                    <Col>
+                        <NumberInputField
+                            label={"Width"}
+                            min={10}
+                            max={300}
+                            step={1}
+                            separateSuffix={"mm"}
+                            isInteger={true}
+                            onChange={handleWidthChange}
+                        />
+                    </Col>
+                    <Col>
+                        <NumberInputField
+                            label={"Height"}
+                            min={10}
+                            max={300}
+                            step={1}
+                            separateSuffix={"mm"}
+                            isInteger={true}
+                            onChange={handleHeightChange}
+                        />
+                    </Col>
+                </Row>
+                <SectionTitle
+                    baseComponent={"h5"}
+                    title={"Text"}
+                    style={{ paddingTop: "4px", paddingBottom: "4px"}}
+                />
+                <div>
+                    <Label
+                        text={"Font"} 
+                    />
+                    <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                        {fonts.map((font) => {
+                        const formattedId = `radio${font.replace(/\s/g, "")}`;
+                        return (
+                            <div key={font} style={{ display: "flex", alignItems: "center" }}>
+                            <input
+                                type="radio"
+                                id={formattedId}
+                                name="fontGroup"
+                                value={font}
+                                checked={selectedFont === font}
+                                onChange={handleFontChange}
+                            />
+                            <label htmlFor={formattedId}>{font}</label>
+                            </div>
+                        );
+                        })}
+                    </div>
+                    <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                        <div>
+                            <input
+                                type="radio"
+                                id={"radioCustomFont"}
+                                name="fontGroup"
+                                value="Eine eigene Schriftart"
+                                checked={isCustomSelected}
+                                onChange={handleFontChange}
+                            />
+                            <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
+                        </div>
+                        <div style={{ flexGrow: 1 }}>
+                            <TextInputField
+                                placeholder="Custom font name"
+                                onChange={handleCustomFontChange}
+                            />
+                        </div>
+                    </div >
+                </div>
+                <Row
+                    justify="between"
+                    align="center"
+                >
+                    <Col>
+                        <NumberInputField
+                            label={"Heading size"}
+                            min={1}
+                            max={100}
+                            step={1}
+                            separateSuffix={"pt"}
+                            isInteger={true}
+                            onChange={handleHeadingSizeChange}
+                        />
+                    </Col>
+                    <Col>
+                        <NumberInputField
+                            label={"Text size"}
+                            min={10}
+                            max={300}
+                            step={1}
+                            separateSuffix={"pt"}
+                            isInteger={true}
+                            onChange={handleTextSizeChange}
+                        />
+                    </Col>
+                </Row>
             </SettingsDiv>
         </div>
     )
