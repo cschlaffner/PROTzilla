@@ -15,6 +15,7 @@ export { default as data_preprocessing } from "./data_preprocessing.svg?react";
 export { default as edit } from "./edit-icon.svg?react";
 export { default as eye } from "./eye.svg?react";
 export { default as failed } from "./failed.svg?react";
+export { default as github } from "./github.svg?react";
 export { default as help } from "./help.svg?react";
 export { default as home } from "./home.svg?react";
 export { default as importing } from "./importing.svg?react";

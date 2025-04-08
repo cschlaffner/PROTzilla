@@ -6,6 +6,7 @@ import { ToggleableButton } from "../button";
 import { Modal } from "../modal";
 import { SettingsProps } from "./settings.props.ts";
 import { DatabaseSettings } from "./specific-settings/database-settings.tsx";
+import { Github } from "./specific-settings/github.tsx";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -41,7 +42,7 @@ const SectionButton = styled(ToggleableButton)`
 
 const SpecificSettings = styled.div`
   height: 80vh;
-  width: 70vh;
+  width: 100vh;
   overflow: hidden;
   overflow-y: auto;
 `;
@@ -49,13 +50,21 @@ const SpecificSettings = styled.div`
 //const settingsSections = ["plot", "database"];
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-  const [selectedSetting, setSelectedSetting] = useState("plot");
+  const [selectedSetting, setSelectedSetting] = useState("github");
 
   return (
     <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
       <BorderDiv>
         <MakeRowDiv>
           <SectionSelection>
+            <SectionButton
+              id={"github"}
+              isActive={selectedSetting === "github"}
+              text={"About us"}
+              onPress={() => {
+                setSelectedSetting("github");
+              }}
+            />
             <SectionButton
               id={"plot"}
               isActive={selectedSetting === "plot"}
@@ -72,14 +81,6 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 setSelectedSetting("database");
               }}
             />
-            <SectionButton
-              id={"github"}
-              isActive={selectedSetting === "github"}
-              text={"Github"}
-              onPress={() => {
-                setSelectedSetting("github");
-              }}
-            />
           </SectionSelection>
           <SpecificSettings>
             {selectedSetting === "plot" && (
@@ -88,11 +89,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               </div>
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
-            {selectedSetting === "github" && (
-              <div>
-                <p>Github settings content goes here.</p>
-              </div>
-            )}
+            {selectedSetting === "github" && <Github />}
           </SpecificSettings>
         </MakeRowDiv>
       </BorderDiv>

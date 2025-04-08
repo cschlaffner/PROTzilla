@@ -183,6 +183,8 @@ export const baseTheme = {
   sizes: {
     icon: "20px",
     smallIcon: "12px",
+    logoIconWidth: "300px",
+    logoIconHeight: "150px",
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
