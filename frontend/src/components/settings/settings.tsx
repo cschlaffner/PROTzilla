@@ -50,21 +50,13 @@ const SpecificSettings = styled.div`
 //const settingsSections = ["plot", "database"];
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-  const [selectedSetting, setSelectedSetting] = useState("github");
+  const [selectedSetting, setSelectedSetting] = useState("plot");
 
   return (
     <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
       <BorderDiv>
         <MakeRowDiv>
           <SectionSelection>
-            <SectionButton
-              id={"github"}
-              isActive={selectedSetting === "github"}
-              text={"About us"}
-              onPress={() => {
-                setSelectedSetting("github");
-              }}
-            />
             <SectionButton
               id={"plot"}
               isActive={selectedSetting === "plot"}
@@ -79,6 +71,14 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               text={"Database Upload"}
               onPress={() => {
                 setSelectedSetting("database");
+              }}
+            />
+            <SectionButton
+              id={"github"}
+              isActive={selectedSetting === "github"}
+              text={"About us"}
+              onPress={() => {
+                setSelectedSetting("github");
               }}
             />
           </SectionSelection>
