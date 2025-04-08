@@ -1,4 +1,4 @@
-import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-select-input-field";
+import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
 import { DropdownInputFieldProps } from "../../input-fields/dropdown-input-field";
 import { FileInputFieldProps } from "../../input-fields/file-input-field";
 import { MultiSelectInputFieldProps } from "../../input-fields/multi-select-input-field";
