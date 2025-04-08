@@ -60,6 +60,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             <SectionButton
               id={"plot"}
               isActive={selectedSetting === "plot"}
+              icon={"data_analysis"}
               text={"Plot Settings"}
               onPress={() => {
                 setSelectedSetting("plot");
@@ -68,6 +69,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             <SectionButton
               id={"database"}
               isActive={selectedSetting === "database"}
+              icon={"database"}
               text={"Database Upload"}
               onPress={() => {
                 setSelectedSetting("database");
@@ -76,7 +78,8 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             <SectionButton
               id={"github"}
               isActive={selectedSetting === "github"}
-              text={"About us"}
+              text={"About Us"}
+              icon={"info"}
               onPress={() => {
                 setSelectedSetting("github");
               }}
