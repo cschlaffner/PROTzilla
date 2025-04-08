@@ -5,7 +5,7 @@ import { spacing } from "../../theme";
 import { ToggleableButton } from "../button";
 import { Modal } from "../modal";
 import { SettingsProps } from "./settings.props.ts";
-import { DatabaseSettings } from "./specific-settings/database-settings/database-settings.tsx";
+import { DatabaseSettings } from "./specific-settings/database-settings.tsx";
 
 const WideModal = styled(Modal)`
   width: fit-content;
