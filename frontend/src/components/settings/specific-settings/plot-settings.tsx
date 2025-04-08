@@ -2,7 +2,6 @@ import { Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
-import { Dict } from "styled-components/dist/types";
 
 import { color, fontSize, fontWeight, spacing } from "../../../theme";
 import { SecondaryButton } from "../../button";
@@ -134,9 +133,8 @@ export const PlotSettings = () => {
   const handleTextSizeChange = (value: number) => {
     setTextSize(value);
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSaving = (value: Dict) => {
-    console.log("Need to apply the settings to the Plotly template.");
+  const handleSaving = () => {
+    console.log("Saving is not implemented yet.");
   };
 
   const fonts = [
