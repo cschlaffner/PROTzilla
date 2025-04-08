@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from backend.main import settings
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 
@@ -39,22 +40,23 @@ def database_upload(request):
     if request.method == "POST":
         data = json.loads(request.body)
         name = data.get("name")
+        file_name = data.get("file")
+        path = settings.FILE_UPLOAD_TEMP_DIR / file_name
 
         if database_path(name).exists():
             msg = "Filename already taken."
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
             return JsonResponse({"success": False, "message": msg}, status=400)
 
-        path = dict(request.FILES)["new_file"][0].temporary_file_path()
         if not (EXTERNAL_DATA_PATH / "uniprot").exists():
             (EXTERNAL_DATA_PATH / "uniprot").mkdir(parents=True)
 
-        just_copy = data.get("just_copy", False)
-        if just_copy:
+        just_copy_string = data.get("just_copy", False)
+        if just_copy_string == "True":
             shutil.copy(path, database_path(name))
             num_proteins = 0
         else:
-            if not path.endswith(".tsv"):
+            if path.suffix != ".tsv":
                 msg = "File must be a tab-separated file with the extension .tsv"
                 messages.add_message(request, messages.ERROR, msg, "alert-danger")
                 return JsonResponse({"success": False, "message": msg}, status=400)

@@ -11,6 +11,7 @@ import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
+from backend.main.upload_handler import CustomFileUploadHandler
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
@@ -369,3 +370,8 @@ def get_step_table(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+def upload_file(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        return JsonResponse({"success": True, "message": "File uploaded successfully!"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method or no file provided"}, status=400)

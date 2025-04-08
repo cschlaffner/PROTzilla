@@ -1,3 +1,4 @@
+import { SettingsProps } from "./settings.props.ts";
 import { Settings } from "./settings.tsx";
 
 export default {
@@ -6,8 +7,12 @@ export default {
   argTypes: {},
 };
 
-export const standard = (args: any): React.ReactNode => <Settings {...args} />;
+export const standard = (args: SettingsProps): React.ReactNode => (
+  <Settings {...args} />
+);
 standard.args = {
   isOpen: true,
-  onClose: () => {},
+  onClose: () => {
+    console.log("Settings closed");
+  },
 };

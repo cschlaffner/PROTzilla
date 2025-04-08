@@ -1,12 +1,15 @@
+/* eslint-disable */
+// disable linter to avoid conflicts (file taken from run-screen)
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { size, spacing } from "../../../theme";
-import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
+import { API_ROOT } from "../../../constants.ts";
 import { useFilePicker } from "../../../hooks";
+import { size, spacing } from "../../../theme";
 import { SecondaryButton } from "../../button";
-import axios from "axios";
+import { InputContainer } from "../frame-input-field";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -38,7 +41,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     if (file) {
       const fileName = file.name;
       value = fileName;
-      handleUpload();
+      void handleUpload();
       onChange(fileName);
     }
   }, [file]);
@@ -59,13 +62,13 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     setIsUploading(true);
 
     try {
-      await axios.post("/api/upload_file/", formData, {
+      await axios.post(API_ROOT + "upload_file/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1),
+            (progressEvent.loaded * 100) / (progressEvent.total ?? 1),
           );
           setUploadProgress(percent);
         },

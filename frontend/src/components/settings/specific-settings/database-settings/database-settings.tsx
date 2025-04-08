@@ -1,19 +1,20 @@
+import { useEffect, useState } from "react";
+import { styled } from "styled-components";
+
+import { spacing } from "../../../../theme";
+import { callApi, callApiWithParameters } from "../../../../utils";
+import { SecondaryButton } from "../../../button";
+import { InputValueType } from "../../../forms/form";
+import { FileInputField } from "../../../input-fields/file-input-field";
+import { SingleCheckboxInputField } from "../../../input-fields/single-checkbox/single-checkbox-input-field.tsx";
+import { TextInputField } from "../../../input-fields/text-input-field";
 import { SectionTitle } from "../../../section-title";
 import { Text } from "../../../text";
-import { TextInputField } from "../../../input-fields/text-input-field";
-import { FileInputField } from "../../../input-fields/file-input-field";
-import { SecondaryButton } from "../../../button";
-import { styled } from "styled-components";
-import { spacing } from "../../../../theme";
-import { useEffect, useState } from "react";
-import { callApi, callApiWithParameters } from "../../../../utils";
-import { SingleCheckboxInputField } from "../../../input-fields/single-checkbox/single-checkbox-input-field.tsx";
-import { InputValueType } from "../../../forms/form";
 
 const SettingsDiv = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: ${spacing("verySmall")};
 `;
 
 const DatabasesTitle = styled(SectionTitle)`
@@ -24,10 +25,7 @@ const DatabasesTitle = styled(SectionTitle)`
 const DatabaseList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  overflow: hidden;
-  overflow-y: auto;
-  max-height: 28vh;
+  gap: ${spacing("verySmall")};
 `;
 
 interface DatabaseEntryProps {
@@ -44,7 +42,9 @@ const DatabaseEntryContainer = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
+  padding-left: ${spacing("listIndentation")};
+  padding-top: ${spacing("verySmall")};
+  padding-bottom: ${spacing("verySmall")};
 `;
 
 const DatabaseEntryInfo = styled.div`
@@ -52,14 +52,13 @@ const DatabaseEntryInfo = styled.div`
   justify-content: space-between;
   align-content: center;
   flex-direction: column;
-  gap: 2px;
-  width: 80%;
+  width: 90%;
 `;
 
 const ColumnContainer = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 4px;
+  gap: ${spacing("verySmall")};
 `;
 
 const DatabaseEntry = ({
@@ -81,7 +80,7 @@ const DatabaseEntry = ({
 
   const formatSize = (size: number) => {
     if (size < 1000000) {
-      return size * 0.001 + " KB";
+      return (size * 0.001).toFixed(2) + " KB";
     } else {
       return (size * 0.000001).toFixed(2) + " MB";
     }
@@ -94,7 +93,9 @@ const DatabaseEntry = ({
         .split(/(?=(?:\d{3})+(?!\d))/)
         .join(",");
     }
+    return num_proteins.toString();
   };
+
   return (
     <DatabaseEntryContainer>
       <DatabaseEntryInfo>
@@ -122,11 +123,11 @@ const DatabaseEntry = ({
   );
 };
 
-export const DatabaseSettings = ({}) => {
+export const DatabaseSettings = () => {
   const [databaseList, setDatabaseList] = useState<DatabaseEntryProps[]>([]);
-  const [verificationCheckbox, setVerificationCheckbox] = useState(false);
+  const [shouldVerifyCheckbox, setShouldVerifyCheckbox] = useState(false);
   const [databaseName, setDatabaseName] = useState<string>("");
-  const [, setDatabaseFile] = useState<File | null>(null);
+  const [databaseFile, setDatabaseFile] = useState<string>("");
 
   const fetchDatabases = async () => {
     const databases = await callApi("databases");
@@ -143,19 +144,23 @@ export const DatabaseSettings = ({}) => {
     setDatabaseName(value as string);
   };
 
-  const handleFileChange = (value: File | null) => {
+  const handleFileChange = (value: string) => {
     setDatabaseFile(value);
   };
 
   const handleCheckboxChange = (value: boolean) => {
-    setVerificationCheckbox(value);
+    setShouldVerifyCheckbox(value);
   };
 
   const handleAddDatabase = async () => {
     await callApiWithParameters("upload_database", {
       name: databaseName,
-      just_copy: verificationCheckbox ? "True" : "False",
+      just_copy: shouldVerifyCheckbox ? "True" : "False",
+      file: databaseFile,
     });
+    void fetchDatabases();
+    setDatabaseName("");
+    setDatabaseFile("");
   };
 
   const handleDeleteDatabase = async (name: string) => {
@@ -189,14 +194,14 @@ export const DatabaseSettings = ({}) => {
           label={"Database file (required):"}
         />
         <SingleCheckboxInputField
-          value={verificationCheckbox}
+          value={shouldVerifyCheckbox}
           text={"Copy file without verification and protein count"}
           onChange={handleCheckboxChange}
           label={"Verification"}
         />
         <SecondaryButton
           text={"Add database"}
-          onPress={handleAddDatabase}
+          onPress={void handleAddDatabase}
           style={{ width: "30%" }}
         />
       </SettingsDiv>
@@ -213,79 +218,9 @@ export const DatabaseSettings = ({}) => {
             filesize={db.filesize}
             cols={db.cols}
             name={db.name}
-            handleDelete={() => handleDeleteDatabase(db.name)}
+            handleDelete={() => void handleDeleteDatabase(db.name)}
           />
         ))}
-        <DatabaseEntry
-          num_proteins={20000}
-          date={"1.1.25"}
-          filesize={3}
-          cols={[
-            "Entry",
-            "Entry Name",
-            "Protein names",
-            "Gene Names",
-            "Organism",
-            "Length",
-          ]}
-          name={"human_reviewed"}
-        />
-        <DatabaseEntry
-          num_proteins={20000}
-          date={"1.1.25"}
-          filesize={3}
-          cols={[
-            "Entry",
-            "Entry Name",
-            "Protein names",
-            "Gene Names",
-            "Organism",
-            "Length",
-          ]}
-          name={"human_reviewed"}
-        />
-        <DatabaseEntry
-          num_proteins={20000}
-          date={"1.1.25"}
-          filesize={3}
-          cols={[
-            "Entry",
-            "Entry Name",
-            "Protein names",
-            "Gene Names",
-            "Organism",
-            "Length",
-          ]}
-          name={"human_reviewed"}
-        />
-        <DatabaseEntry
-          num_proteins={20000}
-          date={"1.1.25"}
-          filesize={3}
-          cols={[
-            "Entry",
-            "Entry Name",
-            "Protein names",
-            "Gene Names",
-            "Organism",
-            "Length",
-          ]}
-          name={"human_reviewed"}
-        />
-        <DatabaseEntry
-          num_proteins={20000}
-          date={"1.1.25"}
-          filesize={3}
-          cols={[
-            "Entry",
-            "Entry Name",
-            "Protein names",
-            "Gene Names",
-            "Organism",
-            "Length",
-          ]}
-          name={"human_reviewed"}
-        />
       </DatabaseList>
     </div>
   );

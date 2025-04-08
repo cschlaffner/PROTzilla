@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { styled } from "styled-components";
-import { Modal } from "../modal";
+
 import { spacing } from "../../theme";
 import { ToggleableButton } from "../button";
+import { Modal } from "../modal";
 import { SettingsProps } from "./settings.props.ts";
-import { useState } from "react";
 import { DatabaseSettings } from "./specific-settings/database-settings/database-settings.tsx";
 
 const WideModal = styled(Modal)`

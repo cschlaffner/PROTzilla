@@ -1,7 +1,9 @@
 import type { UIStateProps } from "../../types";
-import { InputContainerProps } from "../input-container";
+import { FrameInputFieldProps } from "../frame-input-field";
 
-export interface FileInputFieldProps extends InputContainerProps, UIStateProps {
+export interface FileInputFieldProps
+  extends FrameInputFieldProps,
+    UIStateProps {
   value?: string | null; // The filename
   placeholder?: string;
   onChange: (value: string) => void;
