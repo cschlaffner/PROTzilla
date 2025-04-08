@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { Layout, PlotData } from "plotly.js";
+import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
+import { Dict } from "styled-components/dist/types";
 
 import { color, fontSize, fontWeight, spacing } from "../../../theme";
+import { SecondaryButton } from "../../button";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
+import Plot from "../../plot/plot";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
 
@@ -23,37 +27,76 @@ export const Label = styled(Text)`
 `;
 
 export const PlotSettings = () => {
+    const examplePlot = {
+        "data":[{"alignmentgroup":"True","hovertemplate":"x=%{x}<br>y=%{y}<extra></extra>","legendgroup":"","marker":{"color":"#4A536A","pattern":{"shape":""}},"name":"","offsetgroup":"","orientation":"v","showlegend":false,"textposition":"auto","x":["Example 1"],"xaxis":"x","y":[0.7],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"x=%{x}<br>y=%{y}<extra></extra>","legendgroup":"","marker":{"color":"#CE5A5A","pattern":{"shape":""}},"name":"","offsetgroup":"","orientation":"v","showlegend":false,"textposition":"auto","x":["Example 2"],"xaxis":"x","y":[0.3],"yaxis":"y","type":"bar"}],
+        "layout":{"template":{"layout":{"colorway":["#4A536A","#CE5A5A"],"dragmode":"pan","font":{"family":"Sans Serif","size":19},"height":423,"margin":{"b":50,"t":50},"modebar":{"remove":["autoScale2d","lasso","lasso2d","toImage","select2d"]},"plot_bgcolor":"white","title":{"font":{"family":"Sans Serif","size":27},"x":0.5,"xanchor":"center","y":0.95,"yanchor":"top"},"width":600,"yaxis":{"gridcolor":"lightgrey","zerolinecolor":"lightgrey"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Example"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Example"}},"legend":{"tracegroupgap":0},"barmode":"relative","title":{"text":"<b>Example plot</b>"}}
+    };
+
     // To do: Remove default values when API is available
     const [fileFormat, setFileFormat] = useState<string>("svg");
     const [width, setWidth] = useState<number>(85);
     const [height, setHeight] = useState<number>(60);
-    const [selectedFont, setFont] = useState<string>("Sans Serif");
-    const [customFont, setCustomFont] = useState<string>("Comic Sans");
-    const [headingSize, setHeadingSize] = useState<number>(11);
-    const [textSize, setTextSize] = useState<number>(8); 
+    const [selectedFont, setFont] = useState<string>("Arial");
+    const [customFont, setCustomFont] = useState<string>("Ubuntu Mono");
+    const [headingSize, setHeadingSize] = useState<number>(20);
+    const [textSize, setTextSize] = useState<number>(15);
+    const [plot, updatePlot] = useState(examplePlot);
 
-    function handleFileFormatChange(value: string): void {
+    useEffect(() => {
+        updatePlot(prevPlot => ({
+          ...prevPlot,
+          layout: {
+            ...prevPlot.layout,
+            template: {
+              layout: {
+                ...prevPlot.layout.template.layout,
+                font: {
+                    ...prevPlot.layout.template.layout.font,
+                    family: selectedFont,
+                    size: textSize,
+                },
+                title: {
+                  ...prevPlot.layout.template.layout.title,
+                  font: {
+                    ...prevPlot.layout.template.layout.title.font,
+                    family: selectedFont,
+                    size: headingSize,
+                  },
+                },
+              },
+            },
+          },
+        }));
+      }, [selectedFont, headingSize, textSize]);   
+
+    const handleFileFormatChange = (value: string) => {
         setFileFormat(value);
     }
-    function handleWidthChange(value: number): void {
+    const handleWidthChange = (value: number) => {
         setWidth(value);
     }
-    function handleHeightChange(value: number): void {
+    const handleHeightChange = (value: number) => {
         setHeight(value);
     }
     const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setFont(event.target.value);
-    };
+        const newFont = event.target.value === "Custom font" ? customFont : event.target.value;
+        setFont(newFont);
+      };
+      
     const handleCustomFontChange = (value: string) => {
         setCustomFont(value);
     };
-    function handleHeadingSizeChange(value: number): void {
+    const handleHeadingSizeChange = (value: number) => {
         setHeadingSize(value);
     }
-    function handleTextSizeChange(value: number): void {
+    const handleTextSizeChange = (value: number) => {
         setTextSize(value);
     }
-    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleSaving = (value: Dict) => {
+        console.log("Need to apply the settings to the Plotly template.");
+    }
+
     const fonts = [
         "Arial",
         "Courier New",
@@ -77,11 +120,11 @@ export const PlotSettings = () => {
                 }
                 style={{ paddingBottom: "20px" }}
             />
-            <SectionTitle
-                baseComponent={"h5"}
-                title={"Format and Size"}
-            />
             <SettingsDiv>
+                <SectionTitle
+                    baseComponent={"h5"}
+                    title={"Format and Size"}
+                />
                 <DropdownInputField
                     options={[
                         { value: "eps", label: "eps" },
@@ -157,7 +200,7 @@ export const PlotSettings = () => {
                                 type="radio"
                                 id={"radioCustomFont"}
                                 name="fontGroup"
-                                value="Eine eigene Schriftart"
+                                value="Custom font"
                                 checked={isCustomSelected}
                                 onChange={handleFontChange}
                             />
@@ -202,6 +245,14 @@ export const PlotSettings = () => {
                     </Col>
                 </Row>
             </SettingsDiv>
+            <Plot
+                data={plot.data as Partial<PlotData>[]}
+                layout={plot.layout as Partial<Layout>}
+            />
+            <SecondaryButton
+                text={"Save"}
+                onPress={handleSaving}
+            />
         </div>
     )
 };
