@@ -23,29 +23,35 @@ export const Label = styled(Text)`
 `;
 
 export const PlotSettings = () => {
-    const [selectedFont, setSelectedFont] = useState<string>("Arial");
+    const [fileFormat, setFileFormat] = useState<string>("");
+    const [width, setWidth] = useState<number>();
+    const [height, setHeight] = useState<number>();
+    const [selectedFont, setFont] = useState<string>("");
+    const [customFont, setCustomFont] = useState<string>("");
+    const [headingSize, setHeadingSize] = useState<number>();
+    const [textSize, setTextSize] = useState<number>(); 
 
     function handleFileFormatChange(value: string): void {
-        console.log(value);
+        setFileFormat(value);
     }
     function handleWidthChange(value: number): void {
-        console.log(value);
+        setWidth(value);
     }
     function handleHeightChange(value: number): void {
-        console.log(value);
-    }
-    function handleHeadingSizeChange(value: number): void {
-        console.log(value);
-    }
-    function handleTextSizeChange(value: number): void {
-        console.log(value);
+        setHeight(value);
     }
     const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedFont(event.target.value);
+        setFont(event.target.value);
     };
     const handleCustomFontChange = (value: string) => {
-        console.log(value);
+        setCustomFont(value);
     };
+    function handleHeadingSizeChange(value: number): void {
+        setHeadingSize(value);
+    }
+    function handleTextSizeChange(value: number): void {
+        setTextSize(value);
+    }
     
     const fonts = [
         "Arial",
