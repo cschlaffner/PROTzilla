@@ -4,7 +4,7 @@ import tempfile
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.uploadhandler import FileUploadHandler
 
-from . import settings
+from .. import settings
 
 
 # copied from TemporaryFileUploadHandler

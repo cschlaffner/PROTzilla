@@ -9,7 +9,11 @@ import { InvisibleButton } from "../button";
 import { EditTag } from "../edit-tag";
 import { Icon } from "../icon";
 import { InputLabel, Text } from "../text";
-import { CollapsibleLabelProps, MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
+import {
+  CollapsibleLabelProps,
+  MultilineTextFieldProps,
+  TextFieldProps,
+} from "./text-field.props";
 import {
   color,
   font,
@@ -734,23 +738,22 @@ export const MultilineTextField = styled(
 const CollapsibleContainer = styled(motion.div)`
   overflow: hidden;
   white-space: nowrap;
-  padding-bottom:1px;
+  padding-bottom: 1px;
 `;
 
-export const CollapsibleLabel:React.FC<CollapsibleLabelProps> = ({
+export const CollapsibleLabel: React.FC<CollapsibleLabelProps> = ({
   width,
   collapsedWidth = 0,
-  isCollapsed, 
-  children
+  isCollapsed,
+  children,
 }: CollapsibleLabelProps) => {
-  
   return (
     <CollapsibleContainer
-      initial={{ width: isCollapsed ? collapsedWidth : width}}
+      initial={{ width: isCollapsed ? collapsedWidth : width }}
       animate={{ width: isCollapsed ? collapsedWidth : width }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       {children}
     </CollapsibleContainer>
-  )
-}
+  );
+};

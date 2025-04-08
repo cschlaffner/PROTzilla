@@ -19,6 +19,7 @@ export { default as help } from "./help.svg?react";
 export { default as home } from "./home.svg?react";
 export { default as importing } from "./importing.svg?react";
 export { default as incomplete } from "./incomplete.svg?react";
+export { default as info } from "./info.svg?react";
 export { default as list } from "./list.svg?react";
 export { default as outdated } from "./outdated.svg?react";
 export { default as protzilla } from "./protzillablackwhite.svg?react";

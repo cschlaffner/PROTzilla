@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import requests
 
-from backend.protzilla.constants.paths import TEST_DATA_PATH
+from backend.protzilla.constants.paths import BACKEND_PATH, TEST_DATA_PATH
 
 # order is important to ensure correctness of patched functions
 # isort:skip_file
@@ -33,10 +33,12 @@ from backend.protzilla.data_integration.database_query import check_biomart_avai
 
 # isort:end_skip_file
 
+biomart_availability = check_biomart_availability()
+
 
 @pytest.fixture
 def data_folder_tests():
-    return TEST_DATA_PATH/ "enrichment_data"
+    return BACKEND_PATH / "tests/test_data/enrichment_data"
 
 
 @patch("restring.restring.get_functional_enrichment")
@@ -164,8 +166,7 @@ def test_merge_up_down_regulated_dfs_restring():
     "background",
     [
         None,
-        TEST_DATA_PATH
-        / "enrichment_data/background_imported_proteins.csv",
+        TEST_DATA_PATH / "enrichment_data/background_imported_proteins.csv",
     ],
 )
 def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests):
@@ -202,7 +203,7 @@ def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests)
 
 
 @patch(
-    "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
+    "protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
 def test_GO_analysis_with_STRING_one_direction_missing(
     mock_enrichment, data_folder_tests
@@ -379,8 +380,7 @@ def test_GO_analysis_with_STRING_too_many_col_df():
 
 
 def test_GO_analysis_with_enrichr_wrong_proteins_input():
-    biomart_check = check_biomart_availability()
-    if biomart_check["available"] == False:
+    if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
         proteins_df="Protein1;Protein2;aStringOfProteins",
@@ -398,8 +398,7 @@ def test_GO_analysis_with_enrichr_wrong_proteins_input():
 
 
 def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
-    biomart_check = check_biomart_availability()
-    if biomart_check["available"] == False:
+    if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
         proteins_df=pd.DataFrame(
@@ -414,8 +413,7 @@ def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
 
 
 def test_GO_analysis_with_no_gene_sets_input():
-    biomart_check = check_biomart_availability()
-    if biomart_check["available"] == False:
+    if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
         proteins_df=pd.DataFrame(
@@ -431,11 +429,10 @@ def test_GO_analysis_with_no_gene_sets_input():
     assert "messages" in current_out
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
-
-@patch("backend.protzilla.data_integration.database_query.uniprot_groups_to_genes")
+@pytest.mark.skip(reason="The API doesn't work.")
+@patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
-    biomart_check = check_biomart_availability()
-    if biomart_check["available"] == False:
+    if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     # Check if enrichr API is available
     api_url = "https://maayanlab.cloud/Enrichr/addList"
@@ -512,25 +509,23 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
     assert "No background provided" in current_out["messages"][0]["msg"]
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
 
-# TODO fix biomart communication to avoid test failure because of server unavailabilty
-# -- current procedure fails because availability varies too quickly
-# def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
-#     biomart_check = check_biomart_availability()
-#     if biomart_check["available"] == False:
-#         pytest.skip("BioMart servers are not available. Skipping related tests.")
-#     current_out = GO_analysis_with_Enrichr(
-#         proteins_df=pd.DataFrame(
-#             {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
-#         ),
-#         organism="human",
-#         differential_expression_col="log2_fold_change",
-#         direction="both",
-#         gene_sets_path=data_folder_tests / "Reactome_2022.txt",
-#         background_path="aMadeUpInputFormat.abc",
-#         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
-#     )
-#     assert "messages" in current_out
-#     assert "Invalid file type for background" in current_out["messages"][0]["msg"]
+@pytest.mark.skip(reason="The api dosn't work")
+def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
+    if biomart_availability == False:
+        pytest.skip("BioMart servers are not available. Skipping related tests.")
+    current_out = GO_analysis_with_Enrichr(
+        proteins_df=pd.DataFrame(
+            {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
+        ),
+        organism="human",
+        differential_expression_col="log2_fold_change",
+        direction="both",
+        gene_sets_path=data_folder_tests / "Reactome_2022.txt",
+        background_path="aMadeUpInputFormat.abc",
+        gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
+    )
+    assert "messages" in current_out
+    assert "Invalid file type for background" in current_out["messages"][0]["msg"]
 
 
 @pytest.fixture
@@ -595,9 +590,9 @@ def offline_mock_mapping():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        TEST_DATA_PATH / "enrichment_data/gene_sets.json",
-        TEST_DATA_PATH / "enrichment_data/gene_sets.csv",
-        TEST_DATA_PATH / "enrichment_data/gene_sets.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
     ],
 )
 def test_GO_analysis_offline_protein_sets(
@@ -654,8 +649,8 @@ def test_GO_analysis_offline_protein_sets(
 @pytest.mark.parametrize(
     "background_path",
     [
-        TEST_DATA_PATH / "enrichment_data//background_test_genes.csv",
-        TEST_DATA_PATH / "enrichment_data//background_test_genes.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
     ],
 )
 def test_GO_analysis_offline_background(
@@ -719,9 +714,8 @@ def test_GO_analysis_offline_no_protein_sets():
         proteins_df=proteins_df,
         gene_sets_path="",
         differential_expression_col="fold_change",
-        direction="up",
-        background=None,
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
+        direction="up",
     )
 
     assert "messages" in current_out
@@ -740,7 +734,6 @@ def test_GO_analysis_offline_invalid_protein_set_file():
         gene_sets_path="an_invalid_filetype.png",
         differential_expression_col="fold_change",
         direction="up",
-        background="",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
 
@@ -827,9 +820,9 @@ def test_merge_up_down_regulated_proteins_results():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        TEST_DATA_PATH / "enrichment_data/gene_sets.json",
-        TEST_DATA_PATH / "enrichment_data/gene_sets.csv",
-        TEST_DATA_PATH / "enrichment_data/gene_sets.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
     ],
 )
 def test_read_protein_or_gene_sets_file(protein_sets_path):
@@ -883,8 +876,8 @@ def test_read_protein_or_gene_sets_file_invalid_filetype(data_folder_tests):
 @pytest.mark.parametrize(
     "background_path",
     [
-        TEST_DATA_PATH / "enrichment_data//background_test_genes.csv",
-        TEST_DATA_PATH / "enrichment_data//background_test_genes.txt",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
+        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
     ],
 )
 def test_read_background_file(background_path):

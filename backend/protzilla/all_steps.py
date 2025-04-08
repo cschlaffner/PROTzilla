@@ -1,10 +1,3 @@
-# THIS IS A WORKAROUND; NEEDS TO BE ADAPTED
-"""
-Wir hatten bisher eine form_mapping.py Datei, die definiert, was die Forms sind, die das backend erwartet, da drin auch ein dictionary was genau dokumentiert, was die methoden sind, die wir haben.
-Das ist zu ändern, da wir sonst immer in dieser Liste die steps verwalten müssen - code smell...
-Aber wo die Forms dann hinsollen bzw ihre Logik, sodass das frontend und backend darüber richtig kommunizieren können, ist wichtig zu klären!!
-
-"""
 
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration

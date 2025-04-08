@@ -9,6 +9,7 @@ import shutil
 import datetime
 
 import backend.protzilla.constants.paths as paths
+from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.disk_operator import DiskOperator, YamlOperator
@@ -212,6 +213,11 @@ class Run:
 
     @error_handling
     @auto_save
+    def update_inputs(self, inputs: dict) -> None:
+        self.steps.current_step.updateInputs(inputs)
+
+    @error_handling
+    @auto_save
     def step_plot(self, inputs: dict | None = None) -> None:
         self.steps.current_step.plot(inputs)
 
@@ -229,9 +235,20 @@ class Run:
         self.steps.goto_step(step_index, section)
 
     @error_handling
+    def step_set_outdated(self, offset: int = 0) -> int:
+        return self.steps.set_steps_outdated(offset)
+
+    @error_handling
     @auto_save
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
+
+    
+    @auto_save
+    def current_form(self, new_form_values = {}) -> Form:
+        self.steps.current_step.form.update_values(new_form_values)
+        self.steps.current_step.form.apply_modification(self)
+        return self.steps.current_step.form
 
     @property
     def current_messages(self) -> Messages:
@@ -244,7 +261,12 @@ class Run:
     @property
     def current_outputs(self) -> Output:
         return self.steps.current_step.output
+    
+    @property
+    def current_filtered_data(self) -> dict:
+        return self.steps.current_step.filtered_datatable
 
     @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+    
