@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useCallback, useEffect, useState} from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -163,8 +163,6 @@ export const IndexScreen: React.FC = () => {
                       setSearchTermTop(e);
                     }}
                     placeholder="Search workflows"
-                    smallBorder={true}
-                    isSmall={true}
                   />
         <StyledWorkflowContainer >
           {filteredWorkflows.map((workflow) => (
@@ -214,11 +212,11 @@ export const IndexScreen: React.FC = () => {
               },
             ],
           }} 
-          onChange={ (data) => { void callApiWithParameters("add_run/", {
+          onChange={ useCallback((data) => { void callApiWithParameters("add_run/", {
                 run_name: data.runname ?? "",
                 workflow_name: data.workflow ?? "",
                 df_mode_name: data.df_mode ?? "disk",
-              })}}></Form>
+              })}, [])}></Form>
         </Modal>
       </StyledTemplateCard>
 
@@ -248,8 +246,6 @@ export const IndexScreen: React.FC = () => {
                 setSearchTermTags(e);
               }}
               placeholder="Search existing tags"
-              smallBorder={true}
-              isSmall={true}
             />
             <StyledModalChild>
               <TagList runName={selectedRun.run_name} tags={filteredAddableTags} icon="add" handleTag={handleAddTag}/>
@@ -262,8 +258,6 @@ export const IndexScreen: React.FC = () => {
               setSearchTermRuns(e);
             }}
             placeholder="Search runs"
-            smallBorder={true}
-            isSmall={true}
           />
           <RunsTable 
             runs={runs} 

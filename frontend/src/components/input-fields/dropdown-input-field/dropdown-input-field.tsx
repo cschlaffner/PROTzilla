@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import {
@@ -79,91 +79,92 @@ const OptionItem = styled.li`
   }
 `;
 
-export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
-  options,
-  value,
-  onChange,
-  ...props
-}) => {
-  const [selectedValue, setSelectedValue] = useState(
-    options.find((option) => option.value === value) ?? options[0]
-  );
-  
-  useEffect(() => {
-    const initialOption = options.find((option) => option.value === value) ?? options[0];
-    setSelectedValue(initialOption);
-  
-    if (initialOption.value !== value) {
-      onChange(initialOption.value);
-    }
-  }, [value, options]);
-  
-  const dropdownRef = useRef<HTMLUListElement | null>(null);
-  const inputRef = useRef<HTMLDivElement | null>(null);
+export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
+  function DropdownInputField({
+    options,
+    value,
+    onChange,
+    ...props
+  }) {
+    const [selectedValue, setSelectedValue] = useState(
+      options.find((option) => option.value === value) ?? options[0]
+    );
+    
+    useEffect(() => {
+      const initialOption = options.find((option) => option.value === value) ?? options[0];
+      setSelectedValue(initialOption);
+    
+      if (initialOption.value !== value) {
+        onChange(initialOption.value);
+      }
+    }, [value, options, onChange]);
+    
+    const dropdownRef = useRef<HTMLUListElement | null>(null);
+    const inputRef = useRef<HTMLDivElement | null>(null);
 
-  const [isOpen, , disable, toggle] = useToggleableState();
-  useOutsidePress(
-    [
-      dropdownRef as React.RefObject<HTMLElement>,
-      inputRef as React.RefObject<HTMLElement>,
-    ],
-    disable,
-    isOpen,
-  );
+    const [isOpen, , disable, toggle] = useToggleableState();
+    useOutsidePress(
+      [
+        dropdownRef as React.RefObject<HTMLElement>,
+        inputRef as React.RefObject<HTMLElement>,
+      ],
+      disable,
+      isOpen,
+    );
 
-  const handleChange = (option: { label: string; value: string }) => {
-    setSelectedValue(option);
-    onChange(option.value);
-    disable();
-  };
+    const handleChange = (option: { label: string; value: string }) => {
+      setSelectedValue(option);
+      onChange(option.value);
+      disable();
+    };
 
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (
-      target.closest(".inline-prefix") ||
-      target.closest(".inline-suffix") ||
-      target.closest(".selected-value-text")
-    ) {
-      toggle();
-    }
-  };
+    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest(".inline-prefix") ||
+        target.closest(".inline-suffix") ||
+        target.closest(".selected-value-text")
+      ) {
+        toggle();
+      }
+    };
 
-  return (
-    <DropdownContainer>
-      <div ref={inputRef} onClick={handleClick}>
-        <InputContainer
-          {...props}
-          inlineSuffix={
-            <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
-          }
-        >
-          <StyledInputLabel
-            className="selected-value-text"
-            $isSmall={props.isSmall ?? false}
+    return (
+      <DropdownContainer>
+        <div ref={inputRef} onClick={handleClick}>
+          <InputContainer
+            {...props}
+            inlineSuffix={
+              <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
+            }
           >
-            {selectedValue.label}
-          </StyledInputLabel>
-        </InputContainer>
-      </div>
+            <StyledInputLabel
+              className="selected-value-text"
+              $isSmall={props.isSmall ?? false}
+            >
+              {selectedValue.label}
+            </StyledInputLabel>
+          </InputContainer>
+        </div>
 
-      {isOpen && (
-        <OptionsList ref={dropdownRef}>
-          {options.length > 0 ? (
-            options.map((option) => (
-              <OptionItem
-                key={option.value}
-                onClick={() => {
-                  handleChange(option);
-                }}
-              >
-                {option.label}
-              </OptionItem>
-            ))
-          ) : (
-            <OptionItem>No results</OptionItem>
-          )}
-        </OptionsList>
-      )}
-    </DropdownContainer>
-  );
-};
+        {isOpen && (
+          <OptionsList ref={dropdownRef}>
+            {options.length > 0 ? (
+              options.map((option) => (
+                <OptionItem
+                  key={option.value}
+                  onClick={() => {
+                    handleChange(option);
+                  }}
+                >
+                  {option.label}
+                </OptionItem>
+              ))
+            ) : (
+              <OptionItem>No results</OptionItem>
+            )}
+          </OptionsList>
+        )}
+      </DropdownContainer>
+    );
+});

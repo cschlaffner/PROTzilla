@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
@@ -46,11 +46,11 @@ const ChangeIndicator = styled.div`
   font-size: ${fontSize("default")};
 `;
 
-export const Form: React.FC<FormProps> = ({
+export const Form: React.FC<FormProps> = memo(function Form({
   formData,
   onChange,
   onFormTouched,
-}) => {
+}) {
   const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
     {},
   );
@@ -60,7 +60,7 @@ export const Form: React.FC<FormProps> = ({
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
-  const handleChange = (name: string, value: InputValueType) => {
+  const handleChange = useCallback((name: string, value: InputValueType) => {
     setFormValues((prevValues) => {
       const newValues = { ...prevValues, [name]: value };
       const hasChanges =
@@ -89,7 +89,7 @@ export const Form: React.FC<FormProps> = ({
 
       return newValues;
     });
-  };
+  }, [formData, hasformTouchedTriggered, onChange, onFormTouched, submittedValues]);
 
   const handleSubmit = () => {
     onChange(formValues);
@@ -124,15 +124,15 @@ export const Form: React.FC<FormProps> = ({
       )}
     </StyledForm>
   );
-};
+});
 
-const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = memo(function	InputField({
   type,
   name,
   onChange,
   options,
   ...props
-}) => {
+}) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
@@ -181,4 +181,4 @@ const InputField: React.FC<InputFieldProps> = ({
     default:
       return null;
   }
-};
+});
