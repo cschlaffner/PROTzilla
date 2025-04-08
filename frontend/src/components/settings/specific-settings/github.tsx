@@ -1,9 +1,10 @@
-import { InvisibleButton, SecondaryButton } from "../../button";
-import { SectionTitle } from "../../section-title";
-import { Icon } from "../../icon";
 import { styled } from "styled-components";
-import { Text } from "../../text";
+
 import { size, spacing } from "../../../theme";
+import { InvisibleButton, SecondaryButton } from "../../button";
+import { Icon } from "../../icon";
+import { SectionTitle } from "../../section-title";
+import { Text } from "../../text";
 
 const Logo = styled(Icon)`
   width: ${size("logoIconWidth")};
@@ -60,7 +61,7 @@ export const Github = () => {
   };
 
   const copyCitation = () => {
-    navigator.clipboard.writeText(
+    void navigator.clipboard.writeText(
       "Renard et al. PROTzilla: A Web-Based Tool for Visualizing and Analyzing Protein Structures",
     );
     // TODO add message
