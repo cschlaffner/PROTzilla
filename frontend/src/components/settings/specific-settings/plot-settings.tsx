@@ -23,13 +23,14 @@ export const Label = styled(Text)`
 `;
 
 export const PlotSettings = () => {
-    const [fileFormat, setFileFormat] = useState<string>("");
-    const [width, setWidth] = useState<number>();
-    const [height, setHeight] = useState<number>();
-    const [selectedFont, setFont] = useState<string>("");
-    const [customFont, setCustomFont] = useState<string>("");
-    const [headingSize, setHeadingSize] = useState<number>();
-    const [textSize, setTextSize] = useState<number>(); 
+    // To do: Remove default values when API is available
+    const [fileFormat, setFileFormat] = useState<string>("svg");
+    const [width, setWidth] = useState<number>(85);
+    const [height, setHeight] = useState<number>(60);
+    const [selectedFont, setFont] = useState<string>("Sans Serif");
+    const [customFont, setCustomFont] = useState<string>("Comic Sans");
+    const [headingSize, setHeadingSize] = useState<number>(11);
+    const [textSize, setTextSize] = useState<number>(8); 
 
     function handleFileFormatChange(value: string): void {
         setFileFormat(value);
@@ -92,6 +93,7 @@ export const PlotSettings = () => {
                     ]}
                     onChange={handleFileFormatChange}
                     label={"File format"}
+                    value={fileFormat}
                 />
                 <Row
                     justify="between"
@@ -106,6 +108,7 @@ export const PlotSettings = () => {
                             separateSuffix={"mm"}
                             isInteger={true}
                             onChange={handleWidthChange}
+                            value={width}
                         />
                     </Col>
                     <Col>
@@ -117,6 +120,7 @@ export const PlotSettings = () => {
                             separateSuffix={"mm"}
                             isInteger={true}
                             onChange={handleHeightChange}
+                            value={height}
                         />
                     </Col>
                 </Row>
@@ -163,6 +167,7 @@ export const PlotSettings = () => {
                             <TextInputField
                                 placeholder="Custom font name"
                                 onChange={handleCustomFontChange}
+                                value={customFont}
                             />
                         </div>
                     </div >
@@ -180,6 +185,7 @@ export const PlotSettings = () => {
                             separateSuffix={"pt"}
                             isInteger={true}
                             onChange={handleHeadingSizeChange}
+                            value={headingSize}
                         />
                     </Col>
                     <Col>
@@ -191,6 +197,7 @@ export const PlotSettings = () => {
                             separateSuffix={"pt"}
                             isInteger={true}
                             onChange={handleTextSizeChange}
+                            value={textSize}
                         />
                     </Col>
                 </Row>
