@@ -7,6 +7,7 @@ import { Modal } from "../modal";
 import { SettingsProps } from "./settings.props.ts";
 import { DatabaseSettings } from "./specific-settings/database-settings.tsx";
 import { Github } from "./specific-settings/github.tsx";
+import { PlotSettings } from "./specific-settings/plot-settings.tsx";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -61,7 +62,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               id={"plot"}
               isActive={selectedSetting === "plot"}
               icon={"data_analysis"}
-              text={"Plot Settings"}
+              text={"Plot Export"}
               onPress={() => {
                 setSelectedSetting("plot");
               }}
@@ -86,11 +87,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             />
           </SectionSelection>
           <SpecificSettings>
-            {selectedSetting === "plot" && (
-              <div>
-                <p>Plot settings content goes here.</p>
-              </div>
-            )}
+            {selectedSetting === "plot" && <PlotSettings />}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <Github />}
           </SpecificSettings>
