@@ -170,6 +170,7 @@ export const RunScreen: React.FC = () => {
 
       setIcon(data.section + "-" + data.index, data.status);
       void getStepPlots();
+      void getStepTable();
     }
   };
 
