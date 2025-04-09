@@ -1,11 +1,13 @@
 from dataclasses import asdict
 import json
+import math
 import os
 import io
 import tempfile
 import traceback
 import zipfile
 
+import numpy as np
 from plotly.io import to_json
 from pathlib import Path
 
@@ -374,9 +376,15 @@ def get_step_table(request):
 
         run = active_runs[run_name]
         
-        #get parameters for the step
+        if run.current_step is not None:
+            data = run.current_outputs["protein_df"]
+            data["id"] = data.index
+            cleaned_data = data.replace(np.nan, None)
+            json_data = cleaned_data.to_dict(orient="records")
 
-        return JsonResponse({"success": True, "message": "Got the table for the step", "data": "placeholder"}, safe=False)
+        print(json_data)
+        
+        return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

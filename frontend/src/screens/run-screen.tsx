@@ -82,7 +82,7 @@ export const RunScreen: React.FC = () => {
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
-  const [tableData] = useState(mockTableData);
+  const [tableData, setTableData] = useState(mockTableData);
   const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
     {},
   );
@@ -101,6 +101,9 @@ export const RunScreen: React.FC = () => {
         })
         .then(() => {
           return getStepPlots();
+        })
+        .then(() => {
+          return getStepTable();
         });
     }
   };
@@ -129,6 +132,17 @@ export const RunScreen: React.FC = () => {
     }
   };
 
+  const getStepTable = async () => {
+    const response = await callApiWithParameters("get_step_table/", {
+      run_name: runName,
+    });
+    if (response) {
+      const data = response.data;
+      console.log(data);
+      setTableData(data);
+    }
+  };
+
   const getStepForm = async (userInput: Record<string, InputValueType>) => {
     const response = await callApiWithParameters("get_step_form/", {
       run_name: runName,
@@ -153,6 +167,7 @@ export const RunScreen: React.FC = () => {
       const data = response.data;
 
       setIcon(data.section + "-" + data.index, data.status);
+      void getStepPlots();
     }
   };
 
