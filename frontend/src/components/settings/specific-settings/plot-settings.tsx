@@ -63,8 +63,8 @@ export const PlotSettings = () => {
           colorway: ["#4A536A", "#CE5A5A"],
           dragmode: "pan",
           font: { family: "Sans Serif", size: 19 },
-          width: 400,
-          height: 300,
+          width: 500,
+          height: 500,
           margin: { b: 50, t: 50 },
           modebar: {
             remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
@@ -90,7 +90,7 @@ export const PlotSettings = () => {
 
   // To do: Remove default values when API is available
   const [fileFormat, setFileFormat] = useState<string>("svg");
-  const [width, setWidth] = useState<number>(40);
+  const [width, setWidth] = useState<number>(50);
   const [height, setHeight] = useState<number>(30);
   const [selectedFont, setFont] = useState<string>("Arial");
   const [customFont, setCustomFont] = useState<string>("Ubuntu Mono");
@@ -99,10 +99,18 @@ export const PlotSettings = () => {
   const [plot, updatePlot] = useState(examplePlot);
 
   useEffect(() => {
+    const sizeRatio = width / height;
+    const displayedWidth = 400;
+    const displayedHeight = Math.round(displayedWidth / sizeRatio);
+    console.log("ratio", sizeRatio);
+    console.log("width", displayedWidth);
+    console.log("height", displayedHeight);
     updatePlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
+        width: displayedWidth,
+        height: displayedHeight,
         template: {
           layout: {
             ...prevPlot.layout.template.layout,
@@ -123,7 +131,7 @@ export const PlotSettings = () => {
         },
       },
     }));
-  }, [selectedFont, headingSize, textSize]);
+  }, [selectedFont, headingSize, textSize, width, height]);
 
   const handleFileFormatChange = (value: string) => {
     setFileFormat(value);
