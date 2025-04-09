@@ -79,6 +79,7 @@ export const RunScreen: React.FC = () => {
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const [runName] = useState<string>(location.state?.existingRun);
+  const [section, setSection] = useState<string>("")
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
@@ -90,6 +91,7 @@ export const RunScreen: React.FC = () => {
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
+      setSection(selectedStep.section)
       setUserInput({});
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
@@ -175,6 +177,7 @@ export const RunScreen: React.FC = () => {
       runName={runName}
       handleStepSelection={handleStepSelection}
       onCalculateStep={calculateStep}
+      section={section}
     />
   );
 

@@ -272,14 +272,10 @@ class Step:
         :raises ValueError: If a required key is missing in the outputs
         """
         
-        print("Val0.0")
         for key in self.output_keys:
-            print("Val0.5")
             if key not in self.output or self.output[key] is None:
-                print("Val0.7")
                 if not soft_check:
                     
-                    print("val1.0")
                     raise ValueError(
                         f"Output validation failed: missing output {key} in outputs."
                     )
