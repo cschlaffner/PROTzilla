@@ -39,6 +39,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   runName,
   handleStepSelection,
   onCalculateStep,
+  section
 }) => {
   return (
     <StyledRow>
@@ -48,7 +49,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParameters} />
-        <SecondaryButton text={"Calculate"} onPress={onCalculateStep} />
+        <SecondaryButton text={section === "importing" ? "Import":"Calculate"} onPress={onCalculateStep} />
       </StyledFormColumn>
     </StyledRow>
   );

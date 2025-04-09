@@ -60,7 +60,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     setIsUploading(true);
 
     try {
-      const res = await axios.post('/api/upload_file/', formData, {
+      await axios.post('/api/upload_file/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
