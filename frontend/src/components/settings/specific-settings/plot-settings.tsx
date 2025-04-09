@@ -102,9 +102,6 @@ export const PlotSettings = () => {
     const sizeRatio = width / height;
     const displayedWidth = 400;
     const displayedHeight = Math.round(displayedWidth / sizeRatio);
-    console.log("ratio", sizeRatio);
-    console.log("width", displayedWidth);
-    console.log("height", displayedHeight);
     updatePlot((prevPlot) => ({
       ...prevPlot,
       layout: {
