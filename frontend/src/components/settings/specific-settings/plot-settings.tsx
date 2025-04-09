@@ -303,7 +303,7 @@ export const PlotSettings = () => {
         <Col md={6}>
           <PlotDiv>
             <Plot
-              styleProps={{ margin: "10px" }}
+              styleProps={{ margin: "2px" }}
               data={plot.data as Partial<PlotData>[]}
               layout={plot.layout as Partial<Layout>}
             />
