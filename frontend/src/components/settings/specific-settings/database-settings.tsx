@@ -158,9 +158,9 @@ export const DatabaseSettings = () => {
       just_copy: shouldVerifyCheckbox ? "True" : "False",
       file: databaseFile,
     });
-    await fetchDatabases();
     setDatabaseName("");
     setDatabaseFile("");
+    void fetchDatabases();
   };
 
   const handleDeleteDatabase = async (name: string) => {
@@ -186,10 +186,13 @@ export const DatabaseSettings = () => {
       />
       <SettingsDiv>
         <TextInputField
+          value={databaseName}
           onChange={handleNameChange}
           label={"Name for new database (required):"}
         />
         <FileInputField
+          value={databaseFile}
+          placeholder={"path/to/database/file.tsv"}
           onChange={handleFileChange}
           label={"Database file (required):"}
         />
@@ -201,7 +204,7 @@ export const DatabaseSettings = () => {
         />
         <SecondaryButton
           text={"Add database"}
-          onPress={handleAddDatabase}
+          onPress={() => void handleAddDatabase()}
           style={{ width: "30%" }}
         />
       </SettingsDiv>

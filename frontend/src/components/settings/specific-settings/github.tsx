@@ -1,11 +1,11 @@
 import { styled } from "styled-components";
 
+import { citation } from "./citation.ts";
 import { size, spacing } from "../../../theme";
 import { InvisibleButton, SecondaryButton } from "../../button";
 import { Icon } from "../../icon";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
-import { citation } from "./citation.ts";
 
 const Logo = styled(Icon)`
   width: ${size("logoIconWidth")};
