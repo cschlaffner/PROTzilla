@@ -5,6 +5,7 @@ import { InvisibleButton, SecondaryButton } from "../../button";
 import { Icon } from "../../icon";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
+import { citation } from "./citation.ts";
 
 const Logo = styled(Icon)`
   width: ${size("logoIconWidth")};
@@ -61,9 +62,7 @@ export const Github = () => {
   };
 
   const copyCitation = () => {
-    void navigator.clipboard.writeText(
-      "Renard et al. PROTzilla: A Web-Based Tool for Visualizing and Analyzing Protein Structures",
-    );
+    void navigator.clipboard.writeText(citation);
     // TODO add message
   };
 
@@ -74,9 +73,7 @@ export const Github = () => {
           <SectionTitle baseComponent={"h1"} title={"PROTzilla"} />
           <SectionTitle
             baseComponent={"h4"}
-            description={
-              "An open-source project at Hasso-Plattner-Institut Potsdam"
-            }
+            description={"An open-source project at Hasso Plattner Institute"}
           />
         </TitleDiv>
         <Logo icon={"protzilla"} />
@@ -110,11 +107,7 @@ export const Github = () => {
               "If you use PROTzilla in your research, please cite the following paper:"
             }
           />
-          <CenteredText
-            text={
-              "TODO: Renard et al. PROTzilla: A Web-Based Tool for Visualizing and Analyzing Protein Structures"
-            }
-          />
+          <CenteredText text={"TODO: " + citation} />
           <SecondaryButton text={"Copy citation"} onPress={copyCitation} />
         </InnerContentDiv>
       </ContentDiv>

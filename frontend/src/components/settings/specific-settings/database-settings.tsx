@@ -115,7 +115,7 @@ const DatabaseEntry = ({
         </ColumnContainer>
       </DatabaseEntryInfo>
       <SecondaryButton
-        text={"Delete"}
+        icon={"trash"}
         isCautious={true}
         onPress={handleDelete}
       />
@@ -158,7 +158,7 @@ export const DatabaseSettings = () => {
       just_copy: shouldVerifyCheckbox ? "True" : "False",
       file: databaseFile,
     });
-    void fetchDatabases();
+    await fetchDatabases();
     setDatabaseName("");
     setDatabaseFile("");
   };
@@ -201,7 +201,7 @@ export const DatabaseSettings = () => {
         />
         <SecondaryButton
           text={"Add database"}
-          onPress={void handleAddDatabase}
+          onPress={handleAddDatabase}
           style={{ width: "30%" }}
         />
       </SettingsDiv>
