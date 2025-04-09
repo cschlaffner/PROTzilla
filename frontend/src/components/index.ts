@@ -4,7 +4,7 @@ export * from "./card";
 export * from "./dropdown";
 export * from "./forms/form";
 export * from "./edit-tag";
-export * from "./error-notification";
+export * from "./notification-center";
 export * from "./icon";
 export * from "./mixins";
 export * from "./modal";

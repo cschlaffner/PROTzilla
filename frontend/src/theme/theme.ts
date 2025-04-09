@@ -49,9 +49,9 @@ export const defaultPalette = {
   yellowActive: "#ED9804",
   yellowDisabled: "#FDF5E6",
 
-  green: "#18723F",
-  greenHover: "#18723F",
-  greenActive: "#18723F",
+  green: "#3ca369",
+  greenHover: "#3ca369",
+  greenActive: "#3ca369",
   greenDisabled: "#E8f1EC",
 
   blue: "#004CA2",
