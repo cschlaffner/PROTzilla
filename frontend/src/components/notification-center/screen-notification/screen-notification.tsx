@@ -7,6 +7,7 @@ import {
   fontSize,
   fontWeight,
   radius,
+  size,
   spacing,
   zIndex,
 } from "../../../theme";
@@ -38,7 +39,7 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
 `;
 
 const TextContainer = styled(FlexColumn)`
-  width: 85%;
+  width: 100%;
   gap: ${spacing("verySmall")};
 `;
 
@@ -60,7 +61,7 @@ const DescriptionText = styled(Text)`
 `;
 
 const CloseIcon = styled(InvisibleButton)`
-  width: 15%;
+  width: ${size("buttonHeight")};
 
   .icon {
     ${iconColor("onPrimary")}

@@ -17,7 +17,7 @@ const NotificationStack = styled.div`
   flex-direction: column;
   gap: ${spacing("small")};
   z-index: ${zIndex("notification")};
-  width: 20vw;
+  width: 25vw;
 `;
 
 export const NotificationCenter: React.FC<{ children: React.ReactNode }> = ({
