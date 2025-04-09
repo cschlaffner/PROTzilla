@@ -1,34 +1,40 @@
 import { observer } from "mobx-react-lite";
-import { useCallback, useRef } from "react";
-import { styled } from "styled-components";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useStore } from "../app/store";
-import { ErrorNotification, I18nMessage } from "../components";
-
-const Container = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-`;
+import { useNotification } from "../components";
 
 export const AutomaticErrorNotification = observer(() => {
   const store = useStore();
+  const notify = useNotification();
 
-  const cachedError = useRef<I18nMessage>();
-  if (store.error) {
-    cachedError.current = store.error;
-  }
+  const cachedMessage = useRef<string | undefined>(undefined);
+
   const dismissError = useCallback(() => {
     store.setError();
+    cachedMessage.current = undefined;
   }, [store]);
 
-  return (
-    <Container>
-      <ErrorNotification
-        isShown={Boolean(store.error)}
-        {...(cachedError.current ?? {})}
-        onClose={dismissError}
-      />
-    </Container>
-  );
+  useEffect(() => {
+    const error = store.error;
+
+    const message =
+      typeof error?.description === "string" ? error.description : "";
+
+    if (error && message !== cachedMessage.current) {
+      cachedMessage.current = message;
+
+      notify({
+        type: "error",
+        title:
+          typeof error.title === "string"
+            ? error.title
+            : "Fehler",
+        message: message || "Ein unbekannter Fehler ist aufgetreten.",
+        onClose: dismissError,
+      });
+    }
+  }, [store.error, notify, dismissError]);
+
+  return null;
 });
