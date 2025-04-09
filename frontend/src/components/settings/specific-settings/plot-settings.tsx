@@ -3,7 +3,14 @@ import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import { color, fontSize, fontWeight, spacing } from "../../../theme";
+import {
+  border,
+  borderColors,
+  color,
+  fontSize,
+  fontWeight,
+  spacing,
+} from "../../../theme";
 import { SecondaryButton } from "../../button";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
@@ -16,6 +23,13 @@ const SettingsDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("verySmall")};
+`;
+
+const PlotDiv = styled.div`
+  width: fit-content;
+  height: fit-content;
+  border: ${border("defaultStrength")} solid ${borderColors("default")};
+  border-radius: ${border("defaultRadius")};
 `;
 
 export const Label = styled(Text)`
@@ -32,12 +46,14 @@ export const PlotSettings = () => {
         marker: { color: "#4A536A" },
         x: ["Example 1"],
         y: [0.7],
+        name: "Example 1",
         type: "bar",
       },
       {
         marker: { color: "#CE5A5A" },
         x: ["Example 2"],
         y: [0.3],
+        name: "Example 2",
         type: "bar",
       },
     ],
@@ -47,7 +63,8 @@ export const PlotSettings = () => {
           colorway: ["#4A536A", "#CE5A5A"],
           dragmode: "pan",
           font: { family: "Sans Serif", size: 19 },
-          height: 423,
+          width: 400,
+          height: 300,
           margin: { b: 50, t: 50 },
           modebar: {
             remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
@@ -60,7 +77,6 @@ export const PlotSettings = () => {
             y: 0.95,
             yanchor: "top",
           },
-          width: 600,
           yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
         },
       },
@@ -74,12 +90,12 @@ export const PlotSettings = () => {
 
   // To do: Remove default values when API is available
   const [fileFormat, setFileFormat] = useState<string>("svg");
-  const [width, setWidth] = useState<number>(85);
-  const [height, setHeight] = useState<number>(60);
+  const [width, setWidth] = useState<number>(40);
+  const [height, setHeight] = useState<number>(30);
   const [selectedFont, setFont] = useState<string>("Arial");
   const [customFont, setCustomFont] = useState<string>("Ubuntu Mono");
-  const [headingSize, setHeadingSize] = useState<number>(20);
-  const [textSize, setTextSize] = useState<number>(15);
+  const [headingSize, setHeadingSize] = useState<number>(15);
+  const [textSize, setTextSize] = useState<number>(10);
   const [plot, updatePlot] = useState(examplePlot);
 
   useEffect(() => {
@@ -160,127 +176,141 @@ export const PlotSettings = () => {
         }
         style={{ paddingBottom: "20px" }}
       />
-      <SettingsDiv>
-        <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-        <DropdownInputField
-          options={[
-            { value: "eps", label: "eps" },
-            { value: "jpg", label: "jpg" },
-            { value: "pdf", label: "pdf" },
-            { value: "png", label: "png" },
-            { value: "svg", label: "svg" },
-            { value: "tiff", label: "tiff" },
-          ]}
-          onChange={handleFileFormatChange}
-          label={"File format"}
-          value={fileFormat}
-        />
-        <Row justify="between" align="center">
-          <Col>
-            <NumberInputField
-              label={"Width"}
-              min={10}
-              max={300}
-              step={1}
-              separateSuffix={"mm"}
-              isInteger={true}
-              onChange={handleWidthChange}
-              value={width}
+      <Row>
+        <Col md={6}>
+          <SettingsDiv>
+            <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
+            <DropdownInputField
+              options={[
+                { value: "eps", label: "eps" },
+                { value: "jpg", label: "jpg" },
+                { value: "pdf", label: "pdf" },
+                { value: "png", label: "png" },
+                { value: "svg", label: "svg" },
+                { value: "tiff", label: "tiff" },
+              ]}
+              onChange={handleFileFormatChange}
+              label={"File format"}
+              value={fileFormat}
             />
-          </Col>
-          <Col>
-            <NumberInputField
-              label={"Height"}
-              min={10}
-              max={300}
-              step={1}
-              separateSuffix={"mm"}
-              isInteger={true}
-              onChange={handleHeightChange}
-              value={height}
+            <Row justify="between" align="center">
+              <Col>
+                <NumberInputField
+                  label={"Width"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  separateSuffix={"mm"}
+                  isInteger={true}
+                  onChange={handleWidthChange}
+                  value={width}
+                />
+              </Col>
+              <Col>
+                <NumberInputField
+                  label={"Height"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  separateSuffix={"mm"}
+                  isInteger={true}
+                  onChange={handleHeightChange}
+                  value={height}
+                />
+              </Col>
+            </Row>
+            <SectionTitle
+              baseComponent={"h5"}
+              title={"Text"}
+              style={{ paddingTop: "4px", paddingBottom: "4px" }}
             />
-          </Col>
-        </Row>
-        <SectionTitle
-          baseComponent={"h5"}
-          title={"Text"}
-          style={{ paddingTop: "4px", paddingBottom: "4px" }}
-        />
-        <div>
-          <Label text={"Font"} />
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            {fonts.map((font) => {
-              const formattedId = `radio${font.replace(/\s/g, "")}`;
-              return (
-                <div
-                  key={font}
-                  style={{ display: "flex", alignItems: "center" }}
-                >
+            <div>
+              <Label text={"Font"} />
+              <div
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
+                {fonts.map((font) => {
+                  const formattedId = `radio${font.replace(/\s/g, "")}`;
+                  return (
+                    <div
+                      key={font}
+                      style={{ display: "flex", alignItems: "center" }}
+                    >
+                      <input
+                        type="radio"
+                        id={formattedId}
+                        name="fontGroup"
+                        value={font}
+                        checked={selectedFont === font}
+                        onChange={handleFontChange}
+                      />
+                      <label htmlFor={formattedId}>{font}</label>
+                    </div>
+                  );
+                })}
+              </div>
+              <div
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
+                <div>
                   <input
                     type="radio"
-                    id={formattedId}
+                    id={"radioCustomFont"}
                     name="fontGroup"
-                    value={font}
-                    checked={selectedFont === font}
+                    value="Custom font"
+                    checked={isCustomSelected}
                     onChange={handleFontChange}
                   />
-                  <label htmlFor={formattedId}>{font}</label>
+                  <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
                 </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <div>
-              <input
-                type="radio"
-                id={"radioCustomFont"}
-                name="fontGroup"
-                value="Custom font"
-                checked={isCustomSelected}
-                onChange={handleFontChange}
-              />
-              <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
+                <div style={{ flexGrow: 1 }}>
+                  <TextInputField
+                    placeholder="Custom font name"
+                    onChange={handleCustomFontChange}
+                    value={customFont}
+                  />
+                </div>
+              </div>
             </div>
-            <div style={{ flexGrow: 1 }}>
-              <TextInputField
-                placeholder="Custom font name"
-                onChange={handleCustomFontChange}
-                value={customFont}
-              />
-            </div>
-          </div>
-        </div>
-        <Row justify="between" align="center">
-          <Col>
-            <NumberInputField
-              label={"Heading size"}
-              min={1}
-              max={100}
-              step={1}
-              separateSuffix={"pt"}
-              isInteger={true}
-              onChange={handleHeadingSizeChange}
-              value={headingSize}
+            <Row justify="between" align="center">
+              <Col>
+                <NumberInputField
+                  label={"Heading size"}
+                  min={1}
+                  max={100}
+                  step={1}
+                  separateSuffix={"pt"}
+                  isInteger={true}
+                  onChange={handleHeadingSizeChange}
+                  value={headingSize}
+                />
+              </Col>
+              <Col>
+                <NumberInputField
+                  label={"Text size"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  separateSuffix={"pt"}
+                  isInteger={true}
+                  onChange={handleTextSizeChange}
+                  value={textSize}
+                />
+              </Col>
+            </Row>
+          </SettingsDiv>
+        </Col>
+        <Col md={6}>
+          <PlotDiv>
+            <Plot
+              styleProps={{ margin: "10px" }}
+              data={plot.data as Partial<PlotData>[]}
+              layout={plot.layout as Partial<Layout>}
             />
-          </Col>
-          <Col>
-            <NumberInputField
-              label={"Text size"}
-              min={10}
-              max={300}
-              step={1}
-              separateSuffix={"pt"}
-              isInteger={true}
-              onChange={handleTextSizeChange}
-              value={textSize}
-            />
-          </Col>
-        </Row>
-      </SettingsDiv>
-      <Plot
-        data={plot.data as Partial<PlotData>[]}
-        layout={plot.layout as Partial<Layout>}
-      />
+          </PlotDiv>
+        </Col>
+      </Row>
+
       <SecondaryButton text={"Save"} onPress={handleSaving} />
     </div>
   );
