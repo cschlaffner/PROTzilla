@@ -791,6 +791,16 @@ class StepManager:
                 f"Step index {step_index} out of bounds for section {section}"
             )
 
+        if self.df_mode == "disk":
+                # TODO maybe this doesnt really need to be written to disk anymore,
+                # as it is preceeded by a calculation, after which everything is written to
+                # disk anyway. Better would be if it would just replace the dfs with their respective paths
+            self.current_step.output = Output(
+                self.disk_operator._write_output(
+                    instance_identifier=self.current_step.instance_identifier,
+                    output=self.current_step.output,
+                )
+        )
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index

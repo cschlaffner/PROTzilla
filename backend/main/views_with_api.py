@@ -377,12 +377,13 @@ def get_step_table(request):
         run = active_runs[run_name]
         
         if run.current_step is not None:
-            data = run.current_outputs["protein_df"]
-            data["id"] = data.index
-            cleaned_data = data.replace(np.nan, None)
-            json_data = cleaned_data.to_dict(orient="records")
-
-        print(json_data)
+            if "protein_df" in run.current_outputs:
+                data = run.current_outputs["protein_df"]
+                data["id"] = data.index
+                cleaned_data = data.replace(np.nan, None)
+                json_data = cleaned_data.to_dict(orient="records")
+            else: 
+                json_data = [{}]
         
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:

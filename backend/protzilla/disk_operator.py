@@ -306,5 +306,5 @@ def sanitize_inputs(inputs: dict) -> dict:
     return {
         key: value
         for key, value in inputs.items()
-        if type(value) != pd.DataFrame and not utilities.check_is_path(value)
+        if type(value) != pd.DataFrame and not utilities.check_is_path(value) and key != "peptide_df"
     }
