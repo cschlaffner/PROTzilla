@@ -9,7 +9,7 @@ export const defaultPalette = {
 
   text: "#2C2E34",
   textDisabled: "#C0C0C2",
-  onPrimary: "#FFF",
+  onPrimary: "#FFFFFF",
 
   protzillaGray: "#E0E0E0",
   protzillaLightGray: "#E8EDF3",
