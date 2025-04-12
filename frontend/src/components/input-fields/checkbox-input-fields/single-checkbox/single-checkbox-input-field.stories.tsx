@@ -14,4 +14,5 @@ primary.args = {
   label: "Do you like this single checkbox?",
   text: "It is amazing!",
   value: true,
+  isSmall: true,
 };
