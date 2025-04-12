@@ -2,8 +2,9 @@ import { styled } from "styled-components";
 
 import { citation } from "./citation.ts";
 import { size, spacing } from "../../../theme";
-import { InvisibleButton, SecondaryButton } from "../../button";
+import { SecondaryButton } from "../../button";
 import { Icon } from "../../icon";
+import { useNotification } from "../../notification-center";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
 
@@ -50,6 +51,8 @@ const CenteredDiv = styled.div`
 `;
 
 export const Github = () => {
+  const notify = useNotification();
+
   const onOpenGithub = () => {
     window.open("https://github.com/cschlaffner/PROTzilla", "_blank");
   };
@@ -63,6 +66,12 @@ export const Github = () => {
 
   const copyCitation = () => {
     void navigator.clipboard.writeText(citation);
+    notify({
+      title: "Success",
+      message: "Citation copied to clipboard",
+      type: "success",
+      closeAfterMs: 1500,
+    });
   };
 
   return (
@@ -79,8 +88,9 @@ export const Github = () => {
       </Header>
       <ContentDiv>
         <InnerContentDiv>
-          <InvisibleButton
+          <SecondaryButton
             onPress={onOpenGithub}
+            isCautious={true}
             icon={"github"}
             text={"Github"}
           />

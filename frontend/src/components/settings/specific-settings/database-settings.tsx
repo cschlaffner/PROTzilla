@@ -5,11 +5,11 @@ import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
 import { SecondaryButton } from "../../button";
 import { InputValueType } from "../../forms/form";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
-import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 
 const SettingsDiv = styled.div`
   display: flex;
