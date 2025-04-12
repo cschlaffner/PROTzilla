@@ -2,7 +2,7 @@ export * from "./box";
 export * from "./button";
 export * from "./dropdown";
 export * from "./edit-tag";
-export * from "./error-notification";
+export * from "./notification-center";
 export * from "./icon";
 export * from "./mixins";
 export * from "./node";
