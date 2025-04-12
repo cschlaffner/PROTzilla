@@ -1,4 +1,5 @@
 import { styled } from "styled-components";
+
 import { FormDividerProps } from "./form-divider.props";
 import { spacing } from "../../../theme";
 

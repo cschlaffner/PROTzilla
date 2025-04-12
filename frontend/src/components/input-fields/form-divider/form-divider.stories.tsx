@@ -1,4 +1,6 @@
 import { Meta, StoryFn } from "@storybook/react";
+import { action } from "@storybook/addon-actions";
+
 import { FormDivider } from "./form-divider";
 import { FormDividerProps } from "./form-divider.props";
 import { TextInputField } from "../text-input-field";
@@ -23,9 +25,9 @@ primary.args = {
 export const WithinForm: StoryFn<FormDividerProps> = (args) => {
   return (
     <div>
-      <TextInputField onChange={() => {}} label="First name" />
+      <TextInputField onChange={action("text changed")} label="First name" />
       <FormDivider {...args} />
-      <TextInputField onChange={() => {}} label="First name" />
+      <TextInputField onChange={action("text changed")} label="First name" />
     </div>
   );
 };

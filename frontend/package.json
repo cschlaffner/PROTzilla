@@ -23,6 +23,7 @@
     "@mui/material": "^6.4.6",
     "@mui/styled-engine-sc": "^6.4.6",
     "@mui/x-data-grid": "^7.27.2",
+    "@storybook/addon-actions": "^8.6.12",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "framer-motion": "^12.4.7",
