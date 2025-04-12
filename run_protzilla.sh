@@ -52,7 +52,7 @@ echo "done."
 echo "checking for and installing new requirements in frontend..."
 
 if ! command -v pnpm &> /dev/null; then
-    curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=10.0.0 sh -
+    curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=10.8.0 sh -
     exit 1
 fi
 
