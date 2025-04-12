@@ -63,7 +63,6 @@ export const Github = () => {
 
   const copyCitation = () => {
     void navigator.clipboard.writeText(citation);
-    // TODO add message
   };
 
   return (

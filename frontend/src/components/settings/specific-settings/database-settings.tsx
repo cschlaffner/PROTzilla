@@ -6,10 +6,10 @@ import { callApi, callApiWithParameters } from "../../../utils";
 import { SecondaryButton } from "../../button";
 import { InputValueType } from "../../forms/form";
 import { FileInputField } from "../../input-fields/file-input-field";
-import { SingleCheckboxInputField } from "../../input-fields/single-checkbox/single-checkbox-input-field.tsx";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { SectionTitle } from "../../section-title";
 import { Text } from "../../text";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 
 const SettingsDiv = styled.div`
   display: flex;
