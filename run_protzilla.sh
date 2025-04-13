@@ -67,6 +67,8 @@ if [ ! -d "frontend/.storybook" ]; then
     npx storybook@latest init
 fi
 
+pnpm install
+
 cd frontend
 
 pnpm install

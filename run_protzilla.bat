@@ -112,6 +112,9 @@ if not exist "frontend\.storybook" (
     npx storybook@latest init
 )
 
+REM install PNPM in base directory to have husky for pre commit hooks
+pnpm install
+
 :: Navigate to the frontend directory and install dependencies via pnpm
 cd frontend || (
     echo Error: 'frontend' directory not found.
