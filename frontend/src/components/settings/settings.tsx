@@ -28,6 +28,7 @@ const MakeRowDiv = styled.div`
   flex-direction: row;
   padding: ${spacing("medium")};
   gap: ${spacing("medium")};
+  position: relative;
 `;
 
 const SectionSelection = styled.div`
@@ -87,7 +88,9 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             />
           </SectionSelection>
           <SpecificSettings>
-            {selectedSetting === "plot" && <PlotSettings isOpen={isOpen} />}
+            {selectedSetting === "plot" && (
+              <PlotSettings isOpen={isOpen} onClose={onClose} />
+            )}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <Github />}
           </SpecificSettings>

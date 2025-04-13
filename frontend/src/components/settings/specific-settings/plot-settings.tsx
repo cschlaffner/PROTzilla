@@ -12,7 +12,7 @@ import {
   spacing,
 } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
-import { Button } from "../../button";
+import { Button, SecondaryButton } from "../../button";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
@@ -33,6 +33,18 @@ const PlotDiv = styled.div`
   border-radius: ${border("defaultRadius")};
 `;
 
+const Footer = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: "white";
+  display: flex;
+  justify-content: flex-end;
+  gap: ${spacing("smallButtonGap")};
+  padding: ${spacing("smallButtonGap")};
+`;
+
 export const Label = styled(Text)`
   font-size: ${fontSize("default")};
   font-weight: ${fontWeight("bold")};
@@ -42,9 +54,13 @@ export const Label = styled(Text)`
 
 interface PlotSettingsProps {
   isOpen: boolean;
+  onClose: () => void;
 }
 
-export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
+export const PlotSettings: React.FC<PlotSettingsProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const examplePlot = {
     data: [
       {
@@ -94,6 +110,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
   };
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [plot, updatePlot] = useState(examplePlot);
 
   const [fileFormat, setFileFormat] = useState<string>("");
   const [width, setWidth] = useState<number>(0);
@@ -102,7 +119,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
   const [customFont, setCustomFont] = useState<string>("");
   const [headingSize, setHeadingSize] = useState<number>(0);
   const [textSize, setTextSize] = useState<number>(0);
-  const [plot, updatePlot] = useState(examplePlot);
 
   const loadPlotSettings = async () => {
     const plotSettings = await callApi("load_settings");
@@ -168,7 +184,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
       event.target.value === "Custom font" ? customFont : event.target.value;
     setFont(newFont);
   };
-
   const handleCustomFontChange = (value: string) => {
     setCustomFont(value);
   };
@@ -178,7 +193,13 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
   const handleTextSizeChange = (value: number) => {
     setTextSize(value);
   };
-  const handleSaving = async () => {
+
+  const handleSaving = async (
+    event:
+      | React.PointerEvent<HTMLButtonElement>
+      | React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    const target = event.currentTarget;
     await callApiWithParameters("save_settings", {
       file_format: fileFormat,
       width: width as unknown as string,
@@ -188,6 +209,9 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
       heading_size: headingSize as unknown as string,
       text_size: textSize as unknown as string,
     });
+    if (target.id == "saveAndQuit") {
+      onClose();
+    }
   };
 
   const fonts = [
@@ -357,8 +381,18 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
           </PlotDiv>
         </Col>
       </Row>
-
-      <Button text={"Save & Quit"} onPress={() => void handleSaving()} />
+      <Footer>
+        <SecondaryButton
+          id="save"
+          text={"Save"}
+          onPress={(event) => void handleSaving(event)}
+        />
+        <Button
+          id="saveAndQuit"
+          text={"Save & Quit"}
+          onPress={(event) => void handleSaving(event)}
+        />
+      </Footer>
     </div>
   );
 };
