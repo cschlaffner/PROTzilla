@@ -217,7 +217,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
 
   const handleReset = () => {
     void loadPlotSettings();
-  }
+  };
 
   const fonts = [
     "Arial",
@@ -255,7 +255,11 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       <Row>
         <Col md={6}>
           <SettingsDiv>
-            <SecondaryButton text={"Reset to default"} icon="reload" onPress={handleReset}/>
+            <SecondaryButton
+              text={"Reset to default"}
+              icon="reload"
+              onPress={handleReset}
+            />
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
             <DropdownInputField
               options={[

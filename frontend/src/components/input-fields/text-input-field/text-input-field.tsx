@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
@@ -31,6 +31,10 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
     setValue(value);
     onChange(value);
   };
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
 
   return (
     <InputContainer {...props}>

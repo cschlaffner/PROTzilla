@@ -91,6 +91,12 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     return initialValue;
   });
 
+  useEffect(() => {
+    const newValue =
+      options.find((option) => option.value === value) ?? options[0];
+    setSelectedValue(newValue);
+  }, [options, value]);
+
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const inputRef = useRef<HTMLDivElement | null>(null);
   const [dropdownWidth, setDropdownWidth] = useState<number>(200);

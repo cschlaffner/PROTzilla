@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
@@ -34,6 +34,10 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   });
 
   const [displayValue, setDisplayValue] = useState<string>(String(value));
+
+  useEffect(() => {
+    setDisplayValue(String(value));
+  }, [value]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
