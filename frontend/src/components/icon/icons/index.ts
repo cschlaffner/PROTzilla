@@ -30,3 +30,5 @@ export { default as searchLens } from "./search-lens.svg?react";
 export { default as settings } from "./setting-fill.svg?react";
 export { default as spinner } from "./spinner.svg?react";
 export { default as trash } from "./trash.svg?react";
+export { default as triangleDown } from "./triangle-down.svg?react";
+export { default as triangleUp } from "./triangle-up.svg?react";
