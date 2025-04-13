@@ -6,10 +6,10 @@ import { FileInputFieldProps } from "./file-input-field.props";
 export default {
   component: FileInputField,
   title: "Input Fields / File Input Field",
-  argTypes: { 
-    placeholder: {control: 'text'},
+  argTypes: {
+    placeholder: { control: "text" },
     onChange: { action: "changed" },
-    value: {control: {type: 'file', accept: '*/*'}},
+    value: { control: { type: "file", accept: "*/*" } },
   },
 } as Meta<FileInputFieldProps>;
 

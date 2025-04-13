@@ -8,7 +8,7 @@ from restring import restring
 
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.data_integration.database_query import biomart_database
-from backend.protzilla.utilities import clean_uniprot_id
+from backend.protzilla.utilities.utilities import clean_uniprot_id
 
 # Import enrichment analysis gsea methods to remove redundant function definition
 from .enrichment_analysis_gsea import gsea, gsea_preranked
@@ -456,7 +456,6 @@ def GO_analysis_with_Enrichr(
     background_path=None,
     background_number=None,
     background_biomart=None,
-    **kwargs,
 ):
     """
     A method that performs online over-representation analysis for a given set of proteins
@@ -680,7 +679,6 @@ def GO_analysis_offline(
     direction="both",
     background_path=None,
     background_number=None,
-    **kwargs,
 ):
     """
     A method that performs offline over-representation analysis for a given set of proteins

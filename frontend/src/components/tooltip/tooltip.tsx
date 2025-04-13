@@ -47,7 +47,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const tooltipStyle = useTooltipPosition({
     anchor,
     isActive: isShown,
-    positionRelativeToOffsetParent: !modalRootRef.current,
+    positionRelativeToOffsetParent: false,
     position,
     distance,
     style,
@@ -66,6 +66,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
     );
 
   return modalRootRef.current
-    ? ReactDOM.createPortal(node, modalRootRef.current)
+    ? ReactDOM.createPortal(node, document.body)
     : node;
 };

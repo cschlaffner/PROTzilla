@@ -2,7 +2,7 @@ export * from "./box";
 export * from "./button";
 export * from "./dropdown";
 export * from "./edit-tag";
-export * from "./error-notification";
+export * from "./notification-center";
 export * from "./icon";
 export * from "./mixins";
 export * from "./node";
@@ -11,13 +11,13 @@ export * from "./popup";
 export * from "./screen";
 export * from "./section";
 export * from "./section-title";
-export * from "./sidebar"
+export * from "./sidebar";
 export * from "./switch";
 export * from "./table";
 export * from "./text";
 export * from "./text-field";
 export * from "./tooltip";
 export * from "./types";
-export * from "./card"
+export * from "./card";
 
 export * from "./main-screen";

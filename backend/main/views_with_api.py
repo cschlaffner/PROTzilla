@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import json
 import os
 import io
@@ -12,14 +13,14 @@ from django.http import JsonResponse, FileResponse
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
+from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
-from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_step_names
+from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -37,10 +38,9 @@ def run_information_list(request):
 
     return JsonResponse(available_runinfo, safe=False)
 
-def step_name_list(request):
-    step_names = get_all_possible_step_names()
-
-    return JsonResponse(step_names, safe=False)
+def all_steps(request):
+    steps = get_all_possible_steps()
+    return JsonResponse(steps, safe=False)
 
 def workflow_name_list(request):
     workflow_names = get_available_workflow_names()
@@ -212,7 +212,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Deleted step"})
+        return JsonResponse({"success": True, "message": "Added step: " + method})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -346,19 +346,23 @@ def get_run_data(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
     
-def get_step_parameters(request):
+def get_step_form(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        data:dict = json.loads(request.body)
         run_name = data.get("run_name")
+        new_form_values = data.get("data")
+        
+        if (run_name not in active_runs):
+            return JsonResponse({"success": False, "message": "Run not in active runs"})
 
         run = active_runs[run_name]
-        
-        #get parameters for the step
 
-        return JsonResponse({"success": True, "message": "Got the parameters for the step", "data": "placeholder"}, safe=False)
+        form = run.current_form(new_form_values)
+
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
 def get_step_plots(request):
     if request.method == "POST":
         data = json.loads(request.body)

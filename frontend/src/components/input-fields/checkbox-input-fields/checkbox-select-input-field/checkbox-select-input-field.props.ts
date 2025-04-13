@@ -1,5 +1,5 @@
-import { UIStateProps } from "../../types";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { UIStateProps } from "../../../types.ts";
+import { FrameInputFieldProps } from "../../frame-input-field";
 
 export interface CheckboxSelectInputFieldProps
   extends Omit<FrameInputFieldProps, "inlinePrefix" | "inlineSuffix">,

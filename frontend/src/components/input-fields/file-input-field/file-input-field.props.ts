@@ -6,5 +6,5 @@ export interface FileInputFieldProps
     UIStateProps {
   value?: File | null;
   placeholder?: string;
-  onChange: (value: File | null ) => void;
+  onChange: (value: File | null) => void;
 }
