@@ -133,6 +133,10 @@ export const baseTheme = {
     successDisplayDuration: 5000,
     successButtonDuration: 2000,
     errorDisplayDuration: 10000,
+
+    shortNotificationDuration: 2000,
+    standardNotificationDuration: 5000,
+    longNotificationDuration: 10000,
   },
   fonts: {
     default: "Helvetica Neue",
