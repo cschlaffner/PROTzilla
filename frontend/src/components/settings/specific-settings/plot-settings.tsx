@@ -38,11 +38,12 @@ const Footer = styled.div`
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: "white";
+  background-color: ${color("background")};
   display: flex;
   justify-content: flex-end;
   gap: ${spacing("smallButtonGap")};
   padding: ${spacing("smallButtonGap")};
+  z-index: 10;
 `;
 
 export const Label = styled(Text)`
