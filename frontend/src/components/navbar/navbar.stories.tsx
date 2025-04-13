@@ -1,9 +1,10 @@
+import { Meta } from "@storybook/react";
 import React from "react";
 
 import { NavbarProps } from "./navbar.props.ts";
 import { Navbar } from "./navbar.tsx";
 import { NotificationCenter } from "../notification-center";
-import { Meta } from "@storybook/react";
+
 
 export default {
   component: Navbar,

@@ -9,8 +9,8 @@ import {
   useNotification,
 } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { callApi, callApiWithParameters } from "../utils";
 import { Navbar } from "../components/navbar";
+import { callApi, callApiWithParameters } from "../utils";
 
 export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
@@ -73,8 +73,12 @@ export const IndexScreen: React.FC = () => {
   return (
     <div className="min-vh-100 w-100 bg-light">
       <Navbar
-        onNavigateHome={() => {}}
-        onOpenHelp={() => {}}
+        onNavigateHome={() => {
+          /* intentionally empty */
+        }}
+        onOpenHelp={() => {
+          /* intentionally empty */
+        }}
         allowRunEdit={false}
       />
       <Container>

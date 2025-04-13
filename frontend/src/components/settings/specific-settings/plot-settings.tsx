@@ -89,7 +89,7 @@ export const PlotSettings = () => {
     },
   };
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [fileFormat, setFileFormat] = useState<string>("");
   const [width, setWidth] = useState<number>(0);
@@ -112,7 +112,7 @@ export const PlotSettings = () => {
       setHeadingSize(plotSettings.heading_size);
       setTextSize(plotSettings.text_size);
     }
-    setLoading(false);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -188,7 +188,7 @@ export const PlotSettings = () => {
   ];
   const isCustomSelected = !fonts.includes(selectedFont);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SectionTitle
         baseComponent={"h6"}
