@@ -5,6 +5,7 @@ import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
@@ -13,7 +14,6 @@ import { RadioSelectInputField } from "../../input-fields/radio-select-input-fie
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { Text } from "../../text";
-import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 
 const StyledForm = styled.div`
   width: 100%;
