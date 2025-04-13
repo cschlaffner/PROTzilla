@@ -29,7 +29,7 @@ const StyledSpan = styled.span`
 
 export const FileInputField: React.FC<FileInputFieldProps> = ({
   value = null,
-  placeholder = "No file choosen",
+  placeholder = "No file chosen",
   onChange,
   ...props
 }) => {

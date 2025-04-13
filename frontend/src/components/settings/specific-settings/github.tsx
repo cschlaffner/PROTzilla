@@ -1,12 +1,14 @@
 import { styled } from "styled-components";
 
 import { citation } from "./citation.ts";
+import {
+  Icon,
+  SecondaryButton,
+  SectionTitle,
+  Text,
+  useNotification,
+} from "../../../components";
 import { size, spacing } from "../../../theme";
-import { SecondaryButton } from "../../button";
-import { Icon } from "../../icon";
-import { useNotification } from "../../notification-center";
-import { SectionTitle } from "../../section-title";
-import { Text } from "../../text";
 
 const Logo = styled(Icon)`
   width: ${size("logoIconWidth")};
@@ -50,14 +52,14 @@ const CenteredDiv = styled.div`
   padding-right: 100px;
 `;
 
-export const Github = () => {
+export const GitHub = () => {
   const notify = useNotification();
 
-  const onOpenGithub = () => {
+  const onOpenGitHub = () => {
     window.open("https://github.com/cschlaffner/PROTzilla", "_blank");
   };
 
-  const onOpenGithubIssue = () => {
+  const onOpenGitHubIssue = () => {
     window.open(
       "https://github.com/cschlaffner/PROTzilla/issues/new/choose",
       "_blank",
@@ -89,7 +91,7 @@ export const Github = () => {
       <ContentDiv>
         <InnerContentDiv>
           <SecondaryButton
-            onPress={onOpenGithub}
+            onPress={onOpenGitHub}
             isCautious={true}
             icon={"github"}
             text={"Github"}
@@ -106,7 +108,7 @@ export const Github = () => {
           />
           <SecondaryButton
             text={"Open an issue or report a bug"}
-            onPress={onOpenGithubIssue}
+            onPress={onOpenGitHubIssue}
           />
         </InnerContentDiv>
         <InnerContentDiv>

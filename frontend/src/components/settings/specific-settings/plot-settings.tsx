@@ -4,6 +4,16 @@ import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
 import {
+  Button,
+  DropdownInputField,
+  NumberInputField,
+  PlotComponent,
+  SecondaryButton,
+  SectionTitle,
+  Text,
+  TextInputField,
+} from "../../../components";
+import {
   border,
   borderColors,
   color,
@@ -12,13 +22,6 @@ import {
   spacing,
 } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
-import { Button, SecondaryButton } from "../../button";
-import { DropdownInputField } from "../../input-fields/dropdown-input-field";
-import { NumberInputField } from "../../input-fields/number-input-field";
-import { TextInputField } from "../../input-fields/text-input-field";
-import Plot from "../../plot/plot";
-import { SectionTitle } from "../../section-title";
-import { Text } from "../../text";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -383,7 +386,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         </Col>
         <Col md={6}>
           <PlotDiv>
-            <Plot
+            <PlotComponent
               styleProps={{ margin: "2px" }}
               data={plot.data as Partial<PlotData>[]}
               layout={plot.layout as Partial<Layout>}

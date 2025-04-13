@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { spacing } from "../../theme";
-import { ToggleableButton } from "../button";
-import { Modal } from "../modal";
 import { SettingsProps } from "./settings.props.ts";
-import { DatabaseSettings } from "./specific-settings/database-settings.tsx";
-import { Github } from "./specific-settings/github.tsx";
-import { PlotSettings } from "./specific-settings/plot-settings.tsx";
+import { Modal, ToggleableButton } from "../../components";
+import { spacing } from "../../theme";
+import { DatabaseSettings, GitHub, PlotSettings } from "./specific-settings/";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -92,7 +89,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               <PlotSettings isOpen={isOpen} onClose={onClose} />
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
-            {selectedSetting === "github" && <Github />}
+            {selectedSetting === "github" && <GitHub />}
           </SpecificSettings>
         </MakeRowDiv>
       </BorderDiv>
