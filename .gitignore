@@ -8,6 +8,9 @@ backend/uploads/*
 .vscode/*
 .flake8
 
+# ignore node_modules
+node_modules/
+
 # --- below: github python .gitignore template ---
 
 # Byte-compiled / optimized / DLL files
