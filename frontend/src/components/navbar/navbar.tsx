@@ -7,6 +7,7 @@ import { FlexColumn } from "../box";
 import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
+import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -54,17 +55,17 @@ const NavbarCenterTitle = styled(Text)`
   padding: ${spacing("buttonPadding")};
 `;
 
-// TODO create this component and add here
-const TempRunSettings = styled.div`
-  width: 100px;
-  height: 100px;
-  background: #1a1d20;
-  position: absolute;
-  top: ${spacing("navbarHeight")};
-  color: #fff;
-  align-self: center;
-  font-size: ${fontSize("small")};
-`;
+// // TODO create this component and add here
+// const TempRunSettings = styled.div`
+//   width: 100px;
+//   height: 100px;
+//   background: #1a1d20;
+//   position: absolute;
+//   top: ${spacing("navbarHeight")};
+//   color: #fff;
+//   align-self: center;
+//   font-size: ${fontSize("small")};
+// `;
 
 export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
@@ -103,11 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           )}
           {isRunSettingsOpen && (
-            <TempRunSettings ref={refRunSettings}>
-              {
-                "TODO: Create component to show current run's name, tags, other info."
-              }
-            </TempRunSettings>
+            <RunEditMenu runName={title as string} ref={refRunSettings} />
           )}
         </NavbarCenter>
 
