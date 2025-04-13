@@ -1,7 +1,9 @@
-import { Navbar } from "../components/navbar";
-import { useLocation, useNavigate } from "react-router-dom";
-import { SectionTitle } from "../components";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { SectionTitle } from "../components";
+import { Form } from "../components/forms/form";
+import { Navbar } from "../components/navbar";
 
 export const EmptyRunScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +32,26 @@ export const EmptyRunScreen: React.FC = () => {
           "dummy run screen for this component, will not be pushed with this PR"
         }
         description={""}
+      />
+      <Form
+        onChange={() => {
+          console.log("onChange");
+        }}
+        formData={{
+          label: "Run Name",
+          isAutoSubmit: false,
+          input_fields: [
+            {
+              type: "text",
+              name: runName,
+              props: {
+                label: "Run name:",
+                value: runName,
+                placeholder: "Run name",
+              },
+            },
+          ],
+        }}
       />
     </div>
   );

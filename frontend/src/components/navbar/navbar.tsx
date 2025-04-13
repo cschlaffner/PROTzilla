@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { useOutsidePress, useToggleableState } from "../../hooks";
@@ -55,34 +55,24 @@ const NavbarCenterTitle = styled(Text)`
   padding: ${spacing("buttonPadding")};
 `;
 
-// // TODO create this component and add here
-// const TempRunSettings = styled.div`
-//   width: 100px;
-//   height: 100px;
-//   background: #1a1d20;
-//   position: absolute;
-//   top: ${spacing("navbarHeight")};
-//   color: #fff;
-//   align-self: center;
-//   font-size: ${fontSize("small")};
-// `;
-
 export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
   title,
-  titleTx,
-  titleData,
-  titleComponents,
   onNavigateHome,
   onOpenSettings,
   onOpenHelp,
 
   ...rest
 }) => {
+  const [runName, setRunName] = useState<string>(title as string);
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
     useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
+
+  const onChangeRunName = (newRunName: string) => {
+    setRunName(newRunName);
+  };
 
   return (
     <FlexColumn {...rest}>
@@ -91,12 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
-          <NavbarCenterTitle
-            text={allowRunEdit ? title : "PROTzilla"}
-            tx={allowRunEdit ? titleTx : "PROTzilla"}
-            txData={allowRunEdit ? titleData : undefined}
-            txComponents={allowRunEdit ? titleComponents : undefined}
-          />
+          <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
           {allowRunEdit && (
             <Button
               icon={"edit"}
@@ -104,7 +89,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           )}
           {isRunSettingsOpen && (
-            <RunEditMenu runName={title as string} ref={refRunSettings} />
+            <RunEditMenu
+              runName={title as string}
+              onChangeRunName={onChangeRunName}
+              ref={refRunSettings}
+            />
           )}
         </NavbarCenter>
 
