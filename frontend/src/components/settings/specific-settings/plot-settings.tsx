@@ -90,7 +90,7 @@ export const PlotSettings = () => {
   };
 
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   const [fileFormat, setFileFormat] = useState<string>("");
   const [width, setWidth] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
@@ -192,12 +192,10 @@ export const PlotSettings = () => {
     return (
       <SectionTitle
         baseComponent={"h6"}
-        description={
-          "Loading plot export settings ..."
-        }
+        description={"Loading plot export settings ..."}
         style={{ paddingBottom: "20px" }}
       />
-    )
+    );
   }
 
   return (
