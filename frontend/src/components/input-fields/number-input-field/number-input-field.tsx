@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { color, fontSize, size, spacing } from "../../../theme";
+import {
+  border,
+  borderColors,
+  color,
+  fontSize,
+  size,
+  spacing,
+} from "../../../theme";
 import { InputContainer } from "../frame-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
+import { GrayButton } from "../../button";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
@@ -16,12 +24,34 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
+const StepButtonContainer = styled.div`
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  margin-right: -${spacing("verySmall")};
+`;
+
+const StepButton = styled(GrayButton)`
+  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
+  border-radius: 0px;
+  background-color: #e4e4e5;
+  min-height: 0px;
+  padding: 0px;
+  .icon svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
 export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   value = 0,
   placeholder,
   min,
   max,
   step,
+  hasStepButtons = false,
   isInteger = false,
   onChange,
   ...props
@@ -55,6 +85,32 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     }
   };
 
+  const handleClick = (
+    e:
+      | React.PointerEvent<HTMLButtonElement>
+      | React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    const { id } = e.currentTarget;
+    setValue((prevValue) => {
+      const stepValue = step ?? 1;
+      let updatedValue = prevValue;
+      if (id === "up") {
+        updatedValue = prevValue + stepValue;
+        if (max !== undefined && updatedValue > max) {
+          updatedValue = max;
+        }
+      } else if (id === "down") {
+        updatedValue = prevValue - stepValue;
+        if (min !== undefined && updatedValue < min) {
+          updatedValue = min;
+        }
+      }
+      setDisplayValue(String(updatedValue));
+      onChange(updatedValue);
+      return updatedValue;
+    });
+  };
+
   return (
     <InputContainer {...props}>
       <StyledInput
@@ -70,6 +126,22 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         $isSmall={props.isSmall ?? false}
         {...props}
       />
+      {hasStepButtons && (
+        <StepButtonContainer>
+          <StepButton
+            id="up"
+            onPress={handleClick}
+            icon="triangleUp"
+            color="text"
+          />
+          <StepButton
+            id="down"
+            onPress={handleClick}
+            icon="triangleDown"
+            color="text"
+          />
+        </StepButtonContainer>
+      )}
     </InputContainer>
   );
 };

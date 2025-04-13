@@ -9,6 +9,7 @@ export interface NumberInputFieldProps
   min?: number;
   max?: number;
   step?: number;
+  hasStepButtons?: boolean;
   isInteger?: boolean;
   onChange: (value: number) => void;
 }
