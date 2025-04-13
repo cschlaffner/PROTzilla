@@ -38,16 +38,15 @@ export const EmptyRunScreen: React.FC = () => {
           console.log("onChange");
         }}
         formData={{
-          label: "Run Name",
+          label: "Dummy",
           isAutoSubmit: false,
+          hasChangeIndicator: true,
           input_fields: [
             {
               type: "text",
-              name: runName,
+              name: "dummy",
               props: {
-                label: "Run name:",
-                value: runName,
-                placeholder: "Run name",
+                label: "Dummy name:",
               },
             },
           ],

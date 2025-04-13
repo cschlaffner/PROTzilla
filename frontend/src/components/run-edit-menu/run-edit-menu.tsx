@@ -6,7 +6,6 @@ import { spacing } from "../../theme";
 import { callApi, callApiWithParameters, Run } from "../../utils";
 import { Card } from "../card";
 import { Form } from "../forms/form";
-import { Icon } from "../icon";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
@@ -29,14 +28,10 @@ const Row = styled.div`
   padding-bottom: ${spacing("verySmall")};
 `;
 
-const HeaderRow = styled(Row)`
-  padding-bottom: ${spacing("small")};
-  justify-content: space-between;
-`;
 const TagMenuWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: ${spacing("large")};
+  padding-top: ${spacing("small")};
   gap: ${spacing("small")};
 `;
 
@@ -94,10 +89,6 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
     return (
       <MenuWrapper ref={ref} id={"run-edit-menu"}>
         <StyledCard>
-          <HeaderRow>
-            <SectionTitle baseComponent={"h3"} title={"Edit run: " + runName} />
-            <Icon icon={"edit"} />
-          </HeaderRow>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Date created: "} />
             <Text>{selectedRun.creation_date}</Text>
@@ -114,12 +105,13 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
             formData={{
               label: "",
               isAutoSubmit: false,
+              hasChangeIndicator: false,
               input_fields: [
                 {
                   type: "text",
                   name: "run_name",
                   props: {
-                    label: "Run name:",
+                    label: "Enter a new name:",
                     value: runName,
                   },
                 },
