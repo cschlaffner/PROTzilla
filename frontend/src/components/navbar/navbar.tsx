@@ -7,6 +7,7 @@ import { FlexColumn } from "../box";
 import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
+import { Settings } from "../settings/settings.tsx";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -73,13 +74,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   titleData,
   titleComponents,
   onNavigateHome,
-  onOpenSettings,
   onOpenHelp,
 
   ...rest
 }) => {
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
     useToggleableState();
+  const [isSettingsOpen, openSettings, closeSettings] =
+    useToggleableState(false);
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
 
@@ -113,9 +115,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <NavbarRight>
           <Button icon={"help"} onPress={onOpenHelp} />
-          <Button icon={"settings"} onPress={onOpenSettings} />
+          <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>
       </NavbarBody>
+      <Settings isOpen={isSettingsOpen} onClose={closeSettings} />
     </FlexColumn>
   );
 };

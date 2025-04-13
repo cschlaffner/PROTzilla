@@ -9,8 +9,8 @@ import {
   useNotification,
 } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { defaultPalette } from "../theme";
 import { callApi, callApiWithParameters } from "../utils";
+import { Navbar } from "../components/navbar";
 
 export const IndexScreen: React.FC = () => {
   const [newRunName, setNewRunName] = useState("");
@@ -72,18 +72,11 @@ export const IndexScreen: React.FC = () => {
 
   return (
     <div className="min-vh-100 w-100 bg-light">
-      <header
-        style={{
-          backgroundColor: defaultPalette.primary, // Verwendung der Theme-Farbe
-          color: defaultPalette.onPrimary,
-        }}
-        className=" text-white py-3 px-4 d-flex justify-content-between align-items-center"
-      >
-        <h1 className="h4 mb-0">PROTzilla</h1>
-        <a href="https://github.com" className="text-white">
-          GitHub
-        </a>
-      </header>
+      <Navbar
+        onNavigateHome={() => {}}
+        onOpenHelp={() => {}}
+        allowRunEdit={false}
+      />
       <Container>
         <Row
           gutterWidth={16}

@@ -2,16 +2,24 @@ import React from "react";
 
 import { NavbarProps } from "./navbar.props.ts";
 import { Navbar } from "./navbar.tsx";
+import { NotificationCenter } from "../notification-center";
+import { Meta } from "@storybook/react";
 
 export default {
   component: Navbar,
   title: "Navbar",
   argTypes: {
     onNavigateHome: { action: "back" },
-    onOpenSettings: { action: "open settings" },
     onOpenHelp: { action: "open help" },
   },
-};
+  decorators: [
+    (Story) => (
+      <NotificationCenter>
+        <Story />
+      </NotificationCenter>
+    ),
+  ],
+} as Meta;
 
 export const runOverview = (args: NavbarProps): React.ReactNode => (
   <Navbar {...args} />
