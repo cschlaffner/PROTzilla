@@ -21,6 +21,7 @@ primary.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: true,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
@@ -59,6 +60,7 @@ submit.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: false,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
