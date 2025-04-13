@@ -20,10 +20,10 @@ const StyledSingleCheckboxContainer = styled(StyledCheckboxContainer)`
 export const SingleCheckboxInputField: React.FC<
   SingleCheckboxInputFieldProps
 > = ({ value: initialValue, text, onChange, ...props }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(initialValue);
+  const [isChecked, setIsChecked] = useState<boolean>(initialValue as boolean);
 
   useEffect(() => {
-    onChange(initialValue);
+    onChange(initialValue as boolean);
   }, [initialValue, onChange]);
 
   const handleChange = (value: boolean) => {

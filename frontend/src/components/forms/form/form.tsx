@@ -13,6 +13,7 @@ import { RadioSelectInputField } from "../../input-fields/radio-select-input-fie
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { Text } from "../../text";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 
 const StyledForm = styled.div`
   width: 100%;
@@ -159,6 +160,10 @@ const InputField: React.FC<InputFieldProps> = ({
           options={options ?? []}
           {...props}
         />
+      );
+    case "single-checkbox":
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
       );
     case "dropdown":
       return (

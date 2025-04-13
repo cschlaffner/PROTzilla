@@ -6,6 +6,7 @@ import { NumberInputFieldProps } from "../../input-fields/number-input-field";
 import { RadioSelectInputFieldProps } from "../../input-fields/radio-select-input-field";
 import { SearchInputFieldProps } from "../../input-fields/search-input-field";
 import { TextInputFieldProps } from "../../input-fields/text-input-field";
+import { SingleCheckboxInputFieldProps } from "../../input-fields/checkbox-input-fields/single-checkbox";
 
 export interface FormProps {
   formData: FormData;
@@ -42,6 +43,11 @@ export type InputField =
       props: Omit<CheckboxSelectInputFieldProps, "onChange">;
     }
   | {
+      type: "single-checkbox";
+      name: string;
+      props: Omit<SingleCheckboxInputFieldProps, "onChange">;
+    }
+  | {
       type: "multi-select";
       name: string;
       props: Omit<MultiSelectInputFieldProps, "onChange">;
@@ -63,6 +69,7 @@ type InputFields =
   | SearchInputFieldProps
   | RadioSelectInputFieldProps
   | CheckboxSelectInputFieldProps
+  | SingleCheckboxInputFieldProps
   | MultiSelectInputFieldProps
   | DropdownInputFieldProps
   | FileInputFieldProps;
