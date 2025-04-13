@@ -1,22 +1,23 @@
-import { TagList } from "./taglist.tsx";
-import { Form } from "../forms/form";
-import { SearchInputField } from "../input-fields/search-input-field";
 import React, { useEffect } from "react";
 import { styled } from "styled-components";
+
+import { TagList } from "./taglist.tsx";
 import { spacing } from "../../theme";
 import { callApi, Run } from "../../utils";
+import { Form } from "../forms/form";
+import { SearchInputField } from "../input-fields/search-input-field";
 
 const StyledModalChild = styled.div`
   padding: ${spacing("small")};
 `;
 
-export interface tagMenuProps {
+export interface TagMenuProps {
   selectedRun: Run;
   handleAddTag: (tag: string) => void;
   handleDeleteTag: (tag: string) => void;
 }
 
-export const TagMenu: React.FC<tagMenuProps> = ({
+export const TagMenu: React.FC<TagMenuProps> = ({
   selectedRun,
   handleAddTag,
   handleDeleteTag,
@@ -42,7 +43,7 @@ export const TagMenu: React.FC<tagMenuProps> = ({
     tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
   );
 
-  const onHandleAddTag = async (tag: string) => {
+  const onHandleAddTag = (tag: string) => {
     handleAddTag(tag);
     void fetchData();
   };
@@ -71,7 +72,7 @@ export const TagMenu: React.FC<tagMenuProps> = ({
           ],
         }}
         onChange={(data) => {
-          void onHandleAddTag(data.tag as string);
+          onHandleAddTag(data.tag as string);
         }}
       ></Form>
       <SearchInputField
@@ -88,7 +89,9 @@ export const TagMenu: React.FC<tagMenuProps> = ({
           runName={selectedRun.run_name}
           tags={filteredAddableTags}
           icon="add"
-          handleTag={onHandleAddTag}
+          handleTag={(tag: string) => {
+            onHandleAddTag(tag);
+          }}
         />
       </StyledModalChild>
     </div>

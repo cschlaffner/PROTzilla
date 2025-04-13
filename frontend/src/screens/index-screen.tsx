@@ -6,9 +6,9 @@ import { styled } from "styled-components";
 import { Card, Form, Modal, RunsTable, Workflow } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { Navbar } from "../components/navbar";
+import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
-import { TagMenu } from "../components/taglist/tag-menu.tsx";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
