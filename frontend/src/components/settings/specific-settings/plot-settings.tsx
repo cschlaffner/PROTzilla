@@ -11,6 +11,7 @@ import {
   fontWeight,
   spacing,
 } from "../../../theme";
+import { callApi } from "../../../utils";
 import { SecondaryButton } from "../../button";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
@@ -88,15 +89,35 @@ export const PlotSettings = () => {
     },
   };
 
-  // To do: Remove default values when API is available
-  const [fileFormat, setFileFormat] = useState<string>("svg");
-  const [width, setWidth] = useState<number>(50);
-  const [height, setHeight] = useState<number>(30);
-  const [selectedFont, setFont] = useState<string>("Arial");
-  const [customFont, setCustomFont] = useState<string>("Ubuntu Mono");
-  const [headingSize, setHeadingSize] = useState<number>(15);
-  const [textSize, setTextSize] = useState<number>(10);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  const [fileFormat, setFileFormat] = useState<string>("");
+  const [width, setWidth] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
+  const [selectedFont, setFont] = useState<string>("");
+  const [customFont, setCustomFont] = useState<string>("");
+  const [headingSize, setHeadingSize] = useState<number>(0);
+  const [textSize, setTextSize] = useState<number>(0);
   const [plot, updatePlot] = useState(examplePlot);
+
+  const loadPlotSettings = async () => {
+    const plotSettings = await callApi("load_settings");
+    if (plotSettings) {
+      console.log(plotSettings);
+      setFileFormat(plotSettings.file_format);
+      setWidth(plotSettings.width);
+      setHeight(plotSettings.height);
+      setFont(plotSettings.font);
+      setCustomFont(plotSettings.custom_font);
+      setHeadingSize(plotSettings.heading_size);
+      setTextSize(plotSettings.text_size);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void loadPlotSettings();
+  }, []);
 
   useEffect(() => {
     const sizeRatio = width / height;
@@ -167,6 +188,18 @@ export const PlotSettings = () => {
   ];
   const isCustomSelected = !fonts.includes(selectedFont);
 
+  if (loading) {
+    return (
+      <SectionTitle
+        baseComponent={"h6"}
+        description={
+          "Loading plot export settings ..."
+        }
+        style={{ paddingBottom: "20px" }}
+      />
+    )
+  }
+
   return (
     <div>
       <SectionTitle
@@ -177,7 +210,7 @@ export const PlotSettings = () => {
       <SectionTitle
         baseComponent={"h6"}
         description={
-          "The configurations made here are automatically applied to all exported plots from PROTzilla."
+          "The configurations made here are automatically applied to all plots that will be exported with PROTzilla."
         }
         style={{ paddingBottom: "20px" }}
       />
