@@ -1,23 +1,9 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  FileInputField,
-  InputValueType,
-  SecondaryButton,
-  SingleCheckboxInputField,
-  Text,
-  TextInputField,
-} from "../../../components";
+import { Form, SecondaryButton, SectionTitle, Text } from "../../../components";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
-import { SectionTitle } from "../../section-title";
-
-const SettingsDiv = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${spacing("verySmall")};
-`;
 
 const DatabasesTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
@@ -127,9 +113,6 @@ const DatabaseEntry = ({
 
 export const DatabaseSettings = () => {
   const [databaseList, setDatabaseList] = useState<DatabaseEntryProps[]>([]);
-  const [shouldVerifyCheckbox, setShouldVerifyCheckbox] = useState(false);
-  const [databaseName, setDatabaseName] = useState<string>("");
-  const [databaseFile, setDatabaseFile] = useState<string>("");
 
   const fetchDatabases = async () => {
     const databases = await callApi("databases");
@@ -142,26 +125,16 @@ export const DatabaseSettings = () => {
     void fetchDatabases();
   }, []);
 
-  const handleNameChange = (value: InputValueType) => {
-    setDatabaseName(value as string);
-  };
-
-  const handleFileChange = (value: string) => {
-    setDatabaseFile(value);
-  };
-
-  const handleCheckboxChange = (value: boolean) => {
-    setShouldVerifyCheckbox(value);
-  };
-
-  const handleAddDatabase = async () => {
+  const handleAddDatabase = async (
+    databaseName: string,
+    databaseFile: string,
+    shouldVerify: boolean,
+  ) => {
     await callApiWithParameters("upload_database", {
       name: databaseName,
-      just_copy: shouldVerifyCheckbox ? "True" : "False",
+      just_copy: shouldVerify ? "True" : "False",
       file: databaseFile,
     });
-    setDatabaseName("");
-    setDatabaseFile("");
     void fetchDatabases();
   };
 
@@ -186,30 +159,43 @@ export const DatabaseSettings = () => {
         }
         style={{ paddingBottom: "8px" }}
       />
-      <SettingsDiv>
-        <TextInputField
-          value={databaseName}
-          onChange={handleNameChange}
-          label={"Name for new database (required):"}
-        />
-        <FileInputField
-          value={databaseFile}
-          placeholder={"path/to/database/file.tsv"}
-          onChange={handleFileChange}
-          label={"Database file (required):"}
-        />
-        <SingleCheckboxInputField
-          value={shouldVerifyCheckbox}
-          text={"Copy file without verification and protein count"}
-          onChange={handleCheckboxChange}
-          label={"Verification"}
-        />
-        <SecondaryButton
-          text={"Add database"}
-          onPress={() => void handleAddDatabase()}
-          style={{ width: "30%" }}
-        />
-      </SettingsDiv>
+      <Form
+        formData={{
+          label: "",
+          isAutoSubmit: false,
+          input_fields: [
+            {
+              type: "text",
+              name: "database_name",
+              props: {
+                label: "Name for new database (required):",
+              },
+            },
+            {
+              type: "file",
+              name: "database_file",
+              props: {
+                label: "Database file (required):",
+              },
+            },
+            {
+              type: "single-checkbox",
+              name: "verification_checkbox",
+              props: {
+                label: "Verification",
+                text: "Copy file without verification and protein count.",
+              },
+            },
+          ],
+        }}
+        onChange={(data) => {
+          void handleAddDatabase(
+            data.database_name as string,
+            data.database_file as string,
+            data.verification_checkbox === "true",
+          );
+        }}
+      />
       <DatabasesTitle
         baseComponent={"h2"}
         title={"Available Uniprot Databases"}

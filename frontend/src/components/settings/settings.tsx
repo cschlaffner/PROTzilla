@@ -46,8 +46,6 @@ const SpecificSettings = styled.div`
   overflow-y: auto;
 `;
 
-//const settingsSections = ["plot", "database"];
-
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [selectedSetting, setSelectedSetting] = useState("plot");
 
