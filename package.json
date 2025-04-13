@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "precheck": "lint-staged"
   },
   "keywords": [],
   "author": "",
