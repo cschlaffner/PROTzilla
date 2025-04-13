@@ -14,12 +14,11 @@ import {
   SquareButton,
   ToggleableButton,
 } from "./button";
-
 import { ButtonProps } from "./button.props";
 
 export default {
   component: Button,
-  title: "ButtonTest",
+  title: "Button",
   argTypes: { onPress: { action: "pressed" } },
 };
 
