@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-grid-system";
+import { useNavigate } from "react-router-dom";
 
-import {
-  Button,
-  Card,
-  Dropdown,
-  TextField,
-  useNotification,
-} from "../components";
+import { Button, Card, Dropdown, TextField } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { defaultPalette } from "../theme";
 import { callApi, callApiWithParameters } from "../utils";
@@ -17,15 +12,13 @@ export const IndexScreen: React.FC = () => {
   const [workflow, setWorkflow] = useState("standard");
   const [memoryMode, setMemoryMode] = useState("standard");
   const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([
-    { value: "run", label: "run" },
-  ]);
+  const [runs, setRuns] = useState<{ value: string; label: string }[]>([]);
   const [title, setTitle] = useState("Loading...");
-  const notify = useNotification();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("step_name_list");
+      const data = await callApi("step_name_list/");
       if (data) {
         setTitle(data);
       }
@@ -33,12 +26,21 @@ export const IndexScreen: React.FC = () => {
 
     void fetchData();
   }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("run_information/");
+      if (data) {
+        const runs: string[] = data[0].map(
+          (run: Record<string, string | string[]>) => run.run_name,
+        );
+        setRuns(runs.map((run_name) => ({ value: run_name, label: run_name })));
+      }
+    };
 
-  const onCreateClick = () => {
-    void handleCreateRun();
-  };
+    void fetchData();
+  }, []);
 
-  const handleCreateRun = async () => {
+  const handleCreateRun = () => {
     if (runs.some((run: { value: string }) => run.value === newRunName)) {
       alert("A run with this name already exists!");
       return;
@@ -46,25 +48,22 @@ export const IndexScreen: React.FC = () => {
     setRuns([...runs, { value: newRunName, label: newRunName }]);
     setNewRunName("");
     console.log(runs);
-    const data = await callApiWithParameters("add_run/", {
+    void callApiWithParameters("add_run/", {
       run_name: newRunName,
       workflow_name: "standard",
       df_mode_name: "disk_memory",
-    });
-    console.log(data.message);
-    notify({
-      type: data.success ? "success" : "error",
-      title: data.message,
-      message: `Congratulations! New Run "${newRunName}" created!`,
-      closeAfterMs: 5000,
     });
   };
 
   const handleContinueRun = () => {
     console.log("Continue Run:", existingRun);
+    void callApiWithParameters("continue_run/", { run_name: existingRun }).then(() => {
+      void navigate("/run", { state: { existingRun } });
+    });
   };
 
   const handleDeleteRun = () => {
+    void callApiWithParameters("delete_run/", { run_name: existingRun });
     setRuns(runs.filter((run: { value: string }) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
     console.log(runs);
@@ -126,7 +125,10 @@ export const IndexScreen: React.FC = () => {
                 }}
                 className="mb-3"
               />
-              <Button className="btn btn-primary w-100" onClick={onCreateClick}>
+              <Button
+                className="btn btn-primary w-100"
+                onClick={handleCreateRun}
+              >
                 Create
               </Button>
             </Card>
@@ -152,8 +154,29 @@ export const IndexScreen: React.FC = () => {
               <Button
                 className="btn btn-primary w-100 mb-2"
                 onClick={() =>
+                  void callApiWithParameters("toggle_favourite/", {
+                    run_name: existingRun,
+                  })
+                }
+              >
+                Toggle Favourite
+              </Button>
+              <Button
+                className="btn btn-primary w-100 mb-2"
+                onClick={() =>
+                  void callApiWithParameters("add_tag/", {
+                    run_name: existingRun,
+                    tag_name: "test",
+                  })
+                }
+              >
+                Add Tag: test
+              </Button>
+              <Button
+                className="btn btn-primary w-100 mb-2"
+                onClick={() =>
                   void callApiWithParameters("delete_tag/", {
-                    run_name: "BingChilling",
+                    run_name: existingRun,
                     tag_name: "test",
                   })
                 }

@@ -8,6 +8,7 @@ import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
 import { CountersScreen, IndexScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
+import { EmptyRunScreen } from "../screens/empty-run-screen.tsx";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
                   <Route path="/counters" element={<CountersScreen />} />
+                  <Route path="/run" element={<EmptyRunScreen />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
