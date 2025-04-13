@@ -1,8 +1,7 @@
 custom_font: ''
 file_format: svg
 font: Arial
-heading_size: 11
+heading_size: 20
 height: 60
-section_id: plots
-text_size: 8
-width: 85
+text_size: 12
+width: 70

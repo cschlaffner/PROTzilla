@@ -5,7 +5,6 @@ import { NavbarProps } from "./navbar.props.ts";
 import { Navbar } from "./navbar.tsx";
 import { NotificationCenter } from "../notification-center";
 
-
 export default {
   component: Navbar,
   title: "Navbar",

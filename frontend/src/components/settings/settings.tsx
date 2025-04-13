@@ -87,7 +87,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             />
           </SectionSelection>
           <SpecificSettings>
-            {selectedSetting === "plot" && <PlotSettings />}
+            {selectedSetting === "plot" && <PlotSettings isOpen={isOpen} />}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <Github />}
           </SpecificSettings>

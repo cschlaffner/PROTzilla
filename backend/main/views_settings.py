@@ -17,12 +17,7 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 # <--- Plot Export --->
 
-def load_settings(request) -> dict: # param before: section_id: str
-    """
-    Loads the stored settings for a given settings section.
-    :param section_id: The ID of the section that should be loaded.
-    :return: Dict containing the loaded settings for given section.
-    """
+def load_settings(request):
     op = YamlOperator()
     path = SETTINGS_PATH / ("plots" + ".yaml")
     if path.exists():
@@ -30,21 +25,23 @@ def load_settings(request) -> dict: # param before: section_id: str
     else:
         default_path = SETTINGS_PATH / ("plots_default.yaml")
         settings = op.read(default_path)
-        #save_settings(settings, section_id)
+        # save_settings(settings, section_id)
     return JsonResponse(settings)
 
+def save_settings(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode("utf-8"))
+        op = YamlOperator()
+        path = SETTINGS_PATH / ("plots_default.yaml")
+        op.write(path, data)
+        # TODO Update Plotly template that is used in run screen
+        return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=200)
+    
 # TODO Include the following methods and functionalities from PROTzilla2
 
-# def save_settings(params: dict, section_id: str):
-#     """
-#     Writes settings into settings section file.
-#     :param params: Dict with parameter and values from this settings section.
-#     :param section_id: The ID of the section.
-#     """
-#     op = YamlOperator()
-#     path = SETTINGS_PATH / (section_id + ".yaml")
-#     op.write(path, params)
-#     if section_id == "plots" and isinstance(template, PlotTemplate):
+# (from save_settings() )
+# if section_id == "plots" and isinstance(template, PlotTemplate):
 #         template.update(params)
 #         template.apply()
 

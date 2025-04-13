@@ -11,8 +11,8 @@ import {
   fontWeight,
   spacing,
 } from "../../../theme";
-import { callApi } from "../../../utils";
-import { SecondaryButton } from "../../button";
+import { callApi, callApiWithParameters } from "../../../utils";
+import { Button } from "../../button";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { NumberInputField } from "../../input-fields/number-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
@@ -40,7 +40,11 @@ export const Label = styled(Text)`
   margin: 4px 0;
 `;
 
-export const PlotSettings = () => {
+interface PlotSettingsProps {
+  isOpen: boolean;
+}
+
+export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen }) => {
   const examplePlot = {
     data: [
       {
@@ -103,7 +107,6 @@ export const PlotSettings = () => {
   const loadPlotSettings = async () => {
     const plotSettings = await callApi("load_settings");
     if (plotSettings) {
-      console.log(plotSettings);
       setFileFormat(plotSettings.file_format);
       setWidth(plotSettings.width);
       setHeight(plotSettings.height);
@@ -117,7 +120,7 @@ export const PlotSettings = () => {
 
   useEffect(() => {
     void loadPlotSettings();
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     const sizeRatio = width / height;
@@ -175,8 +178,16 @@ export const PlotSettings = () => {
   const handleTextSizeChange = (value: number) => {
     setTextSize(value);
   };
-  const handleSaving = () => {
-    console.log("Saving is not implemented yet.");
+  const handleSaving = async () => {
+    await callApiWithParameters("save_settings", {
+      file_format: fileFormat,
+      width: width as unknown as string,
+      height: height as unknown as string,
+      font: selectedFont,
+      custom_font: customFont,
+      heading_size: headingSize as unknown as string,
+      text_size: textSize as unknown as string,
+    });
   };
 
   const fonts = [
@@ -347,7 +358,7 @@ export const PlotSettings = () => {
         </Col>
       </Row>
 
-      <SecondaryButton text={"Save"} onPress={handleSaving} />
+      <Button text={"Save & Quit"} onPress={() => void handleSaving()} />
     </div>
   );
 };

@@ -48,6 +48,7 @@ urlpatterns = [
     path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
 
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
+    path("api/save_settings", views_settings.save_settings, name="save_settings"),
     path("api/databases", views_settings.get_databases, name="get_databases"),
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),
