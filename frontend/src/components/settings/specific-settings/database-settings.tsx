@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { Form, SecondaryButton, Text } from "../../../components";
-import { SectionTitle } from "../../section-title";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
+import { SectionTitle } from "../../section-title";
 
 const DatabasesTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
