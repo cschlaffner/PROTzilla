@@ -4,16 +4,18 @@ import {styled } from "styled-components"
 import { color, defaultPalette } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
 import { SecondaryButton } from "../button"
+import { DeleteModal } from "../modal"
 import { Icon } from "../icon"
 import { RunsTableProps } from "./runs-table.props"
 import { TagList } from "../taglist"
+import { useEffect, useRef, useState } from "react"
 
 const TableContainer = styled.div`
   display: flex;
   flex-direction: column;
 `
 
-const TableRow = styled.div`
+const TableRow = styled.div<{ preSelected?: boolean }>`
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -22,6 +24,16 @@ const TableRow = styled.div`
   &:nth-of-type(even) {
     background-color: ${color("protzillaLightBlue")};
   }
+
+  ${({ preSelected, theme }) =>
+    preSelected
+      ? `
+          border: ${theme.borders.defaultStrength} solid ${theme.colors.primary};
+          border-radius: ${theme.borders.defaultRadius};
+        `
+      : `
+          border: none;
+        `}
 `
 
 const TableCol = styled.div<{ width?: string }>`
@@ -35,7 +47,6 @@ const TableHeader = styled(TableRow)`
   border-bottom: 2px solid #ccc;
   padding-bottom: 4px;
 `
-//this is only used for the  column with tags, could this  be incorporated with TableCol?
 const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -46,6 +57,24 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   runs, filteredRuns, setRuns, openModal, setSelectedRun
 }) => {
   const navigate = useNavigate();
+  
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tableRef.current && !tableRef.current.contains(event.target as Node)) {
+        setPreSelectedRun(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
 
   const handleDeleteTag = (tagToDelete: string, runName: string) => {
     void callApiWithParameters("delete_tag/", {
@@ -74,6 +103,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const handleDeleteRun = (runName: string) => {
     void callApiWithParameters("delete_run/", { run_name: runName });
     const updated = runs.filter((run) => run.run_name !== runName);
+    setIsDeleteModalOpen(false);
     setRuns(updated);
   };
 
@@ -87,7 +117,6 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     setSelectedRun(run);
     openModal(true)
   }
-
   
 
   return (
@@ -97,8 +126,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         <TableCol width="200px">Run Name</TableCol>
         <TableCol width="150px">Last edited</TableCol>
         <TableCol>Tags</TableCol>
-        <TableCol width="80px">Actions</TableCol>
-        <TableCol width="100px">Continue</TableCol>
+        <TableCol width="160px">Actions</TableCol>
       </TableHeader>
 
       {[...filteredRuns]
@@ -107,10 +135,26 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         .map((run) => (
         
             
-        <TableRow key={run.run_name}>
+        <TableRow key={run.run_name}
+          onDoubleClick={() => {handleContinueRun(run.run_name);}}
+          onClick={() => {
+            if (preSelectedRun === run.run_name) {
+              handleContinueRun(run.run_name);
+            } else {
+              setPreSelectedRun(run.run_name);
+            }
+          }}
+          preSelected={run.run_name === preSelectedRun}
+          style={{ 
+            cursor: "pointer",
+          }}
+        >
           <TableCol 
             width="50px" 
-            onClick={() => { handleToggleFavourite(run.run_name); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleFavourite(run.run_name);
+            }}
             style={{ cursor: "pointer"}}
             >            
             <Icon
@@ -126,12 +170,18 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           <TableCol>
             <StyledList>
               <TagList runName={run.run_name} tags={run.run_tags} icon="close" handleTag={handleDeleteTag}/>
-              <SecondaryButton isSmall={true} isShy={true} onClick={() => { handleModal(run); }}>
+              <SecondaryButton 
+                isSmall={true} 
+                isShy={true} 
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  handleModal(run);
+                }}>
                 <Icon icon={"threeDots"} style={{ height: "15px", fill: defaultPalette.primary }} />
               </SecondaryButton>
             </StyledList>
           </TableCol>
-          <TableCol width="80px">
+          <TableCol width="170px">
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
             </SecondaryButton>
@@ -139,17 +189,24 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               isSmall={true} 
               isShy={true} 
               isCautious={true} 
-              onClick={() => { handleDeleteRun(run.run_name); }}
-            >
+              onClick={(e) => {
+                e.stopPropagation(); 
+                setIsDeleteModalOpen(true);
+              }}>
               <Icon icon={"trash"} style={{ height: "15px" }} />
             </SecondaryButton>
-          </TableCol>
-          <TableCol width="100px">
+            <DeleteModal title={`Delete run "${run.run_name}"?`} isOpen={isDeleteModalOpen} onConfirm={() => { handleDeleteRun(run.run_name); }} onClose={() => {setIsDeleteModalOpen(false); }}></DeleteModal>
             <SecondaryButton 
-            isSmall={true} 
-            onClick={() => { handleContinueRun(run.run_name); }}
-            >
-              Continue
+              isSmall={true} 
+              isShy={true}
+              isCautious={true}
+              onClick={(e) => {
+                e.stopPropagation(); 
+                handleContinueRun(run.run_name);
+              }}>
+              <Icon icon={"play"} style={{ height: "15px" }} />  
+              Go!
+
             </SecondaryButton>
           </TableCol>
         </TableRow>
