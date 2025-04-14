@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
@@ -54,9 +54,7 @@ export const Form: React.FC<FormProps> = memo(function Form({
   const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
     {},
   );
-  const [submittedValues, setSubmittedValues] = useState<
-    Record<string, InputValueType>
-  >({});
+  const submittedValuesRef = useRef<Record<string, InputValueType>>({});
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
@@ -65,10 +63,12 @@ export const Form: React.FC<FormProps> = memo(function Form({
       setFormValues((prevValues) => {
         const newValues = { ...prevValues, [name]: value };
         const hasChanges =
-          JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+          JSON.stringify(newValues) !==
+          JSON.stringify(submittedValuesRef.current);
 
         const isFirstEntryForId = !(name in prevValues);
         if (isFirstEntryForId) {
+          submittedValuesRef.current = newValues;
           return newValues;
         }
 
@@ -91,18 +91,12 @@ export const Form: React.FC<FormProps> = memo(function Form({
         return newValues;
       });
     },
-    [
-      formData,
-      hasformTouchedTriggered,
-      onChange,
-      onFormTouched,
-      submittedValues,
-    ],
+    [formData, hasformTouchedTriggered, onChange, onFormTouched],
   );
 
   const handleSubmit = () => {
     onChange(formValues);
-    setSubmittedValues(formValues);
+    submittedValuesRef.current = formValues;
     setIsChanged(false);
     setHasFormTouchedTriggered(false);
   };
@@ -144,6 +138,7 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
 }) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
+    console.log("InputField", name, value);
   };
 
   switch (type) {
