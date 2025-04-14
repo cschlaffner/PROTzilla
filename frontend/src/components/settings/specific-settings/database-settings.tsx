@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { Form, SecondaryButton, SectionTitle, Text } from "../../../components";
+import { Form, SecondaryButton, Text } from "../../../components";
+import { SectionTitle } from "../../section-title";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
 
