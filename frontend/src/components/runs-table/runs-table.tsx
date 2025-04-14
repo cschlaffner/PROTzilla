@@ -8,7 +8,7 @@ import { DeleteModal } from "../modal"
 import { Icon } from "../icon"
 import { RunsTableProps } from "./runs-table.props"
 import { TagList } from "../taglist"
-import { useEffect, useRef, useState } from "react"
+import {useState } from "react"
 
 const TableContainer = styled.div`
   display: flex;
@@ -58,23 +58,9 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  const tableRef = useRef<HTMLDivElement>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (tableRef.current && !tableRef.current.contains(event.target as Node)) {
-        setPreSelectedRun(null);
-      }
-    };
-  
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  
+  const [actionRun, setActionRun] = useState<string>("");
 
   const handleDeleteTag = (tagToDelete: string, runName: string) => {
     void callApiWithParameters("delete_tag/", {
@@ -116,6 +102,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const handleModal = (run: Run) => {
     setSelectedRun(run);
     openModal(true)
+  }
+
+  const handleDeleteModal = (runName: string) => {
+    setActionRun(runName);
+    setIsDeleteModalOpen(true)
   }
   
 
@@ -174,8 +165,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                 isSmall={true} 
                 isShy={true} 
                 onClick={(e) => {
-                  e.stopPropagation(); 
                   handleModal(run);
+                  e.stopPropagation(); 
                 }}>
                 <Icon icon={"threeDots"} style={{ height: "15px", fill: defaultPalette.primary }} />
               </SecondaryButton>
@@ -190,12 +181,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               isShy={true} 
               isCautious={true} 
               onClick={(e) => {
+                handleDeleteModal(run.run_name);
                 e.stopPropagation(); 
-                setIsDeleteModalOpen(true);
               }}>
               <Icon icon={"trash"} style={{ height: "15px" }} />
             </SecondaryButton>
-            <DeleteModal title={`Delete run "${run.run_name}"?`} isOpen={isDeleteModalOpen} onConfirm={() => { handleDeleteRun(run.run_name); }} onClose={() => {setIsDeleteModalOpen(false); }}></DeleteModal>
             <SecondaryButton 
               isSmall={true} 
               isShy={true}
@@ -211,6 +201,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           </TableCol>
         </TableRow>
       ))}
+      <DeleteModal title={`Delete run "${actionRun}"?`} isOpen={isDeleteModalOpen} onConfirm={() => { handleDeleteRun(actionRun); }} onClose={() => {setIsDeleteModalOpen(false); }}></DeleteModal>
     </TableContainer>
   )
 }
