@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { SectionTitle } from "../components";
-import { Form } from "../components/forms/form";
 import { Navbar } from "../components/navbar";
 
 export const EmptyRunScreen: React.FC = () => {
@@ -32,25 +31,6 @@ export const EmptyRunScreen: React.FC = () => {
           "dummy run screen for this component, will not be pushed with this PR"
         }
         description={""}
-      />
-      <Form
-        onChange={() => {
-          console.log("onChange");
-        }}
-        formData={{
-          label: "Dummy",
-          isAutoSubmit: false,
-          hasChangeIndicator: true,
-          input_fields: [
-            {
-              type: "text",
-              name: "dummy",
-              props: {
-                label: "Dummy name:",
-              },
-            },
-          ],
-        }}
       />
     </div>
   );

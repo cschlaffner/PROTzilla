@@ -2,10 +2,11 @@ import { forwardRef, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { RunEditMenuProps } from "./run-edit-menu.props.ts";
-import { spacing } from "../../theme";
+import { defaultPalette, spacing } from "../../theme";
 import { callApi, callApiWithParameters, Run } from "../../utils";
 import { formatDate } from "../../utils/format-date.ts";
 import { Form } from "../forms/form";
+import { IconButton } from "../icon";
 import { Modal } from "../modal";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
@@ -79,9 +80,31 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       });
     };
 
+    const toggleFavorite = async () => {
+      await callApiWithParameters("toggle_favourite/", {
+        run_name: selectedRun.run_name,
+      });
+      setSelectedRun((prevRun) => ({
+        ...prevRun,
+        favourite_status: !prevRun.favourite_status,
+      }));
+    };
+
     return (
       <div ref={ref} id={"run-edit-menu"}>
         <StyledModal title={"Edit run"} isOpen={isOpen} onClose={onClose}>
+          <Row>
+            <SectionTitle baseComponent={"h6"} title={"Favorited:"} />
+            <IconButton
+              icon={"starFill"}
+              style={{
+                fill: selectedRun.favourite_status
+                  ? defaultPalette.primary
+                  : "",
+              }}
+              onClick={void toggleFavorite}
+            />
+          </Row>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Date created: "} />
             <Text>{formatDate(selectedRun.creation_date)}</Text>

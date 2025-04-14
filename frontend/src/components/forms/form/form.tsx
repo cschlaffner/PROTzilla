@@ -138,7 +138,6 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
 }) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
-    console.log("InputField", name, value);
   };
 
   switch (type) {

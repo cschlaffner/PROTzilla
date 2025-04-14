@@ -73,7 +73,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
         formData={{
           label: "",
           isAutoSubmit: false,
-          hasChangeIndicator: false,
+          hasChangeIndicator: true,
           input_fields: [
             {
               type: "text",
@@ -81,6 +81,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
               props: {
                 label: "Add a new tag:",
                 value: "",
+                placeholder: "",
               },
             },
           ],
