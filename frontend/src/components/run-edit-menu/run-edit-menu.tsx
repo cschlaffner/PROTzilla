@@ -9,11 +9,11 @@ import { Form } from "../forms/form";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
+import { formatDate } from "../../utils/format-date.ts";
 
 const MenuWrapper = styled.div`
   position: absolute;
   top: ${spacing("navbarHeight")};
-  left: 0;
 `;
 
 const StyledCard = styled(Card)`
@@ -91,11 +91,11 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         <StyledCard>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Date created: "} />
-            <Text>{selectedRun.creation_date}</Text>
+            <Text>{formatDate(selectedRun.creation_date)}</Text>
           </Row>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Date last modified: "} />
-            <Text>{selectedRun.modification_date}</Text>
+            <Text>{formatDate(selectedRun.modification_date)}</Text>
           </Row>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Memory mode: "} />
