@@ -88,13 +88,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
             />
           )}
-          {isRunSettingsOpen && (
-            <RunEditMenu
-              runName={title as string}
-              onChangeRunName={onChangeRunName}
-              ref={refRunSettings}
-            />
-          )}
         </NavbarCenter>
 
         <NavbarRight>
@@ -102,6 +95,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"settings"} onPress={onOpenSettings} />
         </NavbarRight>
       </NavbarBody>
+      <RunEditMenu
+        runName={title as string}
+        onChangeRunName={onChangeRunName}
+        isOpen={isRunSettingsOpen}
+        onClose={closeRunSettings}
+        ref={refRunSettings}
+      />
     </FlexColumn>
   );
 };

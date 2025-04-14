@@ -13,11 +13,13 @@ const StyledModalChild = styled.div`
 
 export interface TagMenuProps {
   selectedRun: Run;
+  setSelectedRun: React.Dispatch<React.SetStateAction<Run>>;
   handleAddTag: (tag: string) => void;
   handleDeleteTag: (tag: string) => void;
 }
 
 export const TagMenu: React.FC<TagMenuProps> = ({
+  setSelectedRun,
   selectedRun,
   handleAddTag,
   handleDeleteTag,
@@ -45,7 +47,18 @@ export const TagMenu: React.FC<TagMenuProps> = ({
 
   const onHandleAddTag = (tag: string) => {
     handleAddTag(tag);
-    void fetchData();
+    setSelectedRun((prevRun) => ({
+      ...prevRun,
+      run_tags: [...prevRun.run_tags, tag],
+    }));
+  };
+
+  const onHandleDeleteTag = (tag: string) => {
+    handleDeleteTag(tag);
+    setSelectedRun((prevRun) => ({
+      ...prevRun,
+      run_tags: prevRun.run_tags.filter((t) => t != tag),
+    }));
   };
 
   return (
@@ -54,7 +67,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
         runName={selectedRun.run_name}
         tags={selectedRun.run_tags}
         icon="close"
-        handleTag={handleDeleteTag}
+        handleTag={onHandleDeleteTag}
       />
       <Form
         formData={{
