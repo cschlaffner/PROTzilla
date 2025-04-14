@@ -6,10 +6,10 @@ import { spacing } from "../../theme";
 import { callApi, callApiWithParameters, Run } from "../../utils";
 import { formatDate } from "../../utils/format-date.ts";
 import { Form } from "../forms/form";
+import { Modal } from "../modal";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
-import { Modal } from "../modal";
 
 const StyledModal = styled(Modal)`
   width: 500px;
@@ -42,20 +42,19 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       run_tags: [],
     });
 
-    const fetchRunInformation = async () => {
-      const data = await callApi("run_information/");
-      if (data) {
-        const run: Run = data[0].find(
-          (run: Run) => run.run_name === selectedRun.run_name,
-        ) as Run;
-        console.log("run", run);
-        setSelectedRun(run);
-      }
-    };
-
     useEffect(() => {
+      const fetchRunInformation = async () => {
+        const data = await callApi("run_information/");
+        if (data) {
+          const run: Run = data[0].find(
+            (run: Run) => run.run_name === runName,
+          ) as Run;
+          setSelectedRun(run);
+        }
+      };
+
       void fetchRunInformation();
-    }, []);
+    }, [runName]);
 
     const handleNameChange = async (newName: string) => {
       await callApiWithParameters("update_run_name/", {
@@ -99,7 +98,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
             formData={{
               label: "",
               isAutoSubmit: false,
-              hasChangeIndicator: true,
+              hasChangeIndicator: true, //debug Lennard
               input_fields: [
                 {
                   type: "text",
