@@ -44,6 +44,7 @@ export const TriggerFromHook: StoryFn = () => {
             title: "Error",
             message: "This Notification can only be closed manually",
             type: "error",
+            isClosingAutomatically: false,
           });
         }}
       >
