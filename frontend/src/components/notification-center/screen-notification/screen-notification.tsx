@@ -36,6 +36,7 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
     isShown ? "translateY(0)" : "translateY(-10px)"};
   pointer-events: ${({ isShown }) => (isShown ? "auto" : "none")};
   z-index: ${zIndex("notification")};
+  position: relative;
 `;
 
 const TextContainer = styled(FlexColumn)`
@@ -68,6 +69,16 @@ const CloseIcon = styled(GrayButton)`
   }
 `;
 
+const ProgressBar = styled.div<{ active: boolean; duration: number }>`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: ${spacing("verySmall")};
+  background-color: rgba(255, 255, 255, 0.5);
+  width: ${({ active }) => (active ? "100%" : "0%")};
+  transition: width ${({ duration }) => duration}ms linear;
+`;
+
 export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   title,
   message,
@@ -84,9 +95,12 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
     closeAfterMsProp > 0
       ? closeAfterMsProp
       : theme.durations.longNotificationDuration;
+      const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
 
   useEffect(() => {
     if (isShown && isClosingAutomatically && closeAfterMs > 0) {
+      setHasStartedProgressBar(true);
+
       const timer = setTimeout(() => {
         setIsShown(false);
         onClose?.();
@@ -94,6 +108,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
 
       return () => {
         clearTimeout(timer);
+        setHasStartedProgressBar(false);
       };
     }
   }, [isShown, isClosingAutomatically, closeAfterMs, onClose]);
@@ -110,6 +125,10 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
         {message && <DescriptionText text={message} />}
       </TextContainer>
       {isShown && <CloseIcon icon="close" onPress={handleClose} isShy />}
+      {isClosingAutomatically && closeAfterMs > 0 && (
+  <ProgressBar active={hasStartedProgressBar} duration={closeAfterMs} />
+)}
+
     </Container>
   );
 };
