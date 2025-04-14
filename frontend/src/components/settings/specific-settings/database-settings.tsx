@@ -5,6 +5,7 @@ import { Form, SecondaryButton, Text } from "../../../components";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
 import { SectionTitle } from "../../section-title";
+import { formatDate } from "../../../utils/format-date.ts";
 
 const DatabasesTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
@@ -58,15 +59,6 @@ const DatabaseEntry = ({
   name,
   handleDelete,
 }: DatabaseEntryProps) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "2-digit",
-    });
-  };
-
   const formatSize = (size: number) => {
     if (size < 1000000) {
       return (size * 0.001).toFixed(2) + " KB";
