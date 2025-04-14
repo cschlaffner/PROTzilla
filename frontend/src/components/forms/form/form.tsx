@@ -5,6 +5,7 @@ import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
@@ -159,6 +160,10 @@ const InputField: React.FC<InputFieldProps> = ({
           options={options ?? []}
           {...props}
         />
+      );
+    case "single-checkbox":
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
       );
     case "dropdown":
       return (
