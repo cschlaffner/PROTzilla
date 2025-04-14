@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
 import {
@@ -12,7 +12,7 @@ import {
   zIndex,
 } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
-import { InvisibleButton } from "../../button";
+import { GrayButton } from "../../button";
 import { iconColor } from "../../icon/icon";
 import { Text } from "../../text";
 
@@ -60,7 +60,7 @@ const DescriptionText = styled(Text)`
   width: 100%;
 `;
 
-const CloseIcon = styled(InvisibleButton)`
+const CloseIcon = styled(GrayButton)`
   width: ${size("buttonHeight")};
 
   .icon {
@@ -73,14 +73,20 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   message,
   type = "error",
   isShown: propIsShown = false,
-  closeAfterMs = -1,
+  isClosingAutomatically = true,
+  closeAfterMs: closeAfterMsProp = -1,
   onClose,
   ...props
 }) => {
   const [isShown, setIsShown] = useState(propIsShown);
+  const theme = useTheme();
+  const closeAfterMs =
+    closeAfterMsProp > 0
+      ? closeAfterMsProp
+      : theme.durations.longNotificationDuration;
 
   useEffect(() => {
-    if (isShown && closeAfterMs > 0) {
+    if (isShown && isClosingAutomatically && closeAfterMs > 0) {
       const timer = setTimeout(() => {
         setIsShown(false);
         onClose?.();
@@ -90,7 +96,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
         clearTimeout(timer);
       };
     }
-  }, [isShown, closeAfterMs, onClose]);
+  }, [isShown, isClosingAutomatically, closeAfterMs, onClose]);
 
   const handleClose = () => {
     setIsShown(false);

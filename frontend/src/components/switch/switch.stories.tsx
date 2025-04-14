@@ -1,9 +1,9 @@
 import React, { useState } from "react";
+import { useTheme } from "styled-components";
 
 import { Switch } from "./switch";
 import { SwitchProps } from "./switch.props";
 import { useNotification } from "../notification-center";
-import { useTheme } from "styled-components";
 
 export default {
   component: Switch,
@@ -27,8 +27,7 @@ const SwitchWithState: React.FC<SwitchProps> = ({ options, ...args }) => {
         setSelectedOption(option);
         notify({
           title: "Congratulation",
-          message:
-            "You've hit the switch! WOW.",
+          message: "You've hit the switch! WOW.",
           type: "success",
           closeAfterMs: theme.durations.standardNotificationDuration,
         });

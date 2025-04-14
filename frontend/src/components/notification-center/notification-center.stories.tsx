@@ -1,4 +1,5 @@
 import { Meta, StoryFn } from "@storybook/react";
+import { useTheme } from "styled-components";
 
 import { NotificationCenter } from "./notification-center";
 import { ScreenNotification } from "./screen-notification";
@@ -20,6 +21,7 @@ export default {
 
 export const TriggerFromHook: StoryFn = () => {
   const notify = useNotification();
+  const theme = useTheme();
 
   return (
     <div style={{ display: "flex", gap: "1rem", flexDirection: "column" }}>
@@ -28,9 +30,9 @@ export const TriggerFromHook: StoryFn = () => {
           notify({
             title: "Info",
             message:
-              "This Notification will close automatically after 3 seconds",
+              "This Notification will close automatically after 10 seconds",
             type: "info",
-            closeAfterMs: 3000,
+            closeAfterMs: theme.durations.longNotificationDuration,
           });
         }}
       >
@@ -54,7 +56,6 @@ export const TriggerFromHook: StoryFn = () => {
             message:
               "This Notification will close automatically after 5 seconds",
             type: "warning",
-            closeAfterMs: 5000,
           });
         }}
       >
@@ -65,9 +66,9 @@ export const TriggerFromHook: StoryFn = () => {
           notify({
             title: "Success",
             message:
-              "Congratulation \n This Notification will close automatically after 1 seconds",
+              "Congratulation \n This Notification will close automatically after 2 seconds",
             type: "success",
-            closeAfterMs: 1000,
+            closeAfterMs: theme.durations.shortNotificationDuration,
           });
         }}
       >

@@ -17,4 +17,5 @@ ActiveError.args = {
   title: "Fehler",
   message: "Text",
   type: "error",
+  isClosingAutomatically: false,
 };
