@@ -38,11 +38,8 @@ const StepButton = styled(GrayButton)`
   border-radius: 0px;
   background-color: #e4e4e5;
   min-height: 0px;
+  width: 15px;
   padding: 0px;
-  .icon svg {
-    width: 20px;
-    height: 20px;
-  }
 `;
 
 export const NumberInputField: React.FC<NumberInputFieldProps> = ({
@@ -133,12 +130,14 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
             onPress={handleClick}
             icon="triangleUp"
             color="text"
+            isSmall={true}
           />
           <StepButton
             id="down"
             onPress={handleClick}
             icon="triangleDown"
             color="text"
+            isSmall={true}
           />
         </StepButtonContainer>
       )}
