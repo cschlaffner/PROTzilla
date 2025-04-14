@@ -1,4 +1,5 @@
 import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputFieldProps } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputFieldProps } from "../../input-fields/dropdown-input-field";
 import { FileInputFieldProps } from "../../input-fields/file-input-field";
 import { MultiSelectInputFieldProps } from "../../input-fields/multi-select-input-field";
@@ -42,6 +43,11 @@ export type InputField =
       props: Omit<CheckboxSelectInputFieldProps, "onChange">;
     }
   | {
+      type: "single-checkbox";
+      name: string;
+      props: Omit<SingleCheckboxInputFieldProps, "onChange">;
+    }
+  | {
       type: "multi-select";
       name: string;
       props: Omit<MultiSelectInputFieldProps, "onChange">;
@@ -63,6 +69,7 @@ type InputFields =
   | SearchInputFieldProps
   | RadioSelectInputFieldProps
   | CheckboxSelectInputFieldProps
+  | SingleCheckboxInputFieldProps
   | MultiSelectInputFieldProps
   | DropdownInputFieldProps
   | FileInputFieldProps;
