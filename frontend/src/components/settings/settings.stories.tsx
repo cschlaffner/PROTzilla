@@ -6,7 +6,7 @@ import { NotificationCenter } from "../notification-center";
 
 export default {
   component: Settings,
-  title: "Settings",
+  title: "Settings Components / Settings",
   argTypes: { onClose: { action: "close" } },
   decorators: [
     (Story) => (
