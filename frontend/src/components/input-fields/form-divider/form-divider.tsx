@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 
 import { FormDividerProps } from "./form-divider.props";
-import { spacing } from "../../../theme";
+import { color, spacing } from "../../../theme";
 
 const DividerContainer = styled.div`
   padding-top: ${spacing("medium")};
@@ -12,9 +12,12 @@ const DividerContainer = styled.div`
 
 const Line = styled.hr`
   flex-grow: 1;
-  border-top: 2px solid black;
   margin: 0px ${spacing("small")};
   min-width: 10px;
+
+  height: 1px;
+  background-color: ${color("text")};
+  border-width: 0;
 `;
 
 const Label = styled.h3``;
