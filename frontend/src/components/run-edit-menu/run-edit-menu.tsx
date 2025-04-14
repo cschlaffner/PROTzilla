@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { RunEditMenuProps } from "./run-edit-menu.props.ts";
-import { defaultPalette, spacing } from "../../theme";
+import { defaultPalette, size, spacing } from "../../theme";
 import { callApi, callApiWithParameters, Run } from "../../utils";
 import { formatDate } from "../../utils/format-date.ts";
 import { Form } from "../forms/form";
@@ -13,7 +13,7 @@ import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
 
 const StyledModal = styled(Modal)`
-  width: 500px;
+  width: ${size("inputFieldsMaxWidth")};
 `;
 
 const Row = styled.div`
@@ -35,12 +35,12 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
   ({ runName, onChangeRunName, isOpen, onClose }, ref) => {
     const [selectedRun, setSelectedRun] = useState<Run>({
       run_name: runName,
-      creation_date: "",
-      modification_date: "",
-      memory_mode: "",
+      creation_date: "Loading...",
+      modification_date: "Loading...",
+      memory_mode: "Loading...",
       run_steps: [],
       favourite_status: true,
-      run_tags: [],
+      run_tags: ["Loading", "..."],
     });
 
     useEffect(() => {
@@ -92,9 +92,13 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
 
     return (
       <div ref={ref} id={"run-edit-menu"}>
-        <StyledModal title={"Edit run"} isOpen={isOpen} onClose={onClose}>
+        <StyledModal
+          title={"Edit run information"}
+          isOpen={isOpen}
+          onClose={onClose}
+        >
           <Row>
-            <SectionTitle baseComponent={"h6"} title={"Favorited:"} />
+            <SectionTitle baseComponent={"h6"} title={"Favourited: "} />
             <IconButton
               icon={"starFill"}
               style={{

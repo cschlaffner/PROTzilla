@@ -29,5 +29,4 @@ export { default as spinner } from "./spinner.svg?react";
 export { default as star } from "./star.svg?react";
 export { default as starFill } from "./star-fill.svg?react";
 export { default as threeDots } from "./three-dots.svg?react";
-export { default as trash } from "./trash.svg?react"
-
+export { default as trash } from "./trash.svg?react";

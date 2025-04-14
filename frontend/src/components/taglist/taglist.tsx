@@ -8,7 +8,7 @@ const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-`
+`;
 
 const Tag = styled.span`
   background-color: ${color("protzillaDarkBlue")};
@@ -20,7 +20,7 @@ const Tag = styled.span`
   display: flex;
   align-items: center;
   gap: 6px;
-`
+`;
 
 export const TagList: React.FC<TagListProps> = ({
   runName,
@@ -30,20 +30,22 @@ export const TagList: React.FC<TagListProps> = ({
 }) => {
   return (
     <StyledList>
-        {tags.map((tag, i) => (
+      {tags.map((tag, i) => (
         <Tag key={i}>
-            {tag}
-            <Icon 
-                icon={icon}
-                color="gray"
-                onClick={() => { handleTag(tag, runName); }}
-                aria-label={`Remove tag ${tag}`}
-                style={{
-                height: "15px",
-                }}
-            />
+          {tag}
+          <Icon
+            icon={icon}
+            color="gray"
+            onClick={() => {
+              handleTag(tag, runName);
+            }}
+            aria-label={`Remove tag ${tag}`}
+            style={{
+              height: "15px",
+            }}
+          />
         </Tag>
-        ))}
+      ))}
     </StyledList>
   );
 };
