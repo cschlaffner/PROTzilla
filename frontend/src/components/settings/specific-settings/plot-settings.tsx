@@ -75,7 +75,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     handleHeightChange,
     handleFontChange,
     handleCustomFontChange,
-    handleHeadingSizeChange,
+    handleTitleSizeChange,
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
 
@@ -151,7 +151,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
               font: {
                 ...prevPlot.layout.template.layout.title.font,
                 family: settings.selectedFont,
-                size: settings.headingSize,
+                size: settings.titleSize,
               },
             },
           },
@@ -315,15 +315,15 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             <Row justify="between" align="center">
               <Col>
                 <NumberInputField
-                  label={"Heading size"}
+                  label={"Title size"}
                   min={1}
                   max={100}
                   step={1}
                   hasStepButtons={true}
                   separateSuffix={"pt"}
                   isInteger={true}
-                  onChange={handleHeadingSizeChange}
-                  value={settings.headingSize}
+                  onChange={handleTitleSizeChange}
+                  value={settings.titleSize}
                 />
               </Col>
               <Col>

@@ -10,7 +10,7 @@ export interface PlotSettings {
   height: number;
   selectedFont: string;
   customFont: string;
-  headingSize: number;
+  titleSize: number;
   textSize: number;
   // The following parameters are only relevant for the "Plot Download" modal.
   title?: string;
@@ -24,7 +24,7 @@ export const usePlotSettings = (isOpen: boolean) => {
     height: 0,
     selectedFont: "",
     customFont: "",
-    headingSize: 0,
+    titleSize: 0,
     textSize: 0,
   });
 
@@ -37,7 +37,7 @@ export const usePlotSettings = (isOpen: boolean) => {
         height: response.height,
         selectedFont: response.font,
         customFont: response.custom_font,
-        headingSize: response.heading_size,
+        titleSize: response.title_size,
         textSize: response.text_size,
       });
     }
@@ -58,8 +58,9 @@ export const usePlotSettings = (isOpen: boolean) => {
       height: settings.height.toString(),
       font: settings.selectedFont,
       custom_font: settings.customFont,
-      heading_size: settings.headingSize.toString(),
+      title_size: settings.titleSize.toString(),
       text_size: settings.textSize.toString(),
+      // TODO Add more parameters
     });
   };
 
@@ -98,10 +99,10 @@ export const usePlotSettings = (isOpen: boolean) => {
       customFont: value,
     }));
   };
-  const handleHeadingSizeChange = (value: number) => {
+  const handleTitleSizeChange = (value: number) => {
     setSettings((prev) => ({
       ...prev,
-      headingSize: value,
+      titleSize: value,
     }));
   };
   const handleTextSizeChange = (value: number) => {
@@ -122,7 +123,7 @@ export const usePlotSettings = (isOpen: boolean) => {
     handleHeightChange,
     handleFontChange,
     handleCustomFontChange,
-    handleHeadingSizeChange,
+    handleTitleSizeChange,
     handleTextSizeChange,
   };
 };

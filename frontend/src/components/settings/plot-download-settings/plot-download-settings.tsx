@@ -79,7 +79,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleHeightChange,
     handleFontChange,
     handleCustomFontChange,
-    handleHeadingSizeChange,
+    handleTitleSizeChange,
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
 
@@ -267,15 +267,15 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             <Row justify="between" align="center">
               <Col>
                 <NumberInputField
-                  label={"Heading size"}
+                  label={"Title size"}
                   min={1}
                   max={100}
                   step={1}
                   hasStepButtons={true}
                   separateSuffix={"pt"}
                   isInteger={true}
-                  onChange={handleHeadingSizeChange}
-                  value={settings.headingSize}
+                  onChange={handleTitleSizeChange}
+                  value={settings.titleSize}
                 />
               </Col>
               <Col>
