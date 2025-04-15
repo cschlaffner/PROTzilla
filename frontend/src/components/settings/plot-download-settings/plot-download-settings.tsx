@@ -176,6 +176,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     } as Plotly.DownloadImgopts).catch((error: unknown) => {
       console.error("Export failed: ", error);
     });
+    onClose();
   };
   const handleReset = () => {
     void loadSettings();

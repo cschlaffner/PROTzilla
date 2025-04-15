@@ -5,11 +5,14 @@ import {
   Button,
   Card,
   Dropdown,
+  RedButton,
   TextField,
   useNotification,
 } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Navbar } from "../components/navbar";
+import { PlotDownloadSettings } from "../components/settings/plot-download-settings";
+import { useToggleableState } from "../hooks";
 import { callApi, callApiWithParameters } from "../utils";
 
 export const IndexScreen: React.FC = () => {
@@ -68,6 +71,12 @@ export const IndexScreen: React.FC = () => {
     setRuns(runs.filter((run: { value: string }) => run.value !== existingRun));
     setExistingRun(runs[0]?.value || "");
     console.log(runs);
+  };
+
+  const [isSettingsOpen, openSettings, closeSettings] =
+    useToggleableState(false);
+  const handleDownload = () => {
+    openSettings();
   };
 
   return (
@@ -183,6 +192,11 @@ export const IndexScreen: React.FC = () => {
               </Button>
             </Card>
           </Col>
+          <RedButton text="Download plot" onPress={handleDownload} />
+          <PlotDownloadSettings
+            isOpen={isSettingsOpen}
+            onClose={closeSettings}
+          />
         </Row>
       </Container>
     </div>
