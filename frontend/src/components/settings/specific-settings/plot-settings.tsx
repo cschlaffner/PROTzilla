@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
+import { usePlotSettings } from "./usePlotSettings";
 import {
   Button,
   DropdownInputField,
@@ -21,7 +22,6 @@ import {
   fontWeight,
   spacing,
 } from "../../../theme";
-import { callApi, callApiWithParameters } from "../../../utils";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -49,7 +49,7 @@ const Footer = styled.div`
   z-index: 10;
 `;
 
-export const Label = styled(Text)`
+const Label = styled(Text)`
   font-size: ${fontSize("default")};
   font-weight: ${fontWeight("bold")};
   color: ${color("primary")};
@@ -65,6 +65,20 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
+  const {
+    settings,
+    isLoading,
+    saveSettings,
+    loadSettings,
+    handleFileFormatChange,
+    handleWidthChange,
+    handleHeightChange,
+    handleFontChange,
+    handleCustomFontChange,
+    handleHeadingSizeChange,
+    handleTextSizeChange,
+  } = usePlotSettings(isOpen);
+
   const examplePlot = {
     data: [
       {
@@ -107,43 +121,15 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       },
       xaxis: { anchor: "y", domain: [0.0, 1.0], title: { text: "Example" } },
       yaxis: { anchor: "x", domain: [0.0, 1.0], title: { text: "Example" } },
-      legend: { tracegroupgap: 0 },
       barmode: "relative",
       title: { text: "<b>Example plot</b>" },
     },
   };
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [plot, updatePlot] = useState(examplePlot);
 
-  const [fileFormat, setFileFormat] = useState<string>("");
-  const [width, setWidth] = useState<number>(0);
-  const [height, setHeight] = useState<number>(0);
-  const [selectedFont, setFont] = useState<string>("");
-  const [customFont, setCustomFont] = useState<string>("");
-  const [headingSize, setHeadingSize] = useState<number>(0);
-  const [textSize, setTextSize] = useState<number>(0);
-
-  const loadPlotSettings = async () => {
-    const plotSettings = await callApi("load_settings");
-    if (plotSettings) {
-      setFileFormat(plotSettings.file_format);
-      setWidth(plotSettings.width);
-      setHeight(plotSettings.height);
-      setFont(plotSettings.font);
-      setCustomFont(plotSettings.custom_font);
-      setHeadingSize(plotSettings.heading_size);
-      setTextSize(plotSettings.text_size);
-    }
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    void loadPlotSettings();
-  }, [isOpen]);
-
-  useEffect(() => {
-    const sizeRatio = width / height;
+    const sizeRatio = settings.width / settings.height;
     const displayedWidth = 400;
     const displayedHeight = Math.round(displayedWidth / sizeRatio);
     updatePlot((prevPlot) => ({
@@ -157,69 +143,37 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             ...prevPlot.layout.template.layout,
             font: {
               ...prevPlot.layout.template.layout.font,
-              family: selectedFont,
-              size: textSize,
+              family: settings.selectedFont,
+              size: settings.textSize,
             },
             title: {
               ...prevPlot.layout.template.layout.title,
               font: {
                 ...prevPlot.layout.template.layout.title.font,
-                family: selectedFont,
-                size: headingSize,
+                family: settings.selectedFont,
+                size: settings.headingSize,
               },
             },
           },
         },
       },
     }));
-  }, [selectedFont, headingSize, textSize, width, height]);
+  }, [settings]);
 
-  const handleFileFormatChange = (value: string) => {
-    setFileFormat(value);
-  };
-  const handleWidthChange = (value: number) => {
-    setWidth(value);
-  };
-  const handleHeightChange = (value: number) => {
-    setHeight(value);
-  };
-  const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newFont =
-      event.target.value === "Custom font" ? customFont : event.target.value;
-    setFont(newFont);
-  };
-  const handleCustomFontChange = (value: string) => {
-    setCustomFont(value);
-  };
-  const handleHeadingSizeChange = (value: number) => {
-    setHeadingSize(value);
-  };
-  const handleTextSizeChange = (value: number) => {
-    setTextSize(value);
-  };
-
-  const handleSaving = async (
+  const handleSaving = (
     event:
       | React.PointerEvent<HTMLButtonElement>
       | React.KeyboardEvent<HTMLButtonElement>,
   ) => {
     const target = event.currentTarget;
-    await callApiWithParameters("save_settings", {
-      file_format: fileFormat,
-      width: width as unknown as string,
-      height: height as unknown as string,
-      font: selectedFont,
-      custom_font: customFont,
-      heading_size: headingSize as unknown as string,
-      text_size: textSize as unknown as string,
-    });
+    void saveSettings();
     if (target.id == "saveAndQuit") {
       onClose();
     }
   };
 
   const handleReset = () => {
-    void loadPlotSettings();
+    void loadSettings();
   };
 
   const fonts = [
@@ -229,7 +183,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     "Sans Serif",
     "Times New Roman",
   ];
-  const isCustomSelected = !fonts.includes(selectedFont);
+  const isCustomSelected = !fonts.includes(settings.selectedFont);
 
   if (isLoading) {
     return (
@@ -275,7 +229,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
               ]}
               onChange={handleFileFormatChange}
               label={"File format"}
-              value={fileFormat}
+              value={settings.fileFormat}
             />
             <Row justify="between" align="center">
               <Col>
@@ -288,7 +242,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                   separateSuffix={"mm"}
                   isInteger={true}
                   onChange={handleWidthChange}
-                  value={width}
+                  value={settings.width}
                 />
               </Col>
               <Col>
@@ -301,7 +255,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                   separateSuffix={"mm"}
                   isInteger={true}
                   onChange={handleHeightChange}
-                  value={height}
+                  value={settings.height}
                 />
               </Col>
             </Row>
@@ -327,7 +281,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                         id={formattedId}
                         name="fontGroup"
                         value={font}
-                        checked={selectedFont === font}
+                        checked={settings.selectedFont === font}
                         onChange={handleFontChange}
                       />
                       <label htmlFor={formattedId}>{font}</label>
@@ -353,7 +307,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                   <TextInputField
                     placeholder="Custom font name"
                     onChange={handleCustomFontChange}
-                    value={customFont}
+                    value={settings.customFont}
                   />
                 </div>
               </div>
@@ -369,7 +323,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                   separateSuffix={"pt"}
                   isInteger={true}
                   onChange={handleHeadingSizeChange}
-                  value={headingSize}
+                  value={settings.headingSize}
                 />
               </Col>
               <Col>
@@ -382,7 +336,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                   separateSuffix={"pt"}
                   isInteger={true}
                   onChange={handleTextSizeChange}
-                  value={textSize}
+                  value={settings.textSize}
                 />
               </Col>
             </Row>
@@ -402,12 +356,16 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         <SecondaryButton
           id="save"
           text={"Save"}
-          onPress={(event) => void handleSaving(event)}
+          onPress={(event) => {
+            handleSaving(event);
+          }}
         />
         <Button
           id="saveAndQuit"
           text={"Save & Quit"}
-          onPress={(event) => void handleSaving(event)}
+          onPress={(event) => {
+            handleSaving(event);
+          }}
         />
       </Footer>
     </div>
