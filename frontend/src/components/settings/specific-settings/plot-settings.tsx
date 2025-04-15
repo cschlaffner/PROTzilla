@@ -79,7 +79,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
 
-  const examplePlot = {
+  const initialPlot = {
     data: [
       {
         marker: { color: "#4A536A" },
@@ -97,20 +97,25 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       },
     ],
     layout: {
+      width: 400,
+      height: 250,
+      title: {
+        font: { family: "Sans Serif", size: 15 },
+        text: "Very important title",
+      },
+      xaxis: { anchor: "y", title: { text: "x-axis" } },
+      yaxis: { anchor: "x", title: { text: "y-axis" } },
       template: {
         layout: {
           colorway: ["#4A536A", "#CE5A5A"],
           dragmode: "pan",
-          font: { family: "Sans Serif", size: 19 },
-          width: 500,
-          height: 500,
-          margin: { b: 50, t: 50 },
+          font: { family: "Sans Serif", size: 10 },
+          margin: { b: 55, t: 50, r: 50, l: 50 },
           modebar: {
             remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
           },
           plot_bgcolor: "white",
           title: {
-            font: { family: "Sans Serif", size: 27 },
             x: 0.5,
             xanchor: "center",
             y: 0.95,
@@ -119,14 +124,10 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
         },
       },
-      xaxis: { anchor: "y", domain: [0.0, 1.0], title: { text: "Example" } },
-      yaxis: { anchor: "x", domain: [0.0, 1.0], title: { text: "Example" } },
-      barmode: "relative",
-      title: { text: "<b>Example plot</b>" },
     },
   };
 
-  const [plot, updatePlot] = useState(examplePlot);
+  const [plot, updatePlot] = useState(initialPlot);
 
   useEffect(() => {
     const sizeRatio = settings.width / settings.height;
@@ -138,6 +139,15 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         ...prevPlot.layout,
         width: displayedWidth,
         height: displayedHeight,
+        title: {
+          ...prevPlot.layout.template.layout.title,
+          font: {
+            ...prevPlot.layout.template.layout.title,
+            family: settings.selectedFont,
+            size: settings.titleSize,
+          },
+          text: prevPlot.layout.title.text,
+        },
         template: {
           layout: {
             ...prevPlot.layout.template.layout,
@@ -145,14 +155,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
               ...prevPlot.layout.template.layout.font,
               family: settings.selectedFont,
               size: settings.textSize,
-            },
-            title: {
-              ...prevPlot.layout.template.layout.title,
-              font: {
-                ...prevPlot.layout.template.layout.title.font,
-                family: settings.selectedFont,
-                size: settings.titleSize,
-              },
             },
           },
         },

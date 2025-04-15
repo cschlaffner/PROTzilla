@@ -90,7 +90,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         marker: { color: "#4A536A" },
         x: ["Example 1"],
         y: [0.7],
-        name: "This is a long text for testing the width",
+        name: "Example 1",
         type: "bar",
       },
       {
@@ -102,20 +102,25 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       },
     ],
     layout: {
+      width: 400,
+      height: 250,
+      title: {
+        font: { family: "Sans Serif", size: 15 },
+        text: "Very important title",
+      },
+      xaxis: { anchor: "y", title: { text: "x-axis" } },
+      yaxis: { anchor: "x", title: { text: "y-axis" } },
       template: {
         layout: {
           colorway: ["#4A536A", "#CE5A5A"],
           dragmode: "pan",
           font: { family: "Sans Serif", size: 10 },
-          width: 400,
-          height: 250,
           margin: { b: 55, t: 50, r: 50, l: 50 },
           modebar: {
             remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
           },
           plot_bgcolor: "white",
           title: {
-            font: { family: "Sans Serif", size: 15 },
             x: 0.5,
             xanchor: "center",
             y: 0.95,
@@ -124,12 +129,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
         },
       },
-      xaxis: { anchor: "y", domain: [0.0, 1.0], title: { text: "Example" } },
-      yaxis: { anchor: "x", domain: [0.0, 1.0], title: { text: "Example" } },
-      barmode: "relative",
-      title: { text: "<b>Example plot</b>" },
     },
   };
+
   const [plot, updatePlot] = useState(initialPlot);
   const [prevTitle] = useState(initialPlot.layout.title.text);
 
@@ -144,10 +146,11 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         width: displayedWidth,
         height: displayedHeight,
         title: {
-          text: settings.title ?? prevTitle,
           font: {
             family: settings.selectedFont,
+            size: settings.titleSize,
           },
+          text: settings.title ?? prevTitle,
         },
         template: {
           layout: {
@@ -156,14 +159,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               ...prevPlot.layout.template.layout.font,
               family: settings.selectedFont,
               size: settings.textSize,
-            },
-            title: {
-              ...prevPlot.layout.template.layout.title,
-              font: {
-                ...prevPlot.layout.template.layout.title.font,
-                family: settings.selectedFont,
-                size: settings.titleSize,
-              },
             },
           },
         },
