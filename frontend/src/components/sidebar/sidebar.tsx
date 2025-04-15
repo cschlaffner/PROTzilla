@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
-import { emptySections, Section } from "./types";
+import { Section } from "./types";
 import { spacing, styledDiv } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
@@ -32,8 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   handleStepSelection,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const sections = runData.displayed_steps || emptySections;
-
+  const sections = runData.displayed_steps || [];
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
     runData.current_section,
