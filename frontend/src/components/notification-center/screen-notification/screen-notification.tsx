@@ -94,8 +94,8 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   const closeAfterMs =
     closeAfterMsProp > 0
       ? closeAfterMsProp
-      : theme.durations.longNotificationDuration;
-      const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
+      : theme.durations.standardNotificationDuration;
+  const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
 
   useEffect(() => {
     if (isShown && isClosingAutomatically && closeAfterMs > 0) {
@@ -126,9 +126,8 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
       </TextContainer>
       {isShown && <CloseIcon icon="close" onPress={handleClose} isShy />}
       {isClosingAutomatically && closeAfterMs > 0 && (
-  <ProgressBar active={hasStartedProgressBar} duration={closeAfterMs} />
-)}
-
+        <ProgressBar active={hasStartedProgressBar} duration={closeAfterMs} />
+      )}
     </Container>
   );
 };
