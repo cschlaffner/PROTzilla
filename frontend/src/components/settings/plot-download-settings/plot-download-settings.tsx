@@ -1,22 +1,42 @@
 import { Layout, PlotData } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useState } from "react";
-import Plot from "react-plotly.js";
+import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
 import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
 import {
   Button,
+  DropdownInputField,
   Modal,
+  NumberInputField,
+  PlotComponent,
+  SecondaryButton,
   SectionTitle,
+  Text,
+  TextInputField,
 } from "../../../components";
-import { border, borderColors } from "../../../theme";
+import {
+  border,
+  borderColors,
+  color,
+  fontSize,
+  fontWeight,
+  spacing,
+} from "../../../theme";
+import { usePlotSettings } from "../specific-settings/usePlotSettings";
 
 const StyledModal = styled(Modal)`
   width: fit-content;
   max-width: 100%;
   height: fit-content;
   max-height: 100vh;
+`;
+
+const SettingsDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing("verySmall")};
 `;
 
 const PlotDiv = styled.div`
@@ -27,10 +47,42 @@ const PlotDiv = styled.div`
   padding: 2px;
 `;
 
+const Label = styled(Text)`
+  font-size: ${fontSize("default")};
+  font-weight: ${fontWeight("bold")};
+  color: ${color("primary")};
+  margin: 4px 0;
+`;
+
+const Footer = styled.div`
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: ${color("background")};
+  display: flex;
+  justify-content: flex-end;
+  gap: ${spacing("smallButtonGap")};
+  padding: ${spacing("smallButtonGap")};
+  z-index: 10;
+`;
+
 export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
+  const {
+    settings,
+    loadSettings,
+    saveSettings,
+    handleFileFormatChange,
+    handleWidthChange,
+    handleHeightChange,
+    handleFontChange,
+    handleCustomFontChange,
+    handleHeadingSizeChange,
+    handleTextSizeChange,
+  } = usePlotSettings(isOpen);
+
   const examplePlot = {
     data: [
       {
@@ -91,6 +143,19 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     });
   };
 
+  const handleReset = () => {
+    void loadSettings();
+  };
+
+  const fonts = [
+    "Arial",
+    "Courier New",
+    "Helvetica",
+    "Sans Serif",
+    "Times New Roman",
+  ];
+  const isCustomSelected = !fonts.includes(settings.selectedFont);
+
   return (
     <StyledModal isOpen={isOpen} onClose={onClose} title="Download Plots">
       <SectionTitle
@@ -100,14 +165,169 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         }
         style={{ paddingBottom: "20px" }}
       />
-      <PlotDiv>
+
+      <Row>
+        <Col md={6}>
+          <SettingsDiv>
+            <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
+            <DropdownInputField
+              options={[
+                { value: "eps", label: "eps" },
+                { value: "jpg", label: "jpg" },
+                { value: "pdf", label: "pdf" },
+                { value: "png", label: "png" },
+                { value: "svg", label: "svg" },
+                { value: "tiff", label: "tiff" },
+              ]}
+              onChange={handleFileFormatChange}
+              label={"File format"}
+              value={settings.fileFormat}
+            />
+            <Row justify="between" align="center">
+              <Col>
+                <NumberInputField
+                  label={"Width"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  hasStepButtons={true}
+                  separateSuffix={"mm"}
+                  isInteger={true}
+                  onChange={handleWidthChange}
+                  value={settings.width}
+                />
+              </Col>
+              <Col>
+                <NumberInputField
+                  label={"Height"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  hasStepButtons={true}
+                  separateSuffix={"mm"}
+                  isInteger={true}
+                  onChange={handleHeightChange}
+                  value={settings.height}
+                />
+              </Col>
+            </Row>
+            <SectionTitle
+              baseComponent={"h5"}
+              title={"Text"}
+              style={{ paddingTop: "4px", paddingBottom: "4px" }}
+            />
+            <div>
+              <Label text={"Font"} />
+              <div
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
+                {fonts.map((font) => {
+                  const formattedId = `radio${font.replace(/\s/g, "")}`;
+                  return (
+                    <div
+                      key={font}
+                      style={{ display: "flex", alignItems: "center" }}
+                    >
+                      <input
+                        type="radio"
+                        id={formattedId}
+                        name="fontGroup"
+                        value={font}
+                        checked={settings.selectedFont === font}
+                        onChange={handleFontChange}
+                      />
+                      <label htmlFor={formattedId}>{font}</label>
+                    </div>
+                  );
+                })}
+              </div>
+              <div
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    id={"radioCustomFont"}
+                    name="fontGroup"
+                    value="Custom font"
+                    checked={isCustomSelected}
+                    onChange={handleFontChange}
+                  />
+                  <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <TextInputField
+                    placeholder="Custom font name"
+                    onChange={handleCustomFontChange}
+                    value={settings.customFont}
+                  />
+                </div>
+              </div>
+            </div>
+            <Row justify="between" align="center">
+              <Col>
+                <NumberInputField
+                  label={"Heading size"}
+                  min={1}
+                  max={100}
+                  step={1}
+                  hasStepButtons={true}
+                  separateSuffix={"pt"}
+                  isInteger={true}
+                  onChange={handleHeadingSizeChange}
+                  value={settings.headingSize}
+                />
+              </Col>
+              <Col>
+                <NumberInputField
+                  label={"Text size"}
+                  min={10}
+                  max={300}
+                  step={1}
+                  hasStepButtons={true}
+                  separateSuffix={"pt"}
+                  isInteger={true}
+                  onChange={handleTextSizeChange}
+                  value={settings.textSize}
+                />
+              </Col>
+            </Row>
+          </SettingsDiv>
+        </Col>
+        <Col md={6}>
+          <PlotDiv>
+            <PlotComponent
+              styleProps={{ margin: "2px" }}
+              data={plot.data as Partial<PlotData>[]}
+              layout={plot.layout as Partial<Layout>}
+            />
+          </PlotDiv>
+        </Col>
+      </Row>
+      <Footer>
+        <SecondaryButton
+          text={"Reset to default"}
+          icon="reload"
+          onPress={handleReset}
+        />
+        <SecondaryButton
+          text="Save as template"
+          icon="clipboard"
+          onPress={void saveSettings}
+        />
+        <Button
+          text="Download plot"
+          icon="download"
+          onPress={handleDownload} />
+      </Footer>
+
+      {/* <PlotDiv>
         <Plot
           data={plot.data as Partial<PlotData>[]}
           layout={plot.layout as Partial<Layout>}
           divId={"test"}
         />
-      </PlotDiv>
-      <Button text="Download" onPress={handleDownload} style={{marginTop: "5px"}} />
+      </PlotDiv> */}
     </StyledModal>
   );
 };
