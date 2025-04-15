@@ -1,6 +1,6 @@
 import { Layout, PlotData } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
@@ -81,9 +81,10 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleCustomFontChange,
     handleTitleSizeChange,
     handleTextSizeChange,
+    handleTitleChange,
   } = usePlotSettings(isOpen);
 
-  const examplePlot = {
+  const initialPlot = {
     data: [
       {
         marker: { color: "#4A536A" },
@@ -129,11 +130,50 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       title: { text: "<b>Example plot</b>" },
     },
   };
-  const [plot] = useState(examplePlot);
+  const [plot, updatePlot] = useState(initialPlot);
+  const [prevTitle] = useState(initialPlot.layout.title.text);
+
+  useEffect(() => {
+    const sizeRatio = settings.width / settings.height;
+    const displayedWidth = 400;
+    const displayedHeight = Math.round(displayedWidth / sizeRatio);
+    updatePlot((prevPlot) => ({
+      ...prevPlot,
+      layout: {
+        ...prevPlot.layout,
+        width: displayedWidth,
+        height: displayedHeight,
+        title: {
+          text: settings.title ?? prevTitle,
+          font: {
+            family: settings.selectedFont,
+          },
+        },
+        template: {
+          layout: {
+            ...prevPlot.layout.template.layout,
+            font: {
+              ...prevPlot.layout.template.layout.font,
+              family: settings.selectedFont,
+              size: settings.textSize,
+            },
+            title: {
+              ...prevPlot.layout.template.layout.title,
+              font: {
+                ...prevPlot.layout.template.layout.title.font,
+                family: settings.selectedFont,
+                size: settings.titleSize,
+              },
+            },
+          },
+        },
+      },
+    }));
+  }, [prevTitle, settings]);
 
   const handleDownload = () => {
     Plotly.downloadImage("plot-id", {
-      format: "png",
+      format: settings.fileFormat,
       filename: "testfile",
       width: 400,
       height: 250,
@@ -145,6 +185,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
 
   const handleReset = () => {
     void loadSettings();
+    settings.title = prevTitle;
   };
 
   const fonts = [
@@ -281,8 +322,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               <Col>
                 <NumberInputField
                   label={"Text size"}
-                  min={10}
-                  max={300}
+                  min={1}
+                  max={100}
                   step={1}
                   hasStepButtons={true}
                   separateSuffix={"pt"}
@@ -292,6 +333,11 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                 />
               </Col>
             </Row>
+            <TextInputField
+              onChange={handleTitleChange}
+              label={"Title"}
+              value={plot.layout.title.text}
+            />
           </SettingsDiv>
         </Col>
         <Col md={6}>

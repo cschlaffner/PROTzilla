@@ -12,7 +12,7 @@ export interface PlotSettings {
   customFont: string;
   titleSize: number;
   textSize: number;
-  // The following parameters are only relevant for the "Plot Download" modal.
+  // The following parameters are only relevant for the "Plot Download" modal and are therefore optional.
   title?: string;
 }
 
@@ -26,6 +26,7 @@ export const usePlotSettings = (isOpen: boolean) => {
     customFont: "",
     titleSize: 0,
     textSize: 0,
+    title: "",
   });
 
   const loadSettings = async () => {
@@ -60,7 +61,6 @@ export const usePlotSettings = (isOpen: boolean) => {
       custom_font: settings.customFont,
       title_size: settings.titleSize.toString(),
       text_size: settings.textSize.toString(),
-      // TODO Add more parameters
     });
   };
 
@@ -111,6 +111,12 @@ export const usePlotSettings = (isOpen: boolean) => {
       textSize: value,
     }));
   };
+  const handleTitleChange = (value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      title: value,
+    }));
+  };
 
   return {
     isLoading,
@@ -125,5 +131,6 @@ export const usePlotSettings = (isOpen: boolean) => {
     handleCustomFontChange,
     handleTitleSizeChange,
     handleTextSizeChange,
+    handleTitleChange,
   };
 };
