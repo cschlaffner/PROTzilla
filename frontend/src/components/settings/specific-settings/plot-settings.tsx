@@ -20,6 +20,7 @@ import {
   color,
   fontSize,
   fontWeight,
+  size,
   spacing,
 } from "../../../theme";
 
@@ -54,6 +55,30 @@ const Label = styled(Text)`
   font-weight: ${fontWeight("bold")};
   color: ${color("primary")};
   margin: 4px 0;
+`;
+
+const StyledRadio = styled.input.attrs({ type: "radio" })`
+  appearance: none;
+  margin: 0 ${spacing("verySmall")} 0 0;
+  width: ${size("radio")};
+  height: ${size("radio")};
+  border: 1px solid ${borderColors("default")};
+  border-radius: 50%;
+  cursor: pointer;
+  &::after {
+    content: "";
+    display: block;
+    width: ${size("innerRadio")};
+    height: ${size("innerRadio")};
+    margin: 2px;
+    border-radius: 50%;
+  }
+  &:checked {
+    border-color: ${color("primary")};
+  }
+  &:checked::after {
+    background-color: ${color("primary")};
+  }
 `;
 
 interface PlotSettingsProps {
@@ -214,11 +239,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       <Row>
         <Col md={6}>
           <SettingsDiv>
-            <SecondaryButton
-              text={"Reset to default"}
-              icon="reload"
-              onPress={handleReset}
-            />
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
             <DropdownInputField
               options={[
@@ -278,7 +298,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                       key={font}
                       style={{ display: "flex", alignItems: "center" }}
                     >
-                      <input
+                      <StyledRadio
                         type="radio"
                         id={formattedId}
                         name="fontGroup"
@@ -295,7 +315,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                 style={{ display: "flex", gap: "1rem", alignItems: "center" }}
               >
                 <div>
-                  <input
+                  <StyledRadio
                     type="radio"
                     id={"radioCustomFont"}
                     name="fontGroup"
@@ -355,6 +375,11 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         </Col>
       </Row>
       <Footer>
+        <SecondaryButton
+          text={"Reset to default"}
+          icon="reload"
+          onPress={handleReset}
+        />
         <SecondaryButton
           id="save"
           text={"Save"}

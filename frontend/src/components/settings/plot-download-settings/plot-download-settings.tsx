@@ -22,6 +22,7 @@ import {
   color,
   fontSize,
   fontWeight,
+  size,
   spacing,
 } from "../../../theme";
 import { usePlotSettings } from "../specific-settings/usePlotSettings";
@@ -52,6 +53,30 @@ const Label = styled(Text)`
   font-weight: ${fontWeight("bold")};
   color: ${color("primary")};
   margin: 4px 0;
+`;
+
+const StyledRadio = styled.input.attrs({ type: "radio" })`
+  appearance: none;
+  margin: 0 ${spacing("verySmall")} 0 0;
+  width: ${size("radio")};
+  height: ${size("radio")};
+  border: 1px solid ${borderColors("default")};
+  border-radius: 50%;
+  cursor: pointer;
+  &::after {
+    content: "";
+    display: block;
+    width: ${size("innerRadio")};
+    height: ${size("innerRadio")};
+    margin: 2px;
+    border-radius: 50%;
+  }
+  &:checked {
+    border-color: ${color("primary")};
+  }
+  &:checked::after {
+    background-color: ${color("primary")};
+  }
 `;
 
 const Footer = styled.div`
@@ -267,7 +292,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                       key={font}
                       style={{ display: "flex", alignItems: "center" }}
                     >
-                      <input
+                      <StyledRadio
                         type="radio"
                         id={formattedId}
                         name="fontGroup"
@@ -284,7 +309,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                 style={{ display: "flex", gap: "1rem", alignItems: "center" }}
               >
                 <div>
-                  <input
+                  <StyledRadio
                     type="radio"
                     id={"radioCustomFont"}
                     name="fontGroup"
