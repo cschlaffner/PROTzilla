@@ -132,7 +132,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   const [plot] = useState(examplePlot);
 
   const handleDownload = () => {
-    Plotly.downloadImage("test", {
+    Plotly.downloadImage("plot-id", {
       format: "png",
       filename: "testfile",
       width: 400,
@@ -300,6 +300,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               styleProps={{ margin: "2px" }}
               data={plot.data as Partial<PlotData>[]}
               layout={plot.layout as Partial<Layout>}
+              divId={"plot-id"}
             />
           </PlotDiv>
         </Col>
@@ -315,19 +316,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           icon="clipboard"
           onPress={void saveSettings}
         />
-        <Button
-          text="Download plot"
-          icon="download"
-          onPress={handleDownload} />
+        <Button text="Download plot" icon="download" onPress={handleDownload} />
       </Footer>
-
-      {/* <PlotDiv>
-        <Plot
-          data={plot.data as Partial<PlotData>[]}
-          layout={plot.layout as Partial<Layout>}
-          divId={"test"}
-        />
-      </PlotDiv> */}
     </StyledModal>
   );
 };

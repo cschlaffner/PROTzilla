@@ -7,10 +7,11 @@ export const PlotComponent: React.FC<PlotProps> = ({
   data,
   layout,
   styleProps,
+  divId,
 }) => {
   return (
     <div style={styleProps}>
-      <Plot data={data} layout={layout} />
+      <Plot data={data} layout={layout} divId={divId} />
     </div>
   );
 };
