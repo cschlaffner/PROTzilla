@@ -177,10 +177,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       console.error("Export failed: ", error);
     });
   };
-
   const handleReset = () => {
     void loadSettings();
     settings.title = prevTitle;
+  };
+  const handleSaving = () => {
+    void saveSettings();
   };
 
   const fonts = [
@@ -355,7 +357,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         <SecondaryButton
           text="Save as template"
           icon="clipboard"
-          onPress={void saveSettings}
+          onPress={handleSaving}
         />
         <Button text="Download plot" icon="download" onPress={handleDownload} />
       </Footer>

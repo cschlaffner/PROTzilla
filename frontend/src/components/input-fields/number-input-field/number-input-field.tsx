@@ -88,24 +88,22 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
       | React.KeyboardEvent<HTMLButtonElement>,
   ) => {
     const { id } = e.currentTarget;
-    setValue((prevValue) => {
-      const stepValue = step ?? 1;
-      let updatedValue = prevValue;
-      if (id === "up") {
-        updatedValue = prevValue + stepValue;
-        if (max !== undefined && updatedValue > max) {
-          updatedValue = max;
-        }
-      } else if (id === "down") {
-        updatedValue = prevValue - stepValue;
-        if (min !== undefined && updatedValue < min) {
-          updatedValue = min;
-        }
+    const stepValue = step ?? 1;
+    let newValue = value;
+    if (id === "up") {
+      newValue = value + stepValue;
+      if (max !== undefined) {
+        newValue = Math.min(newValue, max);
       }
-      setDisplayValue(String(updatedValue));
-      onChange(updatedValue);
-      return updatedValue;
-    });
+    } else if (id === "down") {
+      newValue = value - stepValue;
+      if (min !== undefined) {
+        newValue = Math.max(newValue, min);
+      }
+    }
+    setValue(newValue);
+    setDisplayValue(String(newValue));
+    onChange(newValue);
   };
 
   return (
