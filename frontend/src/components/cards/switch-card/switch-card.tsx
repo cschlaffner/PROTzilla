@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { styled } from "styled-components"
+import { styled } from "styled-components";
 
 import { SwitchCardProps } from "./switch-card.props";
 import { spacing } from "../../../theme";
@@ -25,12 +25,14 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   const [switchState, setSwitchState] = useState<string>("component1");
 
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      height: "auto",
-      ...(styleProps ?? {}),
-    }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "auto",
+        ...(styleProps ?? {}),
+      }}
+    >
       <SwitchDiv hasSwitchAlginStart={hasSwitchAlginStart}>
         <Switch
           options={[

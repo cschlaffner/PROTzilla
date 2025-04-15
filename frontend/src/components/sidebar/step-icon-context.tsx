@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 interface IconContextProps {
-  icons: { [key: string]: string };
+  icons: Record<string, string>;
   setIcon: (stepId: string, icon: string) => void;
 }
 
@@ -12,7 +12,7 @@ interface IconProviderProps {
 const IconContext = createContext<IconContextProps | undefined>(undefined);
 
 export const IconProvider: React.FC<IconProviderProps> = ({ children }) => {
-  const [icons, setIcons] = useState<{ [key: string]: string }>({});
+  const [icons, setIcons] = useState<Record<string, string>>({});
 
   const setIcon = (stepId: string, icon: string) => {
     setIcons((prevIcons) => ({ ...prevIcons, [stepId]: icon }));

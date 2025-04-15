@@ -1,9 +1,4 @@
-import {
-  Sections,
-  SelectedStep,
-  SetSelectedStep,
-  StepStatus,
-} from "../../types";
+import { Sections, StepStatus } from "../../types";
 
 export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement> {
   number: string;
@@ -13,8 +8,8 @@ export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement> {
   sectionName: Sections;
   sectionLength: number;
   index: number;
-  selectedStep: SelectedStep | undefined;
-  setSelectedStep: SetSelectedStep;
+  isSelected: boolean;
+  handleStepSelection: any;
   deleteStep: (index: number) => void;
   setHandlePosition: React.Dispatch<
     React.SetStateAction<{ top: number; left: number }>

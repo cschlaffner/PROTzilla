@@ -2,14 +2,15 @@ import { Section } from "../components/sidebar/types.ts";
 
 export const translateGlobalToSectionIndex = (
   globalIndex: number,
+  currentSection: string,
   sectionsData: Section[],
-): [Section, number] | undefined => {
-  let i = 0;
+): number | undefined => {
+  let i = globalIndex;
   for (const section of sectionsData) {
-    i = i + section.steps.length;
-    if (i >= globalIndex) {
-      return [section, globalIndex - (i - section.steps.length)];
+    if (section.id === currentSection) {
+      return i;
     }
+    i -= section.steps.length;
   }
   return undefined;
 };

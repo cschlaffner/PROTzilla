@@ -175,13 +175,14 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
-    await callApiWithParameters("add_step/", {
+    const response = await callApiWithParameters("add_step/", {
       // TODO add index
       run_name: run_name,
       method: method_name,
-    }).then(() => {
-      onAddStep();
     });
+    if (response) {
+      onAddStep(response.data);
+    }
   };
 
   // - - - Modal handling - - -
@@ -287,10 +288,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                       justifyContent: "left",
                                     }}
                                     onPress={() =>
-                                      void handleAddStep(
-                                        runName,
-                                        item.method_name,
-                                      )
+                                      handleAddStep(runName, item.method_name)
                                     }
                                     key={index}
                                     text={item.display_name}
@@ -331,7 +329,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                 justifyContent: "left",
                               }}
                               onPress={() =>
-                                void handleAddStep(runName, item.method_name)
+                                handleAddStep(runName, item.method_name)
                               }
                               key={index}
                               text={item.display_name}

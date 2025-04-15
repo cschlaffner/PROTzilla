@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
@@ -6,7 +7,6 @@ import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
 import { SecondaryButton } from "../../button";
-import axios from "axios";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -45,8 +45,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
 
   const handleFileSelection = (e: Event) => {
     const input = e.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0)
-      return;
+    if (!input.files || input.files.length === 0) return;
 
     const selectedFile = input.files[0];
     setFile(selectedFile);
@@ -56,23 +55,25 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     setIsUploading(true);
 
     try {
-      await axios.post('/api/upload_file/', formData, {
+      await axios.post("/api/upload_file/", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1),
+          );
           setUploadProgress(percent);
         },
       });
 
       // Upload successful
     } catch (err) {
-      console.error('Upload failed:', err);
+      console.error("Upload failed:", err);
       // Upload failed
     } finally {
       setIsUploading(false);
@@ -84,16 +85,18 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   return (
     <InputContainer {...props}>
       <StyledDiv>
-        <StyledSpan>{file ? file.name : (value ? value : placeholder)}</StyledSpan>
+        <StyledSpan>
+          {file ? file.name : value ? value : placeholder}
+        </StyledSpan>
         <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
         </SecondaryButton>
       </StyledDiv>
       {isUploading && (
-      <div>
-        <p>Uploading: {uploadProgress}%</p>
-      </div>
-    )}
+        <div>
+          <p>Uploading: {uploadProgress}%</p>
+        </div>
+      )}
     </InputContainer>
   );
 };

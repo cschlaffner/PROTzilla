@@ -1,4 +1,4 @@
-import { Sections, SelectedStep, SetSelectedStep, Step } from "../types";
+import { Sections, Step } from "../types";
 
 export interface SidebarSectionProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -7,7 +7,8 @@ export interface SidebarSectionProps
   index: number;
   title: string;
   isCollapsed: boolean;
-  selectedStep: SelectedStep | undefined;
-  setSelectedStep: SetSelectedStep;
+  stepSectionIndex: number | undefined;
+  handleStepSelection: any;
+  runData: any;
   steps: Step[];
 }

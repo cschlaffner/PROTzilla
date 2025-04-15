@@ -1,6 +1,6 @@
 import re
 from backend.protzilla.all_steps import get_all_methods
-from backend.protzilla.steps import StepManager
+from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
 
 def parameters_from_post(post):
@@ -48,6 +48,18 @@ def get_all_possible_steps() -> list[dict]:
         step_list.append(step.to_dict(step))
     return step_list
 
+def get_step(
+    step: Step
+) -> dict:
+    return(
+        {
+            "id": step.instance_identifier,
+            "name": step.display_name,
+            "method_name": name_to_title(step.operation),
+            "status": step.calculation_status,
+        }
+    )
+
 def get_displayed_steps(
     steps: StepManager,
 ) -> list[dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
@@ -66,12 +78,7 @@ def get_displayed_steps(
 
         for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
             workflow_steps.append(
-                {
-                    "id": step.instance_identifier,
-                    "name": step.display_name,
-                    "method_name": name_to_title(step.operation),
-                    "status": step.calculation_status,
-                }
+                get_step(step)
             )
 
             index_global += 1

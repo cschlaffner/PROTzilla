@@ -7,5 +7,5 @@ export interface ListEditorProps {
   runName: string;
   handleStepSelection: (selectedStep: SelectedStep | undefined) => void;
   onCalculateStep: () => void;
-  section: string;
+  runData: any;
 }

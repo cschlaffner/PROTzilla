@@ -1,4 +1,4 @@
-import { Sections } from "../sidebar/types.ts";
+import { Sections, Step } from "../sidebar/types.ts";
 
 export interface StepSelectionProps
   extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
@@ -8,6 +8,6 @@ export interface StepSelectionProps
   index: number; // Index in the section for the step to be added to, defaults to last in index
   isSmallButton: boolean; // Whether the open button is circular small or with text
   handlePosition: { top: number; left: number }; // Position of the handle
-  onAddStep: () => void; // Function to add a step to the run
+  onAddStep: (newStep: Step) => void; // Function to add a step to the run
   setShowHandle: React.Dispatch<React.SetStateAction<boolean>>;
 }

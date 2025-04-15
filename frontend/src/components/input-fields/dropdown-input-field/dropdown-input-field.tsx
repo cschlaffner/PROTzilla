@@ -87,7 +87,6 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   const [selectedValue, setSelectedValue] = useState(() => {
     const initialValue =
       options.find((option) => option.label === value) ?? options[0];
-    onChange(initialValue.value);
     return initialValue;
   });
 

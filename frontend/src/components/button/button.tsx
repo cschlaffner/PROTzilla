@@ -21,14 +21,20 @@ import {
   opacity,
   radius,
   size,
-  spacing
+  spacing,
 } from "../../theme";
 import { FocusOutline } from "../box";
 
 const StyledButton = styled.button.withConfig({
-  shouldForwardProp: (prop:string) => 
-    !["isDisabled","isActive", "onlyIcon", "onlyText", "isShy", "isSmall"].includes(prop.toString())
-
+  shouldForwardProp: (prop: string) =>
+    ![
+      "isDisabled",
+      "isActive",
+      "onlyIcon",
+      "onlyText",
+      "isShy",
+      "isSmall",
+    ].includes(prop.toString()),
 })<
   Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall"> & {
     onlyIcon?: boolean;

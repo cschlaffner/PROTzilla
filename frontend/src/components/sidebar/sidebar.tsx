@@ -1,14 +1,13 @@
 import { motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
-import { emptySections, Section, SelectedStep } from "./types";
+import { emptySections, Section } from "./types";
 import { spacing, styledDiv } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";
-import { callApiWithParameters } from "../../utils";
 import { translateGlobalToSectionIndex } from "../../utils/step_index_helper.ts";
 
 const SidebarContainer = styled(motion.div)`
@@ -29,49 +28,17 @@ const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
 
 export const Sidebar: React.FC<SidebarProps> = ({
   runName,
+  runData,
   handleStepSelection,
 }: SidebarProps) => {
-  const [sections, setSections] = useState<Section[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedStep, setSelectedStep] = useState<SelectedStep | undefined>();
+  const sections = runData.displayed_steps || emptySections;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (runName === "") return;
-      const data = await callApiWithParameters("get_run_data/", {
-        run_name: runName,
-      });
-      if (data) {
-        // get sections and their steps
-        const sections = data.data.displayed_steps;
-        if (sections.length === 0) {
-          setSections(emptySections);
-        } else {
-          setSections(sections);
-        }
-
-        // get selected step
-        const currentStepIndex = data.data.current_step_index;
-        const currentStep = translateGlobalToSectionIndex(
-          currentStepIndex,
-          sections,
-        );
-        if (currentStep !== undefined) {
-          const [section, index] = currentStep;
-          setSelectedStep({
-            section: section.id,
-            index: index,
-          });
-        }
-      }
-    };
-
-    void fetchData();
-  }, [runName]);
-
-  useEffect(() => {
-    handleStepSelection(selectedStep);
-  }, [selectedStep]);
+  const stepSectionIndex = translateGlobalToSectionIndex(
+    runData.current_step_index,
+    runData.current_section,
+    sections,
+  );
 
   return (
     <SidebarContainer
@@ -94,15 +61,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         sections.map((section: Section, i: number) => {
           return (
             <SidebarSection
-              runName={runName}
               key={section.id}
+              index={i}
               name={section.id}
               title={section.name}
-              index={i}
-              isCollapsed={isCollapsed}
-              selectedStep={selectedStep}
-              setSelectedStep={setSelectedStep}
+              runName={runName}
               steps={section.steps}
+              isCollapsed={isCollapsed}
+              stepSectionIndex={stepSectionIndex}
+              runData={runData}
+              handleStepSelection={handleStepSelection}
             />
           );
         })}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { styled } from "styled-components"
+import { styled } from "styled-components";
 
 import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 import { border, borderColors, color, size, spacing } from "../../../theme";

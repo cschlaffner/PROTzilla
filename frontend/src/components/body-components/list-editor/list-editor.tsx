@@ -4,9 +4,9 @@ import { styled } from "styled-components";
 import { ListEditorProps } from "./list-editor.props";
 import { color, spacing } from "../../../theme";
 import { FlexRow } from "../../box";
+import { SecondaryButton } from "../../button";
 import { Form } from "../../forms/form";
 import { Sidebar } from "../../sidebar";
-import { SecondaryButton } from "../../button";
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -39,17 +39,26 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   runName,
   handleStepSelection,
   onCalculateStep,
-  section
+  runData,
 }) => {
   return (
     <StyledRow>
-      <Sidebar runName={runName} handleStepSelection={handleStepSelection} />
+      <Sidebar
+        runName={runName}
+        runData={runData}
+        handleStepSelection={handleStepSelection}
+      />
 
       <StyledDivider />
 
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParameters} />
-        <SecondaryButton text={section === "importing" ? "Import":"Calculate"} onPress={onCalculateStep} />
+        <SecondaryButton
+          text={
+            runData.current_section === "importing" ? "Import" : "Calculate"
+          }
+          onPress={onCalculateStep}
+        />
       </StyledFormColumn>
     </StyledRow>
   );

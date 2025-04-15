@@ -1,8 +1,15 @@
 import React, { useRef } from "react";
-import { styled } from "styled-components"
+import { styled } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
+import {
+  border,
+  borderColors,
+  color,
+  fontSize,
+  spacing,
+  styledDiv,
+} from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styledDiv.div`
@@ -26,7 +33,7 @@ const FlexContainer = styledDiv.div`
 `;
 
 const StyledInputFrame = styled.div.withConfig({
-  shouldForwardProp: (prop:string) => prop.toString() !== "smallBorder"
+  shouldForwardProp: (prop: string) => prop.toString() !== "smallBorder",
 })<{ smallBorder: boolean }>`
   box-sizing: border-box;
   background-color: ${color("transparent")};

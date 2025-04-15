@@ -28,11 +28,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [, setValue] = useState<number>(() => {
-    onChange(value);
-    return value;
-  });
-
   const [displayValue, setDisplayValue] = useState<string>(String(value));
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +41,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
       const numericValue = Number(newValue);
       const newNumericValue = isNaN(numericValue) ? 0 : numericValue;
-      setValue(newNumericValue);
       onChange(newNumericValue);
     }
   };

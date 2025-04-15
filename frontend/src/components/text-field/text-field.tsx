@@ -22,7 +22,7 @@ import {
   opacity,
   radius,
   spacing,
-  styledDiv
+  styledDiv,
 } from "../../theme";
 
 // TODO: Add translations for built-in texts
@@ -106,7 +106,7 @@ const InputContainer = styledDiv.div<{ isFocused?: boolean }>`
   }
 
   .show-password {
-    display: ${({isFocused}) => (isFocused ? "inline-flex" : "none")};
+    display: ${({ isFocused }) => (isFocused ? "inline-flex" : "none")};
   }
 
   &:hover {

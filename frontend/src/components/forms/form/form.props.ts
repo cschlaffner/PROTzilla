@@ -6,7 +6,7 @@ import { NumberInputFieldProps } from "../../input-fields/number-input-field";
 import { RadioSelectInputFieldProps } from "../../input-fields/radio-select-input-field";
 import { SearchInputFieldProps } from "../../input-fields/search-input-field";
 import { TextInputFieldProps } from "../../input-fields/text-input-field";
- 
+
 export interface FormProps {
   formData: FormData;
   onChange: (data: Record<string, InputValueType>) => void;
@@ -20,45 +20,45 @@ export interface FormData {
 }
 
 export type InputField =
-  | { type: "text"; 
-      name: string; 
-      isVisible: boolean;
-    } & Omit<TextInputFieldProps, "onChange"> 
-  | {
+  | ({ type: "text"; name: string; isVisible: boolean } & Omit<
+      TextInputFieldProps,
+      "onChange"
+    >)
+  | ({
       type: "number";
       name: string;
       isVisible: boolean;
-    } &Omit<NumberInputFieldProps, "onChange">
-  | {
+    } & Omit<NumberInputFieldProps, "onChange">)
+  | ({
       type: "search";
       name: string;
       isVisible: boolean;
-    } &Omit<SearchInputFieldProps, "onChange">
-  | {
+    } & Omit<SearchInputFieldProps, "onChange">)
+  | ({
       type: "radio-select";
       name: string;
       isVisible: boolean;
-    } & Omit<RadioSelectInputFieldProps, "onChange">
-  | {
+    } & Omit<RadioSelectInputFieldProps, "onChange">)
+  | ({
       type: "checkbox-select";
       name: string;
       isVisible: boolean;
-    } & Omit<CheckboxSelectInputFieldProps, "onChange">
-  | {
+    } & Omit<CheckboxSelectInputFieldProps, "onChange">)
+  | ({
       type: "multi-select";
       name: string;
       isVisible: boolean;
-    } & Omit<MultiSelectInputFieldProps, "onChange">
-  | {
+    } & Omit<MultiSelectInputFieldProps, "onChange">)
+  | ({
       type: "dropdown";
       name: string;
       isVisible: boolean;
-    } & Omit<DropdownInputFieldProps, "onChange">
-  | {
+    } & Omit<DropdownInputFieldProps, "onChange">)
+  | ({
       type: "file";
       name: string;
       isVisible: boolean;
-    } & Omit<FileInputFieldProps, "onChange">;
+    } & Omit<FileInputFieldProps, "onChange">);
 
 type InputFields =
   | TextInputFieldProps

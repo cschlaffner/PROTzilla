@@ -27,39 +27,39 @@ export const mockPlotLayout: Partial<Plotly.Layout> = {
 
 export const mockTableData: GridRowsProp = [
   {
-    "Sample": "AD01_C1_INSOLUBLE_01",
+    Sample: "AD01_C1_INSOLUBLE_01",
     "Protein ID": "A0A075B6S2",
-    "Gene": null,
-    "iBAQ": 1297700.0,
-    "id": 0
+    Gene: null,
+    iBAQ: 1297700.0,
+    id: 0,
   },
   {
-    "Sample": "AD01_C1_INSOLUBLE_01",
+    Sample: "AD01_C1_INSOLUBLE_01",
     "Protein ID": "A0A0A0MRZ8",
-    "Gene": null,
-    "iBAQ": 408600.0,
-    "id": 1
+    Gene: null,
+    iBAQ: 408600.0,
+    id: 1,
   },
   {
-    "Sample": "AD01_C1_INSOLUBLE_01",
+    Sample: "AD01_C1_INSOLUBLE_01",
     "Protein ID": "A0A0B4J1X5",
-    "Gene": null,
-    "iBAQ": 911520.0,
-    "id": 2
+    Gene: null,
+    iBAQ: 911520.0,
+    id: 2,
   },
   {
-    "Sample": "AD01_C1_INSOLUBLE_01",
+    Sample: "AD01_C1_INSOLUBLE_01",
     "Protein ID": "A0A0B4J1Y9",
-    "Gene": null,
-    "iBAQ": 225580.0,
-    "id": 3
+    Gene: null,
+    iBAQ: 225580.0,
+    id: 3,
   },
   {
-    "Sample": "AD01_C1_INSOLUBLE_01",
+    Sample: "AD01_C1_INSOLUBLE_01",
     "Protein ID": "A0A0C4DH68",
-    "Gene": null,
-    "iBAQ": null,
-    "id": 4
+    Gene: null,
+    iBAQ: null,
+    id: 4,
   },
 ];
 
@@ -84,7 +84,6 @@ export const mockFormDataParameters: FormData = {
           value: "maxQuantPostProcessing",
         },
       ],
-
     },
     {
       type: "file",
@@ -96,18 +95,16 @@ export const mockFormDataParameters: FormData = {
       type: "dropdown",
       name: "intensity",
       isVisible: true,
-        label: "Intensity",
-        options: [
-          { label: "iBAQ", value: "ibaq" },
-          { label: "LFQ Intensity", value: "lfq" },
-          { label: "Total Intensity", value: "totalIntensity" },
-          { label: "Normalized Intensity", value: "normalizedIntensity" },
-        ],
-      },
+      label: "Intensity",
+      options: [
+        { label: "iBAQ", value: "ibaq" },
+        { label: "LFQ Intensity", value: "lfq" },
+        { label: "Total Intensity", value: "totalIntensity" },
+        { label: "Normalized Intensity", value: "normalizedIntensity" },
+      ],
+    },
   ],
 };
-
-
 
 export const dummyTextComponent1 =
   "😲 Ohh you shouldn't come here - we're not finished yet. \n Quickly click on the switch again. 👀";

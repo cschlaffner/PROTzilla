@@ -5,11 +5,11 @@ import { styled } from "styled-components";
 import { SidebarStepProps } from "./sidebar-step.props";
 import { color } from "../../../../theme";
 import { InvisibleButton } from "../../../button";
+import { DefaultColoredIconType } from "../../../icon";
 import { DefaultColoredIcon } from "../../../icon/icon";
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
 import { useIconContext } from "../../step-icon-context.tsx";
-import { DefaultColoredIconType } from "../../../icon";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
@@ -42,8 +42,8 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   sectionName,
   sectionLength,
   index,
-  selectedStep,
-  setSelectedStep,
+  isSelected,
+  handleStepSelection,
   deleteStep,
   setHandlePosition,
   setShowHandle,
@@ -95,7 +95,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const handleClick = () => {
-    setSelectedStep({
+    handleStepSelection({
       section: sectionName,
       index: index,
     });
@@ -105,11 +105,6 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
     event.stopPropagation();
     deleteStep(index);
   };
-
-  const isSelected =
-    selectedStep !== null &&
-    selectedStep!.section === sectionName &&
-    selectedStep!.index === index;
 
   return (
     <StepContainer

@@ -59,11 +59,12 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   title,
   index,
   isCollapsed,
-  selectedStep,
-  setSelectedStep,
+  stepSectionIndex,
+  runData,
+  handleStepSelection,
   steps,
 }: SidebarSectionProps) => {
-  let hasSelectedStep = selectedStep !== null && selectedStep!.section === name;
+  const isCurrentSection = runData.current_section === name;
 
   const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
@@ -72,26 +73,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   const [showHandle, setShowHandle] = useState(false);
 
-  const updateSteps = async () => {
-    const data = await callApiWithParameters("get_run_data/", {
-      run_name: runName,
-    });
-    if (data) {
-      if (data.data.displayed_steps.length === 0) {
-        setCurrentSteps([]);
-      } else {
-        setCurrentSteps(data.data.displayed_steps[index].steps);
-      }
-    }
-  };
-
-  // useEffect(() => {
-  //   console.log("selectedStep", selectedStep);
-  //   updateSteps().then();
-  // }, [selectedStep]);
-
-  const addStep = async () => {
-    await updateSteps();
+  const addStep = (newStep: Step) => {
+    setCurrentSteps((prevSteps) => [...prevSteps, newStep]);
   };
 
   const deleteStep = async (index: number) => {
@@ -100,16 +83,15 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-    await updateSteps();
-    if (hasSelectedStep) {
+    setCurrentSteps((prevSteps) => prevSteps.filter((_, i) => index !== i));
+    if (isCurrentSection) {
       if (currentSteps.length === 0) {
-        hasSelectedStep = false;
-        setSelectedStep(undefined);
+        handleStepSelection(undefined);
       } else {
-        const newIndex = selectedStep
-          ? Math.min(selectedStep.index, currentSteps.length - 1)
+        const newIndex = stepSectionIndex
+          ? Math.min(stepSectionIndex, currentSteps.length - 1)
           : 0;
-        setSelectedStep({
+        handleStepSelection({
           section: name,
           index: newIndex,
         });
@@ -154,10 +136,10 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
                   name={step.method_name + ": " + step.name}
                   isCollapsed={isCollapsed}
                   sectionName={name}
-                  sectionLength={steps.length}
+                  sectionLength={currentSteps.length}
                   index={j}
-                  selectedStep={selectedStep}
-                  setSelectedStep={setSelectedStep}
+                  isSelected={isCurrentSection && stepSectionIndex === j}
+                  handleStepSelection={handleStepSelection}
                   deleteStep={() => {
                     void deleteStep(j);
                   }}
@@ -177,9 +159,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
           index={currentSteps.length}
           isSmallButton={false}
           handlePosition={handlePosition}
-          onAddStep={() => {
-            void addStep();
-          }}
+          onAddStep={addStep}
           setShowHandle={setShowHandle}
         />
       </StepsContainer>
@@ -190,9 +170,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
           index={hoveredStepIndex}
           isSmallButton={true}
           handlePosition={handlePosition}
-          onAddStep={() => {
-            void addStep();
-          }}
+          onAddStep={addStep}
           setShowHandle={setShowHandle}
           data-group-id="step-group"
         />

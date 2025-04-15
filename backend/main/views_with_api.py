@@ -25,7 +25,7 @@ from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_steps
+from backend.main.views_with_api_helper import get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -198,7 +198,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Added step: " + method})
+        return JsonResponse({"success": True, "message": "Added step: " + method, "data": get_step(step)}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

@@ -22,9 +22,9 @@ import {
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { InputValueType } from "../components/forms/form";
+import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
-import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -79,7 +79,7 @@ export const RunScreen: React.FC = () => {
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const [runName] = useState<string>(location.state?.existingRun);
-  const [section, setSection] = useState<string>("")
+  const [runData, setRunData] = useState({});
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
@@ -89,29 +89,40 @@ export const RunScreen: React.FC = () => {
   );
   const { setIcon } = useIconContext();
 
+  useEffect(() => {
+    getRunData();
+    getStepForm({});
+    getStepPlots();
+    getStepTable();
+  }, []);
+
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
-      setSection(selectedStep.section)
       setUserInput({});
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
         section: selectedStep.section,
         index: String(selectedStep.index),
-      })
-        .then(() => {
-          return getStepForm({});
-        })
-        .then(() => {
-          return getStepPlots();
-        })
-        .then(() => {
-          return getStepTable();
-        });
+      }).then(() => {
+        getRunData();
+        getStepForm({});
+        getStepPlots();
+        getStepTable();
+      });
     }
   };
 
   const onChangeParameters = (data: Record<string, InputValueType>) => {
     setUserInput(data);
+  };
+
+  const getRunData = async () => {
+    const response = await callApiWithParameters("get_run_data/", {
+      run_name: runName,
+    });
+    if (response) {
+      setRunData(response.data);
+    }
   };
 
   const getStepPlots = async () => {
@@ -140,7 +151,6 @@ export const RunScreen: React.FC = () => {
     });
     if (response) {
       const data = response.data;
-      console.log(data);
       setTableData(data);
     }
   };
@@ -156,9 +166,6 @@ export const RunScreen: React.FC = () => {
       setFormData(data);
     }
   };
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   const calculateStep = async () => {
     const response = await callApiWithParameters("calculate_step/", {
@@ -193,7 +200,7 @@ export const RunScreen: React.FC = () => {
       runName={runName}
       handleStepSelection={handleStepSelection}
       onCalculateStep={calculateStep}
-      section={section}
+      runData={runData}
     />
   );
 

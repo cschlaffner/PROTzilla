@@ -99,7 +99,7 @@ submit.args = {
           { label: "Schweiz", value: "CH" },
           { label: "Frankreich", value: "FR" },
           { label: "Italien", value: "IT" },
-          ],
+        ],
       },
     ],
   },
