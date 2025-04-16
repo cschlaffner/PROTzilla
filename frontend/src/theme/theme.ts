@@ -174,6 +174,7 @@ export const baseTheme = {
     buttonFocusOutline: "8px",
     smallCard: "12px",
     card: "20px",
+    tag: "12px",
   },
   shadows: {
     floating: "0px 12px 20px -10px rgba(0, 0, 0, 0.25)",
@@ -209,7 +210,9 @@ export const baseTheme = {
     listButtonPadding: "2px 0 2px 0",
     buttonGap: "8px",
     smallButtonGap: "6px",
+    tagPadding: "4px 8px",
 
+    superSmall: "4px",
     verySmall: "5px",
     small: "10px",
     medium: "20px",

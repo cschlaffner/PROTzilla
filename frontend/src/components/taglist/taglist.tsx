@@ -2,24 +2,24 @@ import { styled } from "styled-components";
 
 import { Icon } from "../icon";
 import { TagListProps } from "./taglist.props";
-import { color } from "../../theme";
+import { color, fontSize, radius, spacing } from "../../theme";
 
 const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: ${spacing("superSmall")};
 `
 
 const Tag = styled.span`
   background-color: ${color("protzillaDarkBlue")};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  color: ${color("onPrimary")};
+  padding: ${spacing("tagPadding")};
+  border-radius: ${radius("tag")};
+  font-size: ${fontSize("default")};
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: ${spacing("verySmall")};
 `
 
 export const TagList: React.FC<TagListProps> = ({

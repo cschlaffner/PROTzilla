@@ -7,6 +7,6 @@ export interface RunsTableProps
     runs: Run[]
     filteredRuns: Run[];
     setRuns: React.Dispatch<React.SetStateAction<Run[]>>;
-    openModal: React.Dispatch<React.SetStateAction<boolean>>;
+    openTagModal: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedRun: React.Dispatch<React.SetStateAction<Run>>;
   }

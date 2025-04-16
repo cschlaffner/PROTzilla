@@ -1,14 +1,14 @@
+import {useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {styled } from "styled-components"
 
 import { color, defaultPalette } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
 import { SecondaryButton } from "../button"
-import { DeleteModal } from "../modal"
 import { Icon } from "../icon"
+import { DeleteModal } from "../modal"
 import { RunsTableProps } from "./runs-table.props"
 import { TagList } from "../taglist"
-import {useState } from "react"
 
 const TableContainer = styled.div`
   display: flex;
@@ -54,7 +54,7 @@ const StyledList = styled.div`
 `
 
 export const RunsTable: React.FC<RunsTableProps> = ({
-  runs, filteredRuns, setRuns, openModal, setSelectedRun
+  runs, filteredRuns, setRuns, openTagModal, setSelectedRun
 }) => {
   const navigate = useNavigate();
   
@@ -101,7 +101,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
   const handleModal = (run: Run) => {
     setSelectedRun(run);
-    openModal(true)
+    openTagModal(true)
   }
 
   const handleDeleteModal = (runName: string) => {
@@ -201,7 +201,12 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           </TableCol>
         </TableRow>
       ))}
-      <DeleteModal title={`Delete run "${actionRun}"?`} isOpen={isDeleteModalOpen} onConfirm={() => { handleDeleteRun(actionRun); }} onClose={() => {setIsDeleteModalOpen(false); }}></DeleteModal>
+      <DeleteModal 
+        title={`Delete run "${actionRun}"?`} 
+        isOpen={isDeleteModalOpen} 
+        onConfirm={() => { handleDeleteRun(actionRun); }} 
+        onClose={() => {setIsDeleteModalOpen(false); }}>
+      </DeleteModal>
     </TableContainer>
   )
 }

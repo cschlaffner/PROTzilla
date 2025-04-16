@@ -16,7 +16,7 @@ const StyledContainer = styled(Container)`
   width: 200px;
 `;
 
-const CutoffText = styled(H5)`
+const NameText = styled(H5)`
   user-select: none;
   white-space: nowrap;
   overflow: hidden;
@@ -38,7 +38,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
             isBig={true}
             onPress={onPress}
             />
-        <CutoffText
+        <NameText
             text={workflow}
             onPointerEnter={handlePointerEnter}
             onPointerLeave={handlePointerLeave}
@@ -50,7 +50,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
             position="bottomRight"
             distance={13}
           />
-        </CutoffText>
+        </NameText>
     </StyledContainer>
   );
 };

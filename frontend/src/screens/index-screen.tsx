@@ -257,7 +257,7 @@ export const IndexScreen: React.FC = () => {
             runs={runs}
             filteredRuns={filteredRuns}
             setRuns={setRuns}
-            openModal={setIsTagModalOpen}
+            openTagModal={setIsTagModalOpen}
             setSelectedRun={setSelectedRun}
           />
         </StyledRunSelectionCard>
