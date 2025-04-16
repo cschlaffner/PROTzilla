@@ -1,7 +1,14 @@
+import styled from "styled-components";
 import { RedButton, SecondaryButton } from "../../button";
 import { Modal } from "../modal";
 import { DeleteModalProps } from "./delete-modal.props";
 
+
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+`;
 
 
 export const DeleteModal: React.FC<DeleteModalProps> = ({
@@ -13,10 +20,10 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
 }) => { 
     return(
         <Modal title={title} isOpen={isOpen} onClose={onClose} className={className}>
-            <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
-            <RedButton onClick={onConfirm}>
-                Delete
-            </RedButton>
+            <ButtonContainer>
+                <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
+                <RedButton onClick={onConfirm}>Delete</RedButton>
+            </ButtonContainer>
         </Modal>
     )
 }
