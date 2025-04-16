@@ -3,6 +3,7 @@ export interface ScreenNotificationProps {
   message?: string;
   type: "error" | "success" | "warning" | "info";
   isShown?: boolean;
+  isClosingAutomatically?: boolean;
   closeAfterMs?: number;
   onClose?: () => void;
 }
