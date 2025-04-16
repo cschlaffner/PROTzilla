@@ -206,7 +206,6 @@ export const RunsTable: React.FC<RunsTableProps> = ({
             <SecondaryButton 
               isSmall={true} 
               isShy={true}
-              isCautious={true}
               onClick={(e) => {
                 e.stopPropagation(); 
                 handleContinueRun(run.run_name);
