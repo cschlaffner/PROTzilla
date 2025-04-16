@@ -66,15 +66,22 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     }
   }, [runData]);
 
-  const currentSection = runData.current_section;
+  const currentSection = sections.find(
+    (section) => section.id === runData.current_section,
+  );
+  const previousStepSectionIndex = translateGlobalToSectionIndex(
+    Math.max(runData.current_step_index-1,0),
+    sections,
+  ).index;
+
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
     sections,
   ).index;
 
-  const currentStepCalculationStatus = sections.find(
-    (section) => section.id === currentSection,
-  )?.steps[stepSectionIndex]?.status;
+  const previousStepCalculationStatus = runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
+
+  const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
 
   const buttonText =
     currentStepCalculationStatus === "complete"
@@ -110,7 +117,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParameters} />
-        <SecondaryButton text={buttonText} onPress={buttonFunction} />
+        <SecondaryButton isDisabled={previousStepCalculationStatus==="failed" || previousStepCalculationStatus==="incomplete"} text={buttonText} onPress={buttonFunction} />
       </StyledFormColumn>
     </StyledRow>
   );
