@@ -2,7 +2,7 @@ import { Layout, PlotData } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
 import {
@@ -23,7 +23,6 @@ import {
   color,
   fontSize,
   fontWeight,
-  size,
   spacing,
 } from "../../../theme";
 
@@ -56,27 +55,8 @@ const Label = styled(Text)`
 `;
 
 const StyledRadio = styled.input.attrs({ type: "radio" })`
-  appearance: none;
-  margin: 0 ${spacing("verySmall")} 0 0;
-  width: ${size("radio")};
-  height: ${size("radio")};
-  border: 1px solid ${borderColors("default")};
-  border-radius: 50%;
-  cursor: pointer;
-  &::after {
-    content: "";
-    display: block;
-    width: ${size("innerRadio")};
-    height: ${size("innerRadio")};
-    margin: 2px;
-    border-radius: 50%;
-  }
-  &:checked {
-    border-color: ${color("primary")};
-  }
-  &:checked::after {
-    background-color: ${color("primary")};
-  }
+  accent-color: ${color("primary")};
+  margin-right: ${spacing("superSmall")};
 `;
 
 const Footer = styled.div`
@@ -108,6 +88,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleTextSizeChange,
     handleTitleChange,
   } = usePlotSettings(isOpen);
+
+  const theme = useTheme();
 
   const initialPlot = {
     data: [
@@ -284,7 +266,11 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             <div>
               <Label text={"Font"} />
               <div
-                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  gap: theme.spacing.small,
+                  alignItems: "center",
+                }}
               >
                 {fonts.map((font) => {
                   const formattedId = `radio${font.replace(/\s/g, "")}`;

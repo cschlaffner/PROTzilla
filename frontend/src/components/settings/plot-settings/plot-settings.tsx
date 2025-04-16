@@ -1,7 +1,7 @@
 import { Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { usePlotSettings } from "./usePlotSettings";
 import {
@@ -20,7 +20,6 @@ import {
   color,
   fontSize,
   fontWeight,
-  size,
   spacing,
 } from "../../../theme";
 
@@ -58,27 +57,8 @@ const Label = styled(Text)`
 `;
 
 const StyledRadio = styled.input.attrs({ type: "radio" })`
-  appearance: none;
-  margin: 0 ${spacing("verySmall")} 0 0;
-  width: ${size("radio")};
-  height: ${size("radio")};
-  border: 1px solid ${borderColors("default")};
-  border-radius: 50%;
-  cursor: pointer;
-  &::after {
-    content: "";
-    display: block;
-    width: ${size("innerRadio")};
-    height: ${size("innerRadio")};
-    margin: 2px;
-    border-radius: 50%;
-  }
-  &:checked {
-    border-color: ${color("primary")};
-  }
-  &:checked::after {
-    background-color: ${color("primary")};
-  }
+  accent-color: ${color("primary")};
+  margin-right: ${spacing("superSmall")};
 `;
 
 interface PlotSettingsProps {
@@ -103,6 +83,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     handleTitleSizeChange,
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
+
+  const theme = useTheme();
 
   const initialPlot = {
     data: [
@@ -313,7 +295,11 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
                 })}
               </div>
               <div
-                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  gap: theme.spacing.small,
+                  alignItems: "center",
+                }}
               >
                 <div>
                   <StyledRadio
