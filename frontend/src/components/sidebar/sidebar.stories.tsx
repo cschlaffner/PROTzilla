@@ -8,13 +8,14 @@ export default {
 } as Meta;
 
 const Template = () => (
-  <Sidebar
-    runData={[]}
-    runName={""}
-    handleStepSelection={() => {
-      //donothing
-    }}
-  />
+  <></>
+  // <Sidebar
+  //   runData={[]}
+  //   runName={""}
+  //   handleStepSelection={() => {
+  //     //donothing
+  //   }}
+  // />
 );
 
 export const Default = Template.bind({});
