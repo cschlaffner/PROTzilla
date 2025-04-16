@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import {
@@ -34,17 +34,18 @@ const StyledInputLabel = styled.p<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
-const OptionsList = styled.ul<{ width: number }>`
+const OptionsList = styled.ul`
   background: white;
   border-radius: ${border("defaultRadius")};
   border: ${border("defaultStrength")} solid ${borderColors("default")};
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
   list-style: none;
   margin-top: 0;
   overflow-y: auto;
   padding: 0;
   position: absolute;
-  width: ${({ width }) => `${width.toString()}px`};
+  width: 100%;
   z-index: 1000;
 `;
 
@@ -78,92 +79,89 @@ const OptionItem = styled.li`
   }
 `;
 
-export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
-  options,
-  value,
-  onChange,
-  ...props
-}) => {
-  const [selectedValue, setSelectedValue] = useState(() => {
-    const initialValue =
-      options.find((option) => option.value === value) ?? options[0];
-    onChange(initialValue.value);
-    return initialValue;
-  });
+export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
+  function DropdownInputField({ options, value, onChange, ...props }) {
+    const [selectedValue, setSelectedValue] = useState(
+      options.find((option) => option.value === value) ?? options[0],
+    );
 
-  const dropdownRef = useRef<HTMLUListElement | null>(null);
-  const inputRef = useRef<HTMLDivElement | null>(null);
-  const [dropdownWidth, setDropdownWidth] = useState<number>(200);
+    useEffect(() => {
+      const initialOption =
+        options.find((option) => option.value === value) ?? options[0];
+      setSelectedValue(initialOption);
 
-  const [isOpen, , disable, toggle] = useToggleableState();
-  useOutsidePress(
-    [
-      dropdownRef as React.RefObject<HTMLElement>,
-      inputRef as React.RefObject<HTMLElement>,
-    ],
-    disable,
-    isOpen,
-  );
+      if (initialOption.value !== value) {
+        onChange(initialOption.value);
+      }
+    }, [value, options, onChange]);
 
-  useEffect(() => {
-    if (inputRef.current) {
-      setDropdownWidth(inputRef.current.getBoundingClientRect().width);
-    }
-  }, []);
+    const dropdownRef = useRef<HTMLUListElement | null>(null);
+    const inputRef = useRef<HTMLDivElement | null>(null);
 
-  const handleChange = (option: { label: string; value: string }) => {
-    setSelectedValue(option);
-    onChange(option.value);
-    disable();
-  };
+    const [isOpen, , disable, toggle] = useToggleableState();
+    useOutsidePress(
+      [
+        dropdownRef as React.RefObject<HTMLElement>,
+        inputRef as React.RefObject<HTMLElement>,
+      ],
+      disable,
+      isOpen,
+    );
 
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (
-      target.closest(".inline-prefix") ||
-      target.closest(".inline-suffix") ||
-      target.closest(".selected-value-text")
-    ) {
-      toggle();
-    }
-  };
+    const handleChange = (option: { label: string; value: string }) => {
+      setSelectedValue(option);
+      onChange(option.value);
+      disable();
+    };
 
-  return (
-    <DropdownContainer>
-      <div ref={inputRef} onClick={handleClick}>
-        <InputContainer
-          {...props}
-          inlineSuffix={
-            <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
-          }
-        >
-          <StyledInputLabel
-            className="selected-value-text"
-            $isSmall={props.isSmall ?? false}
+    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest(".inline-prefix") ||
+        target.closest(".inline-suffix") ||
+        target.closest(".selected-value-text")
+      ) {
+        toggle();
+      }
+    };
+
+    return (
+      <DropdownContainer>
+        <div ref={inputRef} onClick={handleClick}>
+          <InputContainer
+            {...props}
+            inlineSuffix={
+              <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
+            }
           >
-            {selectedValue.label}
-          </StyledInputLabel>
-        </InputContainer>
-      </div>
+            <StyledInputLabel
+              className="selected-value-text"
+              $isSmall={props.isSmall ?? false}
+            >
+              {selectedValue.label}
+            </StyledInputLabel>
+          </InputContainer>
+        </div>
 
-      {isOpen && (
-        <OptionsList width={dropdownWidth} ref={dropdownRef}>
-          {options.length > 0 ? (
-            options.map((option) => (
-              <OptionItem
-                key={option.value}
-                onClick={() => {
-                  handleChange(option);
-                }}
-              >
-                {option.label}
-              </OptionItem>
-            ))
-          ) : (
-            <OptionItem>No results</OptionItem>
-          )}
-        </OptionsList>
-      )}
-    </DropdownContainer>
-  );
-};
+        {isOpen && (
+          <OptionsList ref={dropdownRef}>
+            {options.length > 0 ? (
+              options.map((option) => (
+                <OptionItem
+                  key={option.value}
+                  onClick={() => {
+                    handleChange(option);
+                  }}
+                >
+                  {option.label}
+                </OptionItem>
+              ))
+            ) : (
+              <OptionItem>No results</OptionItem>
+            )}
+          </OptionsList>
+        )}
+      </DropdownContainer>
+    );
+  },
+);

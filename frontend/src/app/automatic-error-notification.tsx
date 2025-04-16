@@ -26,8 +26,8 @@ export const AutomaticErrorNotification = observer(() => {
 
       notify({
         type: "error",
-        title: typeof error.title === "string" ? error.title : "Fehler",
-        message: message || "Ein unbekannter Fehler ist aufgetreten.",
+        title: typeof error.title === "string" ? error.title : "Error",
+        message: message || "An unknown error has occurred.",
         onClose: dismissError,
       });
     }
