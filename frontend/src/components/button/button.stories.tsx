@@ -86,7 +86,6 @@ green.args = {
   isDisabled: false,
   text: "Green Button",
   tag: "",
-
 };
 
 export const red = (args: ButtonProps): React.ReactNode => (

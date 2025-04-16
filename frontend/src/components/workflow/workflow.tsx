@@ -30,27 +30,23 @@ export const Workflow: React.FC<WorkflowProps> = ({
   icon,
 }) => {
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
-    useTooltipScheduling(true)
+    useTooltipScheduling(true);
   return (
     <StyledContainer>
-        <BigButton
-            icon={icon}
-            isBig={true}
-            onPress={onPress}
-            />
-        <NameText
-            text={workflow}
-            onPointerEnter={handlePointerEnter}
-            onPointerLeave={handlePointerLeave}
-        >
-          <Tooltip
-            text={workflow}
-            isShown={showTooltip}
-            anchor={mouseAnchor}
-            position="bottomRight"
-            distance={13}
-          />
-        </NameText>
+      <BigButton icon={icon} isBig={true} onPress={onPress} />
+      <NameText
+        text={workflow}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+      >
+        <Tooltip
+          text={workflow}
+          isShown={showTooltip}
+          anchor={mouseAnchor}
+          position="bottomRight"
+          distance={13}
+        />
+      </NameText>
     </StyledContainer>
   );
 };

@@ -1,14 +1,14 @@
-import {useState } from "react"
-import { useNavigate } from "react-router-dom"
-import {styled, useTheme } from "styled-components"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { styled, useTheme } from "styled-components";
 
-import { color, defaultPalette } from "../../theme"
-import { callApiWithParameters, Run } from "../../utils"
-import { SecondaryButton } from "../button"
-import { Icon } from "../icon"
-import { DeleteModal } from "../modal"
-import { RunsTableProps } from "./runs-table.props"
-import { TagList } from "../taglist"
+import { color, defaultPalette } from "../../theme";
+import { callApiWithParameters, Run } from "../../utils";
+import { SecondaryButton } from "../button";
+import { Icon } from "../icon";
+import { DeleteModal } from "../modal";
+import { RunsTableProps } from "./runs-table.props";
+import { TagList } from "../taglist";
 
 const TableContainer = styled.div`
   display: flex;
@@ -28,7 +28,7 @@ const TableContainer = styled.div`
   &:hover {
     overflow-x: auto;
   }
-`
+`;
 
 const TableRow = styled.div<{ preSelected?: boolean }>`
   display: flex;
@@ -49,28 +49,32 @@ const TableRow = styled.div<{ preSelected?: boolean }>`
       : `
           border: none;
         `}
-`
+`;
 
 const TableCol = styled.div<{ width?: string }>`
   flex: ${({ width }) => (width ? "0 0 " + width : "1")};
   text-align: left;
   padding: 8px 8px;
   min-width: 50px;
-`
+`;
 
 const TableHeader = styled(TableRow)`
   font-weight: bold;
   border-bottom: 2px solid #ccc;
   padding-bottom: 4px;
-`
+`;
 const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-`
+`;
 
 export const RunsTable: React.FC<RunsTableProps> = ({
-  runs, filteredRuns, setRuns, openTagModal, setSelectedRun
+  runs,
+  filteredRuns,
+  setRuns,
+  openTagModal,
+  setSelectedRun,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -87,20 +91,25 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     setRuns((runs) =>
       runs.map((run) =>
         run.run_name === runName
-          ? { ...run, run_tags: run.run_tags.filter((tag) => tag !== tagToDelete) }
-          : run
-      )
+          ? {
+              ...run,
+              run_tags: run.run_tags.filter((tag) => tag !== tagToDelete),
+            }
+          : run,
+      ),
     );
   };
 
   const handleToggleFavourite = (runName: string) => {
     void callApiWithParameters("toggle_favourite/", {
       run_name: runName,
-    })
+    });
     const updated = runs.map((run) =>
-      run.run_name === runName ? { ...run, favourite_status: !run.favourite_status } : run
-    )
-    setRuns(updated)
+      run.run_name === runName
+        ? { ...run, favourite_status: !run.favourite_status }
+        : run,
+    );
+    setRuns(updated);
   };
 
   const handleDeleteRun = (runName: string) => {
@@ -111,21 +120,22 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   };
 
   const handleContinueRun = (runName: string) => {
-    void callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
-      void navigate("/run", { state: { runName } });
-    });
+    void callApiWithParameters("continue_run/", { run_name: runName }).then(
+      () => {
+        void navigate("/run", { state: { runName } });
+      },
+    );
   };
 
   const handleModal = (run: Run) => {
     setSelectedRun(run);
-    openTagModal(true)
-  }
+    openTagModal(true);
+  };
 
   const handleDeleteModal = (runName: string) => {
     setActionRun(runName);
-    setIsDeleteModalOpen(true)
-  }
-  
+    setIsDeleteModalOpen(true);
+  };
 
   return (
     <TableContainer>
@@ -138,91 +148,112 @@ export const RunsTable: React.FC<RunsTableProps> = ({
       </TableHeader>
 
       {[...filteredRuns]
-      // Favourites on top
-        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0))
+        // Favourites on top
+        .sort(
+          (a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0),
+        )
         .map((run) => (
-        
-            
-        <TableRow key={run.run_name}
-          onDoubleClick={() => {handleContinueRun(run.run_name);}}
-          onClick={() => {
-            if (preSelectedRun === run.run_name) {
+          <TableRow
+            key={run.run_name}
+            onDoubleClick={() => {
               handleContinueRun(run.run_name);
-            } else {
-              setPreSelectedRun(run.run_name);
-            }
-          }}
-          preSelected={run.run_name === preSelectedRun}
-          style={{ 
-            cursor: "pointer",
-          }}
-        >
-          <TableCol 
-            width={theme.sizes.smallCellWidth}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleToggleFavourite(run.run_name);
             }}
-            style={{ cursor: "pointer"}}
-            >            
-            <Icon
-              icon="starFill"
-              style={{
-                height: "15px",
-                fill: run.favourite_status ? defaultPalette.primary : "none",
-              }}
-            />
-          </TableCol>
-          <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
-          <TableCol width={theme.sizes.mediumCellWidth}>{run.modification_date}</TableCol>
-          <TableCol>
-            <StyledList>
-              <TagList runName={run.run_name} tags={run.run_tags} icon="close" handleTag={handleDeleteTag}/>
-              <SecondaryButton 
-                isSmall={true} 
-                isShy={true} 
-                onClick={(e) => {
-                  handleModal(run);
-                  e.stopPropagation(); 
-                }}>
-                <Icon icon={"threeDots"} style={{ height: "15px", fill: defaultPalette.primary }} />
-              </SecondaryButton>
-            </StyledList>
-          </TableCol>
-          <TableCol width={theme.sizes.mediumCellWidth}>
-            <SecondaryButton isSmall={true} isShy={true}>
-              <Icon icon={"edit"} style={{ height: "15px" }} />
-            </SecondaryButton>
-            <SecondaryButton 
-              isSmall={true} 
-              isShy={true} 
-              isCautious={true} 
-              onClick={(e) => {
-                handleDeleteModal(run.run_name);
-                e.stopPropagation(); 
-              }}>
-              <Icon icon={"trash"} style={{ height: "15px" }} />
-            </SecondaryButton>
-            <SecondaryButton 
-              isSmall={true} 
-              isShy={true}
-              onClick={(e) => {
-                e.stopPropagation(); 
+            onClick={() => {
+              if (preSelectedRun === run.run_name) {
                 handleContinueRun(run.run_name);
-              }}>
-              <Icon icon={"play"} style={{ height: "15px" }} />  
-              Go!
-
-            </SecondaryButton>
-          </TableCol>
-        </TableRow>
-      ))}
-      <DeleteModal 
-        title={`Delete run "${actionRun}"?`} 
-        isOpen={isDeleteModalOpen} 
-        onConfirm={() => { handleDeleteRun(actionRun); }} 
-        onClose={() => {setIsDeleteModalOpen(false); }}>
-      </DeleteModal>
+              } else {
+                setPreSelectedRun(run.run_name);
+              }
+            }}
+            preSelected={run.run_name === preSelectedRun}
+            style={{
+              cursor: "pointer",
+            }}
+          >
+            <TableCol
+              width={theme.sizes.smallCellWidth}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleFavourite(run.run_name);
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <Icon
+                icon="starFill"
+                style={{
+                  height: "15px",
+                  fill: run.favourite_status ? defaultPalette.primary : "none",
+                }}
+              />
+            </TableCol>
+            <TableCol width={theme.sizes.largeCellWidth}>
+              {run.run_name}
+            </TableCol>
+            <TableCol width={theme.sizes.mediumCellWidth}>
+              {run.modification_date}
+            </TableCol>
+            <TableCol>
+              <StyledList>
+                <TagList
+                  runName={run.run_name}
+                  tags={run.run_tags}
+                  icon="close"
+                  handleTag={handleDeleteTag}
+                />
+                <SecondaryButton
+                  isSmall={true}
+                  isShy={true}
+                  onClick={(e) => {
+                    handleModal(run);
+                    e.stopPropagation();
+                  }}
+                >
+                  <Icon
+                    icon={"threeDots"}
+                    style={{ height: "15px", fill: defaultPalette.primary }}
+                  />
+                </SecondaryButton>
+              </StyledList>
+            </TableCol>
+            <TableCol width={theme.sizes.mediumCellWidth}>
+              <SecondaryButton isSmall={true} isShy={true}>
+                <Icon icon={"edit"} style={{ height: "15px" }} />
+              </SecondaryButton>
+              <SecondaryButton
+                isSmall={true}
+                isShy={true}
+                isCautious={true}
+                onClick={(e) => {
+                  handleDeleteModal(run.run_name);
+                  e.stopPropagation();
+                }}
+              >
+                <Icon icon={"trash"} style={{ height: "15px" }} />
+              </SecondaryButton>
+              <SecondaryButton
+                isSmall={true}
+                isShy={true}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContinueRun(run.run_name);
+                }}
+              >
+                <Icon icon={"play"} style={{ height: "15px" }} />
+                Go!
+              </SecondaryButton>
+            </TableCol>
+          </TableRow>
+        ))}
+      <DeleteModal
+        title={`Delete run "${actionRun}"?`}
+        isOpen={isDeleteModalOpen}
+        onConfirm={() => {
+          handleDeleteRun(actionRun);
+        }}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+        }}
+      ></DeleteModal>
     </TableContainer>
-  )
-}
+  );
+};

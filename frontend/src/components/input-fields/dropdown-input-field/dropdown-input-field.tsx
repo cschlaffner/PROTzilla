@@ -80,25 +80,21 @@ const OptionItem = styled.li`
 `;
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
-  function DropdownInputField({
-    options,
-    value,
-    onChange,
-    ...props
-  }) {
+  function DropdownInputField({ options, value, onChange, ...props }) {
     const [selectedValue, setSelectedValue] = useState(
-      options.find((option) => option.value === value) ?? options[0]
+      options.find((option) => option.value === value) ?? options[0],
     );
-    
+
     useEffect(() => {
-      const initialOption = options.find((option) => option.value === value) ?? options[0];
+      const initialOption =
+        options.find((option) => option.value === value) ?? options[0];
       setSelectedValue(initialOption);
-    
+
       if (initialOption.value !== value) {
         onChange(initialOption.value);
       }
     }, [value, options, onChange]);
-    
+
     const dropdownRef = useRef<HTMLUListElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);
 
@@ -167,4 +163,5 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
         )}
       </DropdownContainer>
     );
-});
+  },
+);

@@ -50,8 +50,6 @@ export const Modal: React.FC<ModalProps> = ({
   className,
 }) => {
   return (
-    
-
     <Backdrop isOpen={isOpen} onClick={onClose}>
       <ModalContent
         className={className}

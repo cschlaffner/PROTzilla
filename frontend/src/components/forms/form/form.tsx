@@ -61,36 +61,45 @@ export const Form: React.FC<FormProps> = memo(function Form({
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
-  const handleChange = useCallback((name: string, value: InputValueType) => {
-    setFormValues((prevValues) => {
-      const newValues = { ...prevValues, [name]: value };
-      const hasChanges =
-        JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+  const handleChange = useCallback(
+    (name: string, value: InputValueType) => {
+      setFormValues((prevValues) => {
+        const newValues = { ...prevValues, [name]: value };
+        const hasChanges =
+          JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
-      const isFirstEntryForId = !(name in prevValues);
-      if (isFirstEntryForId) {
-        return newValues;
-      }
-
-      if (formData.isAutoSubmit) {
-        onChange(newValues);
-      } else {
-        setIsChanged(hasChanges);
-
-        if (hasChanges) {
-          if (!hasformTouchedTriggered) {
-            onFormTouched?.(true);
-            setHasFormTouchedTriggered(true);
-          }
-        } else {
-          onFormTouched?.(false);
-          setHasFormTouchedTriggered(false);
+        const isFirstEntryForId = !(name in prevValues);
+        if (isFirstEntryForId) {
+          return newValues;
         }
-      }
 
-      return newValues;
-    });
-  }, [formData, hasformTouchedTriggered, onChange, onFormTouched, submittedValues]);
+        if (formData.isAutoSubmit) {
+          onChange(newValues);
+        } else {
+          setIsChanged(hasChanges);
+
+          if (hasChanges) {
+            if (!hasformTouchedTriggered) {
+              onFormTouched?.(true);
+              setHasFormTouchedTriggered(true);
+            }
+          } else {
+            onFormTouched?.(false);
+            setHasFormTouchedTriggered(false);
+          }
+        }
+
+        return newValues;
+      });
+    },
+    [
+      formData,
+      hasformTouchedTriggered,
+      onChange,
+      onFormTouched,
+      submittedValues,
+    ],
+  );
 
   const handleSubmit = () => {
     onChange(formValues);
@@ -113,7 +122,7 @@ export const Form: React.FC<FormProps> = memo(function Form({
       ))}
       {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
-          {isChanged && formData.hasChangeIndicator &&(
+          {isChanged && formData.hasChangeIndicator && (
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
@@ -127,7 +136,7 @@ export const Form: React.FC<FormProps> = memo(function Form({
   );
 });
 
-const InputField: React.FC<InputFieldProps> = memo(function	InputField({
+const InputField: React.FC<InputFieldProps> = memo(function InputField({
   type,
   name,
   onChange,
