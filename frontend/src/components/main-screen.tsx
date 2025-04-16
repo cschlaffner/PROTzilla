@@ -14,7 +14,7 @@ const MainContent = styled(SubScreen)`
   gap: ${spacing("large")};
   min-width: 0;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   width: 100%;
 `;
 
