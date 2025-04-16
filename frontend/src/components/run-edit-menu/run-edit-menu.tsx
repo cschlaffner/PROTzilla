@@ -39,7 +39,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       modification_date: "Loading...",
       memory_mode: "Loading...",
       run_steps: [],
-      favourite_status: true,
+      favourite_status: false,
       run_tags: ["Loading", "..."],
     });
 
