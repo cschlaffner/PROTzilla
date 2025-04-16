@@ -2,6 +2,7 @@ import { styled } from "styled-components";
 
 import { FormDividerProps } from "./form-divider.props";
 import { color, spacing } from "../../../theme";
+import { H4 } from "../../text";
 
 const DividerContainer = styled.div`
   padding-top: ${spacing("medium")};
@@ -16,18 +17,16 @@ const Line = styled.hr`
   min-width: 10px;
 
   height: 1px;
-  background-color: ${color("text")};
+  background-color: ${color("primary")};
   border-width: 0;
 `;
-
-const Label = styled.h3``;
 
 export const FormDivider: React.FC<FormDividerProps> = ({ label = "" }) => {
   return (
     <DividerContainer>
       <Line />
-      <Label>{label}</Label>
-      <Line />
+      {label && <H4>{label}</H4>}
+      {label && <Line />}
     </DividerContainer>
   );
 };
