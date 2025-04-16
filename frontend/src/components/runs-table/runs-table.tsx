@@ -54,7 +54,7 @@ const StyledList = styled.div`
 `
 
 export const RunsTable: React.FC<RunsTableProps> = ({
-  runs, filteredRuns, setRuns, openModal, setSelectedRun
+  runs, filteredRuns, setRuns, openTagModal, setSelectedRun
 }) => {
   const navigate = useNavigate();
   
@@ -101,7 +101,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
   const handleModal = (run: Run) => {
     setSelectedRun(run);
-    openModal(true)
+    openTagModal(true)
   }
 
   const handleDeleteModal = (runName: string) => {
