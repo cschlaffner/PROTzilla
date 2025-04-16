@@ -1,6 +1,6 @@
 import {useState } from "react"
 import { useNavigate } from "react-router-dom"
-import {styled } from "styled-components"
+import {styled, useTheme } from "styled-components"
 
 import { color, defaultPalette } from "../../theme"
 import { callApiWithParameters, Run } from "../../utils"
@@ -13,6 +13,21 @@ import { TagList } from "../taglist"
 const TableContainer = styled.div`
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  &:hover {
+    overflow-x: auto;
+  }
 `
 
 const TableRow = styled.div<{ preSelected?: boolean }>`
@@ -40,6 +55,7 @@ const TableCol = styled.div<{ width?: string }>`
   flex: ${({ width }) => (width ? "0 0 " + width : "1")};
   text-align: left;
   padding: 8px 8px;
+  min-width: 50px;
 `
 
 const TableHeader = styled(TableRow)`
@@ -57,7 +73,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   runs, filteredRuns, setRuns, openTagModal, setSelectedRun
 }) => {
   const navigate = useNavigate();
-  
+  const theme = useTheme();
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
   const [actionRun, setActionRun] = useState<string>("");
@@ -113,11 +130,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   return (
     <TableContainer>
       <TableHeader>
-        <TableCol width="50px">Favorite</TableCol>
-        <TableCol width="200px">Run Name</TableCol>
-        <TableCol width="150px">Last edited</TableCol>
+        <TableCol width={theme.sizes.smallCellWidth}>Favorite</TableCol>
+        <TableCol width={theme.sizes.largeCellWidth}>Run Name</TableCol>
+        <TableCol width={theme.sizes.mediumCellWidth}>Last edited</TableCol>
         <TableCol>Tags</TableCol>
-        <TableCol width="160px">Actions</TableCol>
+        <TableCol width={theme.sizes.mediumCellWidth}>Actions</TableCol>
       </TableHeader>
 
       {[...filteredRuns]
@@ -141,7 +158,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           }}
         >
           <TableCol 
-            width="50px" 
+            width={theme.sizes.smallCellWidth}
             onClick={(e) => {
               e.stopPropagation();
               handleToggleFavourite(run.run_name);
@@ -156,8 +173,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               }}
             />
           </TableCol>
-          <TableCol width="200px">{run.run_name}</TableCol>
-          <TableCol width="150px">{run.modification_date}</TableCol>
+          <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
+          <TableCol width={theme.sizes.mediumCellWidth}>{run.modification_date}</TableCol>
           <TableCol>
             <StyledList>
               <TagList runName={run.run_name} tags={run.run_tags} icon="close" handleTag={handleDeleteTag}/>
@@ -172,7 +189,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               </SecondaryButton>
             </StyledList>
           </TableCol>
-          <TableCol width="170px">
+          <TableCol width={theme.sizes.mediumCellWidth}>
             <SecondaryButton isSmall={true} isShy={true}>
               <Icon icon={"edit"} style={{ height: "15px" }} />
             </SecondaryButton>

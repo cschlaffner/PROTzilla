@@ -200,6 +200,11 @@ export const baseTheme = {
     // Input Screen
     templateSelectionHeight: "300px",
     runSelectionMinHeight: "300px",
+
+    //Runs Table
+    smallCellWidth: "50px",
+    mediumCellWidth: "150px",
+    largeCellWidth: "200px",
   },
   spacing: {
     listIndentation: "14px",

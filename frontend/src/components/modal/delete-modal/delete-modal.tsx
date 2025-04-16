@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 import { RedButton, SecondaryButton } from "../../button";
 import { Modal } from "../modal";
 import { DeleteModalProps } from "./delete-modal.props";
