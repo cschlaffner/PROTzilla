@@ -106,7 +106,9 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
                   ? defaultPalette.primary
                   : "",
               }}
-              onClick={void toggleFavorite}
+              onClick={() => {
+                void toggleFavorite();
+              }}
             />
           </Row>
           <Row>
