@@ -1,21 +1,19 @@
 import { Layout, PlotData } from "plotly.js";
-import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
+import { usePlotSettings } from "./usePlotSettings";
 import {
   Button,
   DropdownInputField,
-  Modal,
   NumberInputField,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
   Text,
   TextInputField,
-} from "../../../components";
+} from "../..";
 import {
   border,
   borderColors,
@@ -25,14 +23,6 @@ import {
   size,
   spacing,
 } from "../../../theme";
-import { usePlotSettings } from "../specific-settings/usePlotSettings";
-
-const StyledModal = styled(Modal)`
-  width: fit-content;
-  max-width: 100%;
-  height: fit-content;
-  max-height: 100vh;
-`;
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -45,7 +35,19 @@ const PlotDiv = styled.div`
   height: fit-content;
   border: ${border("defaultStrength")} solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
-  padding: 2px;
+`;
+
+const Footer = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: ${color("background")};
+  display: flex;
+  justify-content: flex-end;
+  gap: ${spacing("smallButtonGap")};
+  padding: ${spacing("smallButtonGap")};
+  z-index: 10;
 `;
 
 const Label = styled(Text)`
@@ -79,26 +81,20 @@ const StyledRadio = styled.input.attrs({ type: "radio" })`
   }
 `;
 
-const Footer = styled.div`
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: ${color("background")};
-  display: flex;
-  justify-content: flex-end;
-  gap: ${spacing("smallButtonGap")};
-  padding: ${spacing("smallButtonGap")};
-  z-index: 10;
-`;
+interface PlotSettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
+export const PlotSettings: React.FC<PlotSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
   const {
     settings,
-    loadSettings,
+    isLoading,
     saveSettings,
+    loadSettings,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
@@ -106,7 +102,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleCustomFontChange,
     handleTitleSizeChange,
     handleTextSizeChange,
-    handleTitleChange,
   } = usePlotSettings(isOpen);
 
   const initialPlot = {
@@ -158,7 +153,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   };
 
   const [plot, updatePlot] = useState(initialPlot);
-  const [prevTitle] = useState(initialPlot.layout.title.text);
 
   useEffect(() => {
     const sizeRatio = settings.width / settings.height;
@@ -171,11 +165,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         width: displayedWidth,
         height: displayedHeight,
         title: {
+          ...prevPlot.layout.template.layout.title,
           font: {
+            ...prevPlot.layout.template.layout.title,
             family: settings.selectedFont,
             size: settings.titleSize,
           },
-          text: settings.title ?? prevTitle,
+          text: prevPlot.layout.title.text,
         },
         template: {
           layout: {
@@ -189,26 +185,22 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         },
       },
     }));
-  }, [prevTitle, settings]);
+  }, [settings]);
 
-  const handleDownload = () => {
-    Plotly.downloadImage("plot-id", {
-      format: settings.fileFormat,
-      filename: "testfile",
-      width: 400,
-      height: 250,
-      scale: 10,
-    } as Plotly.DownloadImgopts).catch((error: unknown) => {
-      console.error("Export failed: ", error);
-    });
-    onClose();
+  const handleSaving = (
+    event:
+      | React.PointerEvent<HTMLButtonElement>
+      | React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    const target = event.currentTarget;
+    void saveSettings();
+    if (target.id == "saveAndQuit") {
+      onClose();
+    }
   };
+
   const handleReset = () => {
     void loadSettings();
-    settings.title = prevTitle;
-  };
-  const handleSaving = () => {
-    void saveSettings();
   };
 
   const fonts = [
@@ -220,16 +212,30 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   ];
   const isCustomSelected = !fonts.includes(settings.selectedFont);
 
+  if (isLoading) {
+    return (
+      <SectionTitle
+        baseComponent={"h6"}
+        description={"Loading plot export settings ..."}
+        style={{ paddingBottom: "20px" }}
+      />
+    );
+  }
+
   return (
-    <StyledModal isOpen={isOpen} onClose={onClose} title="Download Plots">
+    <div>
+      <SectionTitle
+        baseComponent={"h2"}
+        title={"Configurations for Plot Exports"}
+        style={{ paddingBottom: "4px" }}
+      />
       <SectionTitle
         baseComponent={"h6"}
         description={
-          "All configurations entered here apply to this plot only. If you want to apply them to future plots, save them as your template."
+          "The configurations made here are automatically applied to all plots that will be exported with PROTzilla."
         }
         style={{ paddingBottom: "20px" }}
       />
-
       <Row>
         <Col md={6}>
           <SettingsDiv>
@@ -345,8 +351,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               <Col>
                 <NumberInputField
                   label={"Text size"}
-                  min={1}
-                  max={100}
+                  min={10}
+                  max={300}
                   step={1}
                   hasStepButtons={true}
                   separateSuffix={"pt"}
@@ -356,11 +362,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                 />
               </Col>
             </Row>
-            <TextInputField
-              onChange={handleTitleChange}
-              label={"Title"}
-              value={plot.layout.title.text}
-            />
           </SettingsDiv>
         </Col>
         <Col md={6}>
@@ -369,7 +370,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               styleProps={{ margin: "2px" }}
               data={plot.data as Partial<PlotData>[]}
               layout={plot.layout as Partial<Layout>}
-              divId={"plot-id"}
             />
           </PlotDiv>
         </Col>
@@ -381,12 +381,20 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           onPress={handleReset}
         />
         <SecondaryButton
-          text="Save as template"
-          icon="clipboard"
-          onPress={handleSaving}
+          id="save"
+          text={"Save"}
+          onPress={(event) => {
+            handleSaving(event);
+          }}
         />
-        <Button text="Download plot" icon="download" onPress={handleDownload} />
+        <Button
+          id="saveAndQuit"
+          text={"Save & Quit"}
+          onPress={(event) => {
+            handleSaving(event);
+          }}
+        />
       </Footer>
-    </StyledModal>
+    </div>
   );
 };

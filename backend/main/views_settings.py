@@ -40,11 +40,6 @@ def save_settings(request):
     
 # TODO Include the following methods and functionalities from PROTzilla2
 
-# (from save_settings() )
-# if section_id == "plots" and isinstance(template, PlotTemplate):
-#         template.update(params)
-#         template.apply()
-
 # SCALED_WIDTH = 600
 # PT_TO_INCH = 1 / 72
 # INCH_TO_MM = 25.4
@@ -72,17 +67,14 @@ def save_settings(request):
 #     # Figure size
 #     ratio = params["width"] / params["height"]
 #     display_height = int(SCALED_WIDTH / ratio)
-    
 #     # Font size
 #     ratio = SCALED_WIDTH / params["width"]
 #     display_heading = int(params["heading_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
 #     display_text = int(params["text_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
-
 #     params["display_width"] = SCALED_WIDTH
 #     params["display_height"] = display_height
 #     params["display_heading_size"] = display_heading
 #     params["display_text_size"] = display_text
-
 #     return params
 
 # def get_scale_factor(
@@ -97,70 +89,7 @@ def save_settings(request):
 #     """
 #     current_width = fig.layout.width or SCALED_WIDTH
 #     scale_factor = (params["width"] / INCH_TO_MM * DPI) / current_width
-
 #     return scale_factor
-
-# class PlotTemplate:
-#     def __init__(self):
-#         params = resize_for_display(load_settings("plots"))
-#         font = determine_font(params)
-#         self.layout = go.Layout(
-#             title={
-#                 "font": {
-#                     "size": params["display_heading_size"],
-#                     "family": font
-#                 },
-#                 "y": 0.95,
-#                 "x": 0.5,
-#                 "xanchor": "center",
-#                 "yanchor": "top"
-#             },
-#             font={
-#                 "size": params["display_text_size"],
-#                 "family": font
-#             },
-#             colorway=[PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR],
-#             plot_bgcolor="white",
-#             yaxis={
-#                 "gridcolor": "lightgrey",
-#                 "zerolinecolor": "lightgrey"
-#             },
-#             modebar={
-#                 "remove": ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
-#             },
-#             dragmode="pan",
-#             height=params["display_height"],
-#             width=params["display_width"],
-#             margin={
-#                 "t": 50,
-#                 "b": 50
-#             }
-#         )
-    
-#     def update(self, params: dict):
-#         """
-#         Updates all relevant parameters of this Plotly template.
-#         :param params: Dict containing properties of the Plotly template.
-#         """
-#         params = resize_for_display(params)
-#         font = determine_font(params)
-#         self.layout.title.font.family = font
-#         self.layout.font.family = font
-     
-#         self.layout.height = params["display_height"]
-#         self.layout.width = params["display_width"]
-#         self.layout.title.font.size = params["display_heading_size"]
-#         self.layout.font.size = params["display_text_size"]
-
-#     def apply(self):
-#         """
-#         Applies the current template as default template.
-#         """
-#         pio.templates["plotly_protzilla"] = go.layout.Template(layout=self.layout)
-
-# template = PlotTemplate()
-# template.apply()
-# pio.templates.default = "plotly_protzilla"
 
 # <--- Databases --->
 

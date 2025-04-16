@@ -5,13 +5,13 @@ import {
   Button,
   Card,
   Dropdown,
+  Navbar,
   RedButton,
   TextField,
   useNotification,
 } from "../components";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar } from "../components/navbar";
-import { PlotDownloadSettings } from "../components/settings/plot-download-settings";
+import { PlotDownloadSettings } from "../components/settings/plot-settings";
 import { useToggleableState } from "../hooks";
 import { callApi, callApiWithParameters } from "../utils";
 

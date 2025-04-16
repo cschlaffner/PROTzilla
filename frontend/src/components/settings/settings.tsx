@@ -4,7 +4,8 @@ import { styled } from "styled-components";
 import { SettingsProps } from "./settings.props.ts";
 import { Modal, ToggleableButton } from "../../components";
 import { spacing } from "../../theme";
-import { DatabaseSettings, GitHub, PlotSettings } from "./specific-settings/";
+import { DatabaseSettings, GitHub } from "./other-settings/";
+import { PlotSettings } from "./plot-settings/plot-settings.tsx";
 
 const WideModal = styled(Modal)`
   width: fit-content;
