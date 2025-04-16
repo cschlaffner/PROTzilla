@@ -38,6 +38,14 @@ primary.args = {
         },
       },
       {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        props: {
+          label: "Single Checkbox",
+          text: "Checkbox",
+        },
+      },
+      {
         type: "multi-select",
         name: "country",
         props: {
@@ -74,6 +82,14 @@ submit.args = {
         name: "age",
         props: {
           label: "Age",
+        },
+      },
+      {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        props: {
+          label: "Single Checkbox",
+          text: "Checkbox",
         },
       },
       {
