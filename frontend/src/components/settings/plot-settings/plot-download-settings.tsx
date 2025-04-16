@@ -204,7 +204,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     onClose();
   };
   const handleReset = () => {
-    void loadSettings();
+    void loadSettings("plots_default");
     settings.title = prevTitle;
   };
   const handleSaving = () => {

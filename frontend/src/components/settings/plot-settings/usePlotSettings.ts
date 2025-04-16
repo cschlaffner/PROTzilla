@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { callApi, callApiWithParameters } from "../../../utils";
+import { callApiWithParameters } from "../../../utils";
 
 export interface PlotSettings {
   fileFormat: string;
@@ -29,8 +29,10 @@ export const usePlotSettings = (isOpen: boolean) => {
     title: "",
   });
 
-  const loadSettings = async () => {
-    const response = await callApi("load_settings");
+  const loadSettings = async (templateName: string) => {
+    const response = await callApiWithParameters("load_settings", {
+      templateName: templateName,
+    });
     if (response) {
       setSettings({
         fileFormat: response.file_format,
@@ -47,7 +49,7 @@ export const usePlotSettings = (isOpen: boolean) => {
 
   useEffect(() => {
     if (isOpen) {
-      void loadSettings();
+      void loadSettings("plots");
     }
   }, [isOpen]);
 

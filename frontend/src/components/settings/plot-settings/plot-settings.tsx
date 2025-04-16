@@ -200,7 +200,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   };
 
   const handleReset = () => {
-    void loadSettings();
+    void loadSettings("plots_default");
   };
 
   const fonts = [

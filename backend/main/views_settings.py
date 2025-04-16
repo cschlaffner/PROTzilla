@@ -18,25 +18,33 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 # <--- Plot Export --->
 
 def load_settings(request):
+    try:
+        data = json.loads(request.body)
+    except:
+        return JsonResponse({"error": "Invalid JSON response while loading the settings."}, status=400)
+    templateName = data.get("templateName")
+
     op = YamlOperator()
-    path = SETTINGS_PATH / ("plots" + ".yaml")
-    if path.exists():
-        settings = op.read(path)
-    else:
-        default_path = SETTINGS_PATH / ("plots_default.yaml")
+    path = SETTINGS_PATH / (templateName + ".yaml")
+    default_path = SETTINGS_PATH / ("plots_default.yaml")
+
+    if (templateName == "plots_default" or not path.exists()):
         settings = op.read(default_path)
-        # save_settings(settings, section_id)
+    else:
+        settings = op.read(path)
     return JsonResponse(settings)
 
 def save_settings(request):
     if request.method == "POST":
-        data = json.loads(request.body.decode("utf-8"))
+        settings = json.loads(request.body.decode("utf-8"))
+
         op = YamlOperator()
-        path = SETTINGS_PATH / ("plots_default.yaml")
-        op.write(path, data)
+        path = SETTINGS_PATH / ("plots.yaml")
+        op.write(path, settings)
+
         # TODO Update Plotly template that is used in run screen
         return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
-    return JsonResponse({"error": "Only POST requests are allowed."}, status=200)
+    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
     
 # TODO Include the following methods and functionalities from PROTzilla2
 
