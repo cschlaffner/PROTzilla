@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
 import { color, spacing } from "../../../theme";
+import { translateGlobalToSectionIndex } from "../../../utils/step_index_helper.ts";
 import { FlexRow } from "../../box";
 import { SecondaryButton } from "../../button";
 import { Form } from "../../forms/form";
 import { Sidebar } from "../../sidebar";
+import { emptySections, Step } from "../../sidebar/types.ts";
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -41,11 +43,66 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   onCalculateStep,
   runData,
 }) => {
+  const [sections, setSections] = useState(emptySections);
+
+  const setCurrentSteps = (
+    sectionIndex: number,
+    updater: (prevSteps: Step[]) => Step[],
+  ) => {
+    setSections((prevSections) => {
+      return prevSections.map((section, idx) => {
+        if (idx === sectionIndex) {
+          const updatedSteps = updater(section.steps || []);
+          return { ...section, steps: updatedSteps };
+        }
+        return section;
+      });
+    });
+  };
+
+  useEffect(() => {
+    if (runData.displayed_steps) {
+      setSections(runData.displayed_steps);
+    }
+  }, [runData]);
+
+  const currentSection = runData.current_section;
+  const stepSectionIndex = translateGlobalToSectionIndex(
+    runData.current_step_index,
+    sections,
+  ).index;
+
+  const currentStepCalculationStatus = sections.find(
+    (section) => section.id === currentSection,
+  )?.steps[stepSectionIndex]?.status;
+
+  const buttonText =
+    currentStepCalculationStatus === "complete"
+      ? "Next"
+      : runData.current_section === "importing"
+        ? "Import"
+        : "Calculate";
+
+  const buttonFunction =
+    currentStepCalculationStatus === "complete"
+      ? () => {
+          handleStepSelection(
+            translateGlobalToSectionIndex(
+              runData.current_step_index + 1,
+              sections,
+            ),
+          );
+        }
+      : onCalculateStep;
+
   return (
     <StyledRow>
       <Sidebar
         runName={runName}
         runData={runData}
+        sections={sections}
+        setCurrentSteps={setCurrentSteps}
+        stepSectionIndex={stepSectionIndex}
         handleStepSelection={handleStepSelection}
       />
 
@@ -53,12 +110,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
       <StyledFormColumn>
         <Form formData={formDataParameters} onChange={onChangeParameters} />
-        <SecondaryButton
-          text={
-            runData.current_section === "importing" ? "Import" : "Calculate"
-          }
-          onPress={onCalculateStep}
-        />
+        <SecondaryButton text={buttonText} onPress={buttonFunction} />
       </StyledFormColumn>
     </StyledRow>
   );

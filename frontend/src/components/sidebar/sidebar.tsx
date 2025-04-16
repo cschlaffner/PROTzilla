@@ -8,7 +8,7 @@ import { spacing, styledDiv } from "../../theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";
-import { translateGlobalToSectionIndex } from "../../utils/step_index_helper.ts";
+//import { translateGlobalToSectionIndex } from "../../utils/step_index_helper.ts";
 
 const SidebarContainer = styled(motion.div)`
   position: relative;
@@ -29,15 +29,12 @@ const SidebarHeader = styledDiv.div<{ isCollapsed: boolean }>`
 export const Sidebar: React.FC<SidebarProps> = ({
   runName,
   runData,
+  sections,
+  setCurrentSteps,
+  stepSectionIndex,
   handleStepSelection,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const sections = runData.displayed_steps || [];
-  const stepSectionIndex = translateGlobalToSectionIndex(
-    runData.current_step_index,
-    runData.current_section,
-    sections,
-  );
 
   return (
     <SidebarContainer
@@ -65,7 +62,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               name={section.id}
               title={section.name}
               runName={runName}
-              steps={section.steps}
+              currentSteps={section.steps}
+              setCurrentSteps={(updater: any) => setCurrentSteps(i, updater)}
               isCollapsed={isCollapsed}
               stepSectionIndex={stepSectionIndex}
               runData={runData}

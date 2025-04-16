@@ -62,11 +62,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   stepSectionIndex,
   runData,
   handleStepSelection,
-  steps,
+  currentSteps,
+  setCurrentSteps,
 }: SidebarSectionProps) => {
   const isCurrentSection = runData.current_section === name;
 
-  const [currentSteps, setCurrentSteps] = useState(steps);
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
@@ -74,7 +74,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [showHandle, setShowHandle] = useState(false);
 
   const addStep = (newStep: Step) => {
-    setCurrentSteps((prevSteps) => [...prevSteps, newStep]);
+    setCurrentSteps((prevSteps: any) => [...prevSteps, newStep]);
   };
 
   const deleteStep = async (index: number) => {
@@ -83,7 +83,9 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-    setCurrentSteps((prevSteps) => prevSteps.filter((_, i) => index !== i));
+    setCurrentSteps((prevSteps: any) =>
+      prevSteps.filter((_: any, i: any) => index !== i),
+    );
     if (isCurrentSection) {
       if (currentSteps.length === 0) {
         handleStepSelection(undefined);
@@ -123,36 +125,33 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          currentSteps ? (
-            currentSteps.map((step: Step, j: number) => {
-              const number = `${String(index + 1)}.${String(j + 1)}`;
-              return (
-                <SidebarStep
-                  key={number}
-                  number={number}
-                  stepStatus={step.status}
-                  name={step.method_name + ": " + step.name}
-                  isCollapsed={isCollapsed}
-                  sectionName={name}
-                  sectionLength={currentSteps.length}
-                  index={j}
-                  isSelected={isCurrentSection && stepSectionIndex === j}
-                  handleStepSelection={handleStepSelection}
-                  deleteStep={() => {
-                    void deleteStep(j);
-                  }}
-                  setHandlePosition={setHandlePosition}
-                  setShowHandle={setShowHandle}
-                  setHoveredStepIndex={setHoveredStepIndex}
-                />
-              );
-            })
-          ) : (
-            <div></div>
-          )
-        }
+        {currentSteps ? (
+          currentSteps.map((step: Step, j: number) => {
+            const number = `${String(index + 1)}.${String(j + 1)}`;
+            return (
+              <SidebarStep
+                key={number}
+                number={number}
+                stepStatus={step.status}
+                name={step.method_name + ": " + step.name}
+                isCollapsed={isCollapsed}
+                sectionName={name}
+                sectionLength={currentSteps.length}
+                index={j}
+                isSelected={isCurrentSection && stepSectionIndex === j}
+                handleStepSelection={handleStepSelection}
+                deleteStep={() => {
+                  void deleteStep(j);
+                }}
+                setHandlePosition={setHandlePosition}
+                setShowHandle={setShowHandle}
+                setHoveredStepIndex={setHoveredStepIndex}
+              />
+            );
+          })
+        ) : (
+          <div></div>
+        )}
         <StepSelection
           runName={runName}
           section={name}

@@ -1,16 +1,21 @@
-import { Section } from "../components/sidebar/types.ts";
+import {
+  Section,
+  Sections,
+  SelectedStep,
+} from "../components/sidebar/types.ts";
 
 export const translateGlobalToSectionIndex = (
   globalIndex: number,
-  currentSection: string,
   sectionsData: Section[],
-): number | undefined => {
+): SelectedStep => {
   let i = globalIndex;
+  console.log(sectionsData);
   for (const section of sectionsData) {
-    if (section.id === currentSection) {
-      return i;
+    console.log(section);
+    if (i < section.steps.length) {
+      return { section: section.id, index: i };
     }
     i -= section.steps.length;
   }
-  return undefined;
+  return { section: Sections.Importing, index: 0 };
 };

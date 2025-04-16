@@ -176,6 +176,7 @@ export const RunScreen: React.FC = () => {
       const data = response.data;
 
       setIcon(data.section + "-" + data.index, data.status);
+      getRunData();
       void getStepPlots();
       void getStepTable();
     }
