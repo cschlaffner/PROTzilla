@@ -236,12 +236,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
             <DropdownInputField
               options={[
-                { value: "eps", label: "eps" },
-                { value: "jpg", label: "jpg" },
-                { value: "pdf", label: "pdf" },
+                { value: "eps", label: "(eps)" },
+                { value: "jpeg", label: "jpeg" },
+                { value: "pdf", label: "(pdf)" },
                 { value: "png", label: "png" },
                 { value: "svg", label: "svg" },
-                { value: "tiff", label: "tiff" },
+                { value: "tiff", label: "(tiff)" },
+                { value: "webp", label: "webp" },
               ]}
               onChange={handleFileFormatChange}
               label={"File format"}
