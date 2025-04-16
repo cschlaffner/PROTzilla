@@ -166,7 +166,6 @@ class Form:
                 continue
             elif isinstance(field, FileInput):
                 values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None
-                print("Path", (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None)
             elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:
