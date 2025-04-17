@@ -3,7 +3,7 @@ import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { Card, Form, Modal, RunsTable, Workflow } from "../components";
+import { Card, Form, InputValueType, Modal, RunsTable, useNotification, Workflow } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
@@ -16,11 +16,12 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const StyledContainer = styled(Container)`
+const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 `;
 
 const StyledWorkflowContainer = styled(Container)`
@@ -44,14 +45,18 @@ const StyledWorkflowContainer = styled(Container)`
 
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
+  width: calc(100vw - (4 * ${spacing("small")}));
 `;
 
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
+  width: calc(100vw - (2 * ${spacing("small")}));
+  box-sizing: border-box;
 `;
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -110,6 +115,21 @@ export const IndexScreen: React.FC = () => {
       ),
   );
 
+  const addRun = useCallback((data: Record<string, InputValueType>) => {
+    void callApiWithParameters("add_run/", {
+      run_name: data.runname ?? "",
+      workflow_name: data.workflow ?? "",
+      df_mode_name: data.df_mode ?? "disk",
+    });
+
+    notify({
+      title: "Run created",
+      message: `Run ${data.runname} has been created`,
+      type: "success",
+    })
+
+  }, [])
+
   const handleAddTag = (tag: string) => {
     void callApiWithParameters("add_tag/", {
       run_name: selectedRun.run_name,
@@ -154,7 +174,7 @@ export const IndexScreen: React.FC = () => {
         onOpenHelp={() => void navigate("/")}
       />
 
-      <StyledContainer fluid>
+      <StyledContainer>
         <StyledTemplateCard title="Template Workflows">
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
@@ -220,13 +240,7 @@ export const IndexScreen: React.FC = () => {
                   },
                 ],
               }}
-              onChange={useCallback((data) => {
-                void callApiWithParameters("add_run/", {
-                  run_name: data.runname ?? "",
-                  workflow_name: data.workflow ?? "",
-                  df_mode_name: data.df_mode ?? "disk",
-                });
-              }, [])}
+              onChange={addRun}
             ></Form>
           </Modal>
         </StyledTemplateCard>

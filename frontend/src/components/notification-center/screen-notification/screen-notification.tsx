@@ -77,6 +77,7 @@ const ProgressBar = styled.div<{ active: boolean; duration: number }>`
   background-color: rgba(255, 255, 255, 0.5);
   width: ${({ active }) => (active ? "100%" : "0%")};
   transition: width ${({ duration }) => duration}ms linear;
+  border-radius: ${radius("default")};
 `;
 
 export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
