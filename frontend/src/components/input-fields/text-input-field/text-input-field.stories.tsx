@@ -17,6 +17,7 @@ export const primary = Template.bind({});
 primary.args = {
   label: "Your Input",
   placeholder: "Type something",
+  characterLimit: 10,
 };
 
 export const allAffix = Template.bind({});

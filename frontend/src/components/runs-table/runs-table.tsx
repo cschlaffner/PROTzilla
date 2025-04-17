@@ -56,6 +56,7 @@ const TableCol = styled.div<{ width?: string }>`
   text-align: left;
   padding: 8px 8px;
   min-width: 50px;
+  word-wrap: break-word;
 `;
 
 const TableHeader = styled(TableRow)`

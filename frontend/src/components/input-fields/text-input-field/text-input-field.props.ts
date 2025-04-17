@@ -7,4 +7,5 @@ export interface TextInputFieldProps
   value?: string;
   placeholder?: string;
   onChange: (value: string) => void;
+  characterLimit?: number;
 }
