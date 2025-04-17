@@ -21,6 +21,7 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   placeholder,
   onChange,
   characterLimit = -1,
+  subscript,
   ...props
 }) => {
   const [value, setValue] = useState(() => {
@@ -36,8 +37,13 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
     onChange(value);
   };
 
+  const combinedSubscript =
+    characterLimit > 0
+      ? `${subscript ? `${subscript} | ` : ""}Character Limit ${value.length}/${characterLimit}`
+      : subscript;
+
   return (
-    <InputContainer subscript={`Character Limit ${value.length}/${characterLimit}`} {...props}>
+    <InputContainer subscript={combinedSubscript} {...props}>
       <StyledInput
         type="text"
         value={value}

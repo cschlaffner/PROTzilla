@@ -6,7 +6,19 @@ import { TextInputFieldProps } from "./text-input-field.props";
 export default {
   component: TextInputField,
   title: "Input Fields / Text Input Field",
-  argTypes: { onChange: { action: "changed" } },
+  argTypes: { 
+    label: { control: "text" },
+    placeholder: { control: "text" },
+    subscript: { control: "text" },
+    inlinePrefix: { control: "text" },
+    inlineSuffix: { control: "text" },
+    separatePrefix: { control: "text" },
+    separateSuffix: { control: "text" },
+    optional: { control: "boolean" },
+    isSmall: { control: "boolean" },
+    smallBorder: { control: "boolean" },
+    characterLimit: { control: "number" },
+    onChange: { action: "changed" } },
 } as Meta<TextInputFieldProps>;
 
 const Template: StoryFn<TextInputFieldProps> = (args) => {
@@ -18,6 +30,7 @@ primary.args = {
   label: "Your Input",
   placeholder: "Type something",
   characterLimit: 10,
+  subscript: "Subscript",
 };
 
 export const allAffix = Template.bind({});
