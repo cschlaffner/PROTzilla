@@ -156,6 +156,7 @@ export const DatabaseSettings = () => {
         formData={{
           label: "",
           isAutoSubmit: false,
+          hasChangeIndicator: false,
           input_fields: [
             {
               type: "text",

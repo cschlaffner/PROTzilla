@@ -4,14 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import {
-  Card,
-  Form,
-  Modal,
-  Navbar,
-  RunsTable,
-  Workflow,
-} from "../components";
+import { Card, Form, Modal, Navbar, RunsTable, Workflow } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing } from "../theme";
