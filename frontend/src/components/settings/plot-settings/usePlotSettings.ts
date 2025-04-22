@@ -56,13 +56,12 @@ export const usePlotSettings = (isOpen: boolean) => {
   const saveSettings = async () => {
     await callApiWithParameters("save_settings", {
       file_format: settings.fileFormat,
-      // TODO Remove .toString() as soon as API can parse numbers
-      width: settings.width.toString(),
-      height: settings.height.toString(),
+      width: settings.width,
+      height: settings.height,
       font: settings.selectedFont,
       custom_font: settings.customFont,
-      title_size: settings.titleSize.toString(),
-      text_size: settings.textSize.toString(),
+      title_size: settings.titleSize,
+      text_size: settings.textSize,
     });
   };
 
