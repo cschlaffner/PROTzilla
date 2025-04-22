@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-import base64
 from dataclasses import asdict
 import inspect
 import logging
 import traceback
 from enum import Enum
-from io import BytesIO
 from pathlib import Path
 from types import MethodType
 from typing import Any, Literal
 
 import pandas as pd
-import plotly.io as pio
-import plotly.graph_objects as go
-from PIL import Image
 
 from backend.protzilla.form import Form
 from backend.protzilla.utilities import format_trace, name_to_title
