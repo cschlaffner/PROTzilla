@@ -111,11 +111,14 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
     isOpen,
   );
 
-  useEffect(() => {
-    if (inputRef.current) {
-      setDropdownWidth(inputRef.current.getBoundingClientRect().width);
-    }
-  }, []);
+  // TODO This does not work properly because width is sometimes set to null.
+  // Function call temporarily moved to handleClick.
+  //
+  // useEffect(() => {
+  //   if (inputRef.current) {
+  //     setDropdownWidth(inputRef.current.getBoundingClientRect().width);
+  //   }
+  // }, []);
 
   const handleChange = (option: { label: string; value: string }) => {
     setSelectedValue(option);
@@ -124,6 +127,10 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = ({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // TODO This is a temporary fix
+    if (inputRef.current) {
+      setDropdownWidth(inputRef.current.getBoundingClientRect().width);
+    }
     const target = event.target as HTMLElement;
     if (
       target.closest(".inline-prefix") ||
