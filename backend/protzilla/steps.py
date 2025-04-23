@@ -627,7 +627,7 @@ class StepManager:
         else:
             raise ValueError(f"Unknown section {section}")
     
-    def set_steps_outdated(self, offset: int) -> None:
+    def set_steps_outdated(self, offset: int=0) -> None:
         count = 0
         for step in self.following_steps[offset:]:
             if (step.calculation_status == "complete"):

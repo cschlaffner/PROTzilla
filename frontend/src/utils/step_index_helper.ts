@@ -9,9 +9,7 @@ export const translateGlobalToSectionIndex = (
   sectionsData: Section[],
 ): SelectedStep => {
   let i = globalIndex;
-  console.log(sectionsData);
   for (const section of sectionsData) {
-    console.log(section);
     if (i < section.steps.length) {
       return { section: section.id, index: i };
     }
