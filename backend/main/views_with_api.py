@@ -2,16 +2,12 @@ from dataclasses import asdict
 import json
 import os
 import io
-import tempfile
 import traceback
-import zipfile
 from pathlib import Path
 
 import pandas as pd
-from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
-from backend.main.upload_handler import CustomFileUploadHandler
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
@@ -254,37 +250,6 @@ def export_workflow(request):
         return JsonResponse({"success": True, "message": "Exported workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
-def download_plots(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        format = data.get("format")
-
-        run = active_runs[run_name]
-
-        index = run.steps.current_step_index
-        section = run.current_step.section
-        operation = run.current_step.operation
-        exported = run.current_plots.export(format_=format)
-        if len(exported) == 1:
-            filename = f"{index}-{section}-{operation}.{format}"
-            return FileResponse(exported[0], filename=filename, as_attachment=True)
-
-        with tempfile.NamedTemporaryFile(delete=False) as f:
-            temp_filename = f.name
-        with zipfile.ZipFile(temp_filename, "w") as zf:
-            for i, plot in enumerate(exported):
-                filename = f"{index}-{section}-{operation}-{i}.{format}"
-                zf.writestr(filename, plot.getvalue())
-        return FileResponse(
-            open(temp_filename, "rb"),
-            filename=f"{index}-{section}-{operation}.zip",
-            as_attachment=True,
-        )
-    else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-
     
 def download_table(request):
     if request.method == "POST":

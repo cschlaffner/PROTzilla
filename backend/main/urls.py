@@ -39,7 +39,6 @@ urlpatterns = [
     path("api/update_step/", views_with_api.update_step, name="update_step"),
     path("api/navigate_to_step/", views_with_api.navigate_to_step, name="navigate_to_step"),
     path("api/export_workflow/", views_with_api.export_workflow, name="export_workflow"),
-    path("api/download_plots/", views_with_api.download_plots, name="download_plots"), #might function?
     path("api/download_table/", views_with_api.download_table, name="download_table"), #might function?
     path("api/get_step_form/", views_with_api.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
@@ -49,6 +48,7 @@ urlpatterns = [
 
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_settings, name="save_settings"),
+    path("api/download_plot", views_settings.download_plot, name="download_plot"),
     path("api/databases", views_settings.get_databases, name="get_databases"),
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),

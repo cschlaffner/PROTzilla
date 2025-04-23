@@ -3,10 +3,13 @@ import shutil
 from datetime import date
 
 import pandas
+import plotly.graph_objects as go
+import plotly.io as pio
+from io import BytesIO
+from PIL import Image
+
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from django.shortcuts import render
-from django.urls import reverse
+from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
@@ -37,7 +40,6 @@ def load_settings(request):
 def save_settings(request):
     if request.method == "POST":
         settings = json.loads(request.body.decode("utf-8"))
-
         op = YamlOperator()
         path = SETTINGS_PATH / ("plots.yaml")
         op.write(path, settings)
@@ -45,59 +47,29 @@ def save_settings(request):
         # TODO Update Plotly template that is used in run screen
         return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
     return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
-    
-# TODO Include the following methods and functionalities from PROTzilla2
 
-# SCALED_WIDTH = 600
-# PT_TO_INCH = 1 / 72
-# INCH_TO_MM = 25.4
-# DPI = 300
-# template = None
+def download_plot(request):
+    if request.method == "POST":
+        params = json.loads(request.body.decode("utf-8"))
+        fig = go.Figure(json.loads(params["plot"]))
+        file = get_plot_file(fig, params)
+    return FileResponse(file)
 
-# def determine_font(params: dict) -> str:
-#     """
-#     Returns the selected or a given custom font.
-#     :param params: Dict with parameter and values from this settings section.
-#     :return: Selected font.
-#     """
-#     if(params["font"] == "Custom"):
-#         font = params["custom_font"]
-#     else:
-#         font = params["font"]
-#     return font
-
-# def resize_for_display(params: dict) -> dict:
-#     """
-#     Scales the input sizes to sizes that can be easily displayed in a webbrowser.
-#     :param params: Dict containing the plot settings.
-#     :return: Dict containing plot settings with scaled sizes.
-#     """
-#     # Figure size
-#     ratio = params["width"] / params["height"]
-#     display_height = int(SCALED_WIDTH / ratio)
-#     # Font size
-#     ratio = SCALED_WIDTH / params["width"]
-#     display_heading = int(params["heading_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
-#     display_text = int(params["text_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
-#     params["display_width"] = SCALED_WIDTH
-#     params["display_height"] = display_height
-#     params["display_heading_size"] = display_heading
-#     params["display_text_size"] = display_text
-#     return params
-
-# def get_scale_factor(
-#         fig: go.Figure,
-#         params: dict
-#     ) -> float:
-#     """
-#     Calculates the scale factor for downloading the plot in desired size and resolution.
-#     :param fig: Plotly figure to be scaled.
-#     :param params: Dict containing the plot settings.
-#     :return: Scale factor to scale the whole plot to desired size.
-#     """
-#     current_width = fig.layout.width or SCALED_WIDTH
-#     scale_factor = (params["width"] / INCH_TO_MM * DPI) / current_width
-#     return scale_factor
+def get_plot_file(fig: go.Figure, params: dict):
+    file_format = params["fileFormat"]
+    if file_format in ["eps", "tiff"]:
+        fig_binary = pio.to_image(fig, format="png", scale=params["scale"])
+        img = Image.open(BytesIO(fig_binary)).convert("RGB")
+        binary = BytesIO()
+        args = {"format": file_format}
+        if file_format == "tiff":
+            args["compression"] = "tiff_lzw"
+        img.save(binary, **args)
+    elif file_format == "pdf":
+        img = pio.to_image(fig, format=file_format, scale=params["scale"])
+        binary = BytesIO(img)
+    binary.seek(0)
+    return binary
 
 # <--- Databases --->
 

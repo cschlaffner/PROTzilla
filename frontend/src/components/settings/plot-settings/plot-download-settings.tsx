@@ -1,5 +1,4 @@
 import { Layout, PlotData } from "plotly.js";
-import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled, useTheme } from "styled-components";
@@ -79,6 +78,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     settings,
     loadSettings,
     saveSettings,
+    downloadPlot,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
@@ -174,15 +174,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   }, [prevTitle, settings]);
 
   const handleDownload = () => {
-    Plotly.downloadImage("plot-id", {
-      format: settings.fileFormat,
-      filename: "testfile",
-      width: 400,
-      height: 250,
-      scale: 10,
-    } as Plotly.DownloadImgopts).catch((error: unknown) => {
-      console.error("Export failed: ", error);
-    });
+    void downloadPlot(plot);
     onClose();
   };
   const handleReset = () => {
