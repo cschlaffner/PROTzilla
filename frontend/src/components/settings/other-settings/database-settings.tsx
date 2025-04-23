@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { Form, SecondaryButton, Text } from "../../../components";
+import {
+  DeleteModal,
+  Form,
+  SecondaryButton,
+  Text,
+  useNotification,
+} from "../../../components";
+import { useToggleableState } from "../../../hooks";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
 import { formatDate } from "../../../utils/format-date.ts";
@@ -105,7 +112,11 @@ const DatabaseEntry = ({
 };
 
 export const DatabaseSettings = () => {
+  const notify = useNotification();
   const [databaseList, setDatabaseList] = useState<DatabaseEntryProps[]>([]);
+  const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] =
+    useToggleableState(false);
+  const [selectedDatabase, setSelectedDatabase] = useState<string>("");
 
   const fetchDatabases = async () => {
     const databases = await callApi("databases");
@@ -123,12 +134,26 @@ export const DatabaseSettings = () => {
     databaseFile: string,
     shouldVerify: boolean,
   ) => {
-    await callApiWithParameters("upload_database", {
+    const response = await callApiWithParameters("upload_database", {
       name: databaseName,
       just_copy: shouldVerify ? "True" : "False",
       file: databaseFile,
     });
+    if (response?.success) {
+      notify({
+        title: "Database upload",
+        message: "Database uploaded successfully.",
+        type: "success",
+        isClosingAutomatically: true,
+      });
+    }
+
     void fetchDatabases();
+  };
+
+  const onDeleteDatabase = (name: string) => {
+    openDeleteModal();
+    setSelectedDatabase(name);
   };
 
   const handleDeleteDatabase = async (name: string) => {
@@ -136,6 +161,7 @@ export const DatabaseSettings = () => {
       name: name,
     });
     void fetchDatabases();
+    closeDeleteModal();
   };
 
   return (
@@ -203,10 +229,18 @@ export const DatabaseSettings = () => {
             filesize={db.filesize}
             cols={db.cols}
             name={db.name}
-            handleDelete={() => void handleDeleteDatabase(db.name)}
+            handleDelete={() => {
+              onDeleteDatabase(db.name);
+            }}
           />
         ))}
       </DatabaseList>
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={() => void handleDeleteDatabase(selectedDatabase)}
+        title={`Delete database "${selectedDatabase}"?`}
+      />
     </div>
   );
 };
