@@ -37,6 +37,7 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   pointer-events: ${({ isShown }) => (isShown ? "auto" : "none")};
   z-index: ${zIndex("notification")};
   position: relative;
+  overflow: hidden;
 `;
 
 const TextContainer = styled(FlexColumn)`
