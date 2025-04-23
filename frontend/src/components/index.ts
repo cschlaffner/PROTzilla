@@ -6,7 +6,6 @@ export * from "./dropdown";
 export * from "./forms/form";
 export * from "./edit-tag";
 export * from "./body-components/list-editor";
-export * from "./error-notification";
 export * from "./notification-center";
 export * from "./icon";
 export * from "./mixins";
