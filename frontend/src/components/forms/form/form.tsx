@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, size, spacing } from "../../../theme";
 import { Button } from "../../button";
-import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
+import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
@@ -37,11 +38,11 @@ const ChangeIndicator = styled.div`
   font-size: ${fontSize("default")};
 `;
 
-export const Form: React.FC<FormProps> = ({
+export const Form: React.FC<FormProps> = memo(function Form({
   formData,
   onChange,
   onFormTouched,
-}) => {
+}) {
   const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
     {},
   );
@@ -51,39 +52,45 @@ export const Form: React.FC<FormProps> = ({
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
-  useEffect(() => {
-    setFormValues({});
-  }, [formData]);
+  const handleChange = useCallback(
+    (name: string, value: InputValueType) => {
+      setFormValues((prevValues) => {
+        const newValues = { ...prevValues, [name]: value };
+        const hasChanges =
+          JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
-  const handleChange = (name: string, value: InputValueType) => {
-    if (formValues[name] === value) return;
-
-    const newValues = { ...formValues, [name]: value };
-    const hasChanges =
-      JSON.stringify(newValues) !== JSON.stringify(submittedValues);
-
-    const isFirstEntryForId = !(name in formValues);
-    if (isFirstEntryForId) {
-      setFormValues(newValues);
-    }
-
-    if (formData.isAutoSubmit) {
-      onChange(newValues);
-    } else {
-      setIsChanged(hasChanges);
-
-      if (hasChanges) {
-        if (!hasformTouchedTriggered) {
-          onFormTouched?.(true);
-          setHasFormTouchedTriggered(true);
+        const isFirstEntryForId = !(name in prevValues);
+        if (isFirstEntryForId) {
+          return newValues;
         }
-      } else {
-        onFormTouched?.(false);
-        setHasFormTouchedTriggered(false);
-      }
-    }
-    setFormValues(newValues);
-  };
+
+        if (formData.isAutoSubmit) {
+          onChange(newValues);
+        } else {
+          setIsChanged(hasChanges);
+
+          if (hasChanges) {
+            if (!hasformTouchedTriggered) {
+              onFormTouched?.(true);
+              setHasFormTouchedTriggered(true);
+            }
+          } else {
+            onFormTouched?.(false);
+            setHasFormTouchedTriggered(false);
+          }
+        }
+
+        return newValues;
+      });
+    },
+    [
+      formData,
+      hasformTouchedTriggered,
+      onChange,
+      onFormTouched,
+      submittedValues,
+    ],
+  );
 
   const handleSubmit = () => {
     onChange(formValues);
@@ -104,28 +111,28 @@ export const Form: React.FC<FormProps> = ({
       ))}
       {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
-          {isChanged && (
+          {isChanged && formData.hasChangeIndicator && (
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
             text="Submit"
             onClick={handleSubmit}
-            isDisabled={!isChanged}
+            isDisabled={!isChanged && formData.hasChangeIndicator}
           />
         </StyledSubmitDiv>
       )}
     </StyledForm>
   );
-};
+});
 
-const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = memo(function InputField({
   type,
   name,
   onChange,
   options,
   isVisible,
   ...props
-}) => {
+}) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
@@ -153,6 +160,10 @@ const InputField: React.FC<InputFieldProps> = ({
           {...props}
         />
       );
+    case "single-checkbox":
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
+      );
     case "dropdown":
       return (
         <DropdownInputField
@@ -174,5 +185,4 @@ const InputField: React.FC<InputFieldProps> = ({
     default:
       return null;
   }
-  //}
-};
+});

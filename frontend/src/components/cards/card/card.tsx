@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
-import { shadow, spacing, styledDiv } from "../../../theme";
+import { shadow, spacing, styledDiv, color, fontSize, fontWeight } from "../../../theme";
 import { H3 } from "../../text";
 
 const StyledCard = styledDiv.div`
@@ -26,6 +26,10 @@ const CardTitle = styled(H3)`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  font-size: ${fontSize("h3")};
+  line-height: ${fontSize("h3")};
+  font-weight: ${fontWeight("bold")};
+  color: ${color("primary")};
   padding: ${spacing("small")};
 `;
 

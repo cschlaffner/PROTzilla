@@ -1,4 +1,5 @@
-import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-select-input-field";
+import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputFieldProps } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputFieldProps } from "../../input-fields/dropdown-input-field";
 import { FileInputFieldProps } from "../../input-fields/file-input-field";
 import { MultiSelectInputFieldProps } from "../../input-fields/multi-select-input-field";
@@ -16,6 +17,7 @@ export interface FormProps {
 export interface FormData {
   label: string;
   isAutoSubmit: boolean;
+  hasChangeIndicator: boolean;
   input_fields: InputField[];
 }
 
@@ -45,6 +47,10 @@ export type InputField =
       isVisible: boolean;
     } & Omit<CheckboxSelectInputFieldProps, "onChange">)
   | ({
+      type: "single-checkbox";
+      name: string;
+    } & Omit<SingleCheckboxInputFieldProps, "onChange">)
+  | ({
       type: "multi-select";
       name: string;
       isVisible: boolean;
@@ -66,6 +72,7 @@ type InputFields =
   | SearchInputFieldProps
   | RadioSelectInputFieldProps
   | CheckboxSelectInputFieldProps
+  | SingleCheckboxInputFieldProps
   | MultiSelectInputFieldProps
   | DropdownInputFieldProps
   | FileInputFieldProps;

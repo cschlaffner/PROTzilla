@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useTheme } from "styled-components";
 
 import { Switch } from "./switch";
 import { SwitchProps } from "./switch.props";
+import { useNotification } from "../notification-center";
 
 export default {
   component: Switch,
@@ -13,12 +15,23 @@ const SwitchWithState: React.FC<SwitchProps> = ({ options, ...args }) => {
     undefined,
   );
 
+  const notify = useNotification();
+  const theme = useTheme();
+
   return (
     <Switch
       options={options}
       value={selectedOption}
       {...args}
-      onChange={setSelectedOption}
+      onChange={(option) => {
+        setSelectedOption(option);
+        notify({
+          title: "Congratulation",
+          message: "You've hit the switch! WOW.",
+          type: "success",
+          closeAfterMs: theme.durations.standardNotificationDuration,
+        });
+      }}
     />
   );
 };
