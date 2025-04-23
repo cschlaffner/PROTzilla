@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { FileInputFieldProps } from "./file-input-field.props";
-import { API_ROOT } from "../../../constants.ts";
 import { useFilePicker } from "../../../hooks";
 import { size, spacing } from "../../../theme";
 import { SecondaryButton } from "../../button";
@@ -62,7 +61,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     setIsUploading(true);
 
     try {
-      await axios.post(API_ROOT + "upload_file/", formData, {
+      await axios.post("/api/upload_file/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
