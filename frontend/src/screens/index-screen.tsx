@@ -80,19 +80,6 @@ export const IndexScreen: React.FC = () => {
 
     void fetchData();
   }, []);
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await callApi("run_information/");
-      if (data) {
-        const runs: string[] = data[0].map(
-          (run: Record<string, string | string[]>) => run.run_name,
-        );
-        setRuns(runs.map((run_name) => ({ value: run_name, label: run_name })));
-      }
-    };
-
-    void fetchData();
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,30 +193,27 @@ export const IndexScreen: React.FC = () => {
                   {
                     type: "text",
                     name: "runname",
-                    props: {
-                      label: "With name:",
-                    },
+                    label: "With name:",
+                    isVisible: true,
                   },
                   {
                     type: "dropdown",
                     name: "workflow",
-                    props: {
-                      label: "With workflow:",
-                      options: [
+                    label: "With workflow:",
+                    options: [
                         { label: selectedWorkflow, value: selectedWorkflow },
                       ],
-                    },
+                    isVisible: true,
                   },
                   {
                     type: "dropdown",
                     name: "df_mode",
-                    props: {
-                      label: "With memory mode:",
-                      options: [
-                        { label: "Standard", value: "disk" },
-                        { label: "Low Memory", value: "disk_memory" },
-                      ],
-                    },
+                    label: "With memory mode:",
+                    options: [
+                      { label: "Standard", value: "disk" },
+                      { label: "Low Memory", value: "disk_memory" },
+                    ],
+                    isVisible: true,
                   },
                 ],
               }}

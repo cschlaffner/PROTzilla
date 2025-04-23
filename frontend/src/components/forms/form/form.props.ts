@@ -22,10 +22,11 @@ export interface FormData {
 }
 
 export type InputField =
-  | ({ type: "text"; name: string; isVisible: boolean } & Omit<
-      TextInputFieldProps,
-      "onChange"
-    >)
+  | ({ 
+      type: "text"; 
+      name: string; 
+      isVisible: boolean 
+    } & Omit<TextInputFieldProps, "onChange">)
   | ({
       type: "number";
       name: string;
@@ -49,6 +50,7 @@ export type InputField =
   | ({
       type: "single-checkbox";
       name: string;
+      isVisible:boolean;
     } & Omit<SingleCheckboxInputFieldProps, "onChange">)
   | ({
       type: "multi-select";

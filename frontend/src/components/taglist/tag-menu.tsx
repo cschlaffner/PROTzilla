@@ -65,9 +65,8 @@ export const TagMenu: React.FC<TagMenuProps> = ({
             {
               type: "text",
               name: "tag",
-              props: {
-                label: "Add a new tag:",
-              },
+              label: "Add a new tag:",
+              isVisible: true,
             },
           ],
         }}
