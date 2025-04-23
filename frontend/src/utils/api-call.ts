@@ -13,6 +13,7 @@ export async function ensureCSRFToken() {
 export const callApiWithParameters = async (
   url: string,
   parameters: Record<string, string | boolean | string[] | number | File>,
+  responseType: "json" | "blob" = "json",
 ) => {
   try {
     await ensureCSRFToken();
@@ -31,9 +32,11 @@ export const callApiWithParameters = async (
       body: JSON.stringify(parameters),
     });
 
-    const data = await response.json();
-
-    return data;
+    if (responseType === "blob") {
+      return await response.blob();
+    } else {
+      return await response.json();
+    }
   } catch (error) {
     console.error("Error:", error);
   }
