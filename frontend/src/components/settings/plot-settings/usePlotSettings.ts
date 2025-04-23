@@ -70,13 +70,12 @@ export const usePlotSettings = (isOpen: boolean) => {
   const downloadPlot = async (plot: object) => {
     // TODO: Get filename from run, calculate experienced sizes & scale
     const fileName = "testfile";
-    const width = plot.layout.width;
-    const height = plot.layout.height;
+    const width = 400; // plot.layout.width;
+    const height = 400; // plot.layout.height;
     const scale = 10;
     const plotAsJson = JSON.stringify(plot);
 
     if (["jpeg", "png", "svg", "webp"].includes(settings.fileFormat)) {
-      // TODO: Maybe the divId needs to be a function parameter
       Plotly.downloadImage("plot-id", {
         format: settings.fileFormat,
         filename: fileName,
