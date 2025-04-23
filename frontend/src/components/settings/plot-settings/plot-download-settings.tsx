@@ -1,4 +1,4 @@
-import { Layout, PlotData } from "plotly.js";
+import { Figure, Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled, useTheme } from "styled-components";
@@ -174,7 +174,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   }, [prevTitle, settings]);
 
   const handleDownload = () => {
-    void downloadPlot(plot);
+    void downloadPlot(plot as Figure);
     onClose();
   };
   const handleReset = () => {

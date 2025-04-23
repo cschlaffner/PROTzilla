@@ -1,6 +1,7 @@
 // This is a custom hook for working with plot settings.
 
 import { saveAs } from "file-saver";
+import { Figure } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
@@ -67,11 +68,11 @@ export const usePlotSettings = (isOpen: boolean) => {
     });
   };
 
-  const downloadPlot = async (plot: object) => {
+  const downloadPlot = async (plot: Figure) => {
     // TODO: Get filename from run, calculate experienced sizes & scale
     const fileName = "testfile";
-    const width = 400; // plot.layout.width;
-    const height = 400; // plot.layout.height;
+    const width = plot.layout.width;
+    const height = plot.layout.height;
     const scale = 10;
     const plotAsJson = JSON.stringify(plot);
 
@@ -89,12 +90,8 @@ export const usePlotSettings = (isOpen: boolean) => {
       const blob: Blob = await callApiWithParameters(
         "download_plot",
         {
-          // TODO Check which params are needed for api call
           plot: plotAsJson,
           fileFormat: settings.fileFormat,
-          fileName: fileName,
-          width: width,
-          height: height,
           scale: scale,
         },
         "blob",

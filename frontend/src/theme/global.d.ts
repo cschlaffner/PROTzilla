@@ -24,3 +24,10 @@ declare module "@mui/material/styles" {
 declare module "plotly.js-dist";
 declare module "plotly.js-dist-min";
 declare module "file-saver";
+
+declare module 'plotly.js' {
+  interface Figure {
+    data: Data[];
+    layout: Partial<Layout>;
+  }
+}
