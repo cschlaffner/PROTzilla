@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
@@ -103,7 +103,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         }
       : onCalculateStep;
 
-  const onChange = (data: Record<string, InputValueType>) => {
+  const onChange = useCallback((data: Record<string, InputValueType>) => {
     onChangeParameters(data);
     let outdateFollowingStep = false;
     if (currentStepCalculationStatus === "complete") {
@@ -126,7 +126,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         }),
       );
     }
-  };
+  }, [currentStepCalculationStatus, onChangeParameters, runData.current_section, stepSectionIndex]);
   //previousStepCalculationStatus==="failed" || previousStepCalculationStatus==="incomplete"
 
   return (

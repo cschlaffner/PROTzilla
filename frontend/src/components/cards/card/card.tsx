@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
-import { shadow, spacing, styledDiv, color, fontSize, fontWeight } from "../../../theme";
+import { color, fontSize, fontWeight, shadow, spacing, styledDiv } from "../../../theme";
 import { H3 } from "../../text";
 
 const StyledCard = styledDiv.div`

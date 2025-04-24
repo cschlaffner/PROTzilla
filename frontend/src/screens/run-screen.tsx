@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -110,10 +110,10 @@ export const RunScreen: React.FC = () => {
     }
   };
 
-  const onChangeParameters = (data: Record<string, InputValueType>) => {
+  const onChangeParameters = useCallback((data: Record<string, InputValueType>) => {
     setUserInput(data);
     getStepForm(data);
-  };
+  }, []);
 
   const getRunData = async () => {
     const response = await callApiWithParameters("get_run_data/", {
