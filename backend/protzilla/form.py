@@ -139,6 +139,9 @@ class Form:
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
 
+        if fieldname not in self._field_map:
+            raise KeyError(f"Field '{fieldname}' not found in form.")
+        
         return self._field_map[fieldname]
     
     def __setitem__(self, fieldname: str, field: Any) -> None:
