@@ -90,8 +90,8 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
         options.find((option) => option.value === value) ?? options[0];
       setSelectedValue(initialOption);
 
-      if (initialOption.value !== value) {
-        onChange(initialOption.value);
+      if (initialOption.label !== value) {
+        onChange(initialOption.label);
       }
     }, [options]);
 
@@ -110,7 +110,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
 
     const handleChange = (option: { label: string; value: string }) => {
       setSelectedValue(option);
-      onChange(option.value);
+      onChange(option.label);
       disable();
     };
 

@@ -80,41 +80,29 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState({});
-  const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData, setTableData] = useState(mockTableData);
-  const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
-    {},
-  );
 
   useEffect(() => {
     getRunData();
-    getStepForm({});
     getStepPlots();
     getStepTable();
   }, []);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
-      setUserInput({});
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
         section: selectedStep.section,
         index: String(selectedStep.index),
       }).then(() => {
         getRunData();
-        getStepForm({});
         getStepPlots();
         getStepTable();
       });
     }
   };
-
-  const onChangeParameters = useCallback((data: Record<string, InputValueType>) => {
-    setUserInput(data);
-    getStepForm(data);
-  }, []);
 
   const getRunData = async () => {
     const response = await callApiWithParameters("get_run_data/", {
@@ -155,28 +143,10 @@ export const RunScreen: React.FC = () => {
     }
   };
 
-  const getStepForm = async (userInput: Record<string, InputValueType>) => {
-    const response = await callApiWithParameters("get_step_form/", {
-      run_name: runName,
-      data: userInput,
-    });
-    if (response) {
-      const data = response.data;
-
-      setFormData(data);
-    }
-  };
-
-  const calculateStep = async () => {
-    const response = await callApiWithParameters("calculate_step/", {
-      run_name: runName,
-      data: userInput,
-    });
-    if (response) {
-      getRunData();
-      getStepPlots();
-      getStepTable();
-    }
+  const onFormSubmit = async () => {
+    getRunData();
+    getStepPlots();
+    getStepTable();
   };
 
   const plotComponent = (
@@ -193,11 +163,10 @@ export const RunScreen: React.FC = () => {
 
   const listEditorComponent = (
     <ListEditor
-      formDataParameters={formData}
-      onChangeParameters={onChangeParameters}
+      onFormSubmit={onFormSubmit}
+      onFormChange={()=>{}}
       runName={runName}
       handleStepSelection={handleStepSelection}
-      onCalculateStep={calculateStep}
       runData={runData}
     />
   );
