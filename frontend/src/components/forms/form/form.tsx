@@ -54,34 +54,31 @@ export const Form: React.FC<FormProps> = memo(function Form({
 
   const handleChange = useCallback(
     (name: string, value: InputValueType) => {
-      setFormValues((prevValues) => {
+        const prevValues = formValues
         const newValues = { ...prevValues, [name]: value };
         const hasChanges =
           JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
         const isFirstEntryForId = !(name in prevValues);
-        if (isFirstEntryForId) {
-          return newValues;
-        }
-
-        if (formData.isAutoSubmit) {
-          onChange(newValues);
-        } else {
-          setIsChanged(hasChanges);
-
-          if (hasChanges) {
-            if (!hasformTouchedTriggered) {
-              onFormTouched?.(true);
-              setHasFormTouchedTriggered(true);
-            }
+        if (!isFirstEntryForId) {
+          if (formData.isAutoSubmit) {
+            onChange(newValues);
           } else {
-            onFormTouched?.(false);
-            setHasFormTouchedTriggered(false);
+            setIsChanged(hasChanges);
+  
+            if (hasChanges) {
+              if (!hasformTouchedTriggered) {
+                onFormTouched?.(true);
+                setHasFormTouchedTriggered(true);
+              }
+            } else {
+              onFormTouched?.(false);
+              setHasFormTouchedTriggered(false);
+            }
           }
         }
 
-        return newValues;
-      });
+      setFormValues(newValues);
     },
     [
       formData,

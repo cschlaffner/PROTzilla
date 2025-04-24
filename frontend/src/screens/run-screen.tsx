@@ -77,7 +77,8 @@ export const RunScreen: React.FC = () => {
 
   const randomMessage =
     footerMessages[Math.floor(Math.random() * footerMessages.length)];
-  const [runName] = useState<string>(location.state?.runName);
+  const runName = location.state?.runName;
+
   const [runData, setRunData] = useState({});
   const [formData, setFormData] = useState(mockFormDataParameters);
   const [plotData, setPlotData] = useState(mockPlotData);

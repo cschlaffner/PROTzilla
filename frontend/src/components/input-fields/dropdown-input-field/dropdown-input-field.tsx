@@ -93,7 +93,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
       if (initialOption.value !== value) {
         onChange(initialOption.value);
       }
-    }, [value, options, onChange]);
+    }, [options]);
 
     const dropdownRef = useRef<HTMLUListElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);
