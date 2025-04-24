@@ -1,13 +1,13 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { MainScreen, ModalRoot } from "../components";
+import { MainScreen, ModalRoot, NotificationCenter } from "../components";
 import { initI18nApp } from "../i18n";
 import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
-import { AutomaticErrorNotification } from "./automatic-error-notification";
 import { setupRootStore, StoreProvider } from "./store";
 import { CountersScreen, IndexScreen, RunScreen } from "../screens";
+import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -27,22 +27,23 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <StoreProvider value={rootStoreRef.current}>
-        <GlobalStyles theme={theme} />
-        {isReady && (
-          <Suspense fallback={null}>
-            <ModalRoot>
+        <NotificationCenter>
+          <GlobalStyles theme={theme} />
+          {isReady && (
+            <Suspense fallback={null}>
+              <ModalRoot />
               <AutomaticErrorNotification />
-            </ModalRoot>
-            <Routes>
-              <Route path="/" element={<MainScreen />}>
-                <Route path="/" element={<IndexScreen />} />
-                <Route path="/counters" element={<CountersScreen />} />
-                <Route path="/run" element={<RunScreen />}></Route>
+              <Routes>
+                <Route path="/" element={<MainScreen />}>
+                  <Route path="/" element={<IndexScreen />} />
+                  <Route path="/counters" element={<CountersScreen />} />
+                  <Route path="/run" element={<RunScreen />}></Route>
               </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        )}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          )}
+        </NotificationCenter>
       </StoreProvider>
     </ThemeProvider>
   );

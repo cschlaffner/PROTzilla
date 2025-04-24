@@ -21,6 +21,7 @@ primary.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: true,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
@@ -33,6 +34,12 @@ primary.args = {
         name: "age",
         isVisible: true,
         label: "Age",
+      },
+      {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        label: "Single Checkbox",
+        isVisible: true,
       },
       {
         type: "multi-select",
@@ -56,6 +63,7 @@ submit.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: false,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
@@ -68,6 +76,12 @@ submit.args = {
         name: "age",
         isVisible: true,
         label: "Age",
+      },
+      {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        label: "Single Checkbox",
+        isVisible: true,
       },
       {
         type: "multi-select",

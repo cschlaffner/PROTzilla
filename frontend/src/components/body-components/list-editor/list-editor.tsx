@@ -6,7 +6,7 @@ import { color, spacing } from "../../../theme";
 import { translateGlobalToSectionIndex } from "../../../utils/step_index_helper.ts";
 import { FlexRow } from "../../box";
 import { SecondaryButton } from "../../button";
-import { Form } from "../../forms/form";
+import { Form, InputValueType } from "../../forms/form";
 import { Sidebar } from "../../sidebar";
 import { emptySections, Step } from "../../sidebar/types.ts";
 
@@ -69,19 +69,20 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   const currentSection = sections.find(
     (section) => section.id === runData.current_section,
   );
-  const previousStepSectionIndex = translateGlobalToSectionIndex(
-    Math.max(runData.current_step_index-1,0),
-    sections,
-  ).index;
+  // const previousStepSectionIndex = translateGlobalToSectionIndex(
+  //   Math.max(runData.current_step_index-1,0),
+  //   sections,
+  // ).index;
 
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
     sections,
   ).index;
 
-  const previousStepCalculationStatus = runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
+  // const previousStepCalculationStatus = runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
 
-  const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
+  const currentStepCalculationStatus =
+    currentSection?.steps[stepSectionIndex]?.status;
 
   const buttonText =
     currentStepCalculationStatus === "complete"
@@ -102,6 +103,32 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         }
       : onCalculateStep;
 
+  const onChange = (data: Record<string, InputValueType>) => {
+    onChangeParameters(data);
+    let outdateFollowingStep = false;
+    if (currentStepCalculationStatus === "complete") {
+      setSections((prevSections) =>
+        prevSections.map((section) => {
+          if (section.id === runData.current_section) {
+            const updatedSteps = section.steps.map((step, i): Step => {
+              if (
+                i === stepSectionIndex ||
+                (outdateFollowingStep && step.status === "complete")
+              ) {
+                outdateFollowingStep = true;
+                return { ...step, status: "outdated" };
+              }
+              return step;
+            });
+            return { ...section, steps: updatedSteps };
+          }
+          return section;
+        }),
+      );
+    }
+  };
+  //previousStepCalculationStatus==="failed" || previousStepCalculationStatus==="incomplete"
+
   return (
     <StyledRow>
       <Sidebar
@@ -116,8 +143,12 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       <StyledDivider />
 
       <StyledFormColumn>
-        <Form formData={formDataParameters} onChange={onChangeParameters} />
-        <SecondaryButton isDisabled={previousStepCalculationStatus==="failed" || previousStepCalculationStatus==="incomplete"} text={buttonText} onPress={buttonFunction} />
+        <Form formData={formDataParameters} onChange={onChange} />
+        <SecondaryButton
+          isDisabled={false}
+          text={buttonText}
+          onPress={buttonFunction}
+        />
       </StyledFormColumn>
     </StyledRow>
   );

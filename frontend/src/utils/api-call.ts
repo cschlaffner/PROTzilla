@@ -13,7 +13,7 @@ export async function ensureCSRFToken() {
 
 export const callApiWithParameters = async (
   url: string,
-  parameters: Record<string, string | Record<string, string | InputValueType>>,
+  parameters: Record<string, string | number | boolean | string[] | Record<string, string | InputValueType>>,
 ) => {
   try {
     const csrfToken = await ensureCSRFToken();

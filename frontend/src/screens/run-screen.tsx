@@ -22,7 +22,6 @@ import {
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { InputValueType } from "../components/forms/form";
-import { useIconContext } from "../components/sidebar/step-icon-context.tsx";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
 
@@ -87,7 +86,6 @@ export const RunScreen: React.FC = () => {
   const [userInput, setUserInput] = useState<Record<string, InputValueType>>(
     {},
   );
-  const { setIcon } = useIconContext();
 
   useEffect(() => {
     getRunData();
@@ -114,6 +112,7 @@ export const RunScreen: React.FC = () => {
 
   const onChangeParameters = (data: Record<string, InputValueType>) => {
     setUserInput(data);
+    getStepForm(data);
   };
 
   const getRunData = async () => {
@@ -173,12 +172,9 @@ export const RunScreen: React.FC = () => {
       data: userInput,
     });
     if (response) {
-      //const data = response.data;
-
-      //setIcon(data.section + "-" + data.index, data.status);
       getRunData();
-      void getStepPlots();
-      void getStepTable();
+      getStepPlots();
+      getStepTable();
     }
   };
 
