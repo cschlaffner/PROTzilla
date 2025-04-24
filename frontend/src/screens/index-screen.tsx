@@ -50,8 +50,11 @@ const StyledTemplateCard = styled(Card)`
 
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
+  height: calc(100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} - (5 * ${spacing("small")}));
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
+
+  overflow-y: auto;
 `;
 
 export const IndexScreen: React.FC = () => {

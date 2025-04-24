@@ -206,7 +206,8 @@ export const baseTheme = {
     runSelectionMinHeight: "300px",
 
     //Runs Table
-    smallCellWidth: "50px",
+    verySmallCellWidth: "50px",
+    smallCellWidth: "100px",
     mediumCellWidth: "150px",
     largeCellWidth: "200px",
   },

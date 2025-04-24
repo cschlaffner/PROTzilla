@@ -30,6 +30,10 @@ const TableContainer = styled.div`
   }
 `;
 
+const TableContent = styled.div`
+  overflow-y: auto;
+`;
+
 const TableRow = styled.div<{ preSelected?: boolean }>`
   display: flex;
   justify-content: space-between;
@@ -45,10 +49,13 @@ const TableRow = styled.div<{ preSelected?: boolean }>`
       ? `
           border: ${theme.borders.defaultStrength} solid ${theme.colors.primary};
           border-radius: ${theme.borders.defaultRadius};
-        `
+          `
       : `
           border: none;
+          padding: ${theme.borders.defaultStrength};
         `}
+
+  box-sizing: border-box;
 `;
 
 const TableCol = styled.div<{ width?: string }>`
@@ -64,6 +71,7 @@ const TableHeader = styled(TableRow)`
   border-bottom: 2px solid #ccc;
   padding-bottom: 4px;
 `;
+
 const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -141,13 +149,14 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   return (
     <TableContainer>
       <TableHeader>
-        <TableCol width={theme.sizes.smallCellWidth}>Favorite</TableCol>
+        <TableCol width={theme.sizes.verySmallCellWidth}>Favorite</TableCol>
         <TableCol width={theme.sizes.largeCellWidth}>Run Name</TableCol>
-        <TableCol width={theme.sizes.mediumCellWidth}>Last edited</TableCol>
-        <TableCol>Tags</TableCol>
+        <TableCol width={theme.sizes.smallCellWidth}>Last edited</TableCol>
+        <TableCol style={{ minWidth: theme.sizes.mediumCellWidth}}>Tags</TableCol>
         <TableCol width={theme.sizes.mediumCellWidth}>Actions</TableCol>
       </TableHeader>
 
+      <TableContent>
       {[...filteredRuns]
         // Favourites on top
         .sort(
@@ -172,7 +181,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
             }}
           >
             <TableCol
-              width={theme.sizes.smallCellWidth}
+              width={theme.sizes.verySmallCellWidth}
               onClick={(e) => {
                 e.stopPropagation();
                 handleToggleFavourite(run.run_name);
@@ -190,10 +199,10 @@ export const RunsTable: React.FC<RunsTableProps> = ({
             <TableCol width={theme.sizes.largeCellWidth}>
               {run.run_name}
             </TableCol>
-            <TableCol width={theme.sizes.mediumCellWidth}>
+            <TableCol width={theme.sizes.smallCellWidth}>
               {run.modification_date}
             </TableCol>
-            <TableCol>
+            <TableCol style={{ minWidth: theme.sizes.mediumCellWidth}}>
               <StyledList>
                 <TagList
                   runName={run.run_name}
@@ -245,6 +254,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
             </TableCol>
           </TableRow>
         ))}
+        </TableContent>
       <DeleteModal
         title={`Delete run "${actionRun}"?`}
         isOpen={isDeleteModalOpen}
