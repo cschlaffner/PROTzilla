@@ -186,10 +186,10 @@ class Run:
         self.steps = self.disk_operator.read_workflow()
 
     @error_handling
-    def _workflow_export(self, workflow_name: str | None = None) -> None:
+    def _workflow_save(self, workflow_name: str | None = None) -> None:
         if workflow_name:
             self.workflow_name = workflow_name
-        self.disk_operator.export_workflow(self.steps, self.workflow_name)
+        self.disk_operator.save_workflow(self.steps, self.workflow_name)
 
     @error_handling
     @auto_save
