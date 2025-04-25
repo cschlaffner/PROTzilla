@@ -139,6 +139,9 @@ class Form:
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
 
+        if fieldname not in self._field_map:
+            raise KeyError(f"Field '{fieldname}' not found in form.")
+        
         return self._field_map[fieldname]
     
     def __setitem__(self, fieldname: str, field: Any) -> None:
@@ -166,7 +169,6 @@ class Form:
                 continue
             elif isinstance(field, FileInput):
                 values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None
-                print("Path", (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None)
             elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:
