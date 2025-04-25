@@ -95,9 +95,9 @@ export const Form: React.FC<FormProps> = ({
   return (
     <StyledForm>
       <H3>{formData.label}</H3>
-      {formData.input_fields.map((inputField) => (
+      {formData.input_fields.map((inputField, i) => (
         <InputField
-          key={inputField.name}
+          key={i.toString()}
           onChange={handleChange}
           {...inputField}
         />
