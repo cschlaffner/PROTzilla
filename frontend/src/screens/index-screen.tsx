@@ -200,7 +200,6 @@ export const IndexScreen: React.FC = () => {
                     type: "dropdown",
                     name: "workflow",
                     label: "With workflow:",
-                    value: selectedWorkflow,
                     options: [
                       { label: selectedWorkflow, value: selectedWorkflow },
                     ],

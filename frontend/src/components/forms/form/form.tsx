@@ -57,6 +57,7 @@ export const Form: React.FC<FormProps> = ({
   }, [formData]);
 
   const handleChange = (name: string, value: InputValueType) => {
+    //TODO ask Philipp
     if (formValues[name] === value) return;
 
     const newValues = { ...formValues, [name]: value };
