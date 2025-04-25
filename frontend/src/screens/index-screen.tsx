@@ -240,6 +240,7 @@ export const IndexScreen: React.FC = () => {
             }}
           >
             <TagMenu
+              setSelectedRun={setSelectedRun}
               selectedRun={selectedRun}
               handleAddTag={handleAddTag}
               handleDeleteTag={handleDeleteTag}

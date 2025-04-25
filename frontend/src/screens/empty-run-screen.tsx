@@ -7,7 +7,7 @@ import { Navbar } from "../components/navbar";
 export const EmptyRunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [runName] = useState<string>(location.state?.existingRun);
+  const [runName] = useState<string>(location.state?.runName);
 
   return (
     <div>

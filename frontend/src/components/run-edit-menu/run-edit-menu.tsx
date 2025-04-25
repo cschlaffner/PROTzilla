@@ -50,7 +50,9 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
           const run: Run = data[0].find(
             (run: Run) => run.run_name === runName,
           ) as Run;
-          setSelectedRun(run);
+          if (run) {
+            setSelectedRun(run);
+          }
         }
       };
 
@@ -89,6 +91,8 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         favourite_status: !prevRun.favourite_status,
       }));
     };
+
+    console.log("selectedRun", selectedRun);
 
     return (
       <div ref={ref} id={"run-edit-menu"}>
@@ -147,8 +151,8 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
           <TagMenuWrapper>
             <SectionTitle baseComponent={"h6"} title={"Current tags: "} />
             <TagMenu
-              selectedRun={selectedRun}
               setSelectedRun={setSelectedRun}
+              selectedRun={selectedRun}
               handleAddTag={(tag) => void handleAddTag(tag)}
               handleDeleteTag={(tag) => void handleDeleteTag(tag)}
             />

@@ -9,6 +9,8 @@ import { Icon } from "../icon";
 import { DeleteModal } from "../modal";
 import { RunsTableProps } from "./runs-table.props";
 import { TagList } from "../taglist";
+import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
+import { useToggleableState } from "../../hooks";
 
 const TableContainer = styled.div`
   display: flex;
@@ -80,6 +82,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const theme = useTheme();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] =
+    useToggleableState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
   const [actionRun, setActionRun] = useState<string>("");
 
@@ -127,6 +131,13 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     );
   };
 
+  const handleRenameRun = async (newName: string) => {
+    const updated = runs.map((run) =>
+      run.run_name === actionRun ? { ...run, run_name: newName } : run,
+    );
+    setRuns(updated);
+  };
+
   const handleModal = (run: Run) => {
     setSelectedRun(run);
     openTagModal(true);
@@ -135,6 +146,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const handleDeleteModal = (runName: string) => {
     setActionRun(runName);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleRunEditModal = (runName: string) => {
+    setActionRun(runName);
+    openRunEditModal();
   };
 
   return (
@@ -216,7 +232,14 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               </StyledList>
             </TableCol>
             <TableCol width={theme.sizes.mediumCellWidth}>
-              <SecondaryButton isSmall={true} isShy={true}>
+              <SecondaryButton
+                isSmall={true}
+                isShy={true}
+                onClick={(e) => {
+                  handleRunEditModal(run.run_name);
+                  e.stopPropagation();
+                }}
+              >
                 <Icon icon={"edit"} style={{ height: "15px" }} />
               </SecondaryButton>
               <SecondaryButton
@@ -253,7 +276,18 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         onClose={() => {
           setIsDeleteModalOpen(false);
         }}
-      ></DeleteModal>
+      />
+      {isRunEditModalOpen && (
+        <RunEditMenu
+          key={actionRun} // Ensures a new instance for each run
+          runName={actionRun}
+          onChangeRunName={(newRunName) => {
+            void handleRenameRun(newRunName);
+          }}
+          isOpen={isRunEditModalOpen}
+          onClose={closeRunEditModal}
+        />
+      )}
     </TableContainer>
   );
 };
