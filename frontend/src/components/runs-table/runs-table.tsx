@@ -9,6 +9,7 @@ import { Icon } from "../icon";
 import { DeleteModal } from "../modal";
 import { RunsTableProps } from "./runs-table.props";
 import { TagList } from "../taglist";
+import { formatDate } from "../../utils/format-date.ts";
 
 const TableContainer = styled.div`
   display: flex;
@@ -190,7 +191,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               {run.run_name}
             </TableCol>
             <TableCol width={theme.sizes.mediumCellWidth}>
-              {run.modification_date}
+              {formatDate(run.modification_date)}
             </TableCol>
             <TableCol>
               <StyledList>

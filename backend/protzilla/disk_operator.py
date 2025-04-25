@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 import yaml
+from django.utils.datetime_safe import datetime
 from plotly.io import read_json, write_json
 
-import protzilla.utilities as utilities
+import backend.protzilla.utilities as utilities
 from backend.protzilla.constants import paths
+from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
 
@@ -129,6 +132,7 @@ class DiskOperator:
         with ErrorHandler():
             if not self.run_dir.exists():
                 self.run_dir.mkdir(parents=True, exist_ok=True)
+                creation_date = datetime.now().strftime(metadata_date_format)
             if not self.dataframe_dir.exists():
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
@@ -139,6 +143,18 @@ class DiskOperator:
             for step in step_manager.all_steps:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
+            metadata_yaml_path = self.run_dir / "metadata.yaml"
+            metadata = {}
+            if not os.path.exists(metadata_yaml_path): # maybe refactor as self. field?
+                with open(metadata_yaml_path, 'w') as file:
+                    pass
+            else:
+                metadata = self.yaml_operator.read(metadata_yaml_path)
+
+            if creation_date:
+                metadata["creation_date"] = creation_date
+            metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
+            self.yaml_operator.write(Path(metadata_yaml_path), metadata)
 
     def read_workflow(self) -> StepManager:
         return self.read_run(self.workflow_file)

@@ -35,8 +35,6 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         if directory.name.startswith("."):
             continue
         name = directory.name
-        creation_time = directory.stat().st_ctime
-        modification_time = directory.stat().st_mtime
 
         disk_operator = DiskOperator(name, "dummy_workflow_name")
         directory_path = os.path.join(paths.RUNS_PATH, name)
@@ -50,6 +48,8 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         # empty initialization to ensure backwardscompatibility for runs without metadata.yaml
         favourite = False
         tags = set()
+        creation_date = "date not available"
+        modification_date = "date not available"
 
         metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
         if os.path.isfile(metadata_yaml_path):
@@ -57,6 +57,8 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             metadata = yaml_operator.read(metadata_yaml_path)
             tags = metadata.get("tags", set())
             favourite = metadata.get("favourite", False)
+            creation_date = metadata.get("creation_date", "date not available")
+            modification_date = metadata.get("modification_date", "date not available")
         
         for tag in tags:
             all_tags.add(tag)
@@ -64,8 +66,8 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         tags = list(tags) #sets are not json serializable
         run = {
             "run_name": name,
-            "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
-            "modification_date": datetime.datetime.fromtimestamp(modification_time).strftime("%d %m %Y"),
+            "creation_date": creation_date,
+            "modification_date": modification_date,
             "memory_mode": step_manager.df_mode,
             "run_steps" : step_names,
             "favourite_status" : favourite,
@@ -140,6 +142,7 @@ class Run:
             thread.start()
             self.steps.df_mode = self.df_mode
             self.steps.disk_operator = self.disk_operator
+            #safe modification date to metadata.yaml
             return result
 
         return wrapper
