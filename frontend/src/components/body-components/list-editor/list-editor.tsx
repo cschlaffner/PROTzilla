@@ -36,7 +36,6 @@ const StyledFormColumn = styled.div`
 
 export const ListEditor: React.FC<ListEditorProps> = ({
   onFormSubmit,
-  onFormChange,
   runName,
   handleStepSelection,
   runData,
@@ -124,13 +123,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         }),
       );
     }
-    onFormChange();
-  }, [
-    currentStepCalculationStatus,
-    runData.current_section,
-    stepSectionIndex,
-    onFormChange,
-  ]);
+  }, [currentStepCalculationStatus, runData.current_section, stepSectionIndex]);
 
   return (
     <StyledRow>
