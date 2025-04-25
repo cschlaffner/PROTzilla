@@ -14,6 +14,8 @@ import {
   Text,
   TextInputField,
 } from "../..";
+import { PlotDownloadSettings } from "./plot-download-settings";
+import { useToggleableState } from "../../../hooks";
 import {
   border,
   borderColors,
@@ -70,11 +72,20 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
+  // TODO Remove, this is only for testing
+  const [isDownloadOpen, openDownload, closeDownload] =
+    useToggleableState(false);
+  const handleOpenDownload = () => {
+    openDownload();
+  };
+
   const {
     settings,
-    isLoading,
     saveSettings,
+    setComputedSettings,
+    isLoading,
     loadSettings,
+    computeDisplaySizes,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
@@ -137,21 +148,25 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   const [plot, updatePlot] = useState(initialPlot);
 
   useEffect(() => {
-    const sizeRatio = settings.width / settings.height;
-    const displayedWidth = 400;
-    const displayedHeight = Math.round(displayedWidth / sizeRatio);
+    const displaySizes = computeDisplaySizes();
+    setComputedSettings({
+      width: displaySizes.width,
+      height: displaySizes.height,
+      titleSize: displaySizes.titleSize,
+      textSize: displaySizes.textSize,
+    });
     updatePlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
-        width: displayedWidth,
-        height: displayedHeight,
+        width: displaySizes.width,
+        height: displaySizes.height,
         title: {
           ...prevPlot.layout.template.layout.title,
           font: {
             ...prevPlot.layout.template.layout.title,
             family: settings.selectedFont,
-            size: settings.titleSize,
+            size: displaySizes.titleSize,
           },
           text: prevPlot.layout.title.text,
         },
@@ -161,12 +176,14 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             font: {
               ...prevPlot.layout.template.layout.font,
               family: settings.selectedFont,
-              size: settings.textSize,
+              size: displaySizes.textSize,
             },
           },
         },
       },
     }));
+    // TODO Fix this dependency issue
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   const handleSaving = (
@@ -338,8 +355,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
               <Col>
                 <NumberInputField
                   label={"Text size"}
-                  min={10}
-                  max={300}
+                  min={1}
+                  max={100}
                   step={1}
                   hasStepButtons={true}
                   separateSuffix={"pt"}
@@ -362,6 +379,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         </Col>
       </Row>
       <Footer>
+        {/* TODO Remove this */}
+        <Button text="<Download Modal>" onPress={handleOpenDownload} />
         <SecondaryButton
           text={"Reset to default"}
           icon="reload"
@@ -382,6 +401,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           }}
         />
       </Footer>
+      {/* TODO Remove this */}
+      <PlotDownloadSettings isOpen={isDownloadOpen} onClose={closeDownload} />
     </div>
   );
 };

@@ -90,20 +90,18 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     const { id } = e.currentTarget;
     const stepValue = step ?? 1;
     let newValue = value;
-    if (id === "up") {
+    if (id.includes("up")) {
       newValue = value + stepValue;
       if (max !== undefined) {
         newValue = Math.min(newValue, max);
       }
-    } else if (id === "down") {
+    } else if (id.includes("down")) {
       newValue = value - stepValue;
       if (min !== undefined) {
         newValue = Math.max(newValue, min);
       }
     }
     setValue(newValue);
-    setDisplayValue(String(newValue));
-    onChange(newValue);
   };
 
   return (

@@ -78,6 +78,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     settings,
     loadSettings,
     saveSettings,
+    computeDisplaySizes,
+    setComputedSettings,
     downloadPlot,
     handleFileFormatChange,
     handleWidthChange,
@@ -143,19 +145,23 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   const [prevTitle] = useState(initialPlot.layout.title.text);
 
   useEffect(() => {
-    const sizeRatio = settings.width / settings.height;
-    const displayedWidth = 400;
-    const displayedHeight = Math.round(displayedWidth / sizeRatio);
+    const displaySizes = computeDisplaySizes();
+    setComputedSettings({
+      width: displaySizes.width,
+      height: displaySizes.height,
+      titleSize: displaySizes.titleSize,
+      textSize: displaySizes.textSize,
+    });
     updatePlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
-        width: displayedWidth,
-        height: displayedHeight,
+        width: displaySizes.width,
+        height: displaySizes.height,
         title: {
           font: {
             family: settings.selectedFont,
-            size: settings.titleSize,
+            size: displaySizes.titleSize,
           },
           text: settings.title ?? prevTitle,
         },
@@ -165,12 +171,14 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             font: {
               ...prevPlot.layout.template.layout.font,
               family: settings.selectedFont,
-              size: settings.textSize,
+              size: displaySizes.textSize,
             },
           },
         },
       },
     }));
+    // TODO Fix this dependency issue
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
 
   const handleDownload = () => {

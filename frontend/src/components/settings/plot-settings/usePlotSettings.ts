@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { callApiWithParameters } from "../../../utils";
 
 export interface PlotSettings {
+  // User-given parameters that are stored in backend
   fileFormat: string;
   width: number;
   height: number;
@@ -15,8 +16,16 @@ export interface PlotSettings {
   customFont: string;
   titleSize: number;
   textSize: number;
-  // The following parameters are only relevant for the "Plot Download" modal and are therefore optional.
+  // Optional parameters, only relevant for "Plot Download" modal
   title?: string;
+}
+
+export interface ComputedPlotSettings {
+  // Computed parameters for displaying the right sizes within the plot
+  height?: number;
+  width?: number;
+  titleSize?: number;
+  textSize?: number;
 }
 
 export const usePlotSettings = (isOpen: boolean) => {
@@ -29,8 +38,16 @@ export const usePlotSettings = (isOpen: boolean) => {
     customFont: "",
     titleSize: 0,
     textSize: 0,
+
     title: "",
   });
+  const [computedSettings, setComputedSettings] =
+    useState<ComputedPlotSettings>({
+      width: 0,
+      height: 0,
+      titleSize: 0,
+      textSize: 0,
+    });
 
   const loadSettings = async (templateName: string) => {
     const response = await callApiWithParameters("load_settings", {
@@ -69,19 +86,17 @@ export const usePlotSettings = (isOpen: boolean) => {
   };
 
   const downloadPlot = async (plot: Figure) => {
-    // TODO: Get filename from run, calculate experienced sizes & scale
+    // TODO: Get filename from run
     const fileName = "testfile";
-    const width = plot.layout.width;
-    const height = plot.layout.height;
-    const scale = 10;
+    const scale = getScale(plot);
     const plotAsJson = JSON.stringify(plot);
 
     if (["jpeg", "png", "svg", "webp"].includes(settings.fileFormat)) {
       Plotly.downloadImage("plot-id", {
         format: settings.fileFormat,
         filename: fileName,
-        width: width,
-        height: height,
+        width: computedSettings.width,
+        height: computedSettings.height,
         scale: scale,
       } as Plotly.DownloadImgopts).catch((error: unknown) => {
         console.error("Export as .", settings.fileFormat, " failed: ", error);
@@ -107,6 +122,45 @@ export const usePlotSettings = (isOpen: boolean) => {
         " is not implemented.",
       );
     }
+  };
+
+  const basePlotWidth = 400;
+  const ptToInch = 1 / 72;
+  const inchToMm = 25.4;
+  const dpi = 300;
+
+  /**
+   * This function returns the scale factor for resizing the plot from its
+   * current displayed size to desired download size (regarding resolution etc).
+   */
+  const getScale = (plot: Figure) => {
+    const currentWidth = plot.layout.width ?? basePlotWidth;
+    return ((settings.width / inchToMm) * dpi) / currentWidth;
+  };
+
+  /**
+   * This function returns the scaled sizes for displaying the plot.
+   */
+  // TODO: Rename without "display" and with "compute"??
+  const computeDisplaySizes = () => {
+    // Figure size
+    let ratio = settings.width / settings.height;
+    const width = basePlotWidth;
+    const height = Math.round(basePlotWidth / ratio);
+    // Font size
+    ratio = width / settings.width;
+    const titleSize = Math.round(
+      settings.titleSize * ptToInch * inchToMm * ratio,
+    );
+    const textSize = Math.round(
+      settings.textSize * ptToInch * inchToMm * ratio,
+    );
+    return {
+      width,
+      height,
+      titleSize,
+      textSize,
+    };
   };
 
   // Handle functions for input fields regarding the plot settings
@@ -163,53 +217,16 @@ export const usePlotSettings = (isOpen: boolean) => {
     }));
   };
 
-  // TODO Include resizing & scaling from PROTzilla2
-
-  // # SCALED_WIDTH = 600
-  // # PT_TO_INCH = 1 / 72
-  // # INCH_TO_MM = 25.4
-  // # DPI = 300
-
-  //   def resize_for_display(params: dict) -> dict:
-  //     """
-  //     Scales the input sizes to sizes that can be easily displayed in a webbrowser.
-  //     :param params: Dict containing the plot settings.
-  //     :return: Dict containing plot settings with scaled sizes.
-  //     """
-  //     # Figure size
-  //     ratio = params["width"] / params["height"]
-  //     display_height = int(SCALED_WIDTH / ratio)
-  //     # Font size
-  //     ratio = SCALED_WIDTH / params["width"]
-  //     display_heading = int(params["heading_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
-  //     display_text = int(params["text_size"] * PT_TO_INCH * INCH_TO_MM * ratio)
-  //     params["display_width"] = SCALED_WIDTH
-  //     params["display_height"] = display_height
-  //     params["display_heading_size"] = display_heading
-  //     params["display_text_size"] = display_text
-  //     return params
-
-  // def get_scale_factor(
-  //         fig: go.Figure,
-  //         params: dict
-  //     ) -> float:
-  //     """
-  //     Calculates the scale factor for downloading the plot in desired size and resolution.
-  //     :param fig: Plotly figure to be scaled.
-  //     :param params: Dict containing the plot settings.
-  //     :return: Scale factor to scale the whole plot to desired size.
-  //     """
-  //     current_width = fig.layout.width or SCALED_WIDTH
-  //     scale_factor = (params["width"] / INCH_TO_MM * DPI) / current_width
-  //     return scale_factor
-
   return {
     isLoading,
     settings,
     setSettings,
+    computedSettings,
+    setComputedSettings,
     loadSettings,
     saveSettings,
     downloadPlot,
+    computeDisplaySizes,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
