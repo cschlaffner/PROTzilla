@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
 import { color, spacing } from "../../../theme";
 import { translateGlobalToSectionIndex } from "../../../utils/step_index_helper.ts";
 import { FlexRow } from "../../box";
-import { SecondaryButton } from "../../button";
-import { Form, InputValueType } from "../../forms/form";
+import { BackendForm } from "../../forms/backend-form/backend-form.tsx";
 import { Sidebar } from "../../sidebar";
 import { emptySections, Step } from "../../sidebar/types.ts";
 
@@ -36,11 +35,10 @@ const StyledFormColumn = styled.div`
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
-  formDataParameters,
-  onChangeParameters,
+  onFormSubmit,
+  onFormChange,
   runName,
   handleStepSelection,
-  onCalculateStep,
   runData,
 }) => {
   const [sections, setSections] = useState(emptySections);
@@ -84,27 +82,27 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   const currentStepCalculationStatus =
     currentSection?.steps[stepSectionIndex]?.status;
 
-  const buttonText =
-    currentStepCalculationStatus === "complete"
-      ? "Next"
-      : runData.current_section === "importing"
-        ? "Import"
-        : "Calculate";
+  // TODO JONAS
+  // const buttonText =
+  //   currentStepCalculationStatus === "complete"
+  //     ? "Next"
+  //     : runData.current_section === "importing"
+  //       ? "Import"
+  //       : "Calculate";
 
-  const buttonFunction =
-    currentStepCalculationStatus === "complete"
-      ? () => {
-          handleStepSelection(
-            translateGlobalToSectionIndex(
-              runData.current_step_index + 1,
-              sections,
-            ),
-          );
-        }
-      : onCalculateStep;
+  // const buttonFunction =
+  //   currentStepCalculationStatus === "complete"
+  //     ? () => {
+  //         handleStepSelection(
+  //           translateGlobalToSectionIndex(
+  //             runData.current_step_index + 1,
+  //             sections,
+  //           ),
+  //         );
+  //       }
+  //     : onCalculateStep;
 
-  const onChange = (data: Record<string, InputValueType>) => {
-    onChangeParameters(data);
+  const onFormChanged = useCallback(() => {
     let outdateFollowingStep = false;
     if (currentStepCalculationStatus === "complete") {
       setSections((prevSections) =>
@@ -126,8 +124,13 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         }),
       );
     }
-  };
-  //previousStepCalculationStatus==="failed" || previousStepCalculationStatus==="incomplete"
+    onFormChange();
+  }, [
+    currentStepCalculationStatus,
+    runData.current_section,
+    stepSectionIndex,
+    onFormChange,
+  ]);
 
   return (
     <StyledRow>
@@ -143,11 +146,11 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       <StyledDivider />
 
       <StyledFormColumn>
-        <Form formData={formDataParameters} onChange={onChange} />
-        <SecondaryButton
-          isDisabled={false}
-          text={buttonText}
-          onPress={buttonFunction}
+        <BackendForm
+          runName={runName}
+          current_step_index={runData.current_step_index}
+          onSubmit={onFormSubmit}
+          onChange={onFormChanged}
         />
       </StyledFormColumn>
     </StyledRow>
