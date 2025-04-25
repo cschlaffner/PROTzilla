@@ -101,7 +101,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         newValue = Math.max(newValue, min);
       }
     }
-    setValue(newValue);
+    onChange(newValue);
   };
 
   return (
