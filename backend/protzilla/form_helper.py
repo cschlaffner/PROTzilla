@@ -1,6 +1,6 @@
 from backend.protzilla.form import Option
-from protzilla.run import Run
-from protzilla.steps import Step
+from backend.protzilla.run import Run
+from backend.protzilla.steps import Step
 
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
