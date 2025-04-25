@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -15,13 +15,11 @@ import {
 import {
   dummyTextComponent1,
   footerMessages,
-  mockFormDataParameters,
   mockPlotData,
   mockPlotLayout,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
-import { InputValueType } from "../components/forms/form";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters } from "../utils";
 
