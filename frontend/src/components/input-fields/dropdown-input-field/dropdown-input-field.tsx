@@ -81,20 +81,22 @@ const OptionItem = styled.li`
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
-    const [selectedValue, setSelectedValue] = useState(
+    const [selectedOption, setSelectedOption] = useState(
       options.find((option) => option.label === value) ?? options[0], //TODO QUICKFIX this should be .value in the future
     );
 
     useEffect(() => {
       const initialOption =
         options.find((option) => option.label === value) ?? options[0]; //TODO QUICKFIX this should be .value in the future
-      setSelectedValue(initialOption);
+      setSelectedOption(initialOption);
 
       if (initialOption.label !== value) {
         //TODO QUICKFIX this should be .value in the future
         onChange(initialOption.label); //TODO QUICKFIX this should be .value in the future
       }
-    }, [value, options, onChange]);
+      //component should only rerender on change of options because of multiple occurrences of dropdown forms
+      //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [options]);
 
     const dropdownRef = useRef<HTMLUListElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);
@@ -110,7 +112,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
     );
 
     const handleChange = (option: { label: string; value: string }) => {
-      setSelectedValue(option);
+      setSelectedOption(option);
       onChange(option.label); //TODO QUICKFIX this should be .value in the future
       disable();
     };
@@ -139,7 +141,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
               className="selected-value-text"
               $isSmall={props.isSmall ?? false}
             >
-              {selectedValue.label}
+              {selectedOption.label}
             </StyledInputLabel>
           </InputContainer>
         </div>
