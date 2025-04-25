@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
@@ -70,9 +70,9 @@ export const TagMenu: React.FC<TagMenuProps> = ({
             },
           ],
         }}
-        onChange={(data) => {
+        onChange={useCallback((data) => {
           onHandleAddTag(data.tag as string);
-        }}
+        }, [])}
       ></Form>
       <SearchInputField
         label="Or choose from existing tags:"
