@@ -14,8 +14,6 @@ import {
   Text,
   TextInputField,
 } from "../..";
-import { PlotDownloadSettings } from "./plot-download-settings";
-import { useToggleableState } from "../../../hooks";
 import {
   border,
   borderColors,
@@ -72,13 +70,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
-  // TODO Remove, this is only for testing
-  const [isDownloadOpen, openDownload, closeDownload] =
-    useToggleableState(false);
-  const handleOpenDownload = () => {
-    openDownload();
-  };
-
   const {
     settings,
     saveSettings,
@@ -379,8 +370,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         </Col>
       </Row>
       <Footer>
-        {/* TODO Remove this */}
-        <Button text="<Download Modal>" onPress={handleOpenDownload} />
         <SecondaryButton
           text={"Reset to default"}
           icon="reload"
@@ -401,8 +390,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           }}
         />
       </Footer>
-      {/* TODO Remove this */}
-      <PlotDownloadSettings isOpen={isDownloadOpen} onClose={closeDownload} />
     </div>
   );
 };
