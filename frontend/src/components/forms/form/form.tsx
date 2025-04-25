@@ -5,6 +5,7 @@ import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
@@ -104,13 +105,13 @@ export const Form: React.FC<FormProps> = ({
       ))}
       {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
-          {isChanged && (
+          {isChanged && formData.hasChangeIndicator && (
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
             text="Submit"
             onClick={handleSubmit}
-            isDisabled={!isChanged}
+            isDisabled={!isChanged && formData.hasChangeIndicator}
           />
         </StyledSubmitDiv>
       )}
@@ -153,6 +154,10 @@ const InputField: React.FC<InputFieldProps> = ({
           {...props}
         />
       );
+    case "single-checkbox":
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
+      );
     case "dropdown":
       return (
         <DropdownInputField
@@ -174,5 +179,4 @@ const InputField: React.FC<InputFieldProps> = ({
     default:
       return null;
   }
-  //}
 };
