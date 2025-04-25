@@ -1,10 +1,11 @@
-import React, { memo, useCallback, useRef, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, fontWeight, size, spacing } from "../../../theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
+import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
@@ -54,7 +55,9 @@ export const Form: React.FC<FormProps> = memo(function Form({
   const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
     {},
   );
-  const submittedValuesRef = useRef<Record<string, InputValueType>>({});
+  const [submittedValues, setSubmittedValues] = useState<
+    Record<string, InputValueType>
+  >({});
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
@@ -63,12 +66,10 @@ export const Form: React.FC<FormProps> = memo(function Form({
       setFormValues((prevValues) => {
         const newValues = { ...prevValues, [name]: value };
         const hasChanges =
-          JSON.stringify(newValues) !==
-          JSON.stringify(submittedValuesRef.current);
+          JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
         const isFirstEntryForId = !(name in prevValues);
         if (isFirstEntryForId) {
-          submittedValuesRef.current = newValues;
           return newValues;
         }
 
@@ -91,12 +92,18 @@ export const Form: React.FC<FormProps> = memo(function Form({
         return newValues;
       });
     },
-    [formData, hasformTouchedTriggered, onChange, onFormTouched],
+    [
+      formData,
+      hasformTouchedTriggered,
+      onChange,
+      onFormTouched,
+      submittedValues,
+    ],
   );
 
   const handleSubmit = () => {
     onChange(formValues);
-    submittedValuesRef.current = formValues;
+    setSubmittedValues(formValues);
     setIsChanged(false);
     setHasFormTouchedTriggered(false);
   };
@@ -162,6 +169,10 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
           options={options ?? []}
           {...props}
         />
+      );
+    case "single-checkbox":
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
       );
     case "dropdown":
       return (

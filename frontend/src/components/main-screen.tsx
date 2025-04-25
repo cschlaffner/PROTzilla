@@ -14,7 +14,8 @@ const MainContent = styled(SubScreen)`
   gap: ${spacing("large")};
   min-width: 0;
   overflow-y: auto;
-  width: auto;
+  overflow-x: auto;
+  width: 100%;
 `;
 
 export const MainScreen: React.FC<ScreenProps> = ({ children, ...rest }) => (

@@ -19,7 +19,6 @@ export interface TagMenuProps {
 }
 
 export const TagMenu: React.FC<TagMenuProps> = ({
-  setSelectedRun,
   selectedRun,
   handleAddTag,
   handleDeleteTag,
@@ -47,18 +46,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
 
   const onHandleAddTag = (tag: string) => {
     handleAddTag(tag);
-    setSelectedRun((prevRun) => ({
-      ...prevRun,
-      run_tags: [...prevRun.run_tags, tag],
-    }));
-  };
-
-  const onHandleDeleteTag = (tag: string) => {
-    handleDeleteTag(tag);
-    setSelectedRun((prevRun) => ({
-      ...prevRun,
-      run_tags: prevRun.run_tags.filter((t) => t != tag),
-    }));
+    void fetchData();
   };
 
   return (
@@ -67,7 +55,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
         runName={selectedRun.run_name}
         tags={selectedRun.run_tags}
         icon="close"
-        handleTag={onHandleDeleteTag}
+        handleTag={handleDeleteTag}
       />
       <Form
         formData={{

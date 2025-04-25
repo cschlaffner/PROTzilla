@@ -133,6 +133,10 @@ export const baseTheme = {
     successDisplayDuration: 5000,
     successButtonDuration: 2000,
     errorDisplayDuration: 10000,
+
+    shortNotificationDuration: 2000,
+    standardNotificationDuration: 5000,
+    longNotificationDuration: 10000,
   },
   fonts: {
     default: "Helvetica Neue",
@@ -174,6 +178,7 @@ export const baseTheme = {
     buttonFocusOutline: "8px",
     smallCard: "12px",
     card: "20px",
+    tag: "12px",
   },
   shadows: {
     floating: "0px 12px 20px -10px rgba(0, 0, 0, 0.25)",
@@ -183,9 +188,11 @@ export const baseTheme = {
   sizes: {
     icon: "20px",
     smallIcon: "12px",
+    bigIcon: "50px",
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
+    bigButtonDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -193,6 +200,15 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+
+    // Input Screen
+    templateSelectionHeight: "300px",
+    runSelectionMinHeight: "300px",
+
+    //Runs Table
+    smallCellWidth: "50px",
+    mediumCellWidth: "150px",
+    largeCellWidth: "200px",
   },
   spacing: {
     listIndentation: "14px",
@@ -203,7 +219,9 @@ export const baseTheme = {
     listButtonPadding: "2px 0 2px 0",
     buttonGap: "8px",
     smallButtonGap: "6px",
+    tagPadding: "4px 8px",
 
+    superSmall: "4px",
     verySmall: "5px",
     small: "10px",
     medium: "20px",
