@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
 import { size } from "../../../../theme";
-import { InputContainer } from "../../frame-input-field";
+import { InputContainer } from "../../input-container";
 import {
   StyledCheckboxContainer,
   StyledLabel,
