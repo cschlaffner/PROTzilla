@@ -88,8 +88,11 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   const handleMouseLeave = (event: React.MouseEvent) => {
     //check if mouse is over add step handle
     setIsHovered(false);
-    const relatedTarget = event.relatedTarget as HTMLElement | null;
-    if (!relatedTarget?.closest(`[data-group-id="step-group"]`)) {
+    const relatedTarget = event.relatedTarget;
+    if (
+      !(relatedTarget instanceof HTMLElement) ||
+      !relatedTarget.closest('[data-group-id="step-group"]')
+    ) {
       setShowHandle(false);
     }
   };

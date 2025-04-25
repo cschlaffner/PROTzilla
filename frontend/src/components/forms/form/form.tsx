@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 import { color, fontSize, size, spacing } from "../../../theme";
 import { Button } from "../../button";
-import { CheckboxSelectInputField } from "../../input-fields/checkbox-select-input-field";
+import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
 import { DropdownInputField } from "../../input-fields/dropdown-input-field";
 import { FileInputField } from "../../input-fields/file-input-field";
 import { MultiSelectInputField } from "../../input-fields/multi-select-input-field";
