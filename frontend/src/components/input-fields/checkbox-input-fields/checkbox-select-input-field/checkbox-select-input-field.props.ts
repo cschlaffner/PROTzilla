@@ -1,5 +1,5 @@
-import { UIStateProps } from "../../types";
-import { InputContainerProps } from "../input-container";
+import { UIStateProps } from "../../../types.ts";
+import { InputContainerProps } from "../../input-container";
 
 export interface CheckboxSelectInputFieldProps
   extends Omit<InputContainerProps, "inlinePrefix" | "inlineSuffix">,

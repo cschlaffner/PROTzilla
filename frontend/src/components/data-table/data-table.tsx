@@ -33,7 +33,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     return {
       field: key,
       headerName: key,
-      minWidth: 180,
+      minWidth: 200,
       flex: 1,
       type: isNumeric ? "number" : "string",
       align: "left",

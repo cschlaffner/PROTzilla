@@ -137,6 +137,7 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     textStyle,
     isShy,
     isSmall,
+    isBig,
     showFocusOutline = true,
     notificationColor,
     onPointerDown,
@@ -262,6 +263,7 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
         className="icon"
         icon={(isPressed && pressedIcon) || icon}
         isSmall={isSmall}
+        isBig={isBig}
       />
     ) : (
       (isPressed && pressedIcon) || icon
@@ -493,6 +495,11 @@ const secondaryButtonMixin = css<ButtonProps>`
 
 export const SecondaryButton = styled(Button)`
   ${secondaryButtonMixin}
+`;
+
+export const BigButton = styled(SecondaryButton)`
+  height: ${size("bigButtonDimension")};
+  width: ${size("bigButtonDimension")};
 `;
 
 export const GrayButton = styled(Button)`
