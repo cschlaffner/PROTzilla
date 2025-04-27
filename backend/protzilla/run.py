@@ -6,7 +6,6 @@ import traceback
 
 import os
 import shutil
-import datetime
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.form import Form
@@ -142,7 +141,6 @@ class Run:
             thread.start()
             self.steps.df_mode = self.df_mode
             self.steps.disk_operator = self.disk_operator
-            #safe modification date to metadata.yaml
             return result
 
         return wrapper
@@ -182,6 +180,14 @@ class Run:
     @property
     def run_path(self) -> str:
         return self.disk_operator.run_dir
+
+    @error_handling
+    def metadata_read(self) -> dict:
+        return self.disk_operator.read_metadata()
+
+    @error_handling
+    def metadata_write(self, metadata: dict) -> None:
+        return self.disk_operator.write_metadata(metadata)
 
     @error_handling
     @auto_save

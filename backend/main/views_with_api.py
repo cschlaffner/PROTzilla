@@ -1,18 +1,14 @@
 from dataclasses import asdict
 import json
-import os
 import io
 import tempfile
 import traceback
 import zipfile
-from pathlib import Path
 
 import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
-import backend.protzilla.constants.paths as paths
-from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
@@ -51,20 +47,11 @@ def toggle_favourite(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-    
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
 
-        yaml_operator = YamlOperator()
-        metadata = {}
-        if not os.path.exists(metadata_yaml_path):
-           with open(metadata_yaml_path, 'w') as file:
-               pass
-        else:
-            metadata = yaml_operator.read(metadata_yaml_path)
-
-        metadata["favourite"]= not metadata.get("favourite", False)
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        metadata["favourite"] = not metadata.get("favourite", False)
+        run.metadata_write(metadata)
 
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
@@ -76,23 +63,12 @@ def add_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        tags = set()
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
-
-        yaml_operator = YamlOperator()
-        metadata = {}
-        if not os.path.exists(metadata_yaml_path):
-            with open(metadata_yaml_path, 'w') as file:
-                pass
-        else:
-            metadata = yaml_operator.read(metadata_yaml_path)
-            tags_from_metadata = metadata.get("tags")
-            if tags_from_metadata:
-                tags.update(tags_from_metadata)
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        tags = metadata.get("tags", set())
         tags.add(run_tag)
-        metadata["tags"]= tags
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        metadata["tags"] = tags
+        run.metadata_write(metadata)
 
         return JsonResponse({"success": True, "message": "Added tag"})
     else:
@@ -103,16 +79,13 @@ def delete_tag(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
-    
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
 
-        yaml_operator = YamlOperator()
-        metadata = yaml_operator.read(metadata_yaml_path)
-        tags = metadata.get("tags")
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        tags = metadata.get("tags", set())
         tags.remove(run_tag)
         metadata["tags"] = tags
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        run.metadata_write(metadata)
 
         return JsonResponse({"success": True, "message": "Deleted tag"})
     else:
@@ -158,7 +131,7 @@ def continue_run(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        active_runs[run_name] = Run(run_name)
+        active_runs[run_name] = Run(run_name) # possible error due to overwritten parameters
         
 
         return JsonResponse({"success": True, "message": "Continued run"})
