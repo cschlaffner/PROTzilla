@@ -3,7 +3,14 @@ import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { Card, Form, Modal, RunsTable, Workflow } from "../components";
+import {
+  Card,
+  Form,
+  Modal,
+  RunsTable,
+  useNotification,
+  Workflow,
+} from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
@@ -52,6 +59,7 @@ const StyledRunSelectionCard = styled(Card)`
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -210,18 +218,33 @@ export const IndexScreen: React.FC = () => {
                     name: "df_mode",
                     label: "With memory mode:",
                     options: [
-                      { label: "disk", value: "disk" }, // TODO change label to "Standard"
-                      { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory"
+                      { label: "disk", value: "disk" }, // TODO change label to "Standard" after backend refactor
+                      { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory" after backend refactor
                     ],
                     isVisible: true,
                   },
                 ],
               }}
               onChange={useCallback((data) => {
-                void callApiWithParameters("add_run/", {
-                  run_name: data.runname ?? "",
+                const runName = data.runname;
+                if (!runName) {
+                  notify({
+                    title: "Error",
+                    message: "Please enter a run name.",
+                    type: "error",
+                  });
+                  return;
+                }
+                callApiWithParameters("add_run/", {
+                  run_name: runName ?? "",
                   workflow_name: data.workflow ?? "",
                   df_mode_name: data.df_mode ?? "disk",
+                }).then(() => {
+                  callApiWithParameters("continue_run/", {
+                    run_name: runName as string,
+                  }).then(() => {
+                    void navigate("/run", { state: { runName } });
+                  });
                 });
               }, [])}
             ></Form>
