@@ -1,7 +1,7 @@
 custom_font: ''
 file_format: svg
 font: Arial
-title_size: 20
-height: 60
-text_size: 12
-width: 70
+height: 70
+text_size: 9
+title_size: 11
+width: 90
