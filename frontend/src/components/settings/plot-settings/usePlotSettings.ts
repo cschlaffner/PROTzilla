@@ -86,8 +86,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
   };
 
   const downloadPlot = async (plot: Figure) => {
-    // TODO: Get filename from run or add input field for filename
-    const fileName = "testfile";
+    // TODO Customize file name
+    const fileName = "plot";
     const scale = getScale(plot);
     const plotAsJson = JSON.stringify(plot);
 
