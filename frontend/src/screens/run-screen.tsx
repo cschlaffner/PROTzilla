@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -73,20 +73,13 @@ export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const randomMessage =
-    footerMessages[Math.floor(Math.random() * footerMessages.length)];
+  const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState({});
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData, setTableData] = useState(mockTableData);
-
-  useEffect(() => {
-    void getRunData();
-    void getStepPlots();
-    void getStepTable();
-  }, []);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
@@ -95,23 +88,23 @@ export const RunScreen: React.FC = () => {
         section: selectedStep.section,
         index: String(selectedStep.index),
       }).then(() => {
-        getRunData();
-        getStepPlots();
-        getStepTable();
+        void getRunData();
+        void getStepPlots();
+        void getStepTable();
       });
     }
   };
 
-  const getRunData = async () => {
+  const getRunData = useCallback(async () => {
     const response = await callApiWithParameters("get_run_data/", {
       run_name: runName,
     });
     if (response) {
       setRunData(response.data);
     }
-  };
+  }, [runName]);
 
-  const getStepPlots = async () => {
+  const getStepPlots = useCallback(async () => {
     const response = await callApiWithParameters("get_step_plots/", {
       run_name: runName,
     });
@@ -129,9 +122,9 @@ export const RunScreen: React.FC = () => {
       setPlotData(rawData);
       setPlotLayout(rawLayout);
     }
-  };
+  }, [runName]);
 
-  const getStepTable = async () => {
+  const getStepTable = useCallback(async () => {
     const response = await callApiWithParameters("get_step_table/", {
       run_name: runName,
     });
@@ -139,12 +132,20 @@ export const RunScreen: React.FC = () => {
       const data = response.data;
       setTableData(data);
     }
-  };
+  }, [runName]);
 
-  const onFormSubmit = async () => {
-    getRunData();
-    getStepPlots();
-    getStepTable();
+  useEffect(() => {
+    const fetchData = async () => {
+      await Promise.all([getRunData(), getStepPlots(), getStepTable()]);
+    };
+
+    void fetchData();
+  }, [getRunData, getStepPlots, getStepTable]);
+
+  const onFormSubmit = () => {
+    void getRunData();
+    void getStepPlots();
+    void getStepTable();
   };
 
   const plotComponent = (
@@ -158,6 +159,8 @@ export const RunScreen: React.FC = () => {
       <DataTable data={tableData} />
     </StyledTableContainer>
   );
+
+  console.log("type rundata", runData);
 
   const listEditorComponent = (
     <ListEditor

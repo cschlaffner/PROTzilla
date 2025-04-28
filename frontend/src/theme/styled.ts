@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 const isValidHtmlProp = (prop: string) => {
   return prop in document.createElement("div");
@@ -9,7 +9,7 @@ const isValidHtmlProp = (prop: string) => {
 
 export const styledDiv = new Proxy(styled, {
   get(target, component) {
-    return (...args: any[]) =>
+    return (...args: unknown[]) =>
       (target as any)[component].withConfig({
         shouldForwardProp: (prop: string) => isValidHtmlProp(prop),
       })(...args);

@@ -3,10 +3,6 @@ export interface SelectedStep {
   index: number;
 }
 
-export type SetSelectedStep = React.Dispatch<
-  React.SetStateAction<SelectedStep | undefined>
->;
-
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 
 export interface Step {

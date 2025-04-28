@@ -7,6 +7,7 @@ import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
 import { SecondaryButton } from "../../button";
+import { useNotification } from "../../notification-center";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -30,6 +31,8 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   onChange,
   ...props
 }) => {
+  const notify = useNotification();
+
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -38,7 +41,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     if (file) {
       const fileName = file.name;
       value = fileName;
-      handleUpload();
+      void handleUpload();
       onChange(fileName);
     }
   }, [file]);
@@ -64,9 +67,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1),
-          );
+          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
           setUploadProgress(percent);
         },
       });
@@ -74,6 +75,11 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
       // Upload successful
     } catch (err) {
       console.error("Upload failed:", err);
+      notify({
+        title: "Upload failed",
+        message: "There was an error uploading the file: " + err,
+        type: "error",
+      });
       // Upload failed
     } finally {
       setIsUploading(false);
@@ -85,9 +91,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   return (
     <InputContainer {...props}>
       <StyledDiv>
-        <StyledSpan>
-          {file ? file.name : value ? value : placeholder}
-        </StyledSpan>
+        <StyledSpan>{file ? file.name : placeholder}</StyledSpan>
         <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
         </SecondaryButton>

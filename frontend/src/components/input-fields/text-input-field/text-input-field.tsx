@@ -11,8 +11,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -25,9 +24,9 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    onChange(initialValue)
-  },[])
-
+    onChange(initialValue);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (value: string) => {
     setValue(value);

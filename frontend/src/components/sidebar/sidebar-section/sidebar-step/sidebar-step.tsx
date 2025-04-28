@@ -7,16 +7,16 @@ import { color } from "../../../../theme";
 import { InvisibleButton } from "../../../button";
 import { DefaultColoredIconType } from "../../../icon";
 import { DefaultColoredIcon } from "../../../icon/icon";
+import { useNotification } from "../../../notification-center";
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
-import { useIconContext } from "../../step-icon-context.tsx";
+import { useIconContext } from "../../use-step-icon-context.tsx";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
   gap: 10px;
   padding: 10px 5px;
-  background-color: ${({ isSelected }) =>
-    isSelected ? color("protzillaLightGray") : ""};
+  background-color: ${({ isSelected }) => (isSelected ? color("protzillaLightGray") : "")};
   display: flex;
   align-items: center;
   border-radius: 6px;
@@ -49,12 +49,14 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   setShowHandle,
   setHoveredStepIndex,
 }: SidebarStepProps) => {
+  const notify = useNotification();
+
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
 
   const { icons } = useIconContext();
-  const stepID = `${sectionName}-${index}`;
+  const stepID = `${sectionName}-${index.toString()}`;
   const icon = icons[stepID] || stepStatus;
 
   useEffect(() => {
@@ -71,8 +73,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
     if (!stepRef.current?.parentElement?.parentElement) return;
 
     const rect = stepRef.current.getBoundingClientRect();
-    const parentRect =
-      stepRef.current.parentElement.parentElement.getBoundingClientRect();
+    const parentRect = stepRef.current.parentElement.parentElement.getBoundingClientRect();
     const xMidpoint = rect.left + rect.width / 2 - parentRect.left;
     const yMidpoint = rect.top + rect.height / 2;
 
@@ -106,6 +107,14 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
+    if (isSelected) {
+      notify({
+        title: "Unallowed action",
+        message: "You cannot delete the step you're currently on.",
+        type: "error",
+      });
+      return;
+    }
     deleteStep(index);
   };
 
@@ -121,20 +130,11 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
       onMouseMove={handleMouseMove}
       ref={stepRef}
     >
-      <DefaultColoredIcon
-        icon={icon as DefaultColoredIconType}
-        style={{ flexShrink: 0 }}
-      />
+      <DefaultColoredIcon icon={icon as DefaultColoredIconType} style={{ flexShrink: 0 }} />
       <TextContainer>
-        <ContentText
-          text={number}
-          style={{ userSelect: "none", whiteSpace: "nowrap" }}
-        />
+        <ContentText text={number} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
         <CollapsibleLabel width={200} isCollapsed={isCollapsed}>
-          <ContentText
-            text={name}
-            style={{ userSelect: "none", whiteSpace: whiteSpace }}
-          />
+          <ContentText text={name} style={{ userSelect: "none", whiteSpace: whiteSpace }} />
         </CollapsibleLabel>
       </TextContainer>
       {!isCollapsed && isHovered && (

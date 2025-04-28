@@ -65,7 +65,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   currentSteps,
   setCurrentSteps,
 }: SidebarSectionProps) => {
-  const isCurrentSection = runData.current_section === name;
+  const isCurrentSection = runData.current_section === (name as string);
 
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
@@ -74,7 +74,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [showHandle, setShowHandle] = useState(false);
 
   const addStep = (newStep: Step) => {
-    setCurrentSteps((prevSteps: any) => [...prevSteps, newStep]);
+    setCurrentSteps((prevSteps: Step[]) => [...prevSteps, newStep]);
   };
 
   const deleteStep = async (index: number) => {
@@ -83,16 +83,12 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-    setCurrentSteps((prevSteps: any) =>
-      prevSteps.filter((_: any, i: any) => index !== i),
-    );
+    setCurrentSteps((prevSteps: Step[]) => prevSteps.filter((_: Step, i: number) => index !== i));
     if (isCurrentSection) {
       if (currentSteps.length === 0) {
         handleStepSelection(undefined);
       } else {
-        const newIndex = stepSectionIndex
-          ? Math.min(stepSectionIndex, currentSteps.length - 1)
-          : 0;
+        const newIndex = stepSectionIndex ? Math.min(stepSectionIndex, currentSteps.length - 1) : 0;
         handleStepSelection({
           section: name,
           index: newIndex,
@@ -110,10 +106,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       >
         <Icon icon={name} style={{ flexShrink: 0, marginRight: "10px" }} />
         <CollapsibleLabel width={"100%"} isCollapsed={isCollapsed}>
-          <H3
-            text={title}
-            style={{ userSelect: "none", whiteSpace: "nowrap" }}
-          />
+          <H3 text={title} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
         </CollapsibleLabel>
         <Icon
           icon={isMinimized ? "chevronDown" : "chevronUp"}
@@ -125,33 +118,29 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {currentSteps ? (
-          currentSteps.map((step: Step, j: number) => {
-            const number = `${String(index + 1)}.${String(j + 1)}`;
-            return (
-              <SidebarStep
-                key={number}
-                number={number}
-                stepStatus={step.status}
-                name={step.method_name + ": " + step.name}
-                isCollapsed={isCollapsed}
-                sectionName={name}
-                sectionLength={currentSteps.length}
-                index={j}
-                isSelected={isCurrentSection && stepSectionIndex === j}
-                handleStepSelection={handleStepSelection}
-                deleteStep={() => {
-                  void deleteStep(j);
-                }}
-                setHandlePosition={setHandlePosition}
-                setShowHandle={setShowHandle}
-                setHoveredStepIndex={setHoveredStepIndex}
-              />
-            );
-          })
-        ) : (
-          <div></div>
-        )}
+        {currentSteps.map((step: Step, j: number) => {
+          const number = `${String(index + 1)}.${String(j + 1)}`;
+          return (
+            <SidebarStep
+              key={number}
+              number={number}
+              stepStatus={step.status}
+              name={step.method_name + ": " + step.name}
+              isCollapsed={isCollapsed}
+              sectionName={name}
+              sectionLength={currentSteps.length}
+              index={j}
+              isSelected={isCurrentSection && stepSectionIndex === j}
+              handleStepSelection={handleStepSelection}
+              deleteStep={() => {
+                void deleteStep(j);
+              }}
+              setHandlePosition={setHandlePosition}
+              setShowHandle={setShowHandle}
+              setHoveredStepIndex={setHoveredStepIndex}
+            />
+          );
+        })}
         <StepSelection
           runName={runName}
           section={name}

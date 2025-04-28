@@ -6,6 +6,7 @@ import { styled } from "styled-components";
 import {
   Card,
   Form,
+  InputValueType,
   Modal,
   RunsTable,
   useNotification,
@@ -107,15 +108,9 @@ export const IndexScreen: React.FC = () => {
   const filteredRuns = runs.filter(
     (run) =>
       run.run_name.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
-      run.modification_date
-        .toLowerCase()
-        .includes(searchTermRuns.toLowerCase()) ||
-      run.run_tags.some((tag) =>
-        tag.toLowerCase().includes(searchTermRuns.toLowerCase()),
-      ) ||
-      run.run_steps.some((step) =>
-        step.toLowerCase().includes(searchTermRuns.toLowerCase()),
-      ),
+      run.modification_date.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
+      run.run_tags.some((tag) => tag.toLowerCase().includes(searchTermRuns.toLowerCase())) ||
+      run.run_steps.some((step) => step.toLowerCase().includes(searchTermRuns.toLowerCase())),
   );
 
   const handleAddTag = (tag: string) => {
@@ -124,9 +119,7 @@ export const IndexScreen: React.FC = () => {
       tag_name: tag,
     });
     const updated = runs.map((run) =>
-      run.run_name === selectedRun.run_name
-        ? { ...run, run_tags: [...run.run_tags, tag] }
-        : run,
+      run.run_name === selectedRun.run_name ? { ...run, run_tags: [...run.run_tags, tag] } : run,
     );
     setRuns(updated);
     setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
@@ -152,6 +145,32 @@ export const IndexScreen: React.FC = () => {
       run_tags: run.run_tags.filter((tag) => tag !== tagToDelete),
     }));
   };
+
+  const handleContinueRun = useCallback(
+    (data: Record<string, InputValueType>) => {
+      const runName = data.runname;
+      if (!runName) {
+        notify({
+          title: "Error",
+          message: "Please enter a run name.",
+          type: "error",
+        });
+        return;
+      }
+      void callApiWithParameters("add_run/", {
+        run_name: runName,
+        workflow_name: data.workflow ?? "",
+        df_mode_name: data.df_mode ?? "disk",
+      }).then(() => {
+        void callApiWithParameters("continue_run/", {
+          run_name: runName as string,
+        }).then(() => {
+          void navigate("/run", { state: { runName } });
+        });
+      });
+    },
+    [notify, navigate],
+  );
 
   return (
     <div>
@@ -208,9 +227,7 @@ export const IndexScreen: React.FC = () => {
                     type: "dropdown",
                     name: "workflow",
                     label: "With workflow:",
-                    options: [
-                      { label: selectedWorkflow, value: selectedWorkflow },
-                    ],
+                    options: [{ label: selectedWorkflow, value: selectedWorkflow }],
                     isVisible: true,
                   },
                   {
@@ -225,28 +242,9 @@ export const IndexScreen: React.FC = () => {
                   },
                 ],
               }}
-              onChange={useCallback((data) => {
-                const runName = data.runname;
-                if (!runName) {
-                  notify({
-                    title: "Error",
-                    message: "Please enter a run name.",
-                    type: "error",
-                  });
-                  return;
-                }
-                callApiWithParameters("add_run/", {
-                  run_name: runName ?? "",
-                  workflow_name: data.workflow ?? "",
-                  df_mode_name: data.df_mode ?? "disk",
-                }).then(() => {
-                  callApiWithParameters("continue_run/", {
-                    run_name: runName as string,
-                  }).then(() => {
-                    void navigate("/run", { state: { runName } });
-                  });
-                });
-              }, [])}
+              onChange={(data) => {
+                handleContinueRun(data);
+              }}
             ></Form>
           </Modal>
         </StyledTemplateCard>

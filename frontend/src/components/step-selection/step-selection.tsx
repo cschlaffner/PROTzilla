@@ -129,9 +129,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     if (!selectedSection) return;
     const fetchSteps = async () => {
       const data = await fetchStepList();
-      const list = data.filter(
-        (step) => (step.section as Sections) === section,
-      );
+      const list = data.filter((step) => (step.section as Sections) === section);
       setAllStepsList(list);
     };
 
@@ -196,9 +194,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   };
 
   // - - - Step description dropdown - - -
-  const [visibleDescription, setVisibleDescription] = useState<string | null>(
-    null,
-  );
+  const [visibleDescription, setVisibleDescription] = useState<string | null>(null);
 
   // - - - Render - - -
   return (
@@ -274,52 +270,42 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       .filter((op) => op !== allSteps)
                       .map((operation) => (
                         <div key={operation}>
-                          <SectionTitle
-                            baseComponent={"h3"}
-                            description={operation}
-                          ></SectionTitle>
+                          <SectionTitle baseComponent={"h3"} description={operation}></SectionTitle>
                           <div style={{ padding: "10px 10px 10px 20px" }}>
-                            {stepsGroupedByOperation[operation].map(
-                              (item, index) => (
-                                <StepWrapper key={`step_${String(index)}`}>
-                                  <LightGrayButton
-                                    style={{
-                                      textAlign: "left",
-                                      justifyContent: "left",
-                                    }}
-                                    onPress={() =>
-                                      handleAddStep(runName, item.method_name)
-                                    }
-                                    key={index}
-                                    text={item.display_name}
-                                  />
-                                  <HelpButton
-                                    icon={"help"}
-                                    onPress={() => {
-                                      setVisibleDescription(
-                                        visibleDescription === item.method_name
-                                          ? null
-                                          : item.method_name,
-                                      );
-                                    }}
-                                  />
-                                  {visibleDescription === item.method_name && (
-                                    <StepDescriptionDropdown>
-                                      {item.method_description}
-                                    </StepDescriptionDropdown>
-                                  )}
-                                </StepWrapper>
-                              ),
-                            )}
+                            {stepsGroupedByOperation[operation].map((item, index) => (
+                              <StepWrapper key={`step_${String(index)}`}>
+                                <LightGrayButton
+                                  style={{
+                                    textAlign: "left",
+                                    justifyContent: "left",
+                                  }}
+                                  onPress={() => void handleAddStep(runName, item.method_name)}
+                                  key={index}
+                                  text={item.display_name}
+                                />
+                                <HelpButton
+                                  icon={"help"}
+                                  onPress={() => {
+                                    setVisibleDescription(
+                                      visibleDescription === item.method_name
+                                        ? null
+                                        : item.method_name,
+                                    );
+                                  }}
+                                />
+                                {visibleDescription === item.method_name && (
+                                  <StepDescriptionDropdown>
+                                    {item.method_description}
+                                  </StepDescriptionDropdown>
+                                )}
+                              </StepWrapper>
+                            ))}
                           </div>
                         </div>
                       ))
                   ) : (
                     <div>
-                      <SectionTitle
-                        baseComponent={"h3"}
-                        description={listMode}
-                      ></SectionTitle>
+                      <SectionTitle baseComponent={"h3"} description={listMode}></SectionTitle>
                       <div style={{ padding: "10px 10px 10px 20px" }}>
                         {activeStepList.map((item, index) => (
                           <StepWrapper key={`step_${String(index)}`}>
@@ -328,9 +314,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                 textAlign: "left",
                                 justifyContent: "left",
                               }}
-                              onPress={() =>
-                                handleAddStep(runName, item.method_name)
-                              }
+                              onPress={() => void handleAddStep(runName, item.method_name)}
                               key={index}
                               text={item.display_name}
                             />
@@ -338,9 +322,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                               icon={"help"}
                               onPress={() => {
                                 setVisibleDescription(
-                                  visibleDescription === item.method_name
-                                    ? null
-                                    : item.method_name,
+                                  visibleDescription === item.method_name ? null : item.method_name,
                                 );
                               }}
                             />

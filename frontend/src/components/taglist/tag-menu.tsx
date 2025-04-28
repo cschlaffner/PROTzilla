@@ -17,11 +17,7 @@ export interface TagMenuProps {
   handleDeleteTag: (tag: string) => void;
 }
 
-export const TagMenu: React.FC<TagMenuProps> = ({
-  selectedRun,
-  handleAddTag,
-  handleDeleteTag,
-}) => {
+export const TagMenu: React.FC<TagMenuProps> = ({ selectedRun, handleAddTag, handleDeleteTag }) => {
   const [existingTags, setExistingTags] = React.useState<string[]>([]);
   const [searchTermTags, setSearchTermTags] = React.useState<string>("");
 
@@ -36,17 +32,18 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     void fetchData();
   }, []);
 
-  const addableTags = existingTags.filter(
-    (tag) => !selectedRun.run_tags.includes(tag),
-  );
+  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
   const filteredAddableTags = addableTags.filter((tag) =>
     tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
   );
 
-  const onHandleAddTag = (tag: string) => {
-    handleAddTag(tag);
-    void fetchData();
-  };
+  const onHandleAddTag = useCallback(
+    (tag: string) => {
+      handleAddTag(tag);
+      void fetchData();
+    },
+    [handleAddTag],
+  );
 
   return (
     <div>
@@ -70,9 +67,12 @@ export const TagMenu: React.FC<TagMenuProps> = ({
             },
           ],
         }}
-        onChange={useCallback((data) => {
-          onHandleAddTag(data.tag as string);
-        }, [])}
+        onChange={useCallback(
+          (data) => {
+            onHandleAddTag(data.tag as string);
+          },
+          [onHandleAddTag],
+        )}
       ></Form>
       <SearchInputField
         label="Or choose from existing tags:"

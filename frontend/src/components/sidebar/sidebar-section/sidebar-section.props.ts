@@ -1,15 +1,15 @@
-import { Sections } from "../types";
+import { RunData } from "../../../utils";
+import { Sections, SelectedStep, Step } from "../types";
 
-export interface SidebarSectionProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   name: Sections;
   runName: string;
   index: number;
   title: string;
   isCollapsed: boolean;
-  currentSteps: any;
-  setCurrentSteps: any;
+  currentSteps: Step[];
+  setCurrentSteps: (updater: () => Step[]) => void;
   stepSectionIndex: number | undefined;
-  handleStepSelection: any;
-  runData: any;
+  handleStepSelection: (selectedStep: SelectedStep | undefined) => void;
+  runData: RunData;
 }
