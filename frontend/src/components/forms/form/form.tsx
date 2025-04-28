@@ -38,17 +38,9 @@ const ChangeIndicator = styled.div`
   font-size: ${fontSize("default")};
 `;
 
-export const Form: React.FC<FormProps> = ({
-  formData,
-  onChange,
-  onFormTouched,
-}) => {
-  const [formValues, setFormValues] = useState<Record<string, InputValueType>>(
-    {},
-  );
-  const [submittedValues, setSubmittedValues] = useState<
-    Record<string, InputValueType>
-  >({});
+export const Form: React.FC<FormProps> = ({ formData, onChange, onFormTouched }) => {
+  const [formValues, setFormValues] = useState<Record<string, InputValueType>>({});
+  const [submittedValues, setSubmittedValues] = useState<Record<string, InputValueType>>({});
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
 
@@ -56,8 +48,7 @@ export const Form: React.FC<FormProps> = ({
     if (formValues[name] === value) return;
 
     const newValues = { ...formValues, [name]: value };
-    const hasChanges =
-      JSON.stringify(newValues) !== JSON.stringify(submittedValues);
+    const hasChanges = JSON.stringify(newValues) !== JSON.stringify(submittedValues);
 
     const isFirstEntryForId = !(name in formValues);
     if (isFirstEntryForId) {
@@ -93,11 +84,7 @@ export const Form: React.FC<FormProps> = ({
     <StyledForm>
       <H3>{formData.label}</H3>
       {formData.input_fields.map((inputField, i) => (
-        <InputField
-          key={i.toString()}
-          onChange={handleChange}
-          {...inputField}
-        />
+        <InputField key={i.toString()} onChange={handleChange} {...inputField} />
       ))}
       {!formData.isAutoSubmit && (
         <StyledSubmitDiv>
@@ -127,6 +114,10 @@ const InputField: React.FC<InputFieldProps> = ({
     onChange(name, value);
   };
 
+  if (isVisible === false) {
+    return null;
+  }
+
   switch (type) {
     case "text":
       return <TextInputField onChange={handleInputChange} {...props} />;
@@ -136,39 +127,19 @@ const InputField: React.FC<InputFieldProps> = ({
       return <SearchInputField onChange={handleInputChange} {...props} />;
     case "radio-select":
       return (
-        <RadioSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <RadioSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "checkbox-select":
       return (
-        <CheckboxSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <CheckboxSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "single-checkbox":
-      return (
-        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
-      );
+      return <SingleCheckboxInputField onChange={handleInputChange} {...props} />;
     case "dropdown":
-      return (
-        <DropdownInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
+      return <DropdownInputField onChange={handleInputChange} options={options ?? []} {...props} />;
     case "multi-select":
       return (
-        <MultiSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <MultiSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "file":
       return <FileInputField onChange={handleInputChange} {...props} />;

@@ -1,12 +1,7 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  BackendFormProps,
-  FormData,
-  InputFieldProps,
-  InputValueType,
-} from "./backend-form.props";
+import { BackendFormProps, FormData, InputFieldProps, InputValueType } from "./backend-form.props";
 import { color, fontSize, size, spacing } from "../../../theme";
 import { callApiWithParameters } from "../../../utils/api-call";
 import { Button } from "../../button";
@@ -79,6 +74,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
       run_name: runName,
     });
     if (response) {
+      console.log("response", response.data);
       onSubmit(response.data);
     }
   };
@@ -89,11 +85,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
         <StyledForm>
           <H3>{formData.label}</H3>
           {formData.input_fields.map((inputField) => (
-            <InputField
-              key={inputField.name}
-              onChange={handleChange}
-              {...inputField}
-            />
+            <InputField key={inputField.name} onChange={handleChange} {...inputField} />
           ))}
           <StyledSubmitDiv>
             <SubmitButton text="Calculate" onClick={handleSubmit} />
@@ -125,39 +117,19 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
       return <SearchInputField onChange={handleInputChange} {...props} />;
     case "radio-select":
       return (
-        <RadioSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <RadioSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "checkbox-select":
       return (
-        <CheckboxSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <CheckboxSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "single-checkbox":
-      return (
-        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
-      );
+      return <SingleCheckboxInputField onChange={handleInputChange} {...props} />;
     case "dropdown":
-      return (
-        <DropdownInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
-      );
+      return <DropdownInputField onChange={handleInputChange} options={options ?? []} {...props} />;
     case "multi-select":
       return (
-        <MultiSelectInputField
-          onChange={handleInputChange}
-          options={options ?? []}
-          {...props}
-        />
+        <MultiSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "file":
       return <FileInputField onChange={handleInputChange} {...props} />;

@@ -44,7 +44,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
       void handleUpload();
       onChange(fileName);
     }
-  }, [file]);
+  }, [file]); // TODO linter - endless onChange render
 
   const handleFileSelection = (e: Event) => {
     const input = e.target as HTMLInputElement;
@@ -77,7 +77,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
       console.error("Upload failed:", err);
       notify({
         title: "Upload failed",
-        message: "There was an error uploading the file: " + err,
+        message: "There was an error uploading the file: " + (err as string),
         type: "error",
       });
       // Upload failed

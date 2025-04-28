@@ -46,7 +46,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     setSections((prevSections) => {
       return prevSections.map((section, idx) => {
         if (idx === sectionIndex) {
-          const updatedSteps = updater(section.steps || []);
+          const updatedSteps = updater(section.steps);
           return { ...section, steps: updatedSteps };
         }
         return section;
@@ -55,14 +55,14 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   };
 
   useEffect(() => {
-    if (runData.displayed_steps) {
-      setSections(runData.displayed_steps);
-    }
+    setSections(runData.displayed_steps);
   }, [runData]);
 
-  const currentSection = sections.find((section) => section.id === runData.current_section);
+  const currentSection = sections.find(
+    (section) => (section.id as string) === runData.current_section,
+  );
   // const previousStepSectionIndex = translateGlobalToSectionIndex(
-  //   Math.max(runData.current_step_index-1,0),
+  //   Math.max(runData.current_step_index-1 as number,0),
   //   sections,
   // ).index;
 
@@ -97,14 +97,17 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   //     : onCalculateStep;
 
   const onFormChanged = useCallback(() => {
-    let outdateFollowingStep = false;
+    let shouldOutdateFollowingStep = false;
     if (currentStepCalculationStatus === "complete") {
       setSections((prevSections) =>
         prevSections.map((section) => {
-          if (section.id === runData.current_section) {
+          if ((section.id as string) === runData.current_section) {
             const updatedSteps = section.steps.map((step, i): Step => {
-              if (i === stepSectionIndex || (outdateFollowingStep && step.status === "complete")) {
-                outdateFollowingStep = true;
+              if (
+                i === stepSectionIndex ||
+                (shouldOutdateFollowingStep && (step.status as string) === "complete")
+              ) {
+                shouldOutdateFollowingStep = true;
                 return { ...step, status: "outdated" };
               }
               return step;

@@ -1,3 +1,4 @@
+import { RequestData } from "../../../utils";
 import { CheckboxSelectInputFieldProps } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
 import { SingleCheckboxInputFieldProps } from "../../input-fields/checkbox-input-fields/single-checkbox";
 import { DropdownInputFieldProps } from "../../input-fields/dropdown-input-field";
@@ -12,7 +13,7 @@ export interface BackendFormProps {
   runName: string;
   current_step_index: number;
   onChange: () => void;
-  onSubmit: (request: any) => void;
+  onSubmit: (request: RequestData) => void;
 }
 
 export interface FormData {
@@ -23,10 +24,10 @@ export interface FormData {
 }
 
 export type InputField =
-  | ({ 
-      type: "text"; 
-      name: string; 
-      isVisible: boolean 
+  | ({
+      type: "text";
+      name: string;
+      isVisible: boolean;
     } & Omit<TextInputFieldProps, "onChange">)
   | ({
       type: "number";
@@ -51,7 +52,7 @@ export type InputField =
   | ({
       type: "single-checkbox";
       name: string;
-      isVisible:boolean;
+      isVisible: boolean;
     } & Omit<SingleCheckboxInputFieldProps, "onChange">)
   | ({
       type: "multi-select";

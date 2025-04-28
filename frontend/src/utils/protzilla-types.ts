@@ -1,11 +1,4 @@
-import { Section } from "../components/sidebar/types.ts";
-
-export type ArrayElement<ArrayType extends readonly unknown[]> =
-  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
-
-export type MaybeArrayElement<ArrayType> = ArrayType extends readonly (infer ElementType)[]
-  ? ElementType
-  : ArrayType;
+import { Section, StepStatus } from "../components/sidebar/types.ts";
 
 export interface Run {
   run_name: string;
@@ -22,4 +15,11 @@ export interface RunData {
   current_step_index: number;
   displayed_steps: Section[];
   memory_usage: string;
+}
+
+export interface RequestData {
+  index: number;
+  messages: [];
+  section: string;
+  status: StepStatus;
 }
