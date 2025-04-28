@@ -42,10 +42,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 }) => {
   const [sections, setSections] = useState(emptySections);
 
-  const setCurrentSteps = (
-    sectionIndex: number,
-    updater: (prevSteps: Step[]) => Step[],
-  ) => {
+  const setCurrentSteps = (sectionIndex: number, updater: (prevSteps: Step[]) => Step[]) => {
     setSections((prevSections) => {
       return prevSections.map((section, idx) => {
         if (idx === sectionIndex) {
@@ -63,9 +60,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     }
   }, [runData]);
 
-  const currentSection = sections.find(
-    (section) => section.id === runData.current_section,
-  );
+  const currentSection = sections.find((section) => section.id === runData.current_section);
   // const previousStepSectionIndex = translateGlobalToSectionIndex(
   //   Math.max(runData.current_step_index-1,0),
   //   sections,
@@ -76,10 +71,10 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     sections,
   ).index;
 
-  // const previousStepCalculationStatus = runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
+  // const previousStepCalculationStatus =
+  //    runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
 
-  const currentStepCalculationStatus =
-    currentSection?.steps[stepSectionIndex]?.status;
+  const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
 
   // TODO JONAS
   // const buttonText =
@@ -108,10 +103,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         prevSections.map((section) => {
           if (section.id === runData.current_section) {
             const updatedSteps = section.steps.map((step, i): Step => {
-              if (
-                i === stepSectionIndex ||
-                (outdateFollowingStep && step.status === "complete")
-              ) {
+              if (i === stepSectionIndex || (outdateFollowingStep && step.status === "complete")) {
                 outdateFollowingStep = true;
                 return { ...step, status: "outdated" };
               }

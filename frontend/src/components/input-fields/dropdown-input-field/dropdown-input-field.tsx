@@ -1,14 +1,7 @@
 import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  size,
-  spacing,
-} from "../../../theme";
+import { border, borderColors, color, fontSize, size, spacing } from "../../../theme";
 import { InputContainer } from "../input-container";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { useOutsidePress } from "../../../hooks/outside-press";
@@ -29,8 +22,7 @@ const StyledInputLabel = styled.p<{ $isSmall: boolean }>`
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -82,12 +74,13 @@ const OptionItem = styled.li`
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
     const [selectedOption, setSelectedOption] = useState(
-      options.find((option) => option.label === value) ?? options[0], //TODO QUICKFIX this should be .value in the future
+      //TODO QUICKFIX this should be .value in the future
+      options.find((option) => option.label === value) ?? options[0],
     );
 
     useEffect(() => {
-      const initialOption =
-        options.find((option) => option.label === value) ?? options[0]; //TODO QUICKFIX this should be .value in the future
+      //TODO QUICKFIX this should be .value in the future
+      const initialOption = options.find((option) => option.label === value) ?? options[0];
       setSelectedOption(initialOption);
 
       if (initialOption.label !== value) {
@@ -103,10 +96,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
 
     const [isOpen, , disable, toggle] = useToggleableState();
     useOutsidePress(
-      [
-        dropdownRef as React.RefObject<HTMLElement>,
-        inputRef as React.RefObject<HTMLElement>,
-      ],
+      [dropdownRef as React.RefObject<HTMLElement>, inputRef as React.RefObject<HTMLElement>],
       disable,
       isOpen,
     );
@@ -133,14 +123,9 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
         <div ref={inputRef} onClick={handleClick}>
           <InputContainer
             {...props}
-            inlineSuffix={
-              <Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />
-            }
+            inlineSuffix={<Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />}
           >
-            <StyledInputLabel
-              className="selected-value-text"
-              $isSmall={props.isSmall ?? false}
-            >
+            <StyledInputLabel className="selected-value-text" $isSmall={props.isSmall ?? false}>
               {selectedOption.label}
             </StyledInputLabel>
           </InputContainer>
