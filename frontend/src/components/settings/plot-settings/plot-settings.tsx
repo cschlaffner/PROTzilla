@@ -1,18 +1,24 @@
 import { Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
-import { styled, useTheme } from "styled-components";
+import { styled } from "styled-components";
 
+import {
+  CustomFontField,
+  FileFormatField,
+  FontField,
+  HeightField,
+  TextSizeField,
+  TitleSizeField,
+  WidthField,
+} from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
 import {
   Button,
-  DropdownInputField,
-  NumberInputField,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
   Text,
-  TextInputField,
 } from "../..";
 import {
   border,
@@ -56,11 +62,6 @@ const Label = styled(Text)`
   margin: 4px 0;
 `;
 
-const StyledRadio = styled.input.attrs({ type: "radio" })`
-  accent-color: ${color("primary")};
-  margin-right: ${spacing("superSmall")};
-`;
-
 interface PlotSettingsProps {
   isOpen: boolean;
   onClose: () => void;
@@ -85,8 +86,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     handleTitleSizeChange,
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
-
-  const theme = useTheme();
 
   const initialPlot = {
     data: [
@@ -193,15 +192,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     void loadSettings("plots_default");
   };
 
-  const fonts = [
-    "Arial",
-    "Courier New",
-    "Helvetica",
-    "Sans Serif",
-    "Times New Roman",
-  ];
-  const isCustomSelected = !fonts.includes(settings.selectedFont);
-
   if (isLoading) {
     return (
       <SectionTitle
@@ -230,45 +220,21 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <DropdownInputField
-              options={[
-                { value: "eps", label: "eps" },
-                { value: "jpeg", label: "jpeg" },
-                { value: "pdf", label: "pdf" },
-                { value: "png", label: "png" },
-                { value: "svg", label: "svg" },
-                { value: "tiff", label: "tiff" },
-                { value: "webp", label: "webp" },
-              ]}
-              onChange={handleFileFormatChange}
-              label={"File format"}
+            <FileFormatField
               value={settings.fileFormat}
+              onChange={handleFileFormatChange}
             />
             <Row justify="between" align="center">
               <Col>
-                <NumberInputField
-                  label={"Width"}
-                  min={10}
-                  max={300}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"mm"}
-                  isInteger={true}
-                  onChange={handleWidthChange}
+                <WidthField
                   value={settings.width}
+                  onChange={handleWidthChange}
                 />
               </Col>
               <Col>
-                <NumberInputField
-                  label={"Height"}
-                  min={10}
-                  max={300}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"mm"}
-                  isInteger={true}
-                  onChange={handleHeightChange}
+                <HeightField
                   value={settings.height}
+                  onChange={handleHeightChange}
                 />
               </Col>
             </Row>
@@ -279,81 +245,27 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             />
             <div>
               <Label text={"Font"} />
-              <div
-                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
-              >
-                {fonts.map((font) => {
-                  const formattedId = `radio${font.replace(/\s/g, "")}`;
-                  return (
-                    <div
-                      key={font}
-                      style={{ display: "flex", alignItems: "center" }}
-                    >
-                      <StyledRadio
-                        type="radio"
-                        id={formattedId}
-                        name="fontGroup"
-                        value={font}
-                        checked={settings.selectedFont === font}
-                        onChange={handleFontChange}
-                      />
-                      <label htmlFor={formattedId}>{font}</label>
-                    </div>
-                  );
-                })}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: theme.spacing.small,
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <StyledRadio
-                    type="radio"
-                    id={"radioCustomFont"}
-                    name="fontGroup"
-                    value="Custom font"
-                    checked={isCustomSelected}
-                    onChange={handleFontChange}
-                  />
-                  <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
-                </div>
-                <div style={{ flexGrow: 1 }}>
-                  <TextInputField
-                    placeholder="Custom font name"
-                    onChange={handleCustomFontChange}
-                    value={settings.customFont}
-                  />
-                </div>
-              </div>
+              <FontField
+                selectedFont={settings.selectedFont}
+                onChange={handleFontChange}
+              />
+              <CustomFontField
+                selectedFont={settings.selectedFont}
+                customFont={settings.customFont}
+                onChange={handleCustomFontChange}
+              />
             </div>
             <Row justify="between" align="center">
               <Col>
-                <NumberInputField
-                  label={"Title size"}
-                  min={1}
-                  max={100}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"pt"}
-                  isInteger={true}
-                  onChange={handleTitleSizeChange}
+                <TitleSizeField
                   value={settings.titleSize}
+                  onChange={handleTitleSizeChange}
                 />
               </Col>
               <Col>
-                <NumberInputField
-                  label={"Text size"}
-                  min={1}
-                  max={100}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"pt"}
-                  isInteger={true}
-                  onChange={handleTextSizeChange}
+                <TextSizeField
                   value={settings.textSize}
+                  onChange={handleTextSizeChange}
                 />
               </Col>
             </Row>

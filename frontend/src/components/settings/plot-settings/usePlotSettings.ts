@@ -28,7 +28,7 @@ export interface ComputedPlotSettings {
   textSize?: number;
 }
 
-export const usePlotSettings = (isOpen: boolean) => {
+export const usePlotSettings = (isOpen?: boolean) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [settings, setSettings] = useState<PlotSettings>({
     fileFormat: "",
@@ -86,7 +86,7 @@ export const usePlotSettings = (isOpen: boolean) => {
   };
 
   const downloadPlot = async (plot: Figure) => {
-    // TODO: Get filename from run
+    // TODO: Get filename from run or add input field for filename
     const fileName = "testfile";
     const scale = getScale(plot);
     const plotAsJson = JSON.stringify(plot);
@@ -141,7 +141,6 @@ export const usePlotSettings = (isOpen: boolean) => {
   /**
    * This function returns the scaled sizes for displaying the plot.
    */
-  // TODO: Rename without "display" and with "compute"??
   const computeDisplaySizes = () => {
     // Figure size
     let ratio = settings.width / settings.height;
@@ -183,19 +182,17 @@ export const usePlotSettings = (isOpen: boolean) => {
     }));
   };
   const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newFont =
-      event.target.value === "Custom font"
-        ? settings.customFont
-        : event.target.value;
+    const value = event.target.value;
     setSettings((prev) => ({
       ...prev,
-      selectedFont: newFont,
+      selectedFont: value,
     }));
   };
   const handleCustomFontChange = (value: string) => {
     setSettings((prev) => ({
       ...prev,
       customFont: value,
+      selectedFont: value,
     }));
   };
   const handleTitleSizeChange = (value: number) => {

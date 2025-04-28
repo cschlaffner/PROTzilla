@@ -1,29 +1,28 @@
 import { Figure, Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
-import { styled, useTheme } from "styled-components";
+import { styled } from "styled-components";
 
 import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
 import {
   Button,
-  DropdownInputField,
   Modal,
-  NumberInputField,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
-  Text,
   TextInputField,
 } from "../..";
-import { usePlotSettings } from "./usePlotSettings";
 import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  fontWeight,
-  spacing,
-} from "../../../theme";
+  CustomFontField,
+  FileFormatField,
+  FontField,
+  HeightField,
+  TextSizeField,
+  TitleSizeField,
+  WidthField,
+} from "./plot-settings-input-fields";
+import { usePlotSettings } from "./usePlotSettings";
+import { border, borderColors, color, spacing } from "../../../theme";
 
 const StyledModal = styled(Modal)`
   width: fit-content;
@@ -44,18 +43,6 @@ const PlotDiv = styled.div`
   border: ${border("defaultStrength")} solid ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   padding: 2px;
-`;
-
-const Label = styled(Text)`
-  font-size: ${fontSize("default")};
-  font-weight: ${fontWeight("bold")};
-  color: ${color("primary")};
-  margin: 4px 0;
-`;
-
-const StyledRadio = styled.input.attrs({ type: "radio" })`
-  accent-color: ${color("primary")};
-  margin-right: ${spacing("superSmall")};
 `;
 
 const Footer = styled.div`
@@ -90,8 +77,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleTextSizeChange,
     handleTitleChange,
   } = usePlotSettings(isOpen);
-
-  const theme = useTheme();
 
   const initialPlot = {
     data: [
@@ -193,15 +178,6 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     void saveSettings();
   };
 
-  const fonts = [
-    "Arial",
-    "Courier New",
-    "Helvetica",
-    "Sans Serif",
-    "Times New Roman",
-  ];
-  const isCustomSelected = !fonts.includes(settings.selectedFont);
-
   return (
     <StyledModal isOpen={isOpen} onClose={onClose} title="Download Plot">
       <SectionTitle
@@ -216,45 +192,21 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <DropdownInputField
-              options={[
-                { value: "eps", label: "eps" },
-                { value: "jpeg", label: "jpeg" },
-                { value: "pdf", label: "pdf" },
-                { value: "png", label: "png" },
-                { value: "svg", label: "svg" },
-                { value: "tiff", label: "tiff" },
-                { value: "webp", label: "webp" },
-              ]}
+            <FileFormatField
               onChange={handleFileFormatChange}
-              label={"File format"}
               value={settings.fileFormat}
             />
             <Row justify="between" align="center">
               <Col>
-                <NumberInputField
-                  label={"Width"}
-                  min={10}
-                  max={300}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"mm"}
-                  isInteger={true}
-                  onChange={handleWidthChange}
+                <WidthField
                   value={settings.width}
+                  onChange={handleWidthChange}
                 />
               </Col>
               <Col>
-                <NumberInputField
-                  label={"Height"}
-                  min={10}
-                  max={300}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"mm"}
-                  isInteger={true}
-                  onChange={handleHeightChange}
+                <HeightField
                   value={settings.height}
+                  onChange={handleHeightChange}
                 />
               </Col>
             </Row>
@@ -263,83 +215,26 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               title={"Text"}
               style={{ paddingTop: "4px", paddingBottom: "4px" }}
             />
-            <div>
-              <Label text={"Font"} />
-              <div
-                style={{
-                  display: "flex",
-                  gap: theme.spacing.small,
-                  alignItems: "center",
-                }}
-              >
-                {fonts.map((font) => {
-                  const formattedId = `radio${font.replace(/\s/g, "")}`;
-                  return (
-                    <div
-                      key={font}
-                      style={{ display: "flex", alignItems: "center" }}
-                    >
-                      <StyledRadio
-                        type="radio"
-                        id={formattedId}
-                        name="fontGroup"
-                        value={font}
-                        checked={settings.selectedFont === font}
-                        onChange={handleFontChange}
-                      />
-                      <label htmlFor={formattedId}>{font}</label>
-                    </div>
-                  );
-                })}
-              </div>
-              <div
-                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
-              >
-                <div>
-                  <StyledRadio
-                    type="radio"
-                    id={"radioCustomFont"}
-                    name="fontGroup"
-                    value="Custom font"
-                    checked={isCustomSelected}
-                    onChange={handleFontChange}
-                  />
-                  <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
-                </div>
-                <div style={{ flexGrow: 1 }}>
-                  <TextInputField
-                    placeholder="Custom font name"
-                    onChange={handleCustomFontChange}
-                    value={settings.customFont}
-                  />
-                </div>
-              </div>
-            </div>
+            <FontField
+              selectedFont={settings.selectedFont}
+              onChange={handleFontChange}
+            />
+            <CustomFontField
+              selectedFont={settings.selectedFont}
+              customFont={settings.customFont}
+              onChange={handleCustomFontChange}
+            />
             <Row justify="between" align="center">
               <Col>
-                <NumberInputField
-                  label={"Title size"}
-                  min={1}
-                  max={100}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"pt"}
-                  isInteger={true}
+                <TitleSizeField
                   onChange={handleTitleSizeChange}
                   value={settings.titleSize}
                 />
               </Col>
               <Col>
-                <NumberInputField
-                  label={"Text size"}
-                  min={1}
-                  max={100}
-                  step={1}
-                  hasStepButtons={true}
-                  separateSuffix={"pt"}
-                  isInteger={true}
-                  onChange={handleTextSizeChange}
+                <TextSizeField
                   value={settings.textSize}
+                  onChange={handleTextSizeChange}
                 />
               </Col>
             </Row>
