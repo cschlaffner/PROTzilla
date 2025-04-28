@@ -6,5 +6,4 @@ export * from "./pagination";
 export * from "./platform-detection";
 export * from "./text-dimensions";
 export * from "./protzilla-types.ts";
-export { MaybeArrayElement } from "./arrayElement.ts";
-export { ArrayElement } from "./arrayElement.ts";
+export * from "./arrayElement.ts";

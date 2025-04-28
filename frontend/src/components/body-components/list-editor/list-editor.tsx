@@ -55,7 +55,9 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   };
 
   useEffect(() => {
-    setSections(runData.displayed_steps);
+    if (runData.displayed_steps) {
+      setSections(runData.displayed_steps);
+    }
   }, [runData]);
 
   const currentSection = sections.find(
