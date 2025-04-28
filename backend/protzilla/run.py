@@ -6,12 +6,13 @@ import traceback
 
 import os
 import shutil
+from pathlib import Path
 
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.disk_operator import DiskOperator, YamlOperator
+from backend.protzilla.disk_operator import YamlOperator
 
 
 def get_available_run_names() -> list[str]:
@@ -30,57 +31,88 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
     runs = []
     runs_favourited = []
     all_tags = set()
-    for directory in paths.RUNS_PATH.iterdir():   #not sorted the same for different os?
-        if directory.name.startswith("."):
+    for run in get_available_run_names():
+
+        run_dir = os.path.join(paths.RUNS_PATH, run)
+        metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
+        if not os.path.isfile(metadata_yaml_path):
+            logging.warning(f"No metadata.yaml file found for run {run}.")
             continue
-        name = directory.name
+        yaml_operator = YamlOperator()
+        metadata = yaml_operator.read(Path(metadata_yaml_path))
+        if not metadata:
+            metadata = {}
+        tags = metadata.get("tags", set())
 
-        disk_operator = DiskOperator(name, "dummy_workflow_name")
-        directory_path = os.path.join(paths.RUNS_PATH, name)
-        run_yaml_path = os.path.join(directory_path, "run.yaml")
-        step_manager = disk_operator.read_run(run_yaml_path)
-        steps = step_manager.all_steps
-        step_names = []
-        for step in steps:
-            step_names.append(step.display_name)
-
-        # empty initialization to ensure backwardscompatibility for runs without metadata.yaml
-        favourite = False
-        tags = set()
-        creation_date = "date not available"
-        modification_date = "date not available"
-
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
-        if os.path.isfile(metadata_yaml_path):
-            yaml_operator = YamlOperator()
-            metadata = yaml_operator.read(metadata_yaml_path)
-            tags = metadata.get("tags", set())
-            favourite = metadata.get("favourite", False)
-            creation_date = metadata.get("creation_date", "date not available")
-            modification_date = metadata.get("modification_date", "date not available")
-        
-        for tag in tags:
-            all_tags.add(tag)
-
-        tags = list(tags) #sets are not json serializable
         run = {
-            "run_name": name,
-            "creation_date": creation_date,
-            "modification_date": modification_date,
-            "memory_mode": step_manager.df_mode,
-            "run_steps" : step_names,
-            "favourite_status" : favourite,
-            "run_tags": tags
-            }
-        
-        if favourite: 
+            "run_name": run,
+            "creation_date": metadata.get("creation_date", "date not available"),
+            "modification_date": metadata.get("modification_date", "date not available"),
+            "memory_mode": metadata.get("df_mode", "disk"),
+            "run_steps": metadata.get("steps", []),
+            "favourite_status": metadata.get("favourite", False),
+            "run_tags": list(tags)
+        }
+
+        if run["favourite_status"]:
             runs_favourited.append(run)
         else:
             runs.append(run)
 
+        for tag in tags:
+            all_tags.add(tag)
+
     all_tags = list(all_tags)
 
-    return (runs, runs_favourited, all_tags)
+
+    #     #----
+    #     disk_operator = DiskOperator(name, "dummy_workflow_name")
+    #     directory_path = os.path.join(paths.RUNS_PATH, name)
+    #     run_yaml_path = os.path.join(directory_path, "run.yaml")
+    #     step_manager = disk_operator.read_run(run_yaml_path)
+    #     steps = step_manager.all_steps
+    #     step_names = []
+    #     for step in steps:
+    #         step_names.append(step.display_name)
+    #
+    #     # empty initialization to ensure backwardscompatibility for runs without metadata.yaml
+    #     favourite = False
+    #     tags = set()
+    #     creation_date = "date not available"
+    #     modification_date = "date not available"
+    #
+    #     metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
+    #     if os.path.isfile(metadata_yaml_path):
+    #         yaml_operator = YamlOperator()
+    #         metadata = yaml_operator.read(metadata_yaml_path)
+    #         #TODO handle empty tags
+    #         tags = metadata.get("tags", set())
+    #         favourite = metadata.get("favourite", False)
+    #         creation_date = metadata.get("creation_date", "date not available")
+    #         modification_date = metadata.get("modification_date", "date not available")
+    #
+    #     for tag in tags:
+    #         all_tags.add(tag)
+    #
+    #     tags = list(tags) #sets are not json serializable
+    #     run = {
+    #         "run_name": name,
+    #         "creation_date": creation_date,
+    #         "modification_date": modification_date,
+    #         "memory_mode": step_manager.df_mode,
+    #         "run_steps" : step_names,
+    #         "favourite_status" : favourite,
+    #         "run_tags": tags
+    #         }
+    #
+    #     if favourite:
+    #         runs_favourited.append(run)
+    #     else:
+    #         runs.append(run)
+    #
+    # all_tags = list(all_tags)
+
+    return runs, runs_favourited, all_tags
 
 def delete_run_folder(run_name) -> None:
     path = os.path.join(paths.RUNS_PATH, run_name)
