@@ -55,6 +55,8 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   };
 
   useEffect(() => {
+    // Check is necessary, linter is not aware
+     
     if (runData.displayed_steps) {
       setSections(runData.displayed_steps);
     }

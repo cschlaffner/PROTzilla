@@ -52,26 +52,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
           style={{ marginLeft: isCollapsed ? "0" : "auto" }}
         />
       </SidebarHeader>
-      {/*TODO*/}
-      {/*eslint-disable-next-line*/}
-      {sections &&
-        sections.map((section: Section, i: number) => {
-          return (
-            <SidebarSection
-              key={section.id}
-              index={i}
-              name={section.id}
-              title={section.name}
-              runName={runName}
-              currentSteps={section.steps}
-              setCurrentSteps={(updater: () => Step[]) => { setCurrentSteps(i, updater); }}
-              isCollapsed={isCollapsed}
-              stepSectionIndex={stepSectionIndex}
-              runData={runData}
-              handleStepSelection={handleStepSelection}
-            />
-          );
-        })}
+      {sections.map((section: Section, i: number) => {
+        return (
+          <SidebarSection
+            key={section.id}
+            index={i}
+            name={section.id}
+            title={section.name}
+            runName={runName}
+            currentSteps={section.steps}
+            setCurrentSteps={(updater: () => Step[]) => {
+              setCurrentSteps(i, updater);
+            }}
+            isCollapsed={isCollapsed}
+            stepSectionIndex={stepSectionIndex}
+            runData={runData}
+            handleStepSelection={handleStepSelection}
+          />
+        );
+      })}
     </SidebarContainer>
   );
 };
