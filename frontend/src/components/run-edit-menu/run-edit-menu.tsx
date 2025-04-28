@@ -47,12 +47,11 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       const fetchRunInformation = async () => {
         const data = await callApi("run_information/");
         if (data) {
-          const run: Run = data[0].find(
-            (run: Run) => run.run_name === runName,
-          ) as Run;
-          if (run) {
-            setSelectedRun(run);
-          }
+          const run = data[0].find((run: Run) => run.run_name === runName);
+        if (!run) {
+          throw new Error(`Run with name "${runName}" not found`);
+        }
+        setSelectedRun(run);
         }
       };
 
