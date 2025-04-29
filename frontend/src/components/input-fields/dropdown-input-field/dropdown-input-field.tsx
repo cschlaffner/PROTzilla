@@ -79,6 +79,11 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
     );
 
     useEffect(() => {
+      if (options.length === 0) {
+        setSelectedOption({ label: "", value: "" });
+        return;
+      }
+
       //TODO QUICKFIX this should be .value in the future
       const initialOption = options.find((option) => option.label === value) ?? options[0];
       setSelectedOption(initialOption);
@@ -126,7 +131,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
             inlineSuffix={<Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />}
           >
             <StyledInputLabel className="selected-value-text" $isSmall={props.isSmall ?? false}>
-              {selectedOption.label}
+              {selectedOption?.label ?? "No options available"}
             </StyledInputLabel>
           </InputContainer>
         </div>

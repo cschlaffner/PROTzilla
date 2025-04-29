@@ -5,6 +5,6 @@ export interface DropdownInputFieldProps
   extends InputContainerProps,
     UIStateProps {
   options: { label: string; value: string }[];
-  value?: string;
-  onChange: (value: string) => void;
+  value?: string|null;
+  onChange: (value: string|null) => void;
 }
