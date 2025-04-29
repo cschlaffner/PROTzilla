@@ -1,6 +1,6 @@
 import { styled } from "styled-components";
 
-import { RedButton, SecondaryButton, Text } from "../../../components";
+import { Button, SecondaryButton, Text } from "../../../components";
 import { Modal } from "../modal";
 import { DiscardModalProps } from "./discard-modal.props";
 
@@ -8,9 +8,10 @@ const ButtonContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  padding-top: 8px;
 `;
 
-export const DeleteModal: React.FC<DiscardModalProps> = ({
+export const DiscardModal: React.FC<DiscardModalProps> = ({
   isOpen,
   onDiscard,
   onClose,
@@ -23,8 +24,8 @@ export const DeleteModal: React.FC<DiscardModalProps> = ({
         }
       />
       <ButtonContainer>
-        <SecondaryButton onClick={onDiscard}>Discard Changes</SecondaryButton>
-        <RedButton onClick={onClose}>Back</RedButton>
+        <SecondaryButton onClick={onDiscard} text={"Discard Changes"} />
+        <Button onClick={onClose} text={"Back"} />
       </ButtonContainer>
     </Modal>
   );
