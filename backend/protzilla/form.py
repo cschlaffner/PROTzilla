@@ -11,7 +11,6 @@ from backend.main import settings
 if TYPE_CHECKING:
     from backend.protzilla.run import Run
 
-
 @dataclass
 class Option:
     """
@@ -33,6 +32,7 @@ class _baseField:
 @dataclass
 class TextField(_baseField):
     type: str = "text"
+    value: str = ""
 
 
 @dataclass
@@ -41,6 +41,7 @@ class NumberField(_baseField):
     min: int|None = None
     max: int|None = None
     step: float = 1
+    value: int = 0
 
 
 @dataclass
@@ -49,49 +50,67 @@ class FloatField(_baseField):
     min: int|None = None
     max: int|None = None
     step: float = 1
+    value: float = 0.0
 
 
 @dataclass
 class SearchField(_baseField):
     type: str = "search"
+    placeholder: str = ""
+    value: str = ""
 
 
 @dataclass
 class CheckboxField(_baseField):
     type: str = "checkbox"
+    value: bool = False
 
 
 @dataclass
 class RadioSelectField(_baseField):
     type: str = "radio-select"
-
+    options: list[Option] | Enum = field(default_factory=list)
+    value: str|None = None
 
 @dataclass
 class CheckboxMultiSelectField(_baseField):
     type: str = "checkbox-select"
+    options: list[Option] | Enum = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
 
 
 @dataclass
 class MultiSelectField(_baseField):
     type: str = "multi-select"
-    choices: List[str] = field(default_factory=list)
+    options: List[Option] = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
 
 
 @dataclass
 class DropdownField(_baseField):
-    options: list[Option] | Enum = field(default_factory=list)
     type: str = "dropdown"
+    options: list[Option] | Enum = field(default_factory=list)
+    value: str|None = None
+    
+    def set_options(self, options: list[Option] | Enum) -> None:
+        self.options = options
+        if (options == []):
+            self.value = None
+        elif (options and self.value not in map(lambda o: o.value, options)):
+            self.value = options[0].label #TODO should be value not label -> see frontend
 
 
 @dataclass
 class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
-    options: list[Option] | Enum = field(default_factory=dict)
-    dropdown_choices: List[str] = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
+    options: list[Option] | Enum = field(default_factory=list)
+    dropdown_options: List[str] = field(default_factory=list)
 
 
 @dataclass
 class FileInput(_baseField):
+    value: str|None = None
     type: str = "file"
     filedata: str = ""
 
