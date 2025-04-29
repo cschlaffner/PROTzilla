@@ -3,7 +3,7 @@
 import { saveAs } from "file-saver";
 import { Figure } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PlotSettings } from "./plot-settings";
 import { callApiWithParameters } from "../../../utils";
@@ -31,7 +31,7 @@ export interface ComputedPlotSettings {
 
 export const usePlotSettings = (isOpen?: boolean) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  // Since null is not accepted, these settings are used for rendering.
+  // Since null is not allowed, these settings are used for rendering.
   const emptySettings: PlotSettings = {
     fileFormat: "",
     width: 0,
@@ -44,7 +44,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
     title: "",
   };
   const [settings, setSettings] = useState<PlotSettings>(emptySettings);
-  const initialSettingsRef = useRef<PlotSettings>(emptySettings);
+  const [savedSettings, setSavedSettings] =
+    useState<PlotSettings>(emptySettings);
   const [computedSettings, setComputedSettings] =
     useState<ComputedPlotSettings>({
       width: 0,
@@ -68,7 +69,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
         textSize: response.text_size,
       };
       setSettings(loadedSettings);
-      initialSettingsRef.current = loadedSettings;
+      setSavedSettings(loadedSettings);
     }
     setIsLoading(false);
   };
@@ -80,6 +81,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
   }, [isOpen]);
 
   const saveSettings = async () => {
+    setSavedSettings(settings);
     await callApiWithParameters("save_settings", {
       file_format: settings.fileFormat,
       width: settings.width,
@@ -223,9 +225,9 @@ export const usePlotSettings = (isOpen?: boolean) => {
   return {
     isLoading,
     settings,
-    initialSettingsRef,
-    setSettings,
+    savedSettings,
     computedSettings,
+    setSettings,
     setComputedSettings,
     loadSettings,
     saveSettings,

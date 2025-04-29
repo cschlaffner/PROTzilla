@@ -76,7 +76,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
 }) => {
   const {
     settings,
-    initialSettingsRef,
+    savedSettings,
     saveSettings,
     setComputedSettings,
     isLoading,
@@ -178,11 +178,11 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       },
     }));
     // Update hasChanges flag for onClose action
-    setHasChanges(!isEqual(settings, initialSettingsRef.current));
+    setHasChanges(!isEqual(settings, savedSettings));
 
     // TODO Fix this dependency issue
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings]);
+  }, [savedSettings, settings]);
 
   const handleSaving = (
     event:
