@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import restring
 from backend.protzilla import form_helper
 from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
 from backend.protzilla.data_integration import (
@@ -119,7 +120,6 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 DropdownField(
                     name = "proteins_df",
                     label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
-                    value = None,
                 ),
                 NumberField(
                     name = "differential_expression_threshold",
@@ -131,8 +131,6 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 MultiSelectField(
                     name = "gene_sets_restring",
                     label = "Knowledge bases for enrichment",
-                    value = [],
-                    choices = [],
                 ),
                 NumberField(
                     name = "organism",
@@ -148,25 +146,29 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 FileInput(
                     name = "background_path",
                     label = "Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
-                    value = None,
                 ),
             ]
         )
 
     def modify_form(self, form, run):
-        form["proteins_df"].options = form_helper.get_choices(
-            run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
+        proteins_df_field = form["proteins_df"]
+        gene_sets_restring_field = form["gene_sets_restring"]
+
+        proteins_df_field.set_options(
+            form_helper.get_choices(
+                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
+            )
         )  # TODO maybe a step type? and maybe rename protein_df to something better
 
-        form["gene_sets_restring"].options = form_helper.to_choices(
-            enrichment_analysis.restring.settings.file_types
+        gene_sets_restring_field.options = form_helper.to_choices(
+            restring.settings.file_types
         )
         
     calc_method = staticmethod(enrichment_analysis.GO_analysis_with_STRING)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", inputs["protein_df"]
+            Step, "differentially_expressed_proteins_df", inputs["proteins_df"]
         )  # TODO name fix
         if (
             inputs.get("proteins_df") is None
@@ -295,15 +297,12 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 DropdownField(
                     name = "input_df_step_instance",
                     label = "Choose dataframe to be plotted",
-                    value = None,
                 ),
                 # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
                 MultiSelectWithDropdownsField(
                     name = "gene_sets",
                     label = "Sets to be plotted",
-                    value = [],
-                    options = [],
-                    dropdown_choices = [(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
+                    dropdown_options = [(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
                 ),
                 DropdownField(
                     name = "value",
@@ -330,7 +329,6 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 TextField(
                     name = "title",
                     label = "Title of the plot (optional)",
-                    value = "",
                 ),
             ]
         )
