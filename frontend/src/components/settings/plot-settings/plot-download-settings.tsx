@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
 import {
   Button,
   Modal,
@@ -56,6 +55,12 @@ const Footer = styled.div`
   padding: ${spacing("smallButtonGap")};
   z-index: 10;
 `;
+
+export interface PlotDownloadSettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+  runName?: string;
+}
 
 export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   isOpen,

@@ -1,5 +1,7 @@
-import { PlotDownloadSettings } from "./plot-download-settings";
-import { PlotDownloadSettingsProps } from "./plot-download-settings.props";
+import {
+  PlotDownloadSettings,
+  PlotDownloadSettingsProps,
+} from "./plot-download-settings";
 
 export default {
   component: PlotDownloadSettings,

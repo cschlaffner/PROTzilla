@@ -1,13 +1,11 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
+import { Button, DiscardModal, Settings, Text } from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { FlexColumn } from "../box";
-import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
-import { Button } from "../button";
-import { Settings } from "../settings/settings.tsx";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -80,10 +78,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
     useToggleableState();
-  const [isSettingsOpen, openSettings, closeSettings] =
-    useToggleableState(false);
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
+
+  const [isSettingsOpen, openSettings, closeSettings] =
+    useToggleableState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] =
+    useToggleableState(false);
+  const handleDiscard = () => {
+    closeSettings();
+    closeDiscardModal();
+  };
+  const handleSettingsClose = () => {
+    if (hasChanges) {
+      openDiscardModal();
+    } else {
+      closeSettings();
+    }
+  };
 
   return (
     <FlexColumn {...rest}>
@@ -118,7 +131,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>
       </NavbarBody>
-      <Settings isOpen={isSettingsOpen} onClose={closeSettings} />
+      <Settings
+        isOpen={isSettingsOpen}
+        onClose={handleSettingsClose}
+        setHasChanges={setHasChanges}
+      />
+      <DiscardModal
+        isOpen={isDiscardModalOpen}
+        onDiscard={handleDiscard}
+        onClose={closeDiscardModal}
+      />
     </FlexColumn>
   );
 };

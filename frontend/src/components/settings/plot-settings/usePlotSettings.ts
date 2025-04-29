@@ -3,7 +3,7 @@
 import { saveAs } from "file-saver";
 import { Figure } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { callApiWithParameters } from "../../../utils";
 
@@ -41,6 +41,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
 
     title: "",
   });
+  const initialSettingsRef = useRef<PlotSettings | null>(null);
   const [computedSettings, setComputedSettings] =
     useState<ComputedPlotSettings>({
       width: 0,
@@ -54,7 +55,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
       templateName: templateName,
     });
     if (response) {
-      setSettings({
+      const loadedSettings: PlotSettings = {
         fileFormat: response.file_format,
         width: response.width,
         height: response.height,
@@ -62,7 +63,9 @@ export const usePlotSettings = (isOpen?: boolean) => {
         customFont: response.custom_font,
         titleSize: response.title_size,
         textSize: response.text_size,
-      });
+      };
+      setSettings(loadedSettings);
+      initialSettingsRef.current = loadedSettings;
     }
     setIsLoading(false);
   };
@@ -217,6 +220,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
   return {
     isLoading,
     settings,
+    initialSettingsRef,
     setSettings,
     computedSettings,
     setComputedSettings,

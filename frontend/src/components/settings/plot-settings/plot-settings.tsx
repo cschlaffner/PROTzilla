@@ -1,3 +1,4 @@
+import isEqual from "fast-deep-equal";
 import { Layout, PlotData } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
@@ -62,17 +63,20 @@ const Label = styled(Text)`
   margin: 4px 0;
 `;
 
-interface PlotSettingsProps {
+export interface PlotSettingsProps {
   isOpen: boolean;
   onClose: () => void;
+  setHasChanges: (hasChanged: boolean) => void;
 }
 
 export const PlotSettings: React.FC<PlotSettingsProps> = ({
   isOpen,
   onClose,
+  setHasChanges,
 }) => {
   const {
     settings,
+    initialSettingsRef,
     saveSettings,
     setComputedSettings,
     isLoading,
@@ -138,6 +142,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   const [plot, updatePlot] = useState(initialPlot);
 
   useEffect(() => {
+    // Update settings
     const displaySizes = computeDisplaySizes();
     setComputedSettings({
       width: displaySizes.width,
@@ -172,6 +177,9 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         },
       },
     }));
+    // Update hasChanges flag for onClose action
+    setHasChanges(!isEqual(settings, initialSettingsRef.current));
+
     // TODO Fix this dependency issue
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);

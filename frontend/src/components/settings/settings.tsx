@@ -47,7 +47,11 @@ const SpecificSettings = styled.div`
   overflow-y: auto;
 `;
 
-export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
+export const Settings: React.FC<SettingsProps> = ({
+  isOpen,
+  onClose,
+  setHasChanges,
+}) => {
   const [selectedSetting, setSelectedSetting] = useState("plot");
 
   return (
@@ -85,7 +89,11 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           </SectionSelection>
           <SpecificSettings>
             {selectedSetting === "plot" && (
-              <PlotSettings isOpen={isOpen} onClose={onClose} />
+              <PlotSettings
+                isOpen={isOpen}
+                onClose={onClose}
+                setHasChanges={setHasChanges}
+              />
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <GitHub />}
