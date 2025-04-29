@@ -58,10 +58,10 @@ export const Settings: React.FC<SettingsProps> = ({
   const [selectedSetting, setSelectedSetting] = useState<string | null>("plot");
 
   const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] =
-      useToggleableState(false);
+    useToggleableState(false);
   const handleSwitchSection = (section: string) => {
-    if(hasChanges) {
-      setPendingSetting(section)
+    if (hasChanges) {
+      setPendingSetting(section);
       openDiscardModal();
     } else {
       setSelectedSetting(section);
