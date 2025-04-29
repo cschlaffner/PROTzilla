@@ -5,6 +5,7 @@ import { Figure } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef, useState } from "react";
 
+import { PlotSettings } from "./plot-settings";
 import { callApiWithParameters } from "../../../utils";
 
 export interface PlotSettings {
@@ -30,7 +31,8 @@ export interface ComputedPlotSettings {
 
 export const usePlotSettings = (isOpen?: boolean) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [settings, setSettings] = useState<PlotSettings>({
+  // Since null is not accepted, these settings are used for rendering.
+  const emptySettings: PlotSettings = {
     fileFormat: "",
     width: 0,
     height: 0,
@@ -40,8 +42,9 @@ export const usePlotSettings = (isOpen?: boolean) => {
     textSize: 0,
 
     title: "",
-  });
-  const initialSettingsRef = useRef<PlotSettings | null>(null);
+  };
+  const [settings, setSettings] = useState<PlotSettings>(emptySettings);
+  const initialSettingsRef = useRef<PlotSettings>(emptySettings);
   const [computedSettings, setComputedSettings] =
     useState<ComputedPlotSettings>({
       width: 0,

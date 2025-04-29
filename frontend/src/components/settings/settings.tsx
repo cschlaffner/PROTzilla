@@ -2,10 +2,11 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { SettingsProps } from "./settings.props.ts";
-import { Modal, ToggleableButton } from "../../components";
+import { DiscardModal, Modal, ToggleableButton } from "../../components";
 import { spacing } from "../../theme";
 import { DatabaseSettings, GitHub } from "./other-settings/";
-import { PlotSettings } from "./plot-settings/plot-settings.tsx";
+import { PlotSettings } from "./plot-settings";
+import { useToggleableState } from "../../hooks/";
 
 const WideModal = styled(Modal)`
   width: fit-content;
@@ -50,10 +51,28 @@ const SpecificSettings = styled.div`
 export const Settings: React.FC<SettingsProps> = ({
   isOpen,
   onClose,
+  hasChanges,
   setHasChanges,
 }) => {
-  const [selectedSetting, setSelectedSetting] = useState("plot");
+  const [pendingSetting, setPendingSetting] = useState<string | null>(null);
+  const [selectedSetting, setSelectedSetting] = useState<string | null>("plot");
 
+  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] =
+      useToggleableState(false);
+  const handleSwitchSection = (section: string) => {
+    if(hasChanges) {
+      setPendingSetting(section)
+      openDiscardModal();
+    } else {
+      setSelectedSetting(section);
+    }
+  };
+  const handleDiscard = () => {
+    closeDiscardModal();
+    setSelectedSetting(pendingSetting);
+    setPendingSetting(null);
+    setHasChanges(false);
+  };
   return (
     <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
       <BorderDiv>
@@ -65,7 +84,7 @@ export const Settings: React.FC<SettingsProps> = ({
               icon={"data_analysis"}
               text={"Plot Export"}
               onPress={() => {
-                setSelectedSetting("plot");
+                handleSwitchSection("plot");
               }}
             />
             <SectionButton
@@ -74,7 +93,7 @@ export const Settings: React.FC<SettingsProps> = ({
               icon={"database"}
               text={"Database Upload"}
               onPress={() => {
-                setSelectedSetting("database");
+                handleSwitchSection("database");
               }}
             />
             <SectionButton
@@ -83,7 +102,7 @@ export const Settings: React.FC<SettingsProps> = ({
               text={"About Us"}
               icon={"info"}
               onPress={() => {
-                setSelectedSetting("github");
+                handleSwitchSection("github");
               }}
             />
           </SectionSelection>
@@ -98,6 +117,11 @@ export const Settings: React.FC<SettingsProps> = ({
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <GitHub />}
           </SpecificSettings>
+          <DiscardModal
+            isOpen={isDiscardModalOpen}
+            onDiscard={handleDiscard}
+            onClose={closeDiscardModal}
+          />
         </MakeRowDiv>
       </BorderDiv>
     </WideModal>

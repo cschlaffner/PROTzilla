@@ -134,6 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <Settings
         isOpen={isSettingsOpen}
         onClose={handleSettingsClose}
+        hasChanges={hasChanges}
         setHasChanges={setHasChanges}
       />
       <DiscardModal
