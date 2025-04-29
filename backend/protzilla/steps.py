@@ -98,7 +98,7 @@ class Step:
         stepIndex = steps.all_steps.index(self)
         previousStep = steps.all_steps[stepIndex-1]
         
-        if (previousStep.calculation_status == "outdated" ):
+        if (stepIndex != 0 and previousStep.calculation_status == "outdated" ):
             if not previousStep.calculate(steps):
                 return False
 
