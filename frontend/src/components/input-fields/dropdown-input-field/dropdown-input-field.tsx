@@ -131,7 +131,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
             inlineSuffix={<Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />}
           >
             <StyledInputLabel className="selected-value-text" $isSmall={props.isSmall ?? false}>
-              {selectedOption?.label ?? "No options available"}
+              {selectedOption.label}
             </StyledInputLabel>
           </InputContainer>
         </div>

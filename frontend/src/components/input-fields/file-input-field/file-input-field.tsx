@@ -34,17 +34,19 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   const notify = useNotification();
 
   const [file, setFile] = useState<File | null>(null);
+  const [currentName, setCurrentName] = useState(value);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (file) {
       const fileName = file.name;
-      value = fileName;
+      setCurrentName(fileName);
       void handleUpload();
       onChange(fileName);
     }
-  }, [file]); // TODO linter - endless onChange render
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
 
   const handleFileSelection = (e: Event) => {
     const input = e.target as HTMLInputElement;
@@ -91,7 +93,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   return (
     <InputContainer {...props}>
       <StyledDiv>
-        <StyledSpan>{file ? file.name : placeholder}</StyledSpan>
+        <StyledSpan>{currentName ?? placeholder}</StyledSpan>
         <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
         </SecondaryButton>

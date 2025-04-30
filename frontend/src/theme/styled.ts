@@ -10,6 +10,8 @@ const isValidHtmlProp = (prop: string) => {
 export const styledDiv = new Proxy(styled, {
   get(target, component) {
     return (...args: unknown[]) =>
+      //TODO Give this a type (I give up)
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
       (target as any)[component].withConfig({
         shouldForwardProp: (prop: string) => isValidHtmlProp(prop),
       })(...args);
