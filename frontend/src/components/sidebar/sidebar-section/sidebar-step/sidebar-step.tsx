@@ -31,7 +31,7 @@ const TextContainer = styled.div`
   whitespace: normal;
   line-height: 150%;
 
-  max-height: 4em;
+  max-height: 4.5em;
 `;
 
 export const SidebarStep: React.FC<SidebarStepProps> = ({
