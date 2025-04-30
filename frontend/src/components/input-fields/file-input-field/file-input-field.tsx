@@ -39,6 +39,10 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
+    setCurrentName(value)
+  },[value])
+
+  useEffect(() => {
     if (file) {
       const fileName = file.name;
       setCurrentName(fileName);
