@@ -198,7 +198,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - Render - - -
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", margin: "0 5px" }}>
       {isSmallButton ? (
         <IconButton
           icon={"add"}
