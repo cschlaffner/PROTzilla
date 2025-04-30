@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { BackendFormProps, FormData, InputFieldProps, InputValueType } from "./backend-form.props";
@@ -48,10 +48,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
 
   useEffect(() => {
     void getStepForm();
-  }, []);
-
-  useEffect(() => {
-    void getStepForm();
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current_step_index]);
 
   const getStepForm = async (values: Record<string, InputValueType> = {}) => {
@@ -65,13 +62,10 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     }
   };
 
-  const handleChange = useCallback(
-    (name: string, value: InputValueType) => {
+  const handleChange = (name: string, value: InputValueType) => {
       void getStepForm({ [name]: value });
       onChange();
-    },
-    [getStepForm, onChange],
-  );
+    }
 
   const handleSubmit = currentStepCalculationStatus === "complete" ? onNext : async () => {
     const response = await callApiWithParameters("calculate_step/", {
@@ -105,7 +99,6 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
   name,
   onChange,
   options,
-  isVisible,
   ...props
 }) {
   const handleInputChange = (value: InputValueType) => {
