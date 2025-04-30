@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={section.name}
             runName={runName}
             currentSteps={section.steps}
-            setCurrentSteps={(updater: () => Step[]) => {
+            setCurrentSteps={(updater: (prevSteps: Step[]) => Step[]) => {
               setCurrentSteps(i, updater);
             }}
             isCollapsed={isCollapsed}

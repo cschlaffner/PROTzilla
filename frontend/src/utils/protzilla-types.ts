@@ -1,4 +1,4 @@
-import { Section, StepStatus } from "../components/sidebar/types.ts";
+import { Section, StepStatus, emptySections } from "../components/sidebar/types.ts";
 
 export interface Run {
   run_name: string;
@@ -16,6 +16,15 @@ export interface RunData {
   displayed_steps: Section[];
   memory_usage: string;
 }
+
+export const emptyRunData: RunData = {
+  current_section: "",
+  current_step_index: 0,
+  displayed_steps: emptySections,
+  memory_usage: ""
+}
+  
+
 
 export interface RequestData {
   index: number;

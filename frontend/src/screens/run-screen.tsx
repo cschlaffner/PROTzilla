@@ -21,7 +21,7 @@ import {
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { SelectedStep } from "../components/sidebar/types";
-import { callApiWithParameters } from "../utils";
+import { callApiWithParameters, emptyRunData } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -76,7 +76,7 @@ export const RunScreen: React.FC = () => {
   const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
 
-  const [runData, setRunData] = useState({});
+  const [runData, setRunData] = useState(emptyRunData);
   const [plotData, setPlotData] = useState(mockPlotData);
   const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData, setTableData] = useState(mockTableData);
