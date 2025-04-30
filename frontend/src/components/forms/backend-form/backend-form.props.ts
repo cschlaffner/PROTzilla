@@ -13,6 +13,7 @@ import { StepStatus } from "../../sidebar/types";
 export interface BackendFormProps {
   runName: string;
   buttonText: string;
+  previousStepCalculationStatus: StepStatus | undefined;
   currentStepCalculationStatus: StepStatus | undefined;
   current_step_index: number;
   onNext: () => void;

@@ -37,6 +37,7 @@ const SubmitButton = styled(Button)`
 export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   runName,
   buttonText,
+  previousStepCalculationStatus,
   currentStepCalculationStatus,
   current_step_index,
   onNext,
@@ -91,7 +92,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <InputField key={inputField.name} onChange={handleChange} {...inputField} />
           ))}
           <StyledSubmitDiv>
-            <SubmitButton text={buttonText} onClick={handleSubmit} />
+            <SubmitButton isDisabled={previousStepCalculationStatus === "incomplete" || previousStepCalculationStatus === "failed"} text={buttonText} onClick={handleSubmit} />
           </StyledSubmitDiv>
         </StyledForm>
       )}
