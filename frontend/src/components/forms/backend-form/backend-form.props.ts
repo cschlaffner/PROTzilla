@@ -8,10 +8,14 @@ import { NumberInputFieldProps } from "../../input-fields/number-input-field";
 import { RadioSelectInputFieldProps } from "../../input-fields/radio-select-input-field";
 import { SearchInputFieldProps } from "../../input-fields/search-input-field";
 import { TextInputFieldProps } from "../../input-fields/text-input-field";
+import { StepStatus } from "../../sidebar/types";
 
 export interface BackendFormProps {
   runName: string;
+  buttonText: string;
+  currentStepCalculationStatus: StepStatus | undefined;
   current_step_index: number;
+  onNext: () => void;
   onChange: () => void;
   onSubmit: (request: RequestData) => void;
 }

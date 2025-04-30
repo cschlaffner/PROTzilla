@@ -36,7 +36,10 @@ const SubmitButton = styled(Button)`
 
 export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   runName,
+  buttonText,
+  currentStepCalculationStatus,
   current_step_index,
+  onNext,
   onSubmit,
   onChange,
 }) {
@@ -69,7 +72,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     [getStepForm, onChange],
   );
 
-  const handleSubmit = async () => {
+  const handleSubmit = currentStepCalculationStatus === "complete" ? onNext : async () => {
     const response = await callApiWithParameters("calculate_step/", {
       run_name: runName,
     });
@@ -88,7 +91,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <InputField key={inputField.name} onChange={handleChange} {...inputField} />
           ))}
           <StyledSubmitDiv>
-            <SubmitButton text="Calculate" onClick={handleSubmit} />
+            <SubmitButton text={buttonText} onClick={handleSubmit} />
           </StyledSubmitDiv>
         </StyledForm>
       )}

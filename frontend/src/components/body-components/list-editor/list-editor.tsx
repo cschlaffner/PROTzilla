@@ -77,25 +77,21 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
   const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
 
-  // TODO JONAS
-  // const buttonText =
-  //   currentStepCalculationStatus === "complete"
-  //     ? "Next"
-  //     : runData.current_section === "importing"
-  //       ? "Import"
-  //       : "Calculate";
+  const buttonText =
+    currentStepCalculationStatus === "complete"
+      ? "Next"
+      : runData.current_section === "importing"
+        ? "Import"
+        : "Calculate";
 
-  // const buttonFunction =
-  //   currentStepCalculationStatus === "complete"
-  //     ? () => {
-  //         handleStepSelection(
-  //           translateGlobalToSectionIndex(
-  //             runData.current_step_index + 1,
-  //             sections,
-  //           ),
-  //         );
-  //       }
-  //     : onCalculateStep;
+  const onNext = () => {
+          handleStepSelection(
+            translateGlobalToSectionIndex(
+              runData.current_step_index + 1,
+              sections,
+            ),
+          );
+        }
 
   const onFormChanged = useCallback(() => {
     let shouldOutdateFollowingStep = false;
@@ -137,7 +133,10 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       <StyledFormColumn>
         <BackendForm
           runName={runName}
+          buttonText={buttonText}
+          currentStepCalculationStatus={currentStepCalculationStatus}
           current_step_index={runData.current_step_index}
+          onNext={onNext}
           onSubmit={onFormSubmit}
           onChange={onFormChanged}
         />
