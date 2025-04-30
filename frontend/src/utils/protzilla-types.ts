@@ -1,4 +1,4 @@
-import { Section, StepStatus, emptySections } from "../components/sidebar/types.ts";
+import { emptySections, Section, StepStatus } from "../components/sidebar/types.ts";
 
 export interface Run {
   run_name: string;
