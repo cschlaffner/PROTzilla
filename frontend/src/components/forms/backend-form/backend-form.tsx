@@ -97,7 +97,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <SubmitButton
               isDisabled={previousStepCalculationStatus === "incomplete" || previousStepCalculationStatus === "failed"}
               text={isloading ? "Loading..." : buttonText}
-              onClick={() => void handleSubmit()} />
+              onClick={handleSubmit} />
           </StyledSubmitDiv>
         </StyledForm>
       )}
