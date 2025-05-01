@@ -483,7 +483,7 @@ class PlotVolcano(DataAnalysisStep):
         if step_output is not None:
             items_of_interest = step_output["PTM"].unique()
 
-        items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
+        items_of_interest_field.options = (form_helper.to_choices(items_of_interest))
 
     plot_method = staticmethod(create_volcano_plot)
 
