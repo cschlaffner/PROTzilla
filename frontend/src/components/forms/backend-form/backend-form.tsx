@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { BackendFormProps, FormData, InputFieldProps, InputValueType } from "./backend-form.props";
@@ -45,13 +45,9 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   onChange,
 }) {
   const [formData, setFormData] = useState<FormData>();
+  const [isloading, setLoading] = useState(false);
 
-  useEffect(() => {
-    void getStepForm();
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current_step_index]);
-
-  const getStepForm = async (values: Record<string, InputValueType> = {}) => {
+  const getStepForm = useCallback(async (values: Record<string, InputValueType> = {}) => {
     const response = await callApiWithParameters("get_step_form/", {
       run_name: runName,
       data: values,
@@ -60,7 +56,12 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
       const data = response.data;
       setFormData(data);
     }
-  };
+  }, [runName]);
+
+  useEffect(() => {
+    void getStepForm();
+  }, [current_step_index, getStepForm]);
+
 
   const handleChange = (name: string, value: InputValueType) => {
       void getStepForm({ [name]: value });
@@ -68,12 +69,19 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     }
 
   const handleSubmit = currentStepCalculationStatus === "complete" ? onNext : async () => {
-    const response = await callApiWithParameters("calculate_step/", {
-      run_name: runName,
-    });
-    if (response) {
-      console.log("response", response.data);
-      onSubmit(response.data);
+    setLoading(true);
+    try {
+      const response = await callApiWithParameters("calculate_step/", {
+        run_name: runName,
+      });
+      if (response) {
+        console.log("response", response.data);
+        onSubmit(response.data);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,7 +94,10 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <InputField key={inputField.name} onChange={handleChange} {...inputField} />
           ))}
           <StyledSubmitDiv>
-            <SubmitButton isDisabled={previousStepCalculationStatus === "incomplete" || previousStepCalculationStatus === "failed"} text={buttonText} onClick={handleSubmit} />
+            <SubmitButton
+              isDisabled={previousStepCalculationStatus === "incomplete" || previousStepCalculationStatus === "failed"}
+              text={isloading ? "Loading..." : buttonText}
+              onClick={() => void handleSubmit()} />
           </StyledSubmitDiv>
         </StyledForm>
       )}
@@ -99,11 +110,16 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
   name,
   onChange,
   options,
+  isVisible,
   ...props
 }) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
+  
+  if (isVisible === false) {
+    return null;
+  }
 
   switch (type) {
     case "text":
