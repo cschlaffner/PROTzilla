@@ -174,6 +174,8 @@ class DiskOperator:
                 logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
                 metadata["creation_date"] = creation_date
                 metadata["modification_date"] = creation_date
+            existing_metadata = self.read_metadata()
+            metadata.update(existing_metadata)
             self.yaml_operator.write(self.metadata_path, metadata)
 
     def update_modification_date(self):
@@ -181,6 +183,15 @@ class DiskOperator:
             metadata = self.read_metadata()
             metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
             self.write_metadata(metadata)
+
+    def update_run_name(self, new_run_name: str) -> None:
+        with ErrorHandler():
+            new_run_dir = paths.RUNS_PATH / new_run_name
+            if new_run_dir.exists():
+                logger.warning(f"Run directory {new_run_dir} for run {self.run_name} already exists.")
+                return
+            os.rename(self.run_dir, new_run_dir)
+            self.run_name = new_run_name
 
     def read_workflow(self) -> StepManager:
         return self.read_run(self.workflow_file)

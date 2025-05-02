@@ -24,14 +24,27 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 
 active_runs: dict[str, Run] = {}
+run_list: dict[str, dict] = {}
+
+def get_run(run_name: str) -> Run:
+    """
+    Get the run object for the given run name. If the run is not in active runs, it will be created.
+    """
+    if run_name not in active_runs:
+        run = Run(run_name)
+        active_runs[run_name] = run
+    else:
+        run = active_runs[run_name]
+    return run
 
 def run_information_list(request):
     run_info = get_available_runinfo()
     if not run_info:
-
         return JsonResponse(None, safe=False) #not clean, maybe use error message or smth
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
+    for run in all_available_runs:
+        run_list[run["run_name"]] = run
     available_runinfo = [all_available_runs, all_tags]
 
     return JsonResponse(available_runinfo, safe=False)
@@ -50,7 +63,7 @@ def toggle_favourite(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = Run(run_name)
+        run = get_run(run_name)
         metadata = run.metadata_read()
         metadata["favourite"] = not metadata.get("favourite", False)
         run.metadata_write(metadata)
@@ -65,7 +78,7 @@ def add_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        run = Run(run_name)
+        run = get_run(run_name)
         metadata = run.metadata_read()
         tags = metadata.get("tags", set())
         tags.add(run_tag)
@@ -82,7 +95,7 @@ def delete_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        run = Run(run_name)
+        run = get_run(run_name)
         metadata = run.metadata_read()
         tags = metadata.get("tags", set())
         tags.remove(run_tag)
@@ -133,7 +146,7 @@ def continue_run(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        active_runs[run_name] = Run(run_name) # possible error due to overwritten parameters
+        get_run(run_name)
         
 
         return JsonResponse({"success": True, "message": "Continued run"})
@@ -147,10 +160,13 @@ def update_run_name(request):
         new_run_name = data.get("new_run_name")
 
         try:
-            directory_path = os.path.join(paths.RUNS_PATH, run_name)
-            new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
-            os.rename(directory_path, new_directory_path)
-            active_runs[new_run_name] = Run(new_run_name)
+            run = get_run(run_name)
+            run.update_run_name(new_run_name)
+
+            # directory_path = os.path.join(paths.RUNS_PATH, run_name)
+            # new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
+            # os.rename(directory_path, new_directory_path)
+            active_runs[new_run_name] = run
             if run_name in active_runs:
                 del active_runs[run_name]
 

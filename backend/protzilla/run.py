@@ -40,7 +40,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             continue
         yaml_operator = YamlOperator()
         metadata = yaml_operator.read(Path(metadata_yaml_path))
-            if not metadata:
+        if not metadata:
             metadata = {}
         tags = metadata.get("tags", set())
 
@@ -212,6 +212,12 @@ class Run:
     @property
     def run_path(self) -> str:
         return self.disk_operator.run_dir
+
+    @error_handling
+    def update_run_name(self, new_run_name: str) -> None:
+        if self.run_name != new_run_name:
+            self.disk_operator.update_run_name(new_run_name)
+            self.run_name = new_run_name
 
     @error_handling
     def metadata_read(self) -> dict:
