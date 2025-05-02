@@ -1,3 +1,4 @@
+import os
 from dataclasses import asdict
 import json
 import io
@@ -9,6 +10,7 @@ import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
+from backend.protzilla.constants import paths
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
 from backend.protzilla.workflow import get_available_workflow_names
@@ -149,7 +151,8 @@ def update_run_name(request):
             new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
             os.rename(directory_path, new_directory_path)
             active_runs[new_run_name] = Run(new_run_name)
-            del active_runs[run_name]
+            if run_name in active_runs:
+                del active_runs[run_name]
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
