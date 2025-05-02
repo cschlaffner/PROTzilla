@@ -175,7 +175,11 @@ class DiskOperator:
                 metadata["creation_date"] = creation_date
                 metadata["modification_date"] = creation_date
             existing_metadata = self.read_metadata()
-            metadata.update(existing_metadata)
+            if existing_metadata:
+                metadata = {**existing_metadata, **metadata}
+            else:
+                metadata = metadata or {}
+
             self.yaml_operator.write(self.metadata_path, metadata)
 
     def update_modification_date(self):
