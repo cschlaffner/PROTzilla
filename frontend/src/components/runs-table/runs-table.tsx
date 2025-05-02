@@ -85,7 +85,21 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] =
     useToggleableState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
-  const [actionRun, setActionRun] = useState<string>("");
+  const [actionRunName, setActionRunName] = useState<string>("");
+
+  const handleAddTag = (tag: string, runName: string) => {
+    void callApiWithParameters("add_tag/", {
+      run_name: runName,
+      tag_name: tag,
+    });
+    setRuns((runs) =>
+      runs.map((run) =>
+        run.run_name === runName
+          ? { ...run, run_tags: [...run.run_tags, tag] }
+          : run,
+      ),
+    );
+  };
 
   const handleDeleteTag = (tagToDelete: string, runName: string) => {
     void callApiWithParameters("delete_tag/", {
@@ -133,23 +147,23 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
   const handleRenameRun = (newName: string) => {
     const updated = runs.map((run) =>
-      run.run_name === actionRun ? { ...run, run_name: newName } : run,
+      run.run_name === actionRunName ? { ...run, run_name: newName } : run,
     );
     setRuns(updated);
   };
 
-  const handleModal = (run: Run) => {
+  const handleTagModal = (run: Run) => {
     setSelectedRun(run);
     openTagModal(true);
   };
 
   const handleDeleteModal = (runName: string) => {
-    setActionRun(runName);
+    setActionRunName(runName);
     setIsDeleteModalOpen(true);
   };
 
   const handleRunEditModal = (runName: string) => {
-    setActionRun(runName);
+    setActionRunName(runName);
     openRunEditModal();
   };
 
@@ -220,7 +234,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                   isSmall={true}
                   isShy={true}
                   onClick={(e) => {
-                    handleModal(run);
+                    handleTagModal(run);
                     e.stopPropagation();
                   }}
                 >
@@ -268,10 +282,10 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           </TableRow>
         ))}
       <DeleteModal
-        title={`Delete run "${actionRun}"?`}
+        title={`Delete run "${actionRunName}"?`}
         isOpen={isDeleteModalOpen}
         onConfirm={() => {
-          handleDeleteRun(actionRun);
+          handleDeleteRun(actionRunName);
         }}
         onClose={() => {
           setIsDeleteModalOpen(false);
@@ -279,10 +293,19 @@ export const RunsTable: React.FC<RunsTableProps> = ({
       />
       {isRunEditModalOpen && (
         <RunEditMenu
-          key={actionRun} // Ensures a new instance for each run
-          runName={actionRun}
+          key={actionRunName} // Ensures a new instance for each run
+          runName={actionRunName}
           onChangeRunName={(newRunName) => {
             handleRenameRun(newRunName);
+          }}
+          handleAddTag={(tag: string) => {
+            handleAddTag(tag, actionRunName);
+          }}
+          handleDeleteTag={(tagToDelete: string) => {
+            handleDeleteTag(tagToDelete, actionRunName);
+          }}
+          handleToggleFavourite={() => {
+            handleToggleFavourite(actionRunName);
           }}
           isOpen={isRunEditModalOpen}
           onClose={closeRunEditModal}
