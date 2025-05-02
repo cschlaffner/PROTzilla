@@ -1,7 +1,7 @@
 // This is a custom hook for working with plot settings.
 
 import { saveAs } from "file-saver";
-import { Figure } from "plotly.js";
+import { Figure, Layout } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
@@ -170,6 +170,18 @@ export const usePlotSettings = (isOpen?: boolean) => {
     };
   };
 
+  // Because Plotly allows title to be a string or object of text & font
+  const getTitleFromLayout = (layout: Partial<Layout>) => {
+    const titleProp = layout.title;
+    if (titleProp == null) {
+      return "";
+    }
+    if (typeof titleProp === "string") {
+      return titleProp;
+    }
+    return titleProp.text ?? "";
+  };
+
   // Handle functions for input fields regarding the plot settings
   const handleFileFormatChange = (value: string) => {
     setSettings((prev) => ({
@@ -233,6 +245,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
     saveSettings,
     downloadPlot,
     computeDisplaySizes,
+    getTitleFromLayout,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,

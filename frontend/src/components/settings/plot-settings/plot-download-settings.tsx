@@ -1,4 +1,4 @@
-import { Figure, Layout, PlotData } from "plotly.js";
+import { Data, Figure, Layout } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -59,12 +59,16 @@ const Footer = styled.div`
 export interface PlotDownloadSettingsProps {
   isOpen: boolean;
   onClose: () => void;
+  data: Data[];
+  layout: Partial<Layout>;
   runName?: string;
 }
 
 export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   isOpen,
   onClose,
+  data,
+  layout,
 }) => {
   const {
     settings,
@@ -73,6 +77,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     computeDisplaySizes,
     setComputedSettings,
     downloadPlot,
+    getTitleFromLayout,
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
@@ -83,56 +88,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleTitleChange,
   } = usePlotSettings(isOpen);
 
-  const initialPlot = {
-    data: [
-      {
-        marker: { color: "#4A536A" },
-        x: ["Example 1"],
-        y: [0.7],
-        name: "Example 1",
-        type: "bar",
-      },
-      {
-        marker: { color: "#CE5A5A" },
-        x: ["Example 2"],
-        y: [0.3],
-        name: "Example 2",
-        type: "bar",
-      },
-    ],
-    layout: {
-      width: 400,
-      height: 250,
-      title: {
-        font: { family: "Sans Serif", size: 15 },
-        text: "Very important title",
-      },
-      xaxis: { anchor: "y", title: { text: "x-axis" } },
-      yaxis: { anchor: "x", title: { text: "y-axis" } },
-      template: {
-        layout: {
-          colorway: ["#4A536A", "#CE5A5A"],
-          dragmode: "pan",
-          font: { family: "Sans Serif", size: 10 },
-          margin: { b: 55, t: 50, r: 50, l: 50 },
-          modebar: {
-            remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
-          },
-          plot_bgcolor: "white",
-          title: {
-            x: 0.5,
-            xanchor: "center",
-            y: 0.95,
-            yanchor: "top",
-          },
-          yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
-        },
-      },
-    },
-  };
-
+  const initialPlot = { data, layout };
   const [plot, updatePlot] = useState(initialPlot);
-  const [prevTitle] = useState(initialPlot.layout.title.text);
+  const [prevTitle] = useState<string>(getTitleFromLayout(initialPlot.layout));
 
   useEffect(() => {
     const displaySizes = computeDisplaySizes();
@@ -155,15 +113,10 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           },
           text: settings.title ?? prevTitle,
         },
-        template: {
-          layout: {
-            ...prevPlot.layout.template.layout,
-            font: {
-              ...prevPlot.layout.template.layout.font,
-              family: settings.selectedFont,
-              size: displaySizes.textSize,
-            },
-          },
+        font: {
+          ...prevPlot.layout.font,
+          family: settings.selectedFont,
+          size: displaySizes.textSize,
         },
       },
     }));
@@ -246,7 +199,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             <TextInputField
               onChange={handleTitleChange}
               label={"Title"}
-              value={plot.layout.title.text}
+              value={getTitleFromLayout(plot.layout)}
             />
           </SettingsDiv>
         </Col>
@@ -254,8 +207,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           <PlotDiv>
             <PlotComponent
               styleProps={{ margin: "2px" }}
-              data={plot.data as Partial<PlotData>[]}
-              layout={plot.layout as Partial<Layout>}
+              data={plot.data}
+              layout={plot.layout}
               divId={"plot-id"}
             />
           </PlotDiv>

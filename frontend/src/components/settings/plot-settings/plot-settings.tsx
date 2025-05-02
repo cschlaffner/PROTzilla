@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import { Layout, PlotData } from "plotly.js";
+import { Data, Layout } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -115,13 +115,13 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         font: { family: "Sans Serif", size: 15 },
         text: "Very important title",
       },
+      font: { family: "Sans Serif", size: 10 },
       xaxis: { anchor: "y", title: { text: "x-axis" } },
       yaxis: { anchor: "x", title: { text: "y-axis" } },
       template: {
         layout: {
           colorway: ["#4A536A", "#CE5A5A"],
           dragmode: "pan",
-          font: { family: "Sans Serif", size: 10 },
           margin: { b: 55, t: 50, r: 50, l: 50 },
           modebar: {
             remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
@@ -138,7 +138,6 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
       },
     },
   };
-
   const [plot, updatePlot] = useState(initialPlot);
 
   useEffect(() => {
@@ -157,23 +156,18 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         width: displaySizes.width,
         height: displaySizes.height,
         title: {
-          ...prevPlot.layout.template.layout.title,
+          ...prevPlot.layout.title,
           font: {
-            ...prevPlot.layout.template.layout.title,
+            ...prevPlot.layout.title,
             family: settings.selectedFont,
             size: displaySizes.titleSize,
           },
           text: prevPlot.layout.title.text,
         },
-        template: {
-          layout: {
-            ...prevPlot.layout.template.layout,
-            font: {
-              ...prevPlot.layout.template.layout.font,
-              family: settings.selectedFont,
-              size: displaySizes.textSize,
-            },
-          },
+        font: {
+          ...prevPlot.layout.font,
+          family: settings.selectedFont,
+          size: displaySizes.textSize,
         },
       },
     }));
@@ -283,7 +277,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           <PlotDiv>
             <PlotComponent
               styleProps={{ margin: "2px" }}
-              data={plot.data as Partial<PlotData>[]}
+              data={plot.data as Data[]}
               layout={plot.layout as Partial<Layout>}
             />
           </PlotDiv>
