@@ -3,6 +3,7 @@ import { styled } from "styled-components";
 
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
+import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
 import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
@@ -74,6 +75,26 @@ export const Navbar: React.FC<NavbarProps> = ({
     setRunName(newRunName);
   };
 
+  const handleAddTag = (tag: string) => {
+    void callApiWithParameters("add_tag/", {
+      run_name: runName,
+      tag_name: tag,
+    });
+  };
+
+  const handleDeleteTag = (tagToDelete: string) => {
+    void callApiWithParameters("delete_tag/", {
+      run_name: runName,
+      tag_name: tagToDelete,
+    });
+  };
+
+  const handleToggleFavourite = () => {
+    void callApiWithParameters("toggle_favourite/", {
+      run_name: runName,
+    });
+  };
+
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
@@ -97,8 +118,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       </NavbarBody>
       {isRunSettingsOpen && (
         <RunEditMenu
-          runName={title as string}
+          runName={runName}
           onChangeRunName={onChangeRunName}
+          handleAddTag={(tag: string) => { handleAddTag(tag); }}
+          handleDeleteTag={(tagToDelete: string) =>
+            { handleDeleteTag(tagToDelete); }
+          }
+          handleToggleFavourite={() => { handleToggleFavourite(); }}
           isOpen={isRunSettingsOpen}
           onClose={closeRunSettings}
           ref={refRunSettings}

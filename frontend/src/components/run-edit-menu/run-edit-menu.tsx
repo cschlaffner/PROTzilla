@@ -8,10 +8,10 @@ import { formatDate } from "../../utils/format-date.ts";
 import { Form } from "../forms/form";
 import { IconButton } from "../icon";
 import { Modal } from "../modal";
+import { useNotification } from "../notification-center";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
-import { useNotification } from "../notification-center";
 
 const StyledModal = styled(Modal)`
   width: ${size("inputFieldsMaxWidth")};
@@ -33,7 +33,18 @@ const TagMenuWrapper = styled.div`
 `;
 
 export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
-  ({ runName, onChangeRunName, isOpen, onClose }, ref) => {
+  (
+    {
+      runName,
+      onChangeRunName,
+      handleAddTag,
+      handleDeleteTag,
+      handleToggleFavourite,
+      isOpen,
+      onClose,
+    },
+    ref,
+  ) => {
     const notify = useNotification();
 
     const [selectedRun, setSelectedRun] = useState<Run>({
@@ -66,7 +77,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         run_name: runName,
         new_run_name: newName,
       });
-      if (!response || !response.success) {
+      if (!response?.success) {
         notify({
           title: "Run name update failed",
           message: response.message,
@@ -85,24 +96,8 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       }
     };
 
-    const handleAddTag = async (tag: string) => {
-      await callApiWithParameters("add_tag/", {
-        run_name: selectedRun.run_name,
-        tag_name: tag,
-      });
-    };
-
-    const handleDeleteTag = async (tagToDelete: string) => {
-      await callApiWithParameters("delete_tag/", {
-        run_name: selectedRun.run_name,
-        tag_name: tagToDelete,
-      });
-    };
-
-    const toggleFavorite = async () => {
-      await callApiWithParameters("toggle_favourite/", {
-        run_name: selectedRun.run_name,
-      });
+    const toggleFavorite = () => {
+      handleToggleFavourite();
       setSelectedRun((prevRun) => ({
         ...prevRun,
         favourite_status: !prevRun.favourite_status,
@@ -126,7 +121,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
                   : "",
               }}
               onClick={() => {
-                void toggleFavorite();
+                toggleFavorite();
               }}
             />
           </Row>
@@ -168,8 +163,12 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
             <TagMenu
               setSelectedRun={setSelectedRun}
               selectedRun={selectedRun}
-              handleAddTag={(tag) => void handleAddTag(tag)}
-              handleDeleteTag={(tag) => void handleDeleteTag(tag)}
+              handleAddTag={(tag) => {
+                handleAddTag(tag);
+              }}
+              handleDeleteTag={(tag) => {
+                handleDeleteTag(tag);
+              }}
             />
           </TagMenuWrapper>
         </StyledModal>
