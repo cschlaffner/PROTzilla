@@ -21,7 +21,7 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
-import { border, borderColors, color, spacing } from "../../../theme";
+import { color, spacing } from "../../../theme";
 
 const StyledModal = styled(Modal)`
   width: fit-content;
@@ -34,14 +34,6 @@ const SettingsDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("verySmall")};
-`;
-
-const PlotDiv = styled.div`
-  width: fit-content;
-  height: fit-content;
-  border: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: ${border("defaultRadius")};
-  padding: 2px;
 `;
 
 const Footer = styled.div`
@@ -204,14 +196,11 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={6}>
-          <PlotDiv>
-            <PlotComponent
-              styleProps={{ margin: "2px" }}
-              data={plot.data}
-              layout={plot.layout}
-              divId={"plot-id"}
-            />
-          </PlotDiv>
+          <PlotComponent
+            data={plot.data}
+            layout={plot.layout}
+            divId={"plot-id"}
+          />
         </Col>
       </Row>
       <Footer>

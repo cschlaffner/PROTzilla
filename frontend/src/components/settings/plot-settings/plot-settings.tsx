@@ -21,26 +21,12 @@ import {
   SectionTitle,
   Text,
 } from "../..";
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  fontWeight,
-  spacing,
-} from "../../../theme";
+import { color, fontSize, fontWeight, spacing } from "../../../theme";
 
 const SettingsDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("verySmall")};
-`;
-
-const PlotDiv = styled.div`
-  width: fit-content;
-  height: fit-content;
-  border: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: ${border("defaultRadius")};
 `;
 
 const Footer = styled.div`
@@ -274,13 +260,10 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={6}>
-          <PlotDiv>
-            <PlotComponent
-              styleProps={{ margin: "2px" }}
-              data={plot.data as Data[]}
-              layout={plot.layout as Partial<Layout>}
-            />
-          </PlotDiv>
+          <PlotComponent
+            data={plot.data as Data[]}
+            layout={plot.layout as Partial<Layout>}
+          />
         </Col>
       </Row>
       <Footer>
