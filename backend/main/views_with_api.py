@@ -156,8 +156,9 @@ def update_run_name(request):
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
-            
-            return JsonResponse({"success": False, "message": "A run already exists with this name"})
+            if e.__class__ == OSError:
+                return JsonResponse({"success": False, "message": "Run name already exists."})
+            return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

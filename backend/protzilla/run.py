@@ -40,7 +40,7 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
             continue
         yaml_operator = YamlOperator()
         metadata = yaml_operator.read(Path(metadata_yaml_path))
-        if not metadata:
+            if not metadata:
             metadata = {}
         tags = metadata.get("tags", set())
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { styled, useTheme } from "styled-components";
 
+import { useToggleableState } from "../../hooks";
 import { color, defaultPalette } from "../../theme";
 import { callApiWithParameters, Run } from "../../utils";
 import { SecondaryButton } from "../button";
@@ -11,7 +12,6 @@ import { RunsTableProps } from "./runs-table.props";
 import { TagList } from "../taglist";
 import { formatDate } from "../../utils/format-date.ts";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
-import { useToggleableState } from "../../hooks";
 
 const TableContainer = styled.div`
   display: flex;
@@ -132,7 +132,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     );
   };
 
-  const handleRenameRun = async (newName: string) => {
+  const handleRenameRun = (newName: string) => {
     const updated = runs.map((run) =>
       run.run_name === actionRun ? { ...run, run_name: newName } : run,
     );
@@ -283,7 +283,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           key={actionRun} // Ensures a new instance for each run
           runName={actionRun}
           onChangeRunName={(newRunName) => {
-            void handleRenameRun(newRunName);
+            handleRenameRun(newRunName);
           }}
           isOpen={isRunEditModalOpen}
           onClose={closeRunEditModal}

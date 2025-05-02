@@ -11,6 +11,7 @@ import { Modal } from "../modal";
 import { SectionTitle } from "../section-title";
 import { TagMenu } from "../taglist/tag-menu.tsx";
 import { Text } from "../text";
+import { useNotification } from "../notification-center";
 
 const StyledModal = styled(Modal)`
   width: ${size("inputFieldsMaxWidth")};
@@ -33,6 +34,8 @@ const TagMenuWrapper = styled.div`
 
 export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
   ({ runName, onChangeRunName, isOpen, onClose }, ref) => {
+    const notify = useNotification();
+
     const [selectedRun, setSelectedRun] = useState<Run>({
       run_name: runName,
       creation_date: "Loading...",
@@ -47,12 +50,11 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       const fetchRunInformation = async () => {
         const data = await callApi("run_information/");
         if (data) {
-          const run: Run = data[0].find(
-            (run: Run) => run.run_name === runName,
-          ) as Run;
-          if (run) {
-            setSelectedRun(run);
+          const run = data[0].find((run: Run) => run.run_name === runName);
+          if (!run) {
+            throw new Error(`Run with name "${runName}" not found`);
           }
+          setSelectedRun(run);
         }
       };
 
@@ -60,12 +62,27 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
     }, [runName]);
 
     const handleNameChange = async (newName: string) => {
-      await callApiWithParameters("update_run_name/", {
+      const response = await callApiWithParameters("update_run_name/", {
         run_name: runName,
         new_run_name: newName,
       });
-      selectedRun.run_name = newName;
-      onChangeRunName(newName);
+      if (!response || !response.success) {
+        notify({
+          title: "Run name update failed",
+          message: response.message,
+          type: "error",
+        });
+        throw new Error("Failed to update run name");
+      } else {
+        notify({
+          title: "Run name updated",
+          message: `Run name changed from ${runName} to ${newName}`,
+          type: "success",
+        });
+
+        selectedRun.run_name = newName;
+        onChangeRunName(newName);
+      }
     };
 
     const handleAddTag = async (tag: string) => {
@@ -91,8 +108,6 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         favourite_status: !prevRun.favourite_status,
       }));
     };
-
-    console.log("selectedRun", selectedRun);
 
     return (
       <div ref={ref} id={"run-edit-menu"}>
@@ -131,7 +146,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
             formData={{
               label: "",
               isAutoSubmit: false,
-              hasChangeIndicator: true,
+              hasChangeIndicator: false,
               input_fields: [
                 {
                   type: "text",
