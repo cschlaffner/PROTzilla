@@ -121,7 +121,6 @@ export const IndexScreen: React.FC = () => {
         : run,
     );
     setRuns(updated);
-    setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
   };
 
   const handleDeleteTag = (tagToDelete: string) => {
