@@ -257,6 +257,7 @@ class Run:
     @auto_save
     def step_calculate(self, inputs: dict | None = None) -> None:
         self.steps.current_step.calculate(self.steps, inputs)
+        self.disk_operator.update_modification_date()
 
     @error_handling
     @auto_save

@@ -148,7 +148,6 @@ class DiskOperator:
             for step in step_manager.all_steps:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
-            self.update_modification_date()
 
     def read_metadata(self) -> dict:
         with ErrorHandler():
