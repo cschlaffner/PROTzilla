@@ -176,12 +176,14 @@ def update_run_name(request):
             new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
             os.rename(directory_path, new_directory_path)
             active_runs[new_run_name] = Run(new_run_name)
-            del active_runs[run_name]
+            if run_name in active_runs:
+                del active_runs[run_name]
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
-            
-            return JsonResponse({"success": False, "message": "A run already exists with this name"})
+            if e.__class__ == OSError:
+                return JsonResponse({"success": False, "message": "Run name already exists."})
+            return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
