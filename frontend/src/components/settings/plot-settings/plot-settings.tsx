@@ -240,7 +240,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
               <CustomFontField
                 selectedFont={settings.selectedFont}
                 customFont={settings.customFont}
-                onChange={handleCustomFontChange}
+                onRadioChange={handleFontChange}
+                onTextChange={handleCustomFontChange}
               />
             </div>
             <Row justify="between" align="center">

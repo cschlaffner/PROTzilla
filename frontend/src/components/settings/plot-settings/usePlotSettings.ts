@@ -208,12 +208,17 @@ export const usePlotSettings = (isOpen?: boolean) => {
       selectedFont: value,
     }));
   };
-  const handleCustomFontChange = (value: string) => {
+  const handleCustomFontChange = (value: string, isCustomSelected: boolean) => {
     setSettings((prev) => ({
       ...prev,
       customFont: value,
-      selectedFont: value,
     }));
+    if (isCustomSelected) {
+      setSettings((prev) => ({
+        ...prev,
+        selectedFont: value,
+      }));
+    }
   };
   const handleTitleSizeChange = (value: number) => {
     setSettings((prev) => ({

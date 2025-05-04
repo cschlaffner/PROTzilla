@@ -130,12 +130,14 @@ export const FontField: React.FC<FontFieldProps> = ({
 export interface CustomFontFieldProps {
   selectedFont: string;
   customFont: string;
-  onChange: (value: string) => void;
+  onRadioChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onTextChange: (value: string, isCustomSelected: boolean) => void;
 }
 export const CustomFontField: React.FC<CustomFontFieldProps> = ({
   selectedFont,
   customFont,
-  onChange,
+  onRadioChange,
+  onTextChange,
 }) => {
   const theme = useTheme();
   const isCustomSelected = !fonts.includes(selectedFont);
@@ -154,16 +156,16 @@ export const CustomFontField: React.FC<CustomFontFieldProps> = ({
           name="fontGroup"
           value={customFont}
           checked={isCustomSelected}
-          onChange={(e) => {
-            onChange(e.target.value);
-          }}
+          onChange={onRadioChange}
         />
         <label htmlFor={"radioCustomFont"}>{"Custom font:"}</label>
       </div>
       <div style={{ flexGrow: 1 }}>
         <TextInputField
           placeholder="Custom font name"
-          onChange={onChange}
+          onChange={(value: string) => {
+            onTextChange(value, isCustomSelected);
+          }}
           value={customFont}
         />
       </div>
