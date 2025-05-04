@@ -172,7 +172,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             <CustomFontField
               selectedFont={settings.selectedFont}
               customFont={settings.customFont}
-              onChange={handleCustomFontChange}
+              onRadioChange={handleFontChange}
+              onTextChange={handleCustomFontChange}
             />
             <Row justify="between" align="center">
               <Col>
