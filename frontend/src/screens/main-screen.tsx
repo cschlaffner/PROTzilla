@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { Screen, ScreenProps, SubScreen } from "./screen";
+import { Screen, ScreenProps, SubScreen } from "../components/screen";
 import { color, spacing } from "../theme";
 
 const StyledScreen = styled(Screen)`

@@ -20,5 +20,3 @@ export * from "./text-field";
 export * from "./tooltip";
 export * from "./types";
 export * from "./workflow";
-
-export * from "./main-screen";

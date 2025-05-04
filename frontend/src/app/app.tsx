@@ -1,12 +1,12 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { MainScreen, ModalRoot, NotificationCenter } from "../components";
+import { ModalRoot, NotificationCenter } from "../components";
 import { initI18nApp } from "../i18n";
 import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
-import { CountersScreen, IndexScreen } from "../screens";
+import { IndexScreen, MainScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {
@@ -36,7 +36,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
-                  <Route path="/counters" element={<CountersScreen />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
