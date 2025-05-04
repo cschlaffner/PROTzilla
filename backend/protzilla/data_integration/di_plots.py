@@ -103,7 +103,7 @@ def GO_enrichment_bar_plot(
     elif value == "p-value":
         column = "P-value" if restring_input else "Adjusted P-value"
 
-    colors = gene_sets.values()
+    # colors = gene_sets.values()
 
     size_y = top_terms * 0.5 * len(gene_sets)
     try:
@@ -114,7 +114,7 @@ def GO_enrichment_bar_plot(
             group="Gene_set",
             figsize=figsize if figsize else (10, size_y),
             top_term=top_terms,
-            color=colors,
+            # color=colors,
             title=title,
         )
     except ValueError as e:
