@@ -24,7 +24,7 @@ def load_settings(request):
     try:
         data = json.loads(request.body)
     except:
-        return JsonResponse({"error": "Invalid JSON response while loading the settings."}, status=400)
+        return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
     templateName = data.get("templateName")
 
     op = YamlOperator()
@@ -42,11 +42,14 @@ def save_settings(request):
         settings = json.loads(request.body.decode("utf-8"))
         op = YamlOperator()
         path = SETTINGS_PATH / ("plots.yaml")
-        op.write(path, settings)
-
+        try:
+            op.write(path, settings)
+        except:
+            return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
+        
         # TODO Update Plotly template that is used in run screen
         return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
-    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
 
 def download_plot(request):
     if request.method == "POST":

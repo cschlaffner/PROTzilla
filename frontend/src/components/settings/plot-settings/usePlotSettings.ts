@@ -6,6 +6,7 @@ import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
 import { PlotSettings } from "./plot-settings";
+import { useNotification } from "../..";
 import { callApiWithParameters } from "../../../utils";
 
 export interface PlotSettings {
@@ -30,6 +31,8 @@ export interface ComputedPlotSettings {
 }
 
 export const usePlotSettings = (isOpen?: boolean) => {
+  const notify = useNotification();
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   // Since null is not allowed, these settings are used for rendering.
   const emptySettings: PlotSettings = {
@@ -82,7 +85,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
 
   const saveSettings = async () => {
     setSavedSettings(settings);
-    await callApiWithParameters("save_settings", {
+    const res = await callApiWithParameters("save_settings", {
       file_format: settings.fileFormat,
       width: settings.width,
       height: settings.height,
@@ -91,6 +94,19 @@ export const usePlotSettings = (isOpen?: boolean) => {
       title_size: settings.titleSize,
       text_size: settings.textSize,
     });
+    if (res?.success) {
+      notify({
+        title: "Saved successfully",
+        message: "Your settings will apply to all plots you want to download.",
+        type: "success",
+      });
+    } else {
+      notify({
+        title: "Saving failed",
+        message: "An unexpected error occurred.",
+        type: "error",
+      });
+    }
   };
 
   const downloadPlot = async (plot: Figure) => {
