@@ -69,7 +69,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   );
 
   const previousSection = sections.find(
-    (section) => (section.id as string) === previousStep.section,
+    (section) => (section.id) === previousStep.section,
   );
 
   const stepSectionIndex = translateGlobalToSectionIndex(
