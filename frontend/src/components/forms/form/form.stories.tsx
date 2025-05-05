@@ -42,14 +42,6 @@ primary.args = {
         isVisible: true,
       },
       {
-        type: "single-checkbox",
-        name: "single-checkbox",
-        props: {
-          label: "Single Checkbox",
-          text: "Checkbox",
-        },
-      },
-      {
         type: "multi-select",
         name: "country",
         label: "Country",
@@ -90,14 +82,6 @@ submit.args = {
         name: "single-checkbox",
         label: "Single Checkbox",
         isVisible: true,
-      },
-      {
-        type: "single-checkbox",
-        name: "single-checkbox",
-        props: {
-          label: "Single Checkbox",
-          text: "Checkbox",
-        },
       },
       {
         type: "multi-select",
