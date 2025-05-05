@@ -37,8 +37,8 @@ function App() {
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
                   <Route path="/counters" element={<CountersScreen />} />
-                  <Route path="/run" element={<RunScreen />}></Route>
-              </Route>
+                  <Route path="/run" element={<RunScreen />} />
+                </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>

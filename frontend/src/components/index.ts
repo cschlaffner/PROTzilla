@@ -1,3 +1,4 @@
+export * from "./body-components/list-editor";
 export * from "./box";
 export * from "./button";
 export * from "./cards/card";
@@ -5,7 +6,6 @@ export * from "./cards/switch-card";
 export * from "./dropdown";
 export * from "./forms/form";
 export * from "./edit-tag";
-export * from "./body-components/list-editor";
 export * from "./notification-center";
 export * from "./icon";
 export * from "./mixins";
