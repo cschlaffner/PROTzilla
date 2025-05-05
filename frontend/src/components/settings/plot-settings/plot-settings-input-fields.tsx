@@ -49,6 +49,9 @@ export const WidthField: React.FC<NumberInputFieldProps> = ({
   return (
     <NumberInputField
       label={"Width"}
+      info={
+        "Increasing the width leads to smaller displayed height to keep the plot's size ratio correct."
+      }
       min={10}
       max={300}
       step={1}

@@ -61,6 +61,7 @@ withoutLabel.args = {};
 export const allAffix = FrameTemplate.bind({});
 allAffix.args = {
   label: "Your Input Frame",
+  info: "Useful information regarding this input",
   inlinePrefix: "€",
   inlineSuffix: "€",
   separatePrefix: "%",

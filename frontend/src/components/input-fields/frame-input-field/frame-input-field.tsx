@@ -2,8 +2,8 @@ import React, { useRef } from "react";
 import { styled } from "styled-components";
 
 import { FrameInputFieldProps } from "./frame-input-field.props";
+import { InfoIComponent, InputLabel, Text } from "../../../components";
 import { border, borderColors, color, fontSize, spacing } from "../../../theme";
-import { InputLabel, Text } from "../../text";
 
 const GridContainer = styled.div`
   align-items: center;
@@ -107,6 +107,7 @@ export const InputContainer: React.FC<FrameInputFieldProps> = ({
   children,
   label,
   labelPosition = "top",
+  info,
   optional = false,
   subscript,
   inlinePrefix,
@@ -139,6 +140,7 @@ export const InputContainer: React.FC<FrameInputFieldProps> = ({
           {label && (
             <FlexContainer>
               <StyledInputLabel className="label" text={label} />
+              {info && <InfoIComponent text={info} isSmall />}
             </FlexContainer>
           )}
         </GridItem>

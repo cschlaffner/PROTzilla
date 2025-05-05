@@ -202,6 +202,7 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    tooltipMaxWidth: "240px",
 
     // Input Screen
     templateSelectionHeight: "300px",
