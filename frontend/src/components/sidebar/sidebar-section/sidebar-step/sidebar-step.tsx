@@ -6,8 +6,7 @@ import { SidebarStepProps } from "./sidebar-step.props";
 import { color } from "../../../../theme";
 import { InvisibleButton } from "../../../button";
 import { DefaultColoredIcon } from "../../../icon/icon";
-import { ContentText } from "../../../text";
-import { CollapsibleLabel } from "../../../text-field";
+import { CollapsibleLabel, ContentText } from "../../../text";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;

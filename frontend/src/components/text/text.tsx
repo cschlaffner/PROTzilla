@@ -1,6 +1,7 @@
+import { motion } from "framer-motion";
 import { css, styled } from "styled-components";
 
-import { LinkProps, TextProps } from "./text.props";
+import { CollapsibleLabelProps, LinkProps, TextProps } from "./text.props";
 import { Trans, useTranslation } from "../../i18n";
 import { color, font, fontSize, fontWeight, mediaQuery } from "../../theme";
 
@@ -145,3 +146,26 @@ export const InputLabel = styled(Text)`
   color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
   margin: 4px 0;
 `;
+
+const CollapsibleContainer = styled(motion.div)`
+  overflow: hidden;
+  white-space: nowrap;
+  padding-bottom: 1px;
+`;
+
+export const CollapsibleLabel: React.FC<CollapsibleLabelProps> = ({
+  width,
+  collapsedWidth = 0,
+  isCollapsed,
+  children,
+}: CollapsibleLabelProps) => {
+  return (
+    <CollapsibleContainer
+      initial={{ width: isCollapsed ? collapsedWidth : width }}
+      animate={{ width: isCollapsed ? collapsedWidth : width }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {children}
+    </CollapsibleContainer>
+  );
+};

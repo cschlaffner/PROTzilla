@@ -2,7 +2,6 @@ import type React from "react";
 
 import type { Color } from "../../theme";
 import type { IconType } from "../icon";
-import type { NotificationBubbleProps } from "../notification-bubble";
 import type { TooltippedProps } from "../tooltip";
 import type { I18nData, I18nProps, UIStateProps } from "../types";
 
@@ -15,8 +14,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     I18nProps,
     TooltippedProps,
-    UIStateProps,
-    Pick<NotificationBubbleProps, "notifications"> {
+    UIStateProps {
   /** The key of the button's icon (if any). */
   icon?: IconType;
   color?: Color;
@@ -54,8 +52,6 @@ export interface ButtonProps
    * `false` suppresses it.
    */
   showFocusOutline?: boolean;
-
-  notificationColor?: Color;
 
   /**
    * An event listener that fires when the button is pressed using a pointer

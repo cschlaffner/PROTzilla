@@ -5,7 +5,6 @@ import { css, styled } from "styled-components";
 import { useMultiRef } from "../../hooks";
 import { useTranslation } from "../../i18n";
 import { Icon, iconColor, IconType } from "../icon";
-import { NotificationBubble } from "../notification-bubble";
 import { Text } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
 import {
@@ -109,7 +108,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     tag,
     tagTx,
     tagData,
-    notifications,
     showTooltip: externalShowTooltip = true,
     tooltip,
     tooltipTx,
@@ -132,7 +130,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     isSmall,
     isBig,
     showFocusOutline = true,
-    notificationColor,
     onPointerDown,
     onPointerEnter,
     onPointerLeave,
@@ -311,12 +308,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
             style={textStyle}
           />
         )}
-
-        <NotificationBubble
-          className="notification-bubble"
-          notifications={notifications}
-          color={notificationColor}
-        />
 
         {showFocusOutline && showFocus && (
           <FocusOutline className="focus-outline" />

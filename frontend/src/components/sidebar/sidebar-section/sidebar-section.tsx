@@ -7,8 +7,7 @@ import { SidebarStep } from "./sidebar-step/sidebar-step";
 import { useTheme } from "../../../theme";
 import { GrayButton } from "../../button";
 import { Icon, IconButton } from "../../icon/icon";
-import { H3 } from "../../text";
-import { CollapsibleLabel } from "../../text-field";
+import { CollapsibleLabel, H3 } from "../../text";
 
 const TitleContainer = styled.div`
   display: flex;
