@@ -62,10 +62,15 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   const currentSection = sections.find(
     (section) => (section.id as string) === runData.current_section,
   );
-  const previousStepSectionIndex = translateGlobalToSectionIndex(
+
+  const previousStep = translateGlobalToSectionIndex(
     Math.max(runData.current_step_index-1,0),
     sections,
-  ).index;
+  );
+
+  const previousSection = sections.find(
+    (section) => (section.id as string) === previousStep.section,
+  );
 
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
@@ -73,7 +78,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   ).index;
 
   const previousStepCalculationStatus =
-     runData.current_step_index === 0 ? "complete" : currentSection?.steps[previousStepSectionIndex]?.status
+     runData.current_step_index === 0 ? "complete" : previousSection?.steps[previousStep.index]?.status
 
   const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
 
