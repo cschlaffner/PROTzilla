@@ -72,7 +72,6 @@ export const GitHub = () => {
       title: "Success",
       message: "Citation copied to clipboard",
       type: "success",
-      closeAfterMs: 1500,
     });
   };
 
@@ -103,7 +102,7 @@ export const GitHub = () => {
           <SectionTitle baseComponent={"h4"} title={"How to contribute"} />
           <CenteredText
             text={
-              "As of now, we are not accepting contributions outside the current Bachelorproject at Prof. Renard's chair at HPI. However, if you have any suggestions, ideas or questions, feel free to reach out to us!"
+              "As of now, we are not accepting contributions outside the current Bachelorproject at DACS' chair at HPI. However, if you have any suggestions, ideas or questions, feel free to reach out to us!"
             }
           />
           <SecondaryButton

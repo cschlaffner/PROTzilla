@@ -14,7 +14,6 @@ class CustomFileUploadHandler(FileUploadHandler):
     """
 
     def new_file(self, *args, **kwargs):
-        print("new_file")
         """
         Create the file object to append to as data is coming in.
         """
@@ -61,7 +60,6 @@ class CustomUploadedFile(UploadedFile):
     def close(self):
         try:
             closed = self.file.close()
-            # os.unlink(self.file.name)
             return closed
         except FileNotFoundError:
             # The file was moved or deleted before the tempfile could unlink

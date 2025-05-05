@@ -1,2 +1,2 @@
 export const citation =
-  "Renard et al. PROTzilla: A Web-Based Tool for Visualizing and Analyzing Protein Structures";
+  "S. Braune, J. Roebbecke, G. Manssen, et al., “PROTzilla - An open-source analysis platform for proteomics and peptidomics data for paper-ready visualizations,” in 23rd Human Proteome Organization World Congress, Poster, Dresden, Germany, 2024.";
