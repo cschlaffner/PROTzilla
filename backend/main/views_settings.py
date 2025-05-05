@@ -21,21 +21,23 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 # <--- Plot Export --->
 
 def load_settings(request):
-    try:
-        data = json.loads(request.body)
-    except:
-        return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
-    templateName = data.get("templateName")
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except:
+            return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
+        templateName = data.get("templateName")
 
-    op = YamlOperator()
-    path = SETTINGS_PATH / (templateName + ".yaml")
-    default_path = SETTINGS_PATH / ("plots_default.yaml")
+        op = YamlOperator()
+        path = SETTINGS_PATH / (templateName + ".yaml")
+        default_path = SETTINGS_PATH / ("plots_default.yaml")
 
-    if (templateName == "plots_default" or not path.exists()):
-        settings = op.read(default_path)
-    else:
-        settings = op.read(path)
-    return JsonResponse(settings)
+        if (templateName == "plots_default" or not path.exists()):
+            settings = op.read(default_path)
+        else:
+            settings = op.read(path)
+        return JsonResponse(settings)
+    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
 
 def save_settings(request):
     if request.method == "POST":

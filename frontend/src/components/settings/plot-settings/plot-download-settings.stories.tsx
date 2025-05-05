@@ -4,6 +4,7 @@ import {
   PlotDownloadSettings,
   PlotDownloadSettingsProps,
 } from "./plot-download-settings";
+import { color } from "../../../theme";
 
 export default {
   component: PlotDownloadSettings,
@@ -16,14 +17,14 @@ export const primary = (args: PlotDownloadSettingsProps): React.ReactNode => (
 
 const exampleData = [
   {
-    marker: { color: "#4A536A" },
+    marker: { color: color("protzillaDarkBlue") },
     x: ["Example 1"],
     y: [0.7],
     name: "Example 1",
     type: "bar",
   },
   {
-    marker: { color: "#CE5A5A" },
+    marker: { color: color("protzillaRed") },
     x: ["Example 2"],
     y: [0.3],
     name: "Example 2",

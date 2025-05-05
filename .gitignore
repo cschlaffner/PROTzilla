@@ -3,7 +3,6 @@
 # ignore workflows for pushes but keep explicit few on github for running tests
 backend/user_data/*
 !backend/user_data/settings/plots_default.yaml
-!backend/user_data/settings/databases_default.yaml
 !backend/user_data/workflows/only_import.yaml
 !backend/user_data/workflows/only_import_and_filter_proteins.yaml
 !backend/user_data/workflows/standard.yaml

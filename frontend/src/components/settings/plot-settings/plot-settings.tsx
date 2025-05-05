@@ -80,14 +80,14 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   const initialPlot = {
     data: [
       {
-        marker: { color: "#4A536A" },
+        marker: { color: color("protzillaDarkBlue") },
         x: ["Example 1"],
         y: [0.7],
         name: "Example 1",
         type: "bar",
       },
       {
-        marker: { color: "#CE5A5A" },
+        marker: { color: color("protzillaRed") },
         x: ["Example 2"],
         y: [0.3],
         name: "Example 2",
