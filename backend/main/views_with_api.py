@@ -10,9 +10,8 @@ import pandas as pd
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
-from backend.protzilla.constants import paths
 from backend.protzilla.form import Form
-from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
+from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
@@ -160,12 +159,12 @@ def update_run_name(request):
         new_run_name = data.get("new_run_name")
 
         try:
+            if new_run_name in get_available_run_names():
+                return JsonResponse({"success": False, "message": "Run name already exists."})
+
             run = get_run(run_name)
             run.update_run_name(new_run_name)
 
-            # directory_path = os.path.join(paths.RUNS_PATH, run_name)
-            # new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
-            # os.rename(directory_path, new_directory_path)
             active_runs[new_run_name] = run
             if run_name in active_runs:
                 del active_runs[run_name]

@@ -195,6 +195,7 @@ class DiskOperator:
                 return
             os.rename(self.run_dir, new_run_dir)
             self.run_name = new_run_name
+            self.update_modification_date()
 
     def read_workflow(self) -> StepManager:
         return self.read_run(self.workflow_file)

@@ -74,7 +74,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
 
     const handleNameChange = async (newName: string) => {
       const response = await callApiWithParameters("update_run_name/", {
-        run_name: runName,
+        run_name: selectedRun.run_name,
         new_run_name: newName,
       });
       if (!response?.success) {
@@ -87,11 +87,12 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       } else {
         notify({
           title: "Run name updated",
-          message: `Run name changed from ${runName} to ${newName}`,
+          message: `Run name changed from ${selectedRun.run_name} to ${newName}`,
           type: "success",
         });
 
         selectedRun.run_name = newName;
+        selectedRun.modification_date = new Date().toLocaleString("en-US");
         onChangeRunName(newName);
       }
     };
