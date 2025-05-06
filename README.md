@@ -3,7 +3,7 @@
 > [!NOTE]
 > This repository is still a work-in-progress version.<br> Please refer to the previous PROTzilla at https://github.com/cschlaffner/PROTzilla2.
 
-[TODO: Add general information on PROTzilla and documentation]
+PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. Its shareable, reproducible workflows and integration with knowledge bases support automated analysis and transparent reporting in proteomics research.
 
 ## :gear: Set up & install PROTzilla
 
@@ -19,13 +19,13 @@ The script automatically installs all software dependencies and creates the envi
 Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
 
 ## :bulb: Quick Introduction on how to use PROTzilla
-
-[TODO: Summarize PROTzilla's functionalities, add link to detailed documentation]
+**Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
+> [!TIP]
+> For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
 
 ## :mag: Further information: Development
-
-> [!NOTE]
-> For further information on how to contribute to PROTzilla, please read our dev-guide. [TODO: Add dev-guide to wiki]
+> [!TIP]
+> For more details, please see the [developer guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/Developer-Guide).
 
 To open PROTzilla in development mode (`pnpm dev`), run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
 
