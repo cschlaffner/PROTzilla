@@ -2,7 +2,7 @@ import type React from "react";
 
 import type * as icons from "./icons";
 import type { Color } from "../../theme";
-import type { UIStateProps } from "../types";
+import type { UIStateProps } from "../../utils";
 
 export type IconType = keyof typeof icons;
 export type DefaultColoredIconType =

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { action, observable } from "mobx";
 
 import { API_ROOT } from "../constants";
@@ -6,6 +6,12 @@ import { type ColorMode, getTheme, Theme } from "../theme";
 import { isPromise } from "../utils";
 import { defaultStorageClient } from "./sync-engine";
 import { RESTAdapter } from "./sync-engine/rest-adapter";
+
+// Adapted from I18nMessage
+export interface Message {
+  title?: string;
+  description?: string;
+}
 
 export class RootStore {
   public axios = axios.create({ baseURL: API_ROOT });
@@ -24,7 +30,7 @@ export class RootStore {
     string,
     ReturnType<typeof setTimeout> | undefined
   > = {};
-  @observable protected accessor messages: Record<string, string | undefined> =
+  @observable protected accessor messages: Record<string, Message | undefined> =
     {};
 
   constructor() {
@@ -45,7 +51,7 @@ export class RootStore {
   }
 
   // Error Handling
-  public getMessage(channel = "error"): string | undefined {
+  public getMessage(channel = "error"): Message | undefined {
     return this.messages[channel];
   }
 
@@ -56,7 +62,7 @@ export class RootStore {
   @action
   public setMessage(
     channel = "error",
-    message?: string,
+    message?: Message,
     autoClear = true,
   ): void {
     this.messages[channel] = message;
@@ -72,23 +78,31 @@ export class RootStore {
     }
   }
 
-  public setError(message?: string, autoClear = true) {
+  public setError(message?: Message, autoClear = true) {
     this.setMessage("error", message, autoClear);
   }
 
   protected processError(
     error: Error,
-    mapError?: (error: Error) => string | undefined,
+    mapError?: (error: Error) => Message | undefined,
     autoClear?: boolean,
   ): void {
     const mapped = mapError?.(error);
     if (mapError && !mapped) return;
-    this.setError(mapped, autoClear);
+
+    this.setError(
+      {
+        title: "base:error",
+        description: isAxiosError(error) ? "base:apiError" : error.message, // TODO: Handle status codes
+        ...mapped,
+      },
+      autoClear,
+    );
   }
 
   public handleErrors = <T>(
     executor?: () => T,
-    mapError?: (error: unknown) => string | undefined,
+    mapError?: (error: unknown) => Message | undefined,
     autoClearError?: boolean,
   ): T extends Promise<infer U>
     ? Promise<{ success: boolean; result?: U }>

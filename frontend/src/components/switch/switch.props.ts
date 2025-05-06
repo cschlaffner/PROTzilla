@@ -10,7 +10,7 @@ export interface ISwitchOption<T = any> extends UIStateProps {
    * Additionally, if no label is given, the value is displayed as the option text.
    *
    */
-  label: string;
+  label?: string;
   value: T;
   color?: Color;
 }
@@ -19,7 +19,7 @@ export interface ISwitchOption<T = any> extends UIStateProps {
 export interface SwitchProps<T = any>
   extends UIStateProps,
     Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
-  label: string;
+  label?: string;
   /** The options from which to select in the drop down. */
   options: ISwitchOption<T>[];
 

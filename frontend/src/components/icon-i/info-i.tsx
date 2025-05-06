@@ -30,7 +30,7 @@ export const InfoIComponent: React.FC<InfoIProps> = ({ text }) => {
 
       {isShown && (
         <Tooltip
-          text={<div>{text}</div>}
+          text={text}
           isShown={true}
           distance={25}
           anchor={iconRef.current ?? undefined}

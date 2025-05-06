@@ -69,9 +69,6 @@ const TempRunSettings = styled.div`
 export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
   title,
-  titleTx,
-  titleData,
-  titleComponents,
   onNavigateHome,
   onOpenSettings,
   onOpenHelp,
@@ -90,12 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
-          <NavbarCenterTitle
-            text={allowRunEdit ? title : "PROTzilla"}
-            tx={allowRunEdit ? titleTx : "PROTzilla"}
-            txData={allowRunEdit ? titleData : undefined}
-            txComponents={allowRunEdit ? titleComponents : undefined}
-          />
+          <NavbarCenterTitle text={allowRunEdit ? title : "PROTzilla"} />
           {allowRunEdit && (
             <Button
               icon={"edit"}

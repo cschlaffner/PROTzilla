@@ -1,4 +1,4 @@
-import type { UIStateProps } from "../../types";
+import type { UIStateProps } from "../../../utils";
 
 export interface FrameInputFieldProps extends UIStateProps {
   children?: React.ReactNode;
