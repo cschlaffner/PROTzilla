@@ -24,23 +24,12 @@ Simply run the `run_protzilla` script for your OS and open the application on ht
 > For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
 
 ## :mag: Further information: Development
-> [!TIP]
-> For more details, please see the [developer guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/Developer-Guide).
+PROTzilla is built with Python/Django on the backend and Node.js (managed via pnpm) for the frontend. <br>
+To open PROTzilla in development mode, run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
 
-To open PROTzilla in development mode (`pnpm dev`), run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
+- `http://localhost:5174/` is a dynamic version of the frontend.
+- `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user.
 
-- The port `http://localhost:5174/` is a dynamic version of the frontend.
-- The port `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user.
+Additionally, you can launch the storybook by `pnpm storybook` to inspect UI components independently.
 
-### Testing
-
-- For local testing, execute `pytest`.
-- For specific tests, execute `pytest path/to/test`.
-- [TODO: Testing in frontend?]
-- The CI Pipeline for the frontend and backend is separated and is only executed if there are changes in the respective folder.
-
-### Dependencies
-(Automatically done by the `run_protzilla` script.)
-
-- **Backend**: Managed via Python in `requirements.txt`: `pip install -q -r requirements.txt` 
-- **Frontend**: Managed via pnpm in `frontend/package.json`: `cd frontend && pnpm install`
+For more technical details and further information on how to contribute to PROTzilla, please see the [developer guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/Developer-Guide).
