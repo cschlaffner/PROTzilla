@@ -5,17 +5,20 @@
 
 [TODO: Add general information on PROTzilla and documentation]
 
-## :gear: Set Up & Install PROTzilla
-Available for Unix-based systems (`run_protzilla.sh`) & Windows (`run_protzilla.bat`).
+## :gear: Set up & install PROTzilla
 
-- Installs all software dependencies and creates the environment
-- Opens frontend built by `pnpm` via port http://127.0.0.1:8000/
-- The initial set-up might take up to 15 minutes
+1. Clone the PROTzilla repository <br> `git clone https://github.com/cschlaffner/PROTzilla.git`
+2. Enter repository folder <br> `cd PROTzilla`
+3. Run install script <br>
+    **For Windows:** Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
+    **For macOS & Linux:** Execute `.\run_protzilla.sh` <br>
 
-## &#x1F996; Start & Use PROTzilla
-Simply run the `run_protzilla` script for your OS and start using PROTzilla for your research! &#x1F996;
+The script automatically installs all software dependencies and creates the environment. The initial set-up might take up to 15 minutes.
 
-## :bulb: Quick Introduction on How To Use PROTzilla
+## &#x1F996; Start & use PROTzilla
+Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
+
+## :bulb: Quick Introduction on how to use PROTzilla
 
 [TODO: Summarize PROTzilla's functionalities, add link to detailed documentation]
 
