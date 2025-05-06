@@ -102,8 +102,7 @@ class Step:
             if not previousStep.calculate(steps):
                 return False
 
-        if (steps.current_step_index == stepIndex):
-            self.updateInputs(self.form_inputs)
+        self.updateInputs(self.form_inputs)
         self.messages.clear()
         
 
@@ -557,7 +556,7 @@ class StepManager:
         if include_current_step:
             steps_to_search = self.all_steps
         else:
-            steps_to_search = self.previous_steps
+            steps_to_search = self.previous_calculated_steps
 
         for step in reversed(steps_to_search):
             if (
@@ -607,7 +606,7 @@ class StepManager:
             )
 
         step_type = [step_type] if not isinstance(step_type, list) else step_type
-        for step in reversed(self.previous_steps):
+        for step in reversed(self.previous_calculated_steps):
             if (
                 any(isinstance(step, st) for st in step_type)
                 and check_instance_identifier(step)
@@ -638,6 +637,10 @@ class StepManager:
     @property
     def previous_steps(self) -> list[Step]:
         return self.all_steps[: self.current_step_index]
+    
+    @property
+    def previous_calculated_steps(self) -> list[Step]:
+        return list(filter(lambda step: step.calculation_status == "complete", self.previous_steps))
     
     @property
     def following_steps(self) -> list[Step]:
