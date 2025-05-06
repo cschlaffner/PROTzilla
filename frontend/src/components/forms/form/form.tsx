@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
@@ -102,14 +102,14 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFormTouched })
   );
 };
 
-const InputField: React.FC<InputFieldProps> = ({
+const InputField: React.FC<InputFieldProps> = memo(function InputField({
   type,
   name,
   onChange,
   options,
   isVisible,
   ...props
-}) => {
+}) {
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
@@ -134,7 +134,9 @@ const InputField: React.FC<InputFieldProps> = ({
         <CheckboxSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "single-checkbox":
-      return <SingleCheckboxInputField onChange={handleInputChange} {...props} />;
+      return (
+        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
+      );
     case "dropdown":
       return <DropdownInputField onChange={handleInputChange} options={options ?? []} {...props} />;
     case "multi-select":
@@ -146,4 +148,4 @@ const InputField: React.FC<InputFieldProps> = ({
     default:
       return null;
   }
-};
+});

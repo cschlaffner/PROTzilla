@@ -8,7 +8,7 @@ import pandas as pd
 import yaml
 from plotly.io import read_json, write_json
 
-import protzilla.utilities as utilities
+import backend.protzilla.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
