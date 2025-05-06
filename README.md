@@ -5,6 +5,7 @@
 
 [![backend](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml)
 [![frontend](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml)
+[![coverage badge](https://github.com/cschlaffner/PROTzilla/blob/python-coverage-comment-action-data/badge.svg)](https://github.com/cschlaffner/PROTzilla/tree/python-coverage-comment-action-data) 
 
 PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. Its shareable, reproducible workflows and integration with knowledge bases support automated analysis and transparent reporting in proteomics research.
 
