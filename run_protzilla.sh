@@ -9,6 +9,12 @@ if ! [[ "$OSTYPE" == "linux-gnu"* ]] && ! [[ "$OSTYPE" == "darwin"* ]]; then
   exit 1
 fi
 
+# Check for g++ - needed for python packages
+if ! g++ --version >/dev/null; then
+  echo "g++ is not installed. Please install g++ and restart the script."
+  exit 1
+fi
+
 if ! conda --version >/dev/null; then
   echo "conda is not accessible. Checking if conda is installed..."
   if ! [ -d "$HOME/miniconda3" ] || [ -d "$HOME/miniconda" ] || [ -d "$HOME/anaconda3" ] || [ -d "$HOME/anaconda" ]; then
@@ -30,6 +36,7 @@ eval "$(conda shell.bash hook)"
 
 if ! conda info --envs | grep "$ENV_NAME" >/dev/null; then
   echo "'$ENV_NAME'-environment doesn't exist yet. Running create_env.sh..."
+  chmod +x ./install_scripts/create_env.sh
   ./install_scripts/create_env.sh
 fi
 
