@@ -42,3 +42,7 @@ For specific tests execute `pytest path/to/test`
 
 
 _Ready for development. :D_
+
+## How to update Pnpm
+- run `cd frontend`
+- run `corepack use pnpm@latest-10`
