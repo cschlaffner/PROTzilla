@@ -32,9 +32,6 @@ const TooltipLabel = styled(Text)`
 
 export const Tooltip: React.FC<TooltipProps> = ({
   text,
-  tx,
-  txComponents,
-  txData,
   isShown,
   anchor,
   position,
@@ -56,12 +53,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const node =
     isShown === false ? null : (
       <TooltipContainer {...rest} style={tooltipStyle}>
-        <TooltipLabel
-          text={text}
-          tx={tx}
-          txComponents={txComponents}
-          txData={txData}
-        />
+        <TooltipLabel text={text} />
       </TooltipContainer>
     );
 

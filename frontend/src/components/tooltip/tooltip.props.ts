@@ -1,16 +1,14 @@
 import type React from "react";
 
 import type { TooltipPosition, TooltipPositionConfig } from "./utils";
-import type { I18nComponents, I18nData, I18nProps } from "../types";
 
 export interface TooltipProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    I18nProps,
     Pick<TooltipPositionConfig, "anchor" | "position" | "distance"> {
   /** The z-index of the surface below. */
   baseZIndex?: number;
-
   isShown?: boolean;
+  text?: string;
 }
 
 export interface TooltippedProps {
@@ -22,23 +20,8 @@ export interface TooltippedProps {
 
   // Tooltip Content
 
-  /** The raw tooltip text (is preceeded by `tooltipTx`). */
-  tooltip?: React.ReactNode;
-
-  /** The key for i18n translation of the tooltip (preceeds `tooltip`). */
-  tooltipTx?: string;
-
-  /**
-   * Optional components to be used to style the translated tooltip when
-   * `tooltipTx` is being used.
-   */
-  tooltipComponents?: I18nComponents;
-
-  /**
-   * Additional data, passed to the tooltip's translation function when
-   * `tooltipTx` is being used.
-   */
-  tooltipData?: I18nData;
+  /** The raw tooltip text */
+  tooltip?: string;
 
   // Tooltip Positioning
 

@@ -13,33 +13,13 @@ const Description = styled(H1)`
 export const SectionTitle: React.FC<SectionTitleProps> = ({
   baseComponent = "h1",
   title,
-  titleTx,
-  titleData,
-  titleComponents,
   description,
-  descriptionTx,
-  descriptionData,
-  descriptionComponents,
   ...rest
 }) => (
   <FlexColumn {...rest}>
-    {(title ?? titleTx) && (
-      <H1
-        as={baseComponents[baseComponent]}
-        text={title}
-        tx={titleTx}
-        txData={titleData}
-        txComponents={titleComponents}
-      />
-    )}
-    {(description ?? descriptionTx) && (
-      <Description
-        as={baseComponents[baseComponent]}
-        text={description}
-        tx={descriptionTx}
-        txData={descriptionData}
-        txComponents={descriptionComponents}
-      />
+    {title && <H1 as={baseComponents[baseComponent]} text={title} />}
+    {description && (
+      <Description as={baseComponents[baseComponent]} text={description} />
     )}
   </FlexColumn>
 );

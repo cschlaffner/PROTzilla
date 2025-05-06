@@ -1,17 +1,16 @@
-import { I18nProps, UIStateProps } from "../types";
+import { UIStateProps } from "../../utils";
 
 export type TextProps = React.HTMLAttributes<HTMLSpanElement> &
-  I18nProps &
-  UIStateProps;
+  UIStateProps & {
+    text?: string;
+  };
 
 export type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> &
-  I18nProps &
   UIStateProps;
 
-  export interface CollapsibleLabelProps {
-    width: number | string;
-    collapsedWidth?: number;
-    isCollapsed: boolean;
-    children?: React.ReactNode;
-  }
-  
+export interface CollapsibleLabelProps {
+  width: number | string;
+  collapsedWidth?: number;
+  isCollapsed: boolean;
+  children?: React.ReactNode;
+}

@@ -1,15 +1,16 @@
 import type React from "react";
 
 import { Color } from "../../theme";
-import { I18nLabelProps, UIStateProps } from "../types";
+import { UIStateProps } from "../../utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ISwitchOption<T = any> extends UIStateProps, I18nLabelProps {
+export interface ISwitchOption<T = any> extends UIStateProps {
   /**
    * The value of the option. Used for identification.
    * Additionally, if no label is given, the value is displayed as the option text.
    *
    */
+  label: string;
   value: T;
   color?: Color;
 }
@@ -17,8 +18,8 @@ export interface ISwitchOption<T = any> extends UIStateProps, I18nLabelProps {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SwitchProps<T = any>
   extends UIStateProps,
-    I18nLabelProps,
     Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
+  label: string;
   /** The options from which to select in the drop down. */
   options: ISwitchOption<T>[];
 

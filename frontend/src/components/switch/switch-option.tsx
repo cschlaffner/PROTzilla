@@ -32,10 +32,7 @@ const SwitchOptionLabel = styled(Text).withConfig({
 `;
 
 export const SwitchOption: React.FC<SwitchOptionProps> = ({
-  labelTx,
   label,
-  labelComponents,
-  labelData,
   value,
   isActive,
   isDisabled,
@@ -52,13 +49,7 @@ export const SwitchOption: React.FC<SwitchOptionProps> = ({
       isDisabled={isDisabled}
       onPress={changeHandler}
     >
-      <SwitchOptionLabel
-        isActive={isActive}
-        tx={labelTx}
-        txComponents={labelComponents}
-        txData={labelData}
-        text={label ?? value}
-      />
+      <SwitchOptionLabel isActive={isActive} text={label} />
     </SwitchOptionContainer>
   );
 };

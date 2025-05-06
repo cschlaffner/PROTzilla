@@ -14,28 +14,16 @@ const SectionContainer = styled.section`
 
 export const Section: React.FC<SectionProps> = ({
   title,
-  titleTx,
-  titleData,
-  titleComponents,
   description,
-  descriptionTx,
-  descriptionData,
-  descriptionComponents,
   children,
   ...rest
 }) => (
   <SectionContainer {...rest}>
-    {(title ?? titleTx ?? description ?? descriptionTx) && (
+    {(title ?? description) && (
       <SectionTitle
         baseComponent="h3"
         title={title}
-        titleTx={titleTx}
-        titleData={titleData}
-        titleComponents={titleComponents}
         description={description}
-        descriptionTx={descriptionTx}
-        descriptionData={descriptionData}
-        descriptionComponents={descriptionComponents}
       />
     )}
     {children}

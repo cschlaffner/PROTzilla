@@ -1,9 +1,8 @@
 import type { Preview } from "@storybook/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { styled } from "styled-components";
 
 import { ModalRoot, NotificationCenter } from "../src/components";
-import { i18n, initI18nApp } from "../src/i18n";
 import {
   color,
   ColorMode,
@@ -33,18 +32,6 @@ const WithThemeProvider = (
   Story: React.FC,
   { globals }: { globals: { language: string; theme: ColorMode } },
 ) => {
-  const [isReady, setIsReady] = useState(false);
-  useEffect(() => {
-    void initI18nApp().then(() => {
-      setIsReady(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    i18n.changeLanguage(globals.language).catch(() => {});
-  }, [globals.language]);
-
   const theme = useMemo(() => getTheme(globals.theme), [globals.theme]);
 
   return (
@@ -54,7 +41,7 @@ const WithThemeProvider = (
           <StyledContainer>
             <GlobalStyles theme={theme} />
             <ModalRoot />
-            {isReady && <Story />}
+            <Story />
           </StyledContainer>
         </Wrapper>
       </NotificationCenter>
@@ -78,7 +65,7 @@ const preview: Preview = {
     language: {
       name: "Language",
       description: "The current language",
-      defaultValue: i18n.language,
+      defaultValue: "en",
       toolbar: {
         icon: "globe",
         items: ["en", "de", "cimode"],

@@ -15,5 +15,4 @@ export * from "./switch";
 export * from "./taglist";
 export * from "./text";
 export * from "./tooltip";
-export * from "./types";
 export * from "./workflow";

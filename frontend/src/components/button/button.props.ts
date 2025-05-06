@@ -1,9 +1,9 @@
 import type React from "react";
 
 import type { Color } from "../../theme";
+import type { UIStateProps } from "../../utils";
 import type { IconType } from "../icon";
 import type { TooltippedProps } from "../tooltip";
-import type { I18nData, I18nProps, UIStateProps } from "../types";
 
 export interface ButtonRef extends HTMLButtonElement {
   /** Forces to hide the focus indicator for the subsequent focus event. */
@@ -12,7 +12,6 @@ export interface ButtonRef extends HTMLButtonElement {
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    I18nProps,
     TooltippedProps,
     UIStateProps {
   /** The key of the button's icon (if any). */
@@ -26,9 +25,9 @@ export interface ButtonProps
    */
   pressedIcon?: IconType;
 
+  text?: string;
   tag?: string;
   tagTx?: string;
-  tagData?: I18nData;
 
   textStyle?: React.CSSProperties;
 

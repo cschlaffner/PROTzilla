@@ -2,7 +2,6 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { ModalRoot, NotificationCenter } from "../components";
-import { initI18nApp } from "../i18n";
 import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
@@ -13,7 +12,7 @@ function App() {
   const [isReady, setIsReady] = useState(false);
   const rootStoreRef = useRef<RootStore | null>(null);
   useEffect(() => {
-    Promise.all([setupRootStore(), initI18nApp()])
+    Promise.all([setupRootStore()])
       .then(([store]) => {
         rootStoreRef.current = store;
         setIsReady(true);

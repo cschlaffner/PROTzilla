@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
 import { useMultiRef } from "../../hooks";
-import { useTranslation } from "../../i18n";
 import { Icon, iconColor, IconType } from "../icon";
 import { Text } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
@@ -107,13 +106,9 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     pressedIcon,
     tag,
     tagTx,
-    tagData,
     showTooltip: externalShowTooltip = true,
     tooltip,
-    tooltipTx,
     iconRight,
-    tooltipComponents,
-    tooltipData,
     anchorTooltipToMouse = true,
     tooltipPosition = "bottomRight",
     tooltipDistance = 13,
@@ -122,9 +117,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
     showTooltipImmediately,
     isDisabled,
     text,
-    tx,
-    txComponents,
-    txData,
     textStyle,
     isShy,
     isSmall,
@@ -140,8 +132,6 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
   },
   ref,
 ) {
-  const { t } = useTranslation();
-
   // Tooltip Scheduling
 
   const {
@@ -273,52 +263,29 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
         onPointerUp={handlePointerUp}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        onlyIcon={Boolean(icon) && !(text || tx || children)}
-        onlyText={Boolean(text || tx || children) && !icon}
+        onlyIcon={Boolean(icon) && !(text || children)}
+        onlyText={Boolean(text || children) && !icon}
         iconRight={iconRight}
         ref={handleButtonRef}
-        aria-label={
-          ariaLabel ||
-          (tooltipTx
-            ? t(tooltipTx, tooltipData)
-            : typeof tooltip === "string"
-              ? tooltip
-              : undefined)
-        }
+        aria-label={ariaLabel || tooltip}
       >
         {!iconRight && iconElement}
-        {(tx || text || tx === "" || text === "") && (
-          <Text
-            className="text"
-            text={text}
-            tx={tx}
-            txComponents={txComponents}
-            txData={txData}
-            style={textStyle}
-          />
+        {(text || text === "") && (
+          <Text className="text" text={text} style={textStyle} />
         )}
         {iconRight && iconElement}
         {children}
         {(tag || tagTx) && (
-          <Text
-            className="text"
-            txData={tagData}
-            text={tag}
-            tx={tagTx}
-            style={textStyle}
-          />
+          <Text className="text" text={tag} style={textStyle} />
         )}
 
         {showFocusOutline && showFocus && (
           <FocusOutline className="focus-outline" />
         )}
       </StyledButton>
-      {(tooltipTx || tooltip) && (
+      {tooltip && (
         <Tooltip
           text={tooltip}
-          tx={tooltipTx}
-          txData={tooltipData}
-          txComponents={tooltipComponents}
           isShown={
             (showTooltip || (showFocus && showFocusTooltip)) &&
             externalShowTooltip

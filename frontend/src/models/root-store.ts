@@ -1,9 +1,7 @@
-import axios, { isAxiosError } from "axios";
-import { action, observable, runInAction } from "mobx";
+import axios from "axios";
+import { action, observable } from "mobx";
 
-import type { I18nMessage } from "../components";
 import { API_ROOT } from "../constants";
-import { i18n, SupportedLanguage } from "../i18n";
 import { type ColorMode, getTheme, Theme } from "../theme";
 import { isPromise } from "../utils";
 import { defaultStorageClient } from "./sync-engine";
@@ -15,7 +13,7 @@ export class RootStore {
   public client = defaultStorageClient;
 
   /** The current language. */
-  @observable public accessor language: string = i18n.language;
+  @observable public accessor language: string = "en";
 
   /** The current theme. */
   @observable public accessor colorMode: ColorMode = "light";
@@ -26,10 +24,8 @@ export class RootStore {
     string,
     ReturnType<typeof setTimeout> | undefined
   > = {};
-  @observable protected accessor messages: Record<
-    string,
-    I18nMessage | undefined
-  > = {};
+  @observable protected accessor messages: Record<string, string | undefined> =
+    {};
 
   constructor() {
     this.client.remote = new RESTAdapter(API_ROOT, undefined, this.axios);
@@ -48,17 +44,8 @@ export class RootStore {
     // TODO: Persistence
   }
 
-  // Language Management
-  public async setLanguage(language: SupportedLanguage): Promise<void> {
-    await i18n.changeLanguage(language);
-    runInAction(() => {
-      this.language = language;
-      // TODO: Persistence
-    });
-  }
-
   // Error Handling
-  public getMessage(channel = "error"): I18nMessage | undefined {
+  public getMessage(channel = "error"): string | undefined {
     return this.messages[channel];
   }
 
@@ -69,7 +56,7 @@ export class RootStore {
   @action
   public setMessage(
     channel = "error",
-    message?: I18nMessage,
+    message?: string,
     autoClear = true,
   ): void {
     this.messages[channel] = message;
@@ -85,31 +72,23 @@ export class RootStore {
     }
   }
 
-  public setError(message?: I18nMessage, autoClear = true) {
+  public setError(message?: string, autoClear = true) {
     this.setMessage("error", message, autoClear);
   }
 
   protected processError(
     error: Error,
-    mapError?: (error: Error) => Partial<I18nMessage> | undefined,
+    mapError?: (error: Error) => string | undefined,
     autoClear?: boolean,
   ): void {
     const mapped = mapError?.(error);
     if (mapError && !mapped) return;
-
-    this.setError(
-      {
-        titleTx: "base:error",
-        descriptionTx: isAxiosError(error) ? "base:apiError" : error.message, // TODO: Handle status codes
-        ...mapped,
-      },
-      autoClear,
-    );
+    this.setError(mapped, autoClear);
   }
 
   public handleErrors = <T>(
     executor?: () => T,
-    mapError?: (error: unknown) => Partial<I18nMessage> | undefined,
+    mapError?: (error: unknown) => string | undefined,
     autoClearError?: boolean,
   ): T extends Promise<infer U>
     ? Promise<{ success: boolean; result?: U }>

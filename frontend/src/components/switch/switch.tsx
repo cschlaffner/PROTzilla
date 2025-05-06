@@ -4,7 +4,7 @@ import { css, styled } from "styled-components";
 import { SwitchOption } from "./switch-option";
 import { SwitchProps } from "./switch.props";
 import { color, duration, opacity, radius } from "../../theme";
-import { UIStateProps } from "../types";
+import { UIStateProps } from "../../utils";
 
 const SwitchContainer = styled.div`
   border-radius: ${radius("button")};

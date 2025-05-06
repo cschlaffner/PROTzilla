@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import os
 import sys
-import corsheaders
 from pathlib import Path
 
 PROJECT_PATH = Path(__file__).resolve().parent.parent.parent # path to the root of the project
@@ -156,12 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
-USE_I18N = True
-
 USE_TZ = True
 
 

@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { css, styled } from "styled-components";
 
 import { CollapsibleLabelProps, LinkProps, TextProps } from "./text.props";
-import { Trans, useTranslation } from "../../i18n";
 import { color, font, fontSize, fontWeight, mediaQuery } from "../../theme";
 
 const StyledSpan = styled.span<Pick<TextProps, "isDisabled">>`
@@ -35,20 +34,10 @@ export const defaultTxComponents = {
 
 export const Text: React.FC<
   TextProps & { as?: "span" | "a" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" }
-> = ({ children, txData, text, tx, txComponents, ...rest }) => {
-  const { t } = useTranslation();
-
+> = ({ children, text, ...rest }) => {
   return (
     <StyledSpan {...rest}>
-      {tx ? (
-        txComponents ? (
-          <Trans i18nKey={tx} components={txComponents} values={txData} />
-        ) : (
-          t(tx, txData)
-        )
-      ) : (
-        text
-      )}
+      {text}
       {children}
     </StyledSpan>
   );

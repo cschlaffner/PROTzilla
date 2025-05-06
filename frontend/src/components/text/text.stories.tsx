@@ -1,5 +1,4 @@
 import {
-  defaultTxComponents,
   H1,
   H2,
   H3,
@@ -72,11 +71,4 @@ export const inputLabel = (args: TextProps): React.ReactNode => (
 );
 inputLabel.args = {
   text: "This is an input label",
-};
-
-export const i18n = (args: TextProps): React.ReactNode => <Text {...args} />;
-i18n.storyName = "i18n";
-i18n.args = {
-  tx: "base:monday",
-  txComponents: defaultTxComponents,
 };

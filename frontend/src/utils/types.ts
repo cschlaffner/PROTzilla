@@ -4,6 +4,10 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 export type MaybeArrayElement<ArrayType> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : ArrayType;
 
+export interface UIStateProps {
+  isDisabled?: boolean;
+}
+
 export interface Run {
   run_name: string;
   creation_date: string;
