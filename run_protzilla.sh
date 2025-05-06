@@ -51,16 +51,12 @@ echo "done."
 
 echo "checking for and installing new requirements in frontend..."
 
-if ! command -v pnpm &> /dev/null; then
-    curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=10.8.0 sh -
+if ! command -v node &> /dev/null; then
+    curl -o- https://fnm.vercel.app/install | bash
+    fnm install 22 # install node version 22
     exit 1
 fi
 
-if ! command -v node &> /dev/null; then
-    curl -o- https://fnm.vercel.app/install | bash
-    fnm install 22
-    exit 1
-fi
 
 if [ ! -d "frontend/.storybook" ]; then
     echo "Initializing Storybook..."
@@ -69,7 +65,15 @@ fi
 
 cd frontend
 
-pnpm install
+# update npm
+npm update -g npm
+# Due to an issue with outdated signatures in Corepack, Corepack should be updated to its latest version first:
+npm install --global corepack@latest
+
+# Since v16.13, Node.js is shipping Corepack for managing package managers. This is an experimental feature, so you need to enable it by running:
+corepack enable pnpm
+# Install the pnpm version used in the project:
+corepack use pnpm@latest-10
 
 cd ..
 
