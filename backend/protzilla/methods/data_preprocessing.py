@@ -92,7 +92,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Filter Proteins by Samples Missing",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="percentage",
                     label="Percentage of minimum non-missing samples per protein",
@@ -124,7 +124,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Filter Samples by Protein Count",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="deviation_threshold",
                     label="Number of standard deviations from the median",
@@ -156,7 +156,7 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Filter Samples by Proteins Missing",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="percentage",
                     label="Percentage of minimum non-missing proteins per sample",
@@ -188,7 +188,7 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Filter Samples by Protein Intensity Sum",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="deviation_threshold",
                     label="Number of standard deviations from the median",
@@ -218,7 +218,7 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Outlier Detection by PCA",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="threshold",
                     label="Threshold for number of standard deviations from the median:",
@@ -250,7 +250,7 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Outlier Detection by Local Outlier Factor",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="number_of_neighbors",
                     label="Number of neighbors",
@@ -275,7 +275,7 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Outlier Detection by Isolation Forest",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="n_estimators",
                     label="Number of estimators",
@@ -300,7 +300,7 @@ class TransformationLog(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Log Transformation",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="log_base",
                     label="Log transformation base",
@@ -405,7 +405,7 @@ class NormalisationByMedian(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Normalisation by Median",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="percentile",
                     label="Percentile for normalisation",
@@ -697,7 +697,7 @@ class ImputationByKNN(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation by KNN",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="number_of_neighbours",
                     label="Number of neighbours",
@@ -706,6 +706,12 @@ class ImputationByKNN(DataPreprocessingStep):
                     step=1,
                 ),
                 FormDivider("Plot settings"),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
@@ -718,6 +724,7 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=VisualTrasformations.log10,
                     options=VisualTrasformations,
                 ),
+
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",

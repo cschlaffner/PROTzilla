@@ -2,20 +2,26 @@ import React from "react";
 import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
-import { color, fontSize, fontWeight, shadow, spacing } from "../../theme";
+import { color, fontSize, fontWeight, shadow, spacing, styledDiv } from "../../../theme";
+import { H3 } from "../../text";
 
-const StyledCard = styled.div`
+const StyledCard = styledDiv.div`
   background: white;
   border-radius: 8px;
   box-shadow: ${shadow("box_shadow")};
   padding: ${spacing("small")};
-`; //${border("defaultRadius")}
-
-const CardBody = styled.div`
-  padding: ${spacing("small")};
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 `;
 
-const CardTitle = styled.div`
+const CardBody = styledDiv.div<{ hasTitle: boolean }>`
+  padding: ${spacing("small")};
+  flex: 1;
+  overflow-y: auto;
+`;
+
+const CardTitle = styled(H3)`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,7 +37,7 @@ export const Card: React.FC<CardProps> = ({ title, children, className }) => {
   return (
     <StyledCard className={className}>
       {title && <CardTitle>{title}</CardTitle>}
-      <CardBody>{children}</CardBody>
+      <CardBody hasTitle={Boolean(title)}>{children}</CardBody>
     </StyledCard>
   );
 };

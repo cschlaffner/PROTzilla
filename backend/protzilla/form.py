@@ -1,13 +1,24 @@
 from __future__ import annotations
 from enum import Enum
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
+from pathlib import Path
 from typing import Any, List, Dict, Union, TYPE_CHECKING
+
+from backend.main import settings
 
 # to avoid circular imports
 if TYPE_CHECKING:
     from backend.protzilla.run import Run
-    
+
+@dataclass
+class Option:
+    """
+    Options for the dropdown and multi-select fields.
+    `value` is the value of the option, `label` is the label shown to the user.
+    """
+    value: str
+    label: str
 
 @dataclass
 class _baseField:
@@ -15,12 +26,13 @@ class _baseField:
     label: str
     value: object
     type: str
-    isvisible: bool = True
+    isVisible: bool = True
 
 
 @dataclass
 class TextField(_baseField):
     type: str = "text"
+    value: str = ""
 
 
 @dataclass
@@ -29,6 +41,7 @@ class NumberField(_baseField):
     min: int|None = None
     max: int|None = None
     step: float = 1
+    value: int = 0
 
 
 @dataclass
@@ -37,44 +50,67 @@ class FloatField(_baseField):
     min: int|None = None
     max: int|None = None
     step: float = 1
+    value: float = 0.0
 
 
 @dataclass
 class SearchField(_baseField):
     type: str = "search"
+    placeholder: str = ""
+    value: str = ""
+
+
+@dataclass
+class CheckboxField(_baseField):
+    type: str = "checkbox"
+    value: bool = False
 
 
 @dataclass
 class RadioSelectField(_baseField):
     type: str = "radio-select"
-
+    options: list[Option] | Enum = field(default_factory=list)
+    value: str|None = None
 
 @dataclass
-class CheckboxField(_baseField):
+class CheckboxMultiSelectField(_baseField):
     type: str = "checkbox-select"
+    options: list[Option] | Enum = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
 
 
 @dataclass
 class MultiSelectField(_baseField):
     type: str = "multi-select"
-    choices: List[str] = field(default_factory=list)
+    options: List[Option] = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
 
 
 @dataclass
 class DropdownField(_baseField):
-    options: Dict[str, str] | Enum = field(default_factory=dict)
     type: str = "dropdown"
+    options: list[Option] | Enum = field(default_factory=list)
+    value: str|None = None
+    
+    def set_options(self, options: list[Option] | Enum) -> None:
+        self.options = options
+        if (options == []):
+            self.value = None
+        elif (options and self.value not in map(lambda o: o.value, options)):
+            self.value = options[0].label #TODO should be value not label -> see frontend
 
 
 @dataclass
 class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
-    options: Dict[str, str] | Enum = field(default_factory=dict)
-    dropdown_choices: List[str] = field(default_factory=list)
+    value: list[str] = field(default_factory=list)
+    options: list[Option] | Enum = field(default_factory=list)
+    dropdown_options: List[str] = field(default_factory=list)
 
 
 @dataclass
 class FileInput(_baseField):
+    value: str|None = None
     type: str = "file"
     filedata: str = ""
 
@@ -95,13 +131,13 @@ StructualField = Union[FormDivider]
 @dataclass
 class Form:
     label: str
-    fields: List[InputField|StructualField]
+    input_fields: List[InputField|StructualField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
-        self._field_map = {field.name: field for field in self.fields if isinstance(field, _baseField)}
+        self._field_map = {field.name: field for field in self.input_fields if isinstance(field, _baseField)}
 
     def modify_form(self, run:Run) -> None:
         """
@@ -112,9 +148,9 @@ class Form:
 
     def update_values(self, values: Dict[str, Any]) -> None:
         "insert new values into the form"
-
-        for fieldname, value in values.items():
-            self[fieldname].value = value
+        if values:
+            for fieldname, value in values.items():
+                self[fieldname].value = value
         
     def apply_modification(self, run:Run) -> None:
         self.modify_form(run)
@@ -122,6 +158,9 @@ class Form:
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
 
+        if fieldname not in self._field_map:
+            raise KeyError(f"Field '{fieldname}' not found in form.")
+        
         return self._field_map[fieldname]
     
     def __setitem__(self, fieldname: str, field: Any) -> None:
@@ -137,10 +176,18 @@ class Form:
 
     @property
     def values(self) -> Dict[str, str]:
+        """
+        Returns a dictionary with the values of the form fields.
+        The keys are the field names and the values are the field values.
+        if the field is a file input, the value is the temporary path to the file.
+        """
+
         values = {}
-        for field in self.fields:
+        for field in self.input_fields:
             if isinstance(field, FormDivider):
                 continue
+            elif isinstance(field, FileInput):
+                values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None
             elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:
@@ -156,12 +203,15 @@ class Form:
             if callable(obj) and type(obj) != type(Enum):
                 return obj()
             
+            if is_dataclass(obj):
+                return asdict(obj)
+            
             # Serialize Enums as their values
             if isinstance(obj, Enum):
                 return obj.value
             
             # Serialize Enum class as dict
             if type(obj) == type(Enum):
-                return {item.name: item.value for item in obj}
+                return [Option(item.name, item.value) for item in obj]
             
             return super().default(obj)

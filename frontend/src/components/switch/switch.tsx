@@ -9,7 +9,6 @@ import { UIStateProps } from "../types";
 const SwitchContainer = styled.div`
   border-radius: ${radius("button")};
   flex-direction: row;
-  height: 34px;
   position: relative;
   user-select: none;
   background-color: ${color("secondary")};

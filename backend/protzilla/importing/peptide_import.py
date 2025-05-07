@@ -6,7 +6,7 @@ import pandas as pd
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
 
 
-def peptide_import(file_path, intensity_name, map_to_uniprot) -> dict:
+def peptide_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
     try:
         assert intensity_name in [
             "Intensity",
@@ -68,7 +68,7 @@ def peptide_import(file_path, intensity_name, map_to_uniprot) -> dict:
     return dict(peptide_df=cleaned)
 
 
-def evidence_import(file_path, intensity_name, map_to_uniprot) -> dict:
+def evidence_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
     try:
         assert intensity_name in [
             "Intensity",

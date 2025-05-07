@@ -26,8 +26,15 @@ import {
 import { FocusOutline } from "../box";
 
 const StyledButton = styled.button.withConfig({
-  shouldForwardProp: (prop) =>
-    prop.toString() !== "onlyIcon" && prop.toString() !== "onlyText",
+  shouldForwardProp: (prop: string) =>
+    ![
+      "isDisabled",
+      "isActive",
+      "onlyIcon",
+      "onlyText",
+      "isShy",
+      "isSmall",
+    ].includes(prop.toString()),
 })<
   Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall"> & {
     onlyIcon?: boolean;
