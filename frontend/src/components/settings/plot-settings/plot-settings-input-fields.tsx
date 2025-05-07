@@ -16,7 +16,7 @@ const StyledRadio = styled.input.attrs({ type: "radio" })`
 // File format: Dropdown
 export interface FileFormatFieldProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | null) => void;
 }
 export const FileFormatField: React.FC<FileFormatFieldProps> = ({
   value,
