@@ -408,7 +408,7 @@ def calculate_step(request):
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
 
-        if calculation_data["status"] != "calculated":
+        if calculation_data["status"] != "complete":
             return JsonResponse({"success": False, "message": calculation_data["messages"]
                                 , "data": calculation_data}, status=500)
         return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
