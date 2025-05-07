@@ -104,6 +104,29 @@ class DiannImport(ImportingStep):
 
     output_keys = ["protein_df"]
 
+    def create_form(self):
+        return Form(
+            label="DIA-NN Import",
+            fields=[
+                FileInput(
+                    name="file_path",
+                    label="DIA-NN intensities file (*.pg_matrix.tsv)",
+                    value=None,
+                ),
+                CheckboxField(
+                    name = "map_to_uniprot",
+                    label = "Map to Uniprot IDs using Biomart (online)",
+                    value = False
+                ),
+                DropdownField(
+                    name = "aggregation_method",
+                    label = "Aggregation method used to aggregate duplicate values for protein groups",
+                    value = AggregationMethods.sum,
+                    options = AggregationMethods,
+                ),
+            ]
+        )
+
     calc_method = staticmethod(diann_import)
 
 
@@ -113,6 +136,35 @@ class MsFraggerImport(ImportingStep):
     method_description = "Import the combined_protein.tsv file form output of MS Fragger"
 
     output_keys = ["protein_df"]
+
+    def create_form(self):
+        return Form(
+            label="DIA-NN Import",
+            fields=[
+                FileInput(
+                    name="file_path",
+                    label="MSFragger intensities file (combined_proteins.tsv)",
+                    value=None,
+                ),
+                DropdownField(
+                    name="intensity_name",
+                    label="intensity name",
+                    value=IntensityNameType.INTENSITY, #just a guess
+                    options=IntensityNameType,
+                ),
+                CheckboxField(
+                    name = "map_to_uniprot",
+                    label = "Map to Uniprot IDs using Biomart (online)",
+                    value = False
+                ),
+                DropdownField(
+                    name = "aggregation_method",
+                    label = "Aggregation method used to aggregate duplicate values for protein groups",
+                    value = AggregationMethods.sum,
+                    options = AggregationMethods,
+                ),
+            ]
+        )
 
     calc_method = staticmethod(ms_fragger_import)
 
@@ -156,6 +208,23 @@ class MetadataImportMethodDiann(ImportingStep):
 
     output_keys = ["metadata_df", "protein_df"]
 
+    def create_form(self):
+        return Form(
+            label="DIA-NN Metadata Import",
+            fields=[
+                FileInput(
+                    name="file_path",
+                    label="Run-Relationship metadata file:",
+                    value=None,
+                ),
+                CheckboxField(
+                    name="groupby_sample",
+                    label="Group replicate runs by sample using median",
+                    value=False,
+                ),
+            ]
+        )
+
     calc_method = staticmethod(metadata_import_method_diann)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -171,6 +240,56 @@ class MetadataColumnAssignment(ImportingStep):
     )
 
     output_keys = ["metadata_df", "protein_df"]
+
+    def create_form(self):
+        return Form(
+            label="Metadata column assignment",
+            fields=[
+                DropdownField(
+                    name="metadata_required_column",
+                    label="Missing, but required metadata columns",
+                    options=EmptyEnum,
+                ),
+                DropdownField(
+                    name="metadata_unknown_column",
+                    label="Existing, but unknown metadata columns",
+                    options=EmptyEnum,
+                )
+            ],
+        )
+
+    def modify_form(self, form, run):
+        metadata_required_column = form["metadata_required_column"]
+        metadata_unknown_column = form["metadata_unknown_column"]
+
+        metadata = run.steps.get_step_output(
+            ImportingStep, "metadata_df", include_current_step=True
+        )
+
+        if metadata is not None:
+            metadata_required_column.set_options([
+                Option(col, col)
+                for col in ["Sample", "Group", "Batch"]
+                if col not in metadata.columns
+            ])
+            if len(metadata_required_column.choices) == 0:
+                metadata_required_column.set_options([
+                    Option(None, "No required columns missing") #sollten die options hier vllt einfach leer gesetzt werden?
+                ])
+            
+            unknown_columns = list(
+                metadata.columns[
+                    ~metadata.columns.isin(["Sample", "Group", "Batch"])
+                ].unique()
+            )
+
+            metadata_unknown_column.set_choices([
+                Option(col, col) for col in unknown_columns
+            ])
+            if len(metadata_unknown_column) == 0:
+                metadata_unknown_column.set_choices([
+                    Option(None, "No unknown columns") #wie oben
+                ])
 
     calc_method = staticmethod(metadata_column_assignment)
 
@@ -189,6 +308,40 @@ class PeptideImport(ImportingStep):
 
     output_keys = ["peptide_df"]
 
+    def create_form(self):
+        return Form(
+            label="MaxQuant Peptide Import",
+            fields=[
+                FileInput(
+                    name="file_path",
+                    label="Peptide file",
+                    value=None,
+                ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    options=IntensityType,
+                ),
+                CheckboxField(
+                    name = "map_to_uniprot",
+                    label = "Map to Uniprot IDs using Biomart (online)",
+                    value = False
+                ),
+            ]
+        )
+    
+    def modify_form(self, form, run):
+        intensity_name_field = form["intensity_name"]
+        map_to_uniprot_field = form["map_to_uniprot"]
+
+        intensity_name_field.value = run.steps.get_step_input(
+            [MaxQuantImport, MsFraggerImport, DiannImport], "intensity_name"
+        )
+
+        map_to_uniprot_field.value = run.steps.get_step_input(
+            [MaxQuantImport, MsFraggerImport, DiannImport], "map_to_uniprot"
+        )
+
     calc_method = staticmethod(peptide_import)
 
 
@@ -198,5 +351,39 @@ class EvidenceImport(ImportingStep):
     method_description = "Import an evidence file"
 
     output_keys = ["peptide_df"]
+
+    def create_form(self):
+        return Form(
+            label="MaxQuant Evidence Import",
+            fields=[
+                FileInput(
+                    name="file_path",
+                    label="Evidence file",
+                    value=None,
+                ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    options=IntensityType,
+                ),
+                CheckboxField(
+                    name = "map_to_uniprot",
+                    label = "Map to Uniprot IDs using Biomart (online)",
+                    value = False
+                ),
+            ]
+        )
+    
+    def modify_form(self, form, run):
+        intensity_name_field = form["intensity_name"]
+        map_to_uniprot_field = form["map_to_uniprot"]
+
+        intensity_name_field.value = run.steps.get_step_input(
+            [MaxQuantImport, MsFraggerImport, DiannImport], "intensity_name"
+        )
+
+        map_to_uniprot_field.value = run.steps.get_step_input(
+            [MaxQuantImport, MsFraggerImport, DiannImport], "map_to_uniprot"
+        )
 
     calc_method = staticmethod(evidence_import)
