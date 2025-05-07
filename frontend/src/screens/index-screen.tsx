@@ -120,21 +120,6 @@ export const IndexScreen: React.FC = () => {
       run.run_steps.some((step) => step.toLowerCase().includes(searchTermRuns.toLowerCase())),
   );
 
-  const addRun = useCallback((data: Record<string, InputValueType>) => {
-    void callApiWithParameters("add_run/", {
-      run_name: data.runname ?? "",
-      workflow_name: data.workflow ?? "",
-      df_mode_name: data.df_mode ?? "disk",
-    });
-
-    notify({
-      title: "Run created",
-      message: `Run ${data.runname} has been created`,
-      type: "success",
-    })
-
-  }, [])
-
   const handleAddTag = (tag: string) => {
     void callApiWithParameters("add_tag/", {
       run_name: selectedRun.run_name,
@@ -183,6 +168,13 @@ export const IndexScreen: React.FC = () => {
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
       }).then(() => {
+
+        notify({
+          title: "Run created",
+          message: `Run ${data.runname} has been created`,
+          type: "success",
+        })
+
         void callApiWithParameters("continue_run/", {
           run_name: runName as string,
         }).then(() => {
@@ -263,7 +255,9 @@ export const IndexScreen: React.FC = () => {
                   },
                 ],
               }}
-              onChange={addRun}
+              onChange={(data) => {
+                handleContinueRun(data);
+              }}
             ></Form>
           </Modal>
         </StyledTemplateCard>

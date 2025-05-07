@@ -80,7 +80,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
               type: "text",
               name: "tag",
               label: "Add a new tag:",
-              characterLimit: 20,
+              characterLimit: 30,
               isVisible: true,
               value: "",
               placeholder: "",
