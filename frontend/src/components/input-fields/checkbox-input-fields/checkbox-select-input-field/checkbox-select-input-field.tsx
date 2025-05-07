@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props.ts";
 import { spacing } from "../../../../theme";
-import { InputContainer } from "../../frame-input-field";
+import { InputContainer } from "../../input-container";
 
 export const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
   cursor: default;

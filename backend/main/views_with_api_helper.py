@@ -1,6 +1,6 @@
 import re
 from backend.protzilla.all_steps import get_all_methods
-from backend.protzilla.steps import StepManager
+from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
 
 def parameters_from_post(post):
@@ -48,6 +48,18 @@ def get_all_possible_steps() -> list[dict]:
         step_list.append(step.to_dict(step))
     return step_list
 
+def get_step(
+    step: Step
+) -> dict:
+    return(
+        {
+            "id": step.instance_identifier,
+            "name": step.display_name,
+            "method_name": name_to_title(step.operation),
+            "status": step.calculation_status,
+        }
+    )
+
 def get_displayed_steps(
     steps: StepManager,
 ) -> list[dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
@@ -55,28 +67,18 @@ def get_displayed_steps(
     index_global = 0
 
     sections = [
-        "data_analysis",
+        "importing",
         "data_preprocessing",
-        "data_integration",
-        "importing"
+        "data_analysis",
+        "data_integration"
     ]
 
     for section in sections:
         workflow_steps = []
 
         for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
-            workflow_steps.append(#maybe useless stuff wei z.b. index kram, weil besser wenn frontend kalkuliert? andererseits ist das auch teilweise input for step_remove
-                {
-                    "id": step.operation,
-                    "name": name_to_title(step.operation),
-                    "index": index_in_section,
-                    "index_global": index_global,
-                    "section": step.section,
-                    "method_name": step.display_name,
-                    "selected": step == steps.current_step,
-                    "finished": index_global < steps.current_step_index,
-                    "calculation_icon_path": "img/" + step.calculation_status + "_icon.svg" #TODO ist das noch in Verwendung?
-                }
+            workflow_steps.append(
+                get_step(step)
             )
 
             index_global += 1
@@ -85,9 +87,10 @@ def get_displayed_steps(
                 "id": section,
                 "name": name_to_title(section),
                 "steps": workflow_steps,
-                "selected": steps.current_section == section,
-                "finished": index_global - 1 < steps.current_step_index,
-                "calculation_status": step.calculation_status,
+                #"selected": steps.current_section == section,
+                #"finished": index_global - 1 < steps.current_step_index,
+                #"calculation_status": step.calculation_status,
+                #TODO merge changes from old Repos
             }
         )
     return displayed_steps

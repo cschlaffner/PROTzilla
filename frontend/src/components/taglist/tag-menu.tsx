@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
@@ -60,6 +60,14 @@ export const TagMenu: React.FC<TagMenuProps> = ({
       run_tags: prevRun.run_tags.filter((t) => t != tag),
     }));
   };
+  // TODO from dev
+  // const onHandleAddTag = useCallback(
+  //   (tag: string) => {
+  //     handleAddTag(tag);
+  //     void fetchData();
+  //   },
+  //   [handleAddTag],
+  // );
 
   return (
     <div>
@@ -78,17 +86,19 @@ export const TagMenu: React.FC<TagMenuProps> = ({
             {
               type: "text",
               name: "tag",
-              props: {
-                label: "Add a new tag:",
-                value: "",
-                placeholder: "",
-              },
+              label: "Add a new tag:",
+              isVisible: true,
+              value: "",
+              placeholder: "",
             },
           ],
         }}
-        onChange={(data) => {
-          onHandleAddTag(data.tag as string);
-        }}
+        onChange={useCallback(
+          (data) => {
+            onHandleAddTag(data.tag as string);
+          },
+          [onHandleAddTag],
+        )}
       ></Form>
       <SearchInputField
         label="Or choose from existing tags:"

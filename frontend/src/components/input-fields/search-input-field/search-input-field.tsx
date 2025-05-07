@@ -2,11 +2,14 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { SearchInputFieldProps } from "./search-input-field.props";
 import { Icon } from "../../icon";
 
-const StyledInput = styled.input<{ $isSmall: boolean }>`
+const StyledInput = styled.input.withConfig({
+  shouldForwardProp: (prop: string) =>
+    prop !== "isSmall" && prop !== "smallBorder",
+})<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("small")};
   background: ${color("transparent")};
