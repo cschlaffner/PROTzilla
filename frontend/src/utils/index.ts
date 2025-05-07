@@ -5,4 +5,5 @@ export * from "./order-by";
 export * from "./pagination";
 export * from "./platform-detection";
 export * from "./text-dimensions";
-export * from "./types";
+export * from "./protzilla-types.ts";
+export * from "./arrayElement.ts";

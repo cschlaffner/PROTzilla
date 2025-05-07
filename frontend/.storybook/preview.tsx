@@ -4,13 +4,7 @@ import { styled } from "styled-components";
 
 import { ModalRoot, NotificationCenter } from "../src/components";
 import { i18n, initI18nApp } from "../src/i18n";
-import {
-  color,
-  ColorMode,
-  getTheme,
-  GlobalStyles,
-  ThemeProvider,
-} from "../src/theme";
+import { color, ColorMode, getTheme, GlobalStyles, ThemeProvider } from "../src/theme";
 
 const Wrapper = styled.div`
   background: ${color("backgroundOffset")};

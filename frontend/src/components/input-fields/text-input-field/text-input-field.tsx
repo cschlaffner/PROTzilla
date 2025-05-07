@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { TextInputFieldProps } from "./text-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
@@ -11,8 +11,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -24,10 +23,12 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   subscript,
   ...props
 }) => {
-  const [value, setValue] = useState(() => {
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
     onChange(initialValue);
-    return initialValue;
-  });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (value: string) => {
     if (characterLimit > 0 && value.length > characterLimit) {

@@ -25,11 +25,7 @@ export interface IPaginatedResult<T> {
   meta: IPaginationMeta;
 }
 
-export const paginateArray = <T>(
-  array: T[],
-  limit = 10,
-  page = 1,
-): IPaginatedResult<T> => {
+export const paginateArray = <T>(array: T[], limit = 10, page = 1): IPaginatedResult<T> => {
   const offset = (page - 1) * limit;
   const items = array.slice(offset, offset + limit);
 

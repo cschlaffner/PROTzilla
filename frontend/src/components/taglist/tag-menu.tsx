@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
@@ -13,11 +13,13 @@ const StyledModalChild = styled.div`
 
 export interface TagMenuProps {
   selectedRun: Run;
+  setSelectedRun: React.Dispatch<React.SetStateAction<Run>>;
   handleAddTag: (tag: string) => void;
   handleDeleteTag: (tag: string) => void;
 }
 
 export const TagMenu: React.FC<TagMenuProps> = ({
+  setSelectedRun,
   selectedRun,
   handleAddTag,
   handleDeleteTag,
@@ -36,16 +38,28 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     void fetchData();
   }, []);
 
-  const addableTags = existingTags.filter(
-    (tag) => !selectedRun.run_tags.includes(tag),
-  );
+  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
   const filteredAddableTags = addableTags.filter((tag) =>
     tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
   );
 
-  const onHandleAddTag = (tag: string) => {
-    handleAddTag(tag);
-    void fetchData();
+  const onHandleAddTag = useCallback(
+    (tag: string) => {
+      handleAddTag(tag);
+      setSelectedRun((prevRun) => ({
+        ...prevRun,
+        run_tags: [...prevRun.run_tags, tag],
+      }));
+    },
+    [handleAddTag, setSelectedRun],
+  );
+
+  const onHandleDeleteTag = (tag: string) => {
+    handleDeleteTag(tag);
+    setSelectedRun((prevRun) => ({
+      ...prevRun,
+      run_tags: prevRun.run_tags.filter((t) => t != tag),
+    }));
   };
 
   return (
@@ -54,7 +68,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
         runName={selectedRun.run_name}
         tags={selectedRun.run_tags}
         icon="close"
-        handleTag={handleDeleteTag}
+        handleTag={onHandleDeleteTag}
       />
       <Form
         formData={{
@@ -65,16 +79,20 @@ export const TagMenu: React.FC<TagMenuProps> = ({
             {
               type: "text",
               name: "tag",
-              props: {
-                label: "Add a new tag:",
-                characterLimit: 20,
-              },
+              label: "Add a new tag:",
+              characterLimit: 20,
+              isVisible: true,
+              value: "",
+              placeholder: "",
             },
           ],
         }}
-        onChange={(data) => {
-          onHandleAddTag(data.tag as string);
-        }}
+        onChange={useCallback(
+          (data) => {
+            onHandleAddTag(data.tag as string);
+          },
+          [onHandleAddTag],
+        )}
       ></Form>
       <SearchInputField
         label="Or choose from existing tags:"

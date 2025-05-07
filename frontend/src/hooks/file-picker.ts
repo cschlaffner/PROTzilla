@@ -10,10 +10,7 @@ export const useFilePicker = (
   accept = "image/png, image/jpeg, application/pdf",
   multiple = true,
 ): (() => void) => {
-  const inputElement: HTMLInputElement = useMemo(
-    () => document.createElement("input"),
-    [],
-  );
+  const inputElement: HTMLInputElement = useMemo(() => document.createElement("input"), []);
   useEffect(() => {
     inputElement.addEventListener("change", callback);
     return () => {

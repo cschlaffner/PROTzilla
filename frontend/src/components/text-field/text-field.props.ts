@@ -7,10 +7,7 @@ import type {
 } from "../types";
 
 export interface TextFieldProps
-  extends Omit<
-      React.InputHTMLAttributes<HTMLInputElement>,
-      "defaultValue" | "value"
-    >,
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "defaultValue" | "value">,
     I18nLabelProps,
     I18nPlaceholderProps,
     UIStateProps {

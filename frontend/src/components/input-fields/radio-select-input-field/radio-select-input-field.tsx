@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 
@@ -10,10 +10,8 @@ const StyledRadioContainer = styled.div<{ $isSmall: boolean }>`
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
-  padding-top: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
-  padding-bottom: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-top: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
+  padding-bottom: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
   padding-left: ${spacing("small")};
   padding-right: ${spacing("small")};
   width: 100%;

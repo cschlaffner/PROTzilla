@@ -200,6 +200,7 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    tableRow: "40px",
 
     // Input Screen
     templateSelectionHeight: "300px",
@@ -248,20 +249,15 @@ export type Color = keyof typeof defaultPalette;
 export type ColorMode = keyof typeof colorModes;
 
 export type BreakpointQueries<T> = {
-  [K in keyof T as K extends string
-    ? `${K}-up` | `${K}-down` | `${K}-only`
-    : never]: string;
+  [K in keyof T as K extends string ? `${K}-up` | `${K}-down` | `${K}-only` : never]: string;
 };
 
-export const getMediaQueriesFromBreakpoints = <
-  T extends Record<string, number>,
->(
+export const getMediaQueriesFromBreakpoints = <T extends Record<string, number>>(
   breakpoints: T,
 ): BreakpointQueries<T> => {
   const result: Record<string, string> = {};
 
-  const keys = Object.keys(breakpoints) as (keyof typeof breakpoints &
-    string)[];
+  const keys = Object.keys(breakpoints) as (keyof typeof breakpoints & string)[];
   keys.forEach((key, index) => {
     result[`${key}-up`] = `@media (min-width: ${String(breakpoints[key])}px)`;
     result[`${key}-down`] = `@media (max-width: ${String(breakpoints[key])}px)`;
@@ -269,18 +265,14 @@ export const getMediaQueriesFromBreakpoints = <
     result[`${key}-only`] =
       index === 0
         ? // First breakpoint
-          `@media (max-width: ${String(
-            Math.max(0, breakpoints[keys[index + 1]] - 1),
-          )}px)`
+          `@media (max-width: ${String(Math.max(0, breakpoints[keys[index + 1]] - 1))}px)`
         : index === keys.length - 1
           ? // Last breakpoint
             `@media (min-width: ${String(breakpoints[keys[index - 1]] + 1)}px)`
           : // Middle breakpoint
             `@media (min-width: ${String(
               breakpoints[keys[index - 1]] + 1,
-            )}px) and (max-width: ${String(
-              Math.max(0, breakpoints[keys[index + 1]] - 1),
-            )}px)`;
+            )}px) and (max-width: ${String(Math.max(0, breakpoints[keys[index + 1]] - 1))}px)`;
   });
 
   return result as BreakpointQueries<T>;
@@ -292,10 +284,7 @@ export const getMediaQueriesFromBreakpoints = <
  * @param colorMode The color mode, defaults to `light`.
  * @param theme If given, overrides the default theme template.
  */
-export const getTheme = (
-  colorMode: ColorMode = "light",
-  theme: typeof baseTheme = baseTheme,
-) =>
+export const getTheme = (colorMode: ColorMode = "light", theme: typeof baseTheme = baseTheme) =>
   makeObservable(
     {
       ...theme,
@@ -334,8 +323,10 @@ export const getMuiTheme = () => {
   return createTheme({
     typography: {
       fontFamily: baseTheme.fonts.defaultWithFallbacks,
+      fontSize: parseInt(baseTheme.fontSizes.default, 10),
     },
     mixins: {
+      // Header background styling
       MuiDataGrid: { containerBackground: baseTheme.colors.primary },
     },
     components: {
@@ -368,14 +359,15 @@ export const getMuiTheme = () => {
             // Footer styling
             "& .MuiTablePagination-selectLabel": {
               fontFamily: baseTheme.fonts.defaultWithFallbacks,
-              color: baseTheme.colors.text,
+              color: baseTheme.colors.primary,
             },
             "& .MuiTablePagination-displayedRows": {
               fontFamily: baseTheme.fonts.defaultWithFallbacks,
-              color: baseTheme.colors.text,
+              color: baseTheme.colors.primary,
             },
             "& .MuiDataGrid-footerContainer": {
-              backgroundColor: baseTheme.colors.gray,
+              backgroundColor: baseTheme.colors.secondary,
+              minHeight: baseTheme.sizes.tableRow,
             },
           },
         },

@@ -14,6 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import path, re_path
+from django.views.generic import RedirectView, TemplateView
 from django.urls import path, include
 from django.views.generic import RedirectView
 
@@ -21,7 +23,7 @@ from . import views
 from . import views_with_api
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/static/index.html')),
+    path('admin/', admin.site.urls),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views_with_api.run_information_list, name="run_information"),
     path("api/step_list/", views_with_api.all_steps, name="step_list"),
@@ -33,6 +35,7 @@ urlpatterns = [
     path("api/add_run/", views_with_api.add_run, name="add_run"),
     path("api/delete_run/", views_with_api.delete_run, name="delete_run"),
     path("api/continue_run/", views_with_api.continue_run, name="continue_run"),
+    path("api/update_run_name/", views_with_api.update_run_name, name="update_run_name"),
     path("api/add_plot/", views_with_api.add_plot, name="add_plot"),
     path("api/add_step/", views_with_api.add_step, name="add_step"),
     path("api/delete_step/", views_with_api.delete_step, name="delete_step"),
@@ -45,12 +48,16 @@ urlpatterns = [
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
+    path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
+    path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
 
     path("api/settings/", include("settings.urls")),
 
-    #old routes, not yet implemented as api endpints, see notion card 
+    #old routes, not yet implemented as api endpints, see notion card
     path("databases", views.databases, name="databases"),
     path("databases/upload", views.database_upload, name="database_upload"),
     path("databases/delete", views.database_delete, name="database_delete"),
-    path("admin/", admin.site.urls),
+
+    # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]

@@ -2,15 +2,7 @@ import React, { useEffect, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
-import {
-  color,
-  fontSize,
-  fontWeight,
-  radius,
-  size,
-  spacing,
-  zIndex,
-} from "../../../theme";
+import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { GrayButton } from "../../button";
 import { iconColor } from "../../icon/icon";
@@ -32,8 +24,7 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
     opacity 0.3s ease,
     transform 0.3s ease;
   opacity: ${({ isShown }) => (isShown ? 1 : 0)};
-  transform: ${({ isShown }) =>
-    isShown ? "translateY(0)" : "translateY(-10px)"};
+  transform: ${({ isShown }) => (isShown ? "translateY(0)" : "translateY(-10px)")};
   pointer-events: ${({ isShown }) => (isShown ? "auto" : "none")};
   z-index: ${zIndex("notification")};
   position: relative;
@@ -94,9 +85,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   const [isShown, setIsShown] = useState(propIsShown);
   const theme = useTheme();
   const closeAfterMs =
-    closeAfterMsProp > 0
-      ? closeAfterMsProp
-      : theme.durations.standardNotificationDuration;
+    closeAfterMsProp > 0 ? closeAfterMsProp : theme.durations.standardNotificationDuration;
   const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
 
   useEffect(() => {

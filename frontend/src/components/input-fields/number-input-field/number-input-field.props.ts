@@ -1,9 +1,7 @@
 import type { UIStateProps } from "../../types";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { InputContainerProps } from "../input-container";
 
-export interface NumberInputFieldProps
-  extends FrameInputFieldProps,
-    UIStateProps {
+export interface NumberInputFieldProps extends InputContainerProps, UIStateProps {
   value?: number;
   placeholder?: string;
   min?: number;
