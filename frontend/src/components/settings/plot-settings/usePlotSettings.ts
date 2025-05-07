@@ -110,7 +110,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
   };
 
   const downloadPlot = async (plot: Figure) => {
-    // TODO Customize file name
+    // TODO Part of issue #36: Customize file name
     const fileName = "plot";
     const scale = getScale(plot);
     const plotAsJson = JSON.stringify(plot);
@@ -148,6 +148,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
     }
   };
 
+  // Fixed width for containing the correct ratio of width & height
   const basePlotWidth = 400;
   const ptToInch = 1 / 72;
   const inchToMm = 25.4;
