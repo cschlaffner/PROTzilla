@@ -21,6 +21,7 @@ const Header = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: ${spacing("small")};
 `;
 
