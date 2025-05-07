@@ -3,14 +3,7 @@ import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import {
-  Button,
-  Modal,
-  PlotComponent,
-  SecondaryButton,
-  SectionTitle,
-  TextInputField,
-} from "../..";
+import { Button, Modal, PlotComponent, SecondaryButton, SectionTitle, TextInputField } from "../..";
 import {
   CustomFontField,
   FileFormatField,
@@ -142,22 +135,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField
-              onChange={handleFileFormatChange}
-              value={settings.fileFormat}
-            />
+            <FileFormatField onChange={handleFileFormatChange} value={settings.fileFormat} />
             <Row justify="between" align="center">
               <Col>
-                <WidthField
-                  value={settings.width}
-                  onChange={handleWidthChange}
-                />
+                <WidthField value={settings.width} onChange={handleWidthChange} />
               </Col>
               <Col>
-                <HeightField
-                  value={settings.height}
-                  onChange={handleHeightChange}
-                />
+                <HeightField value={settings.height} onChange={handleHeightChange} />
               </Col>
             </Row>
             <SectionTitle
@@ -165,10 +149,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               title={"Text"}
               style={{ paddingTop: "4px", paddingBottom: "4px" }}
             />
-            <FontField
-              selectedFont={settings.selectedFont}
-              onChange={handleFontChange}
-            />
+            <FontField selectedFont={settings.selectedFont} onChange={handleFontChange} />
             <CustomFontField
               selectedFont={settings.selectedFont}
               customFont={settings.customFont}
@@ -177,16 +158,10 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             />
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField
-                  onChange={handleTitleSizeChange}
-                  value={settings.titleSize}
-                />
+                <TitleSizeField onChange={handleTitleSizeChange} value={settings.titleSize} />
               </Col>
               <Col>
-                <TextSizeField
-                  value={settings.textSize}
-                  onChange={handleTextSizeChange}
-                />
+                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
               </Col>
             </Row>
             <TextInputField
@@ -197,24 +172,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={6}>
-          <PlotComponent
-            data={plot.data}
-            layout={plot.layout}
-            divId={"plot-id"}
-          />
+          <PlotComponent data={plot.data} layout={plot.layout} hasBorder={true} divId={"plot-id"} />
         </Col>
       </Row>
       <Footer>
-        <SecondaryButton
-          text={"Reset to default"}
-          icon="reload"
-          onPress={handleReset}
-        />
-        <SecondaryButton
-          text="Save as template"
-          icon="clipboard"
-          onPress={handleSaving}
-        />
+        <SecondaryButton text={"Reset to default"} icon="reload" onPress={handleReset} />
+        <SecondaryButton text="Save as template" icon="clipboard" onPress={handleSaving} />
         <Button text="Download plot" icon="download" onPress={handleDownload} />
       </Footer>
     </StyledModal>

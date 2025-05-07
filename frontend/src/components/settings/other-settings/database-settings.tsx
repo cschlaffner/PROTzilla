@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  DeleteModal,
-  Form,
-  SecondaryButton,
-  Text,
-  useNotification,
-} from "../../../components";
+import { DeleteModal, Form, SecondaryButton, Text, useNotification } from "../../../components";
 import { useToggleableState } from "../../../hooks";
 import { spacing } from "../../../theme";
 import { callApi, callApiWithParameters } from "../../../utils";
@@ -102,11 +96,7 @@ const DatabaseEntry = ({
           <Text text={cols.join(", ")} />
         </ColumnContainer>
       </DatabaseEntryInfo>
-      <SecondaryButton
-        icon={"trash"}
-        isCautious={true}
-        onPress={handleDelete}
-      />
+      <SecondaryButton icon={"trash"} isCautious={true} onPress={handleDelete} />
     </DatabaseEntryContainer>
   );
 };
@@ -114,8 +104,7 @@ const DatabaseEntry = ({
 export const DatabaseSettings = () => {
   const notify = useNotification();
   const [databaseList, setDatabaseList] = useState<DatabaseEntryProps[]>([]);
-  const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] =
-    useToggleableState(false);
+  const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggleableState(false);
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
 
   const fetchDatabases = async () => {
@@ -194,24 +183,21 @@ export const DatabaseSettings = () => {
             {
               type: "text",
               name: "database_name",
-              props: {
-                label: "Name for new database (required):",
-              },
+              label: "Name for new database (required):",
+              isVisible: true,
             },
             {
               type: "file",
               name: "database_file",
-              props: {
-                label: "Database file (required):",
-              },
+              label: "Database file (required):",
+              isVisible: true,
             },
             {
               type: "single-checkbox",
               name: "verification_checkbox",
-              props: {
-                label: "Verification",
-                text: "Copy file without verification and protein count.",
-              },
+              label: "Verification",
+              text: "Copy file without verification and protein count.",
+              isVisible: true,
             },
           ],
         }}
@@ -223,10 +209,7 @@ export const DatabaseSettings = () => {
           );
         }}
       />
-      <DatabasesTitle
-        baseComponent={"h2"}
-        title={"Available Uniprot Databases"}
-      />
+      <DatabasesTitle baseComponent={"h2"} title={"Available Uniprot Databases"} />
       <DatabaseList>
         {databaseList.map((db) => (
           <DatabaseEntry

@@ -14,13 +14,7 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
-import {
-  Button,
-  PlotComponent,
-  SecondaryButton,
-  SectionTitle,
-  Text,
-} from "../..";
+import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "../..";
 import { color, fontSize, fontWeight, spacing, zIndex } from "../../../theme";
 
 const SettingsDiv = styled.div`
@@ -55,11 +49,7 @@ export interface PlotSettingsProps {
   setHasChanges: (hasChanged: boolean) => void;
 }
 
-export const PlotSettings: React.FC<PlotSettingsProps> = ({
-  isOpen,
-  onClose,
-  setHasChanges,
-}) => {
+export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, setHasChanges }) => {
   const {
     settings,
     savedSettings,
@@ -165,9 +155,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   }, [savedSettings, settings]);
 
   const handleSaving = (
-    event:
-      | React.PointerEvent<HTMLButtonElement>
-      | React.KeyboardEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
   ) => {
     const target = event.currentTarget;
     void saveSettings();
@@ -208,22 +196,13 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField
-              value={settings.fileFormat}
-              onChange={handleFileFormatChange}
-            />
+            <FileFormatField value={settings.fileFormat} onChange={handleFileFormatChange} />
             <Row justify="between" align="center">
               <Col>
-                <WidthField
-                  value={settings.width}
-                  onChange={handleWidthChange}
-                />
+                <WidthField value={settings.width} onChange={handleWidthChange} />
               </Col>
               <Col>
-                <HeightField
-                  value={settings.height}
-                  onChange={handleHeightChange}
-                />
+                <HeightField value={settings.height} onChange={handleHeightChange} />
               </Col>
             </Row>
             <SectionTitle
@@ -233,10 +212,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             />
             <div>
               <Label text={"Font"} />
-              <FontField
-                selectedFont={settings.selectedFont}
-                onChange={handleFontChange}
-              />
+              <FontField selectedFont={settings.selectedFont} onChange={handleFontChange} />
               <CustomFontField
                 selectedFont={settings.selectedFont}
                 customFont={settings.customFont}
@@ -246,16 +222,10 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
             </div>
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField
-                  value={settings.titleSize}
-                  onChange={handleTitleSizeChange}
-                />
+                <TitleSizeField value={settings.titleSize} onChange={handleTitleSizeChange} />
               </Col>
               <Col>
-                <TextSizeField
-                  value={settings.textSize}
-                  onChange={handleTextSizeChange}
-                />
+                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
               </Col>
             </Row>
           </SettingsDiv>
@@ -264,15 +234,12 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           <PlotComponent
             data={plot.data as Data[]}
             layout={plot.layout as Partial<Layout>}
+            hasBorder={true}
           />
         </Col>
       </Row>
       <Footer>
-        <SecondaryButton
-          text={"Reset to default"}
-          icon="reload"
-          onPress={handleReset}
-        />
+        <SecondaryButton text={"Reset to default"} icon="reload" onPress={handleReset} />
         <SecondaryButton
           id="save"
           text={"Save"}
