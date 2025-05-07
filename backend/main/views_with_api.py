@@ -181,7 +181,7 @@ def update_run_name(request):
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
-            if e.__class__ == OSError:
+            if isinstance(e, OSError):
                 return JsonResponse({"success": False, "message": "Run name already exists."})
             return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
     else:
