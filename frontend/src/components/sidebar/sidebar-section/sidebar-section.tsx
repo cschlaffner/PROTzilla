@@ -4,11 +4,12 @@ import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
-import { useTheme } from "../../../theme";
-import { GrayButton } from "../../button";
-import { Icon, IconButton } from "../../icon/icon";
+import { callApiWithParameters } from "../../../utils";
+import { Icon } from "../../icon/icon";
+import { StepSelection } from "../../step-selection";
 import { H3 } from "../../text";
 import { CollapsibleLabel } from "../../text-field";
+import { Step } from "../types.ts";
 
 const TitleContainer = styled.div`
   display: flex;
@@ -53,50 +54,47 @@ const SectionContainer = styled.div`
 `;
 
 const SidebarSection: React.FC<SidebarSectionProps> = ({
+  runName,
   name,
   title,
   index,
   isCollapsed,
-  selectedStep,
-  setSelectedStep,
+  stepSectionIndex,
+  runData,
+  handleStepSelection,
+  currentSteps,
+  setCurrentSteps,
 }: SidebarSectionProps) => {
-  const initialSteps = [
-    "super mega ultra super long step name",
-    "Step2",
-    "Step3",
-  ];
-  const hasSelectedStep = selectedStep.section === name;
+  const isCurrentSection = runData.current_section === (name as string);
 
-  const [steps, setSteps] = useState(initialSteps);
   const [isMinimized, setIsMinimized] = useState(true);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [hoveredStepIndex, setHoveredStepIndex] = useState(0);
+
   const [showHandle, setShowHandle] = useState(false);
 
-  const addStep = (index: number) => {
-    const newSteps = [...steps];
-    newSteps.splice(index + 1, 0, "new Step");
-    setSteps(newSteps);
+  const addStep = (newStep: Step) => {
+    setCurrentSteps((prevSteps: Step[]) => [...prevSteps, newStep]);
   };
 
-  const deleteStep = (index: number) => {
-    const newSteps = [...steps];
-    newSteps.splice(index, 1);
-    setSteps(newSteps);
-    if (hasSelectedStep) {
-      setSelectedStep({
-        section: name,
-        index: Math.min(selectedStep.index, newSteps.length - 1),
-      });
+  const deleteStep = async (index: number) => {
+    await callApiWithParameters("delete_step/", {
+      run_name: runName,
+      section: name,
+      index: index.toString(),
+    });
+    setCurrentSteps((prevSteps: Step[]) => prevSteps.filter((_: Step, i: number) => index !== i));
+    if (isCurrentSection) {
+      if (currentSteps.length === 0) {
+        handleStepSelection(undefined);
+      } else {
+        const newIndex = stepSectionIndex ? Math.min(stepSectionIndex, currentSteps.length - 1) : 0;
+        handleStepSelection({
+          section: name,
+          index: newIndex,
+        });
+      }
     }
-  };
-
-  const baseTheme = useTheme();
-  const ContentTextStyle = {
-    fontSize: baseTheme.fontSizes.h5,
-    lineHeight: baseTheme.fontSizes.h5,
-    fontWeight: baseTheme.fontWeights.medium,
-    whiteSpace: "nowrap",
   };
 
   return (
@@ -108,10 +106,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       >
         <Icon icon={name} style={{ flexShrink: 0, marginRight: "10px" }} />
         <CollapsibleLabel width={"100%"} isCollapsed={isCollapsed}>
-          <H3
-            text={title}
-            style={{ userSelect: "none", whiteSpace: "nowrap" }}
-          />
+          <H3 text={title} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
         </CollapsibleLabel>
         <Icon
           icon={isMinimized ? "chevronDown" : "chevronUp"}
@@ -123,61 +118,49 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
         animate={{ height: isMinimized ? "auto" : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {steps.map((step, j) => {
+        {currentSteps.map((step: Step, j: number) => {
           const number = `${String(index + 1)}.${String(j + 1)}`;
           return (
             <SidebarStep
               key={number}
               number={number}
-              name={step}
+              stepStatus={step.status}
+              name={step.method_name + ": " + step.name}
               isCollapsed={isCollapsed}
               sectionName={name}
-              sectionLength={steps.length}
+              sectionLength={currentSteps.length}
               index={j}
-              selectedStep={selectedStep}
-              setSelectedStep={setSelectedStep}
-              deleteStep={deleteStep}
+              isSelected={isCurrentSection && stepSectionIndex === j}
+              handleStepSelection={handleStepSelection}
+              deleteStep={() => {
+                void deleteStep(j);
+              }}
               setHandlePosition={setHandlePosition}
               setShowHandle={setShowHandle}
               setHoveredStepIndex={setHoveredStepIndex}
             />
           );
         })}
-        <GrayButton
-          icon={"add"}
-          isShy={true}
-          color={"protzillaDarkBlue"}
-          text={isCollapsed ? undefined : "add step"}
-          isSmall={false}
-          textStyle={ContentTextStyle}
-          onClick={() => {
-            addStep(steps.length);
-          }}
-          style={{
-            margin: "0px 5px",
-            overflow: "hidden",
-          }}
+        <StepSelection
+          runName={runName}
+          section={name}
+          index={currentSteps.length}
+          isSmallButton={false}
+          handlePosition={handlePosition}
+          onAddStep={addStep}
+          setShowHandle={setShowHandle}
         />
       </StepsContainer>
-      {showHandle && steps.length !== 0 && (
-        <IconButton
-          icon="add"
+      {showHandle && currentSteps.length !== 0 && (
+        <StepSelection
+          runName={runName}
+          section={name}
+          index={hoveredStepIndex}
+          isSmallButton={true}
+          handlePosition={handlePosition}
+          onAddStep={addStep}
+          setShowHandle={setShowHandle}
           data-group-id="step-group"
-          onClick={() => {
-            addStep(hoveredStepIndex);
-          }}
-          onMouseEnter={() => {
-            setShowHandle(true);
-          }}
-          onMouseLeave={() => {
-            setShowHandle(false);
-          }}
-          style={{
-            position: "absolute",
-            left: handlePosition.left,
-            top: handlePosition.top,
-            transform: "translateX(-50%) translateY(-50%)",
-          }}
         />
       )}
     </SectionContainer>

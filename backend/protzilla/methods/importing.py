@@ -68,7 +68,7 @@ class MaxQuantImport(ImportingStep):
     def create_form(self):
         return Form(
             label="MaxQuant Protein Groups Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "MaxQuant intensities file (proteinGroups.txt)",
@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityNameType.MAXLFQ_INTENSITY,
+                    value = IntensityType.IBAQ,
                     options = IntensityType
                 ),
                 CheckboxField(
@@ -179,7 +179,7 @@ class MetadataImport(ImportingStep):
     def create_form(self):
         return Form(
             label="Metadata Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name = "file_path",
                     label = "Metadata file",

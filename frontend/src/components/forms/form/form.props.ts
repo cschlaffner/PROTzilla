@@ -22,47 +22,51 @@ export interface FormData {
 }
 
 export type InputField =
-  | { type: "text"; name: string; props: Omit<TextInputFieldProps, "onChange"> }
-  | {
+  | ({ 
+      type: "text"; 
+      name: string; 
+      isVisible: boolean 
+    } & Omit<TextInputFieldProps, "onChange">)
+  | ({
       type: "number";
       name: string;
-      props: Omit<NumberInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<NumberInputFieldProps, "onChange">)
+  | ({
       type: "search";
       name: string;
-      props: Omit<SearchInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<SearchInputFieldProps, "onChange">)
+  | ({
       type: "radio-select";
       name: string;
-      props: Omit<RadioSelectInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<RadioSelectInputFieldProps, "onChange">)
+  | ({
       type: "checkbox-select";
       name: string;
-      props: Omit<CheckboxSelectInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<CheckboxSelectInputFieldProps, "onChange">)
+  | ({
       type: "single-checkbox";
       name: string;
-      props: Omit<SingleCheckboxInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible:boolean;
+    } & Omit<SingleCheckboxInputFieldProps, "onChange">)
+  | ({
       type: "multi-select";
       name: string;
-      props: Omit<MultiSelectInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<MultiSelectInputFieldProps, "onChange">)
+  | ({
       type: "dropdown";
       name: string;
-      props: Omit<DropdownInputFieldProps, "onChange">;
-    }
-  | {
+      isVisible: boolean;
+    } & Omit<DropdownInputFieldProps, "onChange">)
+  | ({
       type: "file";
       name: string;
-      props: Omit<FileInputFieldProps, "onChange">;
-    };
+      isVisible: boolean;
+    } & Omit<FileInputFieldProps, "onChange">);
 
 type InputFields =
   | TextInputFieldProps
@@ -85,4 +89,5 @@ export interface InputFieldProps {
   onChange: (name: string, value: InputValueType) => void;
   options?: { label: string; value: string }[];
   key: string;
+  isVisible?: boolean;
 }
