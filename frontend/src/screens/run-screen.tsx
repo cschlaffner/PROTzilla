@@ -160,8 +160,6 @@ export const RunScreen: React.FC = () => {
     </StyledTableContainer>
   );
 
-  console.log("type rundata", runData);
-
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}

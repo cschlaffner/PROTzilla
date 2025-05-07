@@ -15,6 +15,7 @@ import { RadioSelectInputField } from "../../input-fields/radio-select-input-fie
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
 import { H3 } from "../../text";
+import { useNotification } from "../../notification-center";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};
@@ -44,46 +45,71 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   onSubmit,
   onChange,
 }) {
+  const notify = useNotification();
+
   const [formData, setFormData] = useState<FormData>();
   const [isloading, setLoading] = useState(false);
 
-  const getStepForm = useCallback(async (values: Record<string, InputValueType> = {}) => {
-    const response = await callApiWithParameters("get_step_form/", {
-      run_name: runName,
-      data: values,
-    });
-    if (response) {
-      const data = response.data;
-      setFormData(data);
-    }
-  }, [runName]);
+  const getStepForm = useCallback(
+    async (values: Record<string, InputValueType> = {}) => {
+      const response = await callApiWithParameters("get_step_form/", {
+        run_name: runName,
+        data: values,
+      });
+      if (response) {
+        const data = response.data;
+        setFormData(data);
+      }
+    },
+    [runName],
+  );
 
   useEffect(() => {
     void getStepForm();
   }, [current_step_index, getStepForm]);
 
-
   const handleChange = (name: string, value: InputValueType) => {
-      void getStepForm({ [name]: value });
-      onChange();
-    }
-
-  const handleSubmit = currentStepCalculationStatus === "complete" ? onNext : async () => {
-    setLoading(true);
-    try {
-      const response = await callApiWithParameters("calculate_step/", {
-        run_name: runName,
-      });
-      if (response) {
-        console.log("response", response.data);
-        onSubmit(response.data);
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-    } finally {
-      setLoading(false);
-    }
+    void getStepForm({ [name]: value });
+    onChange();
   };
+
+  const handleSubmit =
+    currentStepCalculationStatus === "complete"
+      ? onNext
+      : async () => {
+          setLoading(true);
+          try {
+            const response = await callApiWithParameters("calculate_step/", {
+              run_name: runName,
+            });
+            if (response.success) {
+              onSubmit(response.data);
+            } else {
+              const messages = response.message;
+              if (Array.isArray(messages)) {
+                messages.forEach((message) => {
+                  notify({
+                    title: "Error when calculating step",
+                    type: "error",
+                    isClosingAutomatically: false,
+                    message: message,
+                  });
+                });
+              } else {
+                notify({
+                  title: "Error when calculating step",
+                  type: "error",
+                  isClosingAutomatically: false,
+                  message: messages,
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Submission error:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
 
   return (
     <>
@@ -95,9 +121,13 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
           ))}
           <StyledSubmitDiv>
             <SubmitButton
-              isDisabled={previousStepCalculationStatus === "incomplete" || previousStepCalculationStatus === "failed"}
+              isDisabled={
+                previousStepCalculationStatus === "incomplete" ||
+                previousStepCalculationStatus === "failed"
+              }
               text={isloading ? "Loading..." : buttonText}
-              onClick={handleSubmit} />
+              onClick={handleSubmit}
+            />
           </StyledSubmitDiv>
         </StyledForm>
       )}
@@ -116,7 +146,7 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
   const handleInputChange = (value: InputValueType) => {
     onChange(name, value);
   };
-  
+
   if (isVisible === false) {
     return null;
   }

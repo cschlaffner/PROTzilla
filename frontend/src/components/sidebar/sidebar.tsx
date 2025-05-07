@@ -33,7 +33,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   stepSectionIndex,
   handleStepSelection,
 }: SidebarProps) => {
-  console.log("sections", sections);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
