@@ -45,4 +45,8 @@ _Ready for development. :D_
 
 ## How to update Pnpm
 - run `cd frontend`
-- run `corepack use pnpm@latest-10`
+- on unix:
+  - run `corepack use pnpm@latest-10`
+- on winows:
+  - run `pnpm self-update`
+- update version in `run_protzilla.bat`
