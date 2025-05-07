@@ -18,6 +18,8 @@ from backend.protzilla.utilities import format_trace
 from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.form import *
 
+class EmptyEnum(Enum):
+    pass
 
 class LogTransformationBaseType(Enum):
     log2 = "log2"
@@ -330,6 +332,31 @@ class NormalisationByZScore(DataPreprocessingStep):
     operation = "normalisation"
     method_description = "Normalise data by Z-Score"
 
+    def create_form(self):
+        return Form(
+            label="Normalisation by Z-Score",
+            fields=[
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+            ],
+        )
+
     calc_method = staticmethod(normalisation.by_z_score)
     plot_method = staticmethod(normalisation.by_z_score_plot)
 
@@ -338,6 +365,31 @@ class NormalisationByTotalSum(DataPreprocessingStep):
     display_name = "Total sum"
     operation = "normalisation"
     method_description = "Normalise data by total sum"
+
+    def create_form(self):
+        return Form(
+            label="Normalisation by total sum",
+            fields=[
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+            ],
+        )
 
     calc_method = staticmethod(normalisation.by_totalsum)
     plot_method = staticmethod(normalisation.by_totalsum_plot)
@@ -393,6 +445,41 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
     operation = "normalisation"
     method_description = "Normalise data by reference protein"
 
+    def create_form(self):
+        return Form(
+            label="Normalisation data by reference protein",
+            fields=[
+                FormDivider("A function to perform protein-intensity normalisation in reference to "
+                    "a selected protein on your dataframe. Normalises the data on the level "
+                    "of each sample. Divides each intensity by the intensity of the chosen "
+                    "reference protein in each sample. Samples where this value is zero "
+                    "will be removed and returned separately.A function to perform "
+                    "protein-intensity normalisation in reference to a selected protein on "
+                    "your dataframe. Normalises the data on the level of each sample. "
+                    "Divides each intensity by the intensity of the chosen reference "
+                    "protein in each sample. Samples where this value is zero will be "
+                    "removed and returned separately."),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+            ]
+        )
+
     calc_method = staticmethod(normalisation.by_reference_protein)
     plot_method = staticmethod(normalisation.by_reference_protein_plot)
 
@@ -401,6 +488,48 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
     display_name = "Min per dataset"
     operation = "imputation"
     method_description = "Impute missing values by the minimum per dataset"
+
+    def create_form(self):
+        return Form(
+            label="Imputation by minimum per dataset",
+            fields=[
+                NumberField(
+                    name="shrinking_value",
+                    label="A function to impute missing values for each protein by taking into account "
+                        "data from the entire dataframe. Sets missing value to the smallest measured "
+                        "value in the dataframe. The user can also assign a shrinking factor to take a "
+                        "fraction of that minimum value for imputation.",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ]
+        )
 
     calc_method = staticmethod(imputation.by_min_per_dataset)
     plot_method = staticmethod(imputation.by_min_per_dataset_plot)
@@ -411,6 +540,48 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
     operation = "imputation"
     method_description = "Impute missing values by the minimum per protein"
 
+    def create_form(self):
+        return Form(
+            label="Imputation by minimum per protein",
+            fields=[
+                FloatField(
+                    name="shrinking_value",
+                    label="A function to impute missing values for each protein by taking into account data from each protein. "
+                        "Sets missing value to the smallest measured value for each protein column. The user can also assign a "
+                        "shrinking factor to take a fraction of that minimum value for imputation. CAVE: All proteins without "
+                        "any values will be filtered out.",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ]
+        )
+
     calc_method = staticmethod(imputation.by_min_per_protein)
     plot_method = staticmethod(imputation.by_min_per_protein_plot)
 
@@ -419,6 +590,45 @@ class ImputationByMinPerSample(DataPreprocessingStep):
     display_name = "Min per sample"
     operation = "imputation"
     method_description = "Impute missing values by the minimum per sample"
+
+    def create_form(self):
+        return Form(
+            label="Imputation by minimum per sample",
+            fields=[
+                FloatField(
+                    name="shrinking_value",
+                    label="Sets missing intensity values to the smallest measured value for each sample",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ]
+        )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
     plot_method = staticmethod(imputation.by_min_per_sample_plot)
@@ -431,6 +641,43 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
     )
+
+    def create_form(self):
+        return Form(
+            label="Imputation per Protein",
+            fields=[
+                DropdownField(
+                    name="strategy",
+                    label="Strategy",
+                    value=SimpleImputerStrategyType.mean,
+                    options=SimpleImputerStrategyType,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ]
+        )
 
     calc_method = staticmethod(imputation.by_simple_imputer)
     plot_method = staticmethod(imputation.by_simple_imputer_plot)
@@ -489,6 +736,57 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
     operation = "imputation"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
+    def create_form(self):
+        return Form(
+            label="Imputation by normal distribution sampling",
+            fields=[
+                DropdownField(
+                    name="strategy",
+                    label="Strategy",
+                    value=ImputationByNormalDistributionSamplingStrategyType.per_protein,
+                    options=ImputationByNormalDistributionSamplingStrategyType,
+                ),
+                NumberField(
+                    name="down_shift",
+                    label="Downshift",
+                    value=-1,
+                    min=-10,
+                    max=10,
+                ),
+                FloatField(
+                    name="scaling_factor",
+                    label="Scaling factor",
+                    value=0.5,
+                    min=0,
+                    max=1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10,
+                    options=VisualTrasformations,
+                ),
+                DropdownField(
+                    name="graph_type_quantities",
+                    label="Graph type - quantity of imputed values",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ]
+        )
+
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
 
@@ -498,6 +796,30 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
     output_keys = ["protein_df", "peptide_df", "filtered_peptides"]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by PEP threshold",
+            fields=[
+                FloatField(
+                    name="treshold",
+                    label="Threshold value for PEP",
+                    value=0,
+                    min=0,
+                ),
+                DropdownField(
+                    name="peptide_df",
+                    label="peptide_df",
+                    options=EmptyEnum, #WTF happens here? Jannes, 01.05.2025
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
