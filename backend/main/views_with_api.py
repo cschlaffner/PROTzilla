@@ -1,13 +1,19 @@
 from dataclasses import asdict
 import json
+import math
 import os
 import io
 import traceback
+import zipfile
+
+import numpy as np
+from plotly.io import to_json
 from pathlib import Path
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
 
+from backend.main.upload_handler import CustomFileUploadHandler
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
@@ -17,7 +23,7 @@ from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_displayed_steps, parameters_from_post, get_all_possible_steps
+from backend.main.views_with_api_helper import get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -171,7 +177,8 @@ def add_plot(request):
         run = active_runs[run_name]
         if run.current_step.display_name == "plot":
             del parameters["chosen_method"]
-            run.step_calculate(parameters)
+            run.current_form(parameters)
+            run.step_calculate()
         else:
             run.current_step.plot(parameters)
 
@@ -189,7 +196,7 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Added step: " + method})
+        return JsonResponse({"success": True, "message": "Added step: " + method, "data": get_step(step)}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -250,7 +257,7 @@ def export_workflow(request):
         return JsonResponse({"success": True, "message": "Exported workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
 def download_table(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -280,13 +287,18 @@ def get_run_data(request):
         run_name = data.get("run_name")
 
         run = active_runs[run_name]
-
         run_data = {}
 
-        run_data["displayed_steps"] = get_displayed_steps()
-        run_data["current_section"] = run.current_step.section
-        run_data["current_step"] = run.current_step
-        run_data["memory_usage"] = get_memory_usage()
+        if run.current_step is not None:
+            run_data["displayed_steps"] = get_displayed_steps(run.steps)
+            run_data["current_section"] = run.current_step.section
+            run_data["current_step_index"] = run.steps.current_step_index
+            run_data["memory_usage"] = get_memory_usage()
+        else:
+            run_data["displayed_steps"] = []
+            run_data["current_section"] = None
+            run_data["current_step"] = None
+            run_data["memory_usage"] = get_memory_usage()
 
         return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
     else:
@@ -303,9 +315,12 @@ def get_step_form(request):
 
         run = active_runs[run_name]
 
+        if new_form_values!={}:
+            run.steps.set_steps_outdated()
+
         form = run.current_form(new_form_values)
 
-        return JsonResponse({"success": True, "message": "Received input parameters", "data": asdict(form)}, safe=False, encoder=Form.CustomEncoder)
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": form}, safe=False, encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -315,10 +330,12 @@ def get_step_plots(request):
         run_name = data.get("run_name")
 
         run = active_runs[run_name]
-        
-        #get parameters for the step
+        if run.current_step is not None:
+            plots = [to_json(plot) for plot in run.current_plots.plots]
+        else:
+            plots = []
 
-        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": "placeholder"}, safe=False)
+        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -329,9 +346,39 @@ def get_step_table(request):
 
         run = active_runs[run_name]
         
-        #get parameters for the step
+        if run.current_step is not None:
+            if "protein_df" in run.current_outputs:
+                data = run.current_outputs["protein_df"]
+                data["id"] = data.index
+                cleaned_data = data.replace(np.nan, None)
+                json_data = cleaned_data.to_dict(orient="records")
+            else:
+                json_data = [{}]
 
-        return JsonResponse({"success": True, "message": "Got the table for the step", "data": "placeholder"}, safe=False)
+        return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def calculate_step(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        user_input = data.get("data")
+
+        run = active_runs[run_name]
+        run.current_form(user_input)
+        run.step_calculate()
+
+        calculation_data = {}
+        calculation_data["section"] = run.current_step.section
+        calculation_data["index"] = run.steps.current_step_index_in_section
+        calculation_data["status"] = run.current_step.calculation_status
+        calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
+
+        if calculation_data["status"] != "complete":
+            return JsonResponse({"success": False, "message": calculation_data["messages"]
+                                , "data": calculation_data}, status=500)
+        return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

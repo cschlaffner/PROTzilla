@@ -1,14 +1,13 @@
-/* eslint-disable */
-// disable linter to avoid conflicts (file taken from run-screen)
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
+import { size, spacing } from "../../../theme";
+import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
-import { size, spacing } from "../../../theme";
 import { SecondaryButton } from "../../button";
-import { InputContainer } from "../frame-input-field";
+import { useNotification } from "../../notification-center";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -32,17 +31,25 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   onChange,
   ...props
 }) => {
+  const notify = useNotification();
+
   const [file, setFile] = useState<File | null>(null);
+  const [currentName, setCurrentName] = useState(value);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
+    setCurrentName(value);
+  }, [value]);
+
+  useEffect(() => {
     if (file) {
       const fileName = file.name;
-      value = fileName;
+      setCurrentName(fileName);
       void handleUpload();
       onChange(fileName);
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   const handleFileSelection = (e: Event) => {
@@ -76,6 +83,11 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
       // Upload successful
     } catch (err) {
       console.error("Upload failed:", err);
+      notify({
+        title: "Upload failed",
+        message: "There was an error uploading the file: " + (err as string),
+        type: "error",
+      });
       // Upload failed
     } finally {
       setIsUploading(false);
@@ -87,9 +99,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   return (
     <InputContainer {...props}>
       <StyledDiv>
-        <StyledSpan>
-          {file ? file.name : value ? value : placeholder}
-        </StyledSpan>
+        <StyledSpan>{currentName ?? placeholder}</StyledSpan>
         <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
         </SecondaryButton>

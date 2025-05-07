@@ -6,7 +6,7 @@ import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { SearchInputField } from "../search-input-field";
 
 const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
@@ -105,11 +105,12 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
     return sortedSelection;
   });
 
-  const unselectedOptions = options.filter(
-    (option) =>
-      !selectedOptions.some((selected) => selected.value === option.value),
+  const unselectedOptions = sortOptions(
+    options.filter(
+      (option) =>
+        !selectedOptions.some((selected) => selected.value === option.value),
+    ),
   );
-
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleItemClick = (option: { label: string; value: string }) => {
@@ -123,7 +124,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
       const sortedSelection = sortOptions(newSelection);
       setSelectedOptions(sortedSelection);
       onChange(sortedSelection.map((opt) => opt.value));
-      return newSelection;
+      return sortedSelection;
     });
   };
 

@@ -22,6 +22,7 @@ import {
   opacity,
   radius,
   spacing,
+  styledDiv,
 } from "../../theme";
 
 // TODO: Add translations for built-in texts
@@ -95,7 +96,7 @@ const StyledLabel = styled.label`
   flex-direction: column;
 `;
 
-const InputContainer = styled.div<{ isFocused?: boolean }>`
+const InputContainer = styledDiv.div<{ isFocused?: boolean }>`
   display: flex;
   align-items: center;
   position: relative;
@@ -105,7 +106,7 @@ const InputContainer = styled.div<{ isFocused?: boolean }>`
   }
 
   .show-password {
-    display: ${(props) => (props.isFocused ? "inline-flex" : "none")};
+    display: ${({ isFocused }) => (isFocused ? "inline-flex" : "none")};
   }
 
   &:hover {
@@ -181,7 +182,7 @@ const SubscriptSpacer = styled(Spacer)<{ hasMinWidth?: boolean }>`
     `}
 `;
 
-const TagContainer = styled.div<{
+const TagContainer = styledDiv.div<{
   isFocused?: boolean;
   isDisabled?: boolean;
   hasError?: boolean;

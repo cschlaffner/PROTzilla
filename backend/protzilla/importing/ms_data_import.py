@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import re
 import traceback
 from collections import defaultdict
@@ -11,7 +12,7 @@ from backend.protzilla.utilities import format_trace
 
 
 def max_quant_import(
-    file_path: str, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
+    file_path: Path, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
 ) -> dict:
     assert intensity_name in ["Intensity", "iBAQ", "LFQ intensity"]
     try:
@@ -42,7 +43,7 @@ def max_quant_import(
 
 
 def ms_fragger_import(
-    file_path: str, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
+    file_path: Path, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
 ) -> dict:
     assert intensity_name in [
         "Intensity",
@@ -93,7 +94,7 @@ def ms_fragger_import(
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=format_trace(traceback.format_exception(e)))])
 
 
-def diann_import(file_path, map_to_uniprot=False, aggregation_method: str ="Sum") -> dict:
+def diann_import(file_path : Path, map_to_uniprot=False, aggregation_method: str ="Sum") -> dict:
     try:
         df = pd.read_csv(
             file_path,

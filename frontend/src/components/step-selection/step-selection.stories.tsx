@@ -1,6 +1,6 @@
-import { SectionModes } from "./section-modes.tsx";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepSelection } from "./step-selection.tsx";
+import { Sections } from "../sidebar/types.ts";
 
 export default {
   component: StepSelection,
@@ -13,8 +13,10 @@ export const importingSteps = (args: StepSelectionProps): React.ReactNode => (
 );
 importingSteps.args = {
   runName: "runrun",
-  section: SectionModes.Importing,
+  section: Sections.Importing,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataAnalysisSteps = (
@@ -22,8 +24,10 @@ export const dataAnalysisSteps = (
 ): React.ReactNode => <StepSelection {...args} />;
 dataAnalysisSteps.args = {
   runName: "runrun",
-  section: SectionModes.DataAnalysis,
+  section: Sections.DataAnalysis,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataIntegrationSteps = (
@@ -31,8 +35,10 @@ export const dataIntegrationSteps = (
 ): React.ReactNode => <StepSelection {...args} />;
 dataIntegrationSteps.args = {
   runName: "runrun",
-  section: SectionModes.DataIntegration,
+  section: Sections.DataIntegration,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const dataPreprocessingSteps = (
@@ -40,8 +46,10 @@ export const dataPreprocessingSteps = (
 ): React.ReactNode => <StepSelection {...args} />;
 dataPreprocessingSteps.args = {
   runName: "runrun",
-  section: SectionModes.DataPreprocessing,
+  section: Sections.DataPreprocessing,
   isSmallButton: true,
+  index: 0,
+  handlePosition: { top: 400, left: 600 },
 };
 
 export const withBiggerButton = (args: StepSelectionProps): React.ReactNode => (
@@ -49,6 +57,8 @@ export const withBiggerButton = (args: StepSelectionProps): React.ReactNode => (
 );
 withBiggerButton.args = {
   runName: "runrun",
-  section: SectionModes.DataPreprocessing,
+  section: Sections.DataPreprocessing,
   isSmallButton: false,
+  index: 0,
+  handlePosition: { top: 0, left: 0 },
 };
