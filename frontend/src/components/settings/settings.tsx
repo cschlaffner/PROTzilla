@@ -10,7 +10,7 @@ import { useToggleableState } from "../../hooks/";
 
 const WideModal = styled(Modal)`
   width: fit-content;
-  max-width: 100%;
+  max-width: 100vw;
   height: fit-content;
   max-height: 100vh;
 `;
@@ -43,7 +43,7 @@ const SectionButton = styled(ToggleableButton)`
 
 const SpecificSettings = styled.div`
   height: 80vh;
-  width: 120vh;
+  width: 120vw;
   overflow: hidden;
   overflow-y: auto;
 `;

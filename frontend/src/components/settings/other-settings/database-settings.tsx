@@ -119,7 +119,7 @@ export const DatabaseSettings = () => {
   const [selectedDatabase, setSelectedDatabase] = useState<string>("");
 
   const fetchDatabases = async () => {
-    const databases = await callApi("databases");
+    const databases = await callApi("get_databases");
     if (databases) {
       setDatabaseList(databases);
     }
@@ -144,6 +144,13 @@ export const DatabaseSettings = () => {
         title: "Database upload",
         message: "Database uploaded successfully.",
         type: "success",
+        isClosingAutomatically: true,
+      });
+    } else {
+      notify({
+        title: "Database upload failed",
+        message: response.message || "Unknown error",
+        type: "error",
         isClosingAutomatically: true,
       });
     }

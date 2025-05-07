@@ -91,7 +91,6 @@ export const GitHub = () => {
         <InnerContentDiv>
           <SecondaryButton
             onPress={onOpenGitHub}
-            isCautious={true}
             icon={"github"}
             text={"Github"}
           />

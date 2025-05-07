@@ -106,6 +106,11 @@ def database_upload(request):
         file_name = data.get("file")
         path = settings.FILE_UPLOAD_TEMP_DIR / file_name
 
+        if name is None or name == "":
+            msg = "Filename cannot be empty."
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
         if database_path(name).exists():
             msg = "Filename already taken."
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
