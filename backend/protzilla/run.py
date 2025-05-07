@@ -55,6 +55,8 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         if os.path.isfile(metadata_yaml_path):
             yaml_operator = YamlOperator()
             metadata = yaml_operator.read(metadata_yaml_path)
+            if not metadata:
+                metadata = {}
             tags = metadata.get("tags", set())
             favourite = metadata.get("favourite", False)
         

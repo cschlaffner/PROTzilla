@@ -35,6 +35,7 @@ urlpatterns = [
     path("api/add_run/", views_with_api.add_run, name="add_run"),
     path("api/delete_run/", views_with_api.delete_run, name="delete_run"),
     path("api/continue_run/", views_with_api.continue_run, name="continue_run"),
+    path("api/update_run_name/", views_with_api.update_run_name, name="update_run_name"),
     path("api/add_plot/", views_with_api.add_plot, name="add_plot"),
     path("api/add_step/", views_with_api.add_step, name="add_step"),
     path("api/delete_step/", views_with_api.delete_step, name="delete_step"),
