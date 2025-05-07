@@ -12,9 +12,7 @@ export class StorageHistory<M> implements IStorageHistory<M> {
   @observable protected accessor historyOffset = 0;
 
   constructor(
-    protected dispatchHistoryAction: (
-      command: StorageCommand<keyof M, M>,
-    ) => Promise<void>,
+    protected dispatchHistoryAction: (command: StorageCommand<keyof M, M>) => Promise<void>,
   ) {}
 
   public get canUndo(): boolean {
@@ -28,8 +26,7 @@ export class StorageHistory<M> implements IStorageHistory<M> {
   public async undo(): Promise<void> {
     if (!this.canUndo) return;
 
-    const currentCommand =
-      this.history[this.history.length - 1 - this.historyOffset];
+    const currentCommand = this.history[this.history.length - 1 - this.historyOffset];
     if (currentCommand.kind === "TRANSACTION") {
       if (currentCommand.commands.find((subCommand) => !subCommand.rollback)) {
         throw new RollbackUnsupportedError();
@@ -51,8 +48,7 @@ export class StorageHistory<M> implements IStorageHistory<M> {
   public async redo(): Promise<void> {
     if (!this.canRedo) return;
 
-    const currentCommand =
-      this.history[this.history.length - this.historyOffset];
+    const currentCommand = this.history[this.history.length - this.historyOffset];
 
     if (currentCommand.kind === "TRANSACTION") {
       for (const subCommand of currentCommand.commands) {

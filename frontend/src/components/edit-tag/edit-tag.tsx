@@ -68,11 +68,6 @@ export const EditTag: React.FC<EditTagProps> = ({
       />
     )}
 
-    <StyledButton
-      className="icon"
-      icon={icon}
-      onPress={onButtonPress}
-      isDisabled={isDisabled}
-    />
+    <StyledButton className="icon" icon={icon} onPress={onButtonPress} isDisabled={isDisabled} />
   </Container>
 );

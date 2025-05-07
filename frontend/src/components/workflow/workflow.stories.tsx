@@ -8,9 +8,7 @@ export default {
   onPress: { action: "pressed" },
 };
 
-export const workflow = (args: WorkflowProps): React.ReactNode => (
-  <Workflow {...args} />
-);
+export const workflow = (args: WorkflowProps): React.ReactNode => <Workflow {...args} />;
 workflow.args = {
   icon: "add",
   workflow: "test_workflowsssssssssssuuuuuuuuuuuuuuuuuuuuuuppperlang",
