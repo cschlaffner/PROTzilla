@@ -59,13 +59,21 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
 
     useEffect(() => {
       const fetchRunInformation = async () => {
-        const data = await callApi("run_information/");
-        if (data) {
-          const run = data[0].find((run: Run) => run.run_name === runName);
+        const response = await callApi("run_information/");
+        if (response.success) {
+          const run = response.data.find(
+            (run: Run) => run.run_name === runName,
+          );
           if (!run) {
             throw new Error(`Run with name "${runName}" not found`);
           }
           setSelectedRun(run);
+        } else {
+          notify({
+            type: "error",
+            message: "Error fetching run information",
+            title: "Error",
+          });
         }
       };
 

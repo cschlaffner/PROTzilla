@@ -1,4 +1,3 @@
-import os
 from dataclasses import asdict
 import json
 import io
@@ -7,11 +6,10 @@ import traceback
 import zipfile
 
 import pandas as pd
-from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.protzilla.form import Form
-from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo, get_available_run_names
+from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
@@ -23,11 +21,12 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 
 active_runs: dict[str, Run] = {}
-run_list: dict[str, dict] = {}
 
 def get_run(run_name: str) -> Run:
     """
-    Get the run object for the given run name. If the run is not in active runs, it will be created.
+    Get the run object for the given run name to minimize the creation of new run objects. If the run is not in active runs, it will be created.
+
+    :param run_name: The name of the run.
     """
     if run_name not in active_runs:
         run = Run(run_name)
@@ -37,16 +36,16 @@ def get_run(run_name: str) -> Run:
     return run
 
 def run_information_list(request):
-    run_info = get_available_runinfo()
-    if not run_info:
-        return JsonResponse(None, safe=False) #not clean, maybe use error message or smth
+    run_info = get_available_run_info()
+    if type(run_info) == str:
+        return JsonResponse(success=False, data=None, messages=run_info, safe=False)
+    if not run_info or len(run_info) == 0:
+        return JsonResponse(success=False, data=None, messages="An unkown error occured when creating run table.",safe=False)
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
-    for run in all_available_runs:
-        run_list[run["run_name"]] = run
-    available_runinfo = [all_available_runs, all_tags]
+    available_run_info = [all_available_runs, all_tags]
 
-    return JsonResponse(available_runinfo, safe=False)
+    return JsonResponse(success=True, data=available_run_info, safe=False)
 
 def all_steps(request):
     steps = get_all_possible_steps()

@@ -3,7 +3,14 @@ import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { Card, Form, Modal, RunsTable, Workflow } from "../components";
+import {
+  Card,
+  Form,
+  Modal,
+  RunsTable,
+  useNotification,
+  Workflow,
+} from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
@@ -52,6 +59,7 @@ const StyledRunSelectionCard = styled(Card)`
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
+  const notify = useNotification();
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -72,9 +80,15 @@ export const IndexScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("run_information/");
-      if (data) {
-        setRuns(data[0]);
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setRuns(response.data);
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
       }
     };
 

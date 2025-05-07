@@ -6,6 +6,7 @@ import { spacing } from "../../theme";
 import { callApi, Run } from "../../utils";
 import { Form } from "../forms/form";
 import { SearchInputField } from "../input-fields/search-input-field";
+import { useNotification } from "../notification-center";
 
 const StyledModalChild = styled.div`
   padding: ${spacing("small")};
@@ -24,13 +25,21 @@ export const TagMenu: React.FC<TagMenuProps> = ({
   handleAddTag,
   handleDeleteTag,
 }) => {
+  const notify = useNotification();
+
   const [existingTags, setExistingTags] = React.useState<string[]>([]);
   const [searchTermTags, setSearchTermTags] = React.useState<string>("");
 
   const fetchData = async () => {
-    const data = await callApi("run_information/");
-    if (data) {
-      setExistingTags(data[1]);
+    const response = await callApi("run_information/");
+    if (response.success) {
+      setExistingTags(response.data);
+    } else {
+      notify({
+        type: "error",
+        message: "Error fetching existing tags",
+        title: "Error",
+      });
     }
   };
 
