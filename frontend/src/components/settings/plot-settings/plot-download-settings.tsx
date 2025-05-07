@@ -172,7 +172,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={6}>
-          <PlotComponent data={plot.data} layout={plot.layout} hasBorder={true} divId={"plot-id"} />
+          <PlotComponent
+            data={plot.data}
+            layout={plot.layout}
+            hasBorder={true}
+            hasResizing={false}
+            divId={"plot-id"}
+          />
         </Col>
       </Row>
       <Footer>

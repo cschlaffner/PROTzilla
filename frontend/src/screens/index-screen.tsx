@@ -7,7 +7,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import {
   Card,
   Form,
-  InputValueType, Modal, Navbar, RunsTable,
+  InputValueType,
+  Modal,
+  Navbar,
+  RunsTable,
   useNotification,
   Workflow,
 } from "../components";

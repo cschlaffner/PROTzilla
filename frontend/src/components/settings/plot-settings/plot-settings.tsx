@@ -235,6 +235,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
             data={plot.data as Data[]}
             layout={plot.layout as Partial<Layout>}
             hasBorder={true}
+            hasResizing={false}
           />
         </Col>
       </Row>

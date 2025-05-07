@@ -16,12 +16,7 @@ export default {
   },
 };
 
-const PopupWithState = ({
-  onConfirm,
-  onDismiss,
-  onOutsidePress,
-  ...rest
-}: PopUpProps) => {
+const PopupWithState = ({ onConfirm, onDismiss, onOutsidePress, ...rest }: PopUpProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const open = useCallback(() => {
     setIsOpen(true);
@@ -59,9 +54,7 @@ const PopupWithState = ({
   );
 };
 
-export const primary = (args: PopUpProps): React.ReactNode => (
-  <PopupWithState {...args} />
-);
+export const primary = (args: PopUpProps): React.ReactNode => <PopupWithState {...args} />;
 primary.args = {
   title: "Popup",
   description: "Description",
@@ -92,9 +85,7 @@ withChildren.args = {
   isOpen: true,
 };
 
-export const customButtonText = (args: PopUpProps): React.ReactNode => (
-  <PopUp {...args} />
-);
+export const customButtonText = (args: PopUpProps): React.ReactNode => <PopUp {...args} />;
 customButtonText.args = {
   title: "Popup with custom button text",
   description: "Description",

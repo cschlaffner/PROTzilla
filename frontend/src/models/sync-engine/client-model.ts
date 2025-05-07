@@ -2,12 +2,7 @@ import { action, computed, observable, runInAction } from "mobx";
 
 import { StorageClient } from "./client";
 import { defaultStorageClient } from "./main";
-import {
-  IClientModel,
-  IRemoteObject,
-  MixinConstructor,
-  Snapshot,
-} from "./types";
+import { IClientModel, IRemoteObject, MixinConstructor, Snapshot } from "./types";
 import { pickProperties, toSnapshot } from "./utils";
 
 export const ClientModel =
@@ -15,10 +10,7 @@ export const ClientModel =
     entity?: string,
     storageClient: StorageClient<M> = defaultStorageClient as unknown as StorageClient<M>,
   ) =>
-  <T extends IRemoteObject>(
-    constructor: MixinConstructor<T>,
-    { kind, name }: DecoratorContext,
-  ) => {
+  <T extends IRemoteObject>(constructor: MixinConstructor<T>, { kind, name }: DecoratorContext) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resolvedEntity = entity ?? (name as any);
 
@@ -54,25 +46,21 @@ export const ClientModel =
         @action
         public hydrate(data: Partial<T>): void {
           this.sync = false;
-          (this as unknown as { properties: PropertyKey[] }).properties.forEach(
-            (property) => {
-              if (property in data) {
-                this[property as keyof this] = data[property as never];
-              }
-            },
-          );
+          (this as unknown as { properties: PropertyKey[] }).properties.forEach((property) => {
+            if (property in data) {
+              this[property as keyof this] = data[property as never];
+            }
+          });
           this.sync = true;
         }
 
         public toJSON(): Snapshot<T> {
           const snapshot = {} as T;
-          (this as unknown as { properties: PropertyKey[] }).properties.forEach(
-            (property) => {
-              if (property in this) {
-                snapshot[property as keyof T] = this[property as never];
-              }
-            },
-          );
+          (this as unknown as { properties: PropertyKey[] }).properties.forEach((property) => {
+            if (property in this) {
+              snapshot[property as keyof T] = this[property as never];
+            }
+          });
           return toSnapshot(snapshot);
         }
       };

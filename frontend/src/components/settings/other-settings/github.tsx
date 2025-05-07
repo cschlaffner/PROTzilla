@@ -1,13 +1,7 @@
 import { styled } from "styled-components";
 
 import { citation } from "./citation.ts";
-import {
-  Icon,
-  SecondaryButton,
-  SectionTitle,
-  Text,
-  useNotification,
-} from "../../../components";
+import { Icon, SecondaryButton, SectionTitle, Text, useNotification } from "../../../components";
 import { size, spacing } from "../../../theme";
 
 const Logo = styled(Icon)`
@@ -60,10 +54,7 @@ export const GitHub = () => {
   };
 
   const onOpenGitHubIssue = () => {
-    window.open(
-      "https://github.com/cschlaffner/PROTzilla/issues/new/choose",
-      "_blank",
-    );
+    window.open("https://github.com/cschlaffner/PROTzilla/issues/new/choose", "_blank");
   };
 
   const copyCitation = () => {
@@ -89,11 +80,7 @@ export const GitHub = () => {
       </Header>
       <ContentDiv>
         <InnerContentDiv>
-          <SecondaryButton
-            onPress={onOpenGitHub}
-            icon={"github"}
-            text={"Github"}
-          />
+          <SecondaryButton onPress={onOpenGitHub} icon={"github"} text={"Github"} />
           <span>Version: 0.0.0.0</span>
           <span>Last Update: Apr-08-2025</span>
         </InnerContentDiv>
@@ -104,17 +91,12 @@ export const GitHub = () => {
               "As of now, we are not accepting contributions outside the current Bachelorproject at DACS' chair at HPI. However, if you have any suggestions, ideas or questions, feel free to reach out to us!"
             }
           />
-          <SecondaryButton
-            text={"Open an issue or report a bug"}
-            onPress={onOpenGitHubIssue}
-          />
+          <SecondaryButton text={"Open an issue or report a bug"} onPress={onOpenGitHubIssue} />
         </InnerContentDiv>
         <InnerContentDiv>
           <SectionTitle baseComponent={"h4"} title={"How to cite"} />
           <CenteredText
-            text={
-              "If you use PROTzilla in your research, please cite the following paper:"
-            }
+            text={"If you use PROTzilla in your research, please cite the following paper:"}
           />
           <CenteredText text={"TODO: " + citation} />
           <SecondaryButton text={"Copy citation"} onPress={copyCitation} />

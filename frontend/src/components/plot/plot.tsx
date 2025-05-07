@@ -6,6 +6,8 @@ import { border, borderColors } from "../../theme";
 import { SectionTitle } from "../section-title";
 
 const PlotDiv = styled.div<{ hasBorder: boolean }>`
+  width: fit-content;
+  height: fit-content;
   border: ${({ hasBorder }) => (hasBorder ? border("defaultStrength") : "none")} solid
     ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
@@ -20,9 +22,9 @@ export const PlotComponent: React.FC<PlotProps> = ({ data, layout, hasBorder, di
           <div style={{ margin: theme.borders.defaultStrength }}>
             <Plot
               data={data}
-              layout={{ ...layout, autosize: true }}
+              layout={{ ...layout, autosize: false }}
               style={{ width: "100%", height: "100%" }}
-              useResizeHandler={true}
+              useResizeHandler={false}
               divId={divId}
             />
           </div>

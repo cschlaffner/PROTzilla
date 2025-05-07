@@ -1,8 +1,4 @@
-import {
-  computeStyleValue,
-  parseNumberFromMetric,
-  parseUnitFromMetric,
-} from "./utils";
+import { computeStyleValue, parseNumberFromMetric, parseUnitFromMetric } from "./utils";
 
 describe("theme utilities", () => {
   it("should parse a number from a metric string", () => {
@@ -37,9 +33,7 @@ describe("computeStyleValue", () => {
   });
 
   it("should return reduced style inputs", () => {
-    expect(
-      computeStyleValue(["#000", "#fff"], (firstValue) => firstValue)({}),
-    ).toBe("#000");
+    expect(computeStyleValue(["#000", "#fff"], (firstValue) => firstValue)({})).toBe("#000");
 
     expect(
       computeStyleValue(["1 px", 2, "3 cm"], (...values: number[]) =>
@@ -48,9 +42,9 @@ describe("computeStyleValue", () => {
     ).toBe("6px");
 
     expect(
-      computeStyleValue([1, 0, () => 3], (...values: number[]) =>
-        values.reduce((a, b) => a + b),
-      )({}),
+      computeStyleValue([1, 0, () => 3], (...values: number[]) => values.reduce((a, b) => a + b))(
+        {},
+      ),
     ).toBe("4");
 
     expect(computeStyleValue([0], (firstValue) => firstValue)({})).toBe("0");

@@ -20,8 +20,7 @@ export const TriggerFromHook: StoryFn = () => {
         onClick={() => {
           notify({
             title: "Info",
-            message:
-              "This Notification will close automatically after 5 seconds",
+            message: "This Notification will close automatically after 5 seconds",
             type: "info",
           });
         }}
@@ -44,8 +43,7 @@ export const TriggerFromHook: StoryFn = () => {
         onClick={() => {
           notify({
             title: "Warning",
-            message:
-              "This Notification will close automatically after 10 seconds",
+            message: "This Notification will close automatically after 10 seconds",
             type: "warning",
             closeAfterMs: theme.durations.longNotificationDuration,
           });
@@ -57,8 +55,7 @@ export const TriggerFromHook: StoryFn = () => {
         onClick={() => {
           notify({
             title: "Success",
-            message:
-              "Congratulation \n This Notification will close automatically after 2 seconds",
+            message: "Congratulation \n This Notification will close automatically after 2 seconds",
             type: "success",
             closeAfterMs: theme.durations.shortNotificationDuration,
           });

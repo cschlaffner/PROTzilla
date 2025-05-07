@@ -42,13 +42,7 @@ const CardHeader = styled.div`
   width: 100%;
 `;
 
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  className,
-}) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (
     <Backdrop isOpen={isOpen} onClick={onClose}>
       <ModalContent

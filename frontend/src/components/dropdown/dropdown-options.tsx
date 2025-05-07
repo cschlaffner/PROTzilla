@@ -9,15 +9,7 @@ import { TextField } from "../text-field";
 import { DropdownOptionsProps } from "./dropdown.props";
 import { useFloatingPosition } from "./utils";
 import { useModalRoot } from "../../hooks";
-import {
-  color,
-  fontSize,
-  fontWeight,
-  radius,
-  size,
-  spacing,
-  zIndex,
-} from "../../theme";
+import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "../../theme";
 import { UIStateProps } from "../types";
 
 export const DropdownOption = styled.div<{ enableMarquee?: boolean }>`
@@ -104,9 +96,7 @@ const OptionContent = styled(ToggleableButton)<
     `}
 `;
 
-const OtherOptionContainer = styled.div<
-  Pick<ToggleableButtonProps, "isActive"> & UIStateProps
->`
+const OtherOptionContainer = styled.div<Pick<ToggleableButtonProps, "isActive"> & UIStateProps>`
   align-items: center;
   background-color: ${({ isActive, isDisabled }) =>
     color(isActive && !isDisabled ? "primary" : "secondary")};
@@ -120,37 +110,26 @@ const OtherOptionContainer = styled.div<
 
   :hover {
     background-color: ${({ isActive, isDisabled }) =>
-      color(
-        isDisabled ? "secondary" : isActive ? "primaryHover" : "secondaryHover",
-      )};
+      color(isDisabled ? "secondary" : isActive ? "primaryHover" : "secondaryHover")};
   }
 
   :active {
     background-color: ${({ isActive, isDisabled }) =>
-      color(
-        isDisabled
-          ? "secondary"
-          : isActive
-            ? "primaryActive"
-            : "secondaryActive",
-      )};
+      color(isDisabled ? "secondary" : isActive ? "primaryActive" : "secondaryActive")};
   }
 
   .text {
     font-size: ${fontSize("button")};
     font-weight: ${fontWeight("bold")};
     color: ${({ isActive, isDisabled }) =>
-      color(
-        isDisabled ? "primaryDisabled" : isActive ? "onPrimary" : "primary",
-      )};
+      color(isDisabled ? "primaryDisabled" : isActive ? "onPrimary" : "primary")};
   }
 `;
 
 export const OtherOptionText = styled(Text)<Pick<TextProps, "isDisabled">>`
   font-size: ${fontSize("button")};
   font-weight: ${fontWeight("bold")};
-  color: ${({ isDisabled }) =>
-    color(isDisabled ? "primaryDisabled" : "primary")};
+  color: ${({ isDisabled }) => color(isDisabled ? "primaryDisabled" : "primary")};
   margin-bottom: 2px;
 `;
 
@@ -166,106 +145,102 @@ const OtherOptionTextField = styled(TextField)`
   }
 `;
 
-export const DropdownOptions = React.forwardRef<
-  HTMLDivElement,
-  DropdownOptionsProps
->(function DropdownOptions(
-  {
-    options,
-    isOtherSelected,
-    activeOptionIndex,
-    isSmall,
-    isDisabled,
-    isOtherAllowed,
-    other,
-    setOther,
-    otherLabelComponents,
-    otherLabelData,
-    otherLabelTx,
-    onOtherChange,
-    setValue,
-    anchor,
-    marqueeTextLength,
-  },
-  ref,
-) {
-  const modalRootRef = useModalRoot();
-
-  const floatStyle = useFloatingPosition({
-    anchor,
-    isActive: true,
-    distance: 10,
-  });
-
-  const onOtherEdit = useCallback(
-    (newOther: string) => {
-      setOther(newOther);
-      onOtherChange?.(newOther);
+export const DropdownOptions = React.forwardRef<HTMLDivElement, DropdownOptionsProps>(
+  function DropdownOptions(
+    {
+      options,
+      isOtherSelected,
+      activeOptionIndex,
+      isSmall,
+      isDisabled,
+      isOtherAllowed,
+      other,
+      setOther,
+      otherLabelComponents,
+      otherLabelData,
+      otherLabelTx,
+      onOtherChange,
+      setValue,
+      anchor,
+      marqueeTextLength,
     },
-    [onOtherChange, setOther],
-  );
+    ref,
+  ) {
+    const modalRootRef = useModalRoot();
 
-  const activateOther = useCallback(() => {
-    if (other) onOtherChange?.(other);
-  }, [onOtherChange, other]);
+    const floatStyle = useFloatingPosition({
+      anchor,
+      isActive: true,
+      distance: 10,
+    });
 
-  const node = (
-    <OptionsContainer className="options" style={floatStyle} ref={ref}>
-      <StandardOptionsContainer>
-        {options.map((option, index) => (
-          <DropdownOption
-            key={
-              typeof option.value === "string" ||
-              typeof option.value === "number"
-                ? String(option.value)
-                : index
-            }
-            enableMarquee={
-              marqueeTextLength
-                ? (
-                    (option.labelTx
-                      ? t(option.labelTx)
-                      : (option.label ?? String(option.value))) as string
-                  ).length >= marqueeTextLength
-                : undefined
-            }
+    const onOtherEdit = useCallback(
+      (newOther: string) => {
+        setOther(newOther);
+        onOtherChange?.(newOther);
+      },
+      [onOtherChange, setOther],
+    );
+
+    const activateOther = useCallback(() => {
+      if (other) onOtherChange?.(other);
+    }, [onOtherChange, other]);
+
+    const node = (
+      <OptionsContainer className="options" style={floatStyle} ref={ref}>
+        <StandardOptionsContainer>
+          {options.map((option, index) => (
+            <DropdownOption
+              key={
+                typeof option.value === "string" || typeof option.value === "number"
+                  ? String(option.value)
+                  : index
+              }
+              enableMarquee={
+                marqueeTextLength
+                  ? (
+                      (option.labelTx
+                        ? t(option.labelTx)
+                        : (option.label ?? String(option.value))) as string
+                    ).length >= marqueeTextLength
+                  : undefined
+              }
+            >
+              <OptionContent
+                tx={option.labelTx}
+                text={option.label ?? String(option.value)}
+                txComponents={option.labelComponents}
+                txData={option.labelData}
+                onPress={() => {
+                  setValue(option.value);
+                }}
+                className="option"
+                isDSmall={isSmall}
+                isActive={!isOtherSelected && index === activeOptionIndex}
+                isDisabled={isDisabled}
+              />
+            </DropdownOption>
+          ))}
+        </StandardOptionsContainer>
+
+        {(isOtherAllowed ?? isOtherSelected) && (
+          <OtherOptionContainer
+            isActive={isOtherSelected}
+            onPointerDown={activateOther}
+            isDisabled={!isOtherAllowed}
           >
-            <OptionContent
-              tx={option.labelTx}
-              text={option.label ?? String(option.value)}
-              txComponents={option.labelComponents}
-              txData={option.labelData}
-              onPress={() => {
-                setValue(option.value);
-              }}
-              className="option"
-              isDSmall={isSmall}
-              isActive={!isOtherSelected && index === activeOptionIndex}
-              isDisabled={isDisabled}
+            <OtherOptionText
+              className="text"
+              tx={otherLabelTx ?? "base:otherSelectionOption"}
+              txComponents={otherLabelComponents}
+              txData={otherLabelData}
             />
-          </DropdownOption>
-        ))}
-      </StandardOptionsContainer>
+            <OtherOptionTextField value={other} onChangeText={onOtherEdit} />
+          </OtherOptionContainer>
+        )}
+      </OptionsContainer>
+    );
 
-      {(isOtherAllowed ?? isOtherSelected) && (
-        <OtherOptionContainer
-          isActive={isOtherSelected}
-          onPointerDown={activateOther}
-          isDisabled={!isOtherAllowed}
-        >
-          <OtherOptionText
-            className="text"
-            tx={otherLabelTx ?? "base:otherSelectionOption"}
-            txComponents={otherLabelComponents}
-            txData={otherLabelData}
-          />
-          <OtherOptionTextField value={other} onChangeText={onOtherEdit} />
-        </OtherOptionContainer>
-      )}
-    </OptionsContainer>
-  );
-
-  return modalRootRef.current
-    ? ReactDOM.createPortal(node, modalRootRef.current)
-    : node;
-});
+    return modalRootRef.current ? ReactDOM.createPortal(node, modalRootRef.current) : node;
+  },
+);

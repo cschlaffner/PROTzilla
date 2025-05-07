@@ -21,8 +21,7 @@ export default {
 } as Meta;
 
 export const Default = (args: SettingsProps): React.ReactNode => {
-  const [isSettingsOpen, openSettings, closeSettings] =
-    useToggleableState(false);
+  const [isSettingsOpen, openSettings, closeSettings] = useToggleableState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   return (

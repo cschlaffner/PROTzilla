@@ -11,11 +11,7 @@ const ButtonContainer = styled.div`
   padding-top: 8px;
 `;
 
-export const DiscardModal: React.FC<DiscardModalProps> = ({
-  isOpen,
-  onDiscard,
-  onClose,
-}) => {
+export const DiscardModal: React.FC<DiscardModalProps> = ({ isOpen, onDiscard, onClose }) => {
   return (
     <Modal title={"Unsaved Changes"} isOpen={isOpen} onClose={onClose}>
       <Text

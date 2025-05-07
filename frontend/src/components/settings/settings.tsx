@@ -57,8 +57,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [pendingSetting, setPendingSetting] = useState<string | null>(null);
   const [selectedSetting, setSelectedSetting] = useState<string | null>("plot");
 
-  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] =
-    useToggleableState(false);
+  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] = useToggleableState(false);
   const handleSwitchSection = (section: string) => {
     if (hasChanges) {
       setPendingSetting(section);
@@ -108,11 +107,7 @@ export const Settings: React.FC<SettingsProps> = ({
           </SectionSelection>
           <SpecificSettings>
             {selectedSetting === "plot" && (
-              <PlotSettings
-                isOpen={isOpen}
-                onClose={onClose}
-                setHasChanges={setHasChanges}
-              />
+              <PlotSettings isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <GitHub />}

@@ -17,15 +17,12 @@ import {
 } from "./types";
 
 export class StorageClient<M> implements IStorageClient<M> {
-  @observable protected accessor transaction:
-    | StorageTransaction<keyof M, M>
-    | undefined = undefined;
+  @observable protected accessor transaction: StorageTransaction<keyof M, M> | undefined =
+    undefined;
   @observable protected accessor transactionCounter = 0;
 
   public cache = new StorageCache<M>(this.mapEntity.bind(this));
-  public history = new StorageHistory<M>((command) =>
-    this.dispatch(command, { history: false }),
-  );
+  public history = new StorageHistory<M>((command) => this.dispatch(command, { history: false }));
 
   public entityMap: Partial<ConstructorMap<M>> = {};
 
@@ -186,10 +183,7 @@ export class StorageClient<M> implements IStorageClient<M> {
     return [];
   }
 
-  public async write<E extends keyof M>(
-    entity: E,
-    newValue: Snapshot<M[E]>,
-  ): Promise<void> {
+  public async write<E extends keyof M>(entity: E, newValue: Snapshot<M[E]>): Promise<void> {
     await this.cache.write(entity, newValue);
     await this.local?.write(entity, newValue);
   }

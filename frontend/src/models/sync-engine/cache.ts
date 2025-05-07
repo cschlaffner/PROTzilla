@@ -19,10 +19,11 @@ export class StorageCache<M> implements IStorageCache<M> {
   @observable protected accessor queries: Partial<QueryStore<M>> = {};
 
   constructor(
-    protected mapEntity: <E extends keyof M>(
-      entity: E,
-      value: Snapshot<M[E]>,
-    ) => M[E] = <E extends keyof M>(value: E) => value as M[E],
+    protected mapEntity: <E extends keyof M>(entity: E, value: Snapshot<M[E]>) => M[E] = <
+      E extends keyof M,
+    >(
+      value: E,
+    ) => value as M[E],
   ) {}
 
   @action
@@ -32,18 +33,11 @@ export class StorageCache<M> implements IStorageCache<M> {
     }
 
     this.store[entity] = this.store[entity] ?? {};
-    this.store[entity][(value as IRemoteObject).id] = this.mapEntity(
-      entity,
-      value,
-    );
+    this.store[entity][(value as IRemoteObject).id] = this.mapEntity(entity, value);
   }
 
   @action
-  public update<E extends keyof M>(
-    entity: E,
-    id: ID,
-    newValue: Snapshot<Partial<M[E]>>,
-  ): void {
+  public update<E extends keyof M>(entity: E, id: ID, newValue: Snapshot<Partial<M[E]>>): void {
     this.store[entity] = this.store[entity] ?? {};
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const previousValue = this.store[entity]![id];
@@ -83,9 +77,7 @@ export class StorageCache<M> implements IStorageCache<M> {
       if (!this.queries[entity]) throw new CacheMissError();
       const queryResult = this.queries[entity][JSON.stringify(query)];
       if (!queryResult) throw new CacheMissError();
-      return queryResult
-        .map((id) => this.get(entity, id))
-        .filter((value) => value !== undefined);
+      return queryResult.map((id) => this.get(entity, id)).filter((value) => value !== undefined);
     }
 
     return Object.values(this.store[entity]).filter(
@@ -97,18 +89,12 @@ export class StorageCache<M> implements IStorageCache<M> {
     return Promise.resolve(this.get(entity, id));
   }
 
-  public readAll<E extends keyof M>(
-    entity: E,
-    query: unknown,
-  ): Promise<M[E][]> {
+  public readAll<E extends keyof M>(entity: E, query: unknown): Promise<M[E][]> {
     return Promise.resolve(this.getAll(entity, query));
   }
 
   @action
-  public write<E extends keyof M>(
-    entity: E,
-    newValue: Snapshot<M[E]>,
-  ): Promise<void> {
+  public write<E extends keyof M>(entity: E, newValue: Snapshot<M[E]>): Promise<void> {
     this.create(entity, newValue);
     return Promise.resolve();
   }
@@ -149,11 +135,7 @@ export class StorageCache<M> implements IStorageCache<M> {
           break;
 
         case StorageCommandKind.UPDATE:
-          this.update(
-            command.entity,
-            command.id,
-            command.data as Snapshot<Partial<M[E]>>,
-          );
+          this.update(command.entity, command.id, command.data as Snapshot<Partial<M[E]>>);
           break;
 
         case StorageCommandKind.DELETE:

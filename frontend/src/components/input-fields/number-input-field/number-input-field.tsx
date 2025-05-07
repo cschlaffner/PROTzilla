@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  size,
-  spacing,
-} from "../../../theme";
+import { border, borderColors, color, fontSize, size, spacing } from "../../../theme";
 import { InputContainer } from "../input-container";
 import { NumberInputFieldProps } from "./number-input-field.props";
 import { GrayButton } from "../../button";
@@ -19,8 +12,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -77,9 +69,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   };
 
   const handleClick = (
-    e:
-      | React.PointerEvent<HTMLButtonElement>
-      | React.KeyboardEvent<HTMLButtonElement>,
+    e: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
   ) => {
     const { id } = e.currentTarget;
     const stepValue = step ?? 1;
@@ -116,13 +106,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
       />
       {hasStepButtons && (
         <StepButtonContainer>
-          <StepButton
-            id="up"
-            onPress={handleClick}
-            icon="triangleUp"
-            color="text"
-            isSmall={true}
-          />
+          <StepButton id="up" onPress={handleClick} icon="triangleUp" color="text" isSmall={true} />
           <StepButton
             id="down"
             onPress={handleClick}

@@ -47,15 +47,13 @@ export const usePlotSettings = (isOpen?: boolean) => {
     title: "",
   };
   const [settings, setSettings] = useState<PlotSettings>(emptySettings);
-  const [savedSettings, setSavedSettings] =
-    useState<PlotSettings>(emptySettings);
-  const [computedSettings, setComputedSettings] =
-    useState<ComputedPlotSettings>({
-      width: 0,
-      height: 0,
-      titleSize: 0,
-      textSize: 0,
-    });
+  const [savedSettings, setSavedSettings] = useState<PlotSettings>(emptySettings);
+  const [computedSettings, setComputedSettings] = useState<ComputedPlotSettings>({
+    width: 0,
+    height: 0,
+    titleSize: 0,
+    textSize: 0,
+  });
 
   const loadSettings = async (templateName: string) => {
     const response = await callApiWithParameters("load_settings", {
@@ -140,11 +138,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
       const fileNameWithSuffix = fileName + "." + settings.fileFormat;
       saveAs(blob, fileNameWithSuffix);
     } else {
-      console.error(
-        "Downloading plot as .",
-        settings.fileFormat,
-        " is not implemented.",
-      );
+      console.error("Downloading plot as .", settings.fileFormat, " is not implemented.");
     }
   };
 
@@ -173,12 +167,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
     const height = Math.round(basePlotWidth / ratio);
     // Font size
     ratio = width / settings.width;
-    const titleSize = Math.round(
-      settings.titleSize * ptToInch * inchToMm * ratio,
-    );
-    const textSize = Math.round(
-      settings.textSize * ptToInch * inchToMm * ratio,
-    );
+    const titleSize = Math.round(settings.titleSize * ptToInch * inchToMm * ratio);
+    const textSize = Math.round(settings.textSize * ptToInch * inchToMm * ratio);
     return {
       width,
       height,

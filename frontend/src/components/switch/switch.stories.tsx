@@ -11,9 +11,7 @@ export default {
 };
 
 const SwitchWithState: React.FC<SwitchProps> = ({ options, ...args }) => {
-  const [selectedOption, setSelectedOption] = useState<string | undefined>(
-    undefined,
-  );
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
 
   const notify = useNotification();
   const theme = useTheme();
@@ -36,9 +34,7 @@ const SwitchWithState: React.FC<SwitchProps> = ({ options, ...args }) => {
   );
 };
 
-export const primary = (args: SwitchProps): React.ReactNode => (
-  <SwitchWithState {...args} />
-);
+export const primary = (args: SwitchProps): React.ReactNode => <SwitchWithState {...args} />;
 
 primary.args = {
   options: [
@@ -49,9 +45,7 @@ primary.args = {
   isDisabled: false,
 };
 
-export const disabledOption = (args: SwitchProps): React.ReactNode => (
-  <SwitchWithState {...args} />
-);
+export const disabledOption = (args: SwitchProps): React.ReactNode => <SwitchWithState {...args} />;
 disabledOption.args = {
   options: [
     { value: "list", label: "List", isDisabled: false },

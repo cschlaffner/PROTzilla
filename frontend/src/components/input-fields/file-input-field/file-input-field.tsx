@@ -73,9 +73,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total ?? 1),
-          );
+          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
           setUploadProgress(percent);
         },
       });

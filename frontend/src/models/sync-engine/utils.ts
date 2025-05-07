@@ -7,9 +7,7 @@ export const MAX_HISTORY_STEPS = 128;
 
 export const generateId = (): string => v4();
 export const ensureId = <T>(value: T): T =>
-  typeof value === "object" && value !== null
-    ? { ...value, id: generateId() }
-    : value;
+  typeof value === "object" && value !== null ? { ...value, id: generateId() } : value;
 
 export const defaultMapEntityToRoute = (entity: unknown) => {
   const base = String(entity).toLowerCase();
@@ -33,18 +31,13 @@ export const toSnapshot = <T>(data: T): Snapshot<T> => {
   }
 
   Object.keys(snapshot).forEach((key) => {
-    if (
-      snapshot[key as keyof T] !== null &&
-      typeof snapshot[key as keyof T] === "object"
-    ) {
+    if (snapshot[key as keyof T] !== null && typeof snapshot[key as keyof T] === "object") {
       snapshot[key as keyof T] = toSnapshot(snapshot[key as keyof T]) as any;
       return;
     }
 
     if (snapshot[key as keyof T] instanceof Date) {
-      snapshot[key as keyof T] = (
-        snapshot[key as keyof T] as Date
-      ).toISOString() as any;
+      snapshot[key as keyof T] = (snapshot[key as keyof T] as Date).toISOString() as any;
     }
   });
 
@@ -58,10 +51,7 @@ export const pickProperties = <T extends object, K extends keyof T>(
 ): Pick<T, K> =>
   keys
     .filter((key) => key in object)
-    .reduce(
-      (result, key) => ((result[key] = object[key]), result),
-      {} as Pick<T, K>,
-    );
+    .reduce((result, key) => ((result[key] = object[key]), result), {} as Pick<T, K>);
 
 export const handleTransaction = async <E extends keyof M, M>(
   command: StorageCommand<E, M> | StorageTransaction<E, M>,

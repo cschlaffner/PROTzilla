@@ -18,10 +18,7 @@ export interface FileFormatFieldProps {
   value: string;
   onChange: (value: string | null) => void;
 }
-export const FileFormatField: React.FC<FileFormatFieldProps> = ({
-  value,
-  onChange,
-}) => {
+export const FileFormatField: React.FC<FileFormatFieldProps> = ({ value, onChange }) => {
   const fileFormatOptions = [
     { value: "eps", label: "eps" },
     { value: "jpeg", label: "jpeg" },
@@ -42,10 +39,7 @@ export const FileFormatField: React.FC<FileFormatFieldProps> = ({
 };
 
 // Width: Number
-export const WidthField: React.FC<NumberInputFieldProps> = ({
-  value,
-  onChange,
-}) => {
+export const WidthField: React.FC<NumberInputFieldProps> = ({ value, onChange }) => {
   return (
     <NumberInputField
       label={"Width"}
@@ -65,10 +59,7 @@ export const WidthField: React.FC<NumberInputFieldProps> = ({
 };
 
 // Height: Number
-export const HeightField: React.FC<NumberInputFieldProps> = ({
-  value,
-  onChange,
-}) => {
+export const HeightField: React.FC<NumberInputFieldProps> = ({ value, onChange }) => {
   return (
     <NumberInputField
       label={"Height"}
@@ -85,21 +76,12 @@ export const HeightField: React.FC<NumberInputFieldProps> = ({
 };
 
 // Fonts: Radios
-const fonts = [
-  "Arial",
-  "Courier New",
-  "Helvetica",
-  "Sans Serif",
-  "Times New Roman",
-];
+const fonts = ["Arial", "Courier New", "Helvetica", "Sans Serif", "Times New Roman"];
 export interface FontFieldProps {
   selectedFont: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
-export const FontField: React.FC<FontFieldProps> = ({
-  selectedFont,
-  onChange,
-}) => {
+export const FontField: React.FC<FontFieldProps> = ({ selectedFont, onChange }) => {
   const theme = useTheme();
   return (
     <div
@@ -177,10 +159,7 @@ export const CustomFontField: React.FC<CustomFontFieldProps> = ({
 };
 
 // Title size: Number
-export const TitleSizeField: React.FC<NumberInputFieldProps> = ({
-  value,
-  onChange,
-}) => {
+export const TitleSizeField: React.FC<NumberInputFieldProps> = ({ value, onChange }) => {
   return (
     <NumberInputField
       label={"Title size"}
@@ -197,10 +176,7 @@ export const TitleSizeField: React.FC<NumberInputFieldProps> = ({
 };
 
 // Text size: Number
-export const TextSizeField: React.FC<NumberInputFieldProps> = ({
-  value,
-  onChange,
-}) => {
+export const TextSizeField: React.FC<NumberInputFieldProps> = ({ value, onChange }) => {
   return (
     <NumberInputField
       label={"Text size"}
