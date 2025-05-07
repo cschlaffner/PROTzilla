@@ -82,8 +82,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const theme = useTheme();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] =
-    useToggleableState(false);
+  const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] = useToggleableState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
   const [actionRunName, setActionRunName] = useState<string>("");
 
@@ -94,9 +93,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     });
     setRuns((runs) =>
       runs.map((run) =>
-        run.run_name === runName
-          ? { ...run, run_tags: [...run.run_tags, tag] }
-          : run,
+        run.run_name === runName ? { ...run, run_tags: [...run.run_tags, tag] } : run,
       ),
     );
   };

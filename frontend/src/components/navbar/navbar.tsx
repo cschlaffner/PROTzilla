@@ -66,8 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ...rest
 }) => {
   const [runName, setRunName] = useState<string>(title as string);
-  const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
-    useToggleableState();
+  const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
 
@@ -104,10 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NavbarCenter>
           <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
           {allowRunEdit && (
-            <Button
-              icon={"edit"}
-              onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
-            />
+            <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings} />
           )}
         </NavbarCenter>
 
@@ -120,11 +116,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         <RunEditMenu
           runName={runName}
           onChangeRunName={onChangeRunName}
-          handleAddTag={(tag: string) => { handleAddTag(tag); }}
-          handleDeleteTag={(tagToDelete: string) =>
-            { handleDeleteTag(tagToDelete); }
-          }
-          handleToggleFavourite={() => { handleToggleFavourite(); }}
+          handleAddTag={(tag: string) => {
+            handleAddTag(tag);
+          }}
+          handleDeleteTag={(tagToDelete: string) => {
+            handleDeleteTag(tagToDelete);
+          }}
+          handleToggleFavourite={() => {
+            handleToggleFavourite();
+          }}
           isOpen={isRunSettingsOpen}
           onClose={closeRunSettings}
           ref={refRunSettings}
