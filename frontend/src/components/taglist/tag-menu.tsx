@@ -38,20 +38,21 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     void fetchData();
   }, []);
 
-  const addableTags = existingTags.filter(
-    (tag) => !selectedRun.run_tags.includes(tag),
-  );
+  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
   const filteredAddableTags = addableTags.filter((tag) =>
     tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
   );
 
-  const onHandleAddTag = (tag: string) => {
-    handleAddTag(tag);
-    setSelectedRun((prevRun) => ({
-      ...prevRun,
-      run_tags: [...prevRun.run_tags, tag],
-    }));
-  };
+  const onHandleAddTag = useCallback(
+    (tag: string) => {
+      handleAddTag(tag);
+      setSelectedRun((prevRun) => ({
+        ...prevRun,
+        run_tags: [...prevRun.run_tags, tag],
+      }));
+    },
+    [handleAddTag, setSelectedRun],
+  );
 
   const onHandleDeleteTag = (tag: string) => {
     handleDeleteTag(tag);
@@ -60,14 +61,6 @@ export const TagMenu: React.FC<TagMenuProps> = ({
       run_tags: prevRun.run_tags.filter((t) => t != tag),
     }));
   };
-  // TODO from dev
-  // const onHandleAddTag = useCallback(
-  //   (tag: string) => {
-  //     handleAddTag(tag);
-  //     void fetchData();
-  //   },
-  //   [handleAddTag],
-  // );
 
   return (
     <div>
