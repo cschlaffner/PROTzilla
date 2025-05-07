@@ -335,7 +335,7 @@ class NormalisationByZScore(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Normalisation by Z-Score",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
@@ -369,7 +369,7 @@ class NormalisationByTotalSum(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Normalisation by total sum",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
@@ -448,7 +448,7 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Normalisation data by reference protein",
-            fields=[
+            input_fields=[
                 FormDivider("A function to perform protein-intensity normalisation in reference to "
                     "a selected protein on your dataframe. Normalises the data on the level "
                     "of each sample. Divides each intensity by the intensity of the chosen "
@@ -492,7 +492,7 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation by minimum per dataset",
-            fields=[
+            input_fields=[
                 NumberField(
                     name="shrinking_value",
                     label="A function to impute missing values for each protein by taking into account "
@@ -543,7 +543,7 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation by minimum per protein",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="shrinking_value",
                     label="A function to impute missing values for each protein by taking into account data from each protein. "
@@ -594,7 +594,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation by minimum per sample",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="shrinking_value",
                     label="Sets missing intensity values to the smallest measured value for each sample",
@@ -645,7 +645,7 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation per Protein",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="strategy",
                     label="Strategy",
@@ -746,7 +746,7 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Imputation by normal distribution sampling",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="strategy",
                     label="Strategy",
@@ -807,7 +807,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     def create_form(self):
         return Form(
             label="Filter peptides by PEP threshold",
-            fields=[
+            input_fields=[
                 FloatField(
                     name="treshold",
                     label="Threshold value for PEP",
