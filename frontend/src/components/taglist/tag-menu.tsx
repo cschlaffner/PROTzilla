@@ -30,22 +30,22 @@ export const TagMenu: React.FC<TagMenuProps> = ({
   const [existingTags, setExistingTags] = React.useState<string[]>([]);
   const [searchTermTags, setSearchTermTags] = React.useState<string>("");
 
-  const fetchData = async () => {
-    const response = await callApi("run_information/");
-    if (response.success) {
-      setExistingTags(response.data);
-    } else {
-      notify({
-        type: "error",
-        message: "Error fetching existing tags",
-        title: "Error",
-      });
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setExistingTags(response.data);
+      } else {
+        notify({
+          type: "error",
+          message: "Error fetching existing tags",
+          title: "Error",
+        });
+      }
+    };
+
     void fetchData();
-  }, []);
+  }, [notify]);
 
   const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
   const filteredAddableTags = addableTags.filter((tag) =>

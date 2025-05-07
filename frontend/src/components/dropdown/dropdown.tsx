@@ -1,11 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
-import {
-  useOutsidePress,
-  useScrollListener,
-  useToggleableState,
-} from "../../hooks";
+import { useOutsidePress, useScrollListener, useToggleableState } from "../../hooks";
 import { FlexColumn } from "../box";
 import { ToggleableButton } from "../button";
 import { Icon, iconColor } from "../icon";
@@ -55,9 +51,7 @@ const SelectedOption = styled(ToggleableButton)<{
 
   .icon {
     ${({ isDisabled, isActive }) =>
-      iconColor(
-        isDisabled ? "primaryDisabled" : isActive ? "onPrimary" : "text",
-      )};
+      iconColor(isDisabled ? "primaryDisabled" : isActive ? "onPrimary" : "text")};
   }
 
   .text {
@@ -103,12 +97,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   const actualValue = value === undefined ? defaultValue : value;
 
-  const activeOptionIndex = options.findIndex(
-    (option) => option.value === actualValue,
-  );
+  const activeOptionIndex = options.findIndex((option) => option.value === actualValue);
 
-  const activeOption =
-    activeOptionIndex >= 0 ? options[activeOptionIndex] : undefined;
+  const activeOption = activeOptionIndex >= 0 ? options[activeOptionIndex] : undefined;
 
   const [isOpen, open, close] = useToggleableState();
 
@@ -144,18 +135,12 @@ export const Dropdown: React.FC<DropdownProps> = ({
       if (event.key === "ArrowUp") {
         event.preventDefault();
         setValue(
-          options[
-            (options.length + activeOptionIndex - 1) %
-              Math.max(1, options.length)
-          ]?.value,
+          options[(options.length + activeOptionIndex - 1) % Math.max(1, options.length)]?.value,
           false,
         );
       } else if (event.key === "ArrowDown") {
         event.preventDefault();
-        setValue(
-          options[(activeOptionIndex + 1) % Math.max(1, options.length)]?.value,
-          false,
-        );
+        setValue(options[(activeOptionIndex + 1) % Math.max(1, options.length)]?.value, false);
       } else if (event.key === "Enter") {
         event.preventDefault();
         setValue(options[activeOptionIndex]?.value, true);
@@ -205,10 +190,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
             onPress={isOpen ? onClose : onOpen}
             onKeyDown={handleKey}
           >
-            <ExpandIcon
-              className="icon"
-              icon={isOpen ? "chevronUp" : "chevronDown"}
-            />
+            <ExpandIcon className="icon" icon={isOpen ? "chevronUp" : "chevronDown"} />
           </SelectedOption>
         ) : isSearchable && isSearching ? (
           <StyledTextField
@@ -217,11 +199,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
               activeOption?.labelTx
                 ? t(activeOption.labelTx)
                 : activeOption
-                  ? String(
-                      activeOption.label
-                        ? activeOption.label
-                        : activeOption.value,
-                    )
+                  ? String(activeOption.label ? activeOption.label : activeOption.value)
                   : ""
             }
             onKeyDown={handleKey}
@@ -238,9 +216,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
             className="select-button"
             tx={activeOption ? activeOption.labelTx : placeholderTx}
             text={
-              (activeOption
-                ? (activeOption.label ?? String(activeOption.value))
-                : placeholder) ?? ""
+              (activeOption ? (activeOption.label ?? String(activeOption.value)) : placeholder) ??
+              ""
             }
             txComponents={activeOption?.labelComponents}
             txData={activeOption ? activeOption.labelData : placeholderData}
@@ -251,10 +228,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
             onKeyDown={handleKey}
             onPress={isOpen ? onClose : onOpen}
           >
-            <ExpandIcon
-              className="icon"
-              icon={isOpen ? "chevronUp" : "chevronDown"}
-            />
+            <ExpandIcon className="icon" icon={isOpen ? "chevronUp" : "chevronDown"} />
           </SelectedOption>
         )}
 

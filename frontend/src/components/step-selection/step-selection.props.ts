@@ -1,7 +1,6 @@
 import { Sections, Step } from "../sidebar/types.ts";
 
-export interface StepSelectionProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
+export interface StepSelectionProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   runName: string; // Name of the run to which the steps will be added
   section: Sections; // Section of the step list to display
   //NOT IMPLEMENTED IN BACKEND YET -

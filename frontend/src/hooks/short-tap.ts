@@ -4,10 +4,7 @@ export const useShortTap = <T extends Element>(
   handleShortTap: (event: React.PointerEvent<T>) => void,
   maxDuration = 300,
   canActivate = true,
-): [
-  (event: React.PointerEvent<T>) => void,
-  (event: React.PointerEvent<T>) => void,
-] => {
+): [(event: React.PointerEvent<T>) => void, (event: React.PointerEvent<T>) => void] => {
   const timeRefs = useRef<Record<number, number | undefined>>({});
 
   const startTap = useCallback(

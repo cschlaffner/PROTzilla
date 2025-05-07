@@ -47,8 +47,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
       <Card
         {...(hasCardTitle
           ? {
-              title:
-                switchState === "component1" ? nameComponent1 : nameComponent2,
+              title: switchState === "component1" ? nameComponent1 : nameComponent2,
             }
           : {})}
       >

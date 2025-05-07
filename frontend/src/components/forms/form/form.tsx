@@ -134,9 +134,7 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
         <CheckboxSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
     case "single-checkbox":
-      return (
-        <SingleCheckboxInputField onChange={handleInputChange} {...props} />
-      );
+      return <SingleCheckboxInputField onChange={handleInputChange} {...props} />;
     case "dropdown":
       return <DropdownInputField onChange={handleInputChange} options={options ?? []} {...props} />;
     case "multi-select":

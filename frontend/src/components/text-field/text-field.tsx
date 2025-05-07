@@ -9,11 +9,7 @@ import { InvisibleButton } from "../button";
 import { EditTag } from "../edit-tag";
 import { Icon } from "../icon";
 import { InputLabel, Text } from "../text";
-import {
-  CollapsibleLabelProps,
-  MultilineTextFieldProps,
-  TextFieldProps,
-} from "./text-field.props";
+import { CollapsibleLabelProps, MultilineTextFieldProps, TextFieldProps } from "./text-field.props";
 import {
   color,
   font,
@@ -27,11 +23,8 @@ import {
 
 // TODO: Add translations for built-in texts
 
-const StyledInput = styled.input<
-  Pick<TextFieldProps, "isDisabled" | "hasSuccess" | "hasError">
->`
-  background: ${(props) =>
-    color(props.isDisabled ? "secondaryDisabled" : "backgroundOffset")};
+const StyledInput = styled.input<Pick<TextFieldProps, "isDisabled" | "hasSuccess" | "hasError">>`
+  background: ${(props) => color(props.isDisabled ? "secondaryDisabled" : "backgroundOffset")};
   border: 1px solid
     ${(props) =>
       color(
@@ -76,11 +69,7 @@ const StyledInput = styled.input<
       : css`
           &:hover {
             border-color: ${color(
-              props.hasError
-                ? "redHover"
-                : props.hasSuccess
-                  ? "greenHover"
-                  : "gray50",
+              props.hasError ? "redHover" : props.hasSuccess ? "greenHover" : "gray50",
             )};
           }
         `}
@@ -250,8 +239,7 @@ const TagInput = styled.input<{
   hasError?: boolean;
   hasSuccess?: boolean;
 }>`
-  background: ${(props) =>
-    color(props.isDisabled ? "secondaryDisabled" : "backgroundOffset")};
+  background: ${(props) => color(props.isDisabled ? "secondaryDisabled" : "backgroundOffset")};
   min-width: 80px;
   flex: 1;
   border: none;
@@ -369,10 +357,7 @@ export const TextField = React.forwardRef<
   const confirmEdit = useCallback(() => {
     if (!isEdited) return;
     if (onConfirm) {
-      const newValue =
-        type === "number"
-          ? parseFloat(valueRef.current ?? "")
-          : valueRef.current;
+      const newValue = type === "number" ? parseFloat(valueRef.current ?? "") : valueRef.current;
       if (!(type === "number" && Number.isNaN(newValue))) {
         onConfirm(String(newValue ?? ""));
       }
@@ -459,8 +444,7 @@ export const TextField = React.forwardRef<
   // Hide/Show Password
 
   const [showPassword, setShowPassword] = useState(false);
-  const [enableShowPassword, disableShowPassword] =
-    useEnableDisable(setShowPassword);
+  const [enableShowPassword, disableShowPassword] = useEnableDisable(setShowPassword);
 
   const { t } = useTranslation();
 
@@ -482,8 +466,7 @@ export const TextField = React.forwardRef<
         event.preventDefault();
 
         if (internalValue.length) {
-          const newTagValue =
-            tagTransformFunction?.(internalValue) ?? internalValue;
+          const newTagValue = tagTransformFunction?.(internalValue) ?? internalValue;
           setTags?.([...tags, newTagValue]);
           onConfirm?.(newTagValue);
           onSubmitField?.();
@@ -498,15 +481,7 @@ export const TextField = React.forwardRef<
         setInternalValue(poppedTag);
       }
     },
-    [
-      onKeyDown,
-      internalValue,
-      tagTransformFunction,
-      setTags,
-      tags,
-      onConfirm,
-      onSubmitField,
-    ],
+    [onKeyDown, internalValue, tagTransformFunction, setTags, tags, onConfirm, onSubmitField],
   );
 
   const input = (
@@ -514,14 +489,10 @@ export const TextField = React.forwardRef<
       {...rest}
       as={asProp as undefined}
       className="input"
-      placeholder={
-        placeholderTx ? t(placeholderTx, placeholderData) : placeholder
-      }
+      placeholder={placeholderTx ? t(placeholderTx, placeholderData) : placeholder}
       type={showPassword ? "text" : type}
       defaultValue={defaultValue}
-      value={
-        isEdited ? internalValue : valueTx ? t(valueTx, valueData) || "" : value
-      }
+      value={isEdited ? internalValue : valueTx ? t(valueTx, valueData) || "" : value}
       disabled={isDisabled}
       isDisabled={isDisabled}
       hasSuccess={hasSuccess}
@@ -545,12 +516,7 @@ export const TextField = React.forwardRef<
         />
       )}
       {hasError && (
-        <StatusIcon
-          className="status-icon"
-          icon="close"
-          color="red"
-          isDisabled={isDisabled}
-        />
+        <StatusIcon className="status-icon" icon="close" color="red" isDisabled={isDisabled} />
       )}
     </>
   );
@@ -585,9 +551,7 @@ export const TextField = React.forwardRef<
         <SubscriptSpacer
           hasMinWidth={Boolean(
             maxCharacters &&
-              (subscript ??
-                subscriptTx ??
-                (type === "tag" && maxTags !== undefined)),
+              (subscript ?? subscriptTx ?? (type === "tag" && maxTags !== undefined)),
           )}
         />
 
@@ -625,9 +589,7 @@ export const TextField = React.forwardRef<
 
         <TagInput
           onKeyDown={handleKeyDownTag}
-          placeholder={
-            placeholderTx ? t(placeholderTx, placeholderData) : placeholder
-          }
+          placeholder={placeholderTx ? t(placeholderTx, placeholderData) : placeholder}
           onFocus={handleFocus}
           onBlur={handleBlur}
           value={internalValue}

@@ -94,7 +94,7 @@ export const IndexScreen: React.FC = () => {
     };
 
     void fetchData();
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     const fetchData = async () => {

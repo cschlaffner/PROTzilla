@@ -61,9 +61,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       const fetchRunInformation = async () => {
         const response = await callApi("run_information/");
         if (response.success) {
-          const run = response.data.find(
-            (run: Run) => run.run_name === runName,
-          );
+          const run = response.data.find((run: Run) => run.run_name === runName);
           if (!run) {
             throw new Error(`Run with name "${runName}" not found`);
           }
@@ -78,7 +76,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       };
 
       void fetchRunInformation();
-    }, [runName]);
+    }, [runName, notify]);
 
     const handleNameChange = async (newName: string) => {
       const response = await callApiWithParameters("update_run_name/", {
