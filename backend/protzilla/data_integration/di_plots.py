@@ -3,6 +3,7 @@ import logging
 import gseapy
 import numpy as np
 import pandas as pd
+import plotly.express as px
 
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.utilities import fig_to_base64
@@ -15,10 +16,17 @@ def GO_enrichment_bar_plot(
     top_terms,
     cutoff,
     value,
-    gene_sets={},
+    gene_sets={"Component", "Function", "Process"},
     title="",
     figsize=None,
 ):
+    
+    gene_sets={"Component", "Function", "Process"}
+    print(gene_sets)
+    print(input_df.columns)
+    print(input_df.head())
+    input("HELP HELP HELP")
+
     """
     Create a bar plot for the GO enrichment results. The plot is created using the gseapy library.
     Groups the bars by the enrichment categories (e.g. KEGG, Reactome, etc.) and sorts the bars by
@@ -120,7 +128,22 @@ def GO_enrichment_bar_plot(
     except ValueError as e:
         msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
-    return {"plots": [fig_to_base64(ax.get_figure())]}
+    print("Successfully created bar plot")
+    #return {"plots": [fig_to_base64(ax.get_figure())]}
+
+    df["-log10(FDR)"] = -np.log10(df["fdr"])
+    df_plot = df.sort_values(by="-log10(FDR)", ascending=False).head(top_terms)
+
+    fig = px.bar(
+        df_plot,
+        x="-log10(FDR)",
+        y="Term",
+        orientation="h",
+        title=title,
+    )
+    fig.update_layout(yaxis=dict(autorange="reversed"))
+    
+    return dict(plots=[fig])
 
 
 def GO_enrichment_dot_plot(

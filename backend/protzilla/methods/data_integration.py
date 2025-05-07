@@ -289,26 +289,34 @@ class PlotGOEnrichmentBarPlot(PlotStep):
 
     output_keys = ["plots"]
 
-    def create_form(self):
-        return Form(
-            label = "Bar plot for GO enrichment analysis",
-            input_fields = [
-                # TODO: input:df fill dynamic with fill_forms
-                DropdownField(
-                    name = "input_df_step_instance",
-                    label = "Choose dataframe to be plotted",
-                ),
+    """ # TODO: input:df fill dynamic with fill_forms
+                
                 # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
                 MultiSelectWithDropdownsField(
                     name = "gene_sets",
                     label = "Sets to be plotted",
                     dropdown_options = [(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
+                ), """
+
+    def create_form(self):
+        return Form(
+            label = "Bar plot for GO enrichment analysis",
+            input_fields = [
+                DropdownField(
+                    name = "input_df_step_instance",
+                    label = "Choose dataframe to be plotted",
+                    value = GOEnrichmentBarPlotValue.p_value,
+                    options = GOEnrichmentBarPlotValue,
                 ),
                 DropdownField(
                     name = "value",
                     label = "Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
                     value = GOEnrichmentBarPlotValue.p_value,
                     options = GOEnrichmentBarPlotValue,
+                ),
+                MultiSelectField(
+                    name = "gene_sets",
+                    label = "Knowledge bases for enrichment",
                 ),
                 NumberField(
                     name = "top_terms",
@@ -341,11 +349,11 @@ class PlotGOEnrichmentBarPlot(PlotStep):
             form["input_df_step_instance"].value = form["input_df_step_instance"].options[0].label
 
         if form["input_df_step_instance"].value:
-            form["gene_sets"].options = form_helper.to_choices(
+            """ form["gene_sets"].options = form_helper.to_choices(
                 run.steps.get_step_output(
                     Step, "enrichment_df", form["input_df_step_instance"]
                 )["Gene_set"].unique()
-            )
+            ) """
 
     calc_method = staticmethod(di_plots.GO_enrichment_bar_plot)
 
