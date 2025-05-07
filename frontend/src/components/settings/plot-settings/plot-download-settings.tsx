@@ -21,7 +21,7 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
-import { color, spacing } from "../../../theme";
+import { color, spacing, zIndex } from "../../../theme";
 
 const StyledModal = styled(Modal)`
   width: fit-content;
@@ -45,7 +45,7 @@ const Footer = styled.div`
   justify-content: flex-end;
   gap: ${spacing("smallButtonGap")};
   padding: ${spacing("smallButtonGap")};
-  z-index: 10;
+  z-index: ${zIndex("modal")};
 `;
 
 export interface PlotDownloadSettingsProps {
@@ -112,7 +112,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         },
       },
     }));
-    // TODO Fix this dependency issue
+    // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
 

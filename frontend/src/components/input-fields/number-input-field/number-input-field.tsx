@@ -25,7 +25,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
 `;
 
 const StepButtonContainer = styled.div`
-  height: 30px;
+  height: ${size("inputFieldHeightDefault")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -116,7 +116,8 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         max={max}
         step={step}
         onInput={handleInput}
-        $isSmall={props.isSmall ?? false}
+        // Disable isSmall when hasStepButtons is true
+        $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
         {...props}
       />
       {hasStepButtons && (

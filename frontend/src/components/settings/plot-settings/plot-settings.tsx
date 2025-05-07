@@ -21,7 +21,7 @@ import {
   SectionTitle,
   Text,
 } from "../..";
-import { color, fontSize, fontWeight, spacing } from "../../../theme";
+import { color, fontSize, fontWeight, spacing, zIndex } from "../../../theme";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -39,7 +39,7 @@ const Footer = styled.div`
   justify-content: flex-end;
   gap: ${spacing("smallButtonGap")};
   padding: ${spacing("smallButtonGap")};
-  z-index: 10;
+  z-index: ${zIndex("modal")};
 `;
 
 const Label = styled(Text)`
@@ -160,7 +160,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
     // Update hasChanges flag for onClose action
     setHasChanges(!isEqual(settings, savedSettings));
 
-    // TODO Fix this dependency issue
+    // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedSettings, settings]);
 
