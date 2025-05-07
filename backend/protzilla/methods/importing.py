@@ -107,7 +107,7 @@ class DiannImport(ImportingStep):
     def create_form(self):
         return Form(
             label="DIA-NN Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name="file_path",
                     label="DIA-NN intensities file (*.pg_matrix.tsv)",
@@ -140,7 +140,7 @@ class MsFraggerImport(ImportingStep):
     def create_form(self):
         return Form(
             label="DIA-NN Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
@@ -211,7 +211,7 @@ class MetadataImportMethodDiann(ImportingStep):
     def create_form(self):
         return Form(
             label="DIA-NN Metadata Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name="file_path",
                     label="Run-Relationship metadata file:",
@@ -244,7 +244,7 @@ class MetadataColumnAssignment(ImportingStep):
     def create_form(self):
         return Form(
             label="Metadata column assignment",
-            fields=[
+            input_fields=[
                 DropdownField(
                     name="metadata_required_column",
                     label="Missing, but required metadata columns",
@@ -311,7 +311,7 @@ class PeptideImport(ImportingStep):
     def create_form(self):
         return Form(
             label="MaxQuant Peptide Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name="file_path",
                     label="Peptide file",
@@ -355,7 +355,7 @@ class EvidenceImport(ImportingStep):
     def create_form(self):
         return Form(
             label="MaxQuant Evidence Import",
-            fields=[
+            input_fields=[
                 FileInput(
                     name="file_path",
                     label="Evidence file",
