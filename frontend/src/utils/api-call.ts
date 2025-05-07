@@ -1,4 +1,4 @@
-import { getCookie } from "./get-cookie.ts";
+import { InputValueType } from "../components/forms/form";
 import { API_ROOT } from "../constants";
 
 export async function ensureCSRFToken() {
@@ -7,17 +7,20 @@ export async function ensureCSRFToken() {
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to fetch CSRF token");
-  return response;
+  const data = await response.json();
+  return data.csrfToken;
 }
 
 export const callApiWithParameters = async (
   url: string,
-  parameters: Record<string, string | boolean | string[] | number | File>,
+  parameters: Record<
+    string,
+    string | number | boolean | string[] | Record<string, string | InputValueType>
+  >,
 ) => {
   try {
-    await ensureCSRFToken();
+    const csrfToken = await ensureCSRFToken();
 
-    const csrfToken = getCookie("csrftoken");
     if (!csrfToken) {
       throw new Error("CSRF token not found.");
     }

@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 from pandas import DataFrame
@@ -8,13 +9,13 @@ from backend.protzilla.constants.paths import BACKEND_PATH
 from backend.protzilla.utilities import random_string
 
 
-def file_importer(file_path: str) -> tuple[pd.DataFrame, str]:
+def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
     """
     Imports a file based on its file extension and returns a pandas DataFrame or None if the file format is not
     supported / the file doesn't exist.
     """
     try:
-        if file_path.endswith(".csv"):
+        if file_path.suffix == ".csv":
             meta_df = pd.read_csv(
                 file_path,
                 sep=",",
@@ -23,11 +24,11 @@ def file_importer(file_path: str) -> tuple[pd.DataFrame, str]:
                 keep_default_na=True,
                 skipinitialspace=True,
             )
-        elif file_path.endswith(".xlsx"):
+        elif file_path.suffix == ".xlsx":
             meta_df = pd.read_excel(file_path)
-        elif file_path.endswith(".psv"):
+        elif file_path.suffix == ".psv":
             meta_df = pd.read_csv(file_path, sep="|", low_memory=False)
-        elif file_path.endswith(".tsv"):
+        elif file_path.suffix == ".tsv":
             meta_df = pd.read_csv(file_path, sep="\t", low_memory=False)
         elif file_path == "":
             return (
@@ -51,7 +52,7 @@ def file_importer(file_path: str) -> tuple[pd.DataFrame, str]:
 
 
 def metadata_import_method(
-    protein_df: pd.DataFrame, file_path: str, feature_orientation: str
+    protein_df: pd.DataFrame, file_path: Path, feature_orientation: str
 ) -> dict:
     """
         Imports a metadata file and returns the intensity dataframe and a dict with a message if the file import failed,
@@ -89,7 +90,7 @@ def metadata_import_method(
         meta_df.to_csv(file_path, index=False)
         return metadata_import_method(protein_df, file_path, "Columns")
 
-    elif file_path.startswith(
+    elif str(file_path).startswith(
         f"{BACKEND_PATH}/tests/protzilla/importing/conversion_tmp_"
     ):
         os.remove(file_path)
@@ -113,7 +114,7 @@ def metadata_import_method(
 
 
 def metadata_import_method_diann(
-    protein_df: DataFrame, file_path: str, groupby_sample: bool = False
+    protein_df: DataFrame, file_path: Path, groupby_sample: bool = False
 ) -> dict:
     """
     This method imports a metadata file with run relationship information and returns the intensity dataframe and the
@@ -126,7 +127,7 @@ def metadata_import_method_diann(
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
 
-    if file_path.startswith(
+    if str(file_path).startswith(
         f"{BACKEND_PATH}/tests/protzilla/importing/conversion_tmp_" # TODO R this should be deleted in tests not in this method...
     ):
         os.remove(file_path)
