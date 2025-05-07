@@ -78,8 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   ...rest
 }) => {
-  const [isRunSettingsOpen, openRunSettings, closeRunSettings] =
-    useToggleableState();
+  const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
 
@@ -97,16 +96,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             txComponents={allowRunEdit ? titleComponents : undefined}
           />
           {allowRunEdit && (
-            <Button
-              icon={"edit"}
-              onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
-            />
+            <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings} />
           )}
           {isRunSettingsOpen && (
             <TempRunSettings ref={refRunSettings}>
-              {
-                "TODO: Create component to show current run's name, tags, other info."
-              }
+              {"TODO: Create component to show current run's name, tags, other info."}
             </TempRunSettings>
           )}
         </NavbarCenter>

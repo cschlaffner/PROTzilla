@@ -8,9 +8,7 @@ export default {
   title: "Edit Tag",
 };
 
-export const primary = (args: EditTagProps): React.ReactNode => (
-  <EditTag {...args} />
-);
+export const primary = (args: EditTagProps): React.ReactNode => <EditTag {...args} />;
 primary.args = {
   text: "tag",
   icon: "add",

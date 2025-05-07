@@ -19,8 +19,7 @@ export interface RelativePositionConfig {
   distance?: number;
 }
 
-export interface RelativePositionStyleConfig
-  extends Pick<RelativePositionConfig, "distance"> {
+export interface RelativePositionStyleConfig extends Pick<RelativePositionConfig, "distance"> {
   /** The parent element's bounding client rect. */
   rect: DOMRect;
 
@@ -28,10 +27,7 @@ export interface RelativePositionStyleConfig
   offsetRect?: DOMRect;
 }
 
-const computeStyle = ({
-  rect,
-  distance,
-}: RelativePositionStyleConfig): React.CSSProperties => ({
+const computeStyle = ({ rect, distance }: RelativePositionStyleConfig): React.CSSProperties => ({
   position: "absolute",
   top: rect.top + rect.height + (distance ?? 0),
   left: rect.left,
@@ -42,6 +38,5 @@ const computeStyle = ({
  * Returns a style object that absolutely positions the options of a drop down
  * menu.
  */
-export const useFloatingPosition = (
-  config: RelativePositionConfig,
-): React.CSSProperties => useRelativePosition(computeStyle, config);
+export const useFloatingPosition = (config: RelativePositionConfig): React.CSSProperties =>
+  useRelativePosition(computeStyle, config);

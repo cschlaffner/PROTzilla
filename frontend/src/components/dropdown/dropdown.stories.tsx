@@ -14,9 +14,7 @@ const DropdownWithState: React.FC<DropdownProps> = ({
   onOtherChange,
   ...args
 }) => {
-  const [selectedOption, setSelectedOption] = useState<string | undefined>(
-    undefined,
-  );
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
   const [otherOption, setOtherOption] = useState<string | undefined>(undefined);
 
   const setStandardSelectedOption = useCallback(
@@ -49,9 +47,7 @@ const DropdownWithState: React.FC<DropdownProps> = ({
   );
 };
 
-export const primary = (args: DropdownProps): React.ReactNode => (
-  <DropdownWithState {...args} />
-);
+export const primary = (args: DropdownProps): React.ReactNode => <DropdownWithState {...args} />;
 primary.args = {
   options: [
     { value: "option1", label: "Option 1" },
@@ -67,19 +63,14 @@ primary.args = {
   placeholder: "Click to select",
 };
 
-export const searchable = ({
-  options,
-  ...args
-}: DropdownProps): React.ReactNode => {
+export const searchable = ({ options, ...args }: DropdownProps): React.ReactNode => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [search, setSearch] = useState("");
 
   return (
     <DropdownWithState
       {...args}
-      options={options.filter((option) =>
-        (option.label as string | undefined)?.includes(search),
-      )}
+      options={options.filter((option) => (option.label as string | undefined)?.includes(search))}
       onSearch={setSearch}
     />
   );
@@ -95,9 +86,7 @@ searchable.args = {
   placeholder: "Click to select",
 };
 
-export const withLabel = (args: DropdownProps): React.ReactNode => (
-  <DropdownWithState {...args} />
-);
+export const withLabel = (args: DropdownProps): React.ReactNode => <DropdownWithState {...args} />;
 
 withLabel.args = {
   options: [

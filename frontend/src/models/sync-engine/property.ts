@@ -8,10 +8,7 @@ export interface IPropertyConfig<T> {
 }
 
 export const Property =
-  <T>({
-    transform = (value) => value as T,
-    observe = false,
-  }: IPropertyConfig<T> = {}) =>
+  <T>({ transform = (value) => value as T, observe = false }: IPropertyConfig<T> = {}) =>
   (
     value: { get: () => T; set: (value: T) => void },
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -57,8 +54,7 @@ export const Property =
               if ((this as any).sync) {
                 if ((this as any).dirtyKeys.includes(name)) return;
                 (this as any).dirtyKeys.push(name);
-                (this as any).previousValues =
-                  (this as any).previousValues ?? {};
+                (this as any).previousValues = (this as any).previousValues ?? {};
                 (this as any).previousValues[name] = previousValue;
               }
             },

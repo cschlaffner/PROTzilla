@@ -1,32 +1,17 @@
-import {
-  ID,
-  ILocalStorageAdapter,
-  Snapshot,
-  StorageCommand,
-  StorageTransaction,
-} from "./types";
+import { ID, ILocalStorageAdapter, Snapshot, StorageCommand, StorageTransaction } from "./types";
 
 export class StorageLogger<M> implements ILocalStorageAdapter<M> {
-  public read<E extends keyof M>(
-    entity: E,
-    id: ID,
-  ): Promise<Snapshot<M[E]> | undefined> {
+  public read<E extends keyof M>(entity: E, id: ID): Promise<Snapshot<M[E]> | undefined> {
     console.log("Read:", entity, id);
     return Promise.resolve(undefined);
   }
 
-  public readAll<E extends keyof M>(
-    entity: E,
-    query?: unknown,
-  ): Promise<Snapshot<M[E]>[]> {
+  public readAll<E extends keyof M>(entity: E, query?: unknown): Promise<Snapshot<M[E]>[]> {
     console.log("Read all:", entity, JSON.stringify(query));
     return Promise.resolve([]);
   }
 
-  public write<E extends keyof M>(
-    entity: E,
-    newValue: Snapshot<M[E]>,
-  ): Promise<void> {
+  public write<E extends keyof M>(entity: E, newValue: Snapshot<M[E]>): Promise<void> {
     console.log("Write:", entity, JSON.stringify(newValue));
     return Promise.resolve();
   }
@@ -36,12 +21,7 @@ export class StorageLogger<M> implements ILocalStorageAdapter<M> {
     query: unknown,
     newValues: Snapshot<M[E]>[],
   ): Promise<void> {
-    console.log(
-      "Write all:",
-      entity,
-      JSON.stringify(query),
-      JSON.stringify(newValues),
-    );
+    console.log("Write all:", entity, JSON.stringify(query), JSON.stringify(newValues));
     return Promise.resolve();
   }
 
