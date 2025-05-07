@@ -1,6 +1,6 @@
 import logging
 
-from backend.protzilla.methods.data_preprocessing import ImputationByMinPerProtein
+from backend.protzilla.methods.data_preprocessing import ImputationByKNN
 from backend.protzilla.methods.importing import MaxQuantImport
 
 
@@ -30,13 +30,13 @@ class TestRun:
         assert run_imported.steps.current_section == "importing"
 
     def test_step_add(self, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         length_before = len(run_imported.steps.all_steps)
         run_imported.step_add(step)
         assert len(run_imported.steps.all_steps) == length_before + 1
 
     def test_step_remove(self, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         run_imported.step_add(step)
         length_before = len(run_imported.steps.all_steps)
         run_imported.step_remove(step)
@@ -45,42 +45,45 @@ class TestRun:
     def test_step_calculate(self, run_empty, maxquant_data_file):
         step = MaxQuantImport()
         run_empty.step_add(step)
-        run_empty.step_calculate(
-            inputs={
+        run_empty.current_form(
+             {
                 "file_path": maxquant_data_file,
                 "map_to_uniprot": False,
                 "intensity_name": "Intensity",
-                "aggregation_method": "Sum",
-            }
+                "aggregation_method": "Sum"
+             }
         )
+        run_empty.step_calculate()
         assert run_empty.current_step.output["protein_df"] is not None
         assert not run_empty.current_step.output["protein_df"].empty
 
     def test_step_plot(self, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         run_imported.step_add(step)
         run_imported.step_next()
-        run_imported.step_calculate(
-            inputs={"shrinking_value": 0.5,
+        run_imported.current_form(
+            {
+                "number_of_neighbours": 5,
                 "graph_type": "Boxplot",
-                "graph_type_quantities": "Pie chart",
                 "group_by": "None",
-                "visual_transformation": "linear",
+                "visual_transformation": "log10",
+                "graph_type_quantities": "Pie chart"
             }
         )
+        run_imported.step_calculate()
         assert run_imported.current_step == step
         print(run_imported.current_step.plots)
         assert not run_imported.current_step.plots.empty
 
     def test_step_next(self, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         run_imported.step_add(step)
         assert run_imported.current_step != step
         run_imported.step_next()
         assert run_imported.current_step == step
 
     def test_step_previous(self, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         run_imported.step_add(step)
         run_imported.step_next()
         assert run_imported.current_step == step
@@ -88,7 +91,7 @@ class TestRun:
         assert run_imported.current_step != step
 
     def test_step_goto(self, caplog, run_imported):
-        step = ImputationByMinPerProtein()
+        step = ImputationByKNN()
         run_imported.step_add(step)
         run_imported.step_goto(0, "data_preprocessing_wrong")
         assert any(
@@ -105,12 +108,12 @@ class TestRun:
         run_imported.step_change_method("DiannImport")
         assert run_imported.current_step.__class__.__name__ == "DiannImport"
 
-    def test_set_steps_outdated(self,run_imported,maxquant_data_file):
-        step = ImputationByMinPerProtein()
+    def test_set_steps_outdated(self,run_imported):
+        step = ImputationByKNN()
         run_imported.step_add(step)
         run_imported.step_next()
         assert run_imported.current_step.calculation_status == "incomplete"
-        run_imported.step_calculate(inputs={"shrinking_value": 0.5})
+        run_imported.step_calculate()
         assert run_imported.current_step.calculation_status == "complete"
         run_imported.step_set_outdated()
         assert run_imported.current_step.calculation_status == "outdated"

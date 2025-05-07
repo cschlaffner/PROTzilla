@@ -1,8 +1,8 @@
 import { UIStateProps } from "../../types";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { InputContainerProps } from "../input-container";
 
 export interface RadioSelectInputFieldProps
-  extends Omit<FrameInputFieldProps, "inlinePrefix" | "inlineSuffix">,
+  extends Omit<InputContainerProps, "inlinePrefix" | "inlineSuffix">,
     UIStateProps {
   options: { label: string; value: string }[];
   value?: string;

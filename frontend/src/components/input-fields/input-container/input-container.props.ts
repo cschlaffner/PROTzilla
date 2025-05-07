@@ -1,6 +1,6 @@
 import type { UIStateProps } from "../../types";
 
-export interface FrameInputFieldProps extends UIStateProps {
+export interface InputContainerProps extends UIStateProps {
   children?: React.ReactNode;
   label?: string;
   labelPosition?: "top" | "side";

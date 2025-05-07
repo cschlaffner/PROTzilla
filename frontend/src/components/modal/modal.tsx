@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 import { ModalProps } from "./modal.props";
 import { color, zIndex } from "../../theme";
 import { CircularButton } from "../button";
-import { Card } from "../card";
+import { Card } from "../cards/card";
 import { Icon } from "../icon";
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
