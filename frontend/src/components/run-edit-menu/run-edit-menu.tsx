@@ -115,19 +115,13 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
 
     return (
       <div ref={ref} id={"run-edit-menu"}>
-        <StyledModal
-          title={"Edit run information"}
-          isOpen={isOpen}
-          onClose={onClose}
-        >
+        <StyledModal title={"Edit run information"} isOpen={isOpen} onClose={onClose}>
           <Row>
             <SectionTitle baseComponent={"h6"} title={"Favourited: "} />
             <IconButton
               icon={"starFill"}
               style={{
-                fill: selectedRun.favourite_status
-                  ? defaultPalette.primary
-                  : "",
+                fill: selectedRun.favourite_status ? defaultPalette.primary : "",
               }}
               onClick={() => {
                 toggleFavorite();
@@ -155,11 +149,10 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
                 {
                   type: "text",
                   name: "run_name",
-                  props: {
-                    label: "Enter a new name:",
-                    placeholder: selectedRun.run_name,
-                    value: selectedRun.run_name,
-                  },
+                  label: "Enter a new name:",
+                  placeholder: selectedRun.run_name,
+                  value: selectedRun.run_name,
+                  isVisible: true,
                 },
               ],
             }}

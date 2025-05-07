@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 import { spacing } from "../../../theme";
 

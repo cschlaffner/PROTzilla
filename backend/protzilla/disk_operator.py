@@ -230,8 +230,7 @@ class DiskOperator:
         """
         # if we are writing the run, chances are the outputs of the current step
         # have recently been (re)calculcated, therefore invalidating the existing file
-        if steps.current_step.instance_identifier in file.name:
-            return False
+        
         return any(
             step.instance_identifier in file.name and step.calculation_status!="incomplete"
             for step in steps.all_steps
@@ -368,5 +367,5 @@ def sanitize_inputs(inputs: dict) -> dict:
     return {
         key: value
         for key, value in inputs.items()
-        if type(value) != pd.DataFrame and not utilities.check_is_path(value)
+        if type(value) != pd.DataFrame and not utilities.check_is_path(value) and key != "peptide_df"
     }

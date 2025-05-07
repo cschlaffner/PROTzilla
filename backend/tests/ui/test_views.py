@@ -114,7 +114,8 @@ def test_step_finished(run_standard):
         "map_to_uniprot": False,
         "aggregation_method": "Sum",
     }
-    run_standard.step_calculate(parameters)
+    run_standard.current_form(parameters)
+    run_standard.step_calculate()
 
     assert run_standard.current_step.calculation_status == "complete"
 
@@ -126,7 +127,8 @@ def test_step_finished(run_standard):
         "file_path": f"",
         "feature_orientation": "Columns (samples in rows, features in columns)",
     }
-    run_standard.step_calculate(parameters)
+    run_standard.current_form(parameters)
+    run_standard.step_calculate()
 
     assert run_standard.current_step.calculation_status == "failed"
 
@@ -134,7 +136,8 @@ def test_step_finished(run_standard):
         "file_path": f"{BACKEND_PATH}/tests/nonexistent_file.txt",
         "feature_orientation": "Columns (samples in rows, features in columns)",
     }
-    run_standard.step_calculate(parameters)
+    run_standard.current_form(parameters)
+    run_standard.step_calculate()
 
     assert run_standard.current_step.calculation_status == "failed"
 
@@ -142,6 +145,7 @@ def test_step_finished(run_standard):
         "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
         "feature_orientation": "Columns (samples in rows, features in columns)",
     }
-    run_standard.step_calculate(parameters)
+    run_standard.current_form(parameters)
+    run_standard.step_calculate()
 
     assert run_standard.current_step.calculation_status == "complete"

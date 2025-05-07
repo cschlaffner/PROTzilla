@@ -226,14 +226,9 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_calculate(self, inputs: dict | None = None) -> None:
-        self.steps.current_step.calculate(self.steps, inputs)
+    def step_calculate(self) -> None:
+        self.steps.current_step.calculate(self.steps)
         self.disk_operator.update_modification_date()
-
-    @error_handling
-    @auto_save
-    def update_inputs(self, inputs: dict) -> None:
-        self.steps.current_step.updateInputs(inputs)
 
     @error_handling
     @auto_save
@@ -250,6 +245,7 @@ class Run:
         self.steps.previous_step()
 
     @error_handling
+    @auto_save
     def step_goto(self, step_index: int, section: str) -> None:
         self.steps.goto_step(step_index, section)
 
@@ -262,7 +258,10 @@ class Run:
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
 
-    
+    @auto_save
+    def step_upload_file(self, inputname: str, file) -> None:
+        self.steps.current_step.upload_file(inputname, file)
+
     @auto_save
     def current_form(self, new_form_values = {}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
