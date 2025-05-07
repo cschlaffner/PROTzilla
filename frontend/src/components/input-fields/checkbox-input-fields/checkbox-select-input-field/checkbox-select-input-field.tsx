@@ -10,10 +10,8 @@ export const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`
   display: inline-flex;
   flex-direction: column;
   gap: ${spacing("small")};
-  padding-top: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
-  padding-bottom: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-top: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
+  padding-bottom: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
   padding-left: ${spacing("small")};
   padding-right: ${spacing("small")};
   width: 100%;
@@ -28,9 +26,12 @@ export const StyledLabel = styled.label`
   user-select: none;
 `;
 
-export const CheckboxSelectInputField: React.FC<
-  CheckboxSelectInputFieldProps
-> = ({ options, value = [], onChange, ...props }) => {
+export const CheckboxSelectInputField: React.FC<CheckboxSelectInputFieldProps> = ({
+  options,
+  value = [],
+  onChange,
+  ...props
+}) => {
   const [selectedValues, setSelectedValues] = useState(() => {
     const sortedDefaultOptions = [...value].sort((a, b) => a.localeCompare(b));
     onChange(sortedDefaultOptions);
@@ -42,9 +43,7 @@ export const CheckboxSelectInputField: React.FC<
       ? selectedValues.filter((v) => v !== value)
       : [...selectedValues, value];
 
-    const sortedSelection = newSelectedValues.sort((a, b) =>
-      a.localeCompare(b),
-    );
+    const sortedSelection = newSelectedValues.sort((a, b) => a.localeCompare(b));
 
     setSelectedValues(sortedSelection);
     onChange(sortedSelection);

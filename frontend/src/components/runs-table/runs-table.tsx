@@ -123,9 +123,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
       run_name: runName,
     });
     const updated = runs.map((run) =>
-      run.run_name === runName
-        ? { ...run, favourite_status: !run.favourite_status }
-        : run,
+      run.run_name === runName ? { ...run, favourite_status: !run.favourite_status } : run,
     );
     setRuns(updated);
   };
@@ -138,11 +136,9 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   };
 
   const handleContinueRun = (runName: string) => {
-    void callApiWithParameters("continue_run/", { run_name: runName }).then(
-      () => {
-        void navigate("/run", { state: { runName } });
-      },
-    );
+    void callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
+      void navigate("/run", { state: { runName } });
+    });
   };
 
   const handleRenameRun = (newName: string) => {
@@ -179,9 +175,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
       {[...filteredRuns]
         // Favourites on top
-        .sort(
-          (a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0),
-        )
+        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0))
         .map((run) => (
           <TableRow
             key={run.run_name}
@@ -216,12 +210,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                 }}
               />
             </TableCol>
-            <TableCol width={theme.sizes.largeCellWidth}>
-              {run.run_name}
-            </TableCol>
-            <TableCol width={theme.sizes.mediumCellWidth}>
-              {run.modification_date}
-            </TableCol>
+            <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
+            <TableCol width={theme.sizes.mediumCellWidth}>{run.modification_date}</TableCol>
             <TableCol>
               <StyledList>
                 <TagList

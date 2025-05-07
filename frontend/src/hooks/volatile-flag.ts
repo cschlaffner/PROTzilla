@@ -9,9 +9,7 @@ import { useDelay } from "./delay";
  *
  * @returns `[isActive, enable, disable]`
  */
-export const useVolatileFlag = (
-  duration = 1000,
-): [boolean, () => void, () => void] => {
+export const useVolatileFlag = (duration = 1000): [boolean, () => void, () => void] => {
   const [isActive, setIsActive] = useState(false);
   const [scheduleDismiss, cancelDismiss] = useDelay(
     useCallback(() => {

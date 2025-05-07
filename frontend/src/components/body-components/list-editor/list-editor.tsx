@@ -55,7 +55,6 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   };
 
   useEffect(() => {
-   
     setSections(runData.displayed_steps);
   }, [runData]);
 
@@ -64,13 +63,11 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   );
 
   const previousStep = translateGlobalToSectionIndex(
-    Math.max(runData.current_step_index-1,0),
+    Math.max(runData.current_step_index - 1, 0),
     sections,
   );
 
-  const previousSection = sections.find(
-    (section) => (section.id) === previousStep.section,
-  );
+  const previousSection = sections.find((section) => section.id === previousStep.section);
 
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
@@ -78,7 +75,9 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   ).index;
 
   const previousStepCalculationStatus =
-     runData.current_step_index === 0 ? "complete" : previousSection?.steps[previousStep.index]?.status
+    runData.current_step_index === 0
+      ? "complete"
+      : previousSection?.steps[previousStep.index]?.status;
 
   const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
 
@@ -90,13 +89,8 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         : "Calculate";
 
   const onNext = () => {
-          handleStepSelection(
-            translateGlobalToSectionIndex(
-              runData.current_step_index + 1,
-              sections,
-            ),
-          );
-        }
+    handleStepSelection(translateGlobalToSectionIndex(runData.current_step_index + 1, sections));
+  };
 
   const onFormChanged = useCallback(() => {
     let shouldOutdateFollowingStep = false;
@@ -139,7 +133,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         <BackendForm
           runName={runName}
           buttonText={buttonText}
-          previousStepCalculationStatus = {previousStepCalculationStatus}
+          previousStepCalculationStatus={previousStepCalculationStatus}
           currentStepCalculationStatus={currentStepCalculationStatus}
           current_step_index={runData.current_step_index}
           onNext={onNext}
