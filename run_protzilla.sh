@@ -12,17 +12,17 @@ fi
 # Reload shell config based on OS and shell
 if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ "$SHELL" == */zsh ]]; then
-    ShellReloadText="Please run \"source ~/.zshrc\" and afterwards restart the script."
+    shell_reload_text="Please run \"source ~/.zshrc\" and afterwards restart the script."
   elif [[ "$SHELL" == */bash ]]; then
-    ShellReloadText="Please run \"source ~/.bash_profile\" and afterwards restart the script."
+    shell_reload_text="Please run \"source ~/.bash_profile\" and afterwards restart the script."
   fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [[ "$SHELL" == */zsh ]]; then
-    ShellReloadText="Please run \"source ~/.zshrc\" and afterwards restart the script."
+    shell_reload_text="Please run \"source ~/.zshrc\" and afterwards restart the script."
   elif [[ "$SHELL" == */bash ]]; then
-    ShellReloadText="Please run \"source ~/.bashrc\" and afterwards restart the script."
+    shell_reload_text="Please run \"source ~/.bashrc\" and afterwards restart the script."
   else
-    ShellReloadText="Please restart your terminal manually and afterwards restart the script."
+    shell_reload_text="Please restart your terminal manually and afterwards restart the script."
   fi
 fi
 
@@ -39,7 +39,7 @@ if ! conda --version >/dev/null; then
     chmod +x ./install_scripts/install_unix.sh
     ./install_scripts/install_unix.sh
 
-    echo $ShellReloadText
+    echo $shell_reload_text
     exit 1
   else
     echo "conda seems to be installed but not accessible. Check your path"
@@ -83,7 +83,7 @@ if ! command -v node &> /dev/null; then
     curl -o- https://fnm.vercel.app/install | bash
     fnm install 22 # install node version 22
 
-    echo $ShellReloadText
+    echo $shell_reload_text
     exit 1
 fi
 
