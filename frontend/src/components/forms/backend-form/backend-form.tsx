@@ -14,8 +14,8 @@ import { NumberInputField } from "../../input-fields/number-input-field";
 import { RadioSelectInputField } from "../../input-fields/radio-select-input-field";
 import { SearchInputField } from "../../input-fields/search-input-field";
 import { TextInputField } from "../../input-fields/text-input-field";
-import { H3 } from "../../text";
 import { useNotification } from "../../notification-center";
+import { H3 } from "../../text";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};
