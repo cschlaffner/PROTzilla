@@ -13,7 +13,13 @@ const PlotDiv = styled.div<{ hasBorder: boolean }>`
   border-radius: ${border("defaultRadius")};
 `;
 
-export const PlotComponent: React.FC<PlotProps> = ({ data, layout, hasBorder, divId }) => {
+export const PlotComponent: React.FC<PlotProps> = ({
+   data,
+   layout,
+   hasBorder,
+   hasResizing,
+   divId,
+  }) => {
   const theme = useTheme();
   return (
     <div style={{ width: "100%", height: "100%", flexGrow: 1, minHeight: 0 }}>
@@ -22,9 +28,9 @@ export const PlotComponent: React.FC<PlotProps> = ({ data, layout, hasBorder, di
           <div style={{ margin: theme.borders.defaultStrength }}>
             <Plot
               data={data}
-              layout={{ ...layout, autosize: false }}
+              layout={{ ...layout, autosize: hasResizing }}
               style={{ width: "100%", height: "100%" }}
-              useResizeHandler={false}
+              useResizeHandler={hasResizing}
               divId={divId}
             />
           </div>
