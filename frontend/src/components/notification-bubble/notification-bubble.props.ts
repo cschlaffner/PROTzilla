@@ -2,8 +2,7 @@ import type React from "react";
 
 import type { Color } from "../../theme";
 
-export interface NotificationBubbleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface NotificationBubbleProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * The amount of notifications (capped to `9`) or a flag whether or not
    * notifications ar present.

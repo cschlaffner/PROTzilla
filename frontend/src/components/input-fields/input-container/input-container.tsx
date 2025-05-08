@@ -2,14 +2,7 @@ import React, { useRef } from "react";
 import { styled } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  spacing,
-  styledDiv,
-} from "../../../theme";
+import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styledDiv.div`
@@ -37,9 +30,8 @@ const StyledInputFrame = styled.div.withConfig({
 })<{ smallBorder: boolean }>`
   box-sizing: border-box;
   background-color: ${color("transparent")};
-  border: ${({ smallBorder }) =>
-      border(smallBorder ? "smallStrength" : "defaultStrength")}
-    solid ${borderColors("default")};
+  border: ${({ smallBorder }) => border(smallBorder ? "smallStrength" : "defaultStrength")} solid
+    ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
   gap: ${spacing("verySmall")};
@@ -57,14 +49,13 @@ const StyledSeparateAffix = styledDiv.div`
 
 const StyledSeparatePrefix = styled(StyledSeparateAffix)`
   border-right: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")})
-    0 0 calc(${border("defaultRadius")} - ${border("defaultStrength")});
+  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0 0
+    calc(${border("defaultRadius")} - ${border("defaultStrength")});
 `;
 
 const StyledSeparateSuffix = styled(StyledSeparateAffix)`
   border-left: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: 0
-    calc(${border("defaultRadius")} - ${border("defaultStrength")})
+  border-radius: 0 calc(${border("defaultRadius")} - ${border("defaultStrength")})
     calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0;
 `;
 
@@ -173,15 +164,11 @@ export const InputContainer: React.FC<InputContainerProps> = ({
           )}
           <StyledInputContainer onClick={handleClick}>
             {inlinePrefix && (
-              <StyledInlinePrefix className="inline-prefix">
-                {inlinePrefix}
-              </StyledInlinePrefix>
+              <StyledInlinePrefix className="inline-prefix">{inlinePrefix}</StyledInlinePrefix>
             )}
             {styledChildren}
             {inlineSuffix && (
-              <StyledInlineSuffix className="inline-suffix">
-                {inlineSuffix}
-              </StyledInlineSuffix>
+              <StyledInlineSuffix className="inline-suffix">{inlineSuffix}</StyledInlineSuffix>
             )}
           </StyledInputContainer>
           {separateSuffix && (

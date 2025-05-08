@@ -1,6 +1,4 @@
-export const isPromise = (
-  maybePromise: unknown,
-): maybePromise is Promise<unknown> =>
+export const isPromise = (maybePromise: unknown): maybePromise is Promise<unknown> =>
   Boolean(
     maybePromise &&
       typeof (maybePromise as Promise<unknown>).catch === "function" &&

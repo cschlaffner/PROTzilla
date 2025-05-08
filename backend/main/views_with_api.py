@@ -169,6 +169,28 @@ def continue_run(request):
         return JsonResponse({"success": True, "message": "Continued run"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def update_run_name(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        new_run_name = data.get("new_run_name")
+
+        try:
+            directory_path = os.path.join(paths.RUNS_PATH, run_name)
+            new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
+            os.rename(directory_path, new_directory_path)
+            active_runs[new_run_name] = Run(new_run_name)
+            if run_name in active_runs:
+                del active_runs[run_name]
+
+            return JsonResponse({"success": True, "message": "Renamed run"})
+        except Exception as e:
+            if isinstance(e, OSError):
+                return JsonResponse({"success": False, "message": "Run name already exists."})
+            return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
 def add_plot(request):
     if request.method == "POST":
@@ -408,7 +430,7 @@ def calculate_step(request):
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
 
-        if calculation_data["status"] != "calculated":
+        if calculation_data["status"] != "complete":
             return JsonResponse({"success": False, "message": calculation_data["messages"]
                                 , "data": calculation_data}, status=500)
         return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})

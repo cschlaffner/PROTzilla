@@ -18,12 +18,7 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
   className,
 }) => {
   return (
-    <Modal
-      title={title}
-      isOpen={isOpen}
-      onClose={onClose}
-      className={className}
-    >
+    <Modal title={title} isOpen={isOpen} onClose={onClose} className={className}>
       <ButtonContainer>
         <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
         <RedButton onClick={onConfirm}>Delete</RedButton>

@@ -19,9 +19,9 @@ importingSteps.args = {
   handlePosition: { top: 400, left: 600 },
 };
 
-export const dataAnalysisSteps = (
-  args: StepSelectionProps,
-): React.ReactNode => <StepSelection {...args} />;
+export const dataAnalysisSteps = (args: StepSelectionProps): React.ReactNode => (
+  <StepSelection {...args} />
+);
 dataAnalysisSteps.args = {
   runName: "runrun",
   section: Sections.DataAnalysis,
@@ -30,9 +30,9 @@ dataAnalysisSteps.args = {
   handlePosition: { top: 400, left: 600 },
 };
 
-export const dataIntegrationSteps = (
-  args: StepSelectionProps,
-): React.ReactNode => <StepSelection {...args} />;
+export const dataIntegrationSteps = (args: StepSelectionProps): React.ReactNode => (
+  <StepSelection {...args} />
+);
 dataIntegrationSteps.args = {
   runName: "runrun",
   section: Sections.DataIntegration,
@@ -41,9 +41,9 @@ dataIntegrationSteps.args = {
   handlePosition: { top: 400, left: 600 },
 };
 
-export const dataPreprocessingSteps = (
-  args: StepSelectionProps,
-): React.ReactNode => <StepSelection {...args} />;
+export const dataPreprocessingSteps = (args: StepSelectionProps): React.ReactNode => (
+  <StepSelection {...args} />
+);
 dataPreprocessingSteps.args = {
   runName: "runrun",
   section: Sections.DataPreprocessing,

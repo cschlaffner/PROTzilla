@@ -6,7 +6,7 @@ import { initI18nApp } from "../i18n";
 import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
-import { CountersScreen, IndexScreen, RunScreen } from "../screens";
+import { IndexScreen, RunScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {
@@ -36,7 +36,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
-                  <Route path="/counters" element={<CountersScreen />} />
                   <Route path="/run" element={<RunScreen />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
