@@ -311,8 +311,8 @@ class TransformationLog(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart,
-                    options=BarAndPieChart,
+                    value=BoxAndHistogramGraph.boxplot,
+                    options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
