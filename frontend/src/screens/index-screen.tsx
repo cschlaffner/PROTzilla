@@ -171,7 +171,7 @@ export const IndexScreen: React.FC = () => {
 
         notify({
           title: "Run created",
-          message: `Run ${data.runname} has been created`,
+          message: `Run ${String(data.runname)} has been created`,
           type: "success",
         })
 
