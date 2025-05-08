@@ -18,10 +18,7 @@ const ActionRow = styled(FlexRow)`
   width: 100%;
 `;
 
-const columns: TableColumnProps<
-  SampleRowData,
-  keyof SampleRowData | "actions"
->[] = [
+const columns: TableColumnProps<SampleRowData, keyof SampleRowData | "actions">[] = [
   { name: "id", titleTx: "ID" },
   { name: "name", titleTx: "Name" },
   {
@@ -55,9 +52,7 @@ export default {
   component: Table,
 } as Meta;
 
-const Template: StoryFn<TableProps<SampleRowData, "actions">> = (args) => (
-  <Table {...args} />
-);
+const Template: StoryFn<TableProps<SampleRowData, "actions">> = (args) => <Table {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

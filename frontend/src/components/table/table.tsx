@@ -7,10 +7,7 @@ import { useUpdateOnElementResize } from "../../hooks";
 import { color, radius, size, spacing } from "../../theme";
 import { BoxProps, FlexColumn, FlexRow } from "../box";
 import { H6, Text } from "../text";
-import {
-  TABLE_SCROLL_LOAD_FACTOR,
-  TABLE_SCROLL_RENDER_MARGIN,
-} from "./constants";
+import { TABLE_SCROLL_LOAD_FACTOR, TABLE_SCROLL_RENDER_MARGIN } from "./constants";
 import { InvisibleButton } from "../button";
 import { Icon } from "../icon";
 
@@ -25,23 +22,16 @@ const rowStyle = css<Pick<TableProps<Record<string, unknown>>, "columns">>`
   box-sizing: border-box;
   display: grid;
   grid-auto-rows: 1fr;
-  grid-template-areas: "${(props) =>
-    props.columns.map((column) => column.name).join(" ")}";
+  grid-template-areas: "${(props) => props.columns.map((column) => column.name).join(" ")}";
   grid-template-columns: ${(props) =>
     props.columns
-      .map(
-        (column) =>
-          `${String((column.width ?? 1 / props.columns.length) * 100)}%`,
-      )
+      .map((column) => `${String((column.width ?? 1 / props.columns.length) * 100)}%`)
       .join(" ")};
   grid-template-rows: 100%;
   gap: 0;
   padding: 0 ${spacing("small")};
   width: 100%;
-` as unknown as <
-  T extends TableRowData,
-  AdditionalKeys extends PropertyKey = never,
->(
+` as unknown as <T extends TableRowData, AdditionalKeys extends PropertyKey = never>(
   props: Pick<TableProps<T, AdditionalKeys>, "columns">,
 ) => Interpolation<Pick<TableProps<T, AdditionalKeys>, "columns">>;
 
@@ -54,9 +44,7 @@ const TableHeader = styled(FlexRow)`
   overflow-y: auto;
   scrollbar-gutter: stable;
 ` as <T extends TableRowData, AdditionalKeys extends PropertyKey = never>(
-  props: React.PropsWithChildren<
-    BoxProps & Pick<TableProps<T, AdditionalKeys>, "columns">
-  >,
+  props: React.PropsWithChildren<BoxProps & Pick<TableProps<T, AdditionalKeys>, "columns">>,
 ) => React.JSX.Element;
 
 export const TitleCell = styled(InvisibleButton)<{ name: string }>`
@@ -79,8 +67,7 @@ const TableBody = styled.div<
   display: flex;
   flex: 1;
   flex-direction: column;
-  background: ${({ isOnBackground }) =>
-    color(isOnBackground ? "secondary" : "background")};
+  background: ${({ isOnBackground }) => color(isOnBackground ? "secondary" : "background")};
   border-radius: ${radius("smallCard")};
   box-sizing: border-box;
   width: 100%;
@@ -107,9 +94,7 @@ const TableRowContainer = styled.div<
       }
     `}
 ` as <T extends TableRowData, AdditionalKeys extends PropertyKey = never>(
-  props: React.PropsWithChildren<
-    BoxProps & Pick<TableProps<T, AdditionalKeys>, "columns">
-  >,
+  props: React.PropsWithChildren<BoxProps & Pick<TableProps<T, AdditionalKeys>, "columns">>,
 ) => React.JSX.Element;
 
 export const TableCell = styled(FlexRow)<{ name: string }>`
@@ -141,8 +126,7 @@ export const TableRow = observer(
     children,
     ...rest
   }: React.PropsWithChildren<
-    TableRowProps<T, AdditionalKeys> &
-      Pick<TableProps<T, AdditionalKeys>, "showHoverEffect">
+    TableRowProps<T, AdditionalKeys> & Pick<TableProps<T, AdditionalKeys>, "showHoverEffect">
   >): React.JSX.Element => (
     <TableRowContainer {...rest} columns={columns}>
       {data
@@ -154,11 +138,7 @@ export const TableRow = observer(
                 (data as any)[column.name];
 
             return typeof value === "string" ? (
-              <TextCell
-                key={String(column.name)}
-                name={String(column.name)}
-                text={value}
-              />
+              <TextCell key={String(column.name)} name={String(column.name)} text={value} />
             ) : (
               <TableCell key={String(column.name)} name={String(column.name)}>
                 {value as React.ReactElement}
@@ -172,10 +152,7 @@ export const TableRow = observer(
 
 const emptyArray: never[] = [];
 
-export const Table = <
-  T extends TableRowData,
-  AdditionalKeys extends PropertyKey = never,
->({
+export const Table = <T extends TableRowData, AdditionalKeys extends PropertyKey = never>({
   columns,
   rows = [],
   rowHeight,
@@ -256,24 +233,16 @@ export const Table = <
             name={String(col.name)}
             key={index}
             as={
-              onOrderBy &&
-              rows[0] &&
-              Object.prototype.hasOwnProperty.call(rows[0], col.name)
+              onOrderBy && rows[0] && Object.prototype.hasOwnProperty.call(rows[0], col.name)
                 ? InvisibleButton
                 : FlexRow
             }
-            {...(onOrderBy &&
-            rows[0] &&
-            Object.prototype.hasOwnProperty.call(rows[0], col.name)
+            {...(onOrderBy && rows[0] && Object.prototype.hasOwnProperty.call(rows[0], col.name)
               ? {
                   onPress: () => {
                     onOrderBy(
                       col.name as keyof T,
-                      orderBy === col.name
-                        ? order === "ASC"
-                          ? "DESC"
-                          : "ASC"
-                        : "ASC",
+                      orderBy === col.name ? (order === "ASC" ? "DESC" : "ASC") : "ASC",
                     );
                   },
                 }
@@ -292,10 +261,7 @@ export const Table = <
               />
             )}
             {orderBy === col.name && (
-              <Icon
-                icon={order === "DESC" ? "chevronDown" : "chevronUp"}
-                color="onPrimary"
-              />
+              <Icon icon={order === "DESC" ? "chevronDown" : "chevronUp"} color="onPrimary" />
             )}
           </TitleCell>
         ))}

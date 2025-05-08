@@ -9,9 +9,7 @@ const viteConfig = defineViteConfig({
   plugins: [
     react({
       babel: {
-        plugins: [
-          ["@babel/plugin-proposal-decorators", { version: "2023-05" }],
-        ],
+        plugins: [["@babel/plugin-proposal-decorators", { version: "2023-05" }]],
       },
     }),
     svgr(),

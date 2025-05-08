@@ -11,9 +11,7 @@ export default {
   title: "Tooltip",
 };
 
-export const primary = (args: TooltipProps): React.ReactNode => (
-  <Tooltip {...args} />
-);
+export const primary = (args: TooltipProps): React.ReactNode => <Tooltip {...args} />;
 primary.args = {
   isShown: true,
   text: "This is a tooltip",
@@ -40,16 +38,8 @@ const BoxWithTooltipDelay = ({
   const [parentRef, setParentRef] = useState<HTMLDivElement | null>(null);
 
   return (
-    <Box
-      ref={setParentRef}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-    >
-      <Tooltip
-        {...rest}
-        isShown={showTooltip}
-        anchor={useMouseAnchor ? mouseAnchor : parentRef}
-      />
+    <Box ref={setParentRef} onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave}>
+      <Tooltip {...rest} isShown={showTooltip} anchor={useMouseAnchor ? mouseAnchor : parentRef} />
     </Box>
   );
 };

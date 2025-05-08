@@ -19,10 +19,7 @@ const StyledDiv = styled(SubScreen)`
   min-width: 100%;
 `;
 
-export const Screen: React.FC<ScreenProps> = ({
-  title,
-  ...rest
-}: ScreenProps) => {
+export const Screen: React.FC<ScreenProps> = ({ title, ...rest }: ScreenProps) => {
   useEffect(() => {
     if (title) document.title = title;
   }, [title]);

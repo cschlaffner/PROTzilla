@@ -11,13 +11,7 @@ import {
 } from "../../hooks";
 import { duration, useTheme } from "../../theme";
 
-export type TooltipPosition =
-  | "left"
-  | "right"
-  | "bottom"
-  | "bottomLeft"
-  | "bottomRight"
-  | "top";
+export type TooltipPosition = "left" | "right" | "bottom" | "bottomLeft" | "bottomRight" | "top";
 export type TooltipPositionConfig = RelativePositionConfig<TooltipPosition>;
 
 const defaultTooltipDistance = 0;
@@ -79,9 +73,8 @@ const computeStyle = ({
 /**
  * Returns properties for the tooltip and event handlers for the parent.
  */
-export const useTooltipPosition = (
-  config: TooltipPositionConfig,
-): React.CSSProperties => useRelativePosition(computeStyle, config);
+export const useTooltipPosition = (config: TooltipPositionConfig): React.CSSProperties =>
+  useRelativePosition(computeStyle, config);
 
 export const useTooltipScheduling: (
   useMouseAnchor?: boolean,
@@ -98,9 +91,7 @@ export const useTooltipScheduling: (
   const modalRootRect = modalRoot?.getBoundingClientRect();
 
   const [mouseAnchor, setMouseAnchor] = useState(
-    modalRootRect
-      ? { x: modalRootRect.left, y: modalRootRect.top }
-      : { x: 0, y: 0 },
+    modalRootRect ? { x: modalRootRect.left, y: modalRootRect.top } : { x: 0, y: 0 },
   );
 
   const updateMouseAnchor = useCallback(
@@ -148,12 +139,7 @@ export const useTooltipScheduling: (
     if (showTooltip || theme.shouldForceTooltip) setNoTooltipDelayTimer();
     cancelTooltip();
     setShowTooltip(false);
-  }, [
-    showTooltip,
-    theme.shouldForceTooltip,
-    setNoTooltipDelayTimer,
-    cancelTooltip,
-  ]);
+  }, [showTooltip, theme.shouldForceTooltip, setNoTooltipDelayTimer, cancelTooltip]);
 
   useEffect(() => {
     if (isHovered && useMouseAnchor) {
@@ -173,9 +159,7 @@ export const useTooltipScheduling: (
     handlePointerEnter: onPointerEnter,
     handlePointerLeave: onPointerLeave,
     showTooltip:
-      showTooltip ||
-      (theme.shouldForceTooltip && isHovered) ||
-      (showImmediately && isHovered),
+      showTooltip || (theme.shouldForceTooltip && isHovered) || (showImmediately && isHovered),
     mouseAnchor: useMouseAnchor ? mouseAnchor : null,
   };
 };

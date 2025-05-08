@@ -18,8 +18,7 @@ export const AutomaticErrorNotification = observer(() => {
   useEffect(() => {
     const error = store.error;
 
-    const message =
-      typeof error?.description === "string" ? error.description : "";
+    const message = typeof error?.description === "string" ? error.description : "";
 
     if (error && message !== cachedMessage.current) {
       cachedMessage.current = message;

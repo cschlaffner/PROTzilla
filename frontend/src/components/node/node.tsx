@@ -1,13 +1,6 @@
 import { styled } from "styled-components";
 
-import {
-  color,
-  fontSize,
-  fontWeight,
-  radius,
-  size,
-  spacing,
-} from "../../theme";
+import { color, fontSize, fontWeight, radius, size, spacing } from "../../theme";
 import { FlexColumn } from "../box";
 import { NodeProps } from "./node.props";
 import { Icon, iconColor } from "../icon";
@@ -84,12 +77,7 @@ export const Node: React.FC<NodeProps> = ({
   <FlexColumn {...rest}>
     <NodeHeader>
       {icon && <Icon className="icon" icon={icon} />}
-      <NodeTitle
-        text={title}
-        tx={titleTx}
-        txData={titleData}
-        txComponents={titleComponents}
-      />
+      <NodeTitle text={title} tx={titleTx} txData={titleData} txComponents={titleComponents} />
     </NodeHeader>
     <NodeBody>
       <Sockets>

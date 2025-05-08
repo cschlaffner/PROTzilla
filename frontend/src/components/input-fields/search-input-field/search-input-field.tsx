@@ -7,16 +7,14 @@ import { SearchInputFieldProps } from "./search-input-field.props";
 import { Icon } from "../../icon";
 
 const StyledInput = styled.input.withConfig({
-  shouldForwardProp: (prop: string) =>
-    prop !== "isSmall" && prop !== "smallBorder",
+  shouldForwardProp: (prop: string) => prop !== "isSmall" && prop !== "smallBorder",
 })<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("small")};
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -39,9 +37,7 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
   return (
     <InputContainer
       {...props}
-      inlinePrefix={
-        <Icon icon="searchLens" {...(props.isSmall ? { isSmall: true } : {})} />
-      }
+      inlinePrefix={<Icon icon="searchLens" {...(props.isSmall ? { isSmall: true } : {})} />}
     >
       <StyledInput
         type="text"
