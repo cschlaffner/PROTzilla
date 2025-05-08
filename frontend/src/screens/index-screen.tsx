@@ -123,7 +123,6 @@ export const IndexScreen: React.FC = () => {
       run.run_name === selectedRun.run_name ? { ...run, run_tags: [...run.run_tags, tag] } : run,
     );
     setRuns(updated);
-    setSelectedRun((run) => ({ ...run, run_tags: [...run.run_tags, tag] }));
   };
 
   const handleDeleteTag = (tagToDelete: string) => {
@@ -259,6 +258,7 @@ export const IndexScreen: React.FC = () => {
             }}
           >
             <TagMenu
+              setSelectedRun={setSelectedRun}
               selectedRun={selectedRun}
               handleAddTag={handleAddTag}
               handleDeleteTag={handleDeleteTag}
