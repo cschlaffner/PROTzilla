@@ -305,8 +305,6 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 DropdownField(
                     name = "input_df_step_instance",
                     label = "Choose dataframe to be plotted",
-                    value = GOEnrichmentBarPlotValue.p_value,
-                    options = GOEnrichmentBarPlotValue,
                 ),
                 DropdownField(
                     name = "value",
@@ -349,11 +347,11 @@ class PlotGOEnrichmentBarPlot(PlotStep):
             form["input_df_step_instance"].value = form["input_df_step_instance"].options[0].label
 
         if form["input_df_step_instance"].value:
-            """ form["gene_sets"].options = form_helper.to_choices(
+            form["gene_sets"].options = form_helper.to_choices(
                 run.steps.get_step_output(
-                    Step, "enrichment_df", form["input_df_step_instance"]
+                    Step, "enrichment_df", form["input_df_step_instance"].value
                 )["Gene_set"].unique()
-            ) """
+            )
 
     calc_method = staticmethod(di_plots.GO_enrichment_bar_plot)
 
