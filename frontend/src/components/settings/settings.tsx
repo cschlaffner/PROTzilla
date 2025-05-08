@@ -43,7 +43,7 @@ const SectionButton = styled(ToggleableButton)`
 
 const SpecificSettings = styled.div`
   height: 80vh;
-  width: 120vh;
+  width: 65vw;
   overflow: hidden;
   overflow-y: auto;
 `;
