@@ -54,14 +54,14 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       memory_mode: "Loading...",
       run_steps: [],
       favourite_status: false,
-      run_tags: ["Loading", "..."],
+      run_tags: [],
     });
 
     useEffect(() => {
       const fetchRunInformation = async () => {
         const response = await callApi("run_information/");
         if (response.success) {
-          const run = response.data.find((run: Run) => run.run_name === runName);
+          const run = response.data[0].find((run: Run) => run.run_name === runName);
           if (!run) {
             throw new Error(`Run with name "${runName}" not found`);
           }
@@ -98,7 +98,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         });
 
         selectedRun.run_name = newName;
-        selectedRun.modification_date = new Date().toLocaleString("en-US");
+        selectedRun.modification_date = formatDate(new Date().toDateString());
         onChangeRunName(newName);
       }
     };

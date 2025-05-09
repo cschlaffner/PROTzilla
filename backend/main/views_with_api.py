@@ -42,7 +42,7 @@ def run_information_list(request):
     if type(run_info) == str:
         return JsonResponse({"success": False, "message": run_info}, safe=False)
     if not run_info or len(run_info) == 0:
-        return JsonResponse({"success": False, "message": "An unkown error occured when creating run table."},safe=False)
+        return JsonResponse({"success": False, "message": "An unknown error occurred when creating run table."},safe=False)
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
     available_run_info = [all_available_runs, all_tags]

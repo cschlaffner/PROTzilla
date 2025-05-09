@@ -47,10 +47,15 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     void fetchData();
   }, [notify]);
 
-  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
-  const filteredAddableTags = addableTags.filter((tag) =>
-    tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
-  );
+  let addableTags: string[] = [];
+  let filteredAddableTags: string[] = [];
+
+  if (selectedRun.run_tags.length > 0) {
+    addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
+    filteredAddableTags = addableTags.filter((tag) =>
+      tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
+    );
+  }
 
   const onHandleAddTag = useCallback(
     (tag: string) => {
