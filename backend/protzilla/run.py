@@ -49,21 +49,20 @@ def get_available_run_info() -> str | tuple[
     runs = []
     runs_favourited = []
     all_tags = set()
-    for run in get_available_run_names():
+    for run_name in get_available_run_names():
 
-        run_dir = os.path.join(paths.RUNS_PATH, run)
+        run_dir = os.path.join(paths.RUNS_PATH, run_name)
         metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
         if not os.path.isfile(metadata_yaml_path):
-            logging.warning(f"No metadata.yaml file found for run {run}.")
-            continue
+            Run(run_name) # initialize run to create metadata.yaml (creation date set to now)
         yaml_operator = YamlOperator()
         metadata = yaml_operator.read(Path(metadata_yaml_path))
         if not metadata:
             metadata = {}
         tags = metadata.get("tags", set())
 
-        run = {
-            "run_name": run,
+        run_name = {
+            "run_name": run_name,
             "creation_date": metadata.get("creation_date", "date not available"),
             "modification_date": metadata.get("modification_date", "date not available"),
             "memory_mode": metadata.get("df_mode", "disk"),
@@ -72,10 +71,10 @@ def get_available_run_info() -> str | tuple[
             "run_tags": list(tags)
         }
 
-        if run["favourite_status"]:
-            runs_favourited.append(run)
+        if run_name["favourite_status"]:
+            runs_favourited.append(run_name)
         else:
-            runs.append(run)
+            runs.append(run_name)
 
         for tag in tags:
             all_tags.add(tag)
