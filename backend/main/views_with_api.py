@@ -40,14 +40,14 @@ def get_run(run_name: str) -> Run:
 def run_information_list(request):
     run_info = get_available_run_info()
     if type(run_info) == str:
-        return JsonResponse(success=False, data=None, messages=run_info, safe=False)
+        return JsonResponse({"success": False, "message": run_info}, safe=False)
     if not run_info or len(run_info) == 0:
-        return JsonResponse(success=False, data=None, messages="An unkown error occured when creating run table.",safe=False)
+        return JsonResponse({"success": False, "message": "An unkown error occured when creating run table."},safe=False)
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
     available_run_info = [all_available_runs, all_tags]
 
-    return JsonResponse(success=True, data=available_run_info, safe=False)
+    return JsonResponse({"success": True, "data": available_run_info}, safe=False)
 
 def all_steps(request):
     steps = get_all_possible_steps()

@@ -34,7 +34,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     const fetchData = async () => {
       const response = await callApi("run_information/");
       if (response.success) {
-        setExistingTags(response.data);
+        setExistingTags(response.data[1]);
       } else {
         notify({
           type: "error",
