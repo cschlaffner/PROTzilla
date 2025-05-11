@@ -45,8 +45,8 @@ const Label = styled(Text)`
 
 export interface PlotSettingsProps {
   isOpen: boolean;
-  onClose: () => void;
-  setHasChanges: (hasChanged: boolean) => void;
+  onClose: (hasChanges: boolean) => void;
+  setHasChanges: (hasChanges: boolean) => void;
 }
 
 export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, setHasChanges }) => {
@@ -160,7 +160,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     const target = event.currentTarget;
     void saveSettings();
     if (target.id == "saveAndQuit") {
-      onClose();
+      onClose(false);
     }
   };
 
@@ -252,6 +252,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
           id="saveAndQuit"
           text={"Save & Quit"}
           onPress={(event) => {
+            setHasChanges(false);
             handleSaving(event);
           }}
         />

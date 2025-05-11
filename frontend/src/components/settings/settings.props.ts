@@ -1,6 +1,6 @@
 export interface SettingsProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (hasChanges: boolean) => void;
   hasChanges: boolean;
-  setHasChanges: (hasChanged: boolean) => void;
+  setHasChanges: (hasChanges: boolean) => void;
 }

@@ -14,12 +14,12 @@ const PlotDiv = styled.div<{ hasBorder: boolean }>`
 `;
 
 export const PlotComponent: React.FC<PlotProps> = ({
-   data,
-   layout,
-   hasBorder,
-   hasResizing,
-   divId,
-  }) => {
+  data,
+  layout,
+  hasBorder,
+  hasResizing,
+  divId,
+}) => {
   const theme = useTheme();
   return (
     <div style={{ width: "100%", height: "100%", flexGrow: 1, minHeight: 0 }}>

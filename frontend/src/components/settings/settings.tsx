@@ -73,7 +73,13 @@ export const Settings: React.FC<SettingsProps> = ({
     setHasChanges(false);
   };
   return (
-    <WideModal isOpen={isOpen} onClose={onClose} title="Settings">
+    <WideModal
+      isOpen={isOpen}
+      onClose={() => {
+        onClose(hasChanges);
+      }}
+      title="Settings"
+    >
       <BorderDiv>
         <MakeRowDiv>
           <SectionSelection>

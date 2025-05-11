@@ -102,7 +102,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     closeSettings();
     closeDiscardModal();
   };
-  const handleSettingsClose = () => {
+  const handleSettingsClose = (hasChanges = false) => {
     if (hasChanges) {
       openDiscardModal();
     } else {
