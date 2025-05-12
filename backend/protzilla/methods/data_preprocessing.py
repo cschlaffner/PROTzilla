@@ -143,6 +143,39 @@ class FilterByProteinsCount(DataPreprocessingStep):
     calc_method = staticmethod(filter_samples.by_protein_count)
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
 
+class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
+    display_name = "PEP threshold"
+    operation = "filter_peptides"
+    method_description = "Filter by PEP-threshold"
+    output_keys = ["protein_df", "peptide_df", "filtered_peptides"]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by PEP threshold",
+            input_fields=[
+                FloatField(
+                    name="treshold",
+                    label="Threshold value for PEP",
+                    value=0,
+                    min=0,
+                ),
+                DropdownField(
+                    name="peptide_df",
+                    label="peptide_df",
+                    options=EmptyEnum,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.pie_chart,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_pep_value)
+    plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):
     display_name = "By proteins missing"
@@ -447,18 +480,17 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation data by reference protein",
+            label="Normalisation by reference protein",
             input_fields=[
-                FormDivider("A function to perform protein-intensity normalisation in reference to "
-                    "a selected protein on your dataframe. Normalises the data on the level "
-                    "of each sample. Divides each intensity by the intensity of the chosen "
-                    "reference protein in each sample. Samples where this value is zero "
-                    "will be removed and returned separately.A function to perform "
-                    "protein-intensity normalisation in reference to a selected protein on "
-                    "your dataframe. Normalises the data on the level of each sample. "
-                    "Divides each intensity by the intensity of the chosen reference "
-                    "protein in each sample. Samples where this value is zero will be "
-                    "removed and returned separately."),
+                FormDivider("""A function to perform protein-intensity normalisation in reference to
+                    a selected protein on your dataframe. Normalises the data on the level 
+                    of each sample. Divides each intensity by the intensity of the chosen 
+                    reference protein in each sample. Samples where this value is zero 
+                    will be removed and returned separately."""),
+                TextField(
+                    name="reference_protein",
+                    label="Reference protein",
+                ),
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
@@ -493,12 +525,13 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per dataset",
             input_fields=[
+                FormDivider("""A function to impute missing values for each protein by taking into account 
+                    data from the entire dataframe. Sets missing value to the smallest measured 
+                        value in the dataframe. The user can also assign a shrinking factor to take a 
+                        fraction of that minimum value for imputation."""),
                 NumberField(
                     name="shrinking_value",
-                    label="A function to impute missing values for each protein by taking into account "
-                        "data from the entire dataframe. Sets missing value to the smallest measured "
-                        "value in the dataframe. The user can also assign a shrinking factor to take a "
-                        "fraction of that minimum value for imputation.",
+                    label="Shrinking value",
                     value=0.5,
                     min=0,
                     max=1,
@@ -544,12 +577,13 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per protein",
             input_fields=[
+                FormDivider("""A function to impute missing values for each protein by taking into account data from each protein. 
+                        Sets missing value to the smallest measured value for each protein column. The user can also assign a 
+                        shrinking factor to take a fraction of that minimum value for imputation. CAVE: All proteins without 
+                        any values will be filtered out."""),
                 FloatField(
                     name="shrinking_value",
-                    label="A function to impute missing values for each protein by taking into account data from each protein. "
-                        "Sets missing value to the smallest measured value for each protein column. The user can also assign a "
-                        "shrinking factor to take a fraction of that minimum value for imputation. CAVE: All proteins without "
-                        "any values will be filtered out.",
+                    label="Shrinking value",
                     value=0.5,
                     min=0,
                     max=1,
@@ -595,9 +629,10 @@ class ImputationByMinPerSample(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per sample",
             input_fields=[
+                FormDivider("Sets missing intensity values to the smallest measured value for each sample"),
                 FloatField(
                     name="shrinking_value",
-                    label="Sets missing intensity values to the smallest measured value for each sample",
+                    label="Shrinking value",
                     value=0.5,
                     min=0,
                     max=1,
@@ -635,7 +670,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
 
 
 class SimpleImputationPerProtein(DataPreprocessingStep):
-    display_name = "SimpleImputer"
+    display_name = "Protein"
     operation = "imputation"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
@@ -798,35 +833,3 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
 
 
-class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
-    display_name = "PEP threshold"
-    operation = "filter_peptides"
-    method_description = "Filter by PEP-threshold"
-    output_keys = ["protein_df", "peptide_df", "filtered_peptides"]
-
-    def create_form(self):
-        return Form(
-            label="Filter peptides by PEP threshold",
-            input_fields=[
-                FloatField(
-                    name="treshold",
-                    label="Threshold value for PEP",
-                    value=0,
-                    min=0,
-                ),
-                DropdownField(
-                    name="peptide_df",
-                    label="peptide_df",
-                    options=EmptyEnum, #WTF happens here? Jannes, 01.05.2025
-                ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BarAndPieChart.pie_chart,
-                    options=BarAndPieChart,
-                ),
-            ],
-        )
-
-    calc_method = staticmethod(peptide_filter.by_pep_value)
-    plot_method = staticmethod(peptide_filter.by_pep_value_plot)
