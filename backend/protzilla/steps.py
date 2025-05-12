@@ -708,6 +708,10 @@ class StepManager:
         else:
             raise ValueError(f"Unknown section {step.section}")
 
+        self.disk_operator.write_metadata({
+            "steps": [step.display_name for step in self.all_steps],
+        })
+
     def remove_step(
         self, step: Step, step_index: int = None, section: str = None
     ) -> None:
@@ -734,6 +738,9 @@ class StepManager:
         if global_step_index < self.current_step_index:
             self.current_step_index -= 1
         self.sections[step.section].remove(step)
+        self.disk_operator.write_metadata({
+            "steps": [step.display_name for step in self.all_steps],
+        })
 
     def next_step(self) -> None:
         """

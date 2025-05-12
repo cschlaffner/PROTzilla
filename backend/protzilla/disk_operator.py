@@ -111,7 +111,6 @@ class DiskOperator:
             run = self.yaml_operator.read(file or self.run_file)
             step_manager = StepManager()
             step_manager.df_mode = run.get(KEYS.DF_MODE, "disk")
-            step_meta_info = []
             for step_data in run[KEYS.STEPS]:
                 try:
                     step = self._read_step(step_data, step_manager)
@@ -119,11 +118,6 @@ class DiskOperator:
                     logger.error(f"Error reading step: {e}")
                     continue
                 step_manager.add_step(step)
-                step_meta_info.append(step.display_name)
-            self.write_metadata({
-                "steps": step_meta_info,
-                "df_mode": run.get(KEYS.DF_MODE, "disk"),
-            })
 
             # this expression ensures that the current step index is within the bounds of the steps list, and at least 0
             step_manager.current_step_index = max(
@@ -154,11 +148,11 @@ class DiskOperator:
             if not self.metadata_path.exists():
                 self.metadata_path.touch()
                 logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
-            creation_date = datetime.now().strftime(metadata_date_format)
             metadata = self.yaml_operator.read(self.metadata_path)
             if not metadata:
                 metadata = {}
             if not metadata.get("creation_date"):
+                creation_date = datetime.now().strftime(metadata_date_format)
                 metadata["creation_date"] = creation_date
                 metadata["modification_date"] = creation_date
             return metadata
@@ -169,8 +163,8 @@ class DiskOperator:
                 if not self.run_dir.exists():
                     self.run_dir.mkdir(parents=True, exist_ok=True)
                 self.metadata_path.touch()
-                creation_date = datetime.now().strftime(metadata_date_format)
                 logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
+                creation_date = datetime.now().strftime(metadata_date_format)
                 metadata["creation_date"] = creation_date
                 metadata["modification_date"] = creation_date
             existing_metadata = self.read_metadata()
@@ -198,7 +192,13 @@ class DiskOperator:
             self.update_modification_date()
 
     def read_workflow(self) -> StepManager:
-        return self.read_run(self.workflow_file)
+        step_manager = self.read_run(self.workflow_file)
+        step_names = [step.display_name for step in step_manager.all_steps]
+        self.write_metadata({
+            "steps": step_names,
+            "df_mode": step_manager.df_mode,
+        })
+        return step_manager
 
     def export_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
         self.workflow_name = workflow_name
