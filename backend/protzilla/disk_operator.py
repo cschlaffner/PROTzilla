@@ -109,7 +109,7 @@ class DiskOperator:
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
             run = self.yaml_operator.read(file or self.run_file)
-            step_manager = StepManager()
+            step_manager = StepManager(disk_operator=self)
             step_manager.df_mode = run.get(KEYS.DF_MODE, "disk")
             for step_data in run[KEYS.STEPS]:
                 try:
@@ -193,9 +193,7 @@ class DiskOperator:
 
     def read_workflow(self) -> StepManager:
         step_manager = self.read_run(self.workflow_file)
-        step_names = [step.display_name for step in step_manager.all_steps]
         self.write_metadata({
-            "steps": step_names,
             "df_mode": step_manager.df_mode,
         })
         return step_manager
