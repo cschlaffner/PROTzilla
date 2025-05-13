@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
+import { Button, DiscardModal, Settings, Text } from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
-import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
-import { Button } from "../button";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 
 const NavbarBody = styled.div`
@@ -60,12 +59,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
   title,
   onNavigateHome,
-  onOpenSettings,
   onOpenHelp,
 
   ...rest
 }) => {
   const [runName, setRunName] = useState<string>(title as string);
+  // <-- Modal for run properties and edit -->
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
@@ -94,6 +93,24 @@ export const Navbar: React.FC<NavbarProps> = ({
     });
   };
 
+  // <-- Modal for general settings -->
+  const [isSettingsOpen, openSettings, closeSettings] = useToggleableState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] = useToggleableState(false);
+
+  const handleDiscard = () => {
+    closeSettings();
+    closeDiscardModal();
+  };
+  const handleSettingsClose = (hasChanges = false) => {
+    if (hasChanges) {
+      openDiscardModal();
+    } else {
+      closeSettings();
+    }
+  };
+
+  // <-- render -->
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
@@ -109,27 +126,36 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <NavbarRight>
           <Button icon={"help"} onPress={onOpenHelp} />
-          <Button icon={"settings"} onPress={onOpenSettings} />
+          <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>
       </NavbarBody>
-      {isRunSettingsOpen && (
-        <RunEditMenu
-          runName={runName}
-          onChangeRunName={onChangeRunName}
-          handleAddTag={(tag: string) => {
-            handleAddTag(tag);
-          }}
-          handleDeleteTag={(tagToDelete: string) => {
-            handleDeleteTag(tagToDelete);
-          }}
-          handleToggleFavourite={() => {
-            handleToggleFavourite();
-          }}
-          isOpen={isRunSettingsOpen}
-          onClose={closeRunSettings}
-          ref={refRunSettings}
-        />
-      )}
+      <RunEditMenu
+        runName={runName}
+        onChangeRunName={onChangeRunName}
+        handleAddTag={(tag: string) => {
+          handleAddTag(tag);
+        }}
+        handleDeleteTag={(tagToDelete: string) => {
+          handleDeleteTag(tagToDelete);
+        }}
+        handleToggleFavourite={() => {
+          handleToggleFavourite();
+        }}
+        isOpen={isRunSettingsOpen}
+        onClose={closeRunSettings}
+        ref={refRunSettings}
+      />
+      <Settings
+        isOpen={isSettingsOpen}
+        onClose={handleSettingsClose}
+        hasChanges={hasChanges}
+        setHasChanges={setHasChanges}
+      />
+      <DiscardModal
+        isOpen={isDiscardModalOpen}
+        onDiscard={handleDiscard}
+        onClose={closeDiscardModal}
+      />
     </FlexColumn>
   );
 };
