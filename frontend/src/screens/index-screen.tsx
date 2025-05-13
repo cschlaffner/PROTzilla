@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   Icon,
   InputValueType,
   Modal,
+  Navbar,
   RunsTable,
   Tooltip,
   useNotification,
@@ -16,7 +18,6 @@ import {
   Workflow,
 } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
-import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";

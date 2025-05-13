@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-import base64
 from dataclasses import asdict
 import inspect
 import logging
 import traceback
 from enum import Enum
-from io import BytesIO
 from pathlib import Path
 from types import MethodType
 from typing import Any, Literal
 
 import pandas as pd
-import plotly.io as pio
-import plotly.graph_objects as go
-from PIL import Image
 
 from backend.main import settings
 from backend.protzilla.form import Form
@@ -406,53 +401,6 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
-
-    def export(self, settings: dict) -> list:
-        """
-        Converts all plots from this step to files according to the format and size in the Plotly template.
-        An exported plot is represented as BytesIO object containing binary image data.
-        :param settings: Dict containing the plot settings.
-        :return: List of all exported plots.
-        """
-        from backend.settings.plot_template import get_scale_factor
-        exports = []
-        format_ = settings["file_format"]
-        
-        for plot in self.plots:
-            scale_factor = get_scale_factor(plot, settings)
-            # For Plotly GO Figure
-            if isinstance(plot, go.Figure):
-                if format_ in ["tiff", "eps"]:
-                    binary_png = pio.to_image(plot, format="png", scale=scale_factor)
-                    img = Image.open(BytesIO(binary_png)).convert("RGB")
-                    binary = BytesIO()
-                    if format_ == "tiff":
-                        img.save(binary, format="tiff", compression="tiff_lzw")
-                    elif format_ == "eps":
-                        img.save(binary, format=format_)
-                    binary.seek(0)
-                    exports.append(binary)
-                else:
-                    binary_png = pio.to_image(plot, format=format_, scale=scale_factor)
-                    exports.append(BytesIO(binary_png))
-            elif isinstance(plot, dict) and "plot_base64" in plot:
-                plot = plot["plot_base64"]
-
-            # TO DO: Include scale_factor here
-            # For base64 encoded plot
-            if isinstance(plot, bytes):
-                if format_ in ["tiff", "eps"]:
-                    img = Image.open(BytesIO(base64.b64decode(plot))).convert("RGB")
-                    binary = BytesIO()
-                    if format_ == "tiff":
-                        img.save(binary, format="tiff", compression="tiff_lzw")
-                    elif format_ == "eps":
-                        img.save(binary, format="eps")
-                    binary.seek(0)
-                    exports.append(binary)
-                elif format_ in ["png", "jpg"]:
-                    exports.append(BytesIO(base64.b64decode(plot)))
-        return exports
 
 
 class StepManager:

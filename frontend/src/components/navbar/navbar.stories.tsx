@@ -8,7 +8,6 @@ export default {
   title: "Navbar",
   argTypes: {
     onNavigateHome: { action: "back" },
-    onOpenSettings: { action: "open settings" },
     onOpenHelp: { action: "open help" },
   },
 };
