@@ -33,6 +33,10 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
     onChange(value);
   };
 
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
   return (
     <InputContainer {...props}>
       <StyledInput

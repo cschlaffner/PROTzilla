@@ -41,3 +41,15 @@ unit.args = {
   separatePrefix: "%",
   isInteger: true,
 };
+
+export const withStepButtons = Template.bind({});
+withStepButtons.args = {
+  label: "Font size",
+  value: 5,
+  step: 1,
+  min: 1,
+  max: 100,
+  hasStepButtons: true,
+  separateSuffix: "pt",
+  isInteger: true,
+};
