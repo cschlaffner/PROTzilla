@@ -6,10 +6,12 @@ import traceback
 
 import os
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import backend.protzilla.constants.paths as paths
+from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
@@ -143,13 +145,27 @@ class Run:
             thread.start()
             self.steps.df_mode = self.df_mode
             self.steps.disk_operator = self.disk_operator
+            self.disk_operator.write_metadata(self._metadata)
             return result
 
         return wrapper
 
+    _instances = {}
+
+    def __new__(cls, run_name, *args, **kwargs):
+        if run_name not in cls._instances:
+            instance = super().__new__(cls)
+            cls._instances[run_name] = instance
+            instance._initialized = False  # flag to control __init__
+
+        return cls._instances[run_name]
+
     def __init__(
         self, run_name: str, workflow_name: str | None = None, df_mode: str = "disk"
     ):
+        if getattr(self, '_initialized'):
+            return  # skip init if already initialized
+
         from backend.protzilla.disk_operator import DiskOperator  # to avoid a circular import
 
         self.run_name = run_name
@@ -165,6 +181,9 @@ class Run:
             raise ValueError(
                 f"No run named {run_name} has been found and no workflow has been provided. Please reference an existing run or provide a workflow to create a new one."
             )
+
+        self._metadata = self.metadata_read()
+        self._initialized = True
 
     def __repr__(self):
         return f"Run({self.run_name}) with {len(self.steps.all_steps)} steps."
@@ -184,9 +203,11 @@ class Run:
         return self.disk_operator.run_dir
 
     @error_handling
+    @auto_save
     def update_run_name(self, new_run_name: str) -> None:
         if self.run_name != new_run_name:
             self.disk_operator.update_run_name(new_run_name)
+            self.update_modification_date()
             self.run_name = new_run_name
 
     @error_handling
@@ -196,6 +217,9 @@ class Run:
     @error_handling
     def metadata_write(self, metadata: dict) -> None:
         return self.disk_operator.write_metadata(metadata)
+
+    def update_modification_date(self) -> None:
+        self._metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
 
     @error_handling
     @auto_save
@@ -227,7 +251,7 @@ class Run:
     @auto_save
     def step_calculate(self) -> None:
         self.steps.current_step.calculate(self.steps)
-        self.disk_operator.update_modification_date()
+        self.update_modification_date()
 
     @error_handling
     @auto_save

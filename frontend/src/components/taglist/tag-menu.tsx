@@ -50,7 +50,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
   let addableTags: string[] = [];
   let filteredAddableTags: string[] = [];
 
-  if (selectedRun.run_tags.length > 0) {
+  if (selectedRun.creation_date !== "Loading...") {
     addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
     filteredAddableTags = addableTags.filter((tag) =>
       tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),

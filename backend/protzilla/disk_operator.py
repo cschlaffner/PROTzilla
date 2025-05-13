@@ -146,15 +146,8 @@ class DiskOperator:
     def read_metadata(self) -> dict:
         with ErrorHandler():
             if not self.metadata_path.exists():
-                self.metadata_path.touch()
-                logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
+                self._create_metadata()
             metadata = self.yaml_operator.read(self.metadata_path)
-            if not metadata:
-                metadata = {}
-            if not metadata.get("creation_date"):
-                creation_date = datetime.now().strftime(metadata_date_format)
-                metadata["creation_date"] = creation_date
-                metadata["modification_date"] = creation_date
             return metadata
 
     def write_metadata(self, metadata: dict = None) -> None:
@@ -162,17 +155,26 @@ class DiskOperator:
             if not self.metadata_path.exists():
                 if not self.run_dir.exists():
                     self.run_dir.mkdir(parents=True, exist_ok=True)
-                self.metadata_path.touch()
-                logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
-                creation_date = datetime.now().strftime(metadata_date_format)
-                metadata["creation_date"] = creation_date
-                metadata["modification_date"] = creation_date
+                self._create_metadata()
             existing_metadata = self.read_metadata()
             if existing_metadata:
                 metadata = {**existing_metadata, **metadata}
             else:
                 metadata = metadata or {}
 
+            self.yaml_operator.write(self.metadata_path, metadata)
+
+    def _create_metadata(self) -> None:
+        with ErrorHandler():
+            if not self.run_dir.exists():
+                self.run_dir.mkdir(parents=True, exist_ok=True)
+            self.metadata_path.touch()
+            logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
+            date = datetime.now().strftime(metadata_date_format)
+            metadata = {
+                "creation_date": date,
+                "modification_date": date
+            }
             self.yaml_operator.write(self.metadata_path, metadata)
 
     def update_modification_date(self):
@@ -189,14 +191,9 @@ class DiskOperator:
                 return
             os.rename(self.run_dir, new_run_dir)
             self.run_name = new_run_name
-            self.update_modification_date()
 
     def read_workflow(self) -> StepManager:
-        step_manager = self.read_run(self.workflow_file)
-        self.write_metadata({
-            "df_mode": step_manager.df_mode,
-        })
-        return step_manager
+        return self.read_run(self.workflow_file)
 
     def export_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
         self.workflow_name = workflow_name

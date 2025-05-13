@@ -98,7 +98,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         });
 
         selectedRun.run_name = newName;
-        selectedRun.modification_date = formatDate(new Date().toDateString());
+        selectedRun.modification_date = new Date().toLocaleString("en-US");
         onChangeRunName(newName);
       }
     };

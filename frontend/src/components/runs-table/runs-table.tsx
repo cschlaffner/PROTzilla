@@ -151,7 +151,9 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
   const handleRenameRun = (newName: string) => {
     const updated = runs.map((run) =>
-      run.run_name === actionRunName ? { ...run, run_name: newName } : run,
+      run.run_name === actionRunName
+        ? { ...run, run_name: newName, modification_date: new Date().toLocaleString("en-US") }
+        : run,
     );
     setRuns(updated);
   };

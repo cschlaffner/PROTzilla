@@ -22,21 +22,6 @@ from backend.main.views_with_api_helper import get_step, get_displayed_steps, pa
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
-active_runs: dict[str, Run] = {}
-
-def get_run(run_name: str) -> Run:
-    """
-    Get the run object for the given run name to minimize the creation of new run objects. If the run is not in active runs, it will be created.
-
-    :param run_name: The name of the run.
-    """
-    if run_name not in active_runs:
-        run = Run(run_name)
-        active_runs[run_name] = run
-    else:
-        run = active_runs[run_name]
-    return run
-
 def run_information_list(request):
     run_info = get_available_run_info()
     if type(run_info) == str:
@@ -63,7 +48,7 @@ def toggle_favourite(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = get_run(run_name)
+        run = Run(run_name)
         metadata = run.metadata_read()
         metadata["favourite"] = not metadata.get("favourite", False)
         run.metadata_write(metadata)
@@ -78,7 +63,7 @@ def add_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        run = get_run(run_name)
+        run = Run(run_name)
         metadata = run.metadata_read()
         tags = metadata.get("tags", set())
         tags.add(run_tag)
@@ -95,7 +80,7 @@ def delete_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        run = get_run(run_name)
+        run = Run(run_name)
         metadata = run.metadata_read()
         tags = metadata.get("tags", set())
         tags.remove(run_tag)
@@ -114,10 +99,9 @@ def add_run(request):
         df_mode_name = data.get("df_mode_name")
 
         try:
-            run = Run(run_name, workflow_name, df_mode_name,)
-            active_runs[run_name] = run
+            Run(run_name, workflow_name, df_mode_name,)
 
-            return JsonResponse({"success": True, "message": "Created run"})
+            return JsonResponse({"success": True, "message": f"Created run {run_name}."})
         except Exception as e:
             traceback.print_exc() #not sure if it still needs to be here 
             return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
@@ -130,8 +114,6 @@ def delete_run(request):
         run_name = data.get("run_name")
 
         try:
-            if run_name in active_runs:
-               del active_runs[run_name]
             delete_run_folder(run_name)
 
             return JsonResponse({"success": True, "message": "Deleted run"})
@@ -146,7 +128,7 @@ def continue_run(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        get_run(run_name)
+        Run(run_name)
         
 
         return JsonResponse({"success": True, "message": "Continued run"})
@@ -163,12 +145,8 @@ def update_run_name(request):
             if new_run_name in get_available_run_names():
                 return JsonResponse({"success": False, "message": "Run name already exists."})
 
-            run = get_run(run_name)
+            run = Run(run_name)
             run.update_run_name(new_run_name)
-
-            active_runs[new_run_name] = run
-            if run_name in active_runs:
-                del active_runs[run_name]
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
@@ -184,7 +162,7 @@ def add_plot(request):
         run_name = data.get("run_name")
 
         parameters = parameters_from_post(request.POST)
-        run = active_runs[run_name]
+        run = Run(run_name)
         if run.current_step.display_name == "plot":
             del parameters["chosen_method"]
             run.current_form(parameters)
@@ -202,7 +180,7 @@ def add_step(request):
         run_name = data.get("run_name")
         method = data.get("method")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
@@ -218,7 +196,7 @@ def delete_step(request):
         index = data.get("index")
 
         index = int(index)
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})
@@ -231,7 +209,7 @@ def update_step(request):
         run_name = data.get("run_name")
         method = data.get("method")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         run.step_change_method(method)
 
@@ -247,7 +225,7 @@ def navigate_to_step(request):
         index = data.get("index")
 
         index = int(index) 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.step_goto(index, section)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
@@ -261,7 +239,7 @@ def export_workflow(request):
         run_name = data.get("run_name")
         workflow_name = data.get("workflow_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run._workflow_export(workflow_name)
 
         return JsonResponse({"success": True, "message": "Exported workflow"})
@@ -274,7 +252,7 @@ def download_plots(request):
         run_name = data.get("run_name")
         format = data.get("format")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         index = run.steps.current_step_index
         section = run.current_step.section
@@ -306,7 +284,7 @@ def download_table(request):
         index = data.get("index")
         key = data.get("key")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         instance_id = run.steps.all_steps[index].instance_identifier
         buffer = io.StringIO()
@@ -327,7 +305,7 @@ def get_run_data(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run_data = {}
 
         if run.current_step is not None:
@@ -350,11 +328,8 @@ def get_step_form(request):
         data:dict = json.loads(request.body)
         run_name = data.get("run_name")
         new_form_values = data.get("data")
-        
-        if (run_name not in active_runs):
-            return JsonResponse({"success": False, "message": "Run not in active runs"})
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         if new_form_values!={}:
             run.steps.set_steps_outdated()
@@ -370,7 +345,7 @@ def get_step_plots(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         if run.current_step is not None:
             plots = [to_json(plot) for plot in run.current_plots.plots]
         else:
@@ -385,7 +360,7 @@ def get_step_table(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         
         if run.current_step is not None:
             if "protein_df" in run.current_outputs:
@@ -406,7 +381,7 @@ def calculate_step(request):
         run_name = data.get("run_name")
         user_input = data.get("data")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.current_form(user_input)
         run.step_calculate()
 
