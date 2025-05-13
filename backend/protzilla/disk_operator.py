@@ -153,8 +153,6 @@ class DiskOperator:
     def write_metadata(self, metadata: dict = None) -> None:
         with ErrorHandler():
             if not self.metadata_path.exists():
-                if not self.run_dir.exists():
-                    self.run_dir.mkdir(parents=True, exist_ok=True)
                 self._create_metadata()
             existing_metadata = self.read_metadata()
             if existing_metadata:

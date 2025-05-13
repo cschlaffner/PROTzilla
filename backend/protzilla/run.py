@@ -171,6 +171,7 @@ class Run:
         self.run_name = run_name
         self.workflow_name = workflow_name
         self.disk_operator: DiskOperator = DiskOperator(run_name, workflow_name)
+        self._metadata = {}
 
         if run_name in get_available_run_names():
             self._run_read()
@@ -182,7 +183,6 @@ class Run:
                 f"No run named {run_name} has been found and no workflow has been provided. Please reference an existing run or provide a workflow to create a new one."
             )
 
-        self._metadata = self.metadata_read()
         self._initialized = True
 
     def __repr__(self):
@@ -193,6 +193,7 @@ class Run:
         self.steps = self.disk_operator.read_run()
         self.steps.disk_operator = self.disk_operator
         self.df_mode = self.steps.df_mode
+        self._metadata = self.metadata_read()
 
     @error_handling
     def _run_write(self) -> None:
@@ -225,6 +226,7 @@ class Run:
     @auto_save
     def _workflow_read(self) -> None:
         self.steps = self.disk_operator.read_workflow()
+        self._metadata = self.metadata_read()
 
     @error_handling
     def _workflow_export(self, workflow_name: str | None = None) -> None:
