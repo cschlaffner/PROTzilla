@@ -15,8 +15,7 @@ import {
 import {
   dummyTextComponent1,
   footerMessages,
-  mockPlotData,
-  mockPlotLayout,
+  mockPlots,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
@@ -77,8 +76,7 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [plotData, setPlotData] = useState(mockPlotData);
-  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  const [plots, setPlots] = useState(mockPlots);
   const [tableData, setTableData] = useState(mockTableData);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
@@ -111,16 +109,14 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const data = response.data;
 
-      let rawData = [];
-      let rawLayout = [];
+      let rawPlots = [];
       if (data.length > 0) {
-        const paredData = JSON.parse(data[0]);
-        rawData = paredData.data;
-        rawLayout = paredData.layout;
+        for (var plot of data){
+          rawPlots.push(JSON.parse(plot));
+        }
       }
 
-      setPlotData(rawData);
-      setPlotLayout(rawLayout);
+      setPlots(rawPlots);
     }
   }, [runName]);
 
@@ -150,7 +146,9 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      <PlotComponent data={plotData} layout={plotLayout} />
+      {plots.map((plot) => (
+        <PlotComponent data={plot.data} layout={plot.layout}/>
+      ))}
     </StyledPlotContainer>
   );
 

@@ -1,29 +1,30 @@
 import { GridRowsProp } from "@mui/x-data-grid";
 
 import { FormData } from "../components/forms/form";
+import { PlotlyFigure } from "../utils/protzilla-types";
 
-export const mockPlotData: Partial<Plotly.Data>[] = [
+export const mockPlots: PlotlyFigure[] = [
   {
-    x: ["A", "B", "C", "D"],
-    y: [10, 20, 30, 40],
-    type: "bar",
-    marker: { color: "purple" },
-  },
-];
-
-export const mockPlotLayout: Partial<Plotly.Layout> = {
-  title: { text: "Title" },
-  xaxis: {
-    anchor: "y",
-    domain: [0.0, 1.0],
-    title: { text: "Categories" },
-  },
-  yaxis: {
-    anchor: "x",
-    domain: [0.0, 1.0],
-    title: { text: "Values" },
-  },
-};
+    data: [{
+      x: ["A", "B", "C", "D"],
+      y: [10, 20, 30, 40],
+      type: "bar",
+      marker: { color: "purple" },
+    }],
+    layout: {
+      title: { text: "Title" },
+      xaxis: {
+        anchor: "y",
+        domain: [0.0, 1.0],
+        title: { text: "Categories" },
+      },
+      yaxis: {
+        anchor: "x",
+        domain: [0.0, 1.0],
+        title: { text: "Values" },
+      },
+  }}
+]
 
 export const mockTableData: GridRowsProp = [
   {
