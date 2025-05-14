@@ -148,7 +148,7 @@ export const RunScreen: React.FC = () => {
   const plotComponent = (
     <StyledPlotContainer>
       {plots.map((plot, index) => (
-        <PlotComponent key={index} data={plot.data} layout={plot.layout}/>
+        <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true}/>
       ))}
     </StyledPlotContainer>
   );
