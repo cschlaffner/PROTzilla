@@ -20,12 +20,6 @@ def GO_enrichment_bar_plot(
     title="",
     figsize=None,
 ):
-    
-    print(gene_sets)
-    print(input_df.columns)
-    print(input_df.head())
-    #input("HELP HELP HELP")
-
     """
     Create a bar plot for the GO enrichment results. The plot is created using the gseapy library.
     Groups the bars by the enrichment categories (e.g. KEGG, Reactome, etc.) and sorts the bars by
@@ -110,26 +104,6 @@ def GO_enrichment_bar_plot(
     elif value == "p-value":
         column = "P-value" if restring_input else "Adjusted P-value"
 
-    # colors = gene_sets.values()
-
-    size_y = top_terms * 0.5 * len(gene_sets)
-    try:
-        ax = gseapy.barplot(
-            df=df,
-            column=column,
-            cutoff=cutoff,
-            group="Gene_set",
-            figsize=figsize if figsize else (10, size_y),
-            top_term=top_terms,
-            # color=colors,
-            title=title,
-        )
-    except ValueError as e:
-        msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
-    print("Successfully created bar plot")
-    #return {"plots": [fig_to_base64(ax.get_figure())]}
-
     df["-log10(FDR)"] = -np.log10(df["fdr"])
     df_plot = (
         df.sort_values("-log10(FDR)", ascending=False)
@@ -145,7 +119,7 @@ def GO_enrichment_bar_plot(
         orientation="h",
         title=title,
     )
-    fig.update_layout(yaxis=dict(autorange="reversed"), margin=dict(l=250, r=25, t=25, b=50),)
+    fig.update_layout(yaxis=dict(autorange="reversed"))
     
     return dict(plots=[fig])
 

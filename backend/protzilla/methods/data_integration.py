@@ -64,7 +64,7 @@ class GOAnalysisWithEnrichrBackgroundField(Enum):
 
 class GOEnrichmentBarPlotValue(Enum):
     p_value = "p-value"
-    fdr = "FDR"
+    fdr = "fdr"
 
 
 class GOEnrichmentDotPlotXAxisType(Enum):
@@ -287,16 +287,8 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a bar plot from GO enrichment data"
 
-    output_keys = ["plots"]
-
-    """ # TODO: input:df fill dynamic with fill_forms
-                
-                # TODO: after the color naming has been optimised in all filese, the underlying line can be updated: (color, color) for color in PLOT_COLOR_SEQUENCE
-                MultiSelectWithDropdownsField(
-                    name = "gene_sets",
-                    label = "Sets to be plotted",
-                    dropdown_options = [(v, k[4:]) for k, v, in list(mcolors.TABLEAU_COLORS.items())]
-                ), """
+    # output_keys = ["plots"]
+    output_keys = []
 
     def create_form(self):
         return Form(
