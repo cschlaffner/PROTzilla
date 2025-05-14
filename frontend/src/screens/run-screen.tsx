@@ -10,6 +10,7 @@ import {
   ListEditor,
   Navbar,
   PlotComponent,
+  SectionTitle,
   SwitchCard,
 } from "./../components";
 import {
@@ -147,9 +148,13 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      {plots.map((plot, index) => (
-        <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true}/>
-      ))}
+      {plots.length > 0 ? (
+        plots.map((plot, index) => (
+          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true}/>
+      )))
+      : (
+        <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
+      )}
     </StyledPlotContainer>
   );
 

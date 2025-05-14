@@ -30,8 +30,3 @@ export interface RequestData {
   section: string;
   status: StepStatus;
 }
-
-export interface PlotlyFigure {
-  data: Partial<Plotly.Data>[];
-  layout: Partial<Plotly.Layout>;
-}
