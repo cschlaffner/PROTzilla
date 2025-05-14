@@ -74,6 +74,10 @@ def GO_enrichment_bar_plot(
     if value not in ["fdr", "p-value"]:
         msg = "Invalid value. Value must be either 'fdr' or 'p-value'."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+    
+    if cutoff is None or cutoff == 0:
+        msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all Gene_sets that are not in categories
     df = input_df[input_df["Gene_set"].isin(gene_sets)]
@@ -104,16 +108,19 @@ def GO_enrichment_bar_plot(
     elif value == "p-value":
         column = "P-value" if restring_input else "Adjusted P-value"
 
-    df["-log10(FDR)"] = -np.log10(df["fdr"])
+    print(column)
+    print(df.columns)
+    print(df[column])
+    #df["-log10(FDR)"] = -np.log10(df["fdr"])
     df_plot = (
-        df.sort_values("-log10(FDR)", ascending=False)
+        df.sort_values(column, ascending=False)
         .groupby("Gene_set")
         .head(top_terms)
     )
 
     fig = px.bar(
         df_plot,
-        x="-log10(FDR)",
+        x=column,
         y="Term",
         color="Gene_set",
         orientation="h",
