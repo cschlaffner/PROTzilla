@@ -150,7 +150,7 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      <PlotComponent data={plotData} layout={plotLayout} />
+      <PlotComponent data={plotData} layout={plotLayout} hasResizing={true} />
     </StyledPlotContainer>
   );
 
