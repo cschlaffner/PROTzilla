@@ -172,11 +172,11 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   return (
     <TableContainer>
       <TableHeader>
-        <TableCol width={theme.sizes.verySmallCellWidth}>Favorite</TableCol>
+        <TableCol width={theme.sizes.verySmallCellWidth}>Fav.</TableCol>
         <TableCol width={theme.sizes.largeCellWidth}>Run Name</TableCol>
         <TableCol width={theme.sizes.smallCellWidth}>Last edited</TableCol>
         <TableCol style={{ minWidth: theme.sizes.mediumCellWidth}}>Tags</TableCol>
-        <TableCol width={theme.sizes.mediumCellWidth}>Actions</TableCol>
+        <TableCol width={theme.sizes.largeCellWidth}>Actions</TableCol>
       </TableHeader>
 
       <TableContent>
@@ -246,7 +246,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                 </SecondaryButton>
               </StyledList>
             </TableCol>
-            <TableCol width={theme.sizes.mediumCellWidth}>
+            <TableCol width={theme.sizes.largeCellWidth}>
               <SecondaryButton
                 isSmall={true}
                 isShy={true}

@@ -22,6 +22,8 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
   value: initialValue = "",
   placeholder,
   onChange,
+  style,
+  isSmall,
   ...props
 }) => {
   const [value, setValue] = useState(() => {
@@ -35,9 +37,11 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
   };
 
   return (
+    <div style={style}>
     <InputContainer
       {...props}
-      inlinePrefix={<Icon icon="searchLens" {...(props.isSmall ? { isSmall: true } : {})} />}
+      isSmall={isSmall}
+      inlinePrefix={<Icon icon="searchLens" {...(isSmall ? { isSmall: true } : {})} />}
     >
       <StyledInput
         type="text"
@@ -46,9 +50,9 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
         onChange={(e) => {
           handleChange(e.target.value);
         }}
-        $isSmall={props.isSmall ?? false}
-        {...props}
+        $isSmall={isSmall ?? false}
       />
     </InputContainer>
+    </div>
   );
 };

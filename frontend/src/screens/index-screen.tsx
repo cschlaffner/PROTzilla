@@ -54,7 +54,7 @@ const StyledWorkflowContainer = styled(Container)`
 
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
-  width: calc(100vw - (4 * ${spacing("small")}));
+  width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
 const StyledRunSelectionCard = styled(Card)`
