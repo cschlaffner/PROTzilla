@@ -22,9 +22,7 @@ primary.args = {
   text: "This is an example text.",
 };
 
-export const smallText = (args: TextProps): React.ReactNode => (
-  <SmallText {...args} />
-);
+export const smallText = (args: TextProps): React.ReactNode => <SmallText {...args} />;
 smallText.args = {
   text: "This is a small example text.",
 };
@@ -66,9 +64,7 @@ h6.args = {
   text: "This is an H6 title",
 };
 
-export const inputLabel = (args: TextProps): React.ReactNode => (
-  <InputLabel {...args} />
-);
+export const inputLabel = (args: TextProps): React.ReactNode => <InputLabel {...args} />;
 inputLabel.args = {
   text: "This is an input label",
 };

@@ -8,9 +8,7 @@ export default {
   title: "Info I",
 };
 
-export const onHover = (args: InfoIProps): React.ReactNode => (
-  <InfoIComponent {...args} />
-);
+export const onHover = (args: InfoIProps): React.ReactNode => <InfoIComponent {...args} />;
 onHover.args = {
   text: "Das ist ein Text zur Information!",
 };

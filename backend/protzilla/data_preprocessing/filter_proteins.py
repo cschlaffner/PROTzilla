@@ -21,7 +21,6 @@ def by_samples_missing(
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
         and a list of Protein IDs that were kept
     """
-
     filter_threshold: int = percentage * len(protein_df.Sample.unique())
     transformed_df = long_to_wide(protein_df)
 

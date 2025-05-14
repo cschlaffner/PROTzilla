@@ -1,5 +1,5 @@
 import { Amount, isAmount } from "./amount";
-import type { ArrayElement } from "./types";
+import { ArrayElement } from "./arrayElement.ts";
 
 export const orderKinds = ["ASC", "DESC"] as const;
 export type OrderKind = ArrayElement<typeof orderKinds>;

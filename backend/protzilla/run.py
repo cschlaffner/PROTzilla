@@ -55,6 +55,8 @@ def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict
         if os.path.isfile(metadata_yaml_path):
             yaml_operator = YamlOperator()
             metadata = yaml_operator.read(metadata_yaml_path)
+            if not metadata:
+                metadata = {}
             tags = metadata.get("tags", set())
             favourite = metadata.get("favourite", False)
         
@@ -208,13 +210,8 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_calculate(self, inputs: dict | None = None) -> None:
-        self.steps.current_step.calculate(self.steps, inputs)
-
-    @error_handling
-    @auto_save
-    def update_inputs(self, inputs: dict) -> None:
-        self.steps.current_step.updateInputs(inputs)
+    def step_calculate(self) -> None:
+        self.steps.current_step.calculate(self.steps)
 
     @error_handling
     @auto_save
@@ -231,6 +228,7 @@ class Run:
         self.steps.previous_step()
 
     @error_handling
+    @auto_save
     def step_goto(self, step_index: int, section: str) -> None:
         self.steps.goto_step(step_index, section)
 
@@ -244,6 +242,10 @@ class Run:
         self.steps.change_method(new_method)
 
     
+    @auto_save
+    def step_upload_file(self, inputname: str, file) -> None:
+        self.steps.current_step.upload_file(inputname, file)
+
     @auto_save
     def current_form(self, new_form_values = {}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)

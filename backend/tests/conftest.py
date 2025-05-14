@@ -64,7 +64,7 @@ def run_imported(run_name_and_cleanup, maxquant_data_file):
     run_name = run_name_and_cleanup
     run = Run(run_name=run_name, workflow_name="test-run-empty", df_mode="memory")
     run.step_add(MaxQuantImport())
-    run.step_calculate(
+    run.current_form(
         {
             "file_path": str(maxquant_data_file),
             "intensity_name": "iBAQ",
@@ -72,6 +72,7 @@ def run_imported(run_name_and_cleanup, maxquant_data_file):
             "aggregation_method": "Sum",
         }
     )
+    run.step_calculate()
     yield run
 
 

@@ -1,8 +1,8 @@
 import { UIStateProps } from "../../../../utils";
-import { FrameInputFieldProps } from "../../frame-input-field";
+import { InputContainerProps } from "../../input-container";
 
 export interface CheckboxSelectInputFieldProps
-  extends Omit<FrameInputFieldProps, "inlinePrefix" | "inlineSuffix">,
+  extends Omit<InputContainerProps, "inlinePrefix" | "inlineSuffix">,
     UIStateProps {
   options: { label: string; value: string }[];
   value?: string[];

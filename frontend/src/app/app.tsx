@@ -5,7 +5,7 @@ import { ModalRoot, NotificationCenter } from "../components";
 import { RootStore } from "../models";
 import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
 import { setupRootStore, StoreProvider } from "./store";
-import { IndexScreen, MainScreen } from "../screens";
+import { IndexScreen, MainScreen, RunScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {
@@ -35,6 +35,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
+                  <Route path="/run" element={<RunScreen />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

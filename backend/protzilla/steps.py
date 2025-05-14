@@ -1,21 +1,17 @@
 from __future__ import annotations
 
-import base64
 from dataclasses import asdict
 import inspect
 import logging
 import traceback
 from enum import Enum
-from io import BytesIO
 from pathlib import Path
 from types import MethodType
 from typing import Any, Literal
 
 import pandas as pd
-import plotly.io as pio
-import plotly.graph_objects as go
-from PIL import Image
 
+from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -86,23 +82,22 @@ class Step:
             "calculation_status": self.calculation_status
         }
 
-    def calculate(self, steps: StepManager, inputs: dict) -> None:
+    def calculate(self, steps: StepManager) -> bool:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
 
         :param steps: The StepManager object that contains all steps
         :param inputs: These inputs will be supplied to the method. Only keys in the input_keys of the method class will actually be supplied to the method
-        :return: None
+        :return: bool: True if the calculation was successful, False otherwise
         """
         stepIndex = steps.all_steps.index(self)
         previousStep = steps.all_steps[stepIndex-1]
         
-        if (previousStep.calculation_status == "outdated" ):
-            if not previousStep.calculate(steps,inputs):
+        if (stepIndex != 0 and previousStep.calculation_status == "outdated" ):
+            if not previousStep.calculate(steps):
                 return False
 
-        if (steps.current_step_index == stepIndex):
-            self.updateInputs(inputs)
+        self.updateInputs(self.form_inputs)
         self.messages.clear()
         
 
@@ -120,6 +115,11 @@ class Step:
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
+            
+            # delete tempfiles
+            for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
+                if file.is_file():
+                    file.unlink()
 
         except NotImplementedError as e:
             self.messages.append(
@@ -266,14 +266,10 @@ class Step:
         :raises ValueError: If a required key is missing in the outputs
         """
         
-        print("Val0.0")
         for key in self.output_keys:
-            print("Val0.5")
             if key not in self.output or self.output[key] is None:
-                print("Val0.7")
                 if not soft_check:
                     
-                    print("val1.0")
                     raise ValueError(
                         f"Output validation failed: missing output {key} in outputs."
                     )
@@ -406,53 +402,6 @@ class Plots:
     def empty(self) -> bool:
         return len(self.plots) == 0
 
-    def export(self, settings: dict) -> list:
-        """
-        Converts all plots from this step to files according to the format and size in the Plotly template.
-        An exported plot is represented as BytesIO object containing binary image data.
-        :param settings: Dict containing the plot settings.
-        :return: List of all exported plots.
-        """
-        from backend.settings.plot_template import get_scale_factor
-        exports = []
-        format_ = settings["file_format"]
-        
-        for plot in self.plots:
-            scale_factor = get_scale_factor(plot, settings)
-            # For Plotly GO Figure
-            if isinstance(plot, go.Figure):
-                if format_ in ["tiff", "eps"]:
-                    binary_png = pio.to_image(plot, format="png", scale=scale_factor)
-                    img = Image.open(BytesIO(binary_png)).convert("RGB")
-                    binary = BytesIO()
-                    if format_ == "tiff":
-                        img.save(binary, format="tiff", compression="tiff_lzw")
-                    elif format_ == "eps":
-                        img.save(binary, format=format_)
-                    binary.seek(0)
-                    exports.append(binary)
-                else:
-                    binary_png = pio.to_image(plot, format=format_, scale=scale_factor)
-                    exports.append(BytesIO(binary_png))
-            elif isinstance(plot, dict) and "plot_base64" in plot:
-                plot = plot["plot_base64"]
-
-            # TO DO: Include scale_factor here
-            # For base64 encoded plot
-            if isinstance(plot, bytes):
-                if format_ in ["tiff", "eps"]:
-                    img = Image.open(BytesIO(base64.b64decode(plot))).convert("RGB")
-                    binary = BytesIO()
-                    if format_ == "tiff":
-                        img.save(binary, format="tiff", compression="tiff_lzw")
-                    elif format_ == "eps":
-                        img.save(binary, format="eps")
-                    binary.seek(0)
-                    exports.append(binary)
-                elif format_ in ["png", "jpg"]:
-                    exports.append(BytesIO(base64.b64decode(plot)))
-        return exports
-
 
 class StepManager:
     def __repr__(self):
@@ -494,6 +443,19 @@ class StepManager:
             + self.data_preprocessing
             + self.data_analysis
             + self.data_integration
+        )
+
+    @property
+    def current_step_index_in_section(self) -> int:
+        """
+        Returns the index of the current step in the current section.
+        :return: an integer for the index of the current step in the current section
+        """
+
+        return self.current_step_index - sum(
+            len(self.sections[section])
+            for section in self.sections
+            if section != self.current_section and section not in [step.section for step in self.future_steps]
         )
 
     def get_instance_identifiers(
@@ -542,7 +504,7 @@ class StepManager:
         if include_current_step:
             steps_to_search = self.all_steps
         else:
-            steps_to_search = self.previous_steps
+            steps_to_search = self.previous_calculated_steps
 
         for step in reversed(steps_to_search):
             if (
@@ -592,7 +554,7 @@ class StepManager:
             )
 
         step_type = [step_type] if not isinstance(step_type, list) else step_type
-        for step in reversed(self.previous_steps):
+        for step in reversed(self.previous_calculated_steps):
             if (
                 any(isinstance(step, st) for st in step_type)
                 and check_instance_identifier(step)
@@ -612,7 +574,7 @@ class StepManager:
         else:
             raise ValueError(f"Unknown section {section}")
     
-    def set_steps_outdated(self, offset: int) -> None:
+    def set_steps_outdated(self, offset: int=0) -> None:
         count = 0
         for step in self.following_steps[offset:]:
             if (step.calculation_status == "complete"):
@@ -623,6 +585,10 @@ class StepManager:
     @property
     def previous_steps(self) -> list[Step]:
         return self.all_steps[: self.current_step_index]
+    
+    @property
+    def previous_calculated_steps(self) -> list[Step]:
+        return list(filter(lambda step: step.calculation_status == "complete", self.previous_steps))
     
     @property
     def following_steps(self) -> list[Step]:
@@ -776,6 +742,16 @@ class StepManager:
                 f"Step index {step_index} out of bounds for section {section}"
             )
 
+        if self.df_mode == "disk":
+                # TODO maybe this doesnt really need to be written to disk anymore,
+                # as it is preceeded by a calculation, after which everything is written to
+                # disk anyway. Better would be if it would just replace the dfs with their respective paths
+            self.current_step.output = Output(
+                self.disk_operator._write_output(
+                    instance_identifier=self.current_step.instance_identifier,
+                    output=self.current_step.output,
+                )
+        )
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index

@@ -9,27 +9,20 @@ import {
 import React, { useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
-import { getMuiTheme } from "../../theme";
+import { baseTheme, getMuiTheme } from "../../theme";
 
-export const DataTable: React.FC<DataTableProps> = ({
-  data,
-  pageSize,
-  pageSizeOptions,
-}) => {
+export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
   const [rows] = useState<GridRowsProp>(data);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: pageSize ?? 10,
   });
-  const [columnVisibilityModel, setColumnVisibilityModel] =
-    useState<GridColumnVisibilityModel>({
-      id: false,
-    });
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
+    id: false,
+  });
 
   const columns = Object.keys(data[0]).map((key) => {
-    const isNumeric = data.every(
-      (row) => typeof row[key] === "number" || row[key] === null,
-    );
+    const isNumeric = data.every((row) => typeof row[key] === "number" || row[key] === null);
     return {
       field: key,
       headerName: key,
@@ -48,6 +41,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   });
 
   const theme = useMemo(() => getMuiTheme(), []);
+  const height = parseInt(baseTheme.sizes.tableRow, 10);
 
   return (
     <ThemeProvider theme={theme}>
@@ -67,6 +61,8 @@ export const DataTable: React.FC<DataTableProps> = ({
           width: "100%",
           height: "100%",
         }}
+        rowHeight={height}
+        columnHeaderHeight={height}
       />
     </ThemeProvider>
   );

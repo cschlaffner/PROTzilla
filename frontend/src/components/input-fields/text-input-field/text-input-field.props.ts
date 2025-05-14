@@ -1,9 +1,7 @@
 import type { UIStateProps } from "../../../utils";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { InputContainerProps } from "../input-container";
 
-export interface TextInputFieldProps
-  extends FrameInputFieldProps,
-    UIStateProps {
+export interface TextInputFieldProps extends InputContainerProps, UIStateProps {
   value?: string;
   placeholder?: string;
   onChange: (value: string) => void;

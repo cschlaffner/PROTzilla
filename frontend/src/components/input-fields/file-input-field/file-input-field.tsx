@@ -1,11 +1,13 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { size, spacing } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
 import { useFilePicker } from "../../../hooks";
-import { Button } from "../../button";
+import { SecondaryButton } from "../../button";
+import { useNotification } from "../../notification-center";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -25,21 +27,68 @@ const StyledSpan = styled.span`
 
 export const FileInputField: React.FC<FileInputFieldProps> = ({
   value = null,
-  placeholder = "No file choosen",
+  placeholder = "No file chosen",
   onChange,
   ...props
 }) => {
-  const [file, setFile] = useState<File | null>(() => {
-    onChange(value);
-    return value;
-  });
+  const notify = useNotification();
+
+  const [file, setFile] = useState<File | null>(null);
+  const [currentName, setCurrentName] = useState(value);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  useEffect(() => {
+    setCurrentName(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (file) {
+      const fileName = file.name;
+      setCurrentName(fileName);
+      void handleUpload();
+      onChange(fileName);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
 
   const handleFileSelection = (e: Event) => {
     const input = e.target as HTMLInputElement;
-    if (input.files?.length) {
-      const selectedFile = input.files[0];
-      setFile(selectedFile);
-      onChange(selectedFile);
+    if (!input.files || input.files.length === 0) return;
+
+    const selectedFile = input.files[0];
+    setFile(selectedFile);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    setIsUploading(true);
+
+    try {
+      await axios.post("/api/upload_file/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
+          setUploadProgress(percent);
+        },
+      });
+
+      // Upload successful
+    } catch (err) {
+      console.error("Upload failed:", err);
+      notify({
+        title: "Upload failed",
+        message: "There was an error uploading the file: " + (err as string),
+        type: "error",
+      });
+      // Upload failed
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -48,11 +97,16 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   return (
     <InputContainer {...props}>
       <StyledDiv>
-        <StyledSpan>{file ? file.name : placeholder}</StyledSpan>
-        <Button isSmall onClick={openFilePicker}>
+        <StyledSpan>{currentName ?? placeholder}</StyledSpan>
+        <SecondaryButton isSmall onClick={openFilePicker}>
           Choose File
-        </Button>
+        </SecondaryButton>
       </StyledDiv>
+      {isUploading && (
+        <div>
+          <p>Uploading: {uploadProgress}%</p>
+        </div>
+      )}
     </InputContainer>
   );
 };

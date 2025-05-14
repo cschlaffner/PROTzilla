@@ -1,8 +1,8 @@
 import { UIStateProps } from "../../../utils";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { InputContainerProps } from "../input-container";
 
 export interface MultiSelectInputFieldProps
-  extends Omit<FrameInputFieldProps, "onChange">,
+  extends Omit<InputContainerProps, "onChange">,
     UIStateProps {
   options: { label: string; value: string }[];
   value?: string[];

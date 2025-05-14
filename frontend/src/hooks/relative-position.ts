@@ -93,8 +93,7 @@ export const useRelativePosition = <P = void>(
       offsetRectRef.current?.left === offsetRect?.left &&
       offsetRectRef.current?.bottom === offsetRect?.bottom &&
       offsetRectRef.current?.right === offsetRect?.right &&
-      configRef.current?.positionRelativeToOffsetParent ===
-        positionRelativeToOffsetParent &&
+      configRef.current?.positionRelativeToOffsetParent === positionRelativeToOffsetParent &&
       configRef.current?.position === position &&
       configRef.current?.distance === distance
     ) {

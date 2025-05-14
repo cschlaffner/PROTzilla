@@ -5,13 +5,11 @@ import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vite.dev/config/
 const viteConfig = defineViteConfig({
-  base: "./",
+  base: "/static/",
   plugins: [
     react({
       babel: {
-        plugins: [
-          ["@babel/plugin-proposal-decorators", { version: "2023-05" }],
-        ],
+        plugins: [["@babel/plugin-proposal-decorators", { version: "2023-05" }]],
       },
     }),
     svgr(),
