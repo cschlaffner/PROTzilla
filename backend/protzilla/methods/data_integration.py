@@ -287,7 +287,6 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a bar plot from GO enrichment data"
 
-    # output_keys = ["plots"]
     output_keys = []
 
     def create_form(self):

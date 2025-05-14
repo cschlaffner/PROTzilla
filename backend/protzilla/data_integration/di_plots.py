@@ -108,10 +108,6 @@ def GO_enrichment_bar_plot(
     elif value == "p-value":
         column = "P-value" if restring_input else "Adjusted P-value"
 
-    print(column)
-    print(df.columns)
-    print(df[column])
-    #df["-log10(FDR)"] = -np.log10(df["fdr"])
     df_plot = (
         df.sort_values(column, ascending=False)
         .groupby("Gene_set")
