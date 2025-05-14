@@ -2,7 +2,7 @@ import { GridRowsProp } from "@mui/x-data-grid";
 
 import { FormData } from "../components/forms/form";
 
-export const mockPlotData: Partial<Plotly.Data>[] = [
+export const mockPlotData: Plotly.Data[] = [
   {
     x: ["A", "B", "C", "D"],
     y: [10, 20, 30, 40],

@@ -1,3 +1,4 @@
+import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -5,6 +6,7 @@ import { styled } from "styled-components";
 
 import { spacing } from "../theme";
 import {
+  Button,
   FlexColumn,
   FlexRow,
   ListEditor,
@@ -20,6 +22,7 @@ import {
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
+import { usePlotSettings } from "../components/settings/plot-settings/usePlotSettings";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters, emptyRunData } from "../utils";
 
@@ -77,9 +80,14 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [plotData, setPlotData] = useState(mockPlotData);
-  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
   const [tableData, setTableData] = useState(mockTableData);
+
+  const [plot, setPlot] = useState<Figure>({
+    data: mockPlotData,
+    layout: mockPlotLayout
+  });
+  
+  const { downloadPlot } = usePlotSettings();
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
@@ -118,9 +126,10 @@ export const RunScreen: React.FC = () => {
         rawData = paredData.data;
         rawLayout = paredData.layout;
       }
-
-      setPlotData(rawData);
-      setPlotLayout(rawLayout);
+      setPlot({
+        data: rawData,
+        layout: rawLayout,
+      });
     }
   }, [runName]);
 
@@ -149,9 +158,14 @@ export const RunScreen: React.FC = () => {
   };
 
   const plotComponent = (
-    <StyledPlotContainer>
-      <PlotComponent data={plotData} layout={plotLayout} hasResizing={true} />
-    </StyledPlotContainer>
+    <div>
+      <StyledPlotContainer>
+        <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
+      </StyledPlotContainer>
+      {plot.data.length > 0 && (
+        <Button text="Download plot" onClick={void downloadPlot(plot)}/>
+      )}
+    </div>
   );
 
   const tableComponent = (
