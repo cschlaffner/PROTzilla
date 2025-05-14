@@ -7,7 +7,7 @@
 [![frontend](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml)
 [![coverage badge](https://github.com/cschlaffner/PROTzilla/blob/python-coverage-comment-action-data/badge.svg)](https://github.com/cschlaffner/PROTzilla/tree/python-coverage-comment-action-data) 
 
-PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. Its shareable, reproducible workflows and integration with knowledge bases support automated analysis and transparent reporting in proteomics research.
+PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. The shareable, reproducible workflows and the integration of knowledge databases support automated analysis and transparent reporting in proteomics research.
 
 ## :gear: Set up & install PROTzilla
 
@@ -23,7 +23,7 @@ The script automatically installs all software dependencies and creates the envi
 Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
 
 ## :bulb: Quick Introduction on how to use PROTzilla
-**Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
+**Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click on `Calculate` in the last step. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
 > [!TIP]
 > For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
 
