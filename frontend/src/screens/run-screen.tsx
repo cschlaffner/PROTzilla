@@ -52,6 +52,7 @@ const StyledPlotContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
 `;
 
 const StyledTableContainer = styled.div`
@@ -109,9 +110,9 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const data = response.data;
 
-      let rawPlots = [];
+      const rawPlots = [];
       if (data.length > 0) {
-        for (var plot of data){
+        for (const plot of data){
           rawPlots.push(JSON.parse(plot));
         }
       }
@@ -146,8 +147,8 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      {plots.map((plot) => (
-        <PlotComponent data={plot.data} layout={plot.layout}/>
+      {plots.map((plot, index) => (
+        <PlotComponent key={index} data={plot.data} layout={plot.layout}/>
       ))}
     </StyledPlotContainer>
   );
