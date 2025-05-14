@@ -4,6 +4,13 @@
 # Excluding settings templates
 !/user_data/settings/plots_default.yaml
 
+# Excluding example workflows
+!user_data/settings/plots_default.yaml
+!user_data/workflows/only_import.yaml
+!user_data/workflows/only_import_and_filter_proteins.yaml
+!user_data/workflows/standard.yaml
+!user_data/workflows/test-run-empty.yaml
+
 # Uploads (e.g. Uniprot databases)
 /uploads/*
 
