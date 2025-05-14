@@ -1,4 +1,4 @@
-import { UIStateProps } from "../../utils/types";
+import { UIStateProps } from "../../utils";
 
 export type TextProps = React.HTMLAttributes<HTMLSpanElement> &
   UIStateProps & {

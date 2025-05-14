@@ -1,5 +1,9 @@
 import { emptySections, Section, StepStatus } from "../components/sidebar/types.ts";
 
+export interface UIStateProps {
+  isDisabled?: boolean;
+}
+
 export interface Run {
   run_name: string;
   creation_date: string;
