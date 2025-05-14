@@ -188,6 +188,8 @@ export const baseTheme = {
   sizes: {
     icon: "20px",
     smallIcon: "12px",
+    logoIconWidth: "300px",
+    logoIconHeight: "150px",
     bigIcon: "50px",
     swatch: "16px",
     buttonHeight: "40px",
@@ -200,6 +202,7 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    tooltipMaxWidth: "240px",
     tableRow: "40px",
 
     // Input Screen

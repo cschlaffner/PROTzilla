@@ -38,6 +38,10 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
     onChange(value);
   };
 
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
   const combinedSubscript =
     characterLimit > 0
       ? `${subscript ? `${subscript} | ` : ""}Character Limit ${value.length.toString()}/${characterLimit.toString()}`

@@ -2,18 +2,19 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
   Card,
   Form,
   InputValueType,
   Modal,
+  Navbar,
   RunsTable,
   useNotification,
   Workflow,
 } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
-import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
