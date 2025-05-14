@@ -4,12 +4,10 @@ import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
-import { useTheme } from "../../../theme";
-import { GrayButton } from "../../button";
-import { Icon, IconButton } from "../../icon/icon";
-import { CollapsibleLabel, H3 } from "../../text";
 import { callApiWithParameters } from "../../../utils";
+import { Icon } from "../../icon/icon";
 import { StepSelection } from "../../step-selection";
+import { CollapsibleLabel, H3 } from "../../text";
 import { Step } from "../types.ts";
 
 const TitleContainer = styled.div`

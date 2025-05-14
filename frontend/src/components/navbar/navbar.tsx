@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   ...rest
 }) => {
-  const [runName, setRunName] = useState<string>(title as string);
+  const [runName, setRunName] = useState<string>(title ?? "");
   // <-- Modal for run properties and edit -->
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
