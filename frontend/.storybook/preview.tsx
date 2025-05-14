@@ -3,13 +3,7 @@ import { useMemo } from "react";
 import { styled } from "styled-components";
 
 import { ModalRoot, NotificationCenter } from "../src/components";
-import {
-  color,
-  ColorMode,
-  getTheme,
-  GlobalStyles,
-  ThemeProvider,
-} from "../src/theme";
+import { color, ColorMode, getTheme, GlobalStyles, ThemeProvider } from "../src/theme";
 
 const Wrapper = styled.div`
   background: ${color("backgroundOffset")};

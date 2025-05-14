@@ -1,5 +1,4 @@
-export interface NavbarProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
+export interface NavbarProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   title?: string;
   onNavigateHome: () => void;
   onOpenSettings: () => void;

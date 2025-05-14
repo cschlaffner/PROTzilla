@@ -18,8 +18,6 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
 }) => (
   <FlexColumn {...rest}>
     {title && <H1 as={baseComponents[baseComponent]} text={title} />}
-    {description && (
-      <Description as={baseComponents[baseComponent]} text={description} />
-    )}
+    {description && <Description as={baseComponents[baseComponent]} text={description} />}
   </FlexColumn>
 );

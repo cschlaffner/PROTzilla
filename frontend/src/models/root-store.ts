@@ -26,12 +26,8 @@ export class RootStore {
 
   public shouldPersist = false;
 
-  protected messageTimeouts: Record<
-    string,
-    ReturnType<typeof setTimeout> | undefined
-  > = {};
-  @observable protected accessor messages: Record<string, Message | undefined> =
-    {};
+  protected messageTimeouts: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
+  @observable protected accessor messages: Record<string, Message | undefined> = {};
 
   constructor() {
     this.client.remote = new RESTAdapter(API_ROOT, undefined, this.axios);
@@ -60,11 +56,7 @@ export class RootStore {
   }
 
   @action
-  public setMessage(
-    channel = "error",
-    message?: Message,
-    autoClear = true,
-  ): void {
+  public setMessage(channel = "error", message?: Message, autoClear = true): void {
     this.messages[channel] = message;
 
     if (this.messageTimeouts[channel] !== undefined) {

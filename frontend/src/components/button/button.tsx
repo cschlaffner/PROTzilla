@@ -254,24 +254,17 @@ const BaseButton = React.forwardRef<ButtonRef, ButtonProps>(function BaseButton(
         aria-label={ariaLabel || tooltip}
       >
         {!iconRight && iconElement}
-        {(text || text === "") && (
-          <Text className="text" text={text} style={textStyle} />
-        )}
+        {(text || text === "") && <Text className="text" text={text} style={textStyle} />}
         {iconRight && iconElement}
         {children}
-        {(tag || tagTx) && (
-          <Text className="text" text={tag} style={textStyle} />
-        )}
+        {(tag || tagTx) && <Text className="text" text={tag} style={textStyle} />}
 
         {showFocusOutline && showFocus && <FocusOutline className="focus-outline" />}
       </StyledButton>
       {tooltip && (
         <Tooltip
           text={tooltip}
-          isShown={
-            (showTooltip || (showFocus && showFocusTooltip)) &&
-            externalShowTooltip
-          }
+          isShown={(showTooltip || (showFocus && showFocusTooltip)) && externalShowTooltip}
           anchor={anchorTooltipToMouse && showTooltip ? mouseAnchor : buttonRef}
           position={showTooltip ? tooltipPosition : tooltipPositionFocus}
           distance={showFocusTooltip ? tooltipDistanceFocus : tooltipDistance}

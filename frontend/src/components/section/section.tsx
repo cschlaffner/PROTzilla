@@ -12,19 +12,10 @@ const SectionContainer = styled.section`
   gap: ${spacing("medium")};
 `;
 
-export const Section: React.FC<SectionProps> = ({
-  title,
-  description,
-  children,
-  ...rest
-}) => (
+export const Section: React.FC<SectionProps> = ({ title, description, children, ...rest }) => (
   <SectionContainer {...rest}>
     {(title ?? description) && (
-      <SectionTitle
-        baseComponent="h3"
-        title={title}
-        description={description}
-      />
+      <SectionTitle baseComponent="h3" title={title} description={description} />
     )}
     {children}
   </SectionContainer>

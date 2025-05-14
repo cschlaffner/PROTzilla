@@ -5,8 +5,7 @@ export type TextProps = React.HTMLAttributes<HTMLSpanElement> &
     text?: string;
   };
 
-export type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> &
-  UIStateProps;
+export type LinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & UIStateProps;
 
 export interface CollapsibleLabelProps {
   width: number | string;
