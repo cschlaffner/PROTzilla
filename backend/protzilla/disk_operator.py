@@ -193,7 +193,7 @@ class DiskOperator:
     def read_workflow(self) -> StepManager:
         return self.read_run(self.workflow_file)
 
-    def export_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
+    def save_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
         self.workflow_name = workflow_name
         workflow = {}
         workflow[KEYS.STEPS] = []
