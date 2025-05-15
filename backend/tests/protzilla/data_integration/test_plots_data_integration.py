@@ -115,7 +115,7 @@ def test_enrichment_bar_plot_cutoff(data_folder_tests):
         top_terms=10,
         cutoff=0,
         value="fdr",
-        gene_sets={"KEGG" : "#E2A46D", "Process" : "#4A536A"},
+        gene_sets={"KEGG", "Process"},
     )
 
     assert "messages" in current_out
@@ -129,7 +129,7 @@ def test_enrichment_bar_plot_cutoff(data_folder_tests):
         top_terms=10,
         cutoff=0,
         value="p-value",
-        gene_sets={"Reactome_2013" : "#E2A46D"},
+        gene_sets={"Reactome_2013"},
     )
     assert "messages" in current_out
     assert any(("No data to plot when applying cutoff" in message["msg"]) for message in current_out["messages"])

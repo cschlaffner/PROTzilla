@@ -117,6 +117,9 @@ export const baseTheme = {
     /** Big desktop. */
     xl: 1536,
   },
+  characterLimits: {
+    tag: 30,
+  },
   colors: defaultPalette,
   direction: "ltr",
   durations: {
@@ -210,7 +213,8 @@ export const baseTheme = {
     runSelectionMinHeight: "300px",
 
     //Runs Table
-    smallCellWidth: "50px",
+    verySmallCellWidth: "50px",
+    smallCellWidth: "100px",
     mediumCellWidth: "150px",
     largeCellWidth: "200px",
   },

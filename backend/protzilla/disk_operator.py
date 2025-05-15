@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 import yaml
+from django.utils.datetime_safe import datetime
 from plotly.io import read_json, write_json
 
 import backend.protzilla.utilities as utilities
 from backend.protzilla.constants import paths
+from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
 
@@ -106,7 +109,7 @@ class DiskOperator:
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
             run = self.yaml_operator.read(file or self.run_file)
-            step_manager = StepManager()
+            step_manager = StepManager(disk_operator=self)
             step_manager.df_mode = run.get(KEYS.DF_MODE, "disk")
             for step_data in run[KEYS.STEPS]:
                 try:
@@ -140,10 +143,57 @@ class DiskOperator:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
 
+    def read_metadata(self) -> dict:
+        with ErrorHandler():
+            if not self.metadata_path.exists():
+                self._create_metadata()
+            metadata = self.yaml_operator.read(self.metadata_path)
+            return metadata
+
+    def write_metadata(self, metadata: dict = None) -> None:
+        with ErrorHandler():
+            if not self.metadata_path.exists():
+                self._create_metadata()
+            existing_metadata = self.read_metadata()
+            if existing_metadata:
+                metadata = {**existing_metadata, **metadata}
+            else:
+                metadata = metadata or {}
+
+            self.yaml_operator.write(self.metadata_path, metadata)
+
+    def _create_metadata(self) -> None:
+        with ErrorHandler():
+            if not self.run_dir.exists():
+                self.run_dir.mkdir(parents=True, exist_ok=True)
+            self.metadata_path.touch()
+            logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
+            date = datetime.now().strftime(metadata_date_format)
+            metadata = {
+                "creation_date": date,
+                "modification_date": date
+            }
+            self.yaml_operator.write(self.metadata_path, metadata)
+
+    def update_modification_date(self):
+        with ErrorHandler():
+            metadata = self.read_metadata()
+            metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
+            self.write_metadata(metadata)
+
+    def update_run_name(self, new_run_name: str) -> None:
+        with ErrorHandler():
+            new_run_dir = paths.RUNS_PATH / new_run_name
+            if new_run_dir.exists():
+                logger.warning(f"Run directory {new_run_dir} for run {self.run_name} already exists.")
+                return
+            os.rename(self.run_dir, new_run_dir)
+            self.run_name = new_run_name
+
     def read_workflow(self) -> StepManager:
         return self.read_run(self.workflow_file)
 
-    def export_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
+    def save_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
         self.workflow_name = workflow_name
         workflow = {}
         workflow[KEYS.STEPS] = []
@@ -278,6 +328,10 @@ class DiskOperator:
     @property
     def run_dir(self):
         return paths.RUNS_PATH / self.run_name
+
+    @property
+    def metadata_path(self):
+        return paths.RUNS_PATH / self.run_name / "metadata.yaml"
 
     @property
     def run_file(self) -> Path:

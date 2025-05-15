@@ -3,7 +3,6 @@ import { styled, useTheme } from "styled-components";
 
 import { PlotProps } from "./plot.props";
 import { border, borderColors } from "../../theme";
-import { SectionTitle } from "../section-title";
 
 const PlotDiv = styled.div<{ hasBorder: boolean }>`
   width: fit-content;
@@ -23,7 +22,7 @@ export const PlotComponent: React.FC<PlotProps> = ({
   const theme = useTheme();
   return (
     <div style={{ width: "100%", height: "100%", flexGrow: 1, minHeight: 0 }}>
-      {data.length > 0 ? (
+      {
         <PlotDiv hasBorder={hasBorder ?? false}>
           <div style={{ margin: theme.borders.defaultStrength }}>
             <Plot
@@ -35,9 +34,7 @@ export const PlotComponent: React.FC<PlotProps> = ({
             />
           </div>
         </PlotDiv>
-      ) : (
-        <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
-      )}
+      }
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import logging
 
-from backend.protzilla.methods.data_preprocessing import ImputationByKNN
+from backend.protzilla.methods.data_preprocessing import ImputationByKNN, FilterSamplesByProteinsMissing
 from backend.protzilla.methods.importing import MaxQuantImport
 
 
@@ -117,3 +117,29 @@ class TestRun:
         assert run_imported.current_step.calculation_status == "complete"
         run_imported.step_set_outdated()
         assert run_imported.current_step.calculation_status == "outdated"
+
+    def test_multiple_steps_calculate(self, run_imported):
+        step1 = FilterSamplesByProteinsMissing()
+        step2 = ImputationByKNN()
+        run_imported.step_add(step1)
+        run_imported.step_add(step2)
+        run_imported.step_next()
+        run_imported.step_calculate()
+        assert run_imported.current_step.calculation_status == "complete"
+        step1_output = run_imported.current_step.output
+        run_imported.step_next()
+        run_imported.step_calculate()
+        assert run_imported.current_step.calculation_status == "complete"
+        step2_output = run_imported.current_step.output
+        run_imported.step_goto(0, "data_preprocessing")
+        run_imported.step_set_outdated()
+        assert run_imported.current_step.calculation_status == "outdated"
+        run_imported.step_goto(1, "data_preprocessing")
+        assert run_imported.current_step.calculation_status == "outdated"
+        run_imported.step_calculate()
+        assert run_imported.current_step.calculation_status == "complete"
+        assert step2_output["protein_df"].equals(run_imported.current_step.output["protein_df"])
+        run_imported.step_goto(0, "data_preprocessing")
+        assert run_imported.current_step.calculation_status == "complete"
+        assert step1_output["protein_df"].equals(run_imported.current_step.output["protein_df"])
+
