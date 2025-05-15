@@ -128,9 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       void callApiWithParameters("save_workflow/", {
         run_name: runName,
         workflow_name: workflowname,
-      }).then(
-        void setIsWorkflowSaveOpen(false)
-      )
+      }).then(void setIsWorkflowSaveOpen(false));
     },
     [notify],
   );
@@ -146,8 +144,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
           {allowRunEdit && (
             <div>
-              <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}/>
-              <Button icon={"save"} onPress={() => setIsWorkflowSaveOpen(true)}/>
+              <Button
+                icon={"edit"}
+                onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
+              />
+              <Button icon={"save"} onPress={() => setIsWorkflowSaveOpen(true)} />
             </div>
           )}
         </NavbarCenter>
@@ -190,8 +191,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         onClose={() => {
           setIsWorkflowSaveOpen(false);
         }}
-        >
-        <Form 
+      >
+        <Form
           formData={{
             label: "",
             isAutoSubmit: false,
@@ -203,10 +204,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 label: "With workflow name:",
                 isVisible: true,
               },
-            ]
-          }} 
-          onChange={(data) => {handleWorkflowSave(data)}}>
-        </Form>
+            ],
+          }}
+          onChange={(data) => {
+            handleWorkflowSave(data);
+          }}
+        ></Form>
       </Modal>
     </FlexColumn>
   );
