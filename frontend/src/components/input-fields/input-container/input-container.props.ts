@@ -1,4 +1,4 @@
-import type { UIStateProps } from "../../../utils";
+import type { UIStateProps } from "@protzilla/utils";
 
 export interface InputContainerProps extends UIStateProps {
   children?: React.ReactNode;

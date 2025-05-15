@@ -16,7 +16,7 @@ import {
 import { dummyTextComponent1, footerMessages, mockPlots, mockTableData } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { SelectedStep } from "../components/sidebar/types";
-import { callApiWithParameters, emptyRunData } from "../utils";
+import { callApiWithParameters, emptyRunData } from "@protzilla/utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;

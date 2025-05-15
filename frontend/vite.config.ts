@@ -18,6 +18,7 @@ const viteConfig = defineViteConfig({
   resolve: {
     alias: {
       "@protzilla/theme": path.resolve(__dirname, "src/theme"),
+      "@protzilla/utils": path.resolve(__dirname, "src/utils"),
     },
   },
   server: {

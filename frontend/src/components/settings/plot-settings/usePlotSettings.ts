@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { PlotSettings } from "./plot-settings";
 import { useNotification } from "../..";
-import { callApiWithParameters } from "../../../utils";
+import { callApiWithParameters } from "@protzilla/utils";
 
 export interface PlotSettings {
   // User-given parameters that are stored in backend

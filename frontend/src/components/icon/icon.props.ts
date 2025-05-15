@@ -2,7 +2,7 @@ import type React from "react";
 
 import type * as icons from "./icons";
 import type { Color } from "@protzilla/theme";
-import type { UIStateProps } from "../../utils";
+import type { UIStateProps } from "@protzilla/utils";
 
 export type IconType = keyof typeof icons;
 export type DefaultColoredIconType = "complete" | "incomplete" | "failed" | "outdated";

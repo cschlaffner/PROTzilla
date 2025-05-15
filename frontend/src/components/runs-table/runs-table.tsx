@@ -4,8 +4,7 @@ import { styled, useTheme } from "styled-components";
 
 import { useToggleableState } from "../../hooks";
 import { color, defaultPalette } from "@protzilla/theme";
-import { callApiWithParameters, Run } from "../../utils";
-import { formatDate } from "../../utils/format-date.ts";
+import { callApiWithParameters, formatDate, Run } from "@protzilla/utils";
 import { SecondaryButton } from "../button";
 import { Icon } from "../icon";
 import { DeleteModal } from "../modal";

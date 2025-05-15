@@ -1,5 +1,5 @@
 import { MixinConstructor } from "./types";
-import { MaybeArrayElement } from "../../utils";
+import { MaybeArrayElement } from "@protzilla/utils";
 
 const transform = <T extends object>(
   newValue: T,

@@ -1,4 +1,4 @@
-import { UIStateProps } from "../../utils";
+import { UIStateProps } from "@protzilla/utils";
 
 export type TextProps = React.HTMLAttributes<HTMLSpanElement> &
   UIStateProps & {

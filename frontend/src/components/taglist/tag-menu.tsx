@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
 import { characterLimits, spacing, useTheme } from "@protzilla/theme";
-import { callApi, Run } from "../../utils";
+import { callApi, Run } from "@protzilla/utils";
 import { Form } from "../forms/form";
 import { SearchInputField } from "../input-fields/search-input-field";
 import { useNotification } from "../notification-center";

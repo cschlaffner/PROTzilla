@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { BackendFormProps, FormData, InputFieldProps, InputValueType } from "./backend-form.props";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
-import { callApiWithParameters } from "../../../utils/api-call";
+import { callApiWithParameters } from "@protzilla/utils";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
 import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";

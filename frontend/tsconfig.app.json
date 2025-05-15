@@ -25,7 +25,8 @@
 
     "baseUrl": "./src",
     "paths": {
-      "@protzilla/theme": ["theme"]
+      "@protzilla/theme": ["theme"],
+      "@protzilla/utils": ["utils"]
     },
 
     "types": ["vitest/globals"]

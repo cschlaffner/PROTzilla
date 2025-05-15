@@ -20,7 +20,7 @@ import {
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "@protzilla/theme";
-import { callApi, callApiWithParameters, Run } from "../utils";
+import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;

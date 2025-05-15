@@ -3,7 +3,7 @@ import { action, observable } from "mobx";
 
 import { API_ROOT } from "../constants";
 import { type ColorMode, getTheme, Theme } from "@protzilla/theme";
-import { isPromise } from "../utils";
+import { isPromise } from "@protzilla/utils";
 import { defaultStorageClient } from "./sync-engine";
 import { RESTAdapter } from "./sync-engine/rest-adapter";
 

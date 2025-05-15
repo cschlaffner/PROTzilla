@@ -1,4 +1,4 @@
-import { UIStateProps } from "../../../utils";
+import { UIStateProps } from "@protzilla/utils";
 import { InputContainerProps } from "../input-container";
 
 export interface RadioSelectInputFieldProps

@@ -6,7 +6,7 @@ import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, shadow, size, spacing } from "@protzilla/theme";
-import { callApi, callApiWithParameters } from "../../utils";
+import { callApi, callApiWithParameters } from "@protzilla/utils";
 import { IconButton, iconColor } from "../icon";
 import { SectionTitle } from "../section-title";
 import { Sections } from "../sidebar/types.ts";

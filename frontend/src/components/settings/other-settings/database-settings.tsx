@@ -4,8 +4,7 @@ import { styled } from "styled-components";
 import { DeleteModal, Form, SecondaryButton, Text, useNotification } from "../../../components";
 import { useToggleableState } from "../../../hooks";
 import { spacing } from "@protzilla/theme";
-import { callApi, callApiWithParameters } from "../../../utils";
-import { formatDate } from "../../../utils/format-date.ts";
+import { callApi, callApiWithParameters, formatDate } from "@protzilla/utils";
 import { SectionTitle } from "../../section-title";
 
 const DatabasesTitle = styled(SectionTitle)`
