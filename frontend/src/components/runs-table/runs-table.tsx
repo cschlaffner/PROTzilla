@@ -242,13 +242,12 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                     height: "15px",
                     fill: run.favourite_status ? defaultPalette.primary : "none",
                   }}
-              />
-            </TableCol>
-            
-            
+                />
+              </TableCol>
+
               <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
               <TableCol width={theme.sizes.smallCellWidth}>
-              {formatDate(run.modification_date)}
+                {formatDate(run.modification_date)}
               </TableCol>
               <TableCol style={{ minWidth: theme.sizes.mediumCellWidth }}>
                 <StyledList>
