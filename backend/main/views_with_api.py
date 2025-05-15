@@ -1,7 +1,6 @@
 import json
 import io
 import traceback
-import zipfile
 
 import numpy as np
 from plotly.io import to_json
@@ -50,7 +49,7 @@ def toggle_favourite(request):
         run = Run(run_name)
         metadata = run.metadata_read()
         metadata["favourite"] = not metadata.get("favourite", False)
-        run.metadata_write(metadata)
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
@@ -67,7 +66,7 @@ def add_tag(request):
         tags = metadata.get("tags", set())
         tags.add(run_tag)
         metadata["tags"] = tags
-        run.metadata_write(metadata)
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Added tag"})
     else:
@@ -84,7 +83,7 @@ def delete_tag(request):
         tags = metadata.get("tags", set())
         tags.remove(run_tag)
         metadata["tags"] = tags
-        run.metadata_write(metadata)
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Deleted tag"})
     else:
@@ -335,7 +334,7 @@ def get_step_table(request):
                 data = run.current_outputs["protein_df"]
                 data["id"] = data.index
                 cleaned_data = data.replace(np.nan, None)
-                json_data = cleaned_data.to_dict(orient="records")
+                json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
             else:
                 json_data = [{}]
 

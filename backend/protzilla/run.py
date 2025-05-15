@@ -145,7 +145,7 @@ class Run:
             thread.start()
             self.steps.df_mode = self.df_mode
             self.steps.disk_operator = self.disk_operator
-            self.disk_operator.write_metadata(self._metadata)
+            self.metadata_write(self._metadata)
             return result
 
         return wrapper
@@ -218,6 +218,16 @@ class Run:
     @error_handling
     def metadata_write(self, metadata: dict) -> None:
         return self.disk_operator.write_metadata(metadata)
+
+    @error_handling
+    @auto_save
+    def update_metadata(self, metadata: dict) -> None:
+        """
+        Update the metadata field of the run. It will be written to the yaml with the next auto_save.
+        :param metadata: dict with metadata to update
+        :return:
+        """
+        self._metadata.update(metadata)
 
     def update_modification_date(self) -> None:
         self._metadata["modification_date"] = datetime.now().strftime(metadata_date_format)

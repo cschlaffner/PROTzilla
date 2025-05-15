@@ -58,6 +58,9 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
     });
 
     useEffect(() => {
+      if (!runName) {
+        return;
+      }
       const fetchRunInformation = async () => {
         const response = await callApi("run_information/");
         if (response.success) {
