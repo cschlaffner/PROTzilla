@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+import { useMultiRef } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
-import { useMultiRef } from "../../hooks";
 import { Icon, iconColor, IconType } from "../icon";
 import { Text } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";

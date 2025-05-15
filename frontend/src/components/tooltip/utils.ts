@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import { duration, useTheme } from "@protzilla/theme";
-import React, { useCallback, useEffect, useState } from "react";
-
 import {
   Pixel,
   RelativePositionConfig,
@@ -9,7 +6,10 @@ import {
   useDelay,
   useModalRoot,
   useRelativePosition,
-} from "../../hooks";
+} from "@protzilla/hooks";
+import { duration, useTheme } from "@protzilla/theme";
+import React, { useCallback, useEffect, useState } from "react";
+
 
 export type TooltipPosition = "left" | "right" | "bottom" | "bottomLeft" | "bottomRight" | "top";
 export type TooltipPositionConfig = RelativePositionConfig<TooltipPosition>;

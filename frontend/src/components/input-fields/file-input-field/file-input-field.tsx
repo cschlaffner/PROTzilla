@@ -1,3 +1,4 @@
+import { useFilePicker } from "@protzilla/hooks";
 import { size, spacing } from "@protzilla/theme";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -5,7 +6,6 @@ import { styled } from "styled-components";
 
 import { InputContainer } from "../input-container";
 import { FileInputFieldProps } from "./file-input-field.props";
-import { useFilePicker } from "../../../hooks";
 import { SecondaryButton } from "../../button";
 import { useNotification } from "../../notification-center";
 

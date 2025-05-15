@@ -17,6 +17,7 @@ const viteConfig = defineViteConfig({
   ],
   resolve: {
     alias: {
+      "@protzilla/hooks": path.resolve(__dirname, "src/hooks"),
       "@protzilla/theme": path.resolve(__dirname, "src/theme"),
       "@protzilla/utils": path.resolve(__dirname, "src/utils"),
     },

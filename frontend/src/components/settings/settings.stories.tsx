@@ -1,10 +1,10 @@
+import { useToggleableState } from "@protzilla/hooks";
 import { Meta } from "@storybook/react";
 import { useState } from "react";
 
 import { SettingsProps } from "./settings.props.ts";
 import { Settings } from "./settings.tsx";
 import { Button } from "../../components/";
-import { useToggleableState } from "../../hooks";
 import { NotificationCenter } from "../notification-center";
 
 export default {

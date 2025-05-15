@@ -25,6 +25,7 @@
 
     "baseUrl": "./src",
     "paths": {
+      "@protzilla/hooks": ["hooks"],
       "@protzilla/theme": ["theme"],
       "@protzilla/utils": ["utils"]
     },

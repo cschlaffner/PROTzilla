@@ -1,11 +1,10 @@
+import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { InputContainer } from "../input-container";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
-import { useOutsidePress } from "../../../hooks/outside-press";
-import { useToggleableState } from "../../../hooks/toggleable-state";
 import { Icon } from "../../icon";
 
 const DropdownContainer = styled.div`

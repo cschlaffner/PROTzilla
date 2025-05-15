@@ -1,10 +1,10 @@
+import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
 import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
-import { useOutsidePress, useToggleableState } from "../../hooks";
 import { FlexColumn } from "../box";
 import { NavbarProps } from "./navbar.props.ts";
 import { Modal } from "../modal/index.ts";

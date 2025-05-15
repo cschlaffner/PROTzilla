@@ -1,3 +1,4 @@
+import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, shadow, size, spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters } from "@protzilla/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -6,7 +7,6 @@ import { styled } from "styled-components";
 import { Button, GrayButton, ToggleableButton } from "../button";
 import { Modal } from "../modal";
 import { StepSelectionProps } from "./step-selection.props.ts";
-import { useOutsidePress, useToggleableState } from "../../hooks";
 import { IconButton, iconColor } from "../icon";
 import { SectionTitle } from "../section-title";
 import { Sections } from "../sidebar/types.ts";
