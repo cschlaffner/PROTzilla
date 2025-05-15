@@ -1,10 +1,10 @@
+import { color, duration, opacity, radius } from "@protzilla/theme";
+import { UIStateProps } from "@protzilla/utils";
 import React from "react";
 import { css, styled } from "styled-components";
 
 import { SwitchOption } from "./switch-option";
 import { SwitchProps } from "./switch.props";
-import { color, duration, opacity, radius } from "@protzilla/theme";
-import { UIStateProps } from "@protzilla/utils";
 
 const SwitchContainer = styled.div`
   border-radius: ${radius("button")};

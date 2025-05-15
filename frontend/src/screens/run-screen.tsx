@@ -1,9 +1,10 @@
+import { spacing } from "@protzilla/theme";
+import { callApiWithParameters, emptyRunData } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { spacing } from "@protzilla/theme";
 import {
   FlexColumn,
   FlexRow,
@@ -16,7 +17,7 @@ import {
 import { dummyTextComponent1, footerMessages, mockPlots, mockTableData } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { SelectedStep } from "../components/sidebar/types";
-import { callApiWithParameters, emptyRunData } from "@protzilla/utils";
+
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;

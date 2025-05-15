@@ -1,7 +1,7 @@
+import { color } from "@protzilla/theme";
 import { Data, Layout } from "plotly.js";
 
 import { PlotDownloadSettings, PlotDownloadSettingsProps } from "./plot-download-settings";
-import { color } from "@protzilla/theme";
 
 export default {
   component: PlotDownloadSettings,

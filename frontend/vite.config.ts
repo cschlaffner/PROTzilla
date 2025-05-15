@@ -1,8 +1,8 @@
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
 import svgr from "vite-plugin-svgr";
 import { defineConfig as defineVitestConfig } from "vitest/config";
-import path from "path";
 
 // https://vite.dev/config/
 const viteConfig = defineViteConfig({

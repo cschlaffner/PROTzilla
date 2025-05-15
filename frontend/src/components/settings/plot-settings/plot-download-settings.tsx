@@ -1,3 +1,4 @@
+import { color, spacing, zIndex } from "@protzilla/theme";
 import { Data, Figure, Layout } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
@@ -14,7 +15,6 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
-import { color, spacing, zIndex } from "@protzilla/theme";
 
 const StyledModal = styled(Modal)`
   width: fit-content;

@@ -1,9 +1,9 @@
+import { size, spacing } from "@protzilla/theme";
 import { Meta, StoryFn } from "@storybook/react";
 import { styled } from "styled-components";
 
 import { InputContainer } from "./input-container";
 import { InputContainerProps } from "./input-container.props";
-import { size, spacing } from "@protzilla/theme";
 
 export default {
   component: InputContainer,

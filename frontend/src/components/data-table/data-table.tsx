@@ -6,10 +6,10 @@ import {
   GridPaginationModel,
   GridRowsProp,
 } from "@mui/x-data-grid";
+import { baseTheme, getMuiTheme } from "@protzilla/theme";
 import React, { useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
-import { baseTheme, getMuiTheme } from "@protzilla/theme";
 
 export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
   const [rows] = useState<GridRowsProp>(data);

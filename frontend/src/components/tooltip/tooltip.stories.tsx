@@ -1,10 +1,10 @@
+import { color } from "@protzilla/theme";
 import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { Tooltip } from "./tooltip";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipScheduling } from "./utils";
-import { color } from "@protzilla/theme";
 
 export default {
   component: Tooltip,

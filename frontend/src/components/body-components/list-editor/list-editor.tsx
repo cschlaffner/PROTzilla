@@ -1,9 +1,9 @@
+import { color, spacing } from "@protzilla/theme";
+import { translateGlobalToSectionIndex } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
-import { color, spacing } from "@protzilla/theme";
-import { translateGlobalToSectionIndex } from "@protzilla/utils";
 import { FlexRow } from "../../box";
 import { BackendForm } from "../../forms/backend-form/backend-form.tsx";
 import { Sidebar } from "../../sidebar";

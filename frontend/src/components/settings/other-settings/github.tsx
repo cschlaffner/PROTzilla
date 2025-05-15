@@ -1,8 +1,8 @@
+import { size, spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 import { citation } from "./citation.ts";
 import { Icon, SecondaryButton, SectionTitle, Text, useNotification } from "../../../components";
-import { size, spacing } from "@protzilla/theme";
 
 const Logo = styled(Icon)`
   width: ${size("logoIconWidth")};

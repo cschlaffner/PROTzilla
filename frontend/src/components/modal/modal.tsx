@@ -1,8 +1,8 @@
+import { color, zIndex } from "@protzilla/theme";
 import React from "react";
 import { styled } from "styled-components";
 
 import { ModalProps } from "./modal.props";
-import { color, zIndex } from "@protzilla/theme";
 import { CircularButton } from "../button";
 import { Card } from "../cards/card";
 import { Icon } from "../icon";

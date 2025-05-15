@@ -1,3 +1,4 @@
+import { spacing, zIndex } from "@protzilla/theme";
 import React, { useCallback, useState } from "react";
 import { styled } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -5,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { NotificationContext } from "./notification-context";
 import { ScreenNotification } from "./screen-notification";
 import { ScreenNotificationProps } from "./screen-notification/screen-notification.props";
-import { spacing, zIndex } from "@protzilla/theme";
 
 type NotificationItem = ScreenNotificationProps & { id: string };
 

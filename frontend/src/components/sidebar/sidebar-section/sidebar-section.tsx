@@ -1,10 +1,10 @@
+import { callApiWithParameters } from "@protzilla/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarSectionProps } from "./sidebar-section.props";
 import { SidebarStep } from "./sidebar-step/sidebar-step";
-import { callApiWithParameters } from "@protzilla/utils";
 import { Icon } from "../../icon/icon";
 import { StepSelection } from "../../step-selection";
 import { CollapsibleLabel, H3 } from "../../text";

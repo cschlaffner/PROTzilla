@@ -1,8 +1,8 @@
+import { size } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
-import { size } from "@protzilla/theme";
 import { InputContainer } from "../../input-container";
 import { StyledCheckboxContainer, StyledLabel } from "../checkbox-select-input-field";
 

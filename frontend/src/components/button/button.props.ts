@@ -1,7 +1,8 @@
-import type React from "react";
 
 import type { Color } from "@protzilla/theme";
 import type { UIStateProps } from "@protzilla/utils";
+import type React from "react";
+
 import type { IconType } from "../icon";
 import type { TooltippedProps } from "../tooltip";
 

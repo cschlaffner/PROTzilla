@@ -1,5 +1,6 @@
-import { Section, SelectedStep, Step } from "./types";
 import { RunData } from "@protzilla/utils";
+
+import { Section, SelectedStep, Step } from "./types";
 
 export interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   runName: string;

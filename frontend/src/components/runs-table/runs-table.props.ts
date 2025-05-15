@@ -1,6 +1,6 @@
+import { Run } from "@protzilla/utils";
 import type React from "react";
 
-import { Run } from "@protzilla/utils";
 
 export interface RunsTableProps extends React.HTMLAttributes<HTMLDivElement> {
   runs: Run[];

@@ -1,8 +1,8 @@
+import { spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props.ts";
-import { spacing } from "@protzilla/theme";
 import { InputContainer } from "../../input-container";
 
 export const StyledCheckboxContainer = styled.div<{ $isSmall: boolean }>`

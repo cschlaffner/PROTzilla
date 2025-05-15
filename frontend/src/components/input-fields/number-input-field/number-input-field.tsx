@@ -1,7 +1,7 @@
+import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import { InputContainer } from "../input-container";
 import { NumberInputFieldProps } from "./number-input-field.props";
 import { GrayButton } from "../../button";

@@ -1,3 +1,4 @@
+import { color, fontSize, fontWeight, shadow, size, zIndex } from "@protzilla/theme";
 import ReactDOM from "react-dom";
 import { styled } from "styled-components";
 
@@ -5,7 +6,6 @@ import { Text } from "../text";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipPosition } from "./utils";
 import { useModalRoot } from "../../hooks";
-import { color, fontSize, fontWeight, shadow, size, zIndex } from "@protzilla/theme";
 
 const TooltipContainer = styled.div<Pick<TooltipProps, "baseZIndex">>`
   align-items: center;

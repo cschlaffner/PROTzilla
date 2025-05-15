@@ -1,8 +1,8 @@
+import { spacing } from "@protzilla/theme";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 
 import { WorkflowProps } from "./workflow.props";
-import { spacing } from "@protzilla/theme";
 import { BigButton } from "../button";
 import { H5 } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";

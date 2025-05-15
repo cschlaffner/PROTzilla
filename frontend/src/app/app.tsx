@@ -1,9 +1,9 @@
+import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { ModalRoot, NotificationCenter } from "../components";
 import { RootStore } from "../models";
-import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { setupRootStore, StoreProvider } from "./store";
 import { IndexScreen, MainScreen, RunScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";

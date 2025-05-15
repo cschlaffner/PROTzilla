@@ -1,8 +1,8 @@
+import { border, borderColors, color, size, spacing } from "@protzilla/theme";
 import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
-import { border, borderColors, color, size, spacing } from "@protzilla/theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
