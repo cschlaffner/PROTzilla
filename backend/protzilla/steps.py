@@ -656,6 +656,7 @@ class StepManager:
         else:
             raise ValueError(f"Unknown section {step.section}")
 
+
     def remove_step(
         self, step: Step, step_index: int = None, section: str = None
     ) -> None:
