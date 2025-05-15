@@ -1,3 +1,10 @@
 [coverage:run]
 relative_files = True
-omit = user_data/*, db.sqlite3, */constants/*, tests/**, main/{asgi.py,wsgi.py}, manage.py
+omit = 
+    user_data/**
+    db.sqlite3
+    */constants/** 
+    tests/** 
+    main/{asgi.py,wsgi.py} 
+    manage.py 
+    settings.py
