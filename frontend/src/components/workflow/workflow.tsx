@@ -24,11 +24,7 @@ const NameText = styled(H5)`
   max-width: 100%;
 `;
 
-export const Workflow: React.FC<WorkflowProps> = ({
-  workflow,
-  onPress,
-  icon,
-}) => {
+export const Workflow: React.FC<WorkflowProps> = ({ workflow, onPress, icon }) => {
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
   return (

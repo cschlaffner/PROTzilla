@@ -13,27 +13,14 @@ export default {
   },
 };
 
-const TextFieldWithState: React.FC<TextFieldProps> = ({
-  onConfirm,
-  ...args
-}) => {
+const TextFieldWithState: React.FC<TextFieldProps> = ({ onConfirm, ...args }) => {
   const [value, setValue] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const confirm = useForwardCall(onConfirm, setValue);
 
-  return (
-    <TextField
-      {...args}
-      value={value}
-      onConfirm={confirm}
-      tags={tags}
-      setTags={setTags}
-    />
-  );
+  return <TextField {...args} value={value} onConfirm={confirm} tags={tags} setTags={setTags} />;
 };
-export const primary = (args: TextFieldProps): React.ReactNode => (
-  <TextFieldWithState {...args} />
-);
+export const primary = (args: TextFieldProps): React.ReactNode => <TextFieldWithState {...args} />;
 primary.args = {
   isDisabled: false,
   hasSuccess: false,
@@ -73,9 +60,7 @@ subscript.args = {
   subscript: "Fancy subscript text",
 };
 
-export const password = (args: TextFieldProps): React.ReactNode => (
-  <TextFieldWithState {...args} />
-);
+export const password = (args: TextFieldProps): React.ReactNode => <TextFieldWithState {...args} />;
 password.args = {
   isDisabled: false,
   hasSuccess: false,
@@ -86,10 +71,7 @@ password.args = {
   defaultValue: "password",
 };
 
-const SmallTextFieldWithState: React.FC<TextFieldProps> = ({
-  onConfirm,
-  ...args
-}) => {
+const SmallTextFieldWithState: React.FC<TextFieldProps> = ({ onConfirm, ...args }) => {
   const [value, setValue] = useState("");
   const confirm = useForwardCall(onConfirm, setValue);
 
@@ -106,10 +88,7 @@ small.args = {
   placeholder: "Type something...",
 };
 
-const MultilineTextFieldWithState: React.FC<MultilineTextFieldProps> = ({
-  onConfirm,
-  ...args
-}) => {
+const MultilineTextFieldWithState: React.FC<MultilineTextFieldProps> = ({ onConfirm, ...args }) => {
   const [value, setValue] = useState("");
   const confirm = useForwardCall(onConfirm, setValue);
 
@@ -126,9 +105,7 @@ multiline.args = {
   placeholder: "Type something...",
 };
 
-export const tagged = (args: TextFieldProps): React.ReactNode => (
-  <TextFieldWithState {...args} />
-);
+export const tagged = (args: TextFieldProps): React.ReactNode => <TextFieldWithState {...args} />;
 tagged.args = {
   label: "Tagged Textfield",
   placeholder: "Add Tag",
@@ -172,9 +149,7 @@ taggedSubscript.args = {
   subscript: "Subscript text",
 };
 
-export const info = (args: TextFieldProps): React.ReactNode => (
-  <TextFieldWithState {...args} />
-);
+export const info = (args: TextFieldProps): React.ReactNode => <TextFieldWithState {...args} />;
 info.args = {
   isDisabled: false,
   hasSuccess: false,

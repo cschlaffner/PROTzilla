@@ -52,14 +52,8 @@ export interface StorageTransaction<E extends keyof M, M> {
 }
 
 export interface IStorageAdapter<M> {
-  read<E extends keyof M>(
-    entity: E,
-    id: ID,
-  ): Promise<Snapshot<M[E]> | undefined>;
-  readAll<E extends keyof M>(
-    entity: E,
-    query?: unknown,
-  ): Promise<Snapshot<M[E]>[]>;
+  read<E extends keyof M>(entity: E, id: ID): Promise<Snapshot<M[E]> | undefined>;
+  readAll<E extends keyof M>(entity: E, query?: unknown): Promise<Snapshot<M[E]>[]>;
 
   dispatch<E extends keyof M>(
     command: StorageCommand<E, M> | StorageTransaction<E, M>,
@@ -95,18 +89,11 @@ export interface IStorageHistory<M> extends IStorageAdapter<M> {
 }
 
 export interface IStorageController<E extends keyof M, M>
-  extends Omit<
-    ILocalStorageAdapter<M>,
-    "read" | "readAll" | "write" | "writeAll"
-  > {
+  extends Omit<ILocalStorageAdapter<M>, "read" | "readAll" | "write" | "writeAll"> {
   entity: E;
 
   create(value: Partial<M[E]>): Promise<M[E]>;
-  update(
-    id: ID,
-    newValue: Partial<M[E]>,
-    previousValue?: Partial<M[E]>,
-  ): Promise<void>;
+  update(id: ID, newValue: Partial<M[E]>, previousValue?: Partial<M[E]>): Promise<void>;
   delete(id: ID): Promise<void>;
 
   read(id: ID): Promise<M[E] | undefined>;

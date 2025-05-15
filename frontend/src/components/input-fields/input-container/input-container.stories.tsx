@@ -1,24 +1,23 @@
 import { Meta, StoryFn } from "@storybook/react";
 import { styled } from "styled-components";
 
-import { InputContainer } from "./frame-input-field";
-import { FrameInputFieldProps } from "./frame-input-field.props";
+import { InputContainer } from "./input-container";
+import { InputContainerProps } from "./input-container.props";
 import { size, spacing } from "../../../theme";
 
 export default {
   component: InputContainer,
   title: "Input Fields / Frame Input Field",
-} as Meta<FrameInputFieldProps>;
+} as Meta<InputContainerProps>;
 
 const StyledDiv = styled.div<{ $isSmall: boolean }>`
   display: flex;
   align-items: center;
   padding: 0px ${spacing("small")};
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
 `;
 
-const FrameTemplate: StoryFn<FrameInputFieldProps> = (args) => (
+const FrameTemplate: StoryFn<InputContainerProps> = (args) => (
   <InputContainer {...args}>
     <StyledDiv $isSmall={args.isSmall ?? false}>
       <p>Just a text field.</p>

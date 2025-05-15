@@ -17,8 +17,7 @@ const TooltipContainer = styled.div<Pick<TooltipProps, "baseZIndex">>`
   display: flex;
   height: 20px;
   padding: 0 14px;
-  z-index: ${(props) =>
-    (props.baseZIndex ?? (zIndex("tooltip")(props) as number)) + 1};
+  z-index: ${(props) => (props.baseZIndex ?? (zIndex("tooltip")(props) as number)) + 1};
 `;
 
 const TooltipLabel = styled(Text)`
@@ -56,16 +55,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const node =
     isShown === false ? null : (
       <TooltipContainer {...rest} style={tooltipStyle}>
-        <TooltipLabel
-          text={text}
-          tx={tx}
-          txComponents={txComponents}
-          txData={txData}
-        />
+        <TooltipLabel text={text} tx={tx} txComponents={txComponents} txData={txData} />
       </TooltipContainer>
     );
 
-  return modalRootRef.current
-    ? ReactDOM.createPortal(node, document.body)
-    : node;
+  return modalRootRef.current ? ReactDOM.createPortal(node, document.body) : node;
 };

@@ -5,16 +5,18 @@ import { styled } from "styled-components";
 import { SidebarStepProps } from "./sidebar-step.props";
 import { color } from "../../../../theme";
 import { InvisibleButton } from "../../../button";
+import { DefaultColoredIconType } from "../../../icon";
 import { DefaultColoredIcon } from "../../../icon/icon";
+import { useNotification } from "../../../notification-center";
 import { ContentText } from "../../../text";
 import { CollapsibleLabel } from "../../../text-field";
+import { useIconContext } from "../../use-step-icon-context.tsx";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
   gap: 10px;
   padding: 10px 5px;
-  background-color: ${({ isSelected }) =>
-    isSelected ? color("protzillaLightGray") : ""};
+  background-color: ${({ isSelected }) => (isSelected ? color("protzillaLightGray") : "")};
   display: flex;
   align-items: center;
   border-radius: 6px;
@@ -27,26 +29,35 @@ const TextContainer = styled.div`
   marginleft: "auto";
   max-width: 225px;
   whitespace: normal;
-  max-height: 3em;
+  line-height: 150%;
+
+  max-height: 4.5em;
 `;
 
 export const SidebarStep: React.FC<SidebarStepProps> = ({
   number,
   name,
+  stepStatus,
   isCollapsed,
   sectionName,
   sectionLength,
   index,
-  selectedStep,
-  setSelectedStep,
+  isSelected,
+  handleStepSelection,
   deleteStep,
   setHandlePosition,
   setShowHandle,
   setHoveredStepIndex,
 }: SidebarStepProps) => {
+  const notify = useNotification();
+
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
+
+  const { icons } = useIconContext();
+  const stepID = `${sectionName}-${index.toString()}`;
+  const icon = icons[stepID] || stepStatus;
 
   useEffect(() => {
     if (isCollapsed) {
@@ -62,8 +73,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
     if (!stepRef.current?.parentElement?.parentElement) return;
 
     const rect = stepRef.current.getBoundingClientRect();
-    const parentRect =
-      stepRef.current.parentElement.parentElement.getBoundingClientRect();
+    const parentRect = stepRef.current.parentElement.parentElement.getBoundingClientRect();
     const xMidpoint = rect.left + rect.width / 2 - parentRect.left;
     const yMidpoint = rect.top + rect.height / 2;
 
@@ -79,14 +89,17 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   const handleMouseLeave = (event: React.MouseEvent) => {
     //check if mouse is over add step handle
     setIsHovered(false);
-    const relatedTarget = event.relatedTarget as HTMLElement | null;
-    if (!relatedTarget?.closest(`[data-group-id="step-group"]`)) {
+    const relatedTarget = event.relatedTarget;
+    if (
+      !(relatedTarget instanceof HTMLElement) ||
+      !relatedTarget.closest('[data-group-id="step-group"]')
+    ) {
       setShowHandle(false);
     }
   };
 
   const handleClick = () => {
-    setSelectedStep({
+    handleStepSelection({
       section: sectionName,
       index: index,
     });
@@ -94,11 +107,16 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
+    if (isSelected) {
+      notify({
+        title: "Unallowed action",
+        message: "You cannot delete the step you're currently on.",
+        type: "error",
+      });
+      return;
+    }
     deleteStep(index);
   };
-
-  const isSelected =
-    selectedStep.section === sectionName && selectedStep.index === index;
 
   return (
     <StepContainer
@@ -112,17 +130,11 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
       onMouseMove={handleMouseMove}
       ref={stepRef}
     >
-      <DefaultColoredIcon icon="complete" style={{ flexShrink: 0 }} />
+      <DefaultColoredIcon icon={icon as DefaultColoredIconType} style={{ flexShrink: 0 }} />
       <TextContainer>
-        <ContentText
-          text={number}
-          style={{ userSelect: "none", whiteSpace: "nowrap" }}
-        />
+        <ContentText text={number} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
         <CollapsibleLabel width={200} isCollapsed={isCollapsed}>
-          <ContentText
-            text={name}
-            style={{ userSelect: "none", whiteSpace: whiteSpace }}
-          />
+          <ContentText text={name} style={{ userSelect: "none", whiteSpace: whiteSpace }} />
         </CollapsibleLabel>
       </TextContainer>
       {!isCollapsed && isHovered && (

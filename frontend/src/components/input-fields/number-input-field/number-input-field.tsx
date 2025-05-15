@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { color, fontSize, size, spacing } from "../../../theme";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { NumberInputFieldProps } from "./number-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
@@ -11,8 +11,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   background: ${color("transparent")};
   border: none;
   outline: none;
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
 `;
 
@@ -28,11 +27,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [, setValue] = useState<number>(() => {
-    onChange(value);
-    return value;
-  });
-
   const [displayValue, setDisplayValue] = useState<string>(String(value));
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +40,6 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
       const numericValue = Number(newValue);
       const newNumericValue = isNaN(numericValue) ? 0 : numericValue;
-      setValue(newNumericValue);
       onChange(newNumericValue);
     }
   };

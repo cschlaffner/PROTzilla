@@ -6,14 +6,12 @@ import { border, borderColors, color, size, spacing } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { Icon } from "../../icon";
 import { InputLabel } from "../../text";
-import { InputContainer } from "../frame-input-field";
+import { InputContainer } from "../input-container";
 import { SearchInputField } from "../search-input-field";
 
 const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
-  padding-top: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
-  padding-bottom: ${({ $isSmall }) =>
-    $isSmall ? spacing("verySmall") : spacing("small")};
+  padding-top: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
+  padding-bottom: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};
   padding-left: ${spacing("small")};
   padding-right: ${spacing("small")};
   width: 100%;
@@ -105,25 +103,23 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
     return sortedSelection;
   });
 
-  const unselectedOptions = options.filter(
-    (option) =>
-      !selectedOptions.some((selected) => selected.value === option.value),
+  const unselectedOptions = sortOptions(
+    options.filter(
+      (option) => !selectedOptions.some((selected) => selected.value === option.value),
+    ),
   );
-
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleItemClick = (option: { label: string; value: string }) => {
     setSelectedOptions((prev) => {
-      const newSelection = prev.some(
-        (selected) => selected.value === option.value,
-      )
+      const newSelection = prev.some((selected) => selected.value === option.value)
         ? prev.filter((item) => item.value !== option.value)
         : [...prev, option];
 
       const sortedSelection = sortOptions(newSelection);
       setSelectedOptions(sortedSelection);
       onChange(sortedSelection.map((opt) => opt.value));
-      return newSelection;
+      return sortedSelection;
     });
   };
 

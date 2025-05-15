@@ -7,5 +7,15 @@ export default {
   title: "Sidebar",
 } as Meta;
 
-const Template = () => <Sidebar />;
+const Template = () => (
+  <></>
+  // <Sidebar
+  //   runData={[]}
+  //   runName={""}
+  //   handleStepSelection={() => {
+  //     //donothing
+  //   }}
+  // />
+);
+
 export const Default = Template.bind({});

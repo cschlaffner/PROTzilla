@@ -16,27 +16,20 @@ export interface TableColumnProps<T extends TableRowData, K extends PropertyKey>
   width?: number;
 
   /** An optional custom formatter for all values in the column. */
-  formatCell?: (
-    value: K extends keyof T ? T[K] : undefined,
-    rowData: T,
-  ) => React.ReactNode;
+  formatCell?: (value: K extends keyof T ? T[K] : undefined, rowData: T) => React.ReactNode;
 }
 
 // TableRowProps, where columns and data follow the same logic
-export interface TableRowProps<
-  T extends TableRowData,
-  AdditionalKeys extends PropertyKey = never,
-> extends React.HTMLAttributes<HTMLDivElement> {
+export interface TableRowProps<T extends TableRowData, AdditionalKeys extends PropertyKey = never>
+  extends React.HTMLAttributes<HTMLDivElement> {
   columns: TableColumnProps<T, keyof T | AdditionalKeys>[]; // The columns this row belongs to.
   /** The data displayed in this row, keyed by column names. */
   data?: T;
 }
 
 // Define TableProps, where columns and rows are based on the above flexible types
-export interface TableProps<
-  T extends TableRowData,
-  AdditionalKeys extends PropertyKey = never,
-> extends React.HTMLAttributes<HTMLDivElement> {
+export interface TableProps<T extends TableRowData, AdditionalKeys extends PropertyKey = never>
+  extends React.HTMLAttributes<HTMLDivElement> {
   /** The column definitions of the table. */
   columns: TableColumnProps<T, keyof T | AdditionalKeys>[];
 

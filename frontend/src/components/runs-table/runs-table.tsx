@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { styled, useTheme } from "styled-components";
 
+import { useToggleableState } from "../../hooks";
 import { color, defaultPalette } from "../../theme";
 import { callApiWithParameters, Run } from "../../utils";
 import { SecondaryButton } from "../button";
 import { Icon } from "../icon";
 import { DeleteModal } from "../modal";
 import { RunsTableProps } from "./runs-table.props";
+import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 import { TagList } from "../taglist";
 
 const TableContainer = styled.div`
@@ -80,8 +82,21 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   const theme = useTheme();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] = useToggleableState(false);
   const [preSelectedRun, setPreSelectedRun] = useState<string | null>(null);
-  const [actionRun, setActionRun] = useState<string>("");
+  const [actionRunName, setActionRunName] = useState<string>("");
+
+  const handleAddTag = (tag: string, runName: string) => {
+    void callApiWithParameters("add_tag/", {
+      run_name: runName,
+      tag_name: tag,
+    });
+    setRuns((runs) =>
+      runs.map((run) =>
+        run.run_name === runName ? { ...run, run_tags: [...run.run_tags, tag] } : run,
+      ),
+    );
+  };
 
   const handleDeleteTag = (tagToDelete: string, runName: string) => {
     void callApiWithParameters("delete_tag/", {
@@ -105,9 +120,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
       run_name: runName,
     });
     const updated = runs.map((run) =>
-      run.run_name === runName
-        ? { ...run, favourite_status: !run.favourite_status }
-        : run,
+      run.run_name === runName ? { ...run, favourite_status: !run.favourite_status } : run,
     );
     setRuns(updated);
   };
@@ -120,21 +133,31 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   };
 
   const handleContinueRun = (runName: string) => {
-    void callApiWithParameters("continue_run/", { run_name: runName }).then(
-      () => {
-        void navigate("/run", { state: { runName } });
-      },
-    );
+    void callApiWithParameters("continue_run/", { run_name: runName }).then(() => {
+      void navigate("/run", { state: { runName } });
+    });
   };
 
-  const handleModal = (run: Run) => {
+  const handleRenameRun = (newName: string) => {
+    const updated = runs.map((run) =>
+      run.run_name === actionRunName ? { ...run, run_name: newName } : run,
+    );
+    setRuns(updated);
+  };
+
+  const handleTagModal = (run: Run) => {
     setSelectedRun(run);
     openTagModal(true);
   };
 
   const handleDeleteModal = (runName: string) => {
-    setActionRun(runName);
+    setActionRunName(runName);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleRunEditModal = (runName: string) => {
+    setActionRunName(runName);
+    openRunEditModal();
   };
 
   return (
@@ -149,9 +172,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
       {[...filteredRuns]
         // Favourites on top
-        .sort(
-          (a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0),
-        )
+        .sort((a, b) => (b.favourite_status ? 1 : 0) - (a.favourite_status ? 1 : 0))
         .map((run) => (
           <TableRow
             key={run.run_name}
@@ -186,12 +207,8 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                 }}
               />
             </TableCol>
-            <TableCol width={theme.sizes.largeCellWidth}>
-              {run.run_name}
-            </TableCol>
-            <TableCol width={theme.sizes.mediumCellWidth}>
-              {run.modification_date}
-            </TableCol>
+            <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
+            <TableCol width={theme.sizes.mediumCellWidth}>{run.modification_date}</TableCol>
             <TableCol>
               <StyledList>
                 <TagList
@@ -204,7 +221,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                   isSmall={true}
                   isShy={true}
                   onClick={(e) => {
-                    handleModal(run);
+                    handleTagModal(run);
                     e.stopPropagation();
                   }}
                 >
@@ -216,7 +233,14 @@ export const RunsTable: React.FC<RunsTableProps> = ({
               </StyledList>
             </TableCol>
             <TableCol width={theme.sizes.mediumCellWidth}>
-              <SecondaryButton isSmall={true} isShy={true}>
+              <SecondaryButton
+                isSmall={true}
+                isShy={true}
+                onClick={(e) => {
+                  handleRunEditModal(run.run_name);
+                  e.stopPropagation();
+                }}
+              >
                 <Icon icon={"edit"} style={{ height: "15px" }} />
               </SecondaryButton>
               <SecondaryButton
@@ -245,15 +269,35 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           </TableRow>
         ))}
       <DeleteModal
-        title={`Delete run "${actionRun}"?`}
+        title={`Delete run "${actionRunName}"?`}
         isOpen={isDeleteModalOpen}
         onConfirm={() => {
-          handleDeleteRun(actionRun);
+          handleDeleteRun(actionRunName);
         }}
         onClose={() => {
           setIsDeleteModalOpen(false);
         }}
-      ></DeleteModal>
+      />
+      {isRunEditModalOpen && (
+        <RunEditMenu
+          key={actionRunName} // Ensures a new instance for each run
+          runName={actionRunName}
+          onChangeRunName={(newRunName) => {
+            handleRenameRun(newRunName);
+          }}
+          handleAddTag={(tag: string) => {
+            handleAddTag(tag, actionRunName);
+          }}
+          handleDeleteTag={(tagToDelete: string) => {
+            handleDeleteTag(tagToDelete, actionRunName);
+          }}
+          handleToggleFavourite={() => {
+            handleToggleFavourite(actionRunName);
+          }}
+          isOpen={isRunEditModalOpen}
+          onClose={closeRunEditModal}
+        />
+      )}
     </TableContainer>
   );
 };

@@ -1,10 +1,8 @@
 import type { UIStateProps } from "../../types";
-import { FrameInputFieldProps } from "../frame-input-field";
+import { InputContainerProps } from "../input-container";
 
-export interface DropdownInputFieldProps
-  extends FrameInputFieldProps,
-    UIStateProps {
+export interface DropdownInputFieldProps extends InputContainerProps, UIStateProps {
   options: { label: string; value: string }[];
-  value?: string;
-  onChange: (value: string) => void;
+  value?: string | null;
+  onChange: (value: string | null) => void;
 }

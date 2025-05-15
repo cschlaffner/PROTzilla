@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
@@ -18,7 +19,8 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 # API to write csrf token into cookies via decorator
 @ensure_csrf_cookie
 def get_csrf_token(request):
-    return JsonResponse({"message": "CSRF cookie set."})
+    csrf_token = get_token(request)
+    return JsonResponse({"csrfToken": csrf_token, "message": "CSRF cookie set."})
 
 def databases(request):
     databases = uniprot_databases()
