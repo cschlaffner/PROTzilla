@@ -287,7 +287,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a bar plot from GO enrichment data"
 
-    output_keys = []
+    output_keys = ["plots"]
 
     def create_form(self):
         return Form(
@@ -344,7 +344,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 )["Gene_set"].unique()
             )
 
-    calc_method = staticmethod(di_plots.GO_enrichment_bar_plot)
+    plot_method = staticmethod(di_plots.GO_enrichment_bar_plot)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs[

@@ -124,7 +124,7 @@ def GO_enrichment_bar_plot(
     )
     fig.update_layout(yaxis=dict(autorange="reversed"))
     
-    return dict(plots=[fig])
+    return [fig]
 
 
 def GO_enrichment_dot_plot(
