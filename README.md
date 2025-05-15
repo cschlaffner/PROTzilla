@@ -12,7 +12,7 @@
 | backend/main/urls.py                                                             |        6 |        6 |      0% |     16-23 |
 | backend/main/views.py                                                            |        7 |        7 |      0% |      1-10 |
 | backend/main/views\_settings.py                                                  |      137 |      137 |      0% |     1-219 |
-| backend/main/views\_with\_api.py                                                 |      266 |      266 |      0% |     1-511 |
+| backend/main/views\_with\_api.py                                                 |      266 |      266 |      0% |     1-513 |
 | backend/main/views\_with\_api\_helper.py                                         |       68 |       57 |     16% |7-37, 41, 50, 55-56, 69-131, 135-150 |
 | backend/main/wsgi.py                                                             |        4 |        4 |      0% |     10-16 |
 | backend/manage.py                                                                |       13 |       13 |      0% |      3-24 |
