@@ -219,7 +219,7 @@ export const IndexScreen: React.FC = () => {
             ))}
           </StyledWorkflowContainer>
           <Modal
-            title="Create run:"
+            title="Create run"
             isOpen={isWorkflowModalOpen}
             onClose={() => {
               setIsWorkflowModalOpen(false);
@@ -242,7 +242,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "With workflow:",
                     options: [{ label: selectedWorkflow, value: selectedWorkflow }],
-                    isVisible: true,
+                    isVisible: false, // Unnecessary rn, might be usefull later
                   },
                   {
                     type: "dropdown",
