@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { useOutsidePress, useToggleableState } from "../../hooks";
@@ -9,6 +9,8 @@ import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
+import { Modal } from "../modal/index.ts";
+import { Form, InputValueType, useNotification } from "../index.ts";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -65,7 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   ...rest
 }) => {
+  const notify = useNotification();
   const [runName, setRunName] = useState<string>(title as string);
+  const [isWorkflowSaveOpen, setIsWorkflowSaveOpen] = useState(false);
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
@@ -94,16 +98,41 @@ export const Navbar: React.FC<NavbarProps> = ({
     });
   };
 
+  const handleWorkflowSave = useCallback(
+      (data: Record<string, InputValueType>) => {
+        const workflowname = data.workflowname;
+        if (!workflowname) {
+          notify({
+            title: "Error",
+            message: "Please enter a name for your workflow.",
+            type: "error",
+          });
+          return;
+        }
+        void callApiWithParameters("save_workflow/", {
+          run_name: runName,
+          workflow_name: workflowname,
+        }).then(
+          void setIsWorkflowSaveOpen(false)
+        )
+      },
+      [notify],
+    );
+
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
         <NavbarLeft>
           <Button icon={"home"} onPress={onNavigateHome} />
+          <Button></Button>
         </NavbarLeft>
         <NavbarCenter>
           <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
           {allowRunEdit && (
-            <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings} />
+            <div>
+            <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}/>
+            <Button icon={"save"} onPress={() => setIsWorkflowSaveOpen(true)}/>
+            </div>
           )}
         </NavbarCenter>
 
@@ -118,18 +147,41 @@ export const Navbar: React.FC<NavbarProps> = ({
           onChangeRunName={onChangeRunName}
           handleAddTag={(tag: string) => {
             handleAddTag(tag);
-          }}
+          } }
           handleDeleteTag={(tagToDelete: string) => {
             handleDeleteTag(tagToDelete);
-          }}
+          } }
           handleToggleFavourite={() => {
             handleToggleFavourite();
-          }}
+          } }
           isOpen={isRunSettingsOpen}
           onClose={closeRunSettings}
-          ref={refRunSettings}
-        />
+          ref={refRunSettings} />
       )}
+      <Modal
+        title="Save run as a custom workflow:"
+        isOpen={isWorkflowSaveOpen}
+        onClose={() => {
+          setIsWorkflowSaveOpen(false);
+        }}
+        >
+        <Form 
+          formData={{
+            label: "",
+            isAutoSubmit: false,
+            hasChangeIndicator: false,
+            input_fields: [
+              {
+                type: "text",
+                name: "workflowname",
+                label: "With workflow name:",
+                isVisible: true,
+              },
+            ]
+          }} 
+          onChange={(data) => {handleWorkflowSave(data)}}>
+        </Form>
+      </Modal>
     </FlexColumn>
   );
 };

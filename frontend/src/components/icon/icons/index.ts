@@ -25,6 +25,7 @@ export { default as list } from "./list.svg?react";
 export { default as outdated } from "./outdated.svg?react";
 export { default as play } from "./play-btn.svg?react";
 export { default as protzilla } from "./protzillablackwhite.svg?react";
+export { default as save } from "./save.svg?react";
 export { default as searchLens } from "./search-lens.svg?react";
 export { default as settings } from "./setting-fill.svg?react";
 export { default as spinner } from "./spinner.svg?react";
