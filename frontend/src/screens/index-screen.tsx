@@ -59,7 +59,10 @@ const StyledTemplateCard = styled(Card)`
 
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
-  height: calc(100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} - (5 * ${spacing("small")}));
+  height: calc(
+    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
+      (5 * ${spacing("small")})
+  );
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
 
@@ -169,12 +172,11 @@ export const IndexScreen: React.FC = () => {
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
       }).then(() => {
-
         notify({
           title: "Run created",
           message: `Run ${String(data.runname)} has been created`,
           type: "success",
-        })
+        });
 
         void callApiWithParameters("continue_run/", {
           run_name: runName as string,

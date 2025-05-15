@@ -43,7 +43,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
   );
 
-  const theme = useTheme()
+  const theme = useTheme();
 
   const onHandleAddTag = useCallback(
     (tag: string) => {

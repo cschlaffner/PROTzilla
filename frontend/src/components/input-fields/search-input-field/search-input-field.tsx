@@ -38,21 +38,21 @@ export const SearchInputField: React.FC<SearchInputFieldProps> = ({
 
   return (
     <div style={style}>
-    <InputContainer
-      {...props}
-      isSmall={isSmall}
-      inlinePrefix={<Icon icon="searchLens" {...(isSmall ? { isSmall: true } : {})} />}
-    >
-      <StyledInput
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => {
-          handleChange(e.target.value);
-        }}
-        $isSmall={isSmall ?? false}
-      />
-    </InputContainer>
+      <InputContainer
+        {...props}
+        isSmall={isSmall}
+        inlinePrefix={<Icon icon="searchLens" {...(isSmall ? { isSmall: true } : {})} />}
+      >
+        <StyledInput
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => {
+            handleChange(e.target.value);
+          }}
+          $isSmall={isSmall ?? false}
+        />
+      </InputContainer>
     </div>
   );
 };
