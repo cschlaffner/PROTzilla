@@ -185,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         onClose={closeDiscardModal}
       />
       <Modal
-        title="Save run as a custom workflow:"
+        title="Save run as a custom workflow"
         isOpen={isWorkflowSaveOpen}
         onClose={() => {
           setIsWorkflowSaveOpen(false);
