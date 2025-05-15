@@ -17,13 +17,12 @@ import {
 import {
   dummyTextComponent1,
   footerMessages,
-  mockPlotData,
-  mockPlotLayout,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
-import { usePlotSettings } from "../components/settings/plot-settings/usePlotSettings";
+import { PlotDownloadSettings } from "../components/settings/plot-settings";
 import { SelectedStep } from "../components/sidebar/types";
+import { useToggleableState } from "../hooks";
 import { callApiWithParameters, emptyRunData } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
@@ -83,11 +82,11 @@ export const RunScreen: React.FC = () => {
   const [tableData, setTableData] = useState(mockTableData);
 
   const [plot, setPlot] = useState<Figure>({
-    data: mockPlotData,
-    layout: mockPlotLayout
+    data: [],
+    layout: {},
   });
-  
-  const { downloadPlot } = usePlotSettings();
+
+  const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
@@ -163,7 +162,15 @@ export const RunScreen: React.FC = () => {
         <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
       </StyledPlotContainer>
       {plot.data.length > 0 && (
-        <Button text="Download plot" onClick={void downloadPlot(plot)}/>
+        <div>
+          <Button text="Download plot" onClick={openDownloadModal} />
+          <PlotDownloadSettings
+            isOpen={isDownloadModalOpen}
+            onClose={closeDownloadModal}
+            data={plot.data}
+            layout={plot.layout}
+          />
+        </div>
       )}
     </div>
   );
