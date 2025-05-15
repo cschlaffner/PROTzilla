@@ -3,15 +3,16 @@ import { Figure } from "plotly.js";
 
 import { FormData } from "../components/forms/form";
 
-
 export const mockPlots: Figure[] = [
   {
-    data: [{
-      x: ["A", "B", "C", "D"],
-      y: [10, 20, 30, 40],
-      type: "bar",
-      marker: { color: "purple" },
-    }],
+    data: [
+      {
+        x: ["A", "B", "C", "D"],
+        y: [10, 20, 30, 40],
+        type: "bar",
+        marker: { color: "purple" },
+      },
+    ],
     layout: {
       title: { text: "Title" },
       xaxis: {
@@ -24,8 +25,9 @@ export const mockPlots: Figure[] = [
         domain: [0.0, 1.0],
         title: { text: "Values" },
       },
-  }}
-]
+    },
+  },
+];
 
 export const mockTableData: GridRowsProp = [
   {
