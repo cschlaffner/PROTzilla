@@ -5,12 +5,12 @@ import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
+import { Form, InputValueType, useNotification } from "../index.ts";
+import { Modal } from "../modal/index.ts";
 import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
 import { Button } from "../button";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
-import { Modal } from "../modal/index.ts";
-import { Form, InputValueType, useNotification } from "../index.ts";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -112,11 +112,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         void callApiWithParameters("save_workflow/", {
           run_name: runName,
           workflow_name: workflowname,
-        }).then(
-          void setIsWorkflowSaveOpen(false)
-        )
+        }).then(() => {
+          setIsWorkflowSaveOpen(false)
+        })
       },
-      [notify],
+      [notify, runName],
     );
 
   return (
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {allowRunEdit && (
             <div>
             <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}/>
-            <Button icon={"save"} onPress={() => setIsWorkflowSaveOpen(true)}/>
+            <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }}/>
             </div>
           )}
         </NavbarCenter>
