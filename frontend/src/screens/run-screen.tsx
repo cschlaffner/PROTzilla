@@ -13,12 +13,7 @@ import {
   SectionTitle,
   SwitchCard,
 } from "./../components";
-import {
-  dummyTextComponent1,
-  footerMessages,
-  mockPlots,
-  mockTableData,
-} from "./mockUpData";
+import { dummyTextComponent1, footerMessages, mockPlots, mockTableData } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { SelectedStep } from "../components/sidebar/types";
 import { callApiWithParameters, emptyRunData } from "../utils";
@@ -113,7 +108,7 @@ export const RunScreen: React.FC = () => {
 
       const rawPlots = [];
       if (data.length > 0) {
-        for (const plot of data){
+        for (const plot of data) {
           rawPlots.push(JSON.parse(plot));
         }
       }
@@ -150,9 +145,9 @@ export const RunScreen: React.FC = () => {
     <StyledPlotContainer>
       {plots.length > 0 ? (
         plots.map((plot, index) => (
-          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true}/>
-      )))
-      : (
+          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true} />
+        ))
+      ) : (
         <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
     </StyledPlotContainer>

@@ -28,11 +28,12 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const StyledContainer = styled(Container)`
+const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 `;
 
 const StyledWorkflowContainer = styled(Container)`
@@ -56,10 +57,19 @@ const StyledWorkflowContainer = styled(Container)`
 
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
+  width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
+  height: calc(
+    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
+      (5 * ${spacing("small")})
+  );
+  width: calc(100vw - (2 * ${spacing("small")}));
+  box-sizing: border-box;
+
+  overflow-y: auto;
 `;
 
 const StyledDiv = styledDiv.div`
@@ -185,6 +195,12 @@ export const IndexScreen: React.FC = () => {
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
       }).then(() => {
+        notify({
+          title: "Run created",
+          message: `Run ${String(data.runname)} has been created`,
+          type: "success",
+        });
+
         void callApiWithParameters("continue_run/", {
           run_name: runName as string,
         }).then(() => {
@@ -204,7 +220,7 @@ export const IndexScreen: React.FC = () => {
         onOpenHelp={() => void navigate("/")}
       />
 
-      <StyledContainer fluid>
+      <StyledContainer>
         <StyledTemplateCard title="Template Workflows">
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
@@ -228,7 +244,7 @@ export const IndexScreen: React.FC = () => {
             ))}
           </StyledWorkflowContainer>
           <Modal
-            title="Create run:"
+            title="Create run"
             isOpen={isWorkflowModalOpen}
             onClose={() => {
               setIsWorkflowModalOpen(false);
@@ -251,7 +267,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "With workflow:",
                     options: [{ label: selectedWorkflow, value: selectedWorkflow }],
-                    isVisible: true,
+                    isVisible: false, // Unnecessary rn, might be usefull later
                   },
                   {
                     type: "dropdown",

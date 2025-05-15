@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from "react";
 import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
-import { spacing } from "../../theme";
+import { characterLimits, spacing, useTheme } from "../../theme";
 import { callApi, Run } from "../../utils";
 import { Form } from "../forms/form";
 import { SearchInputField } from "../input-fields/search-input-field";
@@ -57,6 +57,8 @@ export const TagMenu: React.FC<TagMenuProps> = ({
     );
   }
 
+  const theme = useTheme();
+
   const onHandleAddTag = useCallback(
     (tag: string) => {
       handleAddTag(tag);
@@ -94,6 +96,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
               type: "text",
               name: "tag",
               label: "Add a new tag:",
+              characterLimit: characterLimits("tag")({ theme }) as number,
               isVisible: true,
               value: "",
               placeholder: "",
