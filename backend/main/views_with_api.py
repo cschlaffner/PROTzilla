@@ -240,7 +240,7 @@ def save_workflow(request):
         run = Run(run_name)
         run._workflow_save(workflow_name)
 
-        return JsonResponse({"success": True, "message": "Exported workflow"})
+        return JsonResponse({"success": True, "message": "Saved workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
