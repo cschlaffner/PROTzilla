@@ -1,15 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { Button, DiscardModal, Settings, Text } from "../../components";
+import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
 import { NavbarProps } from "./navbar.props.ts";
-import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 import { Modal } from "../modal/index.ts";
-import { Form, InputValueType, useNotification } from "../index.ts";
+import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -128,9 +127,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       void callApiWithParameters("save_workflow/", {
         run_name: runName,
         workflow_name: workflowname,
-      }).then(void setIsWorkflowSaveOpen(false));
+      }).then(() => {
+        setIsWorkflowSaveOpen(false)
+      })
     },
-    [notify],
+    [notify, runName],
   );
 
   // <-- render -->
@@ -148,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 icon={"edit"}
                 onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
               />
-              <Button icon={"save"} onPress={() => setIsWorkflowSaveOpen(true)} />
+              <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }} />
             </div>
           )}
         </NavbarCenter>
