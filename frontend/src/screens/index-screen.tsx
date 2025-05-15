@@ -2,20 +2,24 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
   Card,
   Form,
+  Icon,
   InputValueType,
   Modal,
+  Navbar,
   RunsTable,
+  Tooltip,
   useNotification,
+  useTooltipScheduling,
   Workflow,
 } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
-import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
-import { size, spacing } from "../theme";
+import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
@@ -58,9 +62,23 @@ const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
 `;
 
+const StyledDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const InfoIcon = styled(Icon)`
+  padding-left: 10px;
+`;
+
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
+
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true);
+  const [, setParentRef] = useState<HTMLDivElement | null>(null);
+
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -81,14 +99,20 @@ export const IndexScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("run_information/");
-      if (data) {
-        setRuns(data[0]);
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setRuns(response.data[0]);
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
       }
     };
 
     void fetchData();
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -263,14 +287,30 @@ export const IndexScreen: React.FC = () => {
               handleDeleteTag={handleDeleteTag}
             />
           </Modal>
-          <SearchInputField
-            style={{ padding: "0", gap: "0", width: "30%" }}
-            value={searchTermRuns}
-            onChange={(e) => {
-              setSearchTermRuns(e);
-            }}
-            placeholder="Search runs"
-          />
+          <StyledDiv>
+            <SearchInputField
+              style={{ padding: "0", gap: "0", width: "30%" }}
+              value={searchTermRuns}
+              onChange={(e) => {
+                setSearchTermRuns(e);
+              }}
+              placeholder="Search runs"
+            />
+            <div
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+              ref={setParentRef}
+            >
+              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+              <Tooltip
+                text={"Search by run name, steps, or tags"}
+                isShown={showTooltip}
+                anchor={mouseAnchor}
+                distance={5}
+                position={"bottomRight"}
+              />
+            </div>
+          </StyledDiv>
           <RunsTable
             runs={runs}
             filteredRuns={filteredRuns}

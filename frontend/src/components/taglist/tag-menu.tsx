@@ -6,6 +6,7 @@ import { spacing } from "../../theme";
 import { callApi, Run } from "../../utils";
 import { Form } from "../forms/form";
 import { SearchInputField } from "../input-fields/search-input-field";
+import { useNotification } from "../notification-center";
 
 const StyledModalChild = styled.div`
   padding: ${spacing("small")};
@@ -24,24 +25,37 @@ export const TagMenu: React.FC<TagMenuProps> = ({
   handleAddTag,
   handleDeleteTag,
 }) => {
+  const notify = useNotification();
+
   const [existingTags, setExistingTags] = React.useState<string[]>([]);
   const [searchTermTags, setSearchTermTags] = React.useState<string>("");
 
-  const fetchData = async () => {
-    const data = await callApi("run_information/");
-    if (data) {
-      setExistingTags(data[1]);
-    }
-  };
-
   useEffect(() => {
-    void fetchData();
-  }, []);
+    const fetchData = async () => {
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setExistingTags(response.data[1]);
+      } else {
+        notify({
+          type: "error",
+          message: "Error fetching existing tags",
+          title: "Error",
+        });
+      }
+    };
 
-  const addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
-  const filteredAddableTags = addableTags.filter((tag) =>
-    tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
-  );
+    void fetchData();
+  }, [notify]);
+
+  let addableTags: string[] = [];
+  let filteredAddableTags: string[] = [];
+
+  if (selectedRun.creation_date !== "Loading...") {
+    addableTags = existingTags.filter((tag) => !selectedRun.run_tags.includes(tag));
+    filteredAddableTags = addableTags.filter((tag) =>
+      tag.toLocaleLowerCase().includes(searchTermTags.toLocaleLowerCase()),
+    );
+  }
 
   const onHandleAddTag = useCallback(
     (tag: string) => {

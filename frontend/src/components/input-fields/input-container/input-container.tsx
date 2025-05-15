@@ -1,8 +1,9 @@
 import React, { useRef } from "react";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
 import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
+import { InfoIComponent } from "../../icon-i";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styledDiv.div`
@@ -80,10 +81,6 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
   padding-right: ${spacing("small")};
 `;
 
-const StyledInputLabel = styled(InputLabel)`
-  margin-bottom: 1px;
-`;
-
 const StyledSubtitle = styled(Text)`
   color: ${color("gray50")};
   font-size: ${fontSize("small")};
@@ -103,10 +100,18 @@ const FixedText = styled(StyledSubtitle)`
   margin-left: 8px;
 `;
 
+const LabelContainer = styled.div`
+  align-items: start;
+  display: flex;
+  gap: ${spacing("verySmall")};
+  width: 100%;
+`;
+
 export const InputContainer: React.FC<InputContainerProps> = ({
   children,
   label,
   labelPosition = "top",
+  info,
   optional = false,
   subscript,
   inlinePrefix,
@@ -116,6 +121,7 @@ export const InputContainer: React.FC<InputContainerProps> = ({
   smallBorder = false,
   ...props
 }) => {
+  const theme = useTheme();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleClick = () => {
     if (inputRef.current) {
@@ -137,21 +143,19 @@ export const InputContainer: React.FC<InputContainerProps> = ({
       {labelPosition === "top" ? (
         <GridItem row={1} col={2}>
           {label && (
-            <FlexContainer>
-              <StyledInputLabel className="label" text={label} />
-            </FlexContainer>
+            <LabelContainer>
+              <InputLabel className="label" text={label} />
+              {info && <InfoIComponent text={info} isSmall />}
+            </LabelContainer>
           )}
         </GridItem>
       ) : (
         <GridItem row={2} col={1}>
           {label && (
-            <FlexContainer>
-              <StyledInputLabel
-                className="label"
-                text={label + ":"}
-                style={{ paddingRight: `5px` }}
-              />
-            </FlexContainer>
+            <LabelContainer style={{ marginRight: theme.spacing.verySmall }}>
+              <InputLabel className="label" text={label + ":"} />
+              {info && <InfoIComponent text={info} isSmall />}
+            </LabelContainer>
           )}
         </GridItem>
       )}

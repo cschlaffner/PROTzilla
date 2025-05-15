@@ -6,13 +6,16 @@ import traceback
 
 import os
 import shutil
-import datetime
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 import backend.protzilla.constants.paths as paths
+from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.disk_operator import DiskOperator, YamlOperator
+from backend.protzilla.disk_operator import YamlOperator
 
 
 def get_available_run_names() -> list[str]:
@@ -25,63 +28,63 @@ def get_available_run_names() -> list[str]:
         if not directory.name.startswith(".")
     ]
 
-def get_available_runinfo() -> tuple[list[dict[str, str | list[str]]], list[dict[str, str | list[str]]], set[str]]:
+def get_available_run_info() -> str | tuple[
+    list[dict[str, bool | list[Any] | str]], list[dict[str, bool | list[Any] | str | Any]], list[Any]]:
+    """
+    Get all available runs and their metadata.
+    Each run is a dictionary with the following entries:
+        - run_name: the name of the run
+        - creation_date: the date of creation
+        - modification_date: the date of last modification
+        - memory_mode: the memory mode of the run (disk or memory)
+        - run_steps: a list of all steps in the run
+        - favourite_status: the favourite status of the run (True or False)
+        - run_tags: a list of all tags of the run
+
+    If an error occurs, a string is returned to be displayed in the frontend as an error message.
+
+    :return: a list of all runs, a list of favourited runs and a list of all tags.
+    """
     if not paths.RUNS_PATH.exists():
-        return []
+        return f"No runs have been found in {paths.RUNS_PATH}."
+
     runs = []
     runs_favourited = []
     all_tags = set()
-    for directory in paths.RUNS_PATH.iterdir():   #not sorted the same for different os?
-        if directory.name.startswith("."):
-            continue
-        name = directory.name
-        creation_time = directory.stat().st_ctime
-        modification_time = directory.stat().st_mtime
+    for run_name in get_available_run_names():
 
-        disk_operator = DiskOperator(name, "dummy_workflow_name")
-        directory_path = os.path.join(paths.RUNS_PATH, name)
-        run_yaml_path = os.path.join(directory_path, "run.yaml")
-        step_manager = disk_operator.read_run(run_yaml_path)
-        steps = step_manager.all_steps
-        step_names = []
-        for step in steps:
-            step_names.append(step.display_name)
+        run_dir = os.path.join(paths.RUNS_PATH, run_name)
+        metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
+        if not os.path.isfile(metadata_yaml_path):
+            Run(run_name) # initialize run to create metadata.yaml (creation date set to now)
+        yaml_operator = YamlOperator()
+        metadata = yaml_operator.read(Path(metadata_yaml_path))
+        if not metadata:
+            metadata = {}
+        tags = metadata.get("tags", set())
 
-        # empty initialization to ensure backwardscompatibility for runs without metadata.yaml
-        favourite = False
-        tags = set()
+        run_name = {
+            "run_name": run_name,
+            "creation_date": metadata.get("creation_date", "date not available"),
+            "modification_date": metadata.get("modification_date", "date not available"),
+            "memory_mode": metadata.get("df_mode", "disk"),
+            "run_steps": metadata.get("steps", []),
+            "favourite_status": metadata.get("favourite", False),
+            "run_tags": list(tags)
+        }
 
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
-        if os.path.isfile(metadata_yaml_path):
-            yaml_operator = YamlOperator()
-            metadata = yaml_operator.read(metadata_yaml_path)
-            if not metadata:
-                metadata = {}
-            tags = metadata.get("tags", set())
-            favourite = metadata.get("favourite", False)
-        
+        if run_name["favourite_status"]:
+            runs_favourited.append(run_name)
+        else:
+            runs.append(run_name)
+
         for tag in tags:
             all_tags.add(tag)
 
-        tags = list(tags) #sets are not json serializable
-        run = {
-            "run_name": name,
-            "creation_date": datetime.datetime.fromtimestamp(creation_time).strftime("%d %m %Y"), #TODO: reutrn the pure datetime, convert in html)
-            "modification_date": datetime.datetime.fromtimestamp(modification_time).strftime("%d %m %Y"),
-            "memory_mode": step_manager.df_mode,
-            "run_steps" : step_names,
-            "favourite_status" : favourite,
-            "run_tags": tags
-            }
-        
-        if favourite: 
-            runs_favourited.append(run)
-        else:
-            runs.append(run)
-
     all_tags = list(all_tags)
 
-    return (runs, runs_favourited, all_tags)
+    return runs, runs_favourited, all_tags
+
 
 def delete_run_folder(run_name) -> None:
     path = os.path.join(paths.RUNS_PATH, run_name)
@@ -142,18 +145,33 @@ class Run:
             thread.start()
             self.steps.df_mode = self.df_mode
             self.steps.disk_operator = self.disk_operator
+            self.metadata_write(self._metadata)
             return result
 
         return wrapper
 
+    _instances = {}
+
+    def __new__(cls, run_name, *args, **kwargs):
+        if run_name not in cls._instances:
+            instance = super().__new__(cls)
+            cls._instances[run_name] = instance
+            instance._initialized = False  # flag to control __init__
+
+        return cls._instances[run_name]
+
     def __init__(
         self, run_name: str, workflow_name: str | None = None, df_mode: str = "disk"
     ):
+        if getattr(self, '_initialized'):
+            return  # skip init if already initialized
+
         from backend.protzilla.disk_operator import DiskOperator  # to avoid a circular import
 
         self.run_name = run_name
         self.workflow_name = workflow_name
         self.disk_operator: DiskOperator = DiskOperator(run_name, workflow_name)
+        self._metadata = {}
 
         if run_name in get_available_run_names():
             self._run_read()
@@ -165,6 +183,8 @@ class Run:
                 f"No run named {run_name} has been found and no workflow has been provided. Please reference an existing run or provide a workflow to create a new one."
             )
 
+        self._initialized = True
+
     def __repr__(self):
         return f"Run({self.run_name}) with {len(self.steps.all_steps)} steps."
 
@@ -173,6 +193,7 @@ class Run:
         self.steps = self.disk_operator.read_run()
         self.steps.disk_operator = self.disk_operator
         self.df_mode = self.steps.df_mode
+        self._metadata = self.metadata_read()
 
     @error_handling
     def _run_write(self) -> None:
@@ -184,8 +205,38 @@ class Run:
 
     @error_handling
     @auto_save
+    def update_run_name(self, new_run_name: str) -> None:
+        if self.run_name != new_run_name:
+            self.disk_operator.update_run_name(new_run_name)
+            self.update_modification_date()
+            self.run_name = new_run_name
+
+    @error_handling
+    def metadata_read(self) -> dict:
+        return self.disk_operator.read_metadata()
+
+    @error_handling
+    def metadata_write(self, metadata: dict) -> None:
+        return self.disk_operator.write_metadata(metadata)
+
+    @error_handling
+    @auto_save
+    def update_metadata(self, metadata: dict) -> None:
+        """
+        Update the metadata field of the run. It will be written to the yaml with the next auto_save.
+        :param metadata: dict with metadata to update
+        :return:
+        """
+        self._metadata.update(metadata)
+
+    def update_modification_date(self) -> None:
+        self._metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
+
+    @error_handling
+    @auto_save
     def _workflow_read(self) -> None:
         self.steps = self.disk_operator.read_workflow()
+        self._metadata = self.metadata_read()
 
     @error_handling
     def _workflow_save(self, workflow_name: str | None = None) -> None:
@@ -212,6 +263,7 @@ class Run:
     @auto_save
     def step_calculate(self) -> None:
         self.steps.current_step.calculate(self.steps)
+        self.update_modification_date()
 
     @error_handling
     @auto_save
@@ -241,7 +293,6 @@ class Run:
     def step_change_method(self, new_method: str) -> None:
         self.steps.change_method(new_method)
 
-    
     @auto_save
     def step_upload_file(self, inputname: str, file) -> None:
         self.steps.current_step.upload_file(inputname, file)

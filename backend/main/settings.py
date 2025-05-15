@@ -14,6 +14,7 @@ import os
 import sys
 import corsheaders
 from pathlib import Path
+import tzlocal
 
 PROJECT_PATH = Path(__file__).resolve().parent.parent.parent # path to the root of the project
 sys.path.append(f"{PROJECT_PATH}")
@@ -158,7 +159,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+local_timezone = tzlocal.get_localzone()
+TIME_ZONE = str(local_timezone)
 
 USE_I18N = True
 
