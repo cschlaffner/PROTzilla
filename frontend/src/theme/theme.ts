@@ -117,6 +117,9 @@ export const baseTheme = {
     /** Big desktop. */
     xl: 1536,
   },
+  characterLimits: {
+    tag: 30,
+  },
   colors: defaultPalette,
   direction: "ltr",
   durations: {
