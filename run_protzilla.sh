@@ -9,22 +9,24 @@ if ! [[ "$OSTYPE" == "linux-gnu"* ]] && ! [[ "$OSTYPE" == "darwin"* ]]; then
   exit 1
 fi
 
+reload_option="restart your terminal manually"
+
 # Reload shell config based on OS and shell
 if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ "$SHELL" == */zsh ]]; then
-    shell_reload_text="Please run \"source ~/.zshrc\" and afterwards restart the script."
+    reload_option="run \"source ~/.zshrc\""
   elif [[ "$SHELL" == */bash ]]; then
-    shell_reload_text="Please run \"source ~/.bash_profile\" and afterwards restart the script."
+    reload_option="run \"source ~/.bash_profile\""
   fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [[ "$SHELL" == */zsh ]]; then
-    shell_reload_text="Please run \"source ~/.zshrc\" and afterwards restart the script."
+    reload_option="run \"source ~/.zshrc\""
   elif [[ "$SHELL" == */bash ]]; then
-    shell_reload_text="Please run \"source ~/.bashrc\" and afterwards restart the script."
-  else
-    shell_reload_text="Please restart your terminal manually and afterwards restart the script."
+    reload_option="run \"source ~/.bashrc\""
   fi
 fi
+
+shell_reload_text="Please ${reload_option} and afterwards restart the script."
 
 # Check for g++ - needed for python packages
 if ! g++ --version >/dev/null; then
