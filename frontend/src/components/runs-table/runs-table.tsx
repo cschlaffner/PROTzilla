@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { styled, useTheme } from "styled-components";
 
 import { useToggleableState } from "../../hooks";
-import { color, defaultPalette } from "../../theme";
+import { color, defaultPalette } from "@protzilla/theme";
 import { callApiWithParameters, Run } from "../../utils";
 import { formatDate } from "../../utils/format-date.ts";
 import { SecondaryButton } from "../button";

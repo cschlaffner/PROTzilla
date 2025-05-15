@@ -1,7 +1,7 @@
 import type React from "react";
 
 import type { ISwitchOption } from "./switch.props";
-import { Color } from "../../theme";
+import { Color } from "@protzilla/theme";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SwitchOptionProps<T = any>

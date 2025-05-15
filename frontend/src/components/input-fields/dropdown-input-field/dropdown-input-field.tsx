@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { border, borderColors, color, fontSize, size, spacing } from "../../../theme";
+import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import { InputContainer } from "../input-container";
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
 import { useOutsidePress } from "../../../hooks/outside-press";

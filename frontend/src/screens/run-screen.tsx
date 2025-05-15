@@ -3,7 +3,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { spacing } from "../theme";
+import { spacing } from "@protzilla/theme";
 import {
   FlexColumn,
   FlexRow,

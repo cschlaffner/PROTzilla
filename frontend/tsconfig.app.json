@@ -23,6 +23,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    "baseUrl": "./src",
+    "paths": {
+      "@protzilla/theme": ["theme"]
+    },
+
     "types": ["vitest/globals"]
   },
   "include": ["src", ".storybook/*.ts", ".storybook/*.tsx"]

@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { styled } from "styled-components";
 
 import { Screen, ScreenProps, SubScreen } from "../components/screen";
-import { color, spacing } from "../theme";
+import { color, spacing } from "@protzilla/theme";
 
 const StyledScreen = styled(Screen)`
   background: ${color("backgroundOffset")};

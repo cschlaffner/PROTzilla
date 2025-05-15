@@ -2,7 +2,7 @@ import { styled } from "styled-components";
 
 import { Icon } from "../icon";
 import { TagListProps } from "./taglist.props";
-import { color, fontSize, radius, spacing } from "../../theme";
+import { color, fontSize, radius, spacing } from "@protzilla/theme";
 
 const StyledList = styled.div`
   display: flex;

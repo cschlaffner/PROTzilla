@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 import { Tooltip } from "./tooltip";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipScheduling } from "./utils";
-import { color } from "../../theme";
+import { color } from "@protzilla/theme";
 
 export default {
   component: Tooltip,

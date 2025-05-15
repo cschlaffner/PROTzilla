@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
-import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "../../../theme";
+import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "@protzilla/theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { GrayButton } from "../../button";
 import { iconColor } from "../../icon/icon";

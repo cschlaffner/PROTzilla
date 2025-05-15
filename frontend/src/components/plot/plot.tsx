@@ -2,7 +2,7 @@ import Plot from "react-plotly.js";
 import { styled, useTheme } from "styled-components";
 
 import { PlotProps } from "./plot.props";
-import { border, borderColors } from "../../theme";
+import { border, borderColors } from "@protzilla/theme";
 
 const PlotDiv = styled.div<{ hasBorder: boolean }>`
   width: fit-content;

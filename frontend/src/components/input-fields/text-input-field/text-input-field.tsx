@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { color, fontSize, size, spacing } from "../../../theme";
+import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { InputContainer } from "../input-container";
 import { TextInputFieldProps } from "./text-input-field.props";
 

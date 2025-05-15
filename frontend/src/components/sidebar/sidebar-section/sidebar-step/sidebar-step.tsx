@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
-import { color } from "../../../../theme";
+import { color } from "@protzilla/theme";
 import { InvisibleButton } from "../../../button";
 import { DefaultColoredIconType } from "../../../icon";
 import { DefaultColoredIcon } from "../../../icon/icon";

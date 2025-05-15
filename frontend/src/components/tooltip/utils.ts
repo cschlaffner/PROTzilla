@@ -9,7 +9,7 @@ import {
   useModalRoot,
   useRelativePosition,
 } from "../../hooks";
-import { duration, useTheme } from "../../theme";
+import { duration, useTheme } from "@protzilla/theme";
 
 export type TooltipPosition = "left" | "right" | "bottom" | "bottomLeft" | "bottomRight" | "top";
 export type TooltipPositionConfig = RelativePositionConfig<TooltipPosition>;

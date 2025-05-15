@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { css, styled } from "styled-components";
 
 import { CollapsibleLabelProps, LinkProps, TextProps } from "./text.props";
-import { color, font, fontSize, fontWeight, mediaQuery } from "../../theme";
+import { color, font, fontSize, fontWeight, mediaQuery } from "@protzilla/theme";
 
 const StyledSpan = styled.span<Pick<TextProps, "isDisabled">>`
   color: ${(props) => color(props.isDisabled ? "textDisabled" : "text")};

@@ -1,6 +1,6 @@
 import { styled } from "styled-components";
 
-import { color, radius, zIndex } from "../../theme";
+import { color, radius, zIndex } from "@protzilla/theme";
 import { coverMixin } from "../mixins";
 import { BoxProps } from "./box.props";
 

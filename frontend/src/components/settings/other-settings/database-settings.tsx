@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { DeleteModal, Form, SecondaryButton, Text, useNotification } from "../../../components";
 import { useToggleableState } from "../../../hooks";
-import { spacing } from "../../../theme";
+import { spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters } from "../../../utils";
 import { formatDate } from "../../../utils/format-date.ts";
 import { SectionTitle } from "../../section-title";

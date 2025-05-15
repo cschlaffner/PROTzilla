@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 
 import { Tooltip } from "./tooltip";
-import { getTheme, ThemeProvider } from "../../theme";
+import { getTheme, ThemeProvider } from "@protzilla/theme";
 
 describe("Tooltip", () => {
   it("should render successfully", () => {

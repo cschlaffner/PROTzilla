@@ -8,7 +8,7 @@ import {
   IconProps,
 } from "./icon.props";
 import * as icons from "./icons";
-import { Color, color, opacity, size, Theme } from "../../theme";
+import { Color, color, opacity, size, Theme } from "@protzilla/theme";
 
 /** Icon color mixin. */
 // eslint-disable-next-line react-refresh/only-export-components

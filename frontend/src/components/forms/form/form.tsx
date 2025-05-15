@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
-import { color, fontSize, size, spacing } from "../../../theme";
+import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
 import { SingleCheckboxInputField } from "../../input-fields/checkbox-input-fields/single-checkbox";

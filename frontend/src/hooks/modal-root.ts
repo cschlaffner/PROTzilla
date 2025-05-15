@@ -1,6 +1,6 @@
 import { MutableRefObject, useEffect, useRef } from "react";
 
-import { useTheme } from "../theme";
+import { useTheme } from "@protzilla/theme";
 import { useForceUpdate } from "./force-update";
 
 /**

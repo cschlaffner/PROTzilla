@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
-import { color, spacing } from "../../../theme";
+import { color, spacing } from "@protzilla/theme";
 import { translateGlobalToSectionIndex } from "../../../utils/step_index_helper.ts";
 import { FlexRow } from "../../box";
 import { BackendForm } from "../../forms/backend-form/backend-form.tsx";

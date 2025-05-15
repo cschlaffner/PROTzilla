@@ -7,7 +7,7 @@ import { Icon, iconColor, IconType } from "../icon";
 import { Text } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
-import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "../../theme";
+import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
 import { FocusOutline } from "../box";
 
 const StyledButton = styled.button.withConfig({

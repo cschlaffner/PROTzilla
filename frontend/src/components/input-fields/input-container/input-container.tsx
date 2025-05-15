@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
+import { border, borderColors, color, fontSize, spacing, styledDiv } from "@protzilla/theme";
 import { InfoIComponent } from "../../icon-i";
 import { InputLabel, Text } from "../../text";
 

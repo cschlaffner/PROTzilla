@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { Color } from "../../theme";
+import { Color } from "@protzilla/theme";
 import { UIStateProps } from "../../utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

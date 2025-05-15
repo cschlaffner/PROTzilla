@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { SettingsProps } from "./settings.props.ts";
 import { DiscardModal, Modal, ToggleableButton } from "../../components";
-import { spacing } from "../../theme";
+import { spacing } from "@protzilla/theme";
 import { DatabaseSettings, GitHub } from "./other-settings/";
 import { PlotSettings } from "./plot-settings";
 import { useToggleableState } from "../../hooks/";

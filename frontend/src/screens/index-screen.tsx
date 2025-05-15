@@ -19,7 +19,7 @@ import {
 } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
-import { size, spacing, styledDiv } from "../theme";
+import { size, spacing, styledDiv } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
 const StyledNavbar = styled(Navbar)`

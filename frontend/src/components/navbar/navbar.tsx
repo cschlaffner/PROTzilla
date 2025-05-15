@@ -3,7 +3,7 @@ import { styled } from "styled-components";
 
 import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
-import { color, fontSize, fontWeight, spacing } from "../../theme";
+import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
 import { NavbarProps } from "./navbar.props.ts";

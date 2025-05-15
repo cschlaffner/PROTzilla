@@ -2,7 +2,7 @@ import axios, { isAxiosError } from "axios";
 import { action, observable } from "mobx";
 
 import { API_ROOT } from "../constants";
-import { type ColorMode, getTheme, Theme } from "../theme";
+import { type ColorMode, getTheme, Theme } from "@protzilla/theme";
 import { isPromise } from "../utils";
 import { defaultStorageClient } from "./sync-engine";
 import { RESTAdapter } from "./sync-engine/rest-adapter";

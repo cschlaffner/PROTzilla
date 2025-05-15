@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
 import { Section, Step } from "./types";
-import { spacing, styledDiv } from "../../theme";
+import { spacing, styledDiv } from "@protzilla/theme";
 import { Icon } from "../icon/icon";
 import { H3 } from "../text";
 import { SidebarProps } from "./sidebar.props";

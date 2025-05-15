@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 
 import { SectionProps } from "./section.props";
-import { spacing } from "../../theme";
+import { spacing } from "@protzilla/theme";
 import { SectionTitle } from "../section-title";
 
 const SectionContainer = styled.section`

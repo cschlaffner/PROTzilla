@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 
 import { Switch } from "./switch";
-import { getTheme, ThemeProvider } from "../../theme";
+import { getTheme, ThemeProvider } from "@protzilla/theme";
 
 describe("Switch", () => {
   it("should render successfully", () => {

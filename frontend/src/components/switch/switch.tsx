@@ -3,7 +3,7 @@ import { css, styled } from "styled-components";
 
 import { SwitchOption } from "./switch-option";
 import { SwitchProps } from "./switch.props";
-import { color, duration, opacity, radius } from "../../theme";
+import { color, duration, opacity, radius } from "@protzilla/theme";
 import { UIStateProps } from "../../utils";
 
 const SwitchContainer = styled.div`

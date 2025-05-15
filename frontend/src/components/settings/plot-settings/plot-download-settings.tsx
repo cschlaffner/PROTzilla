@@ -14,7 +14,7 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
-import { color, spacing, zIndex } from "../../../theme";
+import { color, spacing, zIndex } from "@protzilla/theme";
 
 const StyledModal = styled(Modal)`
   width: fit-content;

@@ -15,7 +15,7 @@ import {
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
 import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "../..";
-import { color, fontSize, fontWeight, spacing, zIndex } from "../../../theme";
+import { color, fontSize, fontWeight, spacing, zIndex } from "@protzilla/theme";
 
 const SettingsDiv = styled.div`
   display: flex;

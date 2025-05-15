@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { RunEditMenuProps } from "./run-edit-menu.props.ts";
-import { defaultPalette, size, spacing } from "../../theme";
+import { defaultPalette, size, spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Run } from "../../utils";
 import { formatDate } from "../../utils/format-date.ts";
 import { Form } from "../forms/form";
