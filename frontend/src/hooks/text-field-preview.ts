@@ -25,12 +25,7 @@ export const useTextFieldPreview = <T = string>({
   value,
   transformValue,
   onChangeValue,
-}: TextFieldPreviewConfig<T>): [
-  T,
-  (value: T) => void,
-  (value: T) => void,
-  () => void,
-] => {
+}: TextFieldPreviewConfig<T>): [T, (value: T) => void, (value: T) => void, () => void] => {
   const [preview, setPreview] = useState<T>();
 
   const handleChangeValue = useCallback((newValue: T) => {
@@ -39,9 +34,7 @@ export const useTextFieldPreview = <T = string>({
 
   const handleConfirmEdit = useCallback(
     (newValue: T) => {
-      const result = onChangeValue?.(
-        transformValue ? transformValue(newValue, value) : newValue,
-      );
+      const result = onChangeValue?.(transformValue ? transformValue(newValue, value) : newValue);
       if (isPromise(result)) {
         result
           .then(() => {
@@ -61,11 +54,7 @@ export const useTextFieldPreview = <T = string>({
   }, []);
 
   return [
-    preview === undefined
-      ? value
-      : transformValue
-        ? transformValue(preview, value)
-        : preview,
+    preview === undefined ? value : transformValue ? transformValue(preview, value) : preview,
     handleChangeValue,
     handleConfirmEdit,
     handleCancelEdit,

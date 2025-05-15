@@ -22,12 +22,7 @@ const Tag = styled.span`
   gap: ${spacing("verySmall")};
 `;
 
-export const TagList: React.FC<TagListProps> = ({
-  runName,
-  tags,
-  icon,
-  handleTag,
-}) => {
+export const TagList: React.FC<TagListProps> = ({ runName, tags, icon, handleTag }) => {
   return (
     <StyledList>
       {tags.map((tag, i) => (

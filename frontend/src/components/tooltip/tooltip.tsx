@@ -5,7 +5,7 @@ import { Text } from "../text";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipPosition } from "./utils";
 import { useModalRoot } from "../../hooks";
-import { color, fontWeight, shadow, zIndex } from "../../theme";
+import { color, fontSize, fontWeight, shadow, size, zIndex } from "../../theme";
 
 const TooltipContainer = styled.div<Pick<TooltipProps, "baseZIndex">>`
   align-items: center;
@@ -15,19 +15,17 @@ const TooltipContainer = styled.div<Pick<TooltipProps, "baseZIndex">>`
   box-shadow: ${shadow("tooltip")};
   box-sizing: border-box;
   display: flex;
-  height: 20px;
   padding: 0 14px;
-  z-index: ${(props) =>
-    (props.baseZIndex ?? (zIndex("tooltip")(props) as number)) + 1};
+  z-index: ${(props) => (props.baseZIndex ?? (zIndex("tooltip")(props) as number)) + 1};
 `;
 
 const TooltipLabel = styled(Text)`
   color: ${color("primary")};
   font-weight: ${fontWeight("bold")};
-  font-size: 9px;
-  line-height: 9px;
+  font-size: ${fontSize("small")};
   user-select: none;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: ${size("tooltipMaxWidth")};
 `;
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -56,16 +54,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const node =
     isShown === false ? null : (
       <TooltipContainer {...rest} style={tooltipStyle}>
-        <TooltipLabel
-          text={text}
-          tx={tx}
-          txComponents={txComponents}
-          txData={txData}
-        />
+        <TooltipLabel text={text} tx={tx} txComponents={txComponents} txData={txData} />
       </TooltipContainer>
     );
 
-  return modalRootRef.current
-    ? ReactDOM.createPortal(node, document.body)
-    : node;
+  return modalRootRef.current ? ReactDOM.createPortal(node, document.body) : node;
 };

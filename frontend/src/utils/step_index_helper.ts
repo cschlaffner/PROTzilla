@@ -1,8 +1,4 @@
-import {
-  Section,
-  Sections,
-  SelectedStep,
-} from "../components/sidebar/types.ts";
+import { Section, Sections, SelectedStep } from "../components/sidebar/types.ts";
 
 export const translateGlobalToSectionIndex = (
   globalIndex: number,

@@ -21,10 +21,8 @@ export const emptyRunData: RunData = {
   current_section: "",
   current_step_index: 0,
   displayed_steps: emptySections,
-  memory_usage: ""
-}
-  
-
+  memory_usage: "",
+};
 
 export interface RequestData {
   index: number;

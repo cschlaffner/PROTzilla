@@ -106,7 +106,7 @@ def test_runner_imports(
         {'deviation_threshold': 2.0, 'graph_type': 'Pie chart'},
         {'number_of_neighbours': 5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'},
         {'number_of_neighbors': 20},
-        {'log_base': 'log2', 'graph_type': 'Pie chart', 'group_by': 'None'},
+        {'log_base': 'log2', 'graph_type': 'Boxplot', 'group_by': 'None'},
         {'percentile': 0.5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10'},
         {'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1},
         {'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None},

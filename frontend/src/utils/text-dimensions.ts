@@ -1,7 +1,4 @@
-export const getRenderedTextDimensions = (
-  text: string,
-  style?: Partial<CSSStyleDeclaration>,
-) => {
+export const getRenderedTextDimensions = (text: string, style?: Partial<CSSStyleDeclaration>) => {
   const element = document.createElement("span");
   const textNode = document.createTextNode(text);
   element.appendChild(textNode);

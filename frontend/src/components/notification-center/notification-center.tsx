@@ -20,28 +20,23 @@ const NotificationStack = styled.div`
   width: 25vw;
 `;
 
-export const NotificationCenter: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const NotificationCenter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  const notify = useCallback(
-    (notification: Omit<ScreenNotificationProps, "isShown">) => {
-      const id = uuidv4();
-      const newNotification: NotificationItem = {
-        ...notification,
-        id,
-        isShown: true,
-        onClose: () => {
-          setNotifications((prev) => prev.filter((n) => n.id !== id));
-          notification.onClose?.();
-        },
-      };
+  const notify = useCallback((notification: Omit<ScreenNotificationProps, "isShown">) => {
+    const id = uuidv4();
+    const newNotification: NotificationItem = {
+      ...notification,
+      id,
+      isShown: true,
+      onClose: () => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        notification.onClose?.();
+      },
+    };
 
-      setNotifications((prev) => [...prev, newNotification]);
-    },
-    [],
-  );
+    setNotifications((prev) => [...prev, newNotification]);
+  }, []);
 
   return (
     <NotificationContext.Provider value={notify}>

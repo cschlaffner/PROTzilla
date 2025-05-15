@@ -1,15 +1,9 @@
 import React, { useRef } from "react";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import {
-  border,
-  borderColors,
-  color,
-  fontSize,
-  spacing,
-  styledDiv,
-} from "../../../theme";
+import { border, borderColors, color, fontSize, spacing, styledDiv } from "../../../theme";
+import { InfoIComponent } from "../../icon-i";
 import { InputLabel, Text } from "../../text";
 
 const GridContainer = styledDiv.div`
@@ -37,9 +31,8 @@ const StyledInputFrame = styled.div.withConfig({
 })<{ smallBorder: boolean }>`
   box-sizing: border-box;
   background-color: ${color("transparent")};
-  border: ${({ smallBorder }) =>
-      border(smallBorder ? "smallStrength" : "defaultStrength")}
-    solid ${borderColors("default")};
+  border: ${({ smallBorder }) => border(smallBorder ? "smallStrength" : "defaultStrength")} solid
+    ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
   gap: ${spacing("verySmall")};
@@ -57,14 +50,13 @@ const StyledSeparateAffix = styledDiv.div`
 
 const StyledSeparatePrefix = styled(StyledSeparateAffix)`
   border-right: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")})
-    0 0 calc(${border("defaultRadius")} - ${border("defaultStrength")});
+  border-radius: calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0 0
+    calc(${border("defaultRadius")} - ${border("defaultStrength")});
 `;
 
 const StyledSeparateSuffix = styled(StyledSeparateAffix)`
   border-left: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: 0
-    calc(${border("defaultRadius")} - ${border("defaultStrength")})
+  border-radius: 0 calc(${border("defaultRadius")} - ${border("defaultStrength")})
     calc(${border("defaultRadius")} - ${border("defaultStrength")}) 0;
 `;
 
@@ -89,10 +81,6 @@ const StyledInlineSuffix = styled(StyledInlineAffix)`
   padding-right: ${spacing("small")};
 `;
 
-const StyledInputLabel = styled(InputLabel)`
-  margin-bottom: 1px;
-`;
-
 const StyledSubtitle = styled(Text)`
   color: ${color("gray50")};
   font-size: ${fontSize("small")};
@@ -112,10 +100,18 @@ const FixedText = styled(StyledSubtitle)`
   margin-left: 8px;
 `;
 
+const LabelContainer = styled.div`
+  align-items: start;
+  display: flex;
+  gap: ${spacing("verySmall")};
+  width: 100%;
+`;
+
 export const InputContainer: React.FC<InputContainerProps> = ({
   children,
   label,
   labelPosition = "top",
+  info,
   optional = false,
   subscript,
   inlinePrefix,
@@ -125,6 +121,7 @@ export const InputContainer: React.FC<InputContainerProps> = ({
   smallBorder = false,
   ...props
 }) => {
+  const theme = useTheme();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleClick = () => {
     if (inputRef.current) {
@@ -146,21 +143,19 @@ export const InputContainer: React.FC<InputContainerProps> = ({
       {labelPosition === "top" ? (
         <GridItem row={1} col={2}>
           {label && (
-            <FlexContainer>
-              <StyledInputLabel className="label" text={label} />
-            </FlexContainer>
+            <LabelContainer>
+              <InputLabel className="label" text={label} />
+              {info && <InfoIComponent text={info} isSmall />}
+            </LabelContainer>
           )}
         </GridItem>
       ) : (
         <GridItem row={2} col={1}>
           {label && (
-            <FlexContainer>
-              <StyledInputLabel
-                className="label"
-                text={label + ":"}
-                style={{ paddingRight: `5px` }}
-              />
-            </FlexContainer>
+            <LabelContainer style={{ marginRight: theme.spacing.verySmall }}>
+              <InputLabel className="label" text={label + ":"} />
+              {info && <InfoIComponent text={info} isSmall />}
+            </LabelContainer>
           )}
         </GridItem>
       )}
@@ -173,15 +168,11 @@ export const InputContainer: React.FC<InputContainerProps> = ({
           )}
           <StyledInputContainer onClick={handleClick}>
             {inlinePrefix && (
-              <StyledInlinePrefix className="inline-prefix">
-                {inlinePrefix}
-              </StyledInlinePrefix>
+              <StyledInlinePrefix className="inline-prefix">{inlinePrefix}</StyledInlinePrefix>
             )}
             {styledChildren}
             {inlineSuffix && (
-              <StyledInlineSuffix className="inline-suffix">
-                {inlineSuffix}
-              </StyledInlineSuffix>
+              <StyledInlineSuffix className="inline-suffix">{inlineSuffix}</StyledInlineSuffix>
             )}
           </StyledInputContainer>
           {separateSuffix && (

@@ -14,8 +14,7 @@ const StyledDiv = styled.div<{ $isSmall: boolean }>`
   display: flex;
   align-items: center;
   padding: 0px ${spacing("small")};
-  height: ${({ $isSmall }) =>
-    size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
+  height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
 `;
 
 const FrameTemplate: StoryFn<InputContainerProps> = (args) => (
@@ -61,6 +60,7 @@ withoutLabel.args = {};
 export const allAffix = FrameTemplate.bind({});
 allAffix.args = {
   label: "Your Input Frame",
+  info: "Useful information regarding this input",
   inlinePrefix: "€",
   inlineSuffix: "€",
   separatePrefix: "%",

@@ -6,9 +6,7 @@ export default {
   title: "Section",
 };
 
-export const primary = (args: SectionProps): React.ReactNode => (
-  <Section {...args} />
-);
+export const primary = (args: SectionProps): React.ReactNode => <Section {...args} />;
 primary.args = {
   title: "Title",
   description: "Description",

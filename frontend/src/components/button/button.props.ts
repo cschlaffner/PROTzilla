@@ -62,9 +62,7 @@ export interface ButtonProps
    * device or activated using the keyboard.
    */
   onPress?: (
-    event:
-      | React.PointerEvent<HTMLButtonElement>
-      | React.KeyboardEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
   ) => void;
 }
 

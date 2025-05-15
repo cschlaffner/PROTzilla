@@ -15,11 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
-from django.views.generic import RedirectView, TemplateView
-from django.urls import path, include
-from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 
-from . import views
+from . import views, views_settings
 from . import views_with_api
 
 urlpatterns = [
@@ -35,27 +33,27 @@ urlpatterns = [
     path("api/add_run/", views_with_api.add_run, name="add_run"),
     path("api/delete_run/", views_with_api.delete_run, name="delete_run"),
     path("api/continue_run/", views_with_api.continue_run, name="continue_run"),
+    path("api/update_run_name/", views_with_api.update_run_name, name="update_run_name"),
     path("api/add_plot/", views_with_api.add_plot, name="add_plot"),
     path("api/add_step/", views_with_api.add_step, name="add_step"),
     path("api/delete_step/", views_with_api.delete_step, name="delete_step"),
     path("api/update_step/", views_with_api.update_step, name="update_step"),
     path("api/navigate_to_step/", views_with_api.navigate_to_step, name="navigate_to_step"),
     path("api/export_workflow/", views_with_api.export_workflow, name="export_workflow"),
-    path("api/download_plots/", views_with_api.download_plots, name="download_plots"), #might function?
     path("api/download_table/", views_with_api.download_table, name="download_table"), #might function?
     path("api/get_step_form/", views_with_api.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
-    path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
     path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
+    path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
 
-    path("api/settings/", include("settings.urls")),
-
-    #old routes, not yet implemented as api endpints, see notion card
-    path("databases", views.databases, name="databases"),
-    path("databases/upload", views.database_upload, name="database_upload"),
-    path("databases/delete", views.database_delete, name="database_delete"),
+    path("api/load_settings", views_settings.load_settings, name="load_settings"),
+    path("api/save_settings", views_settings.save_settings, name="save_settings"),
+    path("api/download_plot", views_settings.download_plot, name="download_plot"),
+    path("api/get_databases", views_settings.get_databases, name="get_databases"),
+    path("api/upload_database", views_settings.database_upload, name="database_upload"),
+    path("api/delete_database", views_settings.database_delete, name="database_delete"),
 
     # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
     re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),

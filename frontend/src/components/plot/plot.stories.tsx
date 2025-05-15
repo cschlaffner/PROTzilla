@@ -8,9 +8,7 @@ export default {
   title: "Plot",
 };
 
-export const primary = (args: PlotProps): React.ReactNode => (
-  <PlotComponent {...args} />
-);
+export const primary = (args: PlotProps): React.ReactNode => <PlotComponent {...args} />;
 primary.args = {
   data: [
     {

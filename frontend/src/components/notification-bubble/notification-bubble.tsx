@@ -32,10 +32,7 @@ export const NotificationBubble: React.FC<NotificationBubbleProps> = ({
   notifications ? (
     <Bubble {...rest}>
       {typeof notifications === "number" && (
-        <NotificationText
-          className="notification-text"
-          text={Math.min(notifications, 9)}
-        />
+        <NotificationText className="notification-text" text={Math.min(notifications, 9)} />
       )}
     </Bubble>
   ) : null;

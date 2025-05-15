@@ -7,10 +7,7 @@ import { useCallback, useEffect, useRef } from "react";
  * @param callback The callback.
  * @param delay The duration of the delay in milliseconds.
  */
-export const useDelay = (
-  callback: () => void,
-  delay: number,
-): [() => void, () => void] => {
+export const useDelay = (callback: () => void, delay: number): [() => void, () => void] => {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const cancel = useCallback(() => {

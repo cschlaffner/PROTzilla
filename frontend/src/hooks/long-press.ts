@@ -4,10 +4,7 @@ export const useLongPress = <T extends Element>(
   handleLongPress: (event: React.PointerEvent<T>) => void,
   minDuration = 500,
   canActivate = true,
-): [
-  (event: React.PointerEvent<T>) => void,
-  (event: React.PointerEvent<T>) => void,
-] => {
+): [(event: React.PointerEvent<T>) => void, (event: React.PointerEvent<T>) => void] => {
   const timerRefs = useRef<Record<number, number | undefined>>({});
 
   const startPress = useCallback(
