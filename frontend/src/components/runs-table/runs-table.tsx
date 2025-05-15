@@ -247,7 +247,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
             
             
               <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
-              <TableCol width={theme.sizes.mediumCellWidth}>
+              <TableCol width={theme.sizes.smallCellWidth}>
               {formatDate(run.modification_date)}
               </TableCol>
               <TableCol style={{ minWidth: theme.sizes.mediumCellWidth }}>
