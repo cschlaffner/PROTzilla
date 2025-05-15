@@ -231,14 +231,14 @@ def navigate_to_step(request):
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
 
-def export_workflow(request):
+def save_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        workflow_name = data.get("workflow_name")
+        workflow_name = data.get("workflow_name") #could this be optional and just take the run_name as default?
 
         run = Run(run_name)
-        run._workflow_export(workflow_name)
+        run._workflow_save(workflow_name)
 
         return JsonResponse({"success": True, "message": "Exported workflow"})
     else:
