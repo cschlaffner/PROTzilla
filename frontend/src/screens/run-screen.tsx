@@ -10,13 +10,13 @@ import {
   ListEditor,
   Navbar,
   PlotComponent,
+  SectionTitle,
   SwitchCard,
 } from "./../components";
 import {
   dummyTextComponent1,
   footerMessages,
-  mockPlotData,
-  mockPlotLayout,
+  mockPlots,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
@@ -53,6 +53,7 @@ const StyledPlotContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
 `;
 
 const StyledTableContainer = styled.div`
@@ -77,8 +78,7 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [plotData, setPlotData] = useState(mockPlotData);
-  const [plotLayout, setPlotLayout] = useState(mockPlotLayout);
+  const [plots, setPlots] = useState(mockPlots);
   const [tableData, setTableData] = useState(mockTableData);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
@@ -111,16 +111,14 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const data = response.data;
 
-      let rawData = [];
-      let rawLayout = [];
+      const rawPlots = [];
       if (data.length > 0) {
-        const paredData = JSON.parse(data[0]);
-        rawData = paredData.data;
-        rawLayout = paredData.layout;
+        for (const plot of data){
+          rawPlots.push(JSON.parse(plot));
+        }
       }
 
-      setPlotData(rawData);
-      setPlotLayout(rawLayout);
+      setPlots(rawPlots);
     }
   }, [runName]);
 
@@ -150,7 +148,13 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      <PlotComponent data={plotData} layout={plotLayout} hasResizing={true} />
+      {plots.length > 0 ? (
+        plots.map((plot, index) => (
+          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true}/>
+      )))
+      : (
+        <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
+      )}
     </StyledPlotContainer>
   );
 

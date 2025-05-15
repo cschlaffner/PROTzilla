@@ -5,12 +5,14 @@ import { styled, useTheme } from "styled-components";
 import { useToggleableState } from "../../hooks";
 import { color, defaultPalette } from "../../theme";
 import { callApiWithParameters, Run } from "../../utils";
+import { formatDate } from "../../utils/format-date.ts";
 import { SecondaryButton } from "../button";
 import { Icon } from "../icon";
 import { DeleteModal } from "../modal";
 import { RunsTableProps } from "./runs-table.props";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 import { TagList } from "../taglist";
+import { Tooltip, useTooltipScheduling } from "../tooltip";
 
 const TableContainer = styled.div`
   display: flex;
@@ -74,6 +76,10 @@ const TableHeader = styled(TableRow)`
   padding-bottom: 4px;
 `;
 
+const InfoIcon = styled(Icon)`
+  padding-left: 10px;
+`;
+
 const StyledList = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -89,6 +95,10 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
+
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true);
+  const [, setParentRef] = useState<HTMLDivElement | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRunEditModalOpen, openRunEditModal, closeRunEditModal] = useToggleableState(false);
@@ -149,7 +159,9 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 
   const handleRenameRun = (newName: string) => {
     const updated = runs.map((run) =>
-      run.run_name === actionRunName ? { ...run, run_name: newName } : run,
+      run.run_name === actionRunName
+        ? { ...run, run_name: newName, modification_date: new Date().toLocaleString("en-US") }
+        : run,
     );
     setRuns(updated);
   };
@@ -174,7 +186,22 @@ export const RunsTable: React.FC<RunsTableProps> = ({
       <TableHeader>
         <TableCol width={theme.sizes.verySmallCellWidth}>Fav.</TableCol>
         <TableCol width={theme.sizes.largeCellWidth}>Run Name</TableCol>
-        <TableCol width={theme.sizes.smallCellWidth}>Last edited</TableCol>
+        <TableCol
+          width={theme.sizes.smallCellWidth}
+          ref={setParentRef}
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
+        >
+          Last edited
+          <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+          <Tooltip
+            text={"Refers to the last time a step in the run was calculated"}
+            isShown={showTooltip}
+            anchor={mouseAnchor}
+            distance={5}
+            position={"bottomRight"}
+          />
+        </TableCol>
         <TableCol style={{ minWidth: theme.sizes.mediumCellWidth }}>Tags</TableCol>
         <TableCol width={theme.sizes.largeCellWidth}>Actions</TableCol>
       </TableHeader>
@@ -215,10 +242,14 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                     height: "15px",
                     fill: run.favourite_status ? defaultPalette.primary : "none",
                   }}
-                />
-              </TableCol>
+              />
+            </TableCol>
+            
+            
               <TableCol width={theme.sizes.largeCellWidth}>{run.run_name}</TableCol>
-              <TableCol width={theme.sizes.smallCellWidth}>{run.modification_date}</TableCol>
+              <TableCol width={theme.sizes.mediumCellWidth}>
+              {formatDate(run.modification_date)}
+              </TableCol>
               <TableCol style={{ minWidth: theme.sizes.mediumCellWidth }}>
                 <StyledList>
                   <TagList

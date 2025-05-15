@@ -1,23 +1,15 @@
-from dataclasses import asdict
 import json
-import math
-import os
 import io
 import traceback
-import zipfile
 
 import numpy as np
 from plotly.io import to_json
-from pathlib import Path
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
 
-from backend.main.upload_handler import CustomFileUploadHandler
-import backend.protzilla.constants.paths as paths
-from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.form import Form
-from backend.protzilla.run import Run, delete_run_folder, get_available_runinfo
+from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
@@ -28,18 +20,17 @@ from backend.main.views_with_api_helper import get_step, get_displayed_steps, pa
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
-active_runs: dict[str, Run] = {}
-
 def run_information_list(request):
-    run_info = get_available_runinfo()
-    if not run_info:
-
-        return JsonResponse(None, safe=False) #not clean, maybe use error message or smth
+    run_info = get_available_run_info()
+    if type(run_info) == str:
+        return JsonResponse({"success": False, "message": run_info}, safe=False)
+    if not run_info or len(run_info) == 0:
+        return JsonResponse({"success": False, "message": "An unknown error occurred when creating run table."},safe=False)
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
-    available_runinfo = [all_available_runs, all_tags]
+    available_run_info = [all_available_runs, all_tags]
 
-    return JsonResponse(available_runinfo, safe=False)
+    return JsonResponse({"success": True, "data": available_run_info}, safe=False)
 
 def all_steps(request):
     steps = get_all_possible_steps()
@@ -54,20 +45,11 @@ def toggle_favourite(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-    
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
 
-        yaml_operator = YamlOperator()
-        metadata = {}
-        if not os.path.exists(metadata_yaml_path):
-           with open(metadata_yaml_path, 'w') as file:
-               pass
-        else:
-            metadata = yaml_operator.read(metadata_yaml_path)
-
-        metadata["favourite"]= not metadata.get("favourite", False)
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        metadata["favourite"] = not metadata.get("favourite", False)
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
@@ -79,23 +61,12 @@ def add_tag(request):
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
 
-        tags = set()
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
-
-        yaml_operator = YamlOperator()
-        metadata = {}
-        if not os.path.exists(metadata_yaml_path):
-            with open(metadata_yaml_path, 'w') as file:
-                pass
-        else:
-            metadata = yaml_operator.read(metadata_yaml_path)
-            tags_from_metadata = metadata.get("tags")
-            if tags_from_metadata:
-                tags.update(tags_from_metadata)
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        tags = metadata.get("tags", set())
         tags.add(run_tag)
-        metadata["tags"]= tags
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        metadata["tags"] = tags
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Added tag"})
     else:
@@ -106,16 +77,13 @@ def delete_tag(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         run_tag = data.get("tag_name")
-    
-        directory_path = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(directory_path, "metadata.yaml")
 
-        yaml_operator = YamlOperator()
-        metadata = yaml_operator.read(metadata_yaml_path)
-        tags = metadata.get("tags")
+        run = Run(run_name)
+        metadata = run.metadata_read()
+        tags = metadata.get("tags", set())
         tags.remove(run_tag)
         metadata["tags"] = tags
-        yaml_operator.write(Path(metadata_yaml_path), metadata)
+        run.update_metadata(metadata)
 
         return JsonResponse({"success": True, "message": "Deleted tag"})
     else:
@@ -129,10 +97,9 @@ def add_run(request):
         df_mode_name = data.get("df_mode_name")
 
         try:
-            run = Run(run_name, workflow_name, df_mode_name,)
-            active_runs[run_name] = run
+            Run(run_name, workflow_name, df_mode_name,)
 
-            return JsonResponse({"success": True, "message": "Created run"})
+            return JsonResponse({"success": True, "message": f"Created run {run_name}."})
         except Exception as e:
             traceback.print_exc() #not sure if it still needs to be here 
             return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
@@ -145,8 +112,6 @@ def delete_run(request):
         run_name = data.get("run_name")
 
         try:
-            if run_name in active_runs:
-               del active_runs[run_name]
             delete_run_folder(run_name)
 
             return JsonResponse({"success": True, "message": "Deleted run"})
@@ -161,7 +126,7 @@ def continue_run(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        active_runs[run_name] = Run(run_name)
+        Run(run_name)
         
 
         return JsonResponse({"success": True, "message": "Continued run"})
@@ -175,12 +140,11 @@ def update_run_name(request):
         new_run_name = data.get("new_run_name")
 
         try:
-            directory_path = os.path.join(paths.RUNS_PATH, run_name)
-            new_directory_path = os.path.join(paths.RUNS_PATH, new_run_name)
-            os.rename(directory_path, new_directory_path)
-            active_runs[new_run_name] = Run(new_run_name)
-            if run_name in active_runs:
-                del active_runs[run_name]
+            if new_run_name in get_available_run_names():
+                return JsonResponse({"success": False, "message": "Run name already exists."})
+
+            run = Run(run_name)
+            run.update_run_name(new_run_name)
 
             return JsonResponse({"success": True, "message": "Renamed run"})
         except Exception as e:
@@ -196,7 +160,7 @@ def add_plot(request):
         run_name = data.get("run_name")
 
         parameters = parameters_from_post(request.POST)
-        run = active_runs[run_name]
+        run = Run(run_name)
         if run.current_step.display_name == "plot":
             del parameters["chosen_method"]
             run.current_form(parameters)
@@ -214,7 +178,7 @@ def add_step(request):
         run_name = data.get("run_name")
         method = data.get("method")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
@@ -230,7 +194,7 @@ def delete_step(request):
         index = data.get("index")
 
         index = int(index)
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})
@@ -243,7 +207,7 @@ def update_step(request):
         run_name = data.get("run_name")
         method = data.get("method")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         run.step_change_method(method)
 
@@ -259,7 +223,7 @@ def navigate_to_step(request):
         index = data.get("index")
 
         index = int(index) 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.step_goto(index, section)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
@@ -273,7 +237,7 @@ def export_workflow(request):
         run_name = data.get("run_name")
         workflow_name = data.get("workflow_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run._workflow_export(workflow_name)
 
         return JsonResponse({"success": True, "message": "Exported workflow"})
@@ -287,7 +251,7 @@ def download_table(request):
         index = data.get("index")
         key = data.get("key")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         instance_id = run.steps.all_steps[index].instance_identifier
         buffer = io.StringIO()
@@ -308,7 +272,7 @@ def get_run_data(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run_data = {}
 
         if run.current_step is not None:
@@ -331,11 +295,8 @@ def get_step_form(request):
         data:dict = json.loads(request.body)
         run_name = data.get("run_name")
         new_form_values = data.get("data")
-        
-        if (run_name not in active_runs):
-            return JsonResponse({"success": False, "message": "Run not in active runs"})
 
-        run = active_runs[run_name]
+        run = Run(run_name)
 
         if new_form_values!={}:
             run.steps.set_steps_outdated()
@@ -351,7 +312,7 @@ def get_step_plots(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         if run.current_step is not None:
             plots = [to_json(plot) for plot in run.current_plots.plots]
         else:
@@ -366,14 +327,14 @@ def get_step_table(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         
         if run.current_step is not None:
             if "protein_df" in run.current_outputs:
                 data = run.current_outputs["protein_df"]
                 data["id"] = data.index
                 cleaned_data = data.replace(np.nan, None)
-                json_data = cleaned_data.to_dict(orient="records")
+                json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
             else:
                 json_data = [{}]
 
@@ -387,7 +348,7 @@ def calculate_step(request):
         run_name = data.get("run_name")
         user_input = data.get("data")
 
-        run = active_runs[run_name]
+        run = Run(run_name)
         run.current_form(user_input)
         run.step_calculate()
 
