@@ -1,9 +1,9 @@
+import { Card, CircularButton, Icon, SectionTitle } from "@protzilla/core";
 import { color, zIndex } from "@protzilla/theme";
 import React from "react";
 import { styled } from "styled-components";
 
 import { ModalProps } from "./modal.props";
-import { CircularButton, Card, Icon, SectionTitle } from "@protzilla/core";
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
   position: fixed;

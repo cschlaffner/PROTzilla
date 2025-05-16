@@ -1,11 +1,11 @@
+import { useNotification } from "@protzilla/app";
+import { DeleteModal, Form, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, formatDate } from "@protzilla/utils";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { DeleteModal, Form, SecondaryButton, Text, SectionTitle } from "@protzilla/core";
-import { useNotification } from "@protzilla/app";
 
 const DatabasesTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};

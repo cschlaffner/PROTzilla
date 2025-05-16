@@ -1,8 +1,8 @@
+import { GrayButton, InputContainer } from "@protzilla/core";
 import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer, GrayButton } from "@protzilla/core";
 import { NumberInputFieldProps } from "./number-input-field.props";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`

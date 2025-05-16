@@ -1,9 +1,9 @@
+import { NotificationCenter, Settings, SettingsProps } from "@protzilla/app";
+import { Button } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
 import { Meta } from "@storybook/react";
 import { useState } from "react";
 
-import { Button } from "@protzilla/core";
-import { SettingsProps, Settings, NotificationCenter } from "@protzilla/app";
 
 export default {
   component: Settings,

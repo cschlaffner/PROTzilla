@@ -1,12 +1,12 @@
 import { 
   CheckboxSelectInputFieldProps, 
-  SingleCheckboxInputFieldProps, 
   DropdownInputFieldProps, 
-  FileInputFieldProps,
+  FileInputFieldProps, 
   MultiSelectInputFieldProps,
   NumberInputFieldProps,
   RadioSelectInputFieldProps,
   SearchInputFieldProps,
+  SingleCheckboxInputFieldProps,
   TextInputFieldProps 
 } from "@protzilla/core";
 

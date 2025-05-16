@@ -1,12 +1,13 @@
+import { useNotification } from "@protzilla/app";
+import { InputContainer, SecondaryButton } from "@protzilla/core";
 import { useFilePicker } from "@protzilla/hooks";
 import { size, spacing } from "@protzilla/theme";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer, SecondaryButton } from "@protzilla/core";
 import { FileInputFieldProps } from "./file-input-field.props";
-import { useNotification } from "@protzilla/app";
+
 
 const StyledDiv = styled.div`
   display: flex;

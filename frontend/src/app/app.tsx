@@ -1,12 +1,13 @@
+import { IndexScreen, MainScreen, NotificationCenter, RunScreen } from "@protzilla/app";
+import { ModalRoot } from "@protzilla/core"
 import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { NotificationCenter, IndexScreen, MainScreen, RunScreen } from "@protzilla/app";
-import { ModalRoot } from "@protzilla/core"
+
 import { RootStore } from "../models";
-import { setupRootStore, StoreProvider } from "./store";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
+import { setupRootStore, StoreProvider } from "./store";
 
 function App() {
   const [isReady, setIsReady] = useState(false);

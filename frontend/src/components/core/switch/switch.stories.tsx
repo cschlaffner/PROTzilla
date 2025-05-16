@@ -1,9 +1,9 @@
+import { useNotification } from "@protzilla/app";
 import React, { useState } from "react";
 import { useTheme } from "styled-components";
 
 import { Switch } from "./switch";
 import { SwitchProps } from "./switch.props";
-import { useNotification } from "@protzilla/app";
 
 export default {
   component: Switch,

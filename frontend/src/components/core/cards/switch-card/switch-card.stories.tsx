@@ -1,6 +1,6 @@
+import { PlotComponent, SwitchCard, SwitchCardProps } from "@protzilla/core";
 import { Meta, StoryFn } from "@storybook/react";
 
-import { PlotComponent, SwitchCardProps, SwitchCard } from "@protzilla/core";
 
 export default {
   component: SwitchCard,

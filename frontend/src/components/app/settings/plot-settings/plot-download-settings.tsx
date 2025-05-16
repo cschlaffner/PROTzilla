@@ -1,10 +1,10 @@
+import { Button, Modal, PlotComponent, SecondaryButton, SectionTitle, TextInputField,  } from "@protzilla/core";
 import { color, spacing, zIndex } from "@protzilla/theme";
 import { Data, Figure, Layout } from "plotly.js";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
-import { Button, Modal, PlotComponent, SecondaryButton, SectionTitle, TextInputField,  } from "@protzilla/core";
 import {
   CustomFontField,
   FileFormatField,

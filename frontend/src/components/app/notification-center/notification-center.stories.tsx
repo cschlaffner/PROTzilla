@@ -1,9 +1,9 @@
+import { SecondaryButton } from "@protzilla/core";
 import { Meta, StoryFn } from "@storybook/react";
 import { useTheme } from "styled-components";
 
 import { NotificationCenter } from "./notification-center";
 import { useNotification } from "./use-notification";
-import { SecondaryButton } from "@protzilla/core";
 
 export default {
   title: "Notification Center",

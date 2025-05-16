@@ -1,22 +1,22 @@
+import { 
+  Button,
+  CheckboxSelectInputField,
+  DropdownInputField,
+  FileInputField,
+  H3,
+  MultiSelectInputField,
+  NumberInputField,
+  RadioSelectInputField,
+  SearchInputField,
+  SingleCheckboxInputField,
+  TextInputField
+} from "@protzilla/core";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 
-import { 
-  Button,
-  CheckboxSelectInputField,
-  SingleCheckboxInputField,
-  DropdownInputField,
-  FileInputField,
-  MultiSelectInputField,
-  NumberInputField,
-  RadioSelectInputField,
-  SearchInputField,
-  TextInputField,
-  H3
-} from "@protzilla/core";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

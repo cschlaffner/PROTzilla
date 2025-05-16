@@ -1,9 +1,9 @@
+import { InfoIComponent, InputLabel, Text } from "@protzilla/core";
 import { border, borderColors, color, fontSize, spacing, styledDiv } from "@protzilla/theme";
 import React, { useRef } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { InputContainerProps } from "./input-container.props";
-import { InfoIComponent, InputLabel, Text } from "@protzilla/core";
 
 const GridContainer = styledDiv.div`
   align-items: center;

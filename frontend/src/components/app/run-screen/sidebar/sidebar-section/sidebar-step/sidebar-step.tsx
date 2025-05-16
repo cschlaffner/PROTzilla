@@ -1,11 +1,11 @@
+import { useNotification } from "@protzilla/app";
+import { CollapsibleLabel, ContentText, DefaultColoredIcon, DefaultColoredIconType, InvisibleButton } from "@protzilla/core";
 import { color } from "@protzilla/theme";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
-import { InvisibleButton, DefaultColoredIconType, DefaultColoredIcon, CollapsibleLabel, ContentText } from "@protzilla/core";
-import { useNotification } from "@protzilla/app";
 import { useIconContext } from "../../use-step-icon-context.tsx";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`

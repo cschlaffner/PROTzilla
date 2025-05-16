@@ -1,8 +1,8 @@
+import { SecondaryButton, Text } from "@protzilla/core";
 import { color, duration, fontSize, fontWeight, opacity } from "@protzilla/theme";
 import React, { useCallback } from "react";
 import { css, styled } from "styled-components";
 
-import { SecondaryButton, Text } from "@protzilla/core";
 import { SwitchOptionProps } from "./switch-option.props";
 
 const SwitchOptionContainer = styled(SecondaryButton)<{

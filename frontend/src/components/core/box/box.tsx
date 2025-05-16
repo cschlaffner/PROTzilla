@@ -1,7 +1,7 @@
 import { color, radius, zIndex } from "@protzilla/theme";
+import { coverMixin } from "@protzilla/utils";
 import { styled } from "styled-components";
 
-import { coverMixin } from "@protzilla/utils";
 import { BoxProps } from "./box.props";
 
 export const FlexColumn = styled.div<BoxProps>`

@@ -1,7 +1,7 @@
+import { Icon } from "@protzilla/core";
 import { color, fontSize, radius, spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 
-import { Icon } from "@protzilla/core";
 import { TagListProps } from "./taglist.props";
 
 const StyledList = styled.div`

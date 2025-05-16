@@ -1,12 +1,12 @@
-import { color, spacing } from "@protzilla/theme";
-import { styled, useTheme } from "styled-components";
-
 import {
   DropdownInputField,
   NumberInputField,
   NumberInputFieldProps,
   TextInputField,
 } from "@protzilla/core";
+import { color, spacing } from "@protzilla/theme";
+import { styled, useTheme } from "styled-components";
+
 
 const StyledRadio = styled.input.attrs({ type: "radio" })`
   accent-color: ${color("primary")};

@@ -1,8 +1,8 @@
+import { InputContainer } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer } from "@protzilla/core";
 import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 
 const StyledRadioContainer = styled.div<{ $isSmall: boolean }>`

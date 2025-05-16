@@ -1,6 +1,6 @@
+import { Button, Modal, SecondaryButton, Text } from "@protzilla/core";
 import { styled } from "styled-components";
 
-import { Button, SecondaryButton, Text, Modal } from "@protzilla/core";
 import { DiscardModalProps } from "./discard-modal.props";
 
 const ButtonContainer = styled.div`

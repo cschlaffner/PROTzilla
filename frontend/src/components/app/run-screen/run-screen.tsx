@@ -1,20 +1,20 @@
+import { ListEditor, Navbar } from "@protzilla/app"
+import {
+  DataTable,
+  FlexColumn,
+  FlexRow,
+  PlotComponent,
+  SectionTitle,
+  SwitchCard
+} from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
-import { callApiWithParameters, emptyRunData, dummyTextComponent1, footerMessages, mockPlots, mockTableData, SelectedStep } from "@protzilla/utils";
+import { callApiWithParameters, dummyTextComponent1, emptyRunData, footerMessages, mockPlots, mockTableData, SelectedStep } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import {
-  FlexColumn,
-  FlexRow,
-  PlotComponent,
-  SectionTitle,
-  SwitchCard,
-  DataTable
-} from "@protzilla/core";
 
-import { ListEditor, Navbar } from "@protzilla/app"
 
 
 const StyledNavbar = styled(Navbar)`

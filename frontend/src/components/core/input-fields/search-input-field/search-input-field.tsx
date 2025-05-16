@@ -1,8 +1,8 @@
+import { Icon, InputContainer } from "@protzilla/core";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { InputContainer, Icon } from "@protzilla/core";
 import { SearchInputFieldProps } from "./search-input-field.props";
 
 const StyledInput = styled.input.withConfig({

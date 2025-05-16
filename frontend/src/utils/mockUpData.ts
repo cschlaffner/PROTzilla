@@ -1,7 +1,7 @@
 import { GridRowsProp } from "@mui/x-data-grid";
+import { FormData } from "@protzilla/core";
 import { Figure } from "plotly.js";
 
-import { FormData } from "@protzilla/core";
 
 export const mockPlots: Figure[] = [
   {

@@ -1,6 +1,6 @@
+import { InputContainerProps } from "@protzilla/core";
 import { UIStateProps } from "@protzilla/utils";
 
-import { InputContainerProps } from "@protzilla/core";
 
 export interface RadioSelectInputFieldProps
   extends Omit<InputContainerProps, "inlinePrefix" | "inlineSuffix">,

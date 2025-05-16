@@ -1,6 +1,7 @@
+import { Sections } from "@protzilla/utils";
+
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepSelection } from "./step-selection.tsx";
-import { Sections } from "@protzilla/utils";
 
 export default {
   component: StepSelection,

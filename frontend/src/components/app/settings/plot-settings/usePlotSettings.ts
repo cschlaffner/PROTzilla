@@ -1,5 +1,6 @@
 // This is a custom hook for working with plot settings.
 
+import { useNotification } from "@protzilla/app";
 import { callApiWithParameters } from "@protzilla/utils";
 import { saveAs } from "file-saver";
 import { Figure, Layout } from "plotly.js";
@@ -7,7 +8,6 @@ import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
 import { PlotSettings } from "./plot-settings";
-import { useNotification } from "@protzilla/app";
 
 export interface PlotSettings {
   // User-given parameters that are stored in backend

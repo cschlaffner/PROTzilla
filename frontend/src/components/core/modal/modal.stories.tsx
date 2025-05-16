@@ -1,9 +1,9 @@
+import { Button } from "@protzilla/core";
 import { Meta, StoryFn } from "@storybook/react";
 import { useState } from "react";
 
 import { Modal } from "./modal";
 import { ModalProps } from "./modal.props";
-import { Button } from "@protzilla/core";
 
 export default {
   component: Modal,

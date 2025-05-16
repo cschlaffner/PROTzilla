@@ -1,6 +1,6 @@
+import { InputContainerProps } from "@protzilla/core";
 import type { UIStateProps } from "@protzilla/utils";
 
-import { InputContainerProps } from "@protzilla/core";
 
 export interface TextInputFieldProps extends InputContainerProps, UIStateProps {
   value?: string;

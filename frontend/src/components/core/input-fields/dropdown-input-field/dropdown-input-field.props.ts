@@ -1,6 +1,6 @@
+import { InputContainerProps } from "@protzilla/core";
 import type { UIStateProps } from "@protzilla/utils";
 
-import { InputContainerProps } from "@protzilla/core";
 
 export interface DropdownInputFieldProps extends InputContainerProps, UIStateProps {
   options: { label: string; value: string }[];

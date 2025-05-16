@@ -1,8 +1,8 @@
+import { SectionTitle } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 import { SectionProps } from "./section.props";
-import { SectionTitle } from "@protzilla/core";
 
 const SectionContainer = styled.section`
   align-items: flex-start;
