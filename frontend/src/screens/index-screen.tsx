@@ -267,7 +267,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "With workflow:",
                     options: [{ label: selectedWorkflow, value: selectedWorkflow }],
-                    isVisible: false, // Unnecessary rn, might be usefull later
+                    isVisible: true,
                   },
                   {
                     type: "dropdown",
