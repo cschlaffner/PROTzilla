@@ -28,7 +28,7 @@ const CloseButton = styled(CircularButton)`
   color: ${color("primary")};
   display: flex;
   justif-content: center;
-  margin-right: 20px;
+  flex-shrink: 0;
   width: 40px;
   height: 30px;
 `;
