@@ -3,7 +3,7 @@ import {
   NumberInputField,
   NumberInputFieldProps,
   TextInputField,
-} from "@protzilla/core";
+} from "../../../core";
 import { color, spacing } from "@protzilla/theme";
 import { styled, useTheme } from "styled-components";
 

@@ -1,4 +1,11 @@
 import { Navbar, RunsTable, useNotification } from "@protzilla/app";
+import { size, spacing, styledDiv } from "@protzilla/theme";
+import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
+import React, { useCallback, useEffect, useState } from "react";
+import { Container } from "react-grid-system";
+import { useNavigate } from "react-router-dom";
+import { styled } from "styled-components";
+
 import {
   Card,
   Form,
@@ -10,13 +17,7 @@ import {
   Tooltip,
   useTooltipScheduling,
   Workflow,
-} from "@protzilla/core";
-import { size, spacing, styledDiv } from "@protzilla/theme";
-import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
-import React, { useCallback, useEffect, useState } from "react";
-import { Container } from "react-grid-system";
-import { useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+} from "../../core";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const StyledNavbar = styled(Navbar)`

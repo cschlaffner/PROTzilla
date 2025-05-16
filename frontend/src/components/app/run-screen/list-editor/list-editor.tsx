@@ -1,11 +1,11 @@
 import { Sidebar } from "@protzilla/app";
-import { BackendForm, FlexRow } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import { emptySections, Step, translateGlobalToSectionIndex } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { ListEditorProps } from "./list-editor.props";
+import { BackendForm, FlexRow } from "../../../core";
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};

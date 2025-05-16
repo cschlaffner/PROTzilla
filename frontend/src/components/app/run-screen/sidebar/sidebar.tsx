@@ -1,4 +1,3 @@
-import { H3, Icon } from "@protzilla/core";
 import { spacing, styledDiv } from "@protzilla/theme";
 import { Section, Step } from "@protzilla/utils";
 import { motion } from "framer-motion";
@@ -7,6 +6,7 @@ import { styled } from "styled-components";
 
 import SidebarSection from "./sidebar-section/sidebar-section";
 import { SidebarProps } from "./sidebar.props";
+import { H3, Icon } from "../../../core";
 
 const SidebarContainer = styled(motion.div)`
   position: relative;

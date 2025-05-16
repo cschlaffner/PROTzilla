@@ -1,16 +1,13 @@
-import {
-  FlexColumn,
-  FlexRow,
-  Icon,
-  InputContainer,
-  InputLabel,
-  SearchInputField,
-} from "@protzilla/core";
 import { border, borderColors, color, size, spacing } from "@protzilla/theme";
 import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
+import { FlexColumn, FlexRow } from "../../box";
+import { Icon } from "../../icon";
+import { InputLabel } from "../../text";
+import { InputContainer } from "../input-container";
+import { SearchInputField } from "../search-input-field";
 
 const StyledFlexColumn = styled(FlexColumn)<{ $isSmall: boolean }>`
   padding-top: ${({ $isSmall }) => ($isSmall ? spacing("verySmall") : spacing("small"))};

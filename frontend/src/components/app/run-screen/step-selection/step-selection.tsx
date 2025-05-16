@@ -1,3 +1,10 @@
+import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
+import { color, shadow, size, spacing } from "@protzilla/theme";
+import { callApi, callApiWithParameters, Sections } from "@protzilla/utils";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { styled } from "styled-components";
+
+import { StepSelectionProps } from "./step-selection.props.ts";
 import {
   Button,
   GrayButton,
@@ -6,14 +13,7 @@ import {
   Modal,
   SectionTitle,
   ToggleableButton,
-} from "@protzilla/core";
-import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
-import { color, shadow, size, spacing } from "@protzilla/theme";
-import { callApi, callApiWithParameters, Sections } from "@protzilla/utils";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { styled } from "styled-components";
-
-import { StepSelectionProps } from "./step-selection.props.ts";
+} from "../../../core";
 
 const sectionModes = {
   [Sections.Importing]: "Importing",

@@ -1,12 +1,4 @@
 import { ListEditor, Navbar } from "@protzilla/app";
-import {
-  DataTable,
-  FlexColumn,
-  FlexRow,
-  PlotComponent,
-  SectionTitle,
-  SwitchCard,
-} from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
@@ -21,6 +13,15 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+
+import {
+  DataTable,
+  FlexColumn,
+  FlexRow,
+  PlotComponent,
+  SectionTitle,
+  SwitchCard,
+} from "../../core";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;

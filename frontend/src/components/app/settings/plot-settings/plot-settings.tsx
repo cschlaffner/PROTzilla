@@ -1,4 +1,3 @@
-import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
 import { color, fontSize, fontWeight, spacing, zIndex } from "@protzilla/theme";
 import isEqual from "fast-deep-equal";
 import { Data, Layout } from "plotly.js";
@@ -16,6 +15,7 @@ import {
   WidthField,
 } from "./plot-settings-input-fields";
 import { usePlotSettings } from "./usePlotSettings";
+import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "../../../core/";
 
 const SettingsDiv = styled.div`
   display: flex;

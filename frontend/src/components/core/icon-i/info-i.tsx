@@ -1,8 +1,9 @@
-import { Icon, Tooltip } from "@protzilla/core";
 import { useRef, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { InfoIProps } from "./info-i.props";
+import { Icon } from "../icon";
+import { Tooltip } from "../tooltip";
 
 const Wrapper = styled.div`
   position: relative;

@@ -1,9 +1,10 @@
-import { FlexColumn, H1 } from "@protzilla/core";
 import { color } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 import { baseComponents } from "./base-components";
 import { SectionTitleProps } from "./section-title.props";
+import { FlexColumn } from "../box";
+import { H1 } from "../text";
 
 const Description = styled(H1)`
   color: ${color("gray50")};

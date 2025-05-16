@@ -1,7 +1,8 @@
-import { Modal, RedButton, SecondaryButton } from "@protzilla/core";
 import { styled } from "styled-components";
 
 import { DeleteModalProps } from "./delete-modal.props";
+import { RedButton, SecondaryButton } from "../../button";
+import { Modal } from "../modal";
 
 const ButtonContainer = styled.div`
   display: flex;

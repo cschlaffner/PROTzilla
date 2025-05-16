@@ -1,9 +1,11 @@
-import { BigButton, H5, Tooltip, useTooltipScheduling } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 
 import { WorkflowProps } from "./workflow.props";
+import { BigButton } from "../button";
+import { H5 } from "../text";
+import { Tooltip, useTooltipScheduling } from "../tooltip";
 
 const StyledContainer = styled(Container)`
   padding: ${spacing("small")};
