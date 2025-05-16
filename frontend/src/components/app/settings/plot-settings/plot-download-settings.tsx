@@ -1,4 +1,11 @@
-import { Button, Modal, PlotComponent, SecondaryButton, SectionTitle, TextInputField,  } from "@protzilla/core";
+import {
+  Button,
+  Modal,
+  PlotComponent,
+  SecondaryButton,
+  SectionTitle,
+  TextInputField,
+} from "@protzilla/core";
 import { color, spacing, zIndex } from "@protzilla/theme";
 import { Data, Figure, Layout } from "plotly.js";
 import { useEffect, useState } from "react";

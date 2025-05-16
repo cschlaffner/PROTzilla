@@ -4,7 +4,6 @@ import { useToggleableState } from "@protzilla/hooks";
 import { Meta } from "@storybook/react";
 import { useState } from "react";
 
-
 export default {
   component: Settings,
   title: "Settings Components / Settings",

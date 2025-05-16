@@ -1,4 +1,4 @@
-import { Card, Switch} from "@protzilla/core";
+import { Card, Switch } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import React, { useState } from "react";
 import { styled } from "styled-components";

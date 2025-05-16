@@ -4,7 +4,7 @@ export * from "./cards/card";
 export * from "./cards/switch-card";
 export * from "./data-table";
 export * from "./forms/form";
-export * from "./forms/backend-form"
+export * from "./forms/backend-form";
 export * from "./icon";
 export * from "./icon-i";
 export * from "./input-fields/checkbox-input-fields/checkbox-select-input-field";

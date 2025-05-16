@@ -6,7 +6,6 @@ import { callApi, callApiWithParameters, formatDate } from "@protzilla/utils";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-
 const DatabasesTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
   padding-bottom: ${spacing("small")};

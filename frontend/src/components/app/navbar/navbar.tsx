@@ -1,11 +1,18 @@
-import {  NavbarProps, RunEditMenu, Settings, useNotification  } from "@protzilla/app";
-import { Button, DiscardModal, FlexColumn, Form , InputValueType, Modal, Text } from "@protzilla/core";
+import { NavbarProps, RunEditMenu, Settings, useNotification } from "@protzilla/app";
+import {
+  Button,
+  DiscardModal,
+  FlexColumn,
+  Form,
+  InputValueType,
+  Modal,
+  Text,
+} from "@protzilla/core";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
 import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
-
 
 const NavbarBody = styled.div`
   align-items: center;
@@ -125,8 +132,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         run_name: runName,
         workflow_name: workflowname,
       }).then(() => {
-        setIsWorkflowSaveOpen(false)
-      })
+        setIsWorkflowSaveOpen(false);
+      });
     },
     [notify, runName],
   );
@@ -146,7 +153,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 icon={"edit"}
                 onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
               />
-              <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }} />
+              <Button
+                icon={"save"}
+                onPress={() => {
+                  setIsWorkflowSaveOpen(true);
+                }}
+              />
             </div>
           )}
         </NavbarCenter>

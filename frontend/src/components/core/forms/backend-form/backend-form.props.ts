@@ -1,16 +1,15 @@
-import { 
-  CheckboxSelectInputFieldProps, 
-  DropdownInputFieldProps, 
-  FileInputFieldProps, 
+import {
+  CheckboxSelectInputFieldProps,
+  DropdownInputFieldProps,
+  FileInputFieldProps,
   MultiSelectInputFieldProps,
   NumberInputFieldProps,
   RadioSelectInputFieldProps,
   SearchInputFieldProps,
   SingleCheckboxInputFieldProps,
-  TextInputFieldProps 
+  TextInputFieldProps,
 } from "@protzilla/core";
 import { RequestData, StepStatus } from "@protzilla/utils";
-
 
 export interface BackendFormProps {
   runName: string;

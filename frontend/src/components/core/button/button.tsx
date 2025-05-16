@@ -5,7 +5,7 @@ import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@pr
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
-import { iconColor } from "../icon"
+import { iconColor } from "../icon";
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 
 const StyledButton = styled.button.withConfig({

@@ -1,5 +1,5 @@
-import { useNotification } from "@protzilla/app"
-import { 
+import { useNotification } from "@protzilla/app";
+import {
   Button,
   CheckboxSelectInputField,
   DropdownInputField,
@@ -10,16 +10,19 @@ import {
   RadioSelectInputField,
   SearchInputField,
   SingleCheckboxInputField,
-  TextInputField
+  TextInputField,
 } from "@protzilla/core";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-import { BackendFormData, BackendFormProps, BackendInputFieldProps, BackendInputValueType } from "./backend-form.props";
-
-
+import {
+  BackendFormData,
+  BackendFormProps,
+  BackendInputFieldProps,
+  BackendInputValueType,
+} from "./backend-form.props";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

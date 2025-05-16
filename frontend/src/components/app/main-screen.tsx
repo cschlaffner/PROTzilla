@@ -3,7 +3,6 @@ import { color, spacing } from "@protzilla/theme";
 import { Outlet } from "react-router-dom";
 import { styled } from "styled-components";
 
-
 const StyledScreen = styled(Screen)`
   background: ${color("backgroundOffset")};
   flex-direction: row;

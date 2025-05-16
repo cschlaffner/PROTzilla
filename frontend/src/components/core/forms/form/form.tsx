@@ -1,4 +1,4 @@
-import { 
+import {
   Button,
   CheckboxSelectInputField,
   DropdownInputField,
@@ -9,14 +9,13 @@ import {
   RadioSelectInputField,
   SearchInputField,
   SingleCheckboxInputField,
-  TextInputField
+  TextInputField,
 } from "@protzilla/core";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
-
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

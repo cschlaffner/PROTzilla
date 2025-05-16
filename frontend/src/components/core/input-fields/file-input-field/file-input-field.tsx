@@ -8,7 +8,6 @@ import { styled } from "styled-components";
 
 import { FileInputFieldProps } from "./file-input-field.props";
 
-
 const StyledDiv = styled.div`
   display: flex;
   justify-content: space-between;

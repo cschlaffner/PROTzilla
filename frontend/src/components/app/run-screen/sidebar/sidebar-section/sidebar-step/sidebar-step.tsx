@@ -1,5 +1,11 @@
 import { useNotification } from "@protzilla/app";
-import { CollapsibleLabel, ContentText, DefaultColoredIcon, DefaultColoredIconType, InvisibleButton } from "@protzilla/core";
+import {
+  CollapsibleLabel,
+  ContentText,
+  DefaultColoredIcon,
+  DefaultColoredIconType,
+  InvisibleButton,
+} from "@protzilla/core";
 import { color } from "@protzilla/theme";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";

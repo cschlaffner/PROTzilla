@@ -1,4 +1,3 @@
-
 import { Color } from "@protzilla/theme";
 import { UIStateProps } from "@protzilla/utils";
 import type React from "react";

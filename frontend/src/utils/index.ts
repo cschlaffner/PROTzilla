@@ -2,10 +2,10 @@ export * from "./amount";
 export * from "./api-call";
 export * from "./arrayElement.ts";
 export * from "./async";
-export * from "./format-date.ts"
-export * from "./mixins.ts"
-export * from "./mockUpData.ts"
+export * from "./format-date.ts";
+export * from "./mixins.ts";
+export * from "./mockUpData.ts";
 export * from "./order-by";
 export * from "./platform-detection";
 export * from "./protzilla-types.ts";
-export * from "./step_index_helper.ts"
+export * from "./step_index_helper.ts";

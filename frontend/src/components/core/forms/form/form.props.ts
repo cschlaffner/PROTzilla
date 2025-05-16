@@ -1,13 +1,13 @@
-import { 
-  CheckboxSelectInputFieldProps, 
-  DropdownInputFieldProps, 
-  FileInputFieldProps, 
+import {
+  CheckboxSelectInputFieldProps,
+  DropdownInputFieldProps,
+  FileInputFieldProps,
   MultiSelectInputFieldProps,
   NumberInputFieldProps,
   RadioSelectInputFieldProps,
   SearchInputFieldProps,
   SingleCheckboxInputFieldProps,
-  TextInputFieldProps 
+  TextInputFieldProps,
 } from "@protzilla/core";
 
 export interface FormProps {

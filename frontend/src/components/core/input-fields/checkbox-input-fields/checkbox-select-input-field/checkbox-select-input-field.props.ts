@@ -1,7 +1,6 @@
 import { InputContainerProps } from "@protzilla/core";
 import { UIStateProps } from "@protzilla/utils";
 
-
 export interface CheckboxSelectInputFieldProps
   extends Omit<InputContainerProps, "inlinePrefix" | "inlineSuffix">,
     UIStateProps {

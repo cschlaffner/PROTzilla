@@ -1,4 +1,4 @@
-import { Navbar, RunsTable, useNotification } from "@protzilla/app"
+import { Navbar, RunsTable, useNotification } from "@protzilla/app";
 import {
   Card,
   Form,
@@ -9,7 +9,7 @@ import {
   TagMenu,
   Tooltip,
   useTooltipScheduling,
-  Workflow
+  Workflow,
 } from "@protzilla/core";
 import { size, spacing, styledDiv } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Run } from "@protzilla/utils";

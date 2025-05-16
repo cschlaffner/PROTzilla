@@ -10,7 +10,6 @@ import {
 import { duration, useTheme } from "@protzilla/theme";
 import React, { useCallback, useEffect, useState } from "react";
 
-
 export type TooltipPosition = "left" | "right" | "bottom" | "bottomLeft" | "bottomRight" | "top";
 export type TooltipPositionConfig = RelativePositionConfig<TooltipPosition>;
 

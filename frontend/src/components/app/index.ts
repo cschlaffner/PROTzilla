@@ -1,4 +1,4 @@
-export * from "./run-screen/list-editor"
+export * from "./run-screen/list-editor";
 export * from "./navbar";
 export * from "./notification-center";
 export * from "./run-screen/run-edit-menu";
@@ -6,6 +6,6 @@ export * from "./runs-table";
 export * from "./settings";
 export * from "./run-screen/sidebar";
 export * from "./run-screen/step-selection";
-export * from "./main-screen"
-export * from "./run-screen/run-screen"
-export * from "./index-screen/index-screen"
+export * from "./main-screen";
+export * from "./run-screen/run-screen";
+export * from "./index-screen/index-screen";
