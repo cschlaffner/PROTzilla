@@ -28,7 +28,7 @@ Simply run the `run_protzilla` script for your OS and open the application on ht
 > For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
 
 ## :mag: Further information: Development
-PROTzilla is built with Python/Django on the backend and Node.js (managed via pnpm) for the frontend. <br>
+The PROTzilla backend is built with Python/Django and Node.js (managed via pnpm) is used for the frontend. <br>
 To open PROTzilla in development mode, run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
 
 - `http://localhost:5174/` is a dynamic version of the frontend.
