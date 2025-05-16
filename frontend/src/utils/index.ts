@@ -3,6 +3,8 @@ export * from "./api-call";
 export * from "./arrayElement.ts";
 export * from "./async";
 export * from "./format-date.ts"
+export * from "./mixins.ts"
+export * from "./mockUpData.ts"
 export * from "./order-by";
 export * from "./platform-detection";
 export * from "./protzilla-types.ts";

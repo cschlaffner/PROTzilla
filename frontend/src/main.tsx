@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./app/app.tsx";
-import { IconProvider } from "./components/sidebar/step-icon-context.tsx";
+import { IconProvider } from "@protzilla/app";
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 createRoot(document.getElementById("root")!).render(

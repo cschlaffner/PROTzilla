@@ -2,10 +2,10 @@ import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { ModalRoot, NotificationCenter } from "../components";
+import { NotificationCenter, IndexScreen, MainScreen, RunScreen } from "@protzilla/app";
+import { ModalRoot } from "@protzilla/core"
 import { RootStore } from "../models";
 import { setupRootStore, StoreProvider } from "./store";
-import { IndexScreen, MainScreen, RunScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
 
 function App() {

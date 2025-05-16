@@ -1,4 +1,4 @@
-import { InputValueType } from "../components";
+import { InputValueType } from "@protzilla/core";
 import { API_ROOT } from "../constants";
 
 export async function ensureCSRFToken() {
