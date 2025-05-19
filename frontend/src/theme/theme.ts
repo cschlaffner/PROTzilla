@@ -193,6 +193,8 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    lineThickness: "1px",
+    lineMinLength: "10px",
   },
   spacing: {
     listIndentation: "14px",

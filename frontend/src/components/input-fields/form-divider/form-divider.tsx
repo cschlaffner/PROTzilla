@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 
 import { FormDividerProps } from "./form-divider.props";
-import { color, spacing } from "../../../theme";
+import { color, spacing, size} from "../../../theme";
 import { H4 } from "../../text";
 
 const DividerContainer = styled.div`
@@ -14,9 +14,8 @@ const DividerContainer = styled.div`
 const Line = styled.hr`
   flex-grow: 1;
   margin: 0px ${spacing("small")};
-  min-width: 10px;
-
-  height: 1px;
+  min-width: ${size("lineMinLength")};
+  height: ${size("lineThickness")};
   background-color: ${color("primary")};
   border-width: 0;
 `;
