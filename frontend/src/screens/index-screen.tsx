@@ -5,6 +5,7 @@ import { styled } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
+  Button,
   Card,
   Form,
   Icon,
@@ -12,6 +13,7 @@ import {
   Modal,
   Navbar,
   RunsTable,
+  SectionTitle,
   Tooltip,
   useNotification,
   useTooltipScheduling,
@@ -21,6 +23,7 @@ import { SearchInputField } from "../components/input-fields/search-input-field"
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
+import { saveAs } from "file-saver";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -94,6 +97,8 @@ export const IndexScreen: React.FC = () => {
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
   const [runs, setRuns] = useState<Run[]>([] as Run[]);
   //lazy initialization to prevent .map() error
@@ -211,6 +216,11 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const handleExportWorkflow = async (workflowName: InputValueType) => {
+    const blob: Blob = await callApiWithParameters("export_workflow/", {workflow_name: workflowName ?? "standard"}, "blob");
+    saveAs(blob, (workflowName + ".yaml"));
+  }
+
   return (
     <div>
       <StyledNavbar
@@ -221,8 +231,17 @@ export const IndexScreen: React.FC = () => {
       />
 
       <StyledContainer>
-        <StyledTemplateCard title="Template Workflows">
-          <SearchInputField
+        <StyledTemplateCard title={       //these two divs will be replaced by named styled divs defined above with the rest fo styled componetns
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width:"100%"}}> 
+            Template Workflows
+            <div style={{display: "flex", gap: "10px"}}>
+            <Button onClick={() => setIsExportModalOpen(true)} icon="download" tooltip="Export a workflow"></Button>
+            <Button onClick={() => setIsImportModalOpen(true)} icon="upload" tooltip="Import a workflow"></Button>
+            </div>
+          </div>
+          }>
+           <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
             value={searchTermTop}
             onChange={(e) => {
@@ -230,6 +249,8 @@ export const IndexScreen: React.FC = () => {
             }}
             placeholder="Search workflows"
           />
+          <Button onClick={() => setIsExportModalOpen(true)} icon="download" tooltip="Export a workflow"></Button>
+          </div>
           <StyledWorkflowContainer>
             {filteredWorkflows.map((workflow) => (
               <Workflow
@@ -283,6 +304,59 @@ export const IndexScreen: React.FC = () => {
               }}
               onChange={(data) => {
                 handleContinueRun(data);
+              }}
+            ></Form>
+          </Modal>
+          <Modal
+            title="Export a workflow"
+            isOpen={isExportModalOpen}
+            onClose={() => {
+              setIsExportModalOpen(false);
+            }}
+          > {workflows.length > 1 ? (
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "dropdown",
+                    name: "workflow",
+                    label: "workflow:",
+                    options: workflows.map((workflow) => ({label: workflow, value: workflow})),
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                handleExportWorkflow(data.workflow);
+              }}
+            ></Form>) : (<SectionTitle baseComponent={"h4"} description={"No workflows available"} />)}
+          </Modal>
+          <Modal
+            title="Import a workflow"
+            isOpen={isImportModalOpen}
+            onClose={() => {
+              setIsImportModalOpen(false);
+            }}
+          >
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "file",
+                    name: "workflow",
+                    label: "workflow:",
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                void callApiWithParameters("import_workflow/", {workflow_file: data.workflow ?? ""});
               }}
             ></Form>
           </Modal>

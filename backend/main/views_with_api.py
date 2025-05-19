@@ -1,6 +1,8 @@
 import json
 import io
+from pathlib import Path
 import traceback
+import shutil
 
 import numpy as np
 from plotly.io import to_json
@@ -11,7 +13,7 @@ from django.http import JsonResponse, FileResponse
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
+from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, WORKFLOWS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
@@ -241,6 +243,31 @@ def save_workflow(request):
         run._workflow_save(workflow_name)
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def export_workflow(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        workflow_name = data.get("workflow_name") 
+        
+        workflow_file = WORKFLOWS_PATH / f"{workflow_name}.yaml"
+
+        return FileResponse(open(workflow_file, "rb"), as_attachment=True)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def import_workflow(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        workflow_file = data.get("workflow_file") 
+        
+        workflow_file = Path(workflow_file)
+        print(workflow_file)
+
+        shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow_file.name))
+
+        return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
