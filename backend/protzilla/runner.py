@@ -81,7 +81,7 @@ class Runner:
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == "importing":
                 self._insert_commandline_inputs(step)
-            self._perform_current_step(step.form_inputs)
+            self._perform_current_step()
 
             if step.plots and not step.plots.empty:
                 self._save_plots_html(step)
@@ -118,8 +118,8 @@ class Runner:
                 f"Cannot find step with name {step.operation} with {step.display_name} in importing"
             )
 
-    def _perform_current_step(self, params=None):
-        self.run.current_step.calculate(self.run.steps, params)
+    def _perform_current_step(self):
+        self.run.current_step.calculate(self.run.steps)
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):

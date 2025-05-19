@@ -1,193 +1,341 @@
-import React, { useEffect, useState } from "react";
-import { Col, Container, Row } from "react-grid-system";
+import React, { useCallback, useEffect, useState } from "react";
+import { Container } from "react-grid-system";
+import { useNavigate } from "react-router-dom";
+import { styled } from "styled-components";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
-  Button,
   Card,
-  Dropdown,
-  TextField,
+  Form,
+  Icon,
+  InputValueType,
+  Modal,
+  Navbar,
+  RunsTable,
+  Tooltip,
   useNotification,
+  useTooltipScheduling,
+  Workflow,
 } from "../components";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { defaultPalette } from "../theme";
-import { callApi, callApiWithParameters } from "../utils";
+import { SearchInputField } from "../components/input-fields/search-input-field";
+import { TagMenu } from "../components/taglist/tag-menu.tsx";
+import { size, spacing, styledDiv } from "../theme";
+import { callApi, callApiWithParameters, Run } from "../utils";
+
+const StyledNavbar = styled(Navbar)`
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+`;
+
+const StyledContainer = styled.div`
+  padding: ${spacing("small")};
+  gap: ${spacing("small")};
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+`;
+
+const StyledWorkflowContainer = styled(Container)`
+  display: flex;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  &:hover {
+    overflow-x: auto;
+  }
+`;
+
+const StyledTemplateCard = styled(Card)`
+  height: ${size("templateSelectionHeight")};
+  width: calc(100vw - (2 * ${spacing("small")}));
+`;
+
+const StyledRunSelectionCard = styled(Card)`
+  min-height: ${size("runSelectionMinHeight")};
+  height: calc(
+    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
+      (5 * ${spacing("small")})
+  );
+  width: calc(100vw - (2 * ${spacing("small")}));
+  box-sizing: border-box;
+
+  overflow-y: auto;
+`;
+
+const StyledDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const InfoIcon = styled(Icon)`
+  padding-left: 10px;
+`;
 
 export const IndexScreen: React.FC = () => {
-  const [newRunName, setNewRunName] = useState("");
-  const [workflow, setWorkflow] = useState("standard");
-  const [memoryMode, setMemoryMode] = useState("standard");
-  const [existingRun, setExistingRun] = useState("nothing here yet");
-  const [runs, setRuns] = useState<{ value: string; label: string }[]>([
-    { value: "run", label: "run" },
-  ]);
-  const [title, setTitle] = useState("Loading...");
+  const navigate = useNavigate();
   const notify = useNotification();
+
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true);
+  const [, setParentRef] = useState<HTMLDivElement | null>(null);
+
+  const [workflows, setWorkflows] = useState<string[]>([]);
+  const [searchTermTop, setSearchTermTop] = useState<string>("");
+  const [searchTermRuns, setSearchTermRuns] = useState<string>("");
+  const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState("");
+  const [runs, setRuns] = useState<Run[]>([] as Run[]);
+  //lazy initialization to prevent .map() error
+  const [selectedRun, setSelectedRun] = useState<Run>(() => ({
+    run_name: "",
+    creation_date: "",
+    modification_date: "",
+    memory_mode: "",
+    run_steps: [],
+    favourite_status: false,
+    run_tags: [],
+  }));
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("step_name_list");
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setRuns(response.data[0]);
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
+      }
+    };
+
+    void fetchData();
+  }, [notify]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await callApi("workflow_name_list/");
       if (data) {
-        setTitle(data);
+        setWorkflows(data);
       }
     };
 
     void fetchData();
   }, []);
 
-  const onCreateClick = () => {
-    void handleCreateRun();
-  };
+  const filteredWorkflows = workflows.filter((workflow) =>
+    workflow.toLowerCase().includes(searchTermTop.toLowerCase()),
+  );
 
-  const handleCreateRun = async () => {
-    if (runs.some((run: { value: string }) => run.value === newRunName)) {
-      alert("A run with this name already exists!");
-      return;
-    }
-    setRuns([...runs, { value: newRunName, label: newRunName }]);
-    setNewRunName("");
-    console.log(runs);
-    const data = await callApiWithParameters("add_run/", {
-      run_name: newRunName,
-      workflow_name: "standard",
-      df_mode_name: "disk_memory",
+  const filteredRuns = runs.filter(
+    (run) =>
+      run.run_name.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
+      run.modification_date.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
+      run.run_tags.some((tag) => tag.toLowerCase().includes(searchTermRuns.toLowerCase())) ||
+      run.run_steps.some((step) => step.toLowerCase().includes(searchTermRuns.toLowerCase())),
+  );
+
+  const handleAddTag = (tag: string) => {
+    void callApiWithParameters("add_tag/", {
+      run_name: selectedRun.run_name,
+      tag_name: tag,
     });
-    console.log(data.message);
-    notify({
-      type: data.success ? "success" : "error",
-      title: data.message,
-      message: `Congratulations! New Run "${newRunName}" created!`,
-      closeAfterMs: 5000,
+    const updated = runs.map((run) =>
+      run.run_name === selectedRun.run_name ? { ...run, run_tags: [...run.run_tags, tag] } : run,
+    );
+    setRuns(updated);
+  };
+
+  const handleDeleteTag = (tagToDelete: string) => {
+    void callApiWithParameters("delete_tag/", {
+      run_name: selectedRun.run_name,
+      tag_name: tagToDelete,
     });
+    setRuns((runs) =>
+      runs.map((run) =>
+        run.run_name === selectedRun.run_name
+          ? {
+              ...run,
+              run_tags: run.run_tags.filter((tag) => tag !== tagToDelete),
+            }
+          : run,
+      ),
+    );
+    setSelectedRun((run) => ({
+      ...run,
+      run_tags: run.run_tags.filter((tag) => tag !== tagToDelete),
+    }));
   };
 
-  const handleContinueRun = () => {
-    console.log("Continue Run:", existingRun);
-  };
+  const handleContinueRun = useCallback(
+    (data: Record<string, InputValueType>) => {
+      const runName = data.runname;
+      if (!runName) {
+        notify({
+          title: "Error",
+          message: "Please enter a run name.",
+          type: "error",
+        });
+        return;
+      }
+      void callApiWithParameters("add_run/", {
+        run_name: runName,
+        workflow_name: data.workflow ?? "",
+        df_mode_name: data.df_mode ?? "disk",
+      }).then(() => {
+        notify({
+          title: "Run created",
+          message: `Run ${String(data.runname)} has been created`,
+          type: "success",
+        });
 
-  const handleDeleteRun = () => {
-    setRuns(runs.filter((run: { value: string }) => run.value !== existingRun));
-    setExistingRun(runs[0]?.value || "");
-    console.log(runs);
-  };
+        void callApiWithParameters("continue_run/", {
+          run_name: runName as string,
+        }).then(() => {
+          void navigate("/run", { state: { runName } });
+        });
+      });
+    },
+    [notify, navigate],
+  );
 
   return (
-    <div className="min-vh-100 w-100 bg-light">
-      <header
-        style={{
-          backgroundColor: defaultPalette.primary, // Verwendung der Theme-Farbe
-          color: defaultPalette.onPrimary,
-        }}
-        className=" text-white py-3 px-4 d-flex justify-content-between align-items-center"
-      >
-        <h1 className="h4 mb-0">PROTzilla</h1>
-        <a href="https://github.com" className="text-white">
-          GitHub
-        </a>
-      </header>
-      <Container>
-        <Row
-          gutterWidth={16}
-          justify="between"
-          align="center"
-          style={{ height: "80vh" }}
-        >
-          <Col md={4}>
-            <Card title="Work on a new run:">
-              <TextField
-                label="Add run name:"
-                placeholder="Enter run name"
-                value={newRunName}
-                onChange={(e) => {
-                  setNewRunName(e.target.value);
-                }}
-                className="mb-3"
-              />
-              <Dropdown
-                label="With workflow:"
-                options={[
-                  { value: "standard", label: "Standard" },
-                  { value: "example-workflow", label: "Example" },
-                ]}
-                value={workflow}
-                onChange={(value) => {
-                  setWorkflow(value);
-                }}
-                className="mb-3"
-              />
-              <Dropdown
-                label="Memory mode:"
-                options={[
-                  { value: "standard", label: "Standard" },
-                  { value: "low-memory", label: "Low Memory" },
-                ]}
-                value={memoryMode}
-                onChange={(value) => {
-                  setMemoryMode(value);
-                }}
-                className="mb-3"
-              />
-              <Button className="btn btn-primary w-100" onClick={onCreateClick}>
-                Create
-              </Button>
-            </Card>
-          </Col>
-          {/* Continue Run Section */}
-          <Col md={4}>
-            <Card title="Continue an existing run:">
-              <Dropdown
-                label="Select run:"
-                options={runs}
-                value={existingRun}
-                onChange={(value) => {
-                  setExistingRun(value);
-                }}
-                className="mb-3"
-              />
-              <Button
-                className="btn btn-primary w-100 mb-2"
-                onClick={handleContinueRun}
-              >
-                Continue
-              </Button>
-              <Button
-                className="btn btn-primary w-100 mb-2"
-                onClick={() =>
-                  void callApiWithParameters("delete_tag/", {
-                    run_name: "BingChilling",
-                    tag_name: "test",
-                  })
-                }
-              >
-                Delete Tag: test
-              </Button>
-              <Button className="btn btn-secondary w-100">
-                Manage databases
-              </Button>
-            </Card>
-          </Col>
+    <div>
+      <StyledNavbar
+        allowRunEdit={false}
+        onNavigateHome={() => void navigate("/")}
+        onOpenSettings={() => void navigate("/")}
+        onOpenHelp={() => void navigate("/")}
+      />
 
-          {/* Delete Run Section "Delete an existing run:"*/}
-          <Col md={4}>
-            <Card title={title}>
-              <Dropdown
-                label="Select run:"
-                options={runs}
-                value={existingRun}
-                onChange={(value) => {
-                  setExistingRun(value);
+      <StyledContainer>
+        <StyledTemplateCard title="Template Workflows">
+          <SearchInputField
+            style={{ padding: "0", gap: "0", width: "30%" }}
+            value={searchTermTop}
+            onChange={(e) => {
+              setSearchTermTop(e);
+            }}
+            placeholder="Search workflows"
+          />
+          <StyledWorkflowContainer>
+            {filteredWorkflows.map((workflow) => (
+              <Workflow
+                key={workflow}
+                icon="add"
+                workflow={workflow}
+                onPress={() => {
+                  setSelectedWorkflow(workflow);
+                  setIsWorkflowModalOpen(true);
                 }}
-                className="mb-3"
               />
-              <Button
-                className="btn btn-danger w-100"
-                onClick={handleDeleteRun}
-              >
-                Delete
-              </Button>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+            ))}
+          </StyledWorkflowContainer>
+          <Modal
+            title="Create run"
+            isOpen={isWorkflowModalOpen}
+            onClose={() => {
+              setIsWorkflowModalOpen(false);
+            }}
+          >
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "text",
+                    name: "runname",
+                    label: "With name:",
+                    isVisible: true,
+                  },
+                  {
+                    type: "dropdown",
+                    name: "workflow",
+                    label: "With workflow:",
+                    options: [{ label: selectedWorkflow, value: selectedWorkflow }],
+                    isVisible: true,
+                  },
+                  {
+                    type: "dropdown",
+                    name: "df_mode",
+                    label: "With memory mode:",
+                    options: [
+                      { label: "disk", value: "disk" }, // TODO change label to "Standard" after backend refactor
+                      { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory" after backend refactor
+                    ],
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                handleContinueRun(data);
+              }}
+            ></Form>
+          </Modal>
+        </StyledTemplateCard>
+
+        <StyledRunSelectionCard title="Run Selection">
+          <Modal
+            title="Run tags:"
+            isOpen={isTagModalOpen}
+            onClose={() => {
+              setIsTagModalOpen(false);
+            }}
+          >
+            <TagMenu
+              setSelectedRun={setSelectedRun}
+              selectedRun={selectedRun}
+              handleAddTag={handleAddTag}
+              handleDeleteTag={handleDeleteTag}
+            />
+          </Modal>
+          <StyledDiv>
+            <SearchInputField
+              style={{ padding: "0", gap: "0", width: "30%" }}
+              value={searchTermRuns}
+              onChange={(e) => {
+                setSearchTermRuns(e);
+              }}
+              placeholder="Search runs"
+            />
+            <div
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+              ref={setParentRef}
+            >
+              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+              <Tooltip
+                text={"Search by run name, steps, or tags"}
+                isShown={showTooltip}
+                anchor={mouseAnchor}
+                distance={5}
+                position={"bottomRight"}
+              />
+            </div>
+          </StyledDiv>
+          <RunsTable
+            runs={runs}
+            filteredRuns={filteredRuns}
+            setRuns={setRuns}
+            openTagModal={setIsTagModalOpen}
+            setSelectedRun={setSelectedRun}
+          />
+        </StyledRunSelectionCard>
+      </StyledContainer>
     </div>
   );
 };

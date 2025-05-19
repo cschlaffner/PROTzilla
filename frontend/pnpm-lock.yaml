@@ -32,9 +32,15 @@ importers:
       bootstrap:
         specifier: ^5.3.3
         version: 5.3.3(@popperjs/core@2.11.8)
+      fast-deep-equal:
+        specifier: ^3.1.3
+        version: 3.1.3
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
       framer-motion:
-        specifier: ^12.4.7
-        version: 12.4.7(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^12.4.10
+        version: 12.4.10(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       i18next:
         specifier: ^24.2.1
         version: 24.2.1(typescript@5.6.3)
@@ -44,6 +50,9 @@ importers:
       i18next-http-backend:
         specifier: ^3.0.1
         version: 3.0.1
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
       mobx:
         specifier: ^6.13.5
         version: 6.13.5
@@ -56,6 +65,9 @@ importers:
       plotly.js:
         specifier: ^3.0.0
         version: 3.0.0(mapbox-gl@1.13.3)(webpack@5.97.1(esbuild@0.24.2))
+      plotly.js-dist-min:
+        specifier: ^3.0.1
+        version: 3.0.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -114,10 +126,16 @@ importers:
       '@testing-library/react':
         specifier: ^16.2.0
         version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@types/plotly.js':
-        specifier: ^2.35.2
+      "@types/file-saver":
+        specifier: ^2.0.7
+        version: 2.0.7
+      "@types/plotly.js":
+        specifier: ^2.12.30
         version: 2.35.2
-      '@types/react':
+      "@types/plotly.js-dist-min":
+        specifier: ^2.3.4
+        version: 2.3.4
+      "@types/react":
         specifier: ^18.3.18
         version: 18.3.18
       '@types/react-dom':
@@ -1367,8 +1385,17 @@ packages:
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
-  '@types/geojson-vt@3.2.5':
-    resolution: {integrity: sha512-qDO7wqtprzlpe8FfQ//ClPV9xiuoh2nkIgiouIptON9w5jvD/fA4szvP9GBlDVdJ5dldAl0kX/sy3URbWwLx0g==}
+  "@types/file-saver@2.0.7":
+    resolution:
+      {
+        integrity: sha512-dNKVfHd/jk0SkR/exKGj2ggkB45MAkzvWCaqLUUgkyjITkGNzH8H+yUwr+BLJUBjZOe9w8X3wgmXhZDRg1ED6A==,
+      }
+
+  "@types/geojson-vt@3.2.5":
+    resolution:
+      {
+        integrity: sha512-qDO7wqtprzlpe8FfQ//ClPV9xiuoh2nkIgiouIptON9w5jvD/fA4szvP9GBlDVdJ5dldAl0kX/sy3URbWwLx0g==,
+      }
 
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
@@ -1403,8 +1430,17 @@ packages:
   '@types/pbf@3.0.5':
     resolution: {integrity: sha512-j3pOPiEcWZ34R6a6mN07mUkM4o4Lwf6hPNt8eilOeZhTFbxFXmKhvXl9Y28jotFPaI1bpPDJsbCprUoNke6OrA==}
 
-  '@types/plotly.js@2.35.2':
-    resolution: {integrity: sha512-tn0Kp7F6VWiu96jknCvR/PcdIGIATeIK+Z5WXH3bEvG6CRwUNfhy34yBhfPYmTea7mMQxXvTZKGMm6/Y4wxESg==}
+  "@types/plotly.js-dist-min@2.3.4":
+    resolution:
+      {
+        integrity: sha512-ISwLFV6Zs/v3DkaRFLyk2rvYAfVdnYP2VVVy7h+fBDWw52sn7sMUzytkWiN4M75uxr1uz1uiBioePTDpAfoFIg==,
+      }
+
+  "@types/plotly.js@2.35.2":
+    resolution:
+      {
+        integrity: sha512-tn0Kp7F6VWiu96jknCvR/PcdIGIATeIK+Z5WXH3bEvG6CRwUNfhy34yBhfPYmTea7mMQxXvTZKGMm6/Y4wxESg==,
+      }
 
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
@@ -2500,8 +2536,17 @@ packages:
     resolution: {integrity: sha512-QKHXPW0hD8g4UET03SdOdunzSouc9N4AuHdsX8XNcTsuz+yYFILVNIX4l9yHABMhiEI9Db0JTTIpu0wB+Y1QQw==}
 
   file-entry-cache@8.0.0:
-    resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
-    engines: {node: '>=16.0.0'}
+    resolution:
+      {
+        integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==,
+      }
+    engines: { node: ">=16.0.0" }
+
+  file-saver@2.0.5:
+    resolution:
+      {
+        integrity: sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==,
+      }
 
   filesize@10.1.6:
     resolution: {integrity: sha512-sJslQKU2uM33qH5nqewAwVB2QgR6w1aMNsYUp3aN5rMRyXEwJGmZvaWzeJFNTOXWlHQyBFCWrdj3fV/fsTOX8w==}
@@ -2554,8 +2599,11 @@ packages:
     resolution: {integrity: sha512-tzN8e4TX8+kkxGPK8D5u0FNmjPUjw3lwC9lSLxxoB/+GtsJG91CO8bSWy73APlgAZzZbXEYZJuxjkHH2w+Ezhw==}
     engines: {node: '>= 6'}
 
-  framer-motion@12.4.7:
-    resolution: {integrity: sha512-VhrcbtcAMXfxlrjeHPpWVu2+mkcoR31e02aNSR7OUS/hZAciKa8q6o3YN2mA1h+jjscRsSyKvX6E1CiY/7OLMw==}
+  framer-motion@12.4.10:
+    resolution:
+      {
+        integrity: sha512-3Msuyjcr1Pb5hjkn4EJcRe1HumaveP0Gbv4DBMKTPKcV/1GSMkQXj+Uqgneys+9DPcZM18Hac9qY9iUEF5LZtg==,
+      }
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -3285,11 +3333,17 @@ packages:
   moment@2.30.1:
     resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
-  motion-dom@12.4.5:
-    resolution: {integrity: sha512-Q2xmhuyYug1CGTo0jdsL05EQ4RhIYXlggFS/yPhQQRNzbrhjKQ1tbjThx5Plv68aX31LsUQRq4uIkuDxdO5vRQ==}
+  motion-dom@12.4.10:
+    resolution:
+      {
+        integrity: sha512-ISP5u6FTceoD6qKdLupIPU/LyXBrxGox+P2e3mBbm1+pLdlBbwv01YENJr7+1WZnW5ucVKzFScYsV1eXTCG4Xg==,
+      }
 
-  motion-utils@12.0.0:
-    resolution: {integrity: sha512-MNFiBKbbqnmvOjkPyOKgHUp3Q6oiokLkI1bEwm5QA28cxMZrv0CbbBGDNmhF6DIXsi1pCQBSs0dX8xjeER1tmA==}
+  motion-utils@12.4.10:
+    resolution:
+      {
+        integrity: sha512-NPwZd94V013SwRf++jMrk2+HEBgPkeIE2RiOzhAuuQlqxMJPkKt/LXVh6Upl+iN8oarSGD2dlY5/bqgsYXDABA==,
+      }
 
   mouse-change@1.4.0:
     resolution: {integrity: sha512-vpN0s+zLL2ykyyUDh+fayu9Xkor5v/zRD9jhSqjRS1cJTGS0+oakVZzNm5n19JvvEj0you+MXlYTpNxUDQUjkQ==}
@@ -3521,9 +3575,18 @@ packages:
     engines: {node: '>=0.10'}
     hasBin: true
 
+  plotly.js-dist-min@3.0.1:
+    resolution:
+      {
+        integrity: sha512-RReOqr6TfoHaTbVAoHR1UbTCOSRDsQ7Hbthd+3XAxOwaKmxCE3oejMhLG7urQSqWC65DAcSKV23kZd8e+7mG7w==,
+      }
+
   plotly.js@3.0.0:
-    resolution: {integrity: sha512-vo4sClOWEsKBST5gKwzKi3wjMno7lPQpy/LBXNFJowlXeqL/RQN7oi+eU9rOj5+qjXGtqKUv560gnUD+1WL3fQ==}
-    engines: {node: '>=18.0.0'}
+    resolution:
+      {
+        integrity: sha512-vo4sClOWEsKBST5gKwzKi3wjMno7lPQpy/LBXNFJowlXeqL/RQN7oi+eU9rOj5+qjXGtqKUv560gnUD+1WL3fQ==,
+      }
+    engines: { node: ">=18.0.0" }
 
   point-in-polygon@1.1.0:
     resolution: {integrity: sha512-3ojrFwjnnw8Q9242TzgXuTD+eKiutbzyslcq1ydfu82Db2y+Ogbmyrkpv0Hgj31qwT3lbS9+QAAO/pIQM35XRw==}
@@ -5832,7 +5895,9 @@ snapshots:
       '@types/estree': 1.0.6
       '@types/json-schema': 7.0.15
 
-  '@types/estree@1.0.6': {}
+  "@types/estree@1.0.6": {}
+
+  "@types/file-saver@2.0.7": {}
 
   '@types/geojson-vt@3.2.5':
     dependencies:
@@ -5869,7 +5934,11 @@ snapshots:
 
   '@types/pbf@3.0.5': {}
 
-  '@types/plotly.js@2.35.2': {}
+  "@types/plotly.js-dist-min@2.3.4":
+    dependencies:
+      "@types/plotly.js": 2.35.2
+
+  "@types/plotly.js@2.35.2": {}
 
   '@types/prop-types@15.7.14': {}
 
@@ -7225,6 +7294,8 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
+  file-saver@2.0.5: {}
+
   filesize@10.1.6: {}
 
   fill-range@7.1.1:
@@ -7274,13 +7345,13 @@ snapshots:
       combined-stream: 1.0.8
       mime-types: 2.1.35
 
-  framer-motion@12.4.7(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  framer-motion@12.4.10(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      motion-dom: 12.4.5
-      motion-utils: 12.0.0
+      motion-dom: 12.4.10
+      motion-utils: 12.4.10
       tslib: 2.8.1
     optionalDependencies:
-      '@emotion/is-prop-valid': 1.3.1
+      "@emotion/is-prop-valid": 1.3.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
@@ -8081,11 +8152,11 @@ snapshots:
 
   moment@2.30.1: {}
 
-  motion-dom@12.4.5:
+  motion-dom@12.4.10:
     dependencies:
-      motion-utils: 12.0.0
+      motion-utils: 12.4.10
 
-  motion-utils@12.0.0: {}
+  motion-utils@12.4.10: {}
 
   mouse-change@1.4.0:
     dependencies:
@@ -8307,6 +8378,8 @@ snapshots:
   picomatch@4.0.2: {}
 
   pidtree@0.6.0: {}
+
+  plotly.js-dist-min@3.0.1: {}
 
   plotly.js@3.0.0(mapbox-gl@1.13.3)(webpack@5.97.1(esbuild@0.24.2)):
     dependencies:

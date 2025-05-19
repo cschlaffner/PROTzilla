@@ -6,17 +6,13 @@ export default {
   title: "Section Title",
 };
 
-export const screenTitle = (args: SectionTitleProps): React.ReactNode => (
-  <SectionTitle {...args} />
-);
+export const screenTitle = (args: SectionTitleProps): React.ReactNode => <SectionTitle {...args} />;
 screenTitle.args = {
   title: "Title",
   description: "Description",
 };
 
-export const cardTitle = (args: SectionTitleProps): React.ReactNode => (
-  <SectionTitle {...args} />
-);
+export const cardTitle = (args: SectionTitleProps): React.ReactNode => <SectionTitle {...args} />;
 cardTitle.args = {
   baseComponent: "h2",
   title: "Title",

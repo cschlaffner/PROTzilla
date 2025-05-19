@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
 import { size } from "../../../../theme";
-import { InputContainer } from "../../frame-input-field";
-import {
-  StyledCheckboxContainer,
-  StyledLabel,
-} from "../checkbox-select-input-field";
+import { InputContainer } from "../../input-container";
+import { StyledCheckboxContainer, StyledLabel } from "../checkbox-select-input-field";
 
 const StyledSingleCheckboxContainer = styled(StyledCheckboxContainer)`
   justify-content: center;
@@ -17,14 +14,16 @@ const StyledSingleCheckboxContainer = styled(StyledCheckboxContainer)`
     $isSmall ? size("inputFieldHeightSmall") : size("inputFieldHeightDefault")};
 `;
 
-export const SingleCheckboxInputField: React.FC<
-  SingleCheckboxInputFieldProps
-> = ({ value: initialValue, text, onChange, ...props }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(initialValue);
-
-  useEffect(() => {
-    onChange(initialValue);
-  }, [initialValue, onChange]);
+export const SingleCheckboxInputField: React.FC<SingleCheckboxInputFieldProps> = ({
+  value: initialValue,
+  text,
+  onChange,
+  ...props
+}) => {
+  const [isChecked, setIsChecked] = useState<boolean>(() => {
+    onChange(initialValue ?? false);
+    return initialValue ?? false;
+  });
 
   const handleChange = (value: boolean) => {
     setIsChecked(value);

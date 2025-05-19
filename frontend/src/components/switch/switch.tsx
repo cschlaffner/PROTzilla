@@ -9,7 +9,6 @@ import { UIStateProps } from "../types";
 const SwitchContainer = styled.div`
   border-radius: ${radius("button")};
   flex-direction: row;
-  height: 34px;
   position: relative;
   user-select: none;
   background-color: ${color("secondary")};
@@ -43,9 +42,7 @@ export const Switch: React.FC<SwitchProps> = ({
 }) => {
   const { length } = options;
   const actualValue =
-    value === undefined
-      ? defaultValue || (length ? options[0].value : "")
-      : value;
+    value === undefined ? defaultValue || (length ? options[0].value : "") : value;
 
   const activeIndex = Math.max(
     0,
@@ -63,21 +60,16 @@ export const Switch: React.FC<SwitchProps> = ({
               left: `${String((100 / length) * activeIndex)}%`,
             }}
           />
-          {options.map(
-            (
-              { value: itemValue, isDisabled: isItemDisabled, ...itemRest },
-              index,
-            ) => (
-              <SwitchOption
-                isActive={index === activeIndex}
-                key={itemValue}
-                onChange={onChange}
-                value={itemValue}
-                isDisabled={isItemDisabled ?? isDisabled}
-                {...itemRest}
-              />
-            ),
-          )}
+          {options.map(({ value: itemValue, isDisabled: isItemDisabled, ...itemRest }, index) => (
+            <SwitchOption
+              isActive={index === activeIndex}
+              key={itemValue}
+              onChange={onChange}
+              value={itemValue}
+              isDisabled={isItemDisabled ?? isDisabled}
+              {...itemRest}
+            />
+          ))}
         </>
       )}
     </SwitchContainer>

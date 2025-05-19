@@ -21,6 +21,7 @@ export const lookup =
 export const border = lookup("borders");
 export const borderWidths = lookup("borderWidths");
 export const borderColors = lookup("borderColors");
+export const characterLimits = lookup("characterLimits");
 export const color = lookup("colors");
 export const duration = lookup("durations");
 export const font = lookup("fonts");
@@ -35,10 +36,7 @@ export const size = lookup("sizes");
 export const spacing = lookup("spacing");
 export const zIndex = lookup("zIndices");
 
-export const mediaQuery = (
-  key: keyof Theme["mediaQueries"],
-  styles?: ReturnType<typeof css>,
-) =>
+export const mediaQuery = (key: keyof Theme["mediaQueries"], styles?: ReturnType<typeof css>) =>
   styles
     ? css`
         ${lookup("mediaQueries")(key)} {
@@ -86,10 +84,7 @@ export const parseUnitFromMetric = (value: string): string => {
 export const scaleMetric = (value: string, factor: number): string =>
   `${String(parseNumberFromMetric(value) * factor)}${parseUnitFromMetric(value)}`;
 
-export type ComputationInput<P> =
-  | string
-  | number
-  | ((props: P) => string | number);
+export type ComputationInput<P> = string | number | ((props: P) => string | number);
 
 /**
  * Returns a computed value to be used in styling.
@@ -146,8 +141,7 @@ export const computeStyleValue =
     return typeof result === "string"
       ? result
       : `${String(result)}${
-          typeof resolvedInputs[0] === "string" &&
-          /^(\+|-)?\d/.exec(resolvedInputs[0])
+          typeof resolvedInputs[0] === "string" && /^(\+|-)?\d/.exec(resolvedInputs[0])
             ? parseUnitFromMetric(resolvedInputs[0])
             : ""
         }`;

@@ -21,34 +21,38 @@ primary.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: true,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
         name: "username",
-        props: {
-          label: "Username",
-        },
+        isVisible: true,
+        label: "Username",
       },
       {
         type: "number",
         name: "age",
-        props: {
-          label: "Age",
-        },
+        isVisible: true,
+        label: "Age",
+      },
+      {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        label: "Single Checkbox",
+        isVisible: true,
       },
       {
         type: "multi-select",
         name: "country",
-        props: {
-          label: "Country",
-          options: [
-            { label: "Deutschland", value: "DE" },
-            { label: "Österreich", value: "AT" },
-            { label: "Schweiz", value: "CH" },
-            { label: "Frankreich", value: "FR" },
-            { label: "Italien", value: "IT" },
-          ],
-        },
+        label: "Country",
+        isVisible: true,
+        options: [
+          { label: "Deutschland", value: "DE" },
+          { label: "Österreich", value: "AT" },
+          { label: "Schweiz", value: "CH" },
+          { label: "Frankreich", value: "FR" },
+          { label: "Italien", value: "IT" },
+        ],
       },
     ],
   },
@@ -59,55 +63,57 @@ submit.args = {
   formData: {
     label: "Formular Demo",
     isAutoSubmit: false,
+    hasChangeIndicator: true,
     input_fields: [
       {
         type: "text",
         name: "username",
-        props: {
-          label: "Username",
-        },
+        isVisible: true,
+        label: "Username",
       },
       {
         type: "number",
         name: "age",
-        props: {
-          label: "Age",
-        },
+        isVisible: true,
+        label: "Age",
+      },
+      {
+        type: "single-checkbox",
+        name: "single-checkbox",
+        label: "Single Checkbox",
+        isVisible: true,
       },
       {
         type: "multi-select",
         name: "country",
-        props: {
-          label: "Country",
-          options: [
-            { label: "Deutschland", value: "DE" },
-            { label: "Österreich", value: "AT" },
-            { label: "Schweiz", value: "CH" },
-            { label: "Frankreich", value: "FR" },
-            { label: "Italien", value: "IT" },
-          ],
-        },
+        isVisible: true,
+        label: "Country",
+        options: [
+          { label: "Deutschland", value: "DE" },
+          { label: "Österreich", value: "AT" },
+          { label: "Schweiz", value: "CH" },
+          { label: "Frankreich", value: "FR" },
+          { label: "Italien", value: "IT" },
+        ],
       },
       {
         type: "file",
         name: "file",
-        props: {
-          label: "File",
-        },
+        isVisible: true,
+        label: "File",
       },
       {
         type: "dropdown",
         name: "country-drop",
-        props: {
-          label: "Dropdown",
-          options: [
-            { label: "Deutschland", value: "DE" },
-            { label: "Österreich", value: "AT" },
-            { label: "Schweiz", value: "CH" },
-            { label: "Frankreich", value: "FR" },
-            { label: "Italien", value: "IT" },
-          ],
-        },
+        label: "Dropdown",
+        isVisible: true,
+        options: [
+          { label: "Deutschland", value: "DE" },
+          { label: "Österreich", value: "AT" },
+          { label: "Schweiz", value: "CH" },
+          { label: "Frankreich", value: "FR" },
+          { label: "Italien", value: "IT" },
+        ],
       },
     ],
   },

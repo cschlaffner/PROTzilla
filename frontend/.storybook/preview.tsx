@@ -2,15 +2,9 @@ import type { Preview } from "@storybook/react";
 import { useEffect, useMemo, useState } from "react";
 import { styled } from "styled-components";
 
-import { ModalRoot } from "../src/components";
+import { ModalRoot, NotificationCenter } from "../src/components";
 import { i18n, initI18nApp } from "../src/i18n";
-import {
-  color,
-  ColorMode,
-  getTheme,
-  GlobalStyles,
-  ThemeProvider,
-} from "../src/theme";
+import { color, ColorMode, getTheme, GlobalStyles, ThemeProvider } from "../src/theme";
 
 const Wrapper = styled.div`
   background: ${color("backgroundOffset")};
@@ -49,13 +43,15 @@ const WithThemeProvider = (
 
   return (
     <ThemeProvider theme={theme}>
-      <Wrapper>
-        <StyledContainer>
-          <GlobalStyles theme={theme} />
-          <ModalRoot />
-          {isReady && <Story />}
-        </StyledContainer>
-      </Wrapper>
+      <NotificationCenter>
+        <Wrapper>
+          <StyledContainer>
+            <GlobalStyles theme={theme} />
+            <ModalRoot />
+            {isReady && <Story />}
+          </StyledContainer>
+        </Wrapper>
+      </NotificationCenter>
     </ThemeProvider>
   );
 };

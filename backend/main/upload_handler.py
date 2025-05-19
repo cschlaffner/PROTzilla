@@ -4,7 +4,7 @@ import tempfile
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.uploadhandler import FileUploadHandler
 
-from .. import settings
+from backend.main import settings
 
 
 # copied from TemporaryFileUploadHandler
@@ -49,12 +49,8 @@ class CustomUploadedFile(UploadedFile):
     def __init__(self, name, content_type, size, charset, content_type_extra=None):
         start, ext = os.path.splitext(name)
         # the NamedTemporaryFile arguments were actually changed
-        file = tempfile.NamedTemporaryFile(
-            suffix=ext,
-            prefix=start + "_",
-            dir=settings.FILE_UPLOAD_TEMP_DIR,
-            delete=False,
-        )
+        file_path = settings.FILE_UPLOAD_TEMP_DIR / name
+        file = open(file_path, "wb")
         super().__init__(file, name, content_type, size, charset, content_type_extra)
 
     def temporary_file_path(self):
@@ -64,7 +60,6 @@ class CustomUploadedFile(UploadedFile):
     def close(self):
         try:
             closed = self.file.close()
-            os.unlink(self.file.name)
             return closed
         except FileNotFoundError:
             # The file was moved or deleted before the tempfile could unlink

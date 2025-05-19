@@ -14,6 +14,7 @@ sys.path.append(f"{PROJECT_PATH}")
 from backend.protzilla.runner import Runner, _serialize_graphs
 from backend.runner_cli import args_parser
 from backend.protzilla.steps import Output, Plots
+from backend.main import settings
 
 
 @pytest.fixture
@@ -39,7 +40,7 @@ def mock_perform_method(runner: Runner):
     def mock_current_parameters(*args, **kwargs):
         # saving parameters for later inspection
         mock_perform.methods.append(str(runner.run.current_step))
-        mock_perform.inputs.append(runner.run.current_step.inputs)
+        mock_perform.inputs.append(runner.run.current_step.form_inputs)
 
         runner.run.current_step.calculation_status = "complete"
 
@@ -99,24 +100,24 @@ def test_runner_imports(
         'PlotGOEnrichmentBarPlot'
     ]
     expected_method_parameters = [
-        call({'file_path': 'tests/proteinGroups_small_cut.txt', 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'}),
-        call({'file_path': 'tests/metadata_cut_columns.csv', 'feature_orientation': 'Columns (samples in rows, features in columns)'}),
-        call({'percentage': 0.5, 'graph_type': 'Pie chart'}),
-        call({'deviation_threshold': 2.0, 'graph_type': 'Pie chart'}),
-        call({'number_of_neighbours': 5, 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'}),
-        call({'number_of_neighbors': 20}),
-        call({'log_base': 'log2', 'graph_type': 'Pie chart', 'group_by': 'None'}),
-        call({'percentile': 0.5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10'}),
-        call({'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1}),
-        call({'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None}),
-        call({'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []}),
-        call({'proteins_df': None, 'differential_expression_threshold': 1, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None}),
-        call({'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''})
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/proteinGroups_small_cut.txt'), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/metadata_cut_columns.csv'), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
+        {'percentage': 0.5, 'graph_type': 'Pie chart'},
+        {'deviation_threshold': 2.0, 'graph_type': 'Pie chart'},
+        {'number_of_neighbours': 5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'},
+        {'number_of_neighbors': 20},
+        {'log_base': 'log2', 'graph_type': 'Boxplot', 'group_by': 'None'},
+        {'percentile': 0.5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10'},
+        {'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1},
+        {'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None},
+        {'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []},
+        {'proteins_df': None, 'differential_expression_threshold': 1, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
+        {'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''}
     ]
 
     assert mock_method.call_count == 13
     assert mock_method.methods == expected_methods
-    assert mock_method.call_args_list == expected_method_parameters
+    assert mock_method.inputs == expected_method_parameters
 
 
 def test_runner_raises_error_for_missing_metadata_arg(
@@ -161,10 +162,10 @@ def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_path, metadat
         "MetadataImport",
         "FilterProteinsBySamplesMissing",
     ]
-    assert mock_method.call_args_list == [
-        call({'file_path': 'tests/proteinGroups_small_cut.txt', 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'}),
-        call({'file_path': 'tests/metadata_cut_columns.csv', 'feature_orientation': 'Columns (samples in rows, features in columns)'}),
-        call({'percentage': 0.5, 'graph_type': 'Pie chart'}),
+    assert mock_method.inputs == [
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/proteinGroups_small_cut.txt'), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/metadata_cut_columns.csv'), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
+        {'percentage': 0.5, 'graph_type': 'Pie chart'},
     ]
     mock_plot.assert_not_called()
 

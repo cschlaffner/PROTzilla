@@ -40,6 +40,9 @@ export interface ButtonProps
   /** If set to `true`, displays a small button. */
   isSmall?: boolean;
 
+  /** If set to `true`, displays a big button. */
+  isBig?: boolean;
+
   /** If set to `true`, overrides the hover and active color to cautious. */
   isCautious?: boolean;
 
@@ -59,9 +62,7 @@ export interface ButtonProps
    * device or activated using the keyboard.
    */
   onPress?: (
-    event:
-      | React.PointerEvent<HTMLButtonElement>
-      | React.KeyboardEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
   ) => void;
 }
 

@@ -162,10 +162,7 @@ export const PopUp = observer<PopUpProps>(
                     <DismissButton
                       className="dismiss-button"
                       text={dismiss}
-                      tx={
-                        dismissTx ??
-                        (dismiss === undefined ? "base:dismiss" : undefined)
-                      }
+                      tx={dismissTx ?? (dismiss === undefined ? "base:dismiss" : undefined)}
                       txData={dismissData}
                       txComponents={dismissComponents}
                       icon={dismissIcon}
@@ -179,10 +176,7 @@ export const PopUp = observer<PopUpProps>(
                     <ConfirmButton
                       className="confirm-button"
                       text={confirm}
-                      tx={
-                        confirmTx ??
-                        (confirm === undefined ? "base:confirm" : undefined)
-                      }
+                      tx={confirmTx ?? (confirm === undefined ? "base:confirm" : undefined)}
                       txData={confirmData}
                       txComponents={confirmComponents}
                       icon={confirmIcon}
@@ -202,8 +196,6 @@ export const PopUp = observer<PopUpProps>(
 
     const node = isOpen === false ? null : popup;
 
-    return modalRootRef.current
-      ? ReactDOM.createPortal(node, modalRootRef.current)
-      : node;
+    return modalRootRef.current ? ReactDOM.createPortal(node, modalRootRef.current) : node;
   },
 );

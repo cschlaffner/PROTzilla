@@ -4,8 +4,9 @@ import { styled } from "styled-components";
 import { ModalProps } from "./modal.props";
 import { color, zIndex } from "../../theme";
 import { CircularButton } from "../button";
-import { Card } from "../card";
+import { Card } from "../cards/card";
 import { Icon } from "../icon";
+import { SectionTitle } from "../section-title";
 
 const Backdrop = styled.div<{ isOpen: boolean }>`
   position: fixed;
@@ -42,13 +43,7 @@ const CardHeader = styled.div`
   width: 100%;
 `;
 
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  className,
-}) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (
     <Backdrop isOpen={isOpen} onClick={onClose}>
       <ModalContent
@@ -60,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
         <Card
           title={
             <CardHeader>
-              <span>{title}</span>
+              <SectionTitle baseComponent={"h2"} title={title} />
               <CloseButton onClick={onClose}>
                 <Icon icon="close"></Icon>
               </CloseButton>
