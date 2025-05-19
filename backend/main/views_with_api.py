@@ -336,9 +336,6 @@ def get_step_table(request):
             for dataframe in dataframes:
                 if dataframe in run.current_outputs:
                     data = run.current_outputs[dataframe]
-                    print(type(data))
-                    if type(data) == str:
-                        print(run.current_step.display_name)
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
                     json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
