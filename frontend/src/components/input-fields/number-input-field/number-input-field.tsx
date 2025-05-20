@@ -6,6 +6,12 @@ import { InputContainer } from "../input-container";
 import { NumberInputFieldProps } from "./number-input-field.props";
 import { GrayButton } from "../../button";
 
+const InputWithButtonsWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
 const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("small")};
@@ -13,20 +19,29 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   border: none;
   outline: none;
   height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
-  width: 100%;
+  width: calc(100% - 10px);
 `;
 
-const StepButtonContainer = styled.div`
+const StepButtonContainer = styled.div<{ $isLastElement: boolean }>`
   height: ${size("inputFieldHeightDefault")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0;
+  background-color: #e4e4e5;
+
+  border-radius: ${({ $isLastElement }) => ($isLastElement ? `0 6px 6px 0` : `0`)};
+
+  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
+
+  overflow: hidden;
+`;
+
+const StepButtonContainerWithMargin = styled(StepButtonContainer)`
   margin-right: -${spacing("verySmall")};
 `;
 
 const StepButton = styled(GrayButton)`
-  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
   border-radius: 0px;
   background-color: #e4e4e5;
   min-height: 0px;
@@ -42,6 +57,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   step,
   hasStepButtons = false,
   isInteger = false,
+  subscript,
   onChange,
   ...props
 }) => {
@@ -50,14 +66,24 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const [displayValue, setDisplayValue] = useState<string>(String(value));
 
   useEffect(() => {
-    setDisplayValue(String(value));
+    setDisplayValue(Number(value.toFixed(10)).toString());
   }, [value]);
 
+  const hasMin = typeof min === "number";
+  const hasMax = typeof max === "number";
+
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    let newValue = e.target.value;
     if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
       if (isInteger && newValue.includes(".")) {
         return;
+      }
+
+      if (hasMax && Number(newValue) > max) {
+        newValue = max.toString();
+      }
+      if (hasMin && Number(newValue) < min) {
+        newValue = min.toString();
       }
 
       setDisplayValue(newValue);
@@ -68,54 +94,92 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     }
   };
 
-  const handleClick = (
-    e: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
-  ) => {
-    const { id } = e.currentTarget;
+  const handleClick = (direction: "up" | "down") => {
     const stepValue = step ?? 1;
     let newValue = value;
-    if (id.includes("up")) {
+
+    if (direction === "up") {
       newValue = value + stepValue;
-      if (max !== undefined) {
+      if (hasMax)  {
         newValue = Math.min(newValue, max);
       }
-    } else if (id.includes("down")) {
+    } else {
       newValue = value - stepValue;
-      if (min !== undefined) {
+      if (hasMin) {
         newValue = Math.max(newValue, min);
       }
     }
+    setDisplayValue(Number(newValue.toFixed(10)).toString());
     onChange(newValue);
   };
 
+  const combinedSubscript = [
+    subscript,
+    isInteger ? "Enter an integer" : "Enter a float",
+    hasMin ? `Min: ${min.toString()}` : null,
+    hasMax ? `Max: ${max.toString()}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
   return (
-    <InputContainer {...props}>
-      <StyledInput
-        ref={inputRef}
-        type="text"
-        inputMode="numeric"
-        value={displayValue}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
-        onInput={handleInput}
-        // Disable isSmall when hasStepButtons is true
-        $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
-        {...props}
-      />
-      {hasStepButtons && (
-        <StepButtonContainer>
-          <StepButton id="up" onPress={handleClick} icon="triangleUp" color="text" isSmall={true} />
-          <StepButton
-            id="down"
-            onPress={handleClick}
-            icon="triangleDown"
-            color="text"
-            isSmall={true}
-          />
-        </StepButtonContainer>
-      )}
+    <InputContainer subscript={combinedSubscript} {...props}>
+      <InputWithButtonsWrapper>
+        <StyledInput
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={displayValue}
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          step={step}
+          onInput={handleInput}
+          // Disable isSmall when hasStepButtons is true
+          $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
+          {...props}
+        />
+        {hasStepButtons &&
+          (props.separateSuffix ? (
+            <StepButtonContainerWithMargin $isLastElement={!props.separateSuffix}>
+              <StepButton
+                onClick={() => {
+                  handleClick("up");
+                }}
+                icon="triangleUp"
+                color="text"
+                isSmall
+              />
+              <StepButton
+                onClick={() => {
+                  handleClick("down");
+                }}
+                icon="triangleDown"
+                color="text"
+                isSmall
+              />
+            </StepButtonContainerWithMargin>
+          ) : (
+            <StepButtonContainer $isLastElement={!props.separateSuffix}>
+              <StepButton
+                onClick={() => {
+                  handleClick("up");
+                }}
+                icon="triangleUp"
+                color="text"
+                isSmall
+              />
+              <StepButton
+                onClick={() => {
+                  handleClick("down");
+                }}
+                icon="triangleDown"
+                color="text"
+                isSmall
+              />
+            </StepButtonContainer>
+          ))}
+      </InputWithButtonsWrapper>
     </InputContainer>
   );
 };

@@ -1,4 +1,5 @@
 import { Meta, StoryFn } from "@storybook/react";
+import { useState } from "react";
 
 import { NumberInputField } from "./number-input-field";
 import { NumberInputFieldProps } from "./number-input-field.props";
@@ -11,6 +12,21 @@ export default {
 
 const Template: StoryFn<NumberInputFieldProps> = (args) => {
   return <NumberInputField {...args} />;
+};
+
+const StateTemplate: StoryFn<NumberInputFieldProps> = (args) => {
+  const [val, setVal] = useState(args.value ?? 0);
+
+  return (
+    <NumberInputField
+      {...args}
+      value={val}
+      onChange={(newVal) => {
+        setVal(newVal);
+        args.onChange(newVal);
+      }}
+    />
+  );
 };
 
 export const primary = Template.bind({});
@@ -42,7 +58,7 @@ unit.args = {
   isInteger: true,
 };
 
-export const withStepButtons = Template.bind({});
+export const withStepButtons = StateTemplate.bind({});
 withStepButtons.args = {
   label: "Font size",
   value: 5,
@@ -52,4 +68,16 @@ withStepButtons.args = {
   hasStepButtons: true,
   separateSuffix: "pt",
   isInteger: true,
+};
+
+export const floatField = StateTemplate.bind({});
+floatField.args = {
+  label: "Percentage",
+  value: 0.1,
+  step: 0.1,
+  min: 0,
+  max: 1,
+  hasStepButtons: true,
+  separateSuffix: "%",
+  isInteger: false,
 };

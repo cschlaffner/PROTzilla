@@ -93,7 +93,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
         return Form(
             label="Filter Proteins by Samples Missing",
             input_fields=[
-                NumberField(
+                FloatField(
                     name="percentage",
                     label="Percentage of minimum non-missing samples per protein",
                     value=0.5,
@@ -125,11 +125,13 @@ class FilterByProteinsCount(DataPreprocessingStep):
         return Form(
             label="Filter Samples by Protein Count",
             input_fields=[
-                NumberField(
+                FloatField(
                     name="deviation_threshold",
                     label="Number of standard deviations from the median",
                     value=2,
                     min=0,
+                    step=0.5,
+                    hasStepButtons=True,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -158,6 +160,8 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
                     label="Threshold value for PEP",
                     value=0,
                     min=0,
+                    step=0.1,
+                    hasStepButtons=True,
                 ),
                 DropdownField(
                     name="peptide_df",
@@ -227,6 +231,8 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                     label="Number of standard deviations from the median",
                     value=2,
                     min=0,
+                    step=0.5,
+                    hasStepButtons=True,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -257,6 +263,8 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
                     label="Threshold for number of standard deviations from the median:",
                     value=2,
                     min=0,
+                    step=0.5,
+                    hasStepButtons=True,
                 ),
                 NumberField(
                     name="number_of_components",
@@ -265,6 +273,7 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
                     min=2,
                     max=3,
                     step=1,
+                    hasStepButtons=True,
                 ),
             ],
         )
@@ -290,6 +299,7 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
                     value=20,
                     min=1,
                     step=1,
+                    hasStepButtons=True,
                 ),
             ],
         )
@@ -315,6 +325,7 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
                     value=100,
                     min=1,
                     step=1,
+                    hasStepButtons=True,
                 ),
             ],
         )
@@ -529,13 +540,13 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     data from the entire dataframe. Sets missing value to the smallest measured 
                         value in the dataframe. The user can also assign a shrinking factor to take a 
                         fraction of that minimum value for imputation."""),
-                NumberField(
+                FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
                     value=0.5,
                     min=0,
                     max=1,
-                    step=0.1
+                    step=0.1,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -587,7 +598,7 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     value=0.5,
                     min=0,
                     max=1,
-                    step=0.1
+                    step=0.1,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -636,7 +647,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     value=0.5,
                     min=0,
                     max=1,
-                    step=0.1
+                    step=0.1,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -739,6 +750,7 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=5,
                     min=1,
                     step=1,
+                    hasStepButtons=True,
                 ),
                 FormDivider("Plot settings"),
                 DropdownField(
@@ -794,6 +806,8 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     value=-1,
                     min=-10,
                     max=10,
+                    step=1,
+                    hasStepButtons=True,
                 ),
                 FloatField(
                     name="scaling_factor",
@@ -801,6 +815,7 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     value=0.5,
                     min=0,
                     max=1,
+                    step=0.1,
                 ),
                 DropdownField(
                     name="graph_type",
