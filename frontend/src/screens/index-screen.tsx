@@ -390,7 +390,6 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-<<<<<<< HEAD
                 void callApiWithParameters("import_workflow/", {workflow_file: data.workflow ?? ""}).then(() => {
         notify({
           title: "Imported successfull",
@@ -398,12 +397,6 @@ export const IndexScreen: React.FC = () => {
           type: "success",
         });
               })}}
-=======
-                void callApiWithParameters("import_workflow/", {
-                  workflow_file: data.workflow ?? "",
-                });
-              }}
->>>>>>> 87ada62dae6d91b108d6ceeba580eafbd4d4e0d0
             ></Form>
           </Modal>
         </StyledTemplateCard>
