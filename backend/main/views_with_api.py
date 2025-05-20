@@ -330,7 +330,7 @@ def get_step_table(request):
 
         run = Run(run_name)
 
-        json_data = [{}]
+        json_data = []
         
         if run.current_step is not None:
             for dataframe in dataframes:
