@@ -31,6 +31,11 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
+const StyledButtonDiv = styledDiv.div`
+  display: flex;
+  gap: 10px;
+`;
+
 const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
@@ -237,8 +242,7 @@ export const IndexScreen: React.FC = () => {
       <StyledContainer>
         <StyledTemplateCard
           title={
-            //these two divs will be replaced by named styled divs defined above with the rest fo styled componetns
-            <div
+            <div //just making a styled.div with the same properties didnt yield the same look as doing it this way :(
               style={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -247,7 +251,7 @@ export const IndexScreen: React.FC = () => {
               }}
             >
               Template Workflows
-              <div style={{ display: "flex", gap: "10px" }}>
+              <StyledButtonDiv>
                 <Button
                   onClick={() => {
                     setIsExportModalOpen(true);
@@ -264,11 +268,10 @@ export const IndexScreen: React.FC = () => {
                   tooltip="Import a workflow"
                   tooltipPosition={"bottom"}
                 ></Button>
-              </div>
+              </StyledButtonDiv>
             </div>
           }
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <SearchInputField
               style={{ padding: "0", gap: "0", width: "30%" }}
               value={searchTermTop}
@@ -277,15 +280,6 @@ export const IndexScreen: React.FC = () => {
               }}
               placeholder="Search workflows"
             />
-            <Button
-              onClick={() => {
-                setIsExportModalOpen(true);
-              }}
-              icon="download"
-              tooltip="Export a workflow"
-              tooltipPosition={"bottom"}
-            ></Button>
-          </div>
           <StyledWorkflowContainer>
             {filteredWorkflows.map((workflow) => (
               <Workflow
