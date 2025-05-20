@@ -32,6 +32,7 @@ const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   box-sizing: border-box;
 `;
@@ -64,7 +65,7 @@ const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
   height: calc(
     100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
-      (5 * ${spacing("small")})
+      (3 * ${spacing("small")})
   );
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
@@ -212,7 +213,7 @@ export const IndexScreen: React.FC = () => {
   );
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
         allowRunEdit={false}
         onNavigateHome={() => void navigate("/")}

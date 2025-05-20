@@ -19,6 +19,9 @@ const CardBody = styledDiv.div<{ hasTitle: boolean }>`
   padding: ${spacing("small")};
   flex: 1;
   overflow-y: auto;
+  
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
 `;
 
 const CardTitle = styled(H3)`
