@@ -22,6 +22,9 @@ importers:
       "@mui/x-data-grid":
         specifier: ^7.27.2
         version: 7.27.2(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@mui/material@6.4.6(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mui/system@6.4.6(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@storybook/addon-actions":
+        specifier: ^8.6.12
+        version: 8.6.14(storybook@8.5.0(prettier@3.4.2))
       axios:
         specifier: ^1.7.9
         version: 1.7.9
@@ -1575,6 +1578,14 @@ packages:
       }
     peerDependencies:
       storybook: ^8.5.0
+
+  "@storybook/addon-actions@8.6.14":
+    resolution:
+      {
+        integrity: sha512-mDQxylxGGCQSK7tJPkD144J8jWh9IU9ziJMHfB84PKpI/V5ZgqMDnpr2bssTrUaGDqU5e1/z8KcRF+Melhs9pQ==,
+      }
+    peerDependencies:
+      storybook: ^8.6.14
 
   "@storybook/addon-backgrounds@8.5.0":
     resolution:
@@ -8594,6 +8605,15 @@ snapshots:
   "@rtsao/scc@1.1.0": {}
 
   "@storybook/addon-actions@8.5.0(storybook@8.5.0(prettier@3.4.2))":
+    dependencies:
+      "@storybook/global": 5.0.0
+      "@types/uuid": 9.0.8
+      dequal: 2.0.3
+      polished: 4.3.1
+      storybook: 8.5.0(prettier@3.4.2)
+      uuid: 9.0.1
+
+  "@storybook/addon-actions@8.6.14(storybook@8.5.0(prettier@3.4.2))":
     dependencies:
       "@storybook/global": 5.0.0
       "@types/uuid": 9.0.8
