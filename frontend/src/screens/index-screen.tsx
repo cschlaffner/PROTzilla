@@ -5,6 +5,7 @@ import { styled } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
+  Button,
   Card,
   Form,
   Icon,
@@ -12,6 +13,7 @@ import {
   Modal,
   Navbar,
   RunsTable,
+  SectionTitle,
   Tooltip,
   useNotification,
   useTooltipScheduling,
@@ -22,10 +24,24 @@ import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
+import saveAs from "file-saver";
+
 const StyledNavbar = styled(Navbar)`
   position: sticky;
   top: 0;
   z-index: 1000;
+`;
+
+const StyledHeader = styledDiv.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+`;
+
+const StyledButtonDiv = styledDiv.div`
+  display: flex;
+  gap: 10px;
 `;
 
 const StyledContainer = styled.div`
@@ -92,6 +108,8 @@ export const IndexScreen: React.FC = () => {
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
+  const [isExportRunModalOpen, setIsExportRunModalOpen] = useState(false);
+  const [isImportRunModalOpen, setIsImportRunModalOpen] = useState(false);
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
@@ -211,6 +229,15 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const handleExportRun = async (runName: InputValueType) => {
+    const blob: Blob = await callApiWithParameters(
+      "export_run/",
+      { run_name: runName ?? "placeholder" },
+      "blob",
+    );
+    saveAs(blob, (runName ?? "placeholder").toString() + ".zip");
+  };
+
   return (
     <div>
       <StyledNavbar
@@ -288,7 +315,31 @@ export const IndexScreen: React.FC = () => {
           </Modal>
         </StyledTemplateCard>
 
-        <StyledRunSelectionCard title="Run Selection">
+        <StyledRunSelectionCard
+          title={
+            <StyledHeader>
+              Run Selection
+              <StyledButtonDiv>
+                <Button
+                  onClick={() => {
+                    setIsExportRunModalOpen(true);
+                  }}
+                  icon="download"
+                  tooltip="Export a workflow"
+                  tooltipPosition={"bottom"}
+                ></Button>
+                <Button
+                  onClick={() => {
+                    setIsImportRunModalOpen(true);
+                  }}
+                  icon="add"
+                  tooltip="Import a workflow"
+                  tooltipPosition={"bottom"}
+                ></Button>
+              </StyledButtonDiv>
+            </StyledHeader>
+          }
+        >
           <Modal
             title="Run tags:"
             isOpen={isTagModalOpen}
@@ -302,6 +353,71 @@ export const IndexScreen: React.FC = () => {
               handleAddTag={handleAddTag}
               handleDeleteTag={handleDeleteTag}
             />
+          </Modal>
+          <Modal
+            title="Export a run"
+            isOpen={isExportRunModalOpen}
+            onClose={() => {
+              setIsExportRunModalOpen(false);
+            }}
+          >
+            {runs.length > 1 ? (
+              <Form
+                formData={{
+                  label: "",
+                  isAutoSubmit: false,
+                  hasChangeIndicator: false,
+                  input_fields: [
+                    {
+                      type: "dropdown",
+                      name: "run",
+                      label: "Choose a run:",
+                      options: runs.map((run) => ({ label: run.run_name, value: run.run_name })),
+                      isVisible: true,
+                    },
+                  ],
+                }}
+                onChange={(data) => {
+                  void handleExportRun(data.run);
+                }}
+              ></Form>
+            ) : (
+              <SectionTitle baseComponent={"h4"} description={"No runs available"} />
+            )}
+          </Modal>
+          <Modal
+            title="Import a run"
+            isOpen={isImportRunModalOpen}
+            onClose={() => {
+              setIsImportRunModalOpen(false);
+            }}
+          >
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "file",
+                    name: "run",
+                    label: "Choose a run (.zip):",
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                void callApiWithParameters("import_run/", {
+                  run_file: data.run ?? "",
+                }).then(() => {
+                  notify({
+                    title: "Imported successfully",
+                    message: `Run ${String(data.run)} has been imported`,
+                    type: "success",
+                  });
+                });
+              }}
+            ></Form>
           </Modal>
           <StyledDiv>
             <SearchInputField

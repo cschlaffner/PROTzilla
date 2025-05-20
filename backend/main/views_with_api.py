@@ -1,6 +1,8 @@
 import json
 import io
+from shutil import copy2, make_archive
 import traceback
+from zipfile import ZipFile
 
 import numpy as np
 from plotly.io import to_json
@@ -8,10 +10,11 @@ from plotly.io import to_json
 import pandas as pd
 from django.http import JsonResponse, FileResponse
 
+from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH
+from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
@@ -151,6 +154,38 @@ def update_run_name(request):
             if isinstance(e, OSError):
                 return JsonResponse({"success": False, "message": "Run name already exists."})
             return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def export_run(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name") 
+        
+        run_directory = RUNS_PATH / run_name
+        run_zip_path = settings.FILE_UPLOAD_TEMP_DIR / run_name
+        run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip" #can this be run_zip_path? check if make archive would still work
+
+        make_archive(run_zip_path, "zip", run_directory)
+        print(run_directory)
+        print(run_zip_path)
+        return FileResponse(open(run_zip_path_absolute, "rb"), as_attachment=True)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def import_run(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_file = data.get("run_file") 
+        
+        run_name = run_file.removesuffix(".zip")
+
+        run_zip = ZipFile(settings.FILE_UPLOAD_TEMP_DIR / run_file)
+
+
+        run_zip.extractall(path=RUNS_PATH / run_name)
+
+        return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
