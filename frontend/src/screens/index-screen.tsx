@@ -1,3 +1,4 @@
+import { saveAs } from "file-saver";
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +24,6 @@ import { SearchInputField } from "../components/input-fields/search-input-field"
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
-import { saveAs } from "file-saver";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -222,7 +222,7 @@ export const IndexScreen: React.FC = () => {
       { workflow_name: workflowName ?? "standard" },
       "blob",
     );
-    saveAs(blob, workflowName + ".yaml");
+    saveAs(blob, (workflowName ?? "standard").toString() + ".yaml");
   };
 
   return (
@@ -249,13 +249,17 @@ export const IndexScreen: React.FC = () => {
               Template Workflows
               <div style={{ display: "flex", gap: "10px" }}>
                 <Button
-                  onClick={() => setIsExportModalOpen(true)}
+                  onClick={() => {
+                    setIsExportModalOpen(true);
+                  }}
                   icon="download"
                   tooltip="Export a workflow"
                   tooltipPosition={"bottom"}
                 ></Button>
                 <Button
-                  onClick={() => setIsImportModalOpen(true)}
+                  onClick={() => {
+                    setIsImportModalOpen(true);
+                  }}
                   icon="upload"
                   tooltip="Import a workflow"
                   tooltipPosition={"bottom"}
@@ -274,7 +278,9 @@ export const IndexScreen: React.FC = () => {
               placeholder="Search workflows"
             />
             <Button
-              onClick={() => setIsExportModalOpen(true)}
+              onClick={() => {
+                setIsExportModalOpen(true);
+              }}
               icon="download"
               tooltip="Export a workflow"
               tooltipPosition={"bottom"}
@@ -361,7 +367,7 @@ export const IndexScreen: React.FC = () => {
                   ],
                 }}
                 onChange={(data) => {
-                  handleExportWorkflow(data.workflow);
+                  void handleExportWorkflow(data.workflow);
                 }}
               ></Form>
             ) : (
@@ -390,13 +396,16 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-                void callApiWithParameters("import_workflow/", {workflow_file: data.workflow ?? ""}).then(() => {
-        notify({
-          title: "Imported successfull",
-          message: `Workflow ${String(data.workflow)} has been imported`,
-          type: "success",
-        });
-              })}}
+                void callApiWithParameters("import_workflow/", {
+                  workflow_file: data.workflow ?? "",
+                }).then(() => {
+                  notify({
+                    title: "Imported successfull",
+                    message: `Workflow ${String(data.workflow)} has been imported`,
+                    type: "success",
+                  });
+                });
+              }}
             ></Form>
           </Modal>
         </StyledTemplateCard>
