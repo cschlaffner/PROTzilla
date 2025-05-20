@@ -1,7 +1,15 @@
 import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
+import {
+  Button,
+  DiscardModal,
+  Form,
+  InputValueType,
+  Settings,
+  Text,
+  useNotification,
+} from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
@@ -128,8 +136,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         run_name: runName,
         workflow_name: workflowname,
       }).then(() => {
-        setIsWorkflowSaveOpen(false)
-      })
+        setIsWorkflowSaveOpen(false);
+      });
     },
     [notify, runName],
   );
@@ -149,7 +157,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 icon={"edit"}
                 onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
               />
-              <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }} />
+              <Button
+                icon={"save"}
+                onPress={() => {
+                  setIsWorkflowSaveOpen(true);
+                }}
+              />
             </div>
           )}
         </NavbarCenter>

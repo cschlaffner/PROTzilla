@@ -100,7 +100,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
     if (direction === "up") {
       newValue = value + stepValue;
-      if (hasMax)  {
+      if (hasMax) {
         newValue = Math.min(newValue, max);
       }
     } else {
