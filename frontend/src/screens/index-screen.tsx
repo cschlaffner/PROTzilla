@@ -31,6 +31,13 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
+const StyledWorkflowHeader = styledDiv.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+`
+
 const StyledButtonDiv = styledDiv.div`
   display: flex;
   gap: 10px;
@@ -242,14 +249,7 @@ export const IndexScreen: React.FC = () => {
       <StyledContainer>
         <StyledTemplateCard
           title={
-            <div //just making a styled.div with the same properties didnt yield the same look as doing it this way :(
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
+            <StyledWorkflowHeader>
               Template Workflows
               <StyledButtonDiv>
                 <Button
@@ -269,7 +269,7 @@ export const IndexScreen: React.FC = () => {
                   tooltipPosition={"bottom"}
                 ></Button>
               </StyledButtonDiv>
-            </div>
+            </StyledWorkflowHeader>
           }
         >
             <SearchInputField
