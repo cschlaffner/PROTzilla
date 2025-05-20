@@ -1,3 +1,4 @@
+import saveAs from "file-saver";
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
@@ -24,14 +25,12 @@ import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
-import saveAs from "file-saver";
-
 const StyledNavbar = styled(Navbar)`
   position: sticky;
   top: 0;
   z-index: 1000;
 `;
-
+//should replace StyledWorkflowHeader from PR #53 
 const StyledHeader = styledDiv.div`
   display: flex;
   justify-content: space-between;
@@ -332,7 +331,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     setIsImportRunModalOpen(true);
                   }}
-                  icon="add"
+                  icon="add"//should be replaced with "download" when PR #53 is merged to dev
                   tooltip="Import a workflow"
                   tooltipPosition={"bottom"}
                 ></Button>
