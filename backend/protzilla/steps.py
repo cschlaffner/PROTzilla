@@ -108,13 +108,14 @@ class Step:
                 self.handle_calc_outputs(calc_output)
                 self.validate_outputs()
 
-            self.calculation_status = "complete"
             if (steps.failed_step_index == stepIndex):
                 steps.failed_step_index = -1
             
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
+
+            self.calculation_status = "complete"
             
             # delete tempfiles
             for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
