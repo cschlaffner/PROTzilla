@@ -5,7 +5,7 @@ import { NumberInputFieldProps } from "./number-input-field.props";
 
 export default {
   component: NumberInputField,
-  title: "Input Fields / Number Input Field",
+  title: "Form Fields / Number Input Field",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<NumberInputFieldProps>;
 

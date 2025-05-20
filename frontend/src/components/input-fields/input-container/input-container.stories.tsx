@@ -7,7 +7,7 @@ import { size, spacing } from "../../../theme";
 
 export default {
   component: InputContainer,
-  title: "Input Fields / Frame Input Field",
+  title: "Form Fields / Frame Input Field",
 } as Meta<InputContainerProps>;
 
 const StyledDiv = styled.div<{ $isSmall: boolean }>`

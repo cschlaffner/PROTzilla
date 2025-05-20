@@ -5,7 +5,7 @@ import { TextInputFieldProps } from "./text-input-field.props";
 
 export default {
   component: TextInputField,
-  title: "Input Fields / Text Input Field",
+  title: "Form Fields / Text Input Field",
   argTypes: {
     label: { control: "text" },
     placeholder: { control: "text" },

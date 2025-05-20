@@ -5,7 +5,7 @@ import { CheckboxSelectInputField } from "./checkbox-select-input-field.tsx";
 
 export default {
   component: CheckboxSelectInputField,
-  title: "Input Fields / Checkbox Select Input Field",
+  title: "Form Fields / Checkbox Select Input Field",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<CheckboxSelectInputFieldProps>;
 
