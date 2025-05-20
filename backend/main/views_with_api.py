@@ -10,6 +10,7 @@ from plotly.io import to_json
 import pandas as pd
 from django.http import JsonResponse, FileResponse
 
+from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
@@ -260,12 +261,12 @@ def export_workflow(request):
 def import_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        workflow_file = data.get("workflow_file") 
+        workflow= data.get("workflow_file") 
         
-        workflow_file = Path(workflow_file)
+        workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
         print(workflow_file)
 
-        shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow_file.name))
+        shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
 
         return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:

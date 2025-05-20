@@ -356,8 +356,13 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-                void callApiWithParameters("import_workflow/", {workflow_file: data.workflow ?? ""});
-              }}
+                void callApiWithParameters("import_workflow/", {workflow_file: data.workflow ?? ""}).then(() => {
+        notify({
+          title: "Imported successfull",
+          message: `Workflow ${String(data.workflow)} has been imported`,
+          type: "success",
+        });
+              })}}
             ></Form>
           </Modal>
         </StyledTemplateCard>
