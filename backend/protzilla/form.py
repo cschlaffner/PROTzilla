@@ -173,6 +173,9 @@ class Form:
         "to do fieldname in form to check if the field exists"
         
         return fieldname in self._field_map
+    
+    def __iter__(self):
+        return self.input_fields
 
     @property
     def values(self) -> Dict[str, str]:
