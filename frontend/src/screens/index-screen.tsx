@@ -12,6 +12,7 @@ import {
   Modal,
   Navbar,
   RunsTable,
+  SecondaryButton,
   Tooltip,
   useNotification,
   useTooltipScheduling,
@@ -39,20 +40,13 @@ const StyledContainer = styled.div`
 
 const StyledWorkflowContainer = styled(Container)`
   display: flex;
-  overflow-x: hidden;
+  overflow-x: auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  &:hover {
-    overflow-x: auto;
+    display: none;
   }
 `;
 
@@ -61,6 +55,17 @@ const StyledTemplateCard = styled(Card)`
   width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
+const NavigationDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: ${spacing("small")};
+`;
+
+const StyledArrowButton = styled(SecondaryButton)`
+  height: 10px;
+  padding: ${spacing("small")};
+`;
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
   height: calc(
@@ -212,6 +217,20 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const scrollLeft = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft -= 100;
+    }
+  };
+
+  const scrollRight = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft += 100;
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
@@ -231,7 +250,7 @@ export const IndexScreen: React.FC = () => {
             }}
             placeholder="Search workflows"
           />
-          <StyledWorkflowContainer>
+          <StyledWorkflowContainer className={"workflow-container"}>
             {filteredWorkflows.map((workflow) => (
               <Workflow
                 key={workflow}
@@ -244,6 +263,10 @@ export const IndexScreen: React.FC = () => {
               />
             ))}
           </StyledWorkflowContainer>
+          <NavigationDiv>
+            <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
+            <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
+          </NavigationDiv>
           <Modal
             title="Create run"
             isOpen={isWorkflowModalOpen}

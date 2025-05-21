@@ -197,7 +197,7 @@ export const baseTheme = {
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
-    bigButtonDimension: "150px",
+    bigButtonDimension: "125px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -209,7 +209,7 @@ export const baseTheme = {
     tableRow: "40px",
 
     // Input Screen
-    templateSelectionHeight: "350px",
+    templateSelectionHeight: "325px",
     runSelectionMinHeight: "300px",
 
     //Runs Table
