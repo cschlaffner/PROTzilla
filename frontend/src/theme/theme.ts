@@ -209,7 +209,7 @@ export const baseTheme = {
     tableRow: "40px",
 
     // Input Screen
-    templateSelectionHeight: "300px",
+    templateSelectionHeight: "350px",
     runSelectionMinHeight: "300px",
 
     //Runs Table
