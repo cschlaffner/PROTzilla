@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from backend.protzilla.constants.paths import RUNS_PATH
-from backend.protzilla.run import Run
+from backend.protzilla.run import Run, delete_run_folder
 from backend.protzilla.run_helper import log_messages
 from backend.protzilla.steps import Step
 from backend.protzilla.utilities import random_string
@@ -94,6 +94,7 @@ class Runner:
 
             self.run.step_next()
         self.run._run_write()
+        logging.info(f"Run {self.run_name} completed and saved at {self.run.run_path}")
 
     def _insert_commandline_inputs(self, step : Step):
         if step.operation == "Protein Data Import":
@@ -135,6 +136,7 @@ class Runner:
             print("exiting")
             exit(0)
         elif answer in ["y", "yes"]:
+            delete_run_folder(run_name=self.run_name)
             return
         else:
             print("\n\n----- Please answer with one of the given options")
