@@ -2,7 +2,7 @@ import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 
 import { WorkflowProps } from "./workflow.props";
-import { spacing } from "../../theme";
+import { size, spacing } from "../../theme";
 import { BigButton } from "../button";
 import { H5 } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
@@ -13,7 +13,7 @@ const StyledContainer = styled(Container)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 200px;
+  width: calc(${size("bigButtonDimension")} + 25px);
 `;
 
 const NameText = styled(H5)`

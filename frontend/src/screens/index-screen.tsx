@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
@@ -90,6 +90,7 @@ const InfoIcon = styled(Icon)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
+  const theme = useTheme();
 
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
@@ -217,17 +218,19 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const workflowContainerSize = parseInt((theme.sizes.bigButtonDimension as unknown as string).replace("px", "")) + 25;
+
   const scrollLeft = () => {
     const container = document.querySelector(".workflow-container");
     if (container) {
-      container.scrollLeft -= 100;
+      container.scrollLeft -= workflowContainerSize;
     }
   };
 
   const scrollRight = () => {
     const container = document.querySelector(".workflow-container");
     if (container) {
-      container.scrollLeft += 100;
+      container.scrollLeft += workflowContainerSize;
     }
   };
 
