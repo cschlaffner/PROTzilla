@@ -262,12 +262,18 @@ def export_workflow(request):
 def import_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        workflow= data.get("workflow_file") 
+        workflow = data.get("workflow_file") 
+        new_name = data.get("new_name")
         
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
-        print(workflow_file)
 
-        shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+        if new_name == "":
+            shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+        else:
+            try:
+                shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / new_name))
+            except Exception as exception:
+                return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
 
         return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
