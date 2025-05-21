@@ -12,11 +12,13 @@ import {
   ListEditor,
   Navbar,
   PlotComponent,
+  SectionTitle,
   SwitchCard,
 } from "./../components";
 import {
   dummyTextComponent1,
   footerMessages,
+  mockPlots,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
@@ -55,6 +57,7 @@ const StyledPlotContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
 `;
 
 const StyledTableContainer = styled.div`
@@ -79,12 +82,8 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
+  const [plots, setPlots] = useState<Figure[]>(mockPlots);
   const [tableData, setTableData] = useState(mockTableData);
-
-  const [plot, setPlot] = useState<Figure>({
-    data: [],
-    layout: {},
-  });
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -118,17 +117,14 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const data = response.data;
 
-      let rawData = [];
-      let rawLayout = [];
+      const rawPlots = [];
       if (data.length > 0) {
-        const paredData = JSON.parse(data[0]);
-        rawData = paredData.data;
-        rawLayout = paredData.layout;
+        for (const plot of data) {
+          rawPlots.push(JSON.parse(plot));
+        }
       }
-      setPlot({
-        data: rawData,
-        layout: rawLayout,
-      });
+
+      setPlots(rawPlots);
     }
   }, [runName]);
 
@@ -157,12 +153,11 @@ export const RunScreen: React.FC = () => {
   };
 
   const plotComponent = (
-    <div>
-      <StyledPlotContainer>
-        <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
-      </StyledPlotContainer>
-      {plot.data.length > 0 && (
-        <div>
+    <StyledPlotContainer>
+      {plots.length > 0 ? (
+        plots.map((plot, index) => (
+          <div>
+          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true} />
           <Button text="Download plot" onClick={openDownloadModal} />
           <PlotDownloadSettings
             isOpen={isDownloadModalOpen}
@@ -170,9 +165,12 @@ export const RunScreen: React.FC = () => {
             data={plot.data}
             layout={plot.layout}
           />
-        </div>
+          </div>
+        ))
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
-    </div>
+    </StyledPlotContainer>
   );
 
   const tableComponent = (
