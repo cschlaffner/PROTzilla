@@ -13,7 +13,7 @@ const StyledContainer = styled(Container)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: calc(${size("bigButtonDimension")} + 25px);
+  width: ${size("bigButtonContainerDimension")};
 `;
 
 const NameText = styled(H5)`

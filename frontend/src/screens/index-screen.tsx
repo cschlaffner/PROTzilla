@@ -218,7 +218,9 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
-  const workflowContainerSize = parseInt((theme.sizes.bigButtonDimension as unknown as string).replace("px", "")) + 25;
+  const workflowContainerSize = parseInt(
+    (theme.sizes.bigButtonContainerDimension as unknown as string).replace("px", ""),
+  );
 
   const scrollLeft = () => {
     const container = document.querySelector(".workflow-container");

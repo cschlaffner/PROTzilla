@@ -198,6 +198,7 @@ export const baseTheme = {
     buttonHeight: "40px",
     smallButtonHeight: "24px",
     bigButtonDimension: "125px",
+    bigButtonContainerDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
