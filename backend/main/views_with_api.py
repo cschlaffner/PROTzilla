@@ -238,7 +238,7 @@ def save_workflow(request):
         workflow_name = data.get("workflow_name") #could this be optional and just take the run_name as default?
 
         run = Run(run_name)
-        run._workflow_save(workflow_name)
+        run._workflow_save(workflow_name.replace(" ", "_"))
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
     else:

@@ -20,3 +20,9 @@ python runner_cli.py --meta-data-path /path/to/meta_data.csv -n MyRunForTheRunne
 ```
 
 This command will run the workflow `my_modified_standard_workflow` on the input file `/path/to/proteinGroups.txt` with the metadata provided in `/path/to/meta_data.csv`. The workflow `my_modified_standard_workflow` will be used, and the run will be saved to disk. The run will be named `MyRunForTheRunner`. During execution more console information is shown due to the `-v` flag.
+
+#### Troubleshooting
+Please make sure to not have any spaces in the path to the input files or the workflow name or look up the correct escaping method
+for your operating system. These will be handled as separate arguments and will lead to an error.
+
+Errors on run execution will be printed to the console. 
