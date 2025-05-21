@@ -120,22 +120,29 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
     closeAfterMsProp > 0 ? closeAfterMsProp : theme.durations.standardNotificationDuration;
   const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
   const [isTracebackVisible, setIsTracebackVisible] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (isShown && isClosingAutomatically && closeAfterMs > 0) {
+    if (isShown && isClosingAutomatically && closeAfterMs > 0 && !isHovered) {
       setHasStartedProgressBar(true);
 
-      const timer = setTimeout(() => {
+      const newTimer = setTimeout(() => {
         setIsShown(false);
         onClose?.();
       }, closeAfterMs);
 
+      setTimer(newTimer);
+
       return () => {
-        clearTimeout(timer);
+        clearTimeout(newTimer);
         setHasStartedProgressBar(false);
       };
+    } else if (isHovered && timer) {
+      clearTimeout(timer);
+      setTimer(null);
     }
-  }, [isShown, isClosingAutomatically, closeAfterMs, onClose]);
+  }, [isShown, isClosingAutomatically, closeAfterMs, onClose, isHovered, timer]);
 
   const handleClose = () => {
     setIsShown(false);
@@ -146,8 +153,22 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
     setIsTracebackVisible((prev) => !prev);
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
-    <Container isShown={isShown} type={type} {...props}>
+    <Container
+      isShown={isShown}
+      type={type}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      {...props}
+    >
       <TextContainer>
         {title && <TitleText text={title} />}
         {message && <DescriptionText text={message} />}
