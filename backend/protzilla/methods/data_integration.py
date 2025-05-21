@@ -127,6 +127,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                     value = 0,
                     min = 0,
                     max = 4294967295,
+                    hasStepButtons=True,
                 ),
                 MultiSelectField(
                     name = "gene_sets_restring",
@@ -311,9 +312,9 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                     name = "top_terms",
                     label = "Number of top enriched terms per category",
                     min = 1,
-                    max = 100,
                     step = 1,
                     value = 10,
+                    hasStepButtons=True,
                 ),
                 FloatField(
                     name = "cutoff",

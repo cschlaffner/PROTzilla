@@ -47,11 +47,11 @@ class NumberField(_baseField):
     separateSuffix: str|None = None
 
 
-@dataclass
+@dataclass         
 class FloatField(_baseField):
     type: str = "number"
-    min: int|None = None
-    max: int|None = None
+    min: float|None = None
+    max: float|None = None
     step: float = 1
     value: float = 0.0
     isInteger: bool = False
