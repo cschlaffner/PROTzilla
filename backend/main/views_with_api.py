@@ -22,6 +22,7 @@ from backend.main.views_with_api_helper import get_step, get_displayed_steps, pa
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
+dataframes = ["protein_df", "metadata_df", "peptide_df"]
 
 def run_information_list(request):
     run_info = get_available_run_info()
@@ -356,15 +357,17 @@ def get_step_table(request):
         run_name = data.get("run_name")
 
         run = Run(run_name)
+
+        json_data = []
         
         if run.current_step is not None:
-            if "protein_df" in run.current_outputs:
-                data = run.current_outputs["protein_df"]
-                data["id"] = data.index
-                cleaned_data = data.replace(np.nan, None)
-                json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-            else:
-                json_data = [{}]
+            for dataframe in dataframes:
+                if dataframe in run.current_outputs:
+                    data = run.current_outputs[dataframe]
+                    data["id"] = data.index
+                    cleaned_data = data.replace(np.nan, None)
+                    json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+                    break
 
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
