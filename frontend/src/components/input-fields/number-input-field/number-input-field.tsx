@@ -19,7 +19,7 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   border: none;
   outline: none;
   height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
-  width: calc(100% - 10px);
+  width: 100%;
 `;
 
 const StepButtonContainer = styled.div<{ $isLastElement: boolean }>`
@@ -28,12 +28,9 @@ const StepButtonContainer = styled.div<{ $isLastElement: boolean }>`
   flex-direction: column;
   align-items: flex-end;
   gap: 0;
-  background-color: #e4e4e5;
-
+  background-color: ${color("gray6")};
   border-radius: ${({ $isLastElement }) => ($isLastElement ? `0 6px 6px 0` : `0`)};
-
   border-left: ${border("defaultStrength")} solid ${borderColors("default")};
-
   overflow: hidden;
 `;
 
@@ -43,7 +40,7 @@ const StepButtonContainerWithMargin = styled(StepButtonContainer)`
 
 const StepButton = styled(GrayButton)`
   border-radius: 0px;
-  background-color: #e4e4e5;
+  background-color: ${color("gray6")};
   min-height: 0px;
   width: 15px;
   padding: 0px;
