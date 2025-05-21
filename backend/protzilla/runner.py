@@ -93,8 +93,9 @@ class Runner:
                 break
 
             self.run.step_next()
+        logging.info("\n Saving run...\n")
         self.run._run_write()
-        logging.info(f"Run {self.run_name} completed and saved at {self.run.run_path}")
+        logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
     def _insert_commandline_inputs(self, step : Step):
         if step.operation == "Protein Data Import":

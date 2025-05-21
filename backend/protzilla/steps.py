@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import inspect
 import logging
 import traceback
@@ -266,7 +265,10 @@ class Step:
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
-        
+        if list(self.output.output.keys()) == ["messages"]:
+            raise ValueError(
+                f"Output validation failed: Output only contains messages: {self.messages}."
+            )
         for key in self.output_keys:
             if key not in self.output or self.output[key] is None:
                 if not soft_check:
