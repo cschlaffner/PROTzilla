@@ -83,6 +83,7 @@ export const RunScreen: React.FC = () => {
 
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>(mockPlots);
+  const [selectedPlot, setSelectedPlot] = useState<Figure>(mockPlots[0]);
   const [tableData, setTableData] = useState(mockTableData);
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -152,25 +153,34 @@ export const RunScreen: React.FC = () => {
     void getStepTable();
   };
 
+  const handleDownloadButton = (plot: Figure) => {
+    setSelectedPlot(plot);
+    openDownloadModal();
+  };
+
   const plotComponent = (
     <StyledPlotContainer>
       {plots.length > 0 ? (
-        plots.map((plot, index) => (
-          <div>
-          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true} />
-          <Button text="Download plot" onClick={openDownloadModal} />
-          <PlotDownloadSettings
+        <>
+        {plots.map((plot, index) => (
+          //TODO: Make the layout beautiful and put it in a styled Component (like StyledPlotContainer for example)
+          <div key={index} style={{display: "flex", flexDirection: "row"}}> 
+          <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
+          <Button text="Download plot" onClick={() => { handleDownloadButton(plot); }} />
+          </div>
+        ))}
+        <PlotDownloadSettings
             isOpen={isDownloadModalOpen}
             onClose={closeDownloadModal}
-            data={plot.data}
-            layout={plot.layout}
+            data={selectedPlot.data}
+            layout={selectedPlot.layout}
           />
-          </div>
-        ))
+        </>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
     </StyledPlotContainer>
+    
   );
 
   const tableComponent = (

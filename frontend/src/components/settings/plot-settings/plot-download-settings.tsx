@@ -73,9 +73,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleTitleChange,
   } = usePlotSettings(isOpen);
 
-  const initialPlot = { data, layout };
-  const [plot, updatePlot] = useState(initialPlot);
-  const [prevTitle] = useState<string>(getTitleFromLayout(initialPlot.layout));
+  const [plot, setPlot] = useState({ data, layout });
+  const [prevTitle] = useState<string>(getTitleFromLayout(plot.layout));
+
+  useEffect(() => {
+    setPlot({data, layout})
+  }, [data, layout])
 
   useEffect(() => {
     const displaySizes = computeDisplaySizes();
@@ -85,7 +88,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    updatePlot((prevPlot) => ({
+    setPlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
