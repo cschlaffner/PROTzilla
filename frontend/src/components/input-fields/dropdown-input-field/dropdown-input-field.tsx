@@ -73,14 +73,14 @@ const OptionItem = styled.li`
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
-    const [selectedOption, setSelectedOption] = useState(
+    const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
       //TODO QUICKFIX this should be .value in the future
-      options.find((option) => option.label === value) ?? options[0],
+      options.find((option) => option.label === value) ?? options[0] ?? null,
     );
 
     useEffect(() => {
       if (options.length === 0) {
-        setSelectedOption({ label: "", value: "" });
+        setSelectedOption(null);
         return;
       }
 
@@ -113,6 +113,9 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
     };
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!isOpen && options.length === 0)
+        return;
+
       const target = event.target as HTMLElement;
       if (
         target.closest(".inline-prefix") ||
@@ -131,7 +134,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
             inlineSuffix={<Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />}
           >
             <StyledInputLabel className="selected-value-text" $isSmall={props.isSmall ?? false}>
-              {selectedOption.label}
+              {selectedOption?.label ?? "No options available"}
             </StyledInputLabel>
           </InputContainer>
         </div>
