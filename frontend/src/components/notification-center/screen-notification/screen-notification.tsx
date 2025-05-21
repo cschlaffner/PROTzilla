@@ -5,7 +5,7 @@ import { ScreenNotificationProps } from "./screen-notification.props";
 import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
 import { GrayButton } from "../../button";
-import { iconColor } from "../../icon/icon";
+import { iconColor } from "../../icon";
 import { Text } from "../../text";
 
 const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
@@ -20,6 +20,8 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   padding: ${spacing("small")};
   border-radius: ${radius("default")};
   width: 100%;
+  max-width: 100%;
+  align-items: flex-start;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
@@ -34,6 +36,8 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
 const TextContainer = styled(FlexColumn)`
   width: 100%;
   gap: ${spacing("verySmall")};
+  flex: 1;
+  min-width: 0;
 `;
 
 const TitleText = styled(Text)`
@@ -55,6 +59,8 @@ const DescriptionText = styled(Text)`
 
 const CloseIcon = styled(GrayButton)`
   width: ${size("buttonHeight")};
+  flex-shrink: 0;
+  margin-left: ${spacing("small")};
 
   .icon {
     ${iconColor("onPrimary")}
@@ -72,9 +78,35 @@ const ProgressBar = styled.div<{ active: boolean; duration: number }>`
   border-radius: ${radius("default")};
 `;
 
+const TracebackContainer = styled(FlexColumn)`
+  width: 100%;
+  gap: ${spacing("verySmall")};
+  margin-top: ${spacing("small")};
+`;
+
+const TracebackToggle = styled(GrayButton)`
+  font-weight: ${fontWeight("bold")};
+  color: ${color("onPrimary")};
+  text-align: left;
+  padding: ${spacing("verySmall")};
+  background: none;
+  border: none;
+  cursor: pointer;
+`;
+
+const TracebackText = styled(Text)`
+  color: ${color("onPrimary")};
+  font-size: ${fontSize("h6")};
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  white-space: pre-wrap;
+`;
+
 export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   title,
   message,
+  traceback,
   type = "error",
   isShown: propIsShown = false,
   isClosingAutomatically = true,
@@ -87,6 +119,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   const closeAfterMs =
     closeAfterMsProp > 0 ? closeAfterMsProp : theme.durations.standardNotificationDuration;
   const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
+  const [isTracebackVisible, setIsTracebackVisible] = useState(false);
 
   useEffect(() => {
     if (isShown && isClosingAutomatically && closeAfterMs > 0) {
@@ -109,11 +142,23 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
     onClose?.();
   };
 
+  const toggleTracebackVisibility = () => {
+    setIsTracebackVisible((prev) => !prev);
+  };
+
   return (
     <Container isShown={isShown} type={type} {...props}>
       <TextContainer>
         {title && <TitleText text={title} />}
         {message && <DescriptionText text={message} />}
+        {traceback && (
+          <TracebackContainer>
+            <TracebackToggle onClick={toggleTracebackVisibility}>
+              {isTracebackVisible ? "Hide Traceback" : "Show Traceback"}
+            </TracebackToggle>
+            {isTracebackVisible && <TracebackText text={traceback} />}
+          </TracebackContainer>
+        )}
       </TextContainer>
       {isShown && <CloseIcon icon="close" onPress={handleClose} isShy />}
       {isClosingAutomatically && closeAfterMs > 0 && (
