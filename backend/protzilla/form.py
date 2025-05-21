@@ -85,6 +85,8 @@ class MultiSelectField(_baseField):
     options: List[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
+    def set_options(self, options: list[Option] | Enum) -> None:
+        self.options = options
 
 @dataclass
 class DropdownField(_baseField):
