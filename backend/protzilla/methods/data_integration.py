@@ -40,16 +40,16 @@ class Organism(Enum):
 
 
 class PermutationTypeField(Enum):
-    phenotype = "Phenotype"
-    gene_set = "Gene Set"
+    phenotype = "phenotype"
+    gene_set = "gene_set"
 
 
 class RankingMethodField(Enum):
-    log2_ratio_of_classes = "Log2 Ratio of classes"
-    signal_to_noise = "Signal to noise"
-    t_test = "t-Test"
-    ratio_of_classes = "Ratio of classes"
-    diff_of_classes = "Difference of classes"
+    log2_ratio_of_classes = "log2_ratio_of_classes"
+    signal_to_noise = "signal_to_noise"
+    t_test = "t_test"
+    ratio_of_classes = "ratio_of_classes"
+    diff_of_classes = "diff_of_classes"
 
 
 class RankingDirectionField(Enum):
@@ -198,7 +198,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             input_fields = [
                 DropdownField(
                     name = "protein_df_step_instance",
-                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC). Maybe do a differential expression analysis first",
                 ),
                 NumberField(
                     name = "differential_expression_threshold",
@@ -233,9 +233,10 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 FileInput(
                     name = "gene_sets_path",
                     label = "Upload gene sets with uppercase gene symbols (any of the following file types: .gmt, .txt, .csv, "
-                            ".json | .txt (one set per line): SetName followed by tab-separated list of proteins | .csv (one set "
-                            "per line): SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], SetName2: [Gene2, Gene3, "
-                            "...]})"
+                            ".json \n"
+                            ".txt (one set per line): SetName followed by tab-separated list of proteins\n"
+                            ".csv (one set per line): SetName, Gene1, Gene2, ...\n"
+                            r".json: {SetName: [Gene1, Gene2, ...], SetName2: [Gene2, Gene3,...]})"
                 ),
                 DropdownField(
                     name = "gene_sets_enrichr",
@@ -257,7 +258,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                     min = 1,
                     max = 4294967295,
                     step = 1,
-                    value = None
+                    value = 0,
                 ),
                 DropdownField(
                     name = "background_biomart",
@@ -268,6 +269,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
 
     def modify_form(self, form, run):
         protein_df_step_instance_field = form["protein_df_step_instance"]
+        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         gene_sets_field = form["gene_sets_field"]
         gene_sets_enricher_field = form["gene_sets_enrichr"]
         gene_sets_path_field = form["gene_sets_path"]
@@ -282,7 +284,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
             )
         )
-        form["gene_mapping_step_instance"].set_options(
+        gene_mapping_step_instance_field.set_options(
             form_helper.get_choices(
                 run, "gene_mapping_df"
             )
@@ -431,7 +433,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
         )
         gene_mapping_step_instance_field.set_options(
             form_helper.get_choices(
-                run, "gene_mapping"
+                run, "gene_mapping_df"
             )
         )
 
@@ -453,7 +455,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", inputs["protein_df"]
+            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
         )  # TODO name fix
         if (
             inputs.get("proteins_df") is None
@@ -463,7 +465,9 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
                 "No data found to be enriched. Please do a differential expression analysis first or select the corrent step"
             )
         inputs["differential_expression_col"] = "log2_fold_change"
-
+        inputs["gene_mapping_df"] = steps.get_step_output(
+            Step, "gene_mapping_df", inputs["gene_mapping_step_instance"]
+        )
         return inputs
 
 
@@ -481,7 +485,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
             label = "GSEA",
             input_fields = [
                 DropdownField(
-                    name = "protein_df",
+                    name = "protein_df_step_instance",
                     label = "Dataframe with protein IDs, samples and intensities",
                 ),
                 DropdownField(
@@ -556,7 +560,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
         )
 
     def modify_form(self, form, run):
-        protein_df_field = form["protein_df"]
+        protein_df_field = form["protein_df_step_instance"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         gene_sets_field = form["gene_sets_field"]
         gene_sets_enrichr_field = form["gene_sets_enrichr"]
@@ -617,6 +621,15 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
                     )
                 )
             )
+    
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["protein_df"] = steps.get_step_output(
+            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
+        )
+        inputs["metadata_df"] = steps.metadata_df
+        inputs["gene_mapping_df"] = steps.get_step_output(
+            Step, "gene_mapping_df", inputs["gene_mapping_step_instance"]
+        )
 
 
 class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
@@ -632,8 +645,18 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
         return Form(
             label = "GSEA preranked",
             input_fields = [
-                # TODO: protein_df
-                # TODO: ranking_column
+                DropdownField(
+                    name = "protein_df_step_instance",
+                    label = "Dataframe with protein IDs, samples and intensities",
+                ),
+                DropdownField(
+                    name = "gene_mapping_step_instance",
+                    label = "Gene mapping",
+                ),
+                DropdownField(
+                    name = "ranking_column",
+                    label = "Column to use for ranking",
+                ),
                 DropdownField(
                     name = "ranking_direction",
                     label = "Sort the ranking column (ascending - smaller values are better, "
@@ -641,7 +664,6 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                     value = RankingDirectionField.ascending,
                     options = RankingDirectionField,
                 ),
-                # TODO: gene_mapping
                 DropdownField(
                     name = "gene_sets_field",
                     label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
@@ -657,7 +679,10 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                             "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
                             "SetName2: [Gene2, Gene3, ...]})",
                 ),
-                # TODO: gene_sets_enrichr
+                DropdownField(
+                    name = "gene_sets_enrichr",
+                    label = "Gene sets",
+                ),
                 NumberField(
                     name = "min_size",
                     label = "Minimum number of genes from gene set also in data",
@@ -692,6 +717,57 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                     value = 1,
                 ),
             ]
+        )
+    
+    def modify_form(self, form, run):
+        protein_df_step_instance_field = form["protein_df_step_instance"]
+        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
+        ranking_column_field = form["ranking_column"]
+
+        protein_df_step_instance_field.set_options(
+            form_helper.get_choices(
+                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
+            )
+        )
+
+        gene_mapping_step_instance_field.set_options(
+            form_helper.get_choices(
+                run, "gene_mapping_df"
+            )
+        )
+
+        if protein_df_step_instance_field.value:
+            column_names = list(run.steps.get_step_output(
+                Step, "differentially_expressed_proteins_df", protein_df_step_instance_field.value
+            ))
+            ranking_column_field.set_options([Option(el, el) for el in column_names])
+        else:
+            ranking_column_field.set_options()
+        
+        gene_sets_field = form["gene_sets_field"]
+        gene_sets_enrichr_field = form["gene_sets_enrichr"]
+        gene_sets_path_field = form["gene_sets_path"]
+        
+        gene_sets_enrichr_field.isVisible = False
+        gene_sets_path_field.isVisible = False
+
+        if gene_sets_field.value == GeneSetsField.choose_from_enrichr_options.value:
+            gene_sets_enrichr_field.isVisible = True
+            gene_sets_enrichr_field.set_options(
+                form_helper.to_choices(
+                    gseapy.get_library_name()
+                )
+            )
+        else:
+            gene_sets_path_field.isVisible = True
+
+
+    def insert_dataframes(self, steps, inputs):
+        inputs["protein_df"] = steps.get_step_output(
+            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
+        )
+        inputs["gene_mapping_df"] = steps.get_step_output(
+            Step, "gene_mapping_df", inputs["gene_mapping_step_instance"]
         )
 
 
