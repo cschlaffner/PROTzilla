@@ -1,5 +1,6 @@
 import json
 import io
+import re
 import traceback
 
 import numpy as np
@@ -235,10 +236,11 @@ def save_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        workflow_name = data.get("workflow_name") #could this be optional and just take the run_name as default?
+        workflow_name = data.get("workflow_name")
 
         run = Run(run_name)
-        run._workflow_save(workflow_name.replace(" ", "_"))
+        new_workflow_name = re.sub(r'[^\w\.-]', '-', workflow_name)
+        run._workflow_save(new_workflow_name)
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
     else:
@@ -356,12 +358,12 @@ def calculate_step(request):
         calculation_data["section"] = run.current_step.section
         calculation_data["index"] = run.steps.current_step_index_in_section
         calculation_data["status"] = run.current_step.calculation_status
-        calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
+        calculation_data["messages"] = [message for message in run.current_messages.messages]
 
         if calculation_data["status"] != "complete":
             return JsonResponse({"success": False, "message": calculation_data["messages"]
                                 , "data": calculation_data}, status=500)
-        return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
+        return JsonResponse({"success": True, "message": calculation_data["messages"], "data": calculation_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
