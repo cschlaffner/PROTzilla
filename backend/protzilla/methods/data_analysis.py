@@ -235,7 +235,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separateSuffix="\u03B1",
+                    separatePrefix="\u03B1",
                 ),
                 DropdownField(
                     name="grouping",

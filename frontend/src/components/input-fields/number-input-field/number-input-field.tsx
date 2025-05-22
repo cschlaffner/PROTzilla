@@ -27,15 +27,10 @@ const StepButtonContainer = styled.div<{ $isLastElement: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
   background-color: ${color("gray6")};
   border-radius: ${({ $isLastElement }) => ($isLastElement ? `0 6px 6px 0` : `0`)};
   border-left: ${border("defaultStrength")} solid ${borderColors("default")};
   overflow: hidden;
-`;
-
-const StepButtonContainerWithMargin = styled(StepButtonContainer)`
-  margin-right: -${spacing("verySmall")};
 `;
 
 const StepButton = styled(GrayButton)`
@@ -136,46 +131,26 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
           $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
           {...props}
         />
-        {hasStepButtons &&
-          (props.separateSuffix ? (
-            <StepButtonContainerWithMargin $isLastElement={!props.separateSuffix}>
-              <StepButton
-                onClick={() => {
-                  handleClick("up");
-                }}
-                icon="triangleUp"
-                color="text"
-                isSmall
-              />
-              <StepButton
-                onClick={() => {
-                  handleClick("down");
-                }}
-                icon="triangleDown"
-                color="text"
-                isSmall
-              />
-            </StepButtonContainerWithMargin>
-          ) : (
-            <StepButtonContainer $isLastElement={!props.separateSuffix}>
-              <StepButton
-                onClick={() => {
-                  handleClick("up");
-                }}
-                icon="triangleUp"
-                color="text"
-                isSmall
-              />
-              <StepButton
-                onClick={() => {
-                  handleClick("down");
-                }}
-                icon="triangleDown"
-                color="text"
-                isSmall
-              />
-            </StepButtonContainer>
-          ))}
+        {hasStepButtons && (
+          <StepButtonContainer $isLastElement={!props.separateSuffix}>
+            <StepButton
+              onClick={() => {
+                handleClick("up");
+              }}
+              icon="triangleUp"
+              color="text"
+              isSmall
+            />
+            <StepButton
+              onClick={() => {
+                handleClick("down");
+              }}
+              icon="triangleDown"
+              color="text"
+              isSmall
+            />
+          </StepButtonContainer>
+        )}
       </InputWithButtonsWrapper>
     </InputContainer>
   );

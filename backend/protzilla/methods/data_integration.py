@@ -127,6 +127,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                     value = 0,
                     min = 0,
                     max = 4294967295,
+                    step = 1,
                     hasStepButtons=True,
                 ),
                 MultiSelectField(

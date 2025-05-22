@@ -132,7 +132,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separateSuffix="\u03C3"
+                    separatePrefix="\u03C3"
                 ),
                 DropdownField(
                     name="graph_type",
@@ -234,7 +234,7 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separateSuffix="\u03C3",
+                    separatePrefix="\u03C3",
                 ),
                 DropdownField(
                     name="graph_type",

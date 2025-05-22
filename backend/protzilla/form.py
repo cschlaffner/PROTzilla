@@ -44,6 +44,7 @@ class NumberField(_baseField):
     value: int = 0
     isInteger: bool = True
     hasStepButtons: bool = False
+    separatePrefix: str|None = None
     separateSuffix: str|None = None
 
 
@@ -56,6 +57,7 @@ class FloatField(_baseField):
     value: float = 0.0
     isInteger: bool = False
     hasStepButtons: bool = True
+    separatePrefix: str|None = None
     separateSuffix: str|None = None
 
 
