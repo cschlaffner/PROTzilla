@@ -41,8 +41,8 @@ const StyledWorkflowHeader = styledDiv.div`
 `;
 
 const StyledButtonDiv = styledDiv.div`
-  display: flex;
-  gap: 10px;
+  position: relative;
+  width: calc(2 * ${size("buttonHeight")} + ${spacing("buttonGap")})
 `;
 
 const StyledContainer = styled.div`
@@ -80,7 +80,8 @@ const NavigationDiv = styledDiv.div`
 
 const StyledArrowButton = styled(SecondaryButton)`
   height: 10px;
-  padding: ${spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
 `;
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
@@ -131,6 +132,9 @@ export const IndexScreen: React.FC = () => {
     favourite_status: false,
     run_tags: [],
   }));
+
+  const customButtonSpacing = (parseInt((theme.sizes.buttonHeight as unknown as string).replace("px", ""))
+  + parseInt((theme.spacing.buttonGap as unknown as string).replace("px", ""))).toString() + "px"
 
   useEffect(() => {
     const fetchData = async () => {
@@ -310,6 +314,7 @@ export const IndexScreen: React.FC = () => {
                   icon="download"
                   tooltip="Export a workflow"
                   tooltipPosition={"left"}
+                  style={{position: "absolute", top: "0px", left: "0px"}}
                 ></Button>
                 <Button
                   onClick={() => {
@@ -318,6 +323,7 @@ export const IndexScreen: React.FC = () => {
                   icon="upload"
                   tooltip="Import a workflow"
                   tooltipPosition={"left"}
+                  style={{position: "absolute", top: "0px", left: customButtonSpacing}}
                 ></Button>
               </StyledButtonDiv>
             </StyledWorkflowHeader>
