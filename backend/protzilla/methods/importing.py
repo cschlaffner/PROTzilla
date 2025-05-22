@@ -248,12 +248,10 @@ class MetadataColumnAssignment(ImportingStep):
                 DropdownField(
                     name="metadata_required_column",
                     label="Missing, but required metadata columns",
-                    options=EmptyEnum,
                 ),
                 DropdownField(
                     name="metadata_unknown_column",
                     label="Existing, but unknown metadata columns",
-                    options=EmptyEnum,
                 )
             ],
         )
@@ -272,9 +270,9 @@ class MetadataColumnAssignment(ImportingStep):
                 for col in ["Sample", "Group", "Batch"]
                 if col not in metadata.columns
             ])
-            if len(metadata_required_column.choices) == 0:
+            if len(metadata_required_column.options) == 0:
                 metadata_required_column.set_options([
-                    Option(None, "No required columns missing") #sollten die options hier vllt einfach leer gesetzt werden?
+                    Option("No required columns missing", "No required columns missing") #sollten die options hier vllt einfach leer gesetzt werden?
                 ])
             
             unknown_columns = list(
@@ -283,12 +281,12 @@ class MetadataColumnAssignment(ImportingStep):
                 ].unique()
             )
 
-            metadata_unknown_column.set_choices([
+            metadata_unknown_column.set_options([
                 Option(col, col) for col in unknown_columns
             ])
-            if len(metadata_unknown_column) == 0:
-                metadata_unknown_column.set_choices([
-                    Option(None, "No unknown columns") #wie oben
+            if len(metadata_unknown_column.options) == 0:
+                metadata_unknown_column.set_options([
+                    Option("No unknown columns", "No unknown columns") #wie oben
                 ])
 
     calc_method = staticmethod(metadata_column_assignment)
@@ -359,12 +357,6 @@ class EvidenceImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Evidence file",
-                    value=None,
-                ),
-                DropdownField(
-                    name="intensity_name",
-                    label="Intensity parameter",
-                    options=IntensityType,
                 ),
                 CheckboxField(
                     name = "map_to_uniprot",
@@ -375,12 +367,7 @@ class EvidenceImport(ImportingStep):
         )
     
     def modify_form(self, form, run):
-        intensity_name_field = form["intensity_name"]
         map_to_uniprot_field = form["map_to_uniprot"]
-
-        intensity_name_field.value = run.steps.get_step_input(
-            [MaxQuantImport, MsFraggerImport, DiannImport], "intensity_name"
-        )
 
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport], "map_to_uniprot"
