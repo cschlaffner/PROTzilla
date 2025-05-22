@@ -124,22 +124,23 @@ export const IndexScreen: React.FC = () => {
     run_tags: [],
   }));
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await callApi("run_information/");
-      if (response.success) {
-        setRuns(response.data[0]);
-      } else {
-        notify({
-          title: "Error",
-          message: response.message,
-          type: "error",
-        });
-      }
-    };
+  const getRuns = async () => {
+    const response = await callApi("run_information/");
+    if (response.success) {
+      setRuns(response.data[0]);
+    } else {
+      notify({
+        title: "Error",
+        message: response.message,
+        type: "error",
+      });
+    }
+  };
 
-    void fetchData();
-  }, [notify]);
+  useEffect(() => {
+    void getRuns();
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -236,6 +237,27 @@ export const IndexScreen: React.FC = () => {
     );
     saveAs(blob, (runName ?? "placeholder").toString() + ".zip");
   };
+
+  const handleImportRun = async (runName: InputValueType) => {
+    const response = await callApiWithParameters("import_run/", {
+      run_file: runName ?? "",
+    })      
+    if (response.success){
+      notify({
+        title: "Imported successfully",
+        message: `Run ${String(runName)} has been imported`,
+        type: "success",
+      });
+      void getRuns();
+    }
+    else{
+      notify({
+        title: "Something went wrong",
+        message: String(response.message),
+        type: "error",
+      });
+    }
+  }
 
   return (
     <div>
@@ -406,15 +428,7 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-                void callApiWithParameters("import_run/", {
-                  run_file: data.run ?? "",
-                }).then(() => {
-                  notify({
-                    title: "Imported successfully",
-                    message: `Run ${String(data.run)} has been imported`,
-                    type: "success",
-                  });
-                });
+                void handleImportRun(data.run);
               }}
             ></Form>
           </Modal>
