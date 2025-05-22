@@ -1,5 +1,5 @@
 import { Button, Modal, SecondaryButton } from "@protzilla/core";
-import { Text } from "@protzilla/core/shared"
+import { Text } from "@protzilla/core/shared";
 import { styled } from "styled-components";
 
 import { DiscardModalProps } from "./discard-modal.props";

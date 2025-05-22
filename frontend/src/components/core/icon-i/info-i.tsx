@@ -1,4 +1,4 @@
-import { Icon, Tooltip } from "@protzilla/core/shared"
+import { Icon, Tooltip } from "@protzilla/core/shared";
 import { useRef, useState } from "react";
 import { styled, useTheme } from "styled-components";
 

@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import { FocusOutline, Icon, iconColor, IconType, Text,  Tooltip, useTooltipScheduling } from "@protzilla/core/shared"
+import {
+  FocusOutline,
+  Icon,
+  iconColor,
+  IconType,
+  Text,
+  Tooltip,
+  useTooltipScheduling,
+} from "@protzilla/core/shared";
 import { useMultiRef } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
-
 
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 

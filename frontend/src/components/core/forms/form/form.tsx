@@ -10,7 +10,7 @@ import {
   SubmitButton,
   TextInputField,
 } from "@protzilla/core";
-import { H3 } from "@protzilla/core/shared"
+import { H3 } from "@protzilla/core/shared";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useState } from "react";
 import { styled } from "styled-components";

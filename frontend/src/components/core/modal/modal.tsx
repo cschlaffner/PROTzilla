@@ -1,5 +1,5 @@
 import { Card, CircularButton, SectionTitle } from "@protzilla/core";
-import { Icon } from "@protzilla/core/shared"
+import { Icon } from "@protzilla/core/shared";
 import { color, zIndex } from "@protzilla/theme";
 import React from "react";
 import { styled } from "styled-components";

@@ -1,5 +1,5 @@
 import { BigButton } from "@protzilla/core";
-import { H5, Tooltip, useTooltipScheduling } from "@protzilla/core/shared"
+import { H5, Tooltip, useTooltipScheduling } from "@protzilla/core/shared";
 import { spacing } from "@protzilla/theme";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";

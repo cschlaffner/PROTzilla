@@ -1,11 +1,5 @@
-import {
-  Button,
-  GrayButton,
-  Modal,
-  SectionTitle,
-  ToggleableButton,
-} from "@protzilla/core";
-import { IconButton, iconColor } from "@protzilla/core/shared"
+import { Button, GrayButton, Modal, SectionTitle, ToggleableButton } from "@protzilla/core";
+import { IconButton, iconColor } from "@protzilla/core/shared";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, shadow, size, spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Sections } from "@protzilla/utils";

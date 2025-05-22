@@ -1,5 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { InvisibleButton } from "@protzilla/core"
+import { InvisibleButton } from "@protzilla/core";
 import {
   CollapsibleLabel,
   ContentText,
