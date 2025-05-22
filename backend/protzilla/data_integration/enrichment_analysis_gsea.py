@@ -219,9 +219,9 @@ def gsea_preranked(
 
     out_dict = {
         "enrichment_df": enrichment_df,
-        "ranking": preranked_result.ranking,
+        "ranking": preranked_result.ranking.to_frame(),
     }
-    out_dict.update(preranked_result.results)
+    # out_dict.update(preranked_result.results)
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"
@@ -461,9 +461,9 @@ def gsea(
 
     out_dict = {
         "enrichment_df": enrichment_df,
-        "ranking": gsea_result.ranking,
+        "ranking": gsea_result.ranking.to_frame(),
     }
-    out_dict.update(gsea_result.results)
+    # out_dict.update(gsea_result.results)
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"

@@ -1004,13 +1004,12 @@ class PlotGSEADotPlot(PlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
-    # TODO: input_df fill dynamic with modify_form
     def create_form(self):
         return Form(
             label = "Dot plot for (pre-ranked) GSEA",
             input_fields = [
                 DropdownField(
-                    name = "input_df",
+                    name = "gsea_df_step_instance",
                     label = "Choose enrichment dataframe to be plotted",
                 ),
                 MultiSelectField(
@@ -1058,6 +1057,20 @@ class PlotGSEADotPlot(PlotStep):
                 ),
             ]
         )
+    
+    def modify_form(self, form, run):
+        gsea_df_step_instance_field = form["gsea_df_step_instance"]
+        gsea_df_step_instance_field.set_options(
+            form_helper.get_choices(
+                run, "enrichment_df"
+            )
+        )
+    
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["gsea_df"] = steps.get_step_output(
+            Step, "enrichment_df", inputs["gsea_df_step_instance"]
+        )
+        return inputs
 
 
 class PlotGSEAEnrichmentPlot(PlotStep):

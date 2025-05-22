@@ -170,7 +170,7 @@ def test_gsea_dot_plot(show_figures, data_folder_tests, helpers):
         data_folder_tests / "gsea_result_sig_prot.csv", header=0
     )
     dot_base64 = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         gene_sets=["KEGG_2016"],
         cutoff=0.25,
         dot_size=3,
@@ -186,7 +186,7 @@ def test_gsea_dot_plot_remove_names(show_figures, data_folder_tests, helpers):
         data_folder_tests / "gsea_preranked_enriched.csv", header=0
     )
     dot_base64 = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         gene_sets=["KEGG_2019"],
         cutoff=1,
         dot_size=3,
@@ -203,7 +203,7 @@ def test_gsea_dot_plot_wrong_df(data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", header=0
     )
     current_out = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         cutoff=0.25,
     )[0]
 
@@ -214,7 +214,7 @@ def test_gsea_dot_plot_wrong_df(data_folder_tests):
 def test_gsea_dot_plot_empty_df():
     df = pd.DataFrame({"NES": [], "FDR q-val": [], "lead_genes": []})
     current_out = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         cutoff=0.25,
     )[0]
 
@@ -225,7 +225,7 @@ def test_gsea_dot_plot_empty_df():
 def test_gsea_dot_plot_cutoff(data_folder_tests):
     df = pd.read_csv(data_folder_tests / "gsea_result_sig_prot.csv", header=0)
     current_out = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets=["KEGG_2016"],
         cutoff=0,
         dot_size=3,
@@ -238,7 +238,7 @@ def test_gsea_dot_plot_cutoff(data_folder_tests):
 def test_gsea_dot_plot_gene_sets(data_folder_tests, helpers, show_figures):
     df = pd.read_csv(data_folder_tests / "gsea_result_sig_prot.csv", header=0)
     dot_base64 = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets="KEGG_2016",
         cutoff=0.25,
         dot_size=3,
@@ -248,7 +248,7 @@ def test_gsea_dot_plot_gene_sets(data_folder_tests, helpers, show_figures):
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
     dot_base64 = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets="all",
         cutoff=0.25,
         dot_size=3,

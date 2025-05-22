@@ -244,7 +244,7 @@ def GO_enrichment_dot_plot(
 
 
 def gsea_dot_plot(
-    input_df,
+    gsea_df,
     cutoff=0.05,
     gene_sets=[],
     dot_color_value="FDR q-val",
@@ -284,17 +284,17 @@ def gsea_dot_plot(
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    if not isinstance(input_df, pd.DataFrame) or not "NES" in input_df.columns:
+    if not isinstance(gsea_df, pd.DataFrame) or not "NES" in gsea_df.columns:
         msg = "Please input a dataframe from GSEA or preranked GSEA."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if input_df is None or len(input_df) == 0 or input_df.empty:
+    if gsea_df is None or len(gsea_df) == 0 or gsea_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if cutoff is None or cutoff == "":
         msg = "Please enter a cutoff value."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if not dot_size:
         dot_size = 5
@@ -304,15 +304,15 @@ def gsea_dot_plot(
     if not isinstance(gene_sets, list):
         gene_sets = [gene_sets]
     else:  # remove all Gene_sets that were not selected
-        input_df = input_df[input_df["Term"].str.startswith(tuple(gene_sets))]
+        gsea_df = gsea_df[gsea_df["Term"].str.startswith(tuple(gene_sets))]
 
     if remove_library_names:
-        input_df["Term"] = input_df["Term"].apply(lambda x: x.split("__")[1])
+        gsea_df["Term"] = gsea_df["Term"].apply(lambda x: x.split("__")[1])
 
-    size_y = max((input_df[dot_color_value] < cutoff).sum(), 5)
+    size_y = max((gsea_df[dot_color_value] < cutoff).sum(), 5)
     try:
         ax = gseapy.dotplot(
-            input_df,
+            gsea_df,
             column=dot_color_value,
             x=x_axis_value,
             cutoff=cutoff,
@@ -321,15 +321,14 @@ def gsea_dot_plot(
             title=title,
             show_ring=show_ring,
         )
-        return [
-            dict(
+        return dict(
                 plot_base64=fig_to_base64(ax.get_figure()),
                 key="gsea_dot_plot_img",
             )
-        ]
+        
     except ValueError as e:
         msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
 
 
 def gsea_enrichment_plot(
