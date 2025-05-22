@@ -1,21 +1,26 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
   Card,
   Form,
+  Icon,
   InputValueType,
   Modal,
+  Navbar,
   RunsTable,
+  SecondaryButton,
+  Tooltip,
   useNotification,
+  useTooltipScheduling,
   Workflow,
 } from "../components";
 import { SearchInputField } from "../components/input-fields/search-input-field";
-import { Navbar } from "../components/navbar";
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
-import { size, spacing } from "../theme";
+import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
 
 const StyledNavbar = styled(Navbar)`
@@ -24,43 +29,73 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const StyledContainer = styled(Container)`
+const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
+  box-sizing: border-box;
 `;
 
 const StyledWorkflowContainer = styled(Container)`
   display: flex;
-  overflow-x: hidden;
+  overflow-x: auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  &:hover {
-    overflow-x: auto;
+    display: none;
   }
 `;
 
 const StyledTemplateCard = styled(Card)`
   height: ${size("templateSelectionHeight")};
+  width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
+const NavigationDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: ${spacing("small")};
+`;
+
+const StyledArrowButton = styled(SecondaryButton)`
+  height: 10px;
+  padding: ${spacing("small")};
+`;
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
+  height: calc(
+    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
+      (3 * ${spacing("small")})
+  );
+  width: calc(100vw - (2 * ${spacing("small")}));
+  box-sizing: border-box;
+
+  overflow-y: auto;
+`;
+
+const StyledDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const InfoIcon = styled(Icon)`
+  padding-left: 10px;
 `;
 
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
+  const theme = useTheme();
+
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true);
+  const [, setParentRef] = useState<HTMLDivElement | null>(null);
+
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -81,14 +116,20 @@ export const IndexScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await callApi("run_information/");
-      if (data) {
-        setRuns(data[0]);
+      const response = await callApi("run_information/");
+      if (response.success) {
+        setRuns(response.data[0]);
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          type: "error",
+        });
       }
     };
 
     void fetchData();
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -161,6 +202,12 @@ export const IndexScreen: React.FC = () => {
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
       }).then(() => {
+        notify({
+          title: "Run created",
+          message: `Run ${String(data.runname)} has been created`,
+          type: "success",
+        });
+
         void callApiWithParameters("continue_run/", {
           run_name: runName as string,
         }).then(() => {
@@ -171,8 +218,26 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const workflowContainerSize = parseInt(
+    (theme.sizes.bigButtonContainerDimension as unknown as string).replace("px", ""),
+  );
+
+  const scrollLeft = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft -= workflowContainerSize;
+    }
+  };
+
+  const scrollRight = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft += workflowContainerSize;
+    }
+  };
+
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
         allowRunEdit={false}
         onNavigateHome={() => void navigate("/")}
@@ -180,7 +245,7 @@ export const IndexScreen: React.FC = () => {
         onOpenHelp={() => void navigate("/")}
       />
 
-      <StyledContainer fluid>
+      <StyledContainer>
         <StyledTemplateCard title="Template Workflows">
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
@@ -190,7 +255,7 @@ export const IndexScreen: React.FC = () => {
             }}
             placeholder="Search workflows"
           />
-          <StyledWorkflowContainer>
+          <StyledWorkflowContainer className={"workflow-container"}>
             {filteredWorkflows.map((workflow) => (
               <Workflow
                 key={workflow}
@@ -203,8 +268,12 @@ export const IndexScreen: React.FC = () => {
               />
             ))}
           </StyledWorkflowContainer>
+          <NavigationDiv>
+            <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
+            <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
+          </NavigationDiv>
           <Modal
-            title="Create run:"
+            title="Create run"
             isOpen={isWorkflowModalOpen}
             onClose={() => {
               setIsWorkflowModalOpen(false);
@@ -263,14 +332,30 @@ export const IndexScreen: React.FC = () => {
               handleDeleteTag={handleDeleteTag}
             />
           </Modal>
-          <SearchInputField
-            style={{ padding: "0", gap: "0", width: "30%" }}
-            value={searchTermRuns}
-            onChange={(e) => {
-              setSearchTermRuns(e);
-            }}
-            placeholder="Search runs"
-          />
+          <StyledDiv>
+            <SearchInputField
+              style={{ padding: "0", gap: "0", width: "30%" }}
+              value={searchTermRuns}
+              onChange={(e) => {
+                setSearchTermRuns(e);
+              }}
+              placeholder="Search runs"
+            />
+            <div
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+              ref={setParentRef}
+            >
+              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+              <Tooltip
+                text={"Search by run name, steps, or tags"}
+                isShown={showTooltip}
+                anchor={mouseAnchor}
+                distance={5}
+                position={"bottomRight"}
+              />
+            </div>
+          </StyledDiv>
           <RunsTable
             runs={runs}
             filteredRuns={filteredRuns}

@@ -1,13 +1,13 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
+import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
 import { FlexColumn } from "../box";
-import { Text } from "../text";
 import { NavbarProps } from "./navbar.props.ts";
-import { Button } from "../button";
+import { Modal } from "../modal/index.ts";
 import { RunEditMenu } from "../run-edit-menu/run-edit-menu.tsx";
 
 const NavbarBody = styled.div`
@@ -60,12 +60,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
   title,
   onNavigateHome,
-  onOpenSettings,
   onOpenHelp,
 
   ...rest
 }) => {
+  const notify = useNotification();
   const [runName, setRunName] = useState<string>(title as string);
+  const [isWorkflowSaveOpen, setIsWorkflowSaveOpen] = useState(false);
+  // <-- Modal for run properties and edit -->
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
   useOutsidePress(refRunSettings, closeRunSettings, isRunSettingsOpen, false);
@@ -94,6 +96,45 @@ export const Navbar: React.FC<NavbarProps> = ({
     });
   };
 
+  // <-- Modal for general settings -->
+  const [isSettingsOpen, openSettings, closeSettings] = useToggleableState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isDiscardModalOpen, openDiscardModal, closeDiscardModal] = useToggleableState(false);
+
+  const handleDiscard = () => {
+    closeSettings();
+    closeDiscardModal();
+  };
+  const handleSettingsClose = (hasChanges = false) => {
+    if (hasChanges) {
+      openDiscardModal();
+    } else {
+      closeSettings();
+    }
+  };
+
+  const handleWorkflowSave = useCallback(
+    (data: Record<string, InputValueType>) => {
+      const workflowname = data.workflowname;
+      if (!workflowname) {
+        notify({
+          title: "Error",
+          message: "Please enter a name for your workflow.",
+          type: "error",
+        });
+        return;
+      }
+      void callApiWithParameters("save_workflow/", {
+        run_name: runName,
+        workflow_name: workflowname,
+      }).then(() => {
+        setIsWorkflowSaveOpen(false)
+      })
+    },
+    [notify, runName],
+  );
+
+  // <-- render -->
   return (
     <FlexColumn {...rest}>
       <NavbarBody>
@@ -103,33 +144,74 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NavbarCenter>
           <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
           {allowRunEdit && (
-            <Button icon={"edit"} onPointerDown={isRunSettingsOpen ? undefined : openRunSettings} />
+            <div>
+              <Button
+                icon={"edit"}
+                onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
+              />
+              <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }} />
+            </div>
           )}
         </NavbarCenter>
 
         <NavbarRight>
           <Button icon={"help"} onPress={onOpenHelp} />
-          <Button icon={"settings"} onPress={onOpenSettings} />
+          <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>
       </NavbarBody>
-      {isRunSettingsOpen && (
-        <RunEditMenu
-          runName={runName}
-          onChangeRunName={onChangeRunName}
-          handleAddTag={(tag: string) => {
-            handleAddTag(tag);
+      <RunEditMenu
+        runName={runName}
+        onChangeRunName={onChangeRunName}
+        handleAddTag={(tag: string) => {
+          handleAddTag(tag);
+        }}
+        handleDeleteTag={(tagToDelete: string) => {
+          handleDeleteTag(tagToDelete);
+        }}
+        handleToggleFavourite={() => {
+          handleToggleFavourite();
+        }}
+        isOpen={isRunSettingsOpen}
+        onClose={closeRunSettings}
+        ref={refRunSettings}
+      />
+      <Settings
+        isOpen={isSettingsOpen}
+        onClose={handleSettingsClose}
+        hasChanges={hasChanges}
+        setHasChanges={setHasChanges}
+      />
+      <DiscardModal
+        isOpen={isDiscardModalOpen}
+        onDiscard={handleDiscard}
+        onClose={closeDiscardModal}
+      />
+      <Modal
+        title="Save run as a custom workflow"
+        isOpen={isWorkflowSaveOpen}
+        onClose={() => {
+          setIsWorkflowSaveOpen(false);
+        }}
+      >
+        <Form
+          formData={{
+            label: "",
+            isAutoSubmit: false,
+            hasChangeIndicator: false,
+            input_fields: [
+              {
+                type: "text",
+                name: "workflowname",
+                label: "With workflow name:",
+                isVisible: true,
+              },
+            ],
           }}
-          handleDeleteTag={(tagToDelete: string) => {
-            handleDeleteTag(tagToDelete);
+          onChange={(data) => {
+            handleWorkflowSave(data);
           }}
-          handleToggleFavourite={() => {
-            handleToggleFavourite();
-          }}
-          isOpen={isRunSettingsOpen}
-          onClose={closeRunSettings}
-          ref={refRunSettings}
-        />
-      )}
+        ></Form>
+      </Modal>
     </FlexColumn>
   );
 };

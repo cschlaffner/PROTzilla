@@ -1,4 +1,4 @@
-import { InputValueType } from "../components/forms/form";
+import { InputValueType } from "../components";
 import { API_ROOT } from "../constants";
 
 export async function ensureCSRFToken() {
@@ -15,8 +15,9 @@ export const callApiWithParameters = async (
   url: string,
   parameters: Record<
     string,
-    string | number | boolean | string[] | Record<string, string | InputValueType>
+    string | boolean | string[] | number | File | Record<string, string | InputValueType>
   >,
+  responseType: "json" | "blob" = "json",
 ) => {
   try {
     const csrfToken = await ensureCSRFToken();
@@ -34,9 +35,11 @@ export const callApiWithParameters = async (
       body: JSON.stringify(parameters),
     });
 
-    const data = await response.json();
-
-    return data;
+    if (responseType === "blob") {
+      return await response.blob();
+    } else {
+      return await response.json();
+    }
   } catch (error) {
     console.error("Error:", error);
   }

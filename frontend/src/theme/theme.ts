@@ -117,6 +117,9 @@ export const baseTheme = {
     /** Big desktop. */
     xl: 1536,
   },
+  characterLimits: {
+    tag: 30,
+  },
   colors: defaultPalette,
   direction: "ltr",
   durations: {
@@ -188,11 +191,14 @@ export const baseTheme = {
   sizes: {
     icon: "20px",
     smallIcon: "12px",
+    logoIconWidth: "300px",
+    logoIconHeight: "150px",
     bigIcon: "50px",
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
-    bigButtonDimension: "150px",
+    bigButtonDimension: "125px",
+    bigButtonContainerDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -200,14 +206,16 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    tooltipMaxWidth: "240px",
     tableRow: "40px",
 
     // Input Screen
-    templateSelectionHeight: "300px",
+    templateSelectionHeight: "325px",
     runSelectionMinHeight: "300px",
 
     //Runs Table
-    smallCellWidth: "50px",
+    verySmallCellWidth: "50px",
+    smallCellWidth: "100px",
     mediumCellWidth: "150px",
     largeCellWidth: "200px",
   },

@@ -54,27 +54,36 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       memory_mode: "Loading...",
       run_steps: [],
       favourite_status: false,
-      run_tags: ["Loading", "..."],
+      run_tags: [],
     });
 
     useEffect(() => {
+      if (!runName) {
+        return;
+      }
       const fetchRunInformation = async () => {
-        const data = await callApi("run_information/");
-        if (data) {
-          const run = data[0].find((run: Run) => run.run_name === runName);
+        const response = await callApi("run_information/");
+        if (response.success) {
+          const run = response.data[0].find((run: Run) => run.run_name === runName);
           if (!run) {
             throw new Error(`Run with name "${runName}" not found`);
           }
           setSelectedRun(run);
+        } else {
+          notify({
+            type: "error",
+            message: "Error fetching run information",
+            title: "Error",
+          });
         }
       };
 
       void fetchRunInformation();
-    }, [runName]);
+    }, [runName, notify]);
 
     const handleNameChange = async (newName: string) => {
       const response = await callApiWithParameters("update_run_name/", {
-        run_name: runName,
+        run_name: selectedRun.run_name,
         new_run_name: newName,
       });
       if (!response?.success) {
@@ -87,11 +96,12 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
       } else {
         notify({
           title: "Run name updated",
-          message: `Run name changed from ${runName} to ${newName}`,
+          message: `Run name changed from ${selectedRun.run_name} to ${newName}`,
           type: "success",
         });
 
         selectedRun.run_name = newName;
+        selectedRun.modification_date = new Date().toLocaleString("en-US");
         onChangeRunName(newName);
       }
     };
