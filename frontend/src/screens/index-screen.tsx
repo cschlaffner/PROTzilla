@@ -149,15 +149,15 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, [notify]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await callApi("workflow_name_list/");
-      if (data) {
-        setWorkflows(data);
-      }
-    };
+  const getWorkflows = async () => {
+    const data = await callApi("workflow_name_list/");
+    if (data) {
+      setWorkflows(data);
+    }
+  };
 
-    void fetchData();
+  useEffect(() => {
+    void getWorkflows();
   }, []);
 
   const filteredWorkflows = workflows.filter((workflow) =>
@@ -264,6 +264,7 @@ export const IndexScreen: React.FC = () => {
         message: `Workflow ${String(workflow)} has been imported as ${newName == "" ? String(workflow).replace(".yaml", "") : String(newName)}`,
         type: "success",
       });
+      void getWorkflows();
     } else {
       notify({
         title: "Something went wrong :(",
