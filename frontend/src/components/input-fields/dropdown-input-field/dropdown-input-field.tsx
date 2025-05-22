@@ -75,7 +75,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
     const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
       //TODO QUICKFIX this should be .value in the future
-      options.find((option) => option.label === value) ?? options[0] ?? null,
+      options.find((option) => option.label === value) ?? options[0],
     );
 
     useEffect(() => {
