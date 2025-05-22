@@ -360,15 +360,15 @@ def gsea_enrichment_plot(
     """
     if not isinstance(term_dict, dict) or not "nes" in term_dict.keys():
         msg = "Please input a dictionary with enrichment details for a gene set from GSEA."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
     if not term_name:
         msg = "Please input a term name."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
     if not (
         isinstance(ranking, pd.DataFrame) or isinstance(ranking, pd.Series)
     ) or not (ranking.index.name == "Gene symbol" or ranking.index.name == "gene_name"):
         msg = "Please input a ranking output dataframe from GSEA or pre-ranked GSEA."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
     if isinstance(ranking, pd.DataFrame):  # ensure that ranking is a series
         ranking = ranking.iloc[:, 0]
 
@@ -381,12 +381,11 @@ def gsea_enrichment_plot(
             **term_dict,
             figsize=figsize if figsize else (6, 5.5),
         )
-        return [
-            dict(
+        return dict(
                 plot_base64=fig_to_base64(enrichment_plot_axes[0].get_figure()),
                 key="gsea_enrichment_plot_img",
             )
-        ]
+        
     except Exception as e:
         msg = f"Could not plot enrichment plot for term {term_name}."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
