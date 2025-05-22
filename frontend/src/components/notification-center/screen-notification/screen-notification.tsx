@@ -1,10 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
-import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "../../../theme";
+import { useToggleableState } from "../../../hooks";
+import {
+  color,
+  fontSize,
+  fontWeight,
+  radius,
+  size,
+  spacing,
+  styledDiv,
+  zIndex,
+} from "../../../theme";
 import { FlexColumn, FlexRow } from "../../box";
-import { GrayButton } from "../../button";
+import { GrayButton, RedButton } from "../../button";
 import { iconColor } from "../../icon";
 import { Text } from "../../text";
 
@@ -40,6 +50,10 @@ const TextContainer = styled(FlexColumn)`
   min-width: 0;
 `;
 
+const ButtonContainer = styledDiv.div`
+  display: flex
+`;
+
 const TitleText = styled(Text)`
   color: ${color("onPrimary")};
   font-size: ${fontSize("h6")};
@@ -65,6 +79,10 @@ const CloseIcon = styled(GrayButton)`
   .icon {
     ${iconColor("onPrimary")}
   }
+
+  &:hover {
+    background-color: ${color("backdropLight")};
+  }
 `;
 
 const ProgressBar = styled.div<{ active: boolean; duration: number }>`
@@ -74,7 +92,8 @@ const ProgressBar = styled.div<{ active: boolean; duration: number }>`
   height: ${spacing("verySmall")};
   background-color: rgba(255, 255, 255, 0.5);
   width: ${({ active }) => (active ? "100%" : "0%")};
-  transition: width ${({ duration }) => duration}ms linear;
+  transition: width
+    ${({ active, duration }) => (active ? `${duration.toString()}ms linear` : "none")};
   border-radius: ${radius("default")};
 `;
 
@@ -82,16 +101,9 @@ const TracebackContainer = styled(FlexColumn)`
   width: 100%;
   gap: ${spacing("verySmall")};
   margin-top: ${spacing("small")};
-`;
 
-const TracebackToggle = styled(GrayButton)`
-  font-weight: ${fontWeight("bold")};
-  color: ${color("onPrimary")};
-  text-align: left;
-  padding: ${spacing("verySmall")};
-  background: none;
-  border: none;
-  cursor: pointer;
+  overflow: auto;
+  max-height: 70vh;
 `;
 
 const TracebackText = styled(Text)`
@@ -119,54 +131,48 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
   const closeAfterMs =
     closeAfterMsProp > 0 ? closeAfterMsProp : theme.durations.standardNotificationDuration;
   const [hasStartedProgressBar, setHasStartedProgressBar] = useState(false);
-  const [isTracebackVisible, setIsTracebackVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isTracebackVisible, , , toggleTracebackVisibility] = useToggleableState(false);
+  const [isHovered, setIsHovered, setIsUnhovered] = useToggleableState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isShown && isClosingAutomatically && closeAfterMs > 0 && !isHovered) {
       setHasStartedProgressBar(true);
 
-      const newTimer = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         setIsShown(false);
         onClose?.();
       }, closeAfterMs);
 
-      setTimer(newTimer);
-
       return () => {
-        clearTimeout(newTimer);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
         setHasStartedProgressBar(false);
       };
-    } else if (isHovered && timer) {
-      clearTimeout(timer);
-      setTimer(null);
+    } else if (isHovered && timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+      setHasStartedProgressBar(false);
     }
-  }, [isShown, isClosingAutomatically, closeAfterMs, onClose, isHovered, timer]);
+  }, [isShown, isClosingAutomatically, closeAfterMs, onClose, isHovered]);
 
   const handleClose = () => {
     setIsShown(false);
     onClose?.();
-  };
-
-  const toggleTracebackVisibility = () => {
-    setIsTracebackVisible((prev) => !prev);
-  };
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   };
 
   return (
     <Container
       isShown={isShown}
       type={type}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={setIsHovered}
+      onMouseLeave={setIsUnhovered}
       {...props}
     >
       <TextContainer>
@@ -174,9 +180,18 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
         {message && <DescriptionText text={message} />}
         {traceback && (
           <TracebackContainer>
-            <TracebackToggle onClick={toggleTracebackVisibility}>
-              {isTracebackVisible ? "Hide Traceback" : "Show Traceback"}
-            </TracebackToggle>
+            <ButtonContainer>
+              <RedButton
+                onClick={toggleTracebackVisibility}
+                text={isTracebackVisible ? "Hide Traceback" : "Show Traceback"}
+              ></RedButton>
+              <RedButton
+                text={"Copy Error"}
+                onClick={() =>
+                  void navigator.clipboard.writeText((message ?? "") + "\n\n" + traceback)
+                }
+              />
+            </ButtonContainer>
             {isTracebackVisible && <TracebackText text={traceback} />}
           </TracebackContainer>
         )}

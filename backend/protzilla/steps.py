@@ -133,7 +133,7 @@ class Step:
             self.messages.append(
                 dict(
                     level=logging.ERROR,
-                    msg=f"An error occured while validating inputs or outputs: {e}. Please check your parameters.",
+                    msg=f"An error occured while validating inputs or outputs: {e} Please check your parameters.",
                     trace=format_trace(traceback.format_exception(e)),
                 )
             )
@@ -265,7 +265,7 @@ class Step:
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
-        
+
         for key in self.output_keys:
             if key not in self.output or self.output[key] is None:
                 if not soft_check:

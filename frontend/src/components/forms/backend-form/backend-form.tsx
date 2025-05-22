@@ -3,6 +3,7 @@ import { styled } from "styled-components";
 
 import { BackendFormProps, FormData, InputFieldProps, InputValueType } from "./backend-form.props";
 import { color, fontSize, size, spacing, useTheme } from "../../../theme";
+import { CalculationMessage } from "../../../utils";
 import { callApiWithParameters } from "../../../utils/api-call";
 import { Button } from "../../button";
 import { CheckboxSelectInputField } from "../../input-fields/checkbox-input-fields/checkbox-select-input-field";
@@ -34,19 +35,6 @@ const SubmitButton = styled(Button)`
   color: ${color("gray50")};
   font-size: ${fontSize("default")};
 `;
-
-function convertMessage(message: string): Record<string, string | number> {
-  try {
-    const fixedMessage = message.replace(/"/g, ":").replace(/'/g, '"');
-    const parsedMessage = JSON.parse(fixedMessage);
-    if (parsedMessage && typeof parsedMessage === "object" && "msg" in parsedMessage) {
-      return parsedMessage;
-    }
-  } catch (error) {
-    console.error("Error parsing message:", error);
-  }
-  return { level: 40, msg: message };
-}
 
 export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   runName,
@@ -87,25 +75,31 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     onChange();
   };
 
-  const handleNotify = (message: string) => {
-    const parsedMessage = convertMessage(message);
-    console.log("Parsed message:", parsedMessage);
-    if (parsedMessage.level === 40) {
+  const handleNotify = (message: CalculationMessage) => {
+    if (message.level >= 40) {
       notify({
         title: "Error when calculating step",
         type: "error",
         isClosingAutomatically: true,
-        message: parsedMessage.msg as string,
-        traceback: parsedMessage.trace as string,
+        message: message.msg,
+        traceback: message.trace,
         closeAfterMs: theme.durations.veryLongNotificationDuration,
+      });
+    } else if (message.level <= 20) {
+      notify({
+        title: "Success",
+        type: "success",
+        isClosingAutomatically: true,
+        message: message.msg,
+        closeAfterMs: theme.durations.standardNotificationDuration,
       });
     } else {
       notify({
-        title: "Warning when calculating step",
+        title: "A warning occurred",
         type: "warning",
         isClosingAutomatically: true,
-        message: parsedMessage.msg as string,
-        traceback: parsedMessage.trace as string,
+        message: message.msg,
+        traceback: message.trace,
         closeAfterMs: theme.durations.veryLongNotificationDuration,
       });
     }
@@ -122,15 +116,14 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             });
             if (response.success) {
               onSubmit(response.data);
+            }
+            const messages = response.message;
+            if (Array.isArray(messages)) {
+              messages.forEach((message: CalculationMessage) => {
+                handleNotify(message);
+              });
             } else {
-              const messages = response.message;
-              if (Array.isArray(messages)) {
-                messages.forEach((message: string) => {
-                  handleNotify(message);
-                });
-              } else {
-                handleNotify(messages);
-              }
+              handleNotify(messages);
             }
           } catch (error) {
             console.error("Submission error:", error);
