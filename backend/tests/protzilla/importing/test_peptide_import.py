@@ -153,7 +153,6 @@ def test_peptide_import_ibaq():
     )
 
 
-@pytest.mark.parametrize()
 def test_evidence_import():
     outputs = peptide_import.evidence_import(
         file_path=f"{TEST_DATA_PATH}/peptides/evidence-vsmall.txt",
