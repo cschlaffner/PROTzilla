@@ -113,8 +113,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
     };
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!isOpen && options.length === 0)
-        return;
+      if (!isOpen && options.length === 0) return;
 
       const target = event.target as HTMLElement;
       if (
