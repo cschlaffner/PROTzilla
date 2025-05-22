@@ -1,4 +1,5 @@
-import { SecondaryButton, Text } from "@protzilla/core";
+import { SecondaryButton } from "@protzilla/core";
+import { Text } from "@protzilla/core/shared"
 import { color, duration, fontSize, fontWeight, opacity } from "@protzilla/theme";
 import React, { useCallback } from "react";
 import { css, styled } from "styled-components";

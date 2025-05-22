@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import { FocusOutline, Icon, IconType, Text, Tooltip, useTooltipScheduling } from "@protzilla/core";
 import { useMultiRef } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
-import { iconColor } from "../icon";
+import { iconColor, Icon, IconType, Text, FocusOutline,  Tooltip, useTooltipScheduling } from "@protzilla/core/shared"
+
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 
 const StyledButton = styled.button.withConfig({
@@ -537,3 +537,8 @@ export const StatusButton: React.FC<StatusButtonProps> = ({
   ) : (
     <Button icon={icon} isDisabled={isDisabled} onPress={onPress} {...rest} />
   );
+
+export const SubmitButton = styled(Button)`
+  color: ${color("gray50")};
+  font-size: ${fontSize("default")};
+`;

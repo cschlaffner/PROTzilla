@@ -1,4 +1,5 @@
-import { Icon, InputContainer } from "@protzilla/core";
+import { InputContainer } from "@protzilla/core";
+import { Icon } from "@protzilla/core/shared";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";

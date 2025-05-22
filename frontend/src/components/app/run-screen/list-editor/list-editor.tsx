@@ -1,5 +1,6 @@
 import { Sidebar } from "@protzilla/app";
-import { BackendForm, FlexRow } from "@protzilla/core";
+import { BackendForm } from "@protzilla/core";
+import { FlexRow } from "@protzilla/core/shared"
 import { color, spacing } from "@protzilla/theme";
 import { emptySections, Step, translateGlobalToSectionIndex } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";

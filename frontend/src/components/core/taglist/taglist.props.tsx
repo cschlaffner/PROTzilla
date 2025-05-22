@@ -1,4 +1,4 @@
-import { IconType } from "../icon";
+import { IconType } from "@protzilla/core/shared";
 
 export interface TagListProps {
   runName: string;

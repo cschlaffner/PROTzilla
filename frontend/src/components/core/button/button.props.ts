@@ -1,4 +1,4 @@
-import type { IconType, TooltippedProps } from "@protzilla/core";
+import type { IconType, TooltippedProps } from "@protzilla/core/shared"
 import type { Color } from "@protzilla/theme";
 import type { UIStateProps } from "@protzilla/utils";
 import type React from "react";

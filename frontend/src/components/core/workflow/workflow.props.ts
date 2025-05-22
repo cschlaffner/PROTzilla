@@ -1,4 +1,4 @@
-import type { IconType } from "@protzilla/core";
+import type { IconType } from "@protzilla/core/shared";
 import type React from "react";
 
 export interface WorkflowProps {

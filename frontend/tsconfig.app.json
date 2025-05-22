@@ -27,6 +27,7 @@
     "paths": {
       "@protzilla/app": ["components/app"],
       "@protzilla/core": ["components/core"],
+      "@protzilla/core/*": ["components/core/*"],
       "@protzilla/hooks": ["hooks"],
       "@protzilla/theme": ["theme"],
       "@protzilla/utils": ["utils"]

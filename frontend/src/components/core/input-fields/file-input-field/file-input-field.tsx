@@ -1,4 +1,4 @@
-import { useNotification } from "@protzilla/app";
+//import { useNotification } from "../../../app";
 import { InputContainer, SecondaryButton } from "@protzilla/core";
 import { useFilePicker } from "@protzilla/hooks";
 import { size, spacing } from "@protzilla/theme";
@@ -30,7 +30,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
   onChange,
   ...props
 }) => {
-  const notify = useNotification();
+  const notify = (n:any) => {n}//useNotification();
 
   const [file, setFile] = useState<File | null>(null);
   const [currentName, setCurrentName] = useState(value);

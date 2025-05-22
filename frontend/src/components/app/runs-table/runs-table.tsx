@@ -1,12 +1,10 @@
 import { RunEditMenu } from "@protzilla/app";
 import {
   DeleteModal,
-  Icon,
   SecondaryButton,
-  TagList,
-  Tooltip,
-  useTooltipScheduling,
+  TagList
 } from "@protzilla/core";
+import { Icon, Tooltip, useTooltipScheduling } from "@protzilla/core/shared"
 import { useToggleableState } from "@protzilla/hooks";
 import { color, defaultPalette } from "@protzilla/theme";
 import { callApiWithParameters, formatDate, Run } from "@protzilla/utils";

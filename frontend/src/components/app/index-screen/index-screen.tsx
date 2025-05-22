@@ -2,15 +2,13 @@ import { Navbar, RunsTable, useNotification } from "@protzilla/app";
 import {
   Card,
   Form,
-  Icon,
   InputValueType,
   Modal,
   SearchInputField,
   TagMenu,
-  Tooltip,
-  useTooltipScheduling,
   Workflow,
 } from "@protzilla/core";
+import { Icon, Tooltip, useTooltipScheduling, } from "@protzilla/core/shared";
 import { size, spacing, styledDiv } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";

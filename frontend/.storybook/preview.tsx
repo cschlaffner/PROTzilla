@@ -1,5 +1,5 @@
 import { NotificationCenter } from "@protzilla/app";
-import { ModalRoot } from "@protzilla/core";
+import { ModalRoot } from "@protzilla/core/shared";
 import { color, ColorMode, getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import type { Preview } from "@storybook/react";
 import { useMemo } from "react";

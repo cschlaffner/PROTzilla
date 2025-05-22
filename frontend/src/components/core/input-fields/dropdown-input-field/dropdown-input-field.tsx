@@ -1,4 +1,5 @@
-import { Icon, InputContainer } from "@protzilla/core";
+import { InputContainer } from "@protzilla/core";
+import { Icon } from "@protzilla/core/shared"
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useEffect, useRef, useState } from "react";

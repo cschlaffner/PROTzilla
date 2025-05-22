@@ -1,4 +1,4 @@
-import { CollapsibleLabel, H3, Icon } from "@protzilla/core";
+import { CollapsibleLabel, H3, Icon } from "@protzilla/core/shared";
 import { callApiWithParameters, Step } from "@protzilla/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";

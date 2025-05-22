@@ -1,4 +1,4 @@
-import { Text } from "@protzilla/core";
+import { Text } from "../text";
 import { useModalRoot } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, shadow, size, zIndex } from "@protzilla/theme";
 import ReactDOM from "react-dom";

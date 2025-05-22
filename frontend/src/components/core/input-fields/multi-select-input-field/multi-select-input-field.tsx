@@ -1,11 +1,8 @@
 import {
-  FlexColumn,
-  FlexRow,
-  Icon,
   InputContainer,
-  InputLabel,
   SearchInputField,
 } from "@protzilla/core";
+import { Icon, InputLabel, FlexColumn, FlexRow } from "@protzilla/core/shared"
 import { border, borderColors, color, size, spacing } from "@protzilla/theme";
 import React, { useState } from "react";
 import { styled } from "styled-components";

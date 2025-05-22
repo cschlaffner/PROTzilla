@@ -3,7 +3,7 @@ import React from "react";
 import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
-import { H3 } from "../../text";
+import { H3 } from "@protzilla/core/shared";
 
 const StyledCard = styledDiv.div`
   background: white;

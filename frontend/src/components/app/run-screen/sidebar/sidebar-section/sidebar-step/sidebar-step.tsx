@@ -4,15 +4,15 @@ import {
   ContentText,
   DefaultColoredIcon,
   DefaultColoredIconType,
-  InvisibleButton,
-} from "@protzilla/core";
+} from "@protzilla/core/shared";
+import { InvisibleButton } from "@protzilla/core"
 import { color } from "@protzilla/theme";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
-import { useIconContext } from "../../use-step-icon-context.tsx";
+//import { useIconContext } from "../../use-step-icon-context.tsx";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
@@ -57,9 +57,9 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
 
-  const { icons } = useIconContext();
-  const stepID = `${sectionName}-${index.toString()}`;
-  const icon = icons[stepID] || stepStatus;
+  //const { icons } = useIconContext();
+  //const stepID = `${sectionName}-${index.toString()}`;
+  const icon = stepStatus;
 
   useEffect(() => {
     if (isCollapsed) {

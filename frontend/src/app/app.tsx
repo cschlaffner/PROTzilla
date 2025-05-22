@@ -1,5 +1,5 @@
 import { IndexScreen, MainScreen, NotificationCenter, RunScreen } from "@protzilla/app";
-import { ModalRoot } from "@protzilla/core";
+import { ModalRoot } from "@protzilla/core/shared";
 import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";

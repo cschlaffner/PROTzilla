@@ -1,9 +1,8 @@
 import {
-  Button,
+  SubmitButton,
   CheckboxSelectInputField,
   DropdownInputField,
   FileInputField,
-  H3,
   MultiSelectInputField,
   NumberInputField,
   RadioSelectInputField,
@@ -11,6 +10,7 @@ import {
   SingleCheckboxInputField,
   TextInputField,
 } from "@protzilla/core";
+import { H3 } from "@protzilla/core/shared"
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useState } from "react";
 import { styled } from "styled-components";
@@ -28,11 +28,6 @@ const StyledSubmitDiv = styled.div`
   align-items: center;
   gap: ${spacing("small")};
   padding-top: ${spacing("small")};
-`;
-
-const SubmitButton = styled(Button)`
-  color: ${color("gray50")};
-  font-size: ${fontSize("default")};
 `;
 
 const ChangeIndicator = styled.div`
