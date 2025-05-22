@@ -1,4 +1,4 @@
-//import { useNotification } from "../../app";
+import { useNotification } from "@protzilla/app";
 import React, { useState } from "react";
 import { useTheme } from "styled-components";
 
@@ -13,7 +13,7 @@ export default {
 const SwitchWithState: React.FC<SwitchProps> = ({ options, ...args }) => {
   const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
 
-  const notify = (n:any) => {n}//useNotification();
+  const notify = useNotification();
   const theme = useTheme();
 
   return (

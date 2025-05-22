@@ -1,4 +1,4 @@
-//import { useNotification } from "../../app";
+import { useNotification } from "@protzilla/app";
 import { Form, SearchInputField } from "@protzilla/core";
 import { characterLimits, spacing, useTheme } from "@protzilla/theme";
 import { callApi, Run } from "@protzilla/utils";
@@ -24,7 +24,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
   handleAddTag,
   handleDeleteTag,
 }) => {
-  const notify = (n:any) => {n}//useNotification();
+  const notify = useNotification();
 
   const [existingTags, setExistingTags] = React.useState<string[]>([]);
   const [searchTermTags, setSearchTermTags] = React.useState<string>("");

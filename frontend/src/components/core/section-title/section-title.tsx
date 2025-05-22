@@ -1,4 +1,4 @@
-import { H1, FlexColumn } from "@protzilla/core/shared"
+import { FlexColumn, H1 } from "@protzilla/core/shared"
 import { color } from "@protzilla/theme";
 import { styled } from "styled-components";
 

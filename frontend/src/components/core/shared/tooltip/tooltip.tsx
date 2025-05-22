@@ -1,9 +1,9 @@
-import { Text } from "../text";
 import { useModalRoot } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, shadow, size, zIndex } from "@protzilla/theme";
 import ReactDOM from "react-dom";
 import { styled } from "styled-components";
 
+import { Text } from "../text";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipPosition } from "./utils";
 

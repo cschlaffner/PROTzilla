@@ -1,4 +1,4 @@
-//import { useNotification } from "../../../app";
+import { useNotification } from "@protzilla/app";
 import {
   Button,
   CheckboxSelectInputField,
@@ -52,7 +52,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   onSubmit,
   onChange,
 }) {
-  const notify = (n:any) => {n}//useNotification();
+  const notify = useNotification();
 
   const [BackendFormData, setBackendFormData] = useState<BackendFormData>();
   const [isloading, setLoading] = useState(false);

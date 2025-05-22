@@ -1,8 +1,7 @@
 import react from "@vitejs/plugin-react";
-//import path from "path";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
 import svgr from "vite-plugin-svgr";
+import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vite.dev/config/
@@ -17,15 +16,6 @@ const viteConfig = defineViteConfig({
     svgr(),
     tsconfigPaths(),
   ],
-  // resolve: {
-  //   alias: {
-  //     "@protzilla/core": path.resolve(__dirname, "src/components/core"),
-  //     "@protzilla/app": path.resolve(__dirname, "src/components/app"),
-  //     "@protzilla/hooks": path.resolve(__dirname, "src/hooks"),
-  //     "@protzilla/theme": path.resolve(__dirname, "src/theme"),
-  //     "@protzilla/utils": path.resolve(__dirname, "src/utils"),
-  //   },
-  // },
   server: {
     proxy: {
       "/api": {
