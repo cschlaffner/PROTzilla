@@ -271,7 +271,7 @@ def import_workflow(request):
             shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
         else:
             try:
-                shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / new_name))
+                shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
             except Exception as exception:
                 return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
 

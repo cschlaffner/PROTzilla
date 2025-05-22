@@ -308,7 +308,7 @@ export const IndexScreen: React.FC = () => {
                   }}
                   icon="download"
                   tooltip="Export a workflow"
-                  tooltipPosition={"bottom"}
+                  tooltipPosition={"left"}
                 ></Button>
                 <Button
                   onClick={() => {
@@ -316,7 +316,7 @@ export const IndexScreen: React.FC = () => {
                   }}
                   icon="upload"
                   tooltip="Import a workflow"
-                  tooltipPosition={"bottom"}
+                  tooltipPosition={"left"}
                 ></Button>
               </StyledButtonDiv>
             </StyledWorkflowHeader>
