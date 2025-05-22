@@ -1308,7 +1308,7 @@ def test_gsea_preranked(data_folder_tests):
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
     numerical_equal = np.isclose(
-        current_out["ranking"], expected_ranking, rtol=1e-05, atol=1e-08
+        current_out["ranking"].squeeze(), expected_ranking, rtol=1e-05, atol=1e-08
     )
     assert numerical_equal.all()
 
