@@ -1,7 +1,8 @@
-import { Screen, ScreenProps, SubScreen } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import { Outlet } from "react-router-dom";
 import { styled } from "styled-components";
+
+import { Screen, ScreenProps, SubScreen } from "../core";
 
 const StyledScreen = styled(Screen)`
   background: ${color("backgroundOffset")};

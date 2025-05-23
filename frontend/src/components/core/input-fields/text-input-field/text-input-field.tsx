@@ -1,9 +1,9 @@
-import { InputContainer } from "@protzilla/core";
 import { color, fontSize, size, spacing } from "@protzilla/theme";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { TextInputFieldProps } from "./text-input-field.props";
+import { InputContainer } from "../input-container";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};

@@ -12,7 +12,6 @@ import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { SidebarStepProps } from "./sidebar-step.props";
-//import { useIconContext } from "../../use-step-icon-context.tsx";
 
 const StepContainer = styled(motion.div)<{ isSelected: boolean }>`
   margin: 0 5px;
@@ -57,8 +56,6 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
 
-  //const { icons } = useIconContext();
-  //const stepID = `${sectionName}-${index.toString()}`;
   const icon = stepStatus;
 
   useEffect(() => {

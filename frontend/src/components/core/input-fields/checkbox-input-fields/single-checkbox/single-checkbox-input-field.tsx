@@ -1,9 +1,10 @@
-import { InputContainer, StyledCheckboxContainer, StyledLabel } from "@protzilla/core";
 import { size } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
+import { InputContainer } from "../../input-container";
+import { StyledCheckboxContainer, StyledLabel } from "../checkbox-select-input-field";
 
 const StyledSingleCheckboxContainer = styled(StyledCheckboxContainer)`
   justify-content: center;
