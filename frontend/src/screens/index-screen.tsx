@@ -5,6 +5,7 @@ import { styled, useTheme } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import {
+  Button,
   Card,
   Form,
   Icon,
@@ -22,6 +23,7 @@ import { SearchInputField } from "../components/input-fields/search-input-field"
 import { TagMenu } from "../components/taglist/tag-menu.tsx";
 import { size, spacing, styledDiv } from "../theme";
 import { callApi, callApiWithParameters, Run } from "../utils";
+import { useToggleableState } from "../hooks/toggleable-state.ts";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -50,8 +52,9 @@ const StyledWorkflowContainer = styled(Container)`
   }
 `;
 
-const StyledTemplateCard = styled(Card)`
-  height: ${size("templateSelectionHeight")};
+const StyledTemplateCard = styled(Card)<{isCollapsed : boolean}>`
+  height: ${({ isCollapsed }) =>
+    isCollapsed ? size("collapsetemplateSelectionHeight") : size("templateSelectionHeight")};
   width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
@@ -66,15 +69,14 @@ const StyledArrowButton = styled(SecondaryButton)`
   height: 10px;
   padding: ${spacing("small")};
 `;
-const StyledRunSelectionCard = styled(Card)`
+const StyledRunSelectionCard = styled(Card)<{isExtended: boolean}>`
   min-height: ${size("runSelectionMinHeight")};
-  height: calc(
-    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
-      (3 * ${spacing("small")})
-  );
+  height: ${({ isExtended, theme  }) =>
+    isExtended
+      ? `calc(100vh - (${theme.spacing.navbarHeight} + ${theme.sizes.templateSelectionHeight} + (3 * ${theme.spacing.small})) + (${theme.sizes.templateSelectionHeight} - ${theme.sizes.collapsetemplateSelectionHeight}))`
+      : `calc(100vh - (${theme.spacing.navbarHeight} + ${theme.sizes.templateSelectionHeight} + (3 * ${theme.spacing.small})))`};
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
-
   overflow-y: auto;
 `;
 
@@ -96,6 +98,7 @@ export const IndexScreen: React.FC = () => {
     useTooltipScheduling(true);
   const [, setParentRef] = useState<HTMLDivElement | null>(null);
 
+  const [isWorkflowTemplateCollapsed, collapseWorkflowTemplate, uncollapseWorkflowTemplate] = useToggleableState(false); 
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
@@ -246,7 +249,8 @@ export const IndexScreen: React.FC = () => {
       />
 
       <StyledContainer>
-        <StyledTemplateCard title="Template Workflows">
+        <StyledTemplateCard title={<><Button text={isWorkflowTemplateCollapsed ? "AAAUUFF!" : "WEGG!"} //TODO: button muss so wie die in import Workflows im header integriert werden. Also wenn PR53 gemerged ist.
+        onClick={() => {isWorkflowTemplateCollapsed ? uncollapseWorkflowTemplate() : collapseWorkflowTemplate() }}></Button> Template Workflows</>} isCollapsed={isWorkflowTemplateCollapsed}> 
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
             value={searchTermTop}
@@ -255,23 +259,23 @@ export const IndexScreen: React.FC = () => {
             }}
             placeholder="Search workflows"
           />
-          <StyledWorkflowContainer className={"workflow-container"}>
-            {filteredWorkflows.map((workflow) => (
-              <Workflow
-                key={workflow}
-                icon="add"
-                workflow={workflow}
-                onPress={() => {
-                  setSelectedWorkflow(workflow);
-                  setIsWorkflowModalOpen(true);
-                }}
-              />
-            ))}
-          </StyledWorkflowContainer>
-          <NavigationDiv>
-            <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
-            <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
-          </NavigationDiv>
+          {!isWorkflowTemplateCollapsed ?  
+            <><StyledWorkflowContainer className={"workflow-container"}>
+                {filteredWorkflows.map((workflow) => (
+                  <Workflow
+                    key={workflow}
+                    icon="add"
+                    workflow={workflow}
+                    onPress={() => {
+                      setSelectedWorkflow(workflow);
+                      setIsWorkflowModalOpen(true);
+                    } } />
+                ))}
+              </StyledWorkflowContainer><NavigationDiv>
+                  <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
+                  <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
+                </NavigationDiv></>
+          : <></>}
           <Modal
             title="Create run"
             isOpen={isWorkflowModalOpen}
@@ -317,7 +321,7 @@ export const IndexScreen: React.FC = () => {
           </Modal>
         </StyledTemplateCard>
 
-        <StyledRunSelectionCard title="Run Selection">
+        <StyledRunSelectionCard title="Run Selection" isExtended={isWorkflowTemplateCollapsed}>
           <Modal
             title="Run tags:"
             isOpen={isTagModalOpen}
