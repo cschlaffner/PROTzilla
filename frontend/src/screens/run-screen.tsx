@@ -18,7 +18,6 @@ import {
 import {
   dummyTextComponent1,
   footerMessages,
-  mockPlots,
   mockTableData,
 } from "./mockUpData";
 import { DataTable } from "../components/data-table";
@@ -82,8 +81,8 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [plots, setPlots] = useState<Figure[]>(mockPlots);
-  const [selectedPlot, setSelectedPlot] = useState<Figure>(mockPlots[0]);
+  const [plots, setPlots] = useState<Figure[]>();
+  const [selectedPlot, setSelectedPlot] = useState<Figure>({data: [], layout: {}});
   const [tableData, setTableData] = useState(mockTableData);
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -160,7 +159,7 @@ export const RunScreen: React.FC = () => {
 
   const plotComponent = (
     <StyledPlotContainer>
-      {plots.length > 0 ? (
+      {plots && plots.length > 0 ? (
         <>
         {plots.map((plot, index) => (
           <div key={index} style={{display: "flex", flexDirection: "column"}}> 
