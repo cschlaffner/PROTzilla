@@ -51,14 +51,12 @@ const StyledListSwitchCard = styled(SwitchCard)`
 
 const StyledPlotContainer = styled.div`
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
 `;
 
 const StyledTableContainer = styled.div`
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
 `;
@@ -165,7 +163,7 @@ export const RunScreen: React.FC = () => {
               <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
               <Button
                 text="Download plot"
-                style={{ width: "auto", alignSelf: "flex-end" }}
+                style={{ width: "auto", alignSelf: "flex-start" }}
                 onClick={() => {
                   handleDownloadPlot(plot);
                 }}
@@ -190,10 +188,7 @@ export const RunScreen: React.FC = () => {
       {tableData.length > 0 ? (
         <div>
           <DataTable data={tableData} />
-          <CSVButton
-            data={tableData}
-            style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
-          />
+          <CSVButton data={tableData} style={{ marginTop: theme.spacing.buttonGap }} />
         </div>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
