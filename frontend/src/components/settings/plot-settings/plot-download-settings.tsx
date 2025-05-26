@@ -77,8 +77,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   const [prevTitle] = useState<string>(getTitleFromLayout(layout));
 
   useEffect(() => {
-    setPlot({data, layout})
-  }, [data, layout])
+    setPlot({ data, layout });
+  }, [data, layout]);
 
   useEffect(() => {
     const displaySizes = computeDisplaySizes();

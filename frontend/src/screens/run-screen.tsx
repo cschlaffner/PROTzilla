@@ -15,11 +15,7 @@ import {
   SectionTitle,
   SwitchCard,
 } from "./../components";
-import {
-  dummyTextComponent1,
-  footerMessages,
-  mockTableData,
-} from "./mockUpData";
+import { dummyTextComponent1, footerMessages, mockTableData } from "./mockUpData";
 import { DataTable } from "../components/data-table";
 import { PlotDownloadSettings } from "../components/settings/plot-settings";
 import { SelectedStep } from "../components/sidebar/types";
@@ -82,7 +78,7 @@ export const RunScreen: React.FC = () => {
 
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
-  const [selectedPlot, setSelectedPlot] = useState<Figure>({data: [], layout: {}});
+  const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [tableData, setTableData] = useState(mockTableData);
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -161,17 +157,19 @@ export const RunScreen: React.FC = () => {
     <StyledPlotContainer>
       {plots && plots.length > 0 ? (
         <>
-        {plots.map((plot, index) => (
-          <div key={index} style={{display: "flex", flexDirection: "column"}}> 
-            <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
-            <Button
-              text="Download plot"
-              style={{ width: "auto", alignSelf: "flex-end" }}
-              onClick={() => { handleDownloadPlot(plot); }}
-            />
-          </div>
-        ))}
-        <PlotDownloadSettings
+          {plots.map((plot, index) => (
+            <div key={index} style={{ display: "flex", flexDirection: "column" }}>
+              <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
+              <Button
+                text="Download plot"
+                style={{ width: "auto", alignSelf: "flex-end" }}
+                onClick={() => {
+                  handleDownloadPlot(plot);
+                }}
+              />
+            </div>
+          ))}
+          <PlotDownloadSettings
             isOpen={isDownloadModalOpen}
             onClose={closeDownloadModal}
             data={selectedPlot.data}
@@ -182,7 +180,6 @@ export const RunScreen: React.FC = () => {
         <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
     </StyledPlotContainer>
-    
   );
 
   const tableComponent = (
