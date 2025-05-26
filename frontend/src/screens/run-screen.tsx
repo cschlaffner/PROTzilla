@@ -187,11 +187,17 @@ export const RunScreen: React.FC = () => {
 
   const tableComponent = (
     <StyledTableContainer>
-      <DataTable data={tableData} />
-      <CSVButton
-        data={tableData}
-        style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
-      />
+      {tableData.length > 0 ? (
+        <div>
+          <DataTable data={tableData} />
+          <CSVButton
+            data={tableData}
+            style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
+          />
+        </div>
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
+      )}
     </StyledTableContainer>
   );
 
