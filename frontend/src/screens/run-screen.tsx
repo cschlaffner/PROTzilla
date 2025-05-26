@@ -153,7 +153,7 @@ export const RunScreen: React.FC = () => {
     void getStepTable();
   };
 
-  const handleDownloadButton = (plot: Figure) => {
+  const handleDownloadPlot = (plot: Figure) => {
     setSelectedPlot(plot);
     openDownloadModal();
   };
@@ -163,10 +163,13 @@ export const RunScreen: React.FC = () => {
       {plots.length > 0 ? (
         <>
         {plots.map((plot, index) => (
-          //TODO: Make the layout beautiful and put it in a styled Component (like StyledPlotContainer for example)
-          <div key={index} style={{display: "flex", flexDirection: "row"}}> 
-          <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
-          <Button text="Download plot" onClick={() => { handleDownloadButton(plot); }} />
+          <div key={index} style={{display: "flex", flexDirection: "column"}}> 
+            <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
+            <Button
+              text="Download plot"
+              style={{ width: "auto", alignSelf: "flex-end" }}
+              onClick={() => { handleDownloadPlot(plot); }}
+            />
           </div>
         ))}
         <PlotDownloadSettings
