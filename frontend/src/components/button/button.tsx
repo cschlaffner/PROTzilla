@@ -8,7 +8,7 @@ import { Icon, iconColor, IconType } from "../icon";
 import { NotificationBubble } from "../notification-bubble";
 import { Text } from "../text";
 import { Tooltip, useTooltipScheduling } from "../tooltip";
-import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
+import { ButtonProps, ButtonRef, CSVButtonProps, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "../../theme";
 import { FocusOutline } from "../box";
 
@@ -579,3 +579,47 @@ export const StatusButton: React.FC<StatusButtonProps> = ({
   ) : (
     <Button icon={icon} isDisabled={isDisabled} onPress={onPress} {...rest} />
   );
+
+// Implementation based on
+// https://dev.to/graciesharma/implementing-csv-data-export-in-react-without-external-libraries-3030
+export const CSVButton: React.FC<CSVButtonProps> = ({
+  data,
+  fileName = "data.csv",
+  ...params
+}) => {
+  const downloadCSV = () => {
+    if (data.length === 0) return;
+
+    const header = Object.keys(data[0]);
+    const rows = data.map((row) =>
+      header.map((key) => {
+        const value = row[key];
+        if (value === null || value === undefined) return "NaN";
+        // Value will be explicitly converted via String()
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        const stringified = typeof value === "object" ? JSON.stringify(value) : String(value);
+        return `"${stringified.replace(/"/g, '""')}"`;
+      }).join(",")
+    );
+
+    const csvString = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <Button
+      text="Download as CSV"
+      onPress={downloadCSV}
+      {...params}
+    />
+  );
+};

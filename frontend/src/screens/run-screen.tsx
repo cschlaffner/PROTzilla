@@ -2,11 +2,12 @@ import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 
 import { spacing } from "../theme";
 import {
   Button,
+  CSVButton,
   FlexColumn,
   FlexRow,
   ListEditor,
@@ -59,6 +60,7 @@ const StyledTableContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
 `;
 
 const FooterText = styled.div`
@@ -72,6 +74,7 @@ const FooterText = styled.div`
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
   const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
@@ -185,6 +188,10 @@ export const RunScreen: React.FC = () => {
   const tableComponent = (
     <StyledTableContainer>
       <DataTable data={tableData} />
+      <CSVButton
+        data={tableData}
+        style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
+      />
     </StyledTableContainer>
   );
 
