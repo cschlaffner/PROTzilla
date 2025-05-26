@@ -1,14 +1,28 @@
+import { Box } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import {
   DataGrid,
   GridColDef,
   GridColumnVisibilityModel,
+  GridFooterContainer,
+  GridFooterContainerProps,
+  GridPagination,
   GridPaginationModel,
 } from "@mui/x-data-grid";
 import React, { useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
 import { baseTheme, getMuiTheme } from "../../theme";
+
+export const CustomFooter: React.FC<GridFooterContainerProps> = () => {
+  return (
+    <GridFooterContainer>
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <GridPagination />
+      </Box>
+    </GridFooterContainer>
+  );
+};
 
 export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -61,6 +75,9 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
         }}
         rowHeight={height}
         columnHeaderHeight={height}
+        slots={{
+          footer: CustomFooter,
+        }}
       />
     </ThemeProvider>
   );
