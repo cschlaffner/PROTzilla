@@ -74,7 +74,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   } = usePlotSettings(isOpen);
 
   const [plot, setPlot] = useState({ data, layout });
-  const [prevTitle] = useState<string>(getTitleFromLayout(plot.layout));
+  const [prevTitle] = useState<string>(getTitleFromLayout(layout));
 
   useEffect(() => {
     setPlot({data, layout})
