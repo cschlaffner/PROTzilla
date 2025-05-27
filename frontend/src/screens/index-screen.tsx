@@ -346,7 +346,7 @@ export const IndexScreen: React.FC = () => {
               onPointerLeave={handlePointerLeave}
               ref={setParentRef}
             >
-              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+              <InfoIcon icon={"info"} style={{ paddingLeft: "10px" }} />
               <Tooltip
                 text={"Search by run name, steps, or tags"}
                 isShown={showTooltip}

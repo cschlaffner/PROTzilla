@@ -197,7 +197,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
           onPointerLeave={handlePointerLeave}
         >
           Last edited
-          <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
+          <InfoIcon icon={"info"} style={{ paddingLeft: "10px" }} />
           <Tooltip
             text={"Refers to the last time a step in the run was calculated"}
             isShown={showTooltip}
