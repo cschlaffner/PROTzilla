@@ -10,6 +10,7 @@ from backend.protzilla.data_integration import (
     enrichment_analysis,
 )
 from backend.protzilla.data_integration.database_query import uniprot_databases
+from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
 from backend.protzilla.form import *
 from backend.protzilla.steps import Plots, Step, StepManager
 from backend.protzilla.data_integration.enrichment_analysis import GOAnalysisOflineBackgroundType, GOAnalysisWithEnrichrBackgroundType
@@ -25,9 +26,7 @@ class Direction(Enum):
     both = "both"
 
 
-class GeneSetsField(Enum):
-    upload_a_file = "Upload a file"
-    choose_from_enrichr_options = "Choose from Enrichr options"
+
 
 
 class Organism(Enum):
@@ -221,8 +220,8 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 DropdownField(
                     name = "gene_sets_field",
                     label = "Gene sets",
-                    value = GeneSetsField.choose_from_enrichr_options.value,
-                    options = GeneSetsField,
+                    value = GeneSetsType.choose_from_enrichr_options.value,
+                    options = GeneSetsType,
                 ),
                 FileInput(
                     name = "gene_sets_path",
@@ -293,7 +292,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
         ]:
             form[field_name].isVisible = False
         
-        if gene_sets_field.value == GeneSetsField.choose_from_enrichr_options.value:
+        if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enricher_field.isVisible = True
             gene_sets_enricher_field.set_options(
                 form_helper.to_choices(
@@ -488,10 +487,10 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
                 ),
                 DropdownField(
                     # TODO: Dynamic parameters
-                    name = "gene_sets_field",
+                    name = "gene_sets_type",
                     label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsField.choose_from_enrichr_options.value,
-                    options = GeneSetsField,
+                    value = GeneSetsType.choose_from_enrichr_options.value,
+                    options = GeneSetsType,
                 ),
                 FileInput(
                     name = "gene_sets_path",
@@ -556,7 +555,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
     def modify_form(self, form, run):
         protein_df_field = form["protein_df_step_instance"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        gene_sets_field = form["gene_sets_field"]
+        gene_sets_field = form["gene_sets_type"]
         gene_sets_enrichr_field = form["gene_sets_enrichr"]
         gene_sets_path_field = form["gene_sets_path"]
         grouping_field = form["grouping"]
@@ -577,7 +576,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
 
-        if gene_sets_field.value == GeneSetsField.choose_from_enrichr_options.value:
+        if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enrichr_field.isVisible = True
             gene_sets_enrichr_field.set_options(
                 form_helper.to_choices(
@@ -661,8 +660,8 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                 DropdownField(
                     name = "gene_sets_field",
                     label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsField.choose_from_enrichr_options.value,
-                    options = GeneSetsField,
+                    value = GeneSetsType.choose_from_enrichr_options.value,
+                    options = GeneSetsType,
                     # Todo: Dynamic parameters
                 ),
                 FileInput(
@@ -745,7 +744,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
 
-        if gene_sets_field.value == GeneSetsField.choose_from_enrichr_options.value:
+        if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enrichr_field.isVisible = True
             gene_sets_enrichr_field.set_options(
                 form_helper.to_choices(
