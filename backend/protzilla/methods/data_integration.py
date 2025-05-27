@@ -136,7 +136,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
                 DropdownField(
                     name = "direction",
                     label = "Direction of the analysis",
-                    value = Direction.both,
+                    value = Direction.both.value,
                     options = Direction,
                 ),
                 FileInput(
@@ -209,19 +209,19 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 DropdownField(
                     name = "direction",
                     label = "Direction of the analysis",
-                    value = Direction.both,
+                    value = Direction.both.value,
                     options = Direction,
                 ),
                 DropdownField(
                     name = "organism",
                     label = "Organism",
-                    value = Organism.human,
+                    value = Organism.human.value,
                     options = Organism,
                 ),
                 DropdownField(
                     name = "gene_sets_field",
                     label = "Gene sets",
-                    value = GeneSetsField.choose_from_enrichr_options,
+                    value = GeneSetsField.choose_from_enrichr_options.value,
                     options = GeneSetsField,
                 ),
                 FileInput(
@@ -239,7 +239,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 DropdownField(
                     name = "background_type",
                     label = "Background",
-                    value = GOAnalysisWithEnrichrBackgroundType.all_genes,
+                    value = GOAnalysisWithEnrichrBackgroundType.all_genes.value,
                     options = GOAnalysisWithEnrichrBackgroundType,
                 ),
                 FileInput(
@@ -389,13 +389,13 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
                 DropdownField(
                     name = "direction",
                     label = "Direction of the analysis",
-                    value = Direction.both,
+                    value = Direction.both.value,
                     options = Direction,
                 ),
                 DropdownField(
                     name = "background_type",
                     label = "Background",
-                    value = GOAnalysisOflineBackgroundType.all_genes,
+                    value = GOAnalysisOflineBackgroundType.upload_a_file.value,
                     options = GOAnalysisOflineBackgroundType,
                 ),
                 FileInput(
@@ -433,7 +433,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
 
         background_path_field.isVisible = False
         background_number_field.isVisible = False
-
+        print("Background type field value: ", background_type_field.value)
         if (
             background_type_field.value
             == GOAnalysisOflineBackgroundType.upload_a_file.value
@@ -490,7 +490,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
                     # TODO: Dynamic parameters
                     name = "gene_sets_field",
                     label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsField.choose_from_enrichr_options,
+                    value = GeneSetsField.choose_from_enrichr_options.value,
                     options = GeneSetsField,
                 ),
                 FileInput(
@@ -535,13 +535,13 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
                 DropdownField(
                     name = "permutation_type",
                     label = "Permutation type (if samples >=15 set to phenotype)",
-                    value = PermutationTypeField.phenotype,
+                    value = PermutationTypeField.phenotype.value,
                     options = PermutationTypeField,
                 ),
                 DropdownField(
                     name = "ranking_method",
                     label = "Method to calculate correlation or ranking",
-                    value = RankingMethodField.signal_to_noise,
+                    value = RankingMethodField.signal_to_noise.value,
                     options = RankingMethodField,
                 ),
                 FloatField(
@@ -655,13 +655,13 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                     name = "ranking_direction",
                     label = "Sort the ranking column (ascending - smaller values are better, "
                             "descending - larger values are better)",
-                    value = RankingDirectionField.ascending,
+                    value = RankingDirectionField.ascending.value,
                     options = RankingDirectionField,
                 ),
                 DropdownField(
                     name = "gene_sets_field",
                     label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsField.choose_from_enrichr_options,
+                    value = GeneSetsField.choose_from_enrichr_options.value,
                     options = GeneSetsField,
                     # Todo: Dynamic parameters
                 ),
@@ -695,13 +695,13 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
                 DropdownField(
                     name = "permutation_type",
                     label = "Permutation type (if samples >=15 set to phenotype)",
-                    value = PermutationTypeField.phenotype,
+                    value = PermutationTypeField.phenotype.value,
                     options = PermutationTypeField,
                 ), 
                 DropdownField(
                     name = "ranking_method",
                     label = "Method to calculate correlation or ranking",
-                    value = RankingMethodField.signal_to_noise,
+                    value = RankingMethodField.signal_to_noise.value,
                     options = RankingMethodField,
                 ),
                 FloatField(
@@ -860,7 +860,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
                 DropdownField(
                     name = "value",
                     label = "Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
-                    value = GOEnrichmentBarPlotValue.p_value,
+                    value = GOEnrichmentBarPlotValue.p_value.value,
                     options = GOEnrichmentBarPlotValue,
                 ),
                 MultiSelectField(
@@ -938,7 +938,7 @@ class PlotGOEnrichmentDotPlot(PlotStep):
                     name = "x_axis_type",
                     label = "Variable for x-axis: categorical scatter plot for one or multiple gene "
                             "sets, or display combined score for one gene set",
-                    value = GOEnrichmentDotPlotXAxisType.gene_sets,
+                    value = GOEnrichmentDotPlotXAxisType.gene_sets.value,
                     options = GOEnrichmentDotPlotXAxisType,
                 ),
                 MultiSelectField(
@@ -1013,13 +1013,13 @@ class PlotGSEADotPlot(PlotStep):
                 DropdownField(
                     name = "dot_color_value",
                     label = "Color the dots by value",
-                    value = GSEADotPlotDotColorValue.fdr_q_val,
+                    value = GSEADotPlotDotColorValue.fdr_q_val.value,
                     options = GSEADotPlotDotColorValue,
                 ),
                 DropdownField(
                     name = "x_axis_value",
                     label = "Value to display on x axis",
-                    value = GSEADotPlotXAxisValue.nes,
+                    value = GSEADotPlotXAxisValue.nes.value,
                     options = GSEADotPlotXAxisValue,
                 ),
                 FloatField(
