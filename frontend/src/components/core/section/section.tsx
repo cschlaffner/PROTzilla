@@ -2,7 +2,7 @@ import { spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 import { SectionProps } from "./section.props";
-import { SectionTitle } from "../section-title";
+import { SectionTitle } from "../shared";
 
 const SectionContainer = styled.section`
   align-items: flex-start;

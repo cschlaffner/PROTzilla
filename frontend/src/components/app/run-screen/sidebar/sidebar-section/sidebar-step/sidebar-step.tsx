@@ -5,7 +5,7 @@ import {
   ContentText,
   DefaultColoredIcon,
   DefaultColoredIconType,
-} from "@protzilla/core/shared";
+} from "@protzilla/core";
 import { color } from "@protzilla/theme";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";

@@ -1,10 +1,9 @@
-import { FlexColumn, FlexRow, iconColor, Text } from "@protzilla/core/shared";
+import { FlexColumn, FlexRow, iconColor, Text, GrayButton } from "@protzilla/core";
 import { color, fontSize, fontWeight, radius, size, spacing, zIndex } from "@protzilla/theme";
 import React, { useEffect, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
-import { GrayButton } from "../../../core/button";
 
 const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   background-color: ${({ type }) =>

@@ -1,4 +1,4 @@
-import { H3, Icon } from "@protzilla/core/shared";
+import { H3, Icon } from "@protzilla/core";
 import { spacing, styledDiv } from "@protzilla/theme";
 import { Section, Step } from "@protzilla/utils";
 import { motion } from "framer-motion";

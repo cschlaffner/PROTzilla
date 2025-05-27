@@ -6,7 +6,6 @@ import { styled } from "styled-components";
 import { Text } from "../text";
 import { TooltipProps } from "./tooltip.props";
 import { useTooltipPosition } from "./utils";
-import { Text } from "../text";
 
 const TooltipContainer = styled.div<Pick<TooltipProps, "baseZIndex">>`
   align-items: center;

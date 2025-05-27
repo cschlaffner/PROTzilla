@@ -1,4 +1,4 @@
-import { Icon } from "@protzilla/core/shared";
+import { Icon } from "@protzilla/core";
 import { color, fontSize, radius, spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 
