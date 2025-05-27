@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pandas as pd
 import restring
 import gseapy
 from backend.protzilla import form_helper
@@ -897,11 +898,17 @@ class PlotGOEnrichmentBarPlot(PlotStep):
             form["input_df_step_instance"].value = form["input_df_step_instance"].options[0].label
 
         if form["input_df_step_instance"].value:
-            form["gene_sets"].options = form_helper.to_choices(
-                run.steps.get_step_output(
+            enrichment_df = run.steps.get_step_output(
                     Step, "enrichment_df", form["input_df_step_instance"].value
-                )["Gene_set"].unique()
-            )
+                )
+
+            if (type(enrichment_df) == pd.DataFrame):
+                form["gene_sets"].set_options(form_helper.to_choices(
+                        enrichment_df["Gene_set"].unique()
+                    ))
+            else:
+                form["gene_sets"].set_options([])
+
 
     plot_method = staticmethod(di_plots.GO_enrichment_bar_plot)
 
@@ -984,7 +991,7 @@ class PlotGOEnrichmentDotPlot(PlotStep):
     def modify_form(self, form, run):
         form["gene_sets"].set_options([
             Option(el, el)
-            for el in run.steps.protein_df["enrichment_categories"].unique()
+            for el in run.steps.protein_df.get("enrichment_categories", pd.Series()).unique()
         ])
 
 
