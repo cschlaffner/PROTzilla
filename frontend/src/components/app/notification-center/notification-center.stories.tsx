@@ -63,6 +63,21 @@ export const TriggerFromHook: StoryFn = () => {
       >
         Sucess-Notification
       </SecondaryButton>
+      <SecondaryButton
+        onClick={() => {
+          notify({
+            title: "Oh oh.",
+            message:
+              "Seems to be a serious issue. \n This notification has a collapsible traceback for even more information.",
+            traceback:
+              "This is a traceback... A very very very very very very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very very very very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very veryvery very very very long traceback. ",
+            type: "error",
+            closeAfterMs: theme.durations.veryLongNotificationDuration,
+          });
+        }}
+      >
+        Traceback-Notification
+      </SecondaryButton>
     </div>
   );
 };

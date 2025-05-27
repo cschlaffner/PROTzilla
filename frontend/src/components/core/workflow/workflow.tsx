@@ -1,5 +1,5 @@
 import { BigButton, H5, Tooltip, useTooltipScheduling } from "@protzilla/core";
-import { spacing } from "@protzilla/theme";
+import { spacing, size } from "@protzilla/theme";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
 
@@ -11,7 +11,7 @@ const StyledContainer = styled(Container)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 200px;
+  width: ${size("bigButtonContainerDimension")};
 `;
 
 const NameText = styled(H5)`

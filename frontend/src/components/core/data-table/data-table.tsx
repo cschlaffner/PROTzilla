@@ -4,7 +4,6 @@ import {
   GridColDef,
   GridColumnVisibilityModel,
   GridPaginationModel,
-  GridRowsProp,
 } from "@mui/x-data-grid";
 import { baseTheme, getMuiTheme } from "@protzilla/theme";
 import React, { useMemo, useState } from "react";
@@ -12,7 +11,6 @@ import React, { useMemo, useState } from "react";
 import { DataTableProps } from "./data-table.props";
 
 export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOptions }) => {
-  const [rows] = useState<GridRowsProp>(data);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: pageSize ?? 10,
@@ -46,7 +44,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, pageSize, pageSizeOp
   return (
     <ThemeProvider theme={theme}>
       <DataGrid
-        rows={rows}
+        rows={data}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={(newModel) => {

@@ -5,6 +5,7 @@ import {
   InputValueType,
   Modal,
   SearchInputField,
+  SecondaryButton,
   TagMenu,
   Workflow,
 } from "@protzilla/core";
@@ -14,7 +15,7 @@ import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+import { styled, useTheme } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const StyledNavbar = styled(Navbar)`
@@ -27,26 +28,20 @@ const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   box-sizing: border-box;
 `;
 
 const StyledWorkflowContainer = styled(Container)`
   display: flex;
-  overflow-x: hidden;
+  overflow-x: auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  &:hover {
-    overflow-x: auto;
+    display: none;
   }
 `;
 
@@ -55,11 +50,22 @@ const StyledTemplateCard = styled(Card)`
   width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
+const NavigationDiv = styledDiv.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: ${spacing("small")};
+`;
+
+const StyledArrowButton = styled(SecondaryButton)`
+  height: 10px;
+  padding: ${spacing("small")};
+`;
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
   height: calc(
     100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
-      (5 * ${spacing("small")})
+      (3 * ${spacing("small")})
   );
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
@@ -79,6 +85,7 @@ const InfoIcon = styled(Icon)`
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
+  const theme = useTheme();
 
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
@@ -206,8 +213,26 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const workflowContainerSize = parseInt(
+    (theme.sizes.bigButtonContainerDimension as unknown as string).replace("px", ""),
+  );
+
+  const scrollLeft = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft -= workflowContainerSize;
+    }
+  };
+
+  const scrollRight = () => {
+    const container = document.querySelector(".workflow-container");
+    if (container) {
+      container.scrollLeft += workflowContainerSize;
+    }
+  };
+
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
         allowRunEdit={false}
         onNavigateHome={() => void navigate("/")}
@@ -225,7 +250,7 @@ export const IndexScreen: React.FC = () => {
             }}
             placeholder="Search workflows"
           />
-          <StyledWorkflowContainer>
+          <StyledWorkflowContainer className={"workflow-container"}>
             {filteredWorkflows.map((workflow) => (
               <Workflow
                 key={workflow}
@@ -238,6 +263,10 @@ export const IndexScreen: React.FC = () => {
               />
             ))}
           </StyledWorkflowContainer>
+          <NavigationDiv>
+            <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
+            <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
+          </NavigationDiv>
           <Modal
             title="Create run"
             isOpen={isWorkflowModalOpen}
