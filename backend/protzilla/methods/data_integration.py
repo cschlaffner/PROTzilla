@@ -12,6 +12,7 @@ from backend.protzilla.data_integration import (
 from backend.protzilla.data_integration.database_query import uniprot_databases
 from backend.protzilla.form import *
 from backend.protzilla.steps import Plots, Step, StepManager
+from backend.protzilla.data_integration.enrichment_analysis import GOAnalysisOflineBackgroundType, GOAnalysisWithEnrichrBackgroundType
 import matplotlib.colors as mcolors
 
 PROTEIN_DF = "protein_df"
@@ -55,13 +56,6 @@ class RankingMethodField(Enum):
 class RankingDirectionField(Enum):
     ascending = "ascending"
     descending = "descending"
-
-
-class GOAnalysisWithEnrichrBackgroundField(Enum):
-    upload_a_file = "Upload a file (recommended)"
-    choose_biomart_dataset = "Choose Biomart dataset"
-    number_of_expressed_genes = "Specify number of expressed genes (not recommended)"
-    all_genes = "Use all genes in the gene set"
 
 
 class GOEnrichmentBarPlotValue(Enum):
@@ -243,10 +237,10 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                     label = "Gene set libraries",
                 ),
                 DropdownField(
-                    name = "background_field",
+                    name = "background_type",
                     label = "Background",
-                    value = GOAnalysisWithEnrichrBackgroundField.upload_a_file,
-                    options = GOAnalysisWithEnrichrBackgroundField,
+                    value = GOAnalysisWithEnrichrBackgroundType.all_genes,
+                    options = GOAnalysisWithEnrichrBackgroundType,
                 ),
                 FileInput(
                     name = "background_path",
@@ -273,7 +267,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
         gene_sets_field = form["gene_sets_field"]
         gene_sets_enricher_field = form["gene_sets_enrichr"]
         gene_sets_path_field = form["gene_sets_path"]
-        background_field = form["background_field"]
+        background_type_field = form["background_type"]
         background_biomart_field = form["background_biomart"]
         background_path_field = form["background_path"]
         background_number_field = form["background_number"]
@@ -310,7 +304,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             gene_sets_path_field.isVisible = True
         
         if (
-           background_field.value == GOAnalysisWithEnrichrBackgroundField.choose_biomart_dataset.value 
+           background_type_field.value == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value 
         ):
             background_biomart_field.isVisible = True
             database = restring.biomart_database("ENSEMBL_MART_ENSEMBL")
@@ -323,11 +317,11 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 )
             )
         elif (
-            background_field.value == GOAnalysisWithEnrichrBackgroundField.upload_a_file.value
+            background_type_field.value == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value
         ):
             background_path_field.isVisible = True
         elif (
-            background_field.value == GOAnalysisWithEnrichrBackgroundField.number_of_expressed_genes.value
+            background_type_field.value == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
 
@@ -399,10 +393,10 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
                     options = Direction,
                 ),
                 DropdownField(
-                    name = "background_field",
+                    name = "background_type",
                     label = "Background",
-                    value = GOAnalysisWithEnrichrBackgroundField.upload_a_file,
-                    options = GOAnalysisWithEnrichrBackgroundField,
+                    value = GOAnalysisOflineBackgroundType.all_genes,
+                    options = GOAnalysisOflineBackgroundType,
                 ),
                 FileInput(
                     name = "background_path",
@@ -414,7 +408,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
                     min = 1,
                     max = 4294967295,
                     step = 1,
-                    value = None
+                    value = 1
                 ),
             ]
         )
@@ -422,7 +416,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
     def modify_form(self, form, run):
         protein_df_step_instance_field = form["protein_df_step_instance"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        background_field = form["background_field"]
+        background_type_field = form["background_type"]
         background_path_field = form["background_path"]
         background_number_field = form["background_number"]
 
@@ -441,13 +435,13 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
         background_number_field.isVisible = False
 
         if (
-            background_field.value
-            == GOAnalysisWithEnrichrBackgroundField.upload_a_file.value
+            background_type_field.value
+            == GOAnalysisOflineBackgroundType.upload_a_file.value
         ):
             background_path_field.isVisible = True
         elif (
-            background_field.value
-            == GOAnalysisWithEnrichrBackgroundField.number_of_expressed_genes.value
+            background_type_field.value
+            == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
         
