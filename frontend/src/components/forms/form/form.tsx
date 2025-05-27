@@ -92,7 +92,7 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFormTouched })
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
-            text="Submit"
+            text={formData.labelSubmitButton ?? "Submit"}
             onClick={handleSubmit}
             isDisabled={!isChanged && formData.hasChangeIndicator}
           />

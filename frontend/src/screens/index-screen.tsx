@@ -282,6 +282,7 @@ export const IndexScreen: React.FC = () => {
             <Form
               formData={{
                 label: "",
+                labelSubmitButton: "Create run",
                 isAutoSubmit: false,
                 hasChangeIndicator: false,
                 input_fields: [
