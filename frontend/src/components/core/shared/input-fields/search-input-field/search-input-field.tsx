@@ -3,7 +3,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { SearchInputFieldProps } from "./search-input-field.props";
-import { Icon } from "../../icon"
+import { Icon } from "../../icon";
 import { InputContainer } from "../input-container";
 
 const StyledInput = styled.input.withConfig({

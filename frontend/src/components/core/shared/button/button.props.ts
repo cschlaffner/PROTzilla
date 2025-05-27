@@ -3,7 +3,7 @@ import type { UIStateProps } from "@protzilla/utils";
 import type React from "react";
 
 import type { IconType } from "../icon";
-import type { TooltippedProps } from "../tooltip"
+import type { TooltippedProps } from "../tooltip";
 
 export interface ButtonRef extends HTMLButtonElement {
   /** Forces to hide the focus indicator for the subsequent focus event. */

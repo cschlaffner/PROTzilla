@@ -2,7 +2,7 @@ import { color, duration, fontSize, fontWeight, opacity } from "@protzilla/theme
 import React, { useCallback } from "react";
 import { css, styled } from "styled-components";
 
-import { SecondaryButton } from "../button"
+import { SecondaryButton } from "../button";
 import { Text } from "../text";
 import { SwitchOptionProps } from "./switch-option.props";
 

@@ -1,5 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { Form, SearchInputField } from "@protzilla/core"
+import { Form, SearchInputField } from "@protzilla/core";
 import { characterLimits, spacing, useTheme } from "@protzilla/theme";
 import { callApi, Run } from "@protzilla/utils";
 import React, { useCallback, useEffect } from "react";

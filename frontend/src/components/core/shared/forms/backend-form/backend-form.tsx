@@ -10,7 +10,7 @@ import {
   BackendInputFieldProps,
   BackendInputValueType,
 } from "./backend-form.props";
-import { Button } from "../../button"
+import { Button } from "../../button";
 import {
   CheckboxSelectInputField,
   DropdownInputField,
@@ -22,7 +22,7 @@ import {
   SingleCheckboxInputField,
   TextInputField,
 } from "../../input-fields";
-import { H3 } from "../../text"
+import { H3 } from "../../text";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

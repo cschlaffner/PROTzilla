@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { FileInputFieldProps } from "./file-input-field.props";
-import { SecondaryButton } from "../../button"
+import { SecondaryButton } from "../../button";
 import { InputContainer } from "../input-container";
 
 const StyledDiv = styled.div`

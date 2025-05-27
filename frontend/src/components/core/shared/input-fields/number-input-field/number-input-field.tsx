@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { NumberInputFieldProps } from "./number-input-field.props";
-import { GrayButton } from "../../button" 
+import { GrayButton } from "../../button";
 import { InputContainer } from "../input-container";
 
 const StyledInput = styled.input<{ $isSmall: boolean }>`

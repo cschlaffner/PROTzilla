@@ -4,7 +4,7 @@ import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
-import { Icon } from "../../icon"
+import { Icon } from "../../icon";
 import { InputContainer } from "../input-container";
 
 const DropdownContainer = styled.div`

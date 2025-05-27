@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
 import { InputContainer } from "../../input-container";
-import { StyledCheckboxContainer, StyledLabel } from "../checkbox-select-input-field"
+import { StyledCheckboxContainer, StyledLabel } from "../checkbox-select-input-field";
 
 const StyledSingleCheckboxContainer = styled(StyledCheckboxContainer)`
   justify-content: center;

@@ -4,13 +4,10 @@ import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@pr
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
-import { FocusOutline } from "../box"
-import { Icon, iconColor, IconType } from "../icon"
-import { Text } from "../text"
-import {
-  Tooltip,
-  useTooltipScheduling,
-} from "../tooltip";
+import { FocusOutline } from "../box";
+import { Icon, iconColor, IconType } from "../icon";
+import { Text } from "../text";
+import { Tooltip, useTooltipScheduling } from "../tooltip";
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 
 const StyledButton = styled.button.withConfig({

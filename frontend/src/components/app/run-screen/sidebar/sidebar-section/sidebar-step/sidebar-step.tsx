@@ -1,5 +1,6 @@
 import { useNotification } from "@protzilla/app";
-import { CollapsibleLabel ,
+import {
+  CollapsibleLabel,
   ContentText,
   DefaultColoredIcon,
   DefaultColoredIconType,

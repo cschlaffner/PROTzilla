@@ -4,7 +4,7 @@ import { styled } from "styled-components";
 
 import { SwitchCardProps } from "./switch-card.props";
 import { Switch } from "../../switch";
-import { Card } from "../card"
+import { Card } from "../card";
 
 const SwitchDiv = styled.div<{ hasSwitchAlginStart: boolean }>`
   display: flex;

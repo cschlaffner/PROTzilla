@@ -1,8 +1,8 @@
 import { styled } from "styled-components";
 
-import { Modal } from "../"
+import { Modal } from "../";
 import { DiscardModalProps } from "./discard-modal.props";
-import { Button, SecondaryButton } from "../../button"
+import { Button, SecondaryButton } from "../../button";
 import { Text } from "../../text";
 
 const ButtonContainer = styled.div`

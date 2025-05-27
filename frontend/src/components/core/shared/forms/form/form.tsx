@@ -3,7 +3,7 @@ import React, { memo, useState } from "react";
 import { styled } from "styled-components";
 
 import { FormProps, InputFieldProps, InputValueType } from "./form.props";
-import { SubmitButton } from "../../button"
+import { SubmitButton } from "../../button";
 import {
   CheckboxSelectInputField,
   DropdownInputField,
@@ -15,7 +15,7 @@ import {
   SingleCheckboxInputField,
   TextInputField,
 } from "../../input-fields";
-import { H3 } from "../../text"
+import { H3 } from "../../text";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};
