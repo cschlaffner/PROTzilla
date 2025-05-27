@@ -140,6 +140,7 @@ export const baseTheme = {
     shortNotificationDuration: 2000,
     standardNotificationDuration: 5000,
     longNotificationDuration: 10000,
+    veryLongNotificationDuration: 60000,
   },
   fonts: {
     default: "Helvetica Neue",
@@ -197,7 +198,8 @@ export const baseTheme = {
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
-    bigButtonDimension: "150px",
+    bigButtonDimension: "125px",
+    bigButtonContainerDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -209,7 +211,7 @@ export const baseTheme = {
     tableRow: "40px",
 
     // Input Screen
-    templateSelectionHeight: "300px",
+    templateSelectionHeight: "325px",
     runSelectionMinHeight: "300px",
 
     //Runs Table

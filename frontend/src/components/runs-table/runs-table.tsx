@@ -19,23 +19,27 @@ const TableContainer = styled.div`
   flex-direction: column;
   overflow-x: hidden;
 
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+  height: 86%;
 
-  &::-webkit-scrollbar {
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
   &:hover {
     overflow-x: auto;
   }
 `;
 
 const TableContent = styled.div`
-  overflow-y: auto;
+  overflow-y: scroll;
+
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+  }
 `;
 
 const TableRow = styled.div<{ preSelected?: boolean }>`
