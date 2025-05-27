@@ -1,3 +1,9 @@
+import { color, fontSize, size, spacing } from "@protzilla/theme";
+import React, { memo, useState } from "react";
+import { styled } from "styled-components";
+
+import { FormProps, InputFieldProps, InputValueType } from "./form.props";
+import { SubmitButton } from "../../button"
 import {
   CheckboxSelectInputField,
   DropdownInputField,
@@ -10,12 +16,6 @@ import {
   TextInputField,
 } from "../../input-fields";
 import { H3 } from "../../text"
-import { SubmitButton } from "../../button"
-import { color, fontSize, size, spacing } from "@protzilla/theme";
-import React, { memo, useState } from "react";
-import { styled } from "styled-components";
-
-import { FormProps, InputFieldProps, InputValueType } from "./form.props";
 
 const StyledForm = styled.div`
   max-width: ${size("inputFieldsMaxWidth")};

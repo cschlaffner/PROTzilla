@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { styled } from "styled-components";
 
 import { SwitchCardProps } from "./switch-card.props";
-import { Card } from "../card"
 import { Switch } from "../../switch";
+import { Card } from "../card"
 
 const SwitchDiv = styled.div<{ hasSwitchAlginStart: boolean }>`
   display: flex;

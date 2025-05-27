@@ -1,6 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { DeleteModal, Form, SecondaryButton, SectionTitle } from "@protzilla/core";
-import { Text } from "@protzilla/core";
+import { DeleteModal, Form, SecondaryButton, SectionTitle , Text } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, formatDate } from "@protzilla/utils";

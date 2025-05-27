@@ -1,6 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { SecondaryButton, SectionTitle } from "@protzilla/core";
-import { Icon, Text } from "@protzilla/core";
+import { Icon, SecondaryButton , SectionTitle, Text } from "@protzilla/core";
 import { size, spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
 

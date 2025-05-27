@@ -1,7 +1,7 @@
-import { PlotComponent } from "../../plot";
 import { Meta, StoryFn } from "@storybook/react";
 
 import {  SwitchCard, SwitchCardProps } from "./"
+import { PlotComponent } from "../../plot";
 
 export default {
   component: SwitchCard,

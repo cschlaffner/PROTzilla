@@ -1,6 +1,5 @@
 import { ListEditor, Navbar } from "@protzilla/app";
-import { DataTable, PlotComponent, SectionTitle, SwitchCard } from "@protzilla/core";
-import { FlexColumn, FlexRow } from "@protzilla/core";
+import { DataTable, FlexColumn, FlexRow, PlotComponent , SectionTitle, SwitchCard } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,

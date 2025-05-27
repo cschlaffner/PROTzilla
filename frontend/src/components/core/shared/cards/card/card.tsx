@@ -1,9 +1,9 @@
-import { H3 } from "../../text";
 import { color, fontSize, fontWeight, shadow, spacing, styledDiv } from "@protzilla/theme";
 import React from "react";
 import { styled } from "styled-components";
 
 import { CardProps } from "./card.props";
+import { H3 } from "../../text";
 
 const StyledCard = styledDiv.div`
   background: white;

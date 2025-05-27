@@ -1,11 +1,11 @@
-import { Icon } from "../icon";
-import { Card } from "../cards/card"
-import { SectionTitle } from "../section-title"
-import { CircularButton } from "../button"
 import { color, zIndex } from "@protzilla/theme";
 import React from "react";
 import { styled } from "styled-components";
 
+import { CircularButton } from "../button"
+import { Card } from "../cards/card"
+import { Icon } from "../icon";
+import { SectionTitle } from "../section-title"
 import { ModalProps } from "./modal.props";
 
 const Backdrop = styled.div<{ isOpen: boolean }>`

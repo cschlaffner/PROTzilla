@@ -1,5 +1,4 @@
-import { Button, PlotComponent, SecondaryButton, SectionTitle } from "@protzilla/core";
-import { Text } from "@protzilla/core";
+import { Button, PlotComponent, SecondaryButton, SectionTitle , Text } from "@protzilla/core";
 import { color, fontSize, fontWeight, spacing, zIndex } from "@protzilla/theme";
 import isEqual from "fast-deep-equal";
 import { Data, Layout } from "plotly.js";

@@ -1,8 +1,8 @@
-import { H1 } from "../text";
-import { FlexColumn } from "../box"
 import { color } from "@protzilla/theme";
 import { styled } from "styled-components";
 
+import { FlexColumn } from "../box"
+import { H1 } from "../text";
 import { baseComponents } from "./base-components";
 import { SectionTitleProps } from "./section-title.props";
 

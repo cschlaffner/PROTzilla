@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import {
-  Tooltip,
-  useTooltipScheduling,
-} from "../tooltip";
-import { FocusOutline } from "../box"
-import { Text } from "../text"
-import { Icon, iconColor, IconType } from "../icon"
 import { useMultiRef } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
+import { FocusOutline } from "../box"
+import { Icon, iconColor, IconType } from "../icon"
+import { Text } from "../text"
+import {
+  Tooltip,
+  useTooltipScheduling,
+} from "../tooltip";
 import { ButtonProps, ButtonRef, StatusButtonProps, ToggleableButtonProps } from "./button.props";
 
 const StyledButton = styled.button.withConfig({

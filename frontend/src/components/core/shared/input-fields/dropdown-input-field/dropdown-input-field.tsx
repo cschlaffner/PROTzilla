@@ -1,11 +1,11 @@
-import { InputContainer } from "../input-container";
-import { Icon } from "../../icon"
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import type { DropdownInputFieldProps } from "./dropdown-input-field.props";
+import { Icon } from "../../icon"
+import { InputContainer } from "../input-container";
 
 const DropdownContainer = styled.div`
   display: inline-block;

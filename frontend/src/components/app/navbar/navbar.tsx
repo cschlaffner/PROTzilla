@@ -1,5 +1,5 @@
 import { NavbarProps, RunEditMenu, Settings, useNotification } from "@protzilla/app";
-import { Button, DiscardModal, Form, InputValueType, Modal, FlexColumn, Text } from "@protzilla/core";
+import { Button, DiscardModal, FlexColumn, Form, InputValueType, Modal, Text } from "@protzilla/core";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";

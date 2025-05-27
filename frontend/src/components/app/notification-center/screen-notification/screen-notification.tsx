@@ -1,11 +1,11 @@
-import { FlexColumn, FlexRow, iconColor, Text, GrayButton, RedButton } from "@protzilla/core";
+import { FlexColumn, FlexRow, GrayButton, iconColor, RedButton, Text } from "@protzilla/core";
+import { useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, radius, size, spacing, styledDiv, zIndex } from "@protzilla/theme";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
 
-import { useToggleableState } from "@protzilla/hooks";
 
 const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   background-color: ${({ type }) =>

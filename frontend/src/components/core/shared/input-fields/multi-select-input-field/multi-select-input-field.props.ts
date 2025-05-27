@@ -1,5 +1,6 @@
-import { InputContainerProps } from "../input-container";
 import { UIStateProps } from "@protzilla/utils";
+
+import { InputContainerProps } from "../input-container";
 
 export interface MultiSelectInputFieldProps
   extends Omit<InputContainerProps, "onChange">,

@@ -1,11 +1,11 @@
 import { useNotification } from "@protzilla/app";
+import { Form, SearchInputField } from "@protzilla/core"
 import { characterLimits, spacing, useTheme } from "@protzilla/theme";
 import { callApi, Run } from "@protzilla/utils";
 import React, { useCallback, useEffect } from "react";
 import { styled } from "styled-components";
 
 import { TagList } from "./taglist.tsx";
-import { SearchInputField, Form } from "@protzilla/core"
 const StyledModalChild = styled.div`
   padding: ${spacing("small")};
 `;

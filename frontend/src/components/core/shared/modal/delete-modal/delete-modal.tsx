@@ -1,8 +1,8 @@
 import { styled } from "styled-components";
 
 import { DeleteModalProps } from "./delete-modal.props";
-import { RedButton, SecondaryButton } from "../../button";
 import { Modal } from "../"
+import { RedButton, SecondaryButton } from "../../button";
 
 const ButtonContainer = styled.div`
   display: flex;

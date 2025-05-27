@@ -1,7 +1,7 @@
-import { Button } from "../button";
 import { Meta, StoryFn } from "@storybook/react";
 import { useState } from "react";
 
+import { Button } from "../button";
 import { Modal } from "./modal";
 import { ModalProps } from "./modal.props";
 

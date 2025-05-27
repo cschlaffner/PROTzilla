@@ -1,8 +1,8 @@
-import { Icon } from "../icon";
-import { Tooltip } from "../tooltip"
 import { useRef, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
+import { Icon } from "../icon";
+import { Tooltip } from "../tooltip"
 import { InfoIProps } from "./info-i.props";
 
 const Wrapper = styled.div`
