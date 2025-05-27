@@ -252,7 +252,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                     min = 1,
                     max = 4294967295,
                     step = 1,
-                    value = 0,
+                    value = 1,
                 ),
                 DropdownField(
                     name = "background_biomart",
