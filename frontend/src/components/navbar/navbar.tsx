@@ -1,7 +1,16 @@
 import { useCallback, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { Button, DiscardModal, Form, InputValueType , Settings, Text, useNotification } from "../../components";
+import {
+  Button,
+  DiscardModal,
+  Form,
+  Icon,
+  InputValueType,
+  Settings,
+  Text,
+  useNotification,
+} from "../../components";
 import { useOutsidePress, useToggleableState } from "../../hooks";
 import { color, fontSize, fontWeight, spacing } from "../../theme";
 import { callApiWithParameters } from "../../utils";
@@ -46,6 +55,7 @@ const NavbarRight = styled.div`
   flex-direction: row;
   justify-content: right;
   padding-right: ${spacing("medium")};
+  align-items: center;
 `;
 
 const NavbarCenterTitle = styled(Text)`
@@ -56,8 +66,23 @@ const NavbarCenterTitle = styled(Text)`
   padding: ${spacing("buttonPadding")};
 `;
 
+const MemoryDiv = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const MemoryUsageTitle = styled(Text)`
+  color: ${color("onPrimary")};
+  font-weight: ${fontWeight("bold")};
+  font-size: ${fontSize("h5")};
+  align-self: center;
+  padding-left: ${spacing("verySmall")};
+  padding-right: ${spacing("medium")};
+`;
+
 export const Navbar: React.FC<NavbarProps> = ({
   allowRunEdit,
+  memoryUsage,
   title,
   onNavigateHome,
   onOpenHelp,
@@ -128,8 +153,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         run_name: runName,
         workflow_name: workflowname,
       }).then(() => {
-        setIsWorkflowSaveOpen(false)
-      })
+        setIsWorkflowSaveOpen(false);
+      });
     },
     [notify, runName],
   );
@@ -149,12 +174,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                 icon={"edit"}
                 onPointerDown={isRunSettingsOpen ? undefined : openRunSettings}
               />
-              <Button icon={"save"} onPress={() => { setIsWorkflowSaveOpen(true); }} />
+              <Button
+                icon={"save"}
+                onPress={() => {
+                  setIsWorkflowSaveOpen(true);
+                }}
+              />
             </div>
           )}
         </NavbarCenter>
 
         <NavbarRight>
+          {allowRunEdit && memoryUsage !== undefined && (
+            <MemoryDiv>
+              <Icon icon={"storage"} color={"onPrimary"} />
+              <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>
+            </MemoryDiv>
+          )}
           <Button icon={"help"} onPress={onOpenHelp} />
           <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>

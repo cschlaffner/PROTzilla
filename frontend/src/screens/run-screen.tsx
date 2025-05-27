@@ -156,8 +156,8 @@ export const RunScreen: React.FC = () => {
   const tableComponent = (
     <StyledTableContainer>
       {tableData.length > 0 ? (
-        <DataTable data={tableData} />)
-      : (
+        <DataTable data={tableData} />
+      ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
     </StyledTableContainer>
@@ -177,6 +177,7 @@ export const RunScreen: React.FC = () => {
       <StyledNavbar
         allowRunEdit={true}
         title={runName}
+        memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
         onOpenHelp={() => void navigate("/")}
