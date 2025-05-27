@@ -30,3 +30,9 @@ export interface RequestData {
   section: string;
   status: StepStatus;
 }
+
+export interface CalculationMessage {
+  level: number;
+  msg: string;
+  trace: string;
+}
