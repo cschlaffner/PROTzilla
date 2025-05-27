@@ -1,4 +1,4 @@
-import { useNotification } from "../../app/notification-center";
+import { useNotification } from "@protzilla/app";
 import { characterLimits, spacing, useTheme } from "@protzilla/theme";
 import { callApi, Run } from "@protzilla/utils";
 import React, { useCallback, useEffect } from "react";

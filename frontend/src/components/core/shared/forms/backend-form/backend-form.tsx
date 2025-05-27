@@ -1,4 +1,4 @@
-import { useNotification } from "../../../../app/notification-center";
+import { useNotification } from "@protzilla/app";
 
 import {
   CheckboxSelectInputField,

@@ -1,4 +1,4 @@
-import { useNotification } from "../../../../app/notification-center";
+import { useNotification } from "@protzilla/app";
 import { useFilePicker } from "@protzilla/hooks";
 import { size, spacing } from "@protzilla/theme";
 import axios from "axios";
