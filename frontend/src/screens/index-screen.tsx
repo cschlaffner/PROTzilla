@@ -133,8 +133,7 @@ export const IndexScreen: React.FC = () => {
     run_tags: [],
   }));
 
-  const customButtonSpacing = (parseInt((theme.sizes.buttonHeight as unknown as string).replace("px", ""))
-  + parseInt((theme.spacing.buttonGap as unknown as string).replace("px", ""))).toString() + "px"
+  const customButtonSpacing = (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() + "px";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -414,7 +413,7 @@ export const IndexScreen: React.FC = () => {
                     {
                       type: "dropdown",
                       name: "workflow",
-                      label: "workflow:",
+                      label: "Workflow:",
                       options: workflows.map((workflow) => ({ label: workflow, value: workflow })),
                       isVisible: true,
                     },
