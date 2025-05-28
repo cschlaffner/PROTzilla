@@ -5,7 +5,7 @@ import { SearchInputFieldProps } from "./search-input-field.props";
 
 export default {
   component: SearchInputField,
-  title: "Input Fields / Search",
+  title: "Form Components / Search",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<SearchInputFieldProps>;
 
