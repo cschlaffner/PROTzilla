@@ -292,7 +292,7 @@ export const IndexScreen: React.FC = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
-        allowRunEdit={false}
+        showRunInformation={false}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
         onOpenHelp={() => void navigate("/")}
