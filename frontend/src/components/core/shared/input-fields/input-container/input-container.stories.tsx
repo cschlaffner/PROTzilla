@@ -7,7 +7,7 @@ import { InputContainerProps } from "./input-container.props";
 
 export default {
   component: InputContainer,
-  title: "Input Fields / Frame Input Field",
+  title: "Form Components / Frame Input Field",
 } as Meta<InputContainerProps>;
 
 const StyledDiv = styled.div<{ $isSmall: boolean }>`

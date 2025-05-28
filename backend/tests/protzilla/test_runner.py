@@ -1,7 +1,6 @@
 import json
 import sys
 from unittest import mock
-from unittest.mock import call
 
 import pytest
 
@@ -9,8 +8,7 @@ from backend.tests.paths import TEST_MSDATA_PATH, TEST_METADATA_PATH, TEST_WORKF
 from backend.protzilla.utilities import random_string
 
 from backend.protzilla.runner import Runner, _serialize_graphs
-from backend.runner_cli import args_parser
-from backend.protzilla.steps import Output, Plots
+from runner_cli import args_parser
 from backend.main import settings
 
 

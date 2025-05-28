@@ -4,6 +4,7 @@ import {
   DiscardModal,
   FlexColumn,
   Form,
+  Icon,
   InputValueType,
   Modal,
   Text,
@@ -50,6 +51,7 @@ const NavbarRight = styled.div`
   flex-direction: row;
   justify-content: right;
   padding-right: ${spacing("medium")};
+  align-items: center;
 `;
 
 const NavbarCenterTitle = styled(Text)`
@@ -60,8 +62,23 @@ const NavbarCenterTitle = styled(Text)`
   padding: ${spacing("buttonPadding")};
 `;
 
+const MemoryDiv = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const MemoryUsageTitle = styled(Text)`
+  color: ${color("onPrimary")};
+  font-weight: ${fontWeight("bold")};
+  font-size: ${fontSize("h5")};
+  align-self: center;
+  padding-left: ${spacing("verySmall")};
+  padding-right: ${spacing("medium")};
+`;
+
 export const Navbar: React.FC<NavbarProps> = ({
-  allowRunEdit,
+  showRunInformation,
+  memoryUsage,
   title,
   onNavigateHome,
   onOpenHelp,
@@ -146,8 +163,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
-          <NavbarCenterTitle text={allowRunEdit ? title : "PROTzilla"} />
-          {allowRunEdit && (
+          <NavbarCenterTitle text={showRunInformation ? title : "PROTzilla"} />
+          {showRunInformation && (
             <div>
               <Button
                 icon={"edit"}
@@ -164,6 +181,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarCenter>
 
         <NavbarRight>
+          {showRunInformation && memoryUsage !== undefined && (
+            <MemoryDiv>
+              <Icon icon={"storage"} color={"onPrimary"} />
+              <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>
+            </MemoryDiv>
+          )}
           <Button icon={"help"} onPress={onOpenHelp} />
           <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>

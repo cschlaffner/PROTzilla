@@ -8,7 +8,7 @@ import yaml
 from backend.protzilla.utilities import random_string
 
 from backend.protzilla.runner import Runner
-from backend.runner_cli import args_parser
+from runner_cli import args_parser
 
 @pytest.fixture
 def metadata_file_path():
