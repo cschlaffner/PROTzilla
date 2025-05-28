@@ -265,6 +265,9 @@ class Run:
         section: str | None = None,
     ) -> None:
         self.steps.remove_step(step=step, step_index=step_index, section=section)
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
