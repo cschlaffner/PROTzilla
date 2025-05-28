@@ -19,7 +19,7 @@ from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
 try:
     from django.conf import settings
 
-    DEBUG_MODE = settings.DEBUG
+    DEBUG_MODE = settings.DEBUG if settings.configured else False
 except ImportError:
     DEBUG_MODE = False
 

@@ -1,5 +1,6 @@
 import json
 import io
+import re
 import traceback
 
 import numpy as np
@@ -236,10 +237,11 @@ def save_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        workflow_name = data.get("workflow_name") #could this be optional and just take the run_name as default?
+        workflow_name = data.get("workflow_name")
 
         run = Run(run_name)
-        run._workflow_save(workflow_name)
+        new_workflow_name = re.sub(r'[^\w\.-]', '-', workflow_name)
+        run._workflow_save(new_workflow_name)
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
     else:

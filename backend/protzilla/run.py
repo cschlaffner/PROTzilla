@@ -15,7 +15,6 @@ from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.disk_operator import YamlOperator
 
 
 def get_available_run_names() -> list[str]:
@@ -45,6 +44,8 @@ def get_available_run_info() -> str | tuple[
 
     :return: a list of all runs, a list of favourited runs and a list of all tags.
     """
+    from backend.protzilla.disk_operator import YamlOperator # import here to avoid import error with runner
+
     if not paths.RUNS_PATH.exists():
         return f"No runs have been found in {paths.RUNS_PATH}."
 
