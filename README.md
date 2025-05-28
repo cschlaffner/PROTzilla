@@ -15,17 +15,22 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 2. Enter repository folder <br> `cd PROTzilla`
 3. Run install script <br>
     **For Windows:** Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
-    **For macOS & Linux:** Execute `.\run_protzilla.sh` <br>
+    **For macOS & Linux:** Execute `./run_protzilla.sh` <br>
 
 The script automatically installs all software dependencies and creates the environment. The initial set-up might take up to 15 minutes.
 
 ## &#x1F996; Start & use PROTzilla
 Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
 
-## :bulb: Quick Introduction on how to use PROTzilla
+## :bulb: Quick Introduction on how to use PROTzilla in the browser
 **Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click on `Calculate` in the last step. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
 > [!TIP]
 > For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
+
+## :bulb: How to use PROTzilla via the command line
+A command line based runner for PROTzilla workflows is available via `runner_cli.py`. It allows you to run PROTzilla workflows from the command line, which can be useful for batch processing or automation tasks. The runner calculates a given dataset on a given workflow without the need for a graphical user interface.
+
+A guide on how to use the Runner is available in our [wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide#protzilla-as-a-command-line-tool).
 
 ## :mag: Further information: Development
 The PROTzilla backend is built with Python/Django and Node.js (managed via pnpm) is used for the frontend. <br>
