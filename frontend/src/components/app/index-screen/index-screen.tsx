@@ -2,14 +2,11 @@ import { Navbar, RunsTable, useNotification } from "@protzilla/app";
 import {
   Card,
   Form,
-  Icon,
   InputValueType,
   Modal,
   SearchInputField,
   SecondaryButton,
   TagMenu,
-  Tooltip,
-  useTooltipScheduling,
   Workflow,
 } from "@protzilla/core";
 import { size, spacing, styledDiv } from "@protzilla/theme";
@@ -80,18 +77,10 @@ const StyledDiv = styledDiv.div`
   flex-direction: row;
 `;
 
-const InfoIcon = styled(Icon)`
-  padding-left: 10px;
-`;
-
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
   const theme = useTheme();
-
-  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
-    useTooltipScheduling(true);
-  const [, setParentRef] = useState<HTMLDivElement | null>(null);
 
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
@@ -348,21 +337,8 @@ export const IndexScreen: React.FC = () => {
                 setSearchTermRuns(e);
               }}
               placeholder="Search runs"
+              subscript={"Search by run name, steps, or tags"}
             />
-            <div
-              onPointerEnter={handlePointerEnter}
-              onPointerLeave={handlePointerLeave}
-              ref={setParentRef}
-            >
-              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
-              <Tooltip
-                text={"Search by run name, steps, or tags"}
-                isShown={showTooltip}
-                anchor={mouseAnchor}
-                distance={5}
-                position={"bottomRight"}
-              />
-            </div>
           </StyledDiv>
           <RunsTable
             runs={runs}
