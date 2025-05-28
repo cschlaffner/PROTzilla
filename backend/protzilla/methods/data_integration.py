@@ -10,7 +10,7 @@ from backend.protzilla.data_integration import (
     di_plots,
     enrichment_analysis,
 )
-from backend.protzilla.data_integration.database_query import uniprot_databases
+from backend.protzilla.data_integration.database_query import biomart_database, uniprot_databases
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
 from backend.protzilla.form import *
 from backend.protzilla.steps import Plots, Step, StepManager
@@ -307,7 +307,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
            background_type_field.value == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value 
         ):
             background_biomart_field.isVisible = True
-            database = restring.biomart_database("ENSEMBL_MART_ENSEMBL")
+            database = biomart_database("ENSEMBL_MART_ENSEMBL")
             background_biomart_field.set_options(
                 form_helper.to_choices(
                     [

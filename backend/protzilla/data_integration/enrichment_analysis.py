@@ -535,6 +535,10 @@ def GO_analysis_with_Enrichr(
     :return: dictionary with results and filtered groups
     :rtype: dict
     """
+    if not isinstance(gene_mapping_df, pd.DataFrame):
+        msg = "No gene mapping dataframe provided. Please put a step before that imports the gene mapping."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
     out_messages = []
     if (
         not isinstance(proteins_df, pd.DataFrame)
@@ -558,19 +562,13 @@ def GO_analysis_with_Enrichr(
         msg = "No gene sets provided"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    # we need to map the biomart dataset name to the internal name
-    database = biomart_database("ENSEMBL_MART_ENSEMBL")
-    for dataset in database.datasets:
-        if database.datasets[dataset].display_name == background_biomart:
-            background_biomart = dataset
-            break
     # if gene sets from Enrichr are used, ignore background parameter because gseapy does not support it
     if gene_sets_enrichr and (
         background_path or background_number or background_biomart
     ):
         msg = "Background parameter is not supported when using Enrichr gene sets and will be ignored"
         out_messages.append(dict(level=logging.INFO, msg=msg))
-        background = background_path = background_number = background_biomart = None
+        background_type = background = None
 
     if background_type == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value:
         if not background_path:
@@ -600,7 +598,6 @@ def GO_analysis_with_Enrichr(
                 background = dataset
                 break
 
-        background = background_biomart
     elif background_type == GOAnalysisWithEnrichrBackgroundType.all_genes.value:
         background = None
 
