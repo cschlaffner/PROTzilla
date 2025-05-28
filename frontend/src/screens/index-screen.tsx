@@ -146,6 +146,16 @@ export const IndexScreen: React.FC = () => {
     workflow.toLowerCase().includes(searchTermTop.toLowerCase()),
   );
 
+  const workflowOptions =
+    workflows.length > 0
+      ? workflows
+          .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+          .map((workflow) => ({
+            label: workflow,
+            value: workflow,
+          }))
+      : [{ label: "No workflows available", value: "" }];
+
   const filteredRuns = runs.filter(
     (run) =>
       run.run_name.toLowerCase().includes(searchTermRuns.toLowerCase()) ||
@@ -295,7 +305,8 @@ export const IndexScreen: React.FC = () => {
                     type: "dropdown",
                     name: "workflow",
                     label: "With workflow:",
-                    options: [{ label: selectedWorkflow, value: selectedWorkflow }],
+                    options: workflowOptions,
+                    value: selectedWorkflow,
                     isVisible: true,
                   },
                   {
