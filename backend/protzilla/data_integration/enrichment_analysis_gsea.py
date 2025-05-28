@@ -229,7 +229,7 @@ def gsea_preranked(
         "enrichment_df": enrichment_df,
         "ranking": preranked_result.ranking.to_frame(),
     }
-    # out_dict.update(preranked_result.results)
+    # out_dict.update(preranked_result.results) These Informations are to big for the yaml. If they are needed they should put at least partly into a dataframe
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"
@@ -486,7 +486,7 @@ def gsea(
         "enrichment_df": enrichment_df,
         "ranking": gsea_result.ranking.to_frame(),
     }
-    # out_dict.update(gsea_result.results)
+    # out_dict.update(preranked_result.results) These Informations are to big for the yaml. If they are needed they should put at least partly into a dataframe
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"
