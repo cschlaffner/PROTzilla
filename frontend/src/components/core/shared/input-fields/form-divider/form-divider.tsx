@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 
 import { FormDividerProps } from "./form-divider.props";
-import { color, size, spacing } from "../../../theme";
+import { color, size, spacing } from "../../../../../theme";
 import { H4 } from "../../text";
 
 const DividerContainer = styled.div`
