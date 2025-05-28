@@ -5,7 +5,7 @@ import { FileInputFieldProps } from "./file-input-field.props";
 
 export default {
   component: FileInputField,
-  title: "Form Fields / File Input Field",
+  title: "Form Components / File Input Field",
   argTypes: {
     placeholder: { control: "text" },
     onChange: { action: "changed" },

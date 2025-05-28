@@ -3,7 +3,7 @@ import { SingleCheckboxInputField } from "./single-checkbox-input-field.tsx";
 
 export default {
   component: "SingleCheckboxInputField",
-  title: "Form Fields / Single Checkbox Input Field",
+  title: "Form Components / Single Checkbox Input Field",
   argTypes: { onChange: { action: "changed" } },
 };
 

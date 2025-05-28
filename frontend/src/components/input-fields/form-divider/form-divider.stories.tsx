@@ -7,7 +7,7 @@ import { TextInputField } from "../text-input-field";
 
 export default {
   component: FormDivider,
-  title: "Form Fields / Form Divider",
+  title: "Form Components / Form Divider",
   argTypes: {
     label: { control: "text" },
   },

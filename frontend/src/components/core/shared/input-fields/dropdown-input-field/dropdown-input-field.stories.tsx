@@ -5,7 +5,7 @@ import { DropdownInputFieldProps } from "./dropdown-input-field.props";
 
 export default {
   component: DropdownInputField,
-  title: "Form Fields / Dropdown Input Field",
+  title: "Form Components / Dropdown Input Field",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<DropdownInputFieldProps>;
 
