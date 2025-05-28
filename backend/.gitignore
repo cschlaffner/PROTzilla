@@ -1,0 +1,38 @@
+# User data
+/user_data/*
+
+# Excluding settings templates
+!/user_data/settings/plots_default.yaml
+
+# Excluding example workflows
+!user_data/settings/plots_default.yaml
+!user_data/workflows/only_import.yaml
+!user_data/workflows/only_import_and_filter_proteins.yaml
+!user_data/workflows/standard.yaml
+!user_data/workflows/test-run-empty.yaml
+
+# Uploads (e.g. Uniprot databases)
+/uploads/*
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# PyBuilder
+target/
