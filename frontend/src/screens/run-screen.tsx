@@ -175,7 +175,7 @@ export const RunScreen: React.FC = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <StyledNavbar
-        allowRunEdit={true}
+        showRunInformation={true}
         title={runName}
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}

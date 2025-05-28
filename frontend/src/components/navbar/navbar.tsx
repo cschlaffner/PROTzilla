@@ -81,7 +81,7 @@ const MemoryUsageTitle = styled(Text)`
 `;
 
 export const Navbar: React.FC<NavbarProps> = ({
-  allowRunEdit,
+  showRunInformation,
   memoryUsage,
   title,
   onNavigateHome,
@@ -167,8 +167,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
-          <NavbarCenterTitle text={allowRunEdit ? runName : "PROTzilla"} />
-          {allowRunEdit && (
+          <NavbarCenterTitle text={showRunInformation ? runName : "PROTzilla"} />
+          {showRunInformation && (
             <div>
               <Button
                 icon={"edit"}
@@ -185,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </NavbarCenter>
 
         <NavbarRight>
-          {allowRunEdit && memoryUsage !== undefined && (
+          {showRunInformation && memoryUsage !== undefined && (
             <MemoryDiv>
               <Icon icon={"storage"} color={"onPrimary"} />
               <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>

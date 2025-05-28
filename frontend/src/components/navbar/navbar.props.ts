@@ -7,5 +7,5 @@ export interface NavbarProps
   onNavigateHome: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
-  allowRunEdit: boolean;
+  showRunInformation: boolean;
 }
