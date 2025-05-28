@@ -1,5 +1,5 @@
 import { Data, Figure, Layout } from "plotly.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
@@ -75,11 +75,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
 
   const [plot, setPlot] = useState({ data, layout });
   // For keeping the original title of the plot
-  const initialLayoutRef = useRef(layout);
-  const [prevTitle] = useState(() => getTitleFromLayout(initialLayoutRef.current));
+  const [prevTitle, setPrevTitle] = useState(() => getTitleFromLayout(layout));
 
   useEffect(() => {
     setPlot({ data, layout });
+    setPrevTitle(getTitleFromLayout(layout));
+    // Only include variables, used functions will not change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, layout]);
 
   useEffect(() => {
