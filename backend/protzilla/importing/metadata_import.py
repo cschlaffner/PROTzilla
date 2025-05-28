@@ -86,17 +86,17 @@ def metadata_import_method(
         meta_df.drop(index=0, inplace=True)
         meta_df.index = meta_df.index - 1
 
-        file_path = f"{BACKEND_PATH}/tests/protzilla/importing/conversion_tmp_{random_string()}.csv" # TODO R check if we can put this somewhere else, this seems like a possible leakage
+        file_path = BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv" # TODO R check if we can put this somewhere else, this seems like a possible leakage
         meta_df.to_csv(file_path, index=False)
         return metadata_import_method(protein_df, file_path, "Columns")
 
     elif str(file_path).startswith(
-        f"{BACKEND_PATH}/tests/protzilla/importing/conversion_tmp_"
+        f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"
     ):
         os.remove(file_path)
     if "replicate" in meta_df.columns:
         # this indicates a DIANN metadata file with replicate information, we now want to calculate the median across
-        # all MS runs for a sample then instead of having intensities for each MS run in our dataframe, we
+        # all MS runs for a sample then instead of having intensities for each MS run in our dataframe, we# TODO R this should be deleted in tests not in this method...
         # have intensities for each sample
         # note that up until now, "Sample" in the intensity df referred to the ms run
         res = pd.merge(
@@ -128,7 +128,7 @@ def metadata_import_method_diann(
         )
 
     if str(file_path).startswith(
-        f"{BACKEND_PATH}/tests/protzilla/importing/conversion_tmp_" # TODO R this should be deleted in tests not in this method...
+        f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"
     ):
         os.remove(file_path)
 
