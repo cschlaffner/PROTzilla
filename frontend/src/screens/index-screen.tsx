@@ -133,7 +133,9 @@ export const IndexScreen: React.FC = () => {
     run_tags: [],
   }));
 
-  const customButtonSpacing = (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() + "px";
+  const customButtonSpacing =
+    (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() +
+    "px";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -313,7 +315,7 @@ export const IndexScreen: React.FC = () => {
                   icon="download"
                   tooltip="Export a workflow"
                   tooltipPosition={"left"}
-                  style={{position: "absolute", top: "0px", left: "0px"}}
+                  style={{ position: "absolute", top: "0px", left: "0px" }}
                 ></Button>
                 <Button
                   onClick={() => {
@@ -322,7 +324,7 @@ export const IndexScreen: React.FC = () => {
                   icon="upload"
                   tooltip="Import a workflow"
                   tooltipPosition={"left"}
-                  style={{position: "absolute", top: "0px", left: customButtonSpacing}}
+                  style={{ position: "absolute", top: "0px", left: customButtonSpacing }}
                 ></Button>
               </StyledButtonDiv>
             </StyledWorkflowHeader>

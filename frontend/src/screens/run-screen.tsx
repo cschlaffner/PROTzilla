@@ -156,8 +156,8 @@ export const RunScreen: React.FC = () => {
   const tableComponent = (
     <StyledTableContainer>
       {tableData.length > 0 ? (
-        <DataTable data={tableData} />)
-      : (
+        <DataTable data={tableData} />
+      ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
     </StyledTableContainer>
