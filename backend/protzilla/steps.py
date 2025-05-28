@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 import inspect
 import logging
 import traceback
@@ -107,6 +108,7 @@ class Step:
                 self.handle_calc_outputs(calc_output)
                 self.validate_outputs()
 
+            self.calculation_status = "complete"
             if (steps.failed_step_index == stepIndex):
                 steps.failed_step_index = -1
             
@@ -115,7 +117,7 @@ class Step:
                 self.handle_plot_outputs(plot_output)
 
             self.calculation_status = "complete"
-            
+
             # delete tempfiles
             for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
                 if file.is_file():
@@ -133,7 +135,7 @@ class Step:
             self.messages.append(
                 dict(
                     level=logging.ERROR,
-                    msg=f"An error occured while validating inputs or outputs: {e}. Please check your parameters.",
+                    msg=f"An error occured while validating inputs or outputs: {e} Please check your parameters.",
                     trace=format_trace(traceback.format_exception(e)),
                 )
             )
@@ -750,15 +752,10 @@ class StepManager:
             )
 
         if self.df_mode == "disk":
-                # TODO maybe this doesnt really need to be written to disk anymore,
-                # as it is preceeded by a calculation, after which everything is written to
-                # disk anyway. Better would be if it would just replace the dfs with their respective paths
-            self.current_step.output = Output(
-                self.disk_operator._write_output(
-                    instance_identifier=self.current_step.instance_identifier,
-                    output=self.current_step.output,
-                )
-        )
+            self.disk_operator._write_output(
+                instance_identifier=self.current_step.instance_identifier,
+                output=self.current_step.output,
+            )
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index
