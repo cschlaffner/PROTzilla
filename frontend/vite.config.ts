@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
 import svgr from "vite-plugin-svgr";
+import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vite.dev/config/
@@ -13,6 +14,7 @@ const viteConfig = defineViteConfig({
       },
     }),
     svgr(),
+    tsconfigPaths(),
   ],
   server: {
     proxy: {
@@ -32,6 +34,7 @@ const vitestConfig = defineVitestConfig({
     globals: true,
     environment: "jsdom",
     include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    setupFiles: ["./testSetup.ts"],
   },
 });
 
