@@ -13,12 +13,12 @@ const StyledCard = styledDiv.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow-y: auto;
 `;
 
 const CardBody = styledDiv.div<{ hasTitle: boolean }>`
   padding: ${spacing("small")};
   flex: 1;
-  overflow-y: auto;
   
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
