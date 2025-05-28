@@ -1,8 +1,7 @@
-import { Figure } from "plotly.js";
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
-    Button,
-    CSVButton,
+  Button,
+  CSVButton,
   DataTable,
   FlexColumn,
   FlexRow,
@@ -10,6 +9,7 @@ import {
   SectionTitle,
   SwitchCard,
 } from "@protzilla/core";
+import { useToggleableState } from "@protzilla/hooks";
 import { spacing, useTheme } from "@protzilla/theme";
 import {
   callApiWithParameters,
@@ -19,7 +19,7 @@ import {
   mockTableData,
   SelectedStep,
 } from "@protzilla/utils";
-import { useToggleableState} from "@protzilla/hooks";
+import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
