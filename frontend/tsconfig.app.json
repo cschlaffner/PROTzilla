@@ -23,7 +23,16 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    "baseUrl": "./src",
+    "paths": {
+      "@protzilla/app": ["components/app"],
+      "@protzilla/core": ["components/core"],
+      "@protzilla/hooks": ["hooks"],
+      "@protzilla/theme": ["theme"],
+      "@protzilla/utils": ["utils"]
+    },
+
     "types": ["vitest/globals"]
   },
-  "include": ["src", ".storybook/*.ts", ".storybook/*.tsx"]
+  "include": ["src", ".storybook/*.ts", ".storybook/*.tsx", "testSetup.ts"]
 }
