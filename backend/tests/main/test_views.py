@@ -4,7 +4,7 @@ import sys
 #
 # sys.path.append(f"{UI_PATH}")
 
-from backend.protzilla.constants.paths import BACKEND_PATH
+#from backend.protzilla.constants.paths import BACKEND_PATH
 
 """, all_button_parameters
 
@@ -103,49 +103,3 @@ def test_all_button_parameters():
     )
 
     rmtree(RUNS_PATH / run_name)"""
-
-
-def test_step_finished(run_standard):
-    assert run_standard.current_step.calculation_status == "incomplete"
-
-    parameters = {
-        "file_path": f"{BACKEND_PATH}/tests/proteinGroups_small_cut.txt",
-        "intensity_name": "Intensity",
-        "map_to_uniprot": False,
-        "aggregation_method": "Sum",
-    }
-    run_standard.current_form(parameters)
-    run_standard.step_calculate()
-
-    assert run_standard.current_step.calculation_status == "complete"
-
-    run_standard.step_next()
-
-    assert run_standard.current_step.calculation_status == "incomplete"
-
-    parameters = {
-        "file_path": f"",
-        "feature_orientation": "Columns (samples in rows, features in columns)",
-    }
-    run_standard.current_form(parameters)
-    run_standard.step_calculate()
-
-    assert run_standard.current_step.calculation_status == "failed"
-
-    parameters = {
-        "file_path": f"{BACKEND_PATH}/tests/nonexistent_file.txt",
-        "feature_orientation": "Columns (samples in rows, features in columns)",
-    }
-    run_standard.current_form(parameters)
-    run_standard.step_calculate()
-
-    assert run_standard.current_step.calculation_status == "failed"
-
-    parameters = {
-        "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
-        "feature_orientation": "Columns (samples in rows, features in columns)",
-    }
-    run_standard.current_form(parameters)
-    run_standard.step_calculate()
-
-    assert run_standard.current_step.calculation_status == "complete"

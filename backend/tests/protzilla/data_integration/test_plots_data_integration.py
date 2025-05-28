@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import TEST_DATA_PATH
+from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.data_integration.di_plots import (
     GO_enrichment_bar_plot,
     GO_enrichment_dot_plot,

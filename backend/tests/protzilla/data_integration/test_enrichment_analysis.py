@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import requests
 
-from backend.protzilla.constants.paths import BACKEND_PATH, TEST_DATA_PATH
+from backend.tests.paths import TEST_ENRICHMENT_PATH
 
 # order is important to ensure correctness of patched functions
 # isort:skip_file
@@ -34,12 +34,6 @@ from backend.protzilla.data_integration.database_query import check_biomart_avai
 # isort:end_skip_file
 
 biomart_availability = check_biomart_availability()
-
-
-@pytest.fixture
-def data_folder_tests():
-    return BACKEND_PATH / "tests/test_data/enrichment_data"
-
 
 @patch("restring.restring.get_functional_enrichment")
 def test_get_functional_enrichment_with_delay(mock_enrichment):
@@ -166,22 +160,22 @@ def test_merge_up_down_regulated_dfs_restring():
     "background",
     [
         None,
-        TEST_DATA_PATH / "enrichment_data/background_imported_proteins.csv",
+        TEST_ENRICHMENT_PATH / "background_imported_proteins.csv",
     ],
 )
-def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests):
+def test_GO_analysis_with_STRING(mock_enrichment, background):
     proteins_df = pd.read_csv(
-        data_folder_tests / "input-t_test-log2_fold_change_df.csv"
+        TEST_ENRICHMENT_PATH / "input-t_test-log2_fold_change_df.csv"
     )
 
     up_df = pd.read_csv(
-        data_folder_tests / "up_enrichment_KEGG_Process.csv", header=0, index_col=0
+        TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0, index_col=0
     )
     down_df = pd.read_csv(
-        data_folder_tests / "down_enrichment_KEGG_Process.csv", header=0, index_col=0
+        TEST_ENRICHMENT_PATH / "down_enrichment_KEGG_Process.csv", header=0, index_col=0
     )
 
-    results = pd.read_csv(data_folder_tests / "merged_KEGG_process.csv", header=0)
+    results = pd.read_csv(TEST_ENRICHMENT_PATH / "merged_KEGG_process.csv", header=0)
     mock_enrichment.side_effect = [up_df, down_df]
 
     out_df = GO_analysis_with_STRING(
@@ -203,20 +197,20 @@ def test_GO_analysis_with_STRING(mock_enrichment, background, data_folder_tests)
 
 
 @patch(
-    "protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
+    "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
 def test_GO_analysis_with_STRING_one_direction_missing(
-    mock_enrichment, data_folder_tests
+    mock_enrichment
 ):
     proteins_df = pd.read_csv(
-        data_folder_tests / "input-t_test-log2_fold_change_df.csv"
+        TEST_ENRICHMENT_PATH / "input-t_test-log2_fold_change_df.csv"
     )
     up_proteins_df = proteins_df[proteins_df["log2_fold_change"] > 0]
     down_proteins_df = proteins_df[proteins_df["log2_fold_change"] < 0]
 
-    up_df = pd.read_csv(data_folder_tests / "up_enrichment_KEGG_Process.csv", header=0)
+    up_df = pd.read_csv(TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0)
     down_df = pd.read_csv(
-        data_folder_tests / "down_enrichment_KEGG_Process.csv", header=0
+        TEST_ENRICHMENT_PATH / "down_enrichment_KEGG_Process.csv", header=0
     )
     mock_enrichment.side_effect = [up_df, down_df]
 
@@ -431,7 +425,7 @@ def test_GO_analysis_with_no_gene_sets_input():
 
 @pytest.mark.skip(reason="The API doesn't work.")
 @patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
-def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests):
+def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     # Check if enrichr API is available
@@ -454,7 +448,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
         "Protein12;Protein13",
     ]
     results = pd.read_csv(
-        data_folder_tests / "Reactome_enrichment_enrichr_2022.csv",
+        TEST_ENRICHMENT_PATH / "Reactome_enrichment_enrichr_2022.csv",
         index_col=0,
     )
     gene_mapping_df = pd.DataFrame(
@@ -481,7 +475,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
         organism="human",
         differential_expression_col="fold_change",
         direction="up",
-        gene_sets_path=data_folder_tests / "Reactome_2022.txt",
+        gene_sets_path=TEST_ENRICHMENT_PATH / "Reactome_2022.txt",
         background_path=None,
     )
     df = current_out["enrichment_df"]
@@ -510,7 +504,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene, data_folder_tests
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
 
 @pytest.mark.skip(reason="The api dosn't work")
-def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
+def test_GO_analysis_Enrichr_wrong_background_file():
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
@@ -520,7 +514,7 @@ def test_GO_analysis_Enrichr_wrong_background_file(data_folder_tests):
         organism="human",
         differential_expression_col="log2_fold_change",
         direction="both",
-        gene_sets_path=data_folder_tests / "Reactome_2022.txt",
+        gene_sets_path=TEST_ENRICHMENT_PATH / "Reactome_2022.txt",
         background_path="aMadeUpInputFormat.abc",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
@@ -590,9 +584,9 @@ def offline_mock_mapping():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
+        TEST_ENRICHMENT_PATH / "gene_sets.json",
+        TEST_ENRICHMENT_PATH / "gene_sets.csv",
+        TEST_ENRICHMENT_PATH / "gene_sets.txt",
     ],
 )
 def test_GO_analysis_offline_protein_sets(
@@ -649,14 +643,13 @@ def test_GO_analysis_offline_protein_sets(
 @pytest.mark.parametrize(
     "background_path",
     [
-        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
-        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
+        TEST_ENRICHMENT_PATH / "background_test_genes.csv",
+        TEST_ENRICHMENT_PATH / "background_test_genes.txt",
     ],
 )
 def test_GO_analysis_offline_background(
     background_path,
     GO_analysis_offline_result_with_bg,
-    data_folder_tests,
     offline_mock_mapping,
 ):
     results = pd.DataFrame(GO_analysis_offline_result_with_bg)
@@ -672,7 +665,7 @@ def test_GO_analysis_offline_background(
 
     current_out = GO_analysis_offline(
         proteins_df=proteins_df,
-        gene_sets_path=data_folder_tests / "gene_sets.txt",
+        gene_sets_path=TEST_ENRICHMENT_PATH / "gene_sets.txt",
         differential_expression_col="fold_change",
         differential_expression_threshold=1.0,  # all are downregulated
         direction="down",
@@ -820,9 +813,9 @@ def test_merge_up_down_regulated_proteins_results():
 @pytest.mark.parametrize(
     "protein_sets_path",
     [
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.json",
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.csv",
-        BACKEND_PATH / "tests/test_data/enrichment_data/gene_sets.txt",
+        TEST_ENRICHMENT_PATH / "gene_sets.json",
+        TEST_ENRICHMENT_PATH / "gene_sets.csv",
+        TEST_ENRICHMENT_PATH / "gene_sets.txt",
     ],
 )
 def test_read_protein_or_gene_sets_file(protein_sets_path):
@@ -865,8 +858,8 @@ def test_read_protein_or_gene_sets_file_no_path():
     assert "No file uploaded for protein sets." in out_dict["messages"][0]["msg"]
 
 
-def test_read_protein_or_gene_sets_file_invalid_filetype(data_folder_tests):
-    a_made_up_path = data_folder_tests / "a_made_up_wrong_file.png"
+def test_read_protein_or_gene_sets_file_invalid_filetype():
+    a_made_up_path = TEST_ENRICHMENT_PATH / "a_made_up_wrong_file.png"
     out_dict = read_protein_or_gene_sets_file(a_made_up_path)
 
     assert "messages" in out_dict
@@ -876,8 +869,8 @@ def test_read_protein_or_gene_sets_file_invalid_filetype(data_folder_tests):
 @pytest.mark.parametrize(
     "background_path",
     [
-        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.csv",
-        BACKEND_PATH / "tests/test_data/enrichment_data//background_test_genes.txt",
+        TEST_ENRICHMENT_PATH / "background_test_genes.csv",
+        TEST_ENRICHMENT_PATH / "background_test_genes.txt",
     ],
 )
 def test_read_background_file(background_path):
@@ -912,7 +905,7 @@ def test_read_background_file_invalid_filetype():
     assert "Invalid file type" in out_dict["messages"][0]["msg"]
 
 
-def test_create_genes_intensity_wide_df(data_folder_tests):
+def test_create_genes_intensity_wide_df():
     test_intensity_list = (
         ["Sample1", "Protein1", "Gene1", 10],
         ["Sample1", "Protein2", "Gene2", 20],
@@ -964,12 +957,12 @@ def test_create_genes_intensity_wide_df(data_folder_tests):
     pd.testing.assert_frame_equal(wide_df, expected_df, check_dtype=False)
 
 
-def test_gsea_log2_metric_with_negative_values(data_folder_tests):
+def test_gsea_log2_metric_with_negative_values():
     proteins = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_intensity_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
         index_col=0,
     )
-    metadata_df = pd.read_csv(data_folder_tests / "metadata_full.csv")
+    metadata_df = pd.read_csv(TEST_ENRICHMENT_PATH / "metadata_full.csv")
 
     current_out = gsea(
         proteins,
@@ -988,17 +981,17 @@ def test_gsea_log2_metric_with_negative_values(data_folder_tests):
     assert "use a different ranking method" in current_out["messages"][0]["msg"]
 
 
-def test_gsea(data_folder_tests):
+def test_gsea():
     proteins = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_intensity_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
         index_col=0,
     )
-    metadata_df = pd.read_csv(data_folder_tests / "metadata_full.csv")
+    metadata_df = pd.read_csv(TEST_ENRICHMENT_PATH / "metadata_full.csv")
     expected_enrichment_df = pd.read_csv(
-        data_folder_tests / "gsea_result_sig_prot.csv", index_col=0
+        TEST_ENRICHMENT_PATH / "gsea_result_sig_prot.csv", index_col=0
     )
 
-    mock_mapping_df = pd.read_csv(data_folder_tests / "gene_mapping.csv")
+    mock_mapping_df = pd.read_csv(TEST_ENRICHMENT_PATH / "gene_mapping.csv")
 
     current_out = gsea(
         protein_df=proteins,
@@ -1042,9 +1035,9 @@ def test_gsea(data_folder_tests):
         assert numerical_equal.all()
 
 
-def test_gsea_wrong_protein_df(data_folder_tests):
+def test_gsea_wrong_protein_df():
     proteins = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_pvalues_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
         index_col=0,
     )  # not an intensity df
 
@@ -1060,9 +1053,9 @@ def test_gsea_wrong_protein_df(data_folder_tests):
     assert "Input must be a dataframe" in current_out["messages"][0]["msg"]
 
 
-def test_gsea_no_gene_sets(data_folder_tests):
+def test_gsea_no_gene_sets():
     proteins = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_intensity_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
         index_col=0,
     )
     current_out = gsea(
@@ -1077,9 +1070,9 @@ def test_gsea_no_gene_sets(data_folder_tests):
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
 
-def test_gsea_wrong_gene_sets(data_folder_tests):
+def test_gsea_wrong_gene_sets():
     proteins = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_intensity_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
         index_col=0,
     )
     current_out = gsea(
@@ -1094,7 +1087,7 @@ def test_gsea_wrong_gene_sets(data_folder_tests):
     assert "messages" in current_out  # read_protein_or_gene_sets_file should fail
 
 
-def test_gsea_no_gene_symbols(data_folder_tests):
+def test_gsea_no_gene_symbols():
     test_intensity_list = (
         ["Sample1", "Protein1", "Gene1", 10],
         ["Sample1", "Protein2", "Gene2", 20],
@@ -1107,7 +1100,7 @@ def test_gsea_no_gene_symbols(data_folder_tests):
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
-    metadata_df = pd.read_csv(data_folder_tests / "metadata_full.csv")
+    metadata_df = pd.read_csv(TEST_ENRICHMENT_PATH / "metadata_full.csv")
     current_out = gsea(
         protein_df,
         metadata_df=metadata_df,
@@ -1282,20 +1275,20 @@ def test_create_ranked_df_descending():
     assert ranked_df.equals(expected_df)
 
 
-def test_gsea_preranked(data_folder_tests):
+def test_gsea_preranked():
     proteins_significant = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_pvalues_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
         index_col=0,
     )
     expected_ranking = pd.read_csv(
-        data_folder_tests / "gsea_preranked_rank.csv", index_col=0
+        TEST_ENRICHMENT_PATH / "gsea_preranked_rank.csv", index_col=0
     )
     expected_ranking = expected_ranking["prerank"]  # convert to series
     expected_enrichment_df = pd.read_csv(
-        data_folder_tests / "gsea_preranked_enriched.csv", index_col=0
+        TEST_ENRICHMENT_PATH / "gsea_preranked_enriched.csv", index_col=0
     )
 
-    mock_mapping_df = pd.read_csv(data_folder_tests / "gene_mapping.csv")
+    mock_mapping_df = pd.read_csv(TEST_ENRICHMENT_PATH / "gene_mapping.csv")
 
     current_out = gsea_preranked(
         protein_df=proteins_significant,
@@ -1352,9 +1345,9 @@ def test_gsea_preranked_wrong_protein_df():
     assert "Proteins must be a dataframe" in current_out["messages"][0]["msg"]
 
 
-def test_gsea_preranked_no_gene_sets(data_folder_tests):
+def test_gsea_preranked_no_gene_sets():
     proteins_df = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_pvalues_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
         index_col=0,
     )
     current_out = gsea_preranked(
@@ -1366,9 +1359,9 @@ def test_gsea_preranked_no_gene_sets(data_folder_tests):
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
 
-def test_gsea_preranked_wrong_gene_sets(data_folder_tests):
+def test_gsea_preranked_wrong_gene_sets():
     proteins_df = pd.read_csv(
-        data_folder_tests / "input-t_test-significant_proteins_pvalues_df.csv",
+        TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
         index_col=0,
     )
     current_out = gsea_preranked(
