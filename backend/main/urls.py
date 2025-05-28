@@ -18,35 +18,34 @@ from django.urls import path, re_path
 from django.views.generic import TemplateView
 
 from . import views, views_settings
-from . import views_with_api
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
-    path("api/run_information/", views_with_api.run_information_list, name="run_information"),
-    path("api/step_list/", views_with_api.all_steps, name="step_list"),
-    path("api/workflow_name_list/", views_with_api.workflow_name_list, name="workflow_name_list"),
-
-    path("api/toggle_favourite/", views_with_api.toggle_favourite, name="toggle_favourite"),
-    path("api/add_tag/", views_with_api.add_tag, name="add_tag"),
-    path("api/delete_tag/", views_with_api.delete_tag, name="delete_tag"),
-    path("api/add_run/", views_with_api.add_run, name="add_run"),
-    path("api/delete_run/", views_with_api.delete_run, name="delete_run"),
-    path("api/continue_run/", views_with_api.continue_run, name="continue_run"),
-    path("api/update_run_name/", views_with_api.update_run_name, name="update_run_name"),
-    path("api/add_plot/", views_with_api.add_plot, name="add_plot"),
-    path("api/add_step/", views_with_api.add_step, name="add_step"),
-    path("api/delete_step/", views_with_api.delete_step, name="delete_step"),
-    path("api/update_step/", views_with_api.update_step, name="update_step"),
-    path("api/navigate_to_step/", views_with_api.navigate_to_step, name="navigate_to_step"),
-    path("api/save_workflow/", views_with_api.save_workflow, name="save_workflow"),
-    path("api/download_table/", views_with_api.download_table, name="download_table"), #might function?
-    path("api/get_step_form/", views_with_api.get_step_form, name="get_step_form"),
-    path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
-    path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
-    path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
-    path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
-    path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
+    path("api/run_information/", views.run_information_list, name="run_information"),
+    path("api/step_list/", views.all_steps, name="step_list"),
+    path("api/workflow_name_list/", views.workflow_name_list, name="workflow_name_list"),
+    path("api/toggle_favourite/", views.toggle_favourite, name="toggle_favourite"),
+    path("api/add_tag/", views.add_tag, name="add_tag"),
+    path("api/delete_tag/", views.delete_tag, name="delete_tag"),
+    path("api/add_run/", views.add_run, name="add_run"),
+    path("api/delete_run/", views.delete_run, name="delete_run"),
+    path("api/continue_run/", views.continue_run, name="continue_run"),
+    path("api/update_run_name/", views.update_run_name, name="update_run_name"),
+    path("api/add_plot/", views.add_plot, name="add_plot"),
+    path("api/add_step/", views.add_step, name="add_step"),
+    path("api/delete_step/", views.delete_step, name="delete_step"),
+    path("api/update_step/", views.update_step, name="update_step"),
+    path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
+    path("api/save_workflow/", views.save_workflow, name="save_workflow"),
+    path("api/download_table/", views.download_table, name="download_table"), #might function?
+    path("api/get_step_form/", views.get_step_form, name="get_step_form"),
+    path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
+    path("api/get_step_table/", views.get_step_table, name="get_step_table"),
+    path("api/get_run_data/", views.get_run_data, name="get_run_data"),
+    path("api/upload_file/", views.upload_file, name="upload_file"),
+    path("api/calculate_step/", views.calculate_step, name="calculate_step"),
 
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_settings, name="save_settings"),
