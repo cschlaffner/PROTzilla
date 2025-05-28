@@ -10,7 +10,7 @@
 | backend/main/urls.py                                                          |        6 |        6 |      0% |     16-23 |
 | backend/main/views.py                                                         |        7 |        7 |      0% |      1-10 |
 | backend/main/views\_settings.py                                               |      137 |      137 |      0% |     1-219 |
-| backend/main/views\_with\_api.py                                              |      271 |      271 |      0% |     1-522 |
+| backend/main/views\_with\_api.py                                              |      294 |      294 |      0% |     1-566 |
 | backend/main/views\_with\_api\_helper.py                                      |       68 |       57 |     16% |7-37, 41, 50, 55-56, 69-131, 135-150 |
 | backend/protzilla/\_\_init\_\_.py                                             |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                               |        7 |        1 |     86% |         1 |
@@ -34,7 +34,7 @@
 | backend/protzilla/data\_analysis/ptm\_quantification.py                       |      213 |      195 |      8% |41-313, 349-405, 436-542, 553-572, 583-598, 609 |
 | backend/protzilla/data\_integration/\_\_init\_\_.py                           |        0 |        0 |    100% |           |
 | backend/protzilla/data\_integration/database\_integration.py                  |       58 |       10 |     83% |73, 101-114 |
-| backend/protzilla/data\_integration/database\_query.py                        |      129 |       78 |     40% |28-81, 85-87, 91, 114, 119-121, 132-149, 151-160, 182, 185-190, 199, 201-202, 217-218, 229-237, 256, 261, 264-273 |
+| backend/protzilla/data\_integration/database\_query.py                        |      129 |       81 |     37% |28-81, 85-87, 91, 114, 119-127, 132-149, 151-160, 182, 185-190, 199, 201-202, 217-218, 229-237, 256, 261, 264-273 |
 | backend/protzilla/data\_integration/di\_plots.py                              |      123 |       52 |     58% |47, 57, 60, 64, 69, 76, 81-83, 87, 90-92, 95, 106-107, 123, 168-170, 174-178, 180, 183-189, 213-217, 235-239, 283-285, 289, 293-296, 299-300, 305, 327-328, 358-360, 388-389 |
 | backend/protzilla/data\_integration/enrichment\_analysis.py                   |      338 |      127 |     62% |24-25, 178-179, 215, 222, 277-281, 329, 394, 397-400, 415-432, 537-540, 546-667, 747-748, 757-758, 771-772, 774-775, 777-780, 784-785, 787-790, 803, 821-822, 834-835, 838-839, 849-852 |
 | backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py             |      132 |        9 |     93% |153-155, 158, 208-210, 390, 393 |
@@ -73,7 +73,7 @@
 | backend/protzilla/workflow.py                                                 |        5 |        1 |     80% |         6 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-|                                                                     **TOTAL** | **6033** | **2416** | **60%** |           |
+|                                                                     **TOTAL** | **6056** | **2442** | **60%** |           |
 
 
 ## Setup coverage badge
