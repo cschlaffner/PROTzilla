@@ -28,18 +28,18 @@ importers:
       bootstrap:
         specifier: ^5.3.3
         version: 5.3.3(@popperjs/core@2.11.8)
+      fast-deep-equal:
+        specifier: ^3.1.3
+        version: 3.1.3
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
       framer-motion:
-        specifier: ^12.4.7
-        version: 12.4.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      i18next:
-        specifier: ^24.2.1
-        version: 24.2.1(typescript@5.6.3)
-      i18next-browser-languagedetector:
-        specifier: ^8.0.2
-        version: 8.0.2
-      i18next-http-backend:
-        specifier: ^3.0.1
-        version: 3.0.1
+        specifier: ^12.4.10
+        version: 12.4.10(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
       mobx:
         specifier: ^6.13.5
         version: 6.13.5
@@ -52,6 +52,9 @@ importers:
       plotly.js:
         specifier: ^3.0.0
         version: 3.0.0(mapbox-gl@1.13.3)(webpack@5.97.1(esbuild@0.24.2))
+      plotly.js-dist-min:
+        specifier: ^3.0.1
+        version: 3.0.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -61,9 +64,6 @@ importers:
       react-grid-system:
         specifier: ^8.2.1
         version: 8.2.1(react@18.3.1)
-      react-i18next:
-        specifier: ^15.4.0
-        version: 15.4.0(i18next@24.2.1(typescript@5.6.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-plotly.js:
         specifier: ^2.6.0
         version: 2.6.0(plotly.js@3.0.0(mapbox-gl@1.13.3)(webpack@5.97.1(esbuild@0.24.2)))(react@18.3.1)
@@ -110,9 +110,15 @@ importers:
       "@testing-library/react":
         specifier: ^16.2.0
         version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      "@types/file-saver":
+        specifier: ^2.0.7
+        version: 2.0.7
       "@types/plotly.js":
-        specifier: ^2.35.2
+        specifier: ^2.12.30
         version: 2.35.2
+      "@types/plotly.js-dist-min":
+        specifier: ^2.3.4
+        version: 2.3.4
       "@types/react":
         specifier: ^18.3.18
         version: 18.3.18
@@ -179,6 +185,9 @@ importers:
       vite-plugin-svgr:
         specifier: ^4.3.0
         version: 4.3.0(rollup@4.31.0)(typescript@5.6.3)(vite@6.0.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1))
+      vite-tsconfig-paths:
+        specifier: ^5.1.4
+        version: 5.1.4(typescript@5.6.3)(vite@6.0.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1))
       vitest:
         specifier: ^3.0.3
         version: 3.0.3(@types/node@22.13.1)(jsdom@26.0.0)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1)
@@ -2044,6 +2053,12 @@ packages:
         integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==,
       }
 
+  "@types/file-saver@2.0.7":
+    resolution:
+      {
+        integrity: sha512-dNKVfHd/jk0SkR/exKGj2ggkB45MAkzvWCaqLUUgkyjITkGNzH8H+yUwr+BLJUBjZOe9w8X3wgmXhZDRg1ED6A==,
+      }
+
   "@types/geojson-vt@3.2.5":
     resolution:
       {
@@ -2114,6 +2129,12 @@ packages:
     resolution:
       {
         integrity: sha512-j3pOPiEcWZ34R6a6mN07mUkM4o4Lwf6hPNt8eilOeZhTFbxFXmKhvXl9Y28jotFPaI1bpPDJsbCprUoNke6OrA==,
+      }
+
+  "@types/plotly.js-dist-min@2.3.4":
+    resolution:
+      {
+        integrity: sha512-ISwLFV6Zs/v3DkaRFLyk2rvYAfVdnYP2VVVy7h+fBDWw52sn7sMUzytkWiN4M75uxr1uz1uiBioePTDpAfoFIg==,
       }
 
   "@types/plotly.js@2.35.2":
@@ -3110,12 +3131,6 @@ packages:
         integrity: sha512-iSPlClZP8vX7MC3/u6s3lrDuoQyhQukh5LyABJ3hvfzbQ3Yyayd4fp04zjLnfi267B/B2FkumcWWgrbban7sSA==,
       }
 
-  cross-fetch@4.0.0:
-    resolution:
-      {
-        integrity: sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==,
-      }
-
   cross-spawn@7.0.6:
     resolution:
       {
@@ -4056,6 +4071,12 @@ packages:
       }
     engines: { node: ">=16.0.0" }
 
+  file-saver@2.0.5:
+    resolution:
+      {
+        integrity: sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==,
+      }
+
   filesize@10.1.6:
     resolution:
       {
@@ -4146,10 +4167,10 @@ packages:
       }
     engines: { node: ">= 6" }
 
-  framer-motion@12.4.7:
+  framer-motion@12.4.10:
     resolution:
       {
-        integrity: sha512-VhrcbtcAMXfxlrjeHPpWVu2+mkcoR31e02aNSR7OUS/hZAciKa8q6o3YN2mA1h+jjscRsSyKvX6E1CiY/7OLMw==,
+        integrity: sha512-3Msuyjcr1Pb5hjkn4EJcRe1HumaveP0Gbv4DBMKTPKcV/1GSMkQXj+Uqgneys+9DPcZM18Hac9qY9iUEF5LZtg==,
       }
     peerDependencies:
       "@emotion/is-prop-valid": "*"
@@ -4361,6 +4382,12 @@ packages:
       }
     engines: { node: ">= 0.4" }
 
+  globrex@0.1.2:
+    resolution:
+      {
+        integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==,
+      }
+
   glsl-inject-defines@1.0.3:
     resolution:
       {
@@ -4556,12 +4583,6 @@ packages:
       }
     engines: { node: ">=18" }
 
-  html-parse-stringify@3.0.1:
-    resolution:
-      {
-        integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==,
-      }
-
   http-proxy-agent@7.0.2:
     resolution:
       {
@@ -4590,29 +4611,6 @@ packages:
       }
     engines: { node: ">=18" }
     hasBin: true
-
-  i18next-browser-languagedetector@8.0.2:
-    resolution:
-      {
-        integrity: sha512-shBvPmnIyZeD2VU5jVGIOWP7u9qNG3Lj7mpaiPFpbJ3LVfHZJvVzKR4v1Cb91wAOFpNw442N+LGPzHOHsten2g==,
-      }
-
-  i18next-http-backend@3.0.1:
-    resolution:
-      {
-        integrity: sha512-XT2lYSkbAtDE55c6m7CtKxxrsfuRQO3rUfHzj8ZyRtY9CkIX3aRGwXGTkUhpGWce+J8n7sfu3J0f2wTzo7Lw0A==,
-      }
-
-  i18next@24.2.1:
-    resolution:
-      {
-        integrity: sha512-Q2wC1TjWcSikn1VAJg13UGIjc+okpFxQTxjVAymOnSA3RpttBQNMPf2ovcgoFVsV4QNxTfNZMAxorXZXsk4fBA==,
-      }
-    peerDependencies:
-      typescript: ^5
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   iconv-lite@0.4.24:
     resolution:
@@ -5459,16 +5457,16 @@ packages:
         integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==,
       }
 
-  motion-dom@12.4.5:
+  motion-dom@12.4.10:
     resolution:
       {
-        integrity: sha512-Q2xmhuyYug1CGTo0jdsL05EQ4RhIYXlggFS/yPhQQRNzbrhjKQ1tbjThx5Plv68aX31LsUQRq4uIkuDxdO5vRQ==,
+        integrity: sha512-ISP5u6FTceoD6qKdLupIPU/LyXBrxGox+P2e3mBbm1+pLdlBbwv01YENJr7+1WZnW5ucVKzFScYsV1eXTCG4Xg==,
       }
 
-  motion-utils@12.0.0:
+  motion-utils@12.4.10:
     resolution:
       {
-        integrity: sha512-MNFiBKbbqnmvOjkPyOKgHUp3Q6oiokLkI1bEwm5QA28cxMZrv0CbbBGDNmhF6DIXsi1pCQBSs0dX8xjeER1tmA==,
+        integrity: sha512-NPwZd94V013SwRf++jMrk2+HEBgPkeIE2RiOzhAuuQlqxMJPkKt/LXVh6Upl+iN8oarSGD2dlY5/bqgsYXDABA==,
       }
 
   mouse-change@1.4.0:
@@ -5571,18 +5569,6 @@ packages:
       {
         integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==,
       }
-
-  node-fetch@2.7.0:
-    resolution:
-      {
-        integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==,
-      }
-    engines: { node: 4.x || >=6.0.0 }
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
 
   node-releases@2.0.19:
     resolution:
@@ -5890,6 +5876,12 @@ packages:
     engines: { node: ">=0.10" }
     hasBin: true
 
+  plotly.js-dist-min@3.0.1:
+    resolution:
+      {
+        integrity: sha512-RReOqr6TfoHaTbVAoHR1UbTCOSRDsQ7Hbthd+3XAxOwaKmxCE3oejMhLG7urQSqWC65DAcSKV23kZd8e+7mG7w==,
+      }
+
   plotly.js@3.0.0:
     resolution:
       {
@@ -6141,22 +6133,6 @@ packages:
       }
     peerDependencies:
       react: ^16.8.0 || ^17.x || ^18.x
-
-  react-i18next@15.4.0:
-    resolution:
-      {
-        integrity: sha512-Py6UkX3zV08RTvL6ZANRoBh9sL/ne6rQq79XlkHEdd82cZr2H9usbWpUNVadJntIZP2pu3M2rL1CN+5rQYfYFw==,
-      }
-    peerDependencies:
-      i18next: ">= 23.2.3"
-      react: ">= 16.8.0"
-      react-dom: "*"
-      react-native: "*"
-    peerDependenciesMeta:
-      react-dom:
-        optional: true
-      react-native:
-        optional: true
 
   react-is@16.13.1:
     resolution:
@@ -7118,12 +7094,6 @@ packages:
       }
     engines: { node: ">=16" }
 
-  tr46@0.0.3:
-    resolution:
-      {
-        integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==,
-      }
-
   tr46@5.0.0:
     resolution:
       {
@@ -7146,6 +7116,19 @@ packages:
         integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==,
       }
     engines: { node: ">=6.10" }
+
+  tsconfck@3.1.6:
+    resolution:
+      {
+        integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==,
+      }
+    engines: { node: ^18 || >=20 }
+    hasBin: true
+    peerDependencies:
+      typescript: ^5.0.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   tsconfig-paths@3.15.0:
     resolution:
@@ -7366,6 +7349,17 @@ packages:
     peerDependencies:
       vite: ">=2.6.0"
 
+  vite-tsconfig-paths@5.1.4:
+    resolution:
+      {
+        integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==,
+      }
+    peerDependencies:
+      vite: "*"
+    peerDependenciesMeta:
+      vite:
+        optional: true
+
   vite@6.0.11:
     resolution:
       {
@@ -7437,13 +7431,6 @@ packages:
       jsdom:
         optional: true
 
-  void-elements@3.1.0:
-    resolution:
-      {
-        integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==,
-      }
-    engines: { node: ">=0.10.0" }
-
   vt-pbf@3.1.3:
     resolution:
       {
@@ -7474,12 +7461,6 @@ packages:
     resolution:
       {
         integrity: sha512-q/fGIivtqTT7PEoF07axFIlHNk/XCPaYpq64btnepopSWvKNFkoORlQYgqDigBIuGA1ExnFd/GnSUnBNEPQY7Q==,
-      }
-
-  webidl-conversions@3.0.1:
-    resolution:
-      {
-        integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==,
       }
 
   webidl-conversions@7.0.0:
@@ -7535,12 +7516,6 @@ packages:
         integrity: sha512-jlf/foYIKywAt3x/XWKZ/3rz8OSJPiWktjmk891alJUEjiVxKX9LEO92qH3hv4aJ0mN3MWPvGMCy8jQi95xK4w==,
       }
     engines: { node: ">=18" }
-
-  whatwg-url@5.0.0:
-    resolution:
-      {
-        integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==,
-      }
 
   which-boxed-primitive@1.1.1:
     resolution:
@@ -8952,6 +8927,8 @@ snapshots:
 
   "@types/estree@1.0.6": {}
 
+  "@types/file-saver@2.0.7": {}
+
   "@types/geojson-vt@3.2.5":
     dependencies:
       "@types/geojson": 7946.0.16
@@ -8986,6 +8963,10 @@ snapshots:
   "@types/parse-json@4.0.2": {}
 
   "@types/pbf@3.0.5": {}
+
+  "@types/plotly.js-dist-min@2.3.4":
+    dependencies:
+      "@types/plotly.js": 2.35.2
 
   "@types/plotly.js@2.35.2": {}
 
@@ -9637,12 +9618,6 @@ snapshots:
       typescript: 5.6.3
 
   country-regex@1.1.0: {}
-
-  cross-fetch@4.0.0:
-    dependencies:
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
 
   cross-spawn@7.0.6:
     dependencies:
@@ -10343,6 +10318,8 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
+  file-saver@2.0.5: {}
+
   filesize@10.1.6: {}
 
   fill-range@7.1.1:
@@ -10392,13 +10369,13 @@ snapshots:
       combined-stream: 1.0.8
       mime-types: 2.1.35
 
-  framer-motion@12.4.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  framer-motion@12.4.10(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      motion-dom: 12.4.5
-      motion-utils: 12.0.0
+      motion-dom: 12.4.10
+      motion-utils: 12.4.10
       tslib: 2.8.1
     optionalDependencies:
-      "@emotion/is-prop-valid": 1.2.2
+      "@emotion/is-prop-valid": 1.3.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
@@ -10539,6 +10516,8 @@ snapshots:
       define-properties: 1.2.1
       gopd: 1.2.0
 
+  globrex@0.1.2: {}
+
   glsl-inject-defines@1.0.3:
     dependencies:
       glsl-token-inject-block: 1.1.0
@@ -10669,10 +10648,6 @@ snapshots:
     dependencies:
       whatwg-encoding: 3.1.1
 
-  html-parse-stringify@3.0.1:
-    dependencies:
-      void-elements: 3.1.0
-
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.3
@@ -10690,22 +10665,6 @@ snapshots:
   human-signals@5.0.0: {}
 
   husky@9.1.7: {}
-
-  i18next-browser-languagedetector@8.0.2:
-    dependencies:
-      "@babel/runtime": 7.26.0
-
-  i18next-http-backend@3.0.1:
-    dependencies:
-      cross-fetch: 4.0.0
-    transitivePeerDependencies:
-      - encoding
-
-  i18next@24.2.1(typescript@5.6.3):
-    dependencies:
-      "@babel/runtime": 7.26.0
-    optionalDependencies:
-      typescript: 5.6.3
 
   iconv-lite@0.4.24:
     dependencies:
@@ -11199,11 +11158,11 @@ snapshots:
 
   moment@2.30.1: {}
 
-  motion-dom@12.4.5:
+  motion-dom@12.4.10:
     dependencies:
-      motion-utils: 12.0.0
+      motion-utils: 12.4.10
 
-  motion-utils@12.0.0: {}
+  motion-utils@12.4.10: {}
 
   mouse-change@1.4.0:
     dependencies:
@@ -11254,10 +11213,6 @@ snapshots:
 
   node-addon-api@7.1.1:
     optional: true
-
-  node-fetch@2.7.0:
-    dependencies:
-      whatwg-url: 5.0.0
 
   node-releases@2.0.19: {}
 
@@ -11425,6 +11380,8 @@ snapshots:
   picomatch@4.0.2: {}
 
   pidtree@0.6.0: {}
+
+  plotly.js-dist-min@3.0.1: {}
 
   plotly.js@3.0.0(mapbox-gl@1.13.3)(webpack@5.97.1(esbuild@0.24.2)):
     dependencies:
@@ -11635,15 +11592,6 @@ snapshots:
     dependencies:
       prop-types: 15.8.1
       react: 18.3.1
-
-  react-i18next@15.4.0(i18next@24.2.1(typescript@5.6.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      "@babel/runtime": 7.26.0
-      html-parse-stringify: 3.0.1
-      i18next: 24.2.1(typescript@5.6.3)
-      react: 18.3.1
-    optionalDependencies:
-      react-dom: 18.3.1(react@18.3.1)
 
   react-is@16.13.1: {}
 
@@ -12292,8 +12240,6 @@ snapshots:
     dependencies:
       tldts: 6.1.73
 
-  tr46@0.0.3: {}
-
   tr46@5.0.0:
     dependencies:
       punycode: 2.3.1
@@ -12303,6 +12249,10 @@ snapshots:
       typescript: 5.6.3
 
   ts-dedent@2.2.0: {}
+
+  tsconfck@3.1.6(typescript@5.6.3):
+    optionalDependencies:
+      typescript: 5.6.3
 
   tsconfig-paths@3.15.0:
     dependencies:
@@ -12465,6 +12415,17 @@ snapshots:
       - supports-color
       - typescript
 
+  vite-tsconfig-paths@5.1.4(typescript@5.6.3)(vite@6.0.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1)):
+    dependencies:
+      debug: 4.4.0
+      globrex: 0.1.2
+      tsconfck: 3.1.6(typescript@5.6.3)
+    optionalDependencies:
+      vite: 6.0.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
   vite@6.0.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.37.0)(yaml@2.6.1):
     dependencies:
       esbuild: 0.24.2
@@ -12516,8 +12477,6 @@ snapshots:
       - tsx
       - yaml
 
-  void-elements@3.1.0: {}
-
   vt-pbf@3.1.3:
     dependencies:
       "@mapbox/point-geometry": 0.1.0
@@ -12538,8 +12497,6 @@ snapshots:
   webgl-context@2.2.0:
     dependencies:
       get-canvas-context: 1.0.2
-
-  webidl-conversions@3.0.1: {}
 
   webidl-conversions@7.0.0: {}
 
@@ -12587,11 +12544,6 @@ snapshots:
     dependencies:
       tr46: 5.0.0
       webidl-conversions: 7.0.0
-
-  whatwg-url@5.0.0:
-    dependencies:
-      tr46: 0.0.3
-      webidl-conversions: 3.0.1
 
   which-boxed-primitive@1.1.1:
     dependencies:

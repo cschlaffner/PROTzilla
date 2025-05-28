@@ -1,19 +1,18 @@
+import { IndexScreen, MainScreen, NotificationCenter, RunScreen } from "@protzilla/app";
+import { ModalRoot } from "@protzilla/core";
+import { getTheme, GlobalStyles, ThemeProvider } from "@protzilla/theme";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { MainScreen, ModalRoot, NotificationCenter } from "../components";
-import { initI18nApp } from "../i18n";
 import { RootStore } from "../models";
-import { getTheme, GlobalStyles, ThemeProvider } from "../theme";
-import { setupRootStore, StoreProvider } from "./store";
-import { CountersScreen, IndexScreen } from "../screens";
 import { AutomaticErrorNotification } from "./automatic-error-notification";
+import { setupRootStore, StoreProvider } from "./store";
 
 function App() {
   const [isReady, setIsReady] = useState(false);
   const rootStoreRef = useRef<RootStore | null>(null);
   useEffect(() => {
-    Promise.all([setupRootStore(), initI18nApp()])
+    Promise.all([setupRootStore()])
       .then(([store]) => {
         rootStoreRef.current = store;
         setIsReady(true);
@@ -36,7 +35,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainScreen />}>
                   <Route path="/" element={<IndexScreen />} />
-                  <Route path="/counters" element={<CountersScreen />} />
+                  <Route path="/run" element={<RunScreen />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

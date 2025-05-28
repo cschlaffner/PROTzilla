@@ -1,52 +1,37 @@
 # PROTzilla
 
-This is a work-in-progress version. 
-Please refer to the current PROTzilla at https://github.com/cschlaffner/PROTzilla2
+> [!NOTE]
+> This repository is still a work-in-progress version.<br> Please refer to the previous PROTzilla at https://github.com/cschlaffner/PROTzilla2.
 
-### Install scripts
-Available for Linux-based (run_protzilla.sh) & Windows (run_protzilla.bat)
-- installs all dependencies 
-- installs pnpm & node.js (if errors occur, please inform others!)
-- opens frontend index.html built by pnpm via backend-configured port http://127.0.0.1:8000/
+[![backend](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml)
+[![frontend](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml)
+[![coverage badge](https://github.com/cschlaffner/PROTzilla/blob/python-coverage-comment-action-data/badge.svg)](https://github.com/cschlaffner/PROTzilla/tree/python-coverage-comment-action-data) 
 
-## Starting PROTzilla
-Run `protzilla_dev` for your OS (Windows not tested yet).
-It starts the frontend server in development mode (`pnpm dev`) and the backend server (as usual in PROTzilla2, but with a dynamic link to the frontend).
+PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. The shareable, reproducible workflows and the integration of knowledge databases support automated analysis and transparent reporting in proteomics research.
 
-The port `http://localhost:5174/` is a dynamic version of the frontend (changes directly) which can communicate with the backend since it was started as well.
+## :gear: Set up & install PROTzilla
 
-Port `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user. (Not really helpful in this configuration but needed because the backend needs to be active for API-calls etc.)
+1. Clone the PROTzilla repository <br> `git clone https://github.com/cschlaffner/PROTzilla.git`
+2. Enter repository folder <br> `cd PROTzilla`
+3. Run install script <br>
+    **For Windows:** Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
+    **For macOS & Linux:** Execute `.\run_protzilla.sh` <br>
 
-### Code Status PROTzilla
-NOT up to date! As soon as PROTzilla2 has all features merged, backend will be updated.
+The script automatically installs all software dependencies and creates the environment. The initial set-up might take up to 15 minutes.
 
-There might be open new TODOs, these will be addressed, nothing crucial for now.
+## &#x1F996; Start & use PROTzilla
+Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
 
-### Frontend Status
-- Contains README from Pauls workshop (might not be entirely up to date, but kept for now as a reference)
-- Contains many components that will be changed/deleted -> **WIP for Feb/March 2025**
+## :bulb: Quick Introduction on how to use PROTzilla
+**Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click on `Calculate` in the last step. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
+> [!TIP]
+> For more details, please see the [user guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide).
 
-### Testing 
-For local testing execute `pytest`.
-For specific tests execute `pytest path/to/test`
+## :mag: Further information: Development
+The PROTzilla backend is built with Python/Django and Node.js (managed via pnpm) is used for the frontend. <br>
+To open PROTzilla in development mode, run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
 
-- Frontend CI & Backend CI separated -> only executed if changes in each folder
+- `http://localhost:5174/` is a dynamic version of the frontend.
+- `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user.
 
-### Dependencies
-(Automatically done by run_protzilla script but if needed:)
-- **backend**: managed via python in requirements.txt
-  - `pip install -q -r requirements.txt` 
-- **frontend**: managed via pnpm _(performant node package manager)_ in frontend/package.json (bzw. pnpm-lock to save explicit versions)
-  - `cd frontend && pnpm install`
-
-
-
-_Ready for development. :D_
-
-## How to update Pnpm
-- run `cd frontend`
-- on unix:
-  - run `corepack use pnpm@latest-10`
-- on winows:
-  - run `pnpm self-update`
-- update version in `run_protzilla.bat`
+Additionally, you can launch the storybook by `pnpm storybook` to inspect UI components independently.

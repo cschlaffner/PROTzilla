@@ -28,7 +28,9 @@ export default tseslint.config(
     settings: {
       react: { version: "18.3" },
       "import/resolver": {
-        typescript: true,
+        typescript: {
+          project: ["./tsconfig.app.json", "./tsconfig.node.json"],
+        },
         node: true,
       },
     },
@@ -41,10 +43,7 @@ export default tseslint.config(
       ...react.configs.recommended.rules,
       ...react.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "react/prop-types": "off",
 
       "import/order": [
@@ -98,18 +97,7 @@ export default tseslint.config(
       "@typescript-eslint/member-ordering": [
         "warn",
         {
-          default: [
-            "static-field",
-            "static-method",
-
-            "field",
-
-            "signature",
-
-            "constructor",
-
-            "method",
-          ],
+          default: ["static-field", "static-method", "field", "signature", "constructor", "method"],
         },
       ],
       "@typescript-eslint/naming-convention": [
@@ -124,17 +112,7 @@ export default tseslint.config(
           selector: "variable",
           types: ["boolean"],
           format: ["camelCase", "PascalCase", "UPPER_CASE"],
-          prefix: [
-            "is",
-            "are",
-            "has",
-            "should",
-            "can",
-            "should",
-            "use",
-            "show",
-            "was",
-          ],
+          prefix: ["is", "are", "has", "should", "can", "should", "use", "show", "was"],
         },
         {
           selector: "typeLike",

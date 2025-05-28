@@ -3,6 +3,7 @@ import logging
 import gseapy
 import numpy as np
 import pandas as pd
+import plotly.express as px
 
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.utilities import fig_to_base64
@@ -73,6 +74,10 @@ def GO_enrichment_bar_plot(
     if value not in ["fdr", "p-value"]:
         msg = "Invalid value. Value must be either 'fdr' or 'p-value'."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+    
+    if cutoff is None or cutoff == 0:
+        msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all Gene_sets that are not in categories
     df = input_df[input_df["Gene_set"].isin(gene_sets)]
@@ -103,24 +108,23 @@ def GO_enrichment_bar_plot(
     elif value == "p-value":
         column = "P-value" if restring_input else "Adjusted P-value"
 
-    colors = gene_sets.values()
+    df_plot = (
+        df.sort_values(column, ascending=False)
+        .groupby("Gene_set")
+        .head(top_terms)
+    )
 
-    size_y = top_terms * 0.5 * len(gene_sets)
-    try:
-        ax = gseapy.barplot(
-            df=df,
-            column=column,
-            cutoff=cutoff,
-            group="Gene_set",
-            figsize=figsize if figsize else (10, size_y),
-            top_term=top_terms,
-            color=colors,
-            title=title,
-        )
-    except ValueError as e:
-        msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
-    return {"plots": [fig_to_base64(ax.get_figure())]}
+    fig = px.bar(
+        df_plot,
+        x=column,
+        y="Term",
+        color="Gene_set",
+        orientation="h",
+        title=title,
+    )
+    fig.update_layout(yaxis=dict(autorange="reversed"))
+    
+    return [fig]
 
 
 def GO_enrichment_dot_plot(

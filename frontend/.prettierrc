@@ -1,5 +1,6 @@
 {
   "arrowParens": "always",
   "trailingComma": "all",
-  "endOfLine": "auto"
+  "endOfLine": "auto",
+  "printWidth": 100
 }

@@ -1,14 +1,16 @@
+# macOS system
 .DS_Store
+
+# IDE / Editor
 .idea/
-# ignore workflows for pushes but keep explicit few on github for running tests
-backend/user_data/*
-!backend/user_data/settings/plots_default.yaml
-!backend/user_data/settings/databases_default.yaml
-backend/uploads/*
-.vscode/*
+.vscode/
+
+# Linter
 .flake8
 
-# --- below: github python .gitignore template ---
+# Miniconda
+Miniconda3*.sh
+Miniconda3*.exe
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -49,42 +51,12 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-#db.sqlite3 #tracked to remove migrations warning. The database is not actually in use
-db.sqlite3-journal
-
-# Flask stuff:
+# Flask
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy
 .scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -106,14 +78,14 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
-# Celery stuff
+# Celery
 celerybeat-schedule
 celerybeat.pid
 
-# SageMath parsed files
+# SageMath
 *.sage.py
 
-# Environments
+# Virtual Environments
 .env
 .venv
 env/
@@ -122,27 +94,20 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
+# Spyder
 .spyderproject
 .spyproject
 
-# Rope project settings
+# Rope
 .ropeproject
 
-# mkdocs documentation
+# MkDocs
 /site
 
-# mypy
+# MyPy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# Pyre
 .pyre/
-
-# vscode settings
-.vscode/
-
-#custom file everyone has
-Miniconda3*.sh
-Miniconda3*.exe

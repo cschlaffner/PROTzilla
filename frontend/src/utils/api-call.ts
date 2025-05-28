@@ -1,4 +1,5 @@
-import { getCookie } from "./get-cookie.ts";
+import { InputValueType } from "@protzilla/core";
+
 import { API_ROOT } from "../constants";
 
 export async function ensureCSRFToken() {
@@ -7,17 +8,21 @@ export async function ensureCSRFToken() {
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to fetch CSRF token");
-  return response;
+  const data = await response.json();
+  return data.csrfToken;
 }
 
 export const callApiWithParameters = async (
   url: string,
-  parameters: Record<string, string | boolean | string[] | number | File>,
+  parameters: Record<
+    string,
+    string | boolean | string[] | number | File | Record<string, string | InputValueType>
+  >,
+  responseType: "json" | "blob" = "json",
 ) => {
   try {
-    await ensureCSRFToken();
+    const csrfToken = await ensureCSRFToken();
 
-    const csrfToken = getCookie("csrftoken");
     if (!csrfToken) {
       throw new Error("CSRF token not found.");
     }
@@ -31,9 +36,11 @@ export const callApiWithParameters = async (
       body: JSON.stringify(parameters),
     });
 
-    const data = await response.json();
-
-    return data;
+    if (responseType === "blob") {
+      return await response.blob();
+    } else {
+      return await response.json();
+    }
   } catch (error) {
     console.error("Error:", error);
   }

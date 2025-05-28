@@ -1,8 +1,8 @@
+import { useNotification } from "@protzilla/app";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef } from "react";
 
 import { useStore } from "../app/store";
-import { useNotification } from "../components";
 
 export const AutomaticErrorNotification = observer(() => {
   const store = useStore();
@@ -18,8 +18,7 @@ export const AutomaticErrorNotification = observer(() => {
   useEffect(() => {
     const error = store.error;
 
-    const message =
-      typeof error?.description === "string" ? error.description : "";
+    const message = typeof error?.description === "string" ? error.description : "";
 
     if (error && message !== cachedMessage.current) {
       cachedMessage.current = message;

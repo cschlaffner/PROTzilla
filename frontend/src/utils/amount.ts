@@ -1,4 +1,4 @@
-import type { ArrayElement } from "./types";
+import { ArrayElement } from "./arrayElement.ts";
 
 /** Currency units. */
 export const amountCurrencies = ["EUR"] as const;

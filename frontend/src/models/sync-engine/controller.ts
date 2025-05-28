@@ -10,9 +10,7 @@ import {
 } from "./types";
 import { ensureId, pickProperties, toSnapshot } from "./utils";
 
-export class StorageController<E extends keyof M, M>
-  implements IStorageController<E, M>
-{
+export class StorageController<E extends keyof M, M> implements IStorageController<E, M> {
   constructor(
     public readonly entity: E,
     protected storageAdapter: IStorageCache<M>,

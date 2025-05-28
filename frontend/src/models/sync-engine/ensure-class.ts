@@ -1,5 +1,6 @@
+import { MaybeArrayElement } from "@protzilla/utils";
+
 import { MixinConstructor } from "./types";
-import { MaybeArrayElement } from "../../utils";
 
 const transform = <T extends object>(
   newValue: T,
@@ -30,10 +31,7 @@ const transform = <T extends object>(
 
 export const EnsureClass =
   <T extends object>(Model: MixinConstructor<MaybeArrayElement<T> & object>) =>
-  (
-    value: { get: () => T; set: (value: T) => void },
-    { kind }: DecoratorContext,
-  ) => {
+  (value: { get: () => T; set: (value: T) => void }, { kind }: DecoratorContext) => {
     if (kind === "accessor") {
       const { get, set } = value;
 
