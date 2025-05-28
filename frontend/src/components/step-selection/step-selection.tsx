@@ -130,6 +130,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     const fetchSteps = async () => {
       const data = await fetchStepList();
       const list = data.filter((step) => (step.section as Sections) === section);
+      list.sort((a, b) => a.display_name.localeCompare(b.display_name));
       setAllStepsList(list);
     };
 
@@ -155,7 +156,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
       [allSteps]: [],
     };
 
-    for (const step of allStepsList) {
+    const sortedSteps = allStepsList.sort((a, b) => {
+      if (a.operation === b.operation) {
+        return a.display_name.localeCompare(b.display_name);
+      }
+      return a.operation.localeCompare(b.operation);
+    });
+    for (const step of sortedSteps) {
       if (!Object.prototype.hasOwnProperty.call(result, step.operation)) {
         result[step.operation] = [];
       }
@@ -167,7 +174,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   }, [allStepsList]);
 
   const operationModes: string[] = useMemo(
-    () => Object.keys(stepsGroupedByOperation),
+    () => Object.keys(stepsGroupedByOperation).sort(),
     [stepsGroupedByOperation],
   );
 
