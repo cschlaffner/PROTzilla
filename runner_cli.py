@@ -12,7 +12,7 @@ from backend.protzilla.runner import Runner
 def args_parser():
     parser = argparse.ArgumentParser(
         argument_default=None,
-        description="perform a protzilla-workflow on the provided MS Data",
+        description="Command line tool to perform a protzilla-workflow on the provided MS Data. Please make sure to use it with a configured workflow. Standard, only_import and only_import_and_filter_proteins are templates for workflows.",
         prog="PROTzilla Runner",
         epilog="Thanks for using PROTzilla! :)",
     )
@@ -45,7 +45,7 @@ def args_parser():
         "-p",
         "--all_plots",
         action="store_true",
-        help="create all plots and save them to user_data/runs/<runName>/plots, default: false",
+        help="create all plots and save them to backend/user_data/runs/<runName>/plots, default: false",
     )
     parser.add_argument(
         "-v",
