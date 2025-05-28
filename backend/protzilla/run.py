@@ -237,6 +237,10 @@ class Run:
     def _workflow_read(self) -> None:
         self.steps = self.disk_operator.read_workflow()
         self._metadata = self.metadata_read()
+        self.update_metadata({
+            "df_mode": self.steps.df_mode,
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     def _workflow_save(self, workflow_name: str | None = None) -> None:
@@ -248,6 +252,9 @@ class Run:
     @auto_save
     def step_add(self, step: Step, step_index: int | None = None) -> None:
         self.steps.add_step(step)
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
@@ -258,6 +265,9 @@ class Run:
         section: str | None = None,
     ) -> None:
         self.steps.remove_step(step=step, step_index=step_index, section=section)
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
