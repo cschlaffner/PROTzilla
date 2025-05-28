@@ -40,3 +40,4 @@ export { default as threeDots } from "./three-dots.svg?react";
 export { default as trash } from "./trash.svg?react";
 export { default as triangleDown } from "./triangle-down.svg?react";
 export { default as triangleUp } from "./triangle-up.svg?react";
+export { default as upload } from "./upload.svg?react";
