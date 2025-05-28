@@ -140,6 +140,7 @@ export const baseTheme = {
     shortNotificationDuration: 2000,
     standardNotificationDuration: 5000,
     longNotificationDuration: 10000,
+    veryLongNotificationDuration: 60000,
   },
   fonts: {
     default: "Helvetica Neue",
