@@ -1,5 +1,5 @@
 import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
-import { color, fontSize, fontWeight, spacing, zIndex } from "@protzilla/theme";
+import { color, fontSize, fontWeight, spacing, useTheme, zIndex } from "@protzilla/theme";
 import isEqual from "fast-deep-equal";
 import { Data, Layout } from "plotly.js";
 import { useEffect, useState } from "react";
@@ -72,21 +72,27 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     handleTextSizeChange,
   } = usePlotSettings(isOpen);
 
+  const theme = useTheme();
+
   const initialPlot = {
     data: [
       {
-        marker: { color: color("protzillaDarkBlue") },
         x: ["Example 1"],
         y: [0.7],
         name: "Example 1",
         type: "bar",
+        marker: {
+          color: [theme.colors.protzillaDarkBlue],
+        },
       },
       {
-        marker: { color: color("protzillaRed") },
         x: ["Example 2"],
         y: [0.3],
         name: "Example 2",
         type: "bar",
+        marker: {
+          color: [theme.colors.protzillaRed],
+        },
       },
     ],
     layout: {
@@ -97,35 +103,19 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         text: "Very important title",
       },
       margin: {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10,
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
       },
       font: { family: "Sans Serif", size: 10 },
-      xaxis: { anchor: "y", title: { text: "x-axis" } },
-      yaxis: { anchor: "x", title: { text: "y-axis" } },
-      template: {
-        layout: {
-          colorway: ["#4A536A", "#CE5A5A"],
-          dragmode: "pan",
-          margin: { b: 55, t: 50, r: 50, l: 50 },
-          modebar: {
-            remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
-          },
-          plot_bgcolor: "white",
-          title: {
-            x: 0.5,
-            xanchor: "center",
-            y: 0.95,
-            yanchor: "top",
-          },
-          yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
-        },
-      },
+      xaxis: { anchor: "y", title: { text: "x-axis" }, automargin: true },
+      yaxis: { anchor: "x", title: { text: "y-axis" }, automargin: true },
+      showlegend: true,
     },
   };
-  const [plot, updatePlot] = useState(initialPlot);
+
+  const [plot, setPlot] = useState(initialPlot);
 
   useEffect(() => {
     // Update settings
@@ -136,7 +126,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    updatePlot((prevPlot) => ({
+    setPlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
