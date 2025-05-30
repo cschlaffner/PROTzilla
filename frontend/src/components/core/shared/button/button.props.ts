@@ -69,3 +69,8 @@ export interface StatusButtonProps extends ButtonProps {
   isLoading?: boolean;
   isDone?: boolean;
 }
+
+export interface CSVButtonProps extends ButtonProps {
+  data: readonly Record<string, unknown>[];
+  fileName?: string;
+}
