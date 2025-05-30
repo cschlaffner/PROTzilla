@@ -11,6 +11,7 @@ import {
   FileFormatField,
   FontField,
   HeightField,
+  MarginField,
   TextSizeField,
   TitleSizeField,
   WidthField,
@@ -61,6 +62,10 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
+    handleMarginTopChange,
+    handleMarginBottomChange,
+    handleMarginLeftChange,
+    handleMarginRightChange,
     handleFontChange,
     handleCustomFontChange,
     handleTitleSizeChange,
@@ -90,6 +95,12 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
       title: {
         font: { family: "Sans Serif", size: 15 },
         text: "Very important title",
+      },
+      margin: {
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10,
       },
       font: { family: "Sans Serif", size: 10 },
       xaxis: { anchor: "y", title: { text: "x-axis" } },
@@ -131,6 +142,13 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         ...prevPlot.layout,
         width: displaySizes.width,
         height: displaySizes.height,
+        margin: {
+          ...prevPlot.layout.margin,
+          t: settings.marginTop,
+          b: settings.marginBottom,
+          l: settings.marginLeft,
+          r: settings.marginRight,
+        },
         title: {
           ...prevPlot.layout.title,
           font: {
@@ -203,6 +221,36 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
               </Col>
               <Col>
                 <HeightField value={settings.height} onChange={handleHeightChange} />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <MarginField
+                  label={"Margins, top"}
+                  value={settings.marginTop}
+                  onChange={handleMarginTopChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Bottom"}
+                  value={settings.marginBottom}
+                  onChange={handleMarginBottomChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Left"}
+                  value={settings.marginLeft}
+                  onChange={handleMarginLeftChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Right"}
+                  value={settings.marginRight}
+                  onChange={handleMarginRightChange}
+                />
               </Col>
             </Row>
             <SectionTitle

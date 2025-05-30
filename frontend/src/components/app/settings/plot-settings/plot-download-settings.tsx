@@ -9,6 +9,7 @@ import {
   FileFormatField,
   FontField,
   HeightField,
+  MarginField,
   TextSizeField,
   TitleSizeField,
   WidthField,
@@ -73,6 +74,10 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
+    handleMarginTopChange,
+    handleMarginBottomChange,
+    handleMarginLeftChange,
+    handleMarginRightChange,
     handleFontChange,
     handleCustomFontChange,
     handleTitleSizeChange,
@@ -105,6 +110,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         ...prevPlot.layout,
         width: displaySizes.width,
         height: displaySizes.height,
+        margin: {
+          ...prevPlot.layout.margin,
+          t: settings.marginTop,
+          b: settings.marginBottom,
+          l: settings.marginLeft,
+          r: settings.marginRight,
+        },
         title: {
           font: {
             family: settings.selectedFont,
@@ -146,7 +158,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       />
 
       <Row>
-        <Col md={6}>
+        <Col md={7}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
             <FileFormatField onChange={handleFileFormatChange} value={settings.fileFormat} />
@@ -156,6 +168,36 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               </Col>
               <Col>
                 <HeightField value={settings.height} onChange={handleHeightChange} />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <MarginField
+                  label={"Margins, top"}
+                  value={settings.marginTop}
+                  onChange={handleMarginTopChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Bottom"}
+                  value={settings.marginBottom}
+                  onChange={handleMarginBottomChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Left"}
+                  value={settings.marginLeft}
+                  onChange={handleMarginLeftChange}
+                />
+              </Col>
+              <Col>
+                <MarginField
+                  label={"Right"}
+                  value={settings.marginRight}
+                  onChange={handleMarginRightChange}
+                />
               </Col>
             </Row>
             <SectionTitle
@@ -188,7 +230,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             />
           </SettingsDiv>
         </Col>
-        <Col md={6}>
+        <Col md={5}>
           <PlotComponent
             data={plot.data}
             layout={plot.layout}

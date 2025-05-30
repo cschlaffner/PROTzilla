@@ -14,6 +14,10 @@ export interface PlotSettings {
   fileFormat: string;
   width: number;
   height: number;
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
   selectedFont: string;
   customFont: string;
   titleSize: number;
@@ -39,6 +43,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
     fileFormat: "",
     width: 0,
     height: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    marginRight: 0,
     selectedFont: "",
     customFont: "",
     titleSize: 0,
@@ -64,6 +72,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
         fileFormat: response.file_format,
         width: response.width,
         height: response.height,
+        marginTop: response.margin_top,
+        marginBottom: response.margin_bottom,
+        marginLeft: response.margin_left,
+        marginRight: response.margin_right,
         selectedFont: response.font,
         customFont: response.custom_font,
         titleSize: response.title_size,
@@ -87,6 +99,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
       file_format: settings.fileFormat,
       width: settings.width,
       height: settings.height,
+      margin_top: settings.marginTop,
+      margin_bottom: settings.marginBottom,
+      margin_left: settings.marginLeft,
+      margin_right: settings.marginRight,
       font: settings.selectedFont,
       custom_font: settings.customFont,
       title_size: settings.titleSize,
@@ -199,6 +215,18 @@ export const usePlotSettings = (isOpen?: boolean) => {
       fileFormat: value,
     }));
   };
+
+  // TODO: handleNumberChange for all function that are exactly the same
+  // const handleSettingChange = <K extends keyof PlotSettings>(
+  //   key: K,
+  //   value: PlotSettings[K]
+  // ) => {
+  //   setSettings((prev) => ({
+  //     ...prev,
+  //     [key]: value,
+  //   }));
+  // };
+
   const handleWidthChange = (value: number) => {
     setSettings((prev) => ({
       ...prev,
@@ -209,6 +237,30 @@ export const usePlotSettings = (isOpen?: boolean) => {
     setSettings((prev) => ({
       ...prev,
       height: value,
+    }));
+  };
+  const handleMarginTopChange = (value: number) => {
+    setSettings((prev) => ({
+      ...prev,
+      marginTop: value,
+    }));
+  };
+  const handleMarginBottomChange = (value: number) => {
+    setSettings((prev) => ({
+      ...prev,
+      marginBottom: value,
+    }));
+  };
+  const handleMarginLeftChange = (value: number) => {
+    setSettings((prev) => ({
+      ...prev,
+      marginLeft: value,
+    }));
+  };
+  const handleMarginRightChange = (value: number) => {
+    setSettings((prev) => ({
+      ...prev,
+      marginRight: value,
     }));
   };
   const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,6 +316,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
     handleFileFormatChange,
     handleWidthChange,
     handleHeightChange,
+    handleMarginTopChange,
+    handleMarginBottomChange,
+    handleMarginLeftChange,
+    handleMarginRightChange,
     handleFontChange,
     handleCustomFontChange,
     handleTitleSizeChange,
