@@ -182,6 +182,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               onChange={handleTitleChange}
               label={"Title"}
               value={getTitleFromLayout(plot.layout)}
+              subscript={
+                "You can use basic HTML tags for formatting. For example, <b>Title</b> appears as bold text."
+              }
             />
           </SettingsDiv>
         </Col>

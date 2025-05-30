@@ -1,11 +1,11 @@
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
-  Button,
   CSVButton,
   DataTable,
   FlexColumn,
   FlexRow,
   PlotComponent,
+  SecondaryButton,
   SectionTitle,
   SwitchCard,
 } from "@protzilla/core";
@@ -163,7 +163,7 @@ export const RunScreen: React.FC = () => {
           {plots.map((plot, index) => (
             <div key={index} style={{ display: "flex", flexDirection: "column" }}>
               <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
-              <Button
+              <SecondaryButton
                 text="Download plot"
                 style={{ width: "auto", alignSelf: "flex-start" }}
                 onClick={() => {

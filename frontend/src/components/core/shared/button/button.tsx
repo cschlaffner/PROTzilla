@@ -584,5 +584,5 @@ export const CSVButton: React.FC<CSVButtonProps> = ({ data, fileName = "data.csv
     URL.revokeObjectURL(url);
   };
 
-  return <Button text="Download as CSV" onPress={downloadCSV} {...params} />;
+  return <SecondaryButton text="Download as CSV" onPress={downloadCSV} {...params} />;
 };
