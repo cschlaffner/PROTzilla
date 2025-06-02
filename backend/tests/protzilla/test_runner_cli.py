@@ -15,7 +15,7 @@ sys.path.append(f"{PROJECT_PATH}")
 sys.path.append(f"{BACKEND_PATH}")
 
 from backend.protzilla.runner import Runner
-from backend.runner_cli import args_parser
+from runner_cli import args_parser
 
 
 def test_parse_run_name(tests_folder_name):

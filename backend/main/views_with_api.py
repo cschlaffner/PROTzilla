@@ -3,6 +3,9 @@ import io
 from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
+from pathlib import Path
+import re
+import traceback
 
 import numpy as np
 from plotly.io import to_json
@@ -14,7 +17,7 @@ from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH
+from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH, WORKFLOWS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
@@ -22,6 +25,7 @@ from backend.main.views_with_api_helper import get_step, get_displayed_steps, pa
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
+dataframes = ["protein_df", "metadata_df", "peptide_df"]
 
 def run_information_list(request):
     run_info = get_available_run_info()
@@ -270,12 +274,44 @@ def save_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        workflow_name = data.get("workflow_name") #could this be optional and just take the run_name as default?
+        workflow_name = data.get("workflow_name")
 
         run = Run(run_name)
-        run._workflow_save(workflow_name)
+        new_workflow_name = re.sub(r'[^\w\.-]', '-', workflow_name)
+        run._workflow_save(new_workflow_name)
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def export_workflow(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        workflow_name = data.get("workflow_name") 
+        
+        workflow_file = WORKFLOWS_PATH / f"{workflow_name}.yaml"
+
+        return FileResponse(open(workflow_file, "rb"), as_attachment=True)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def import_workflow(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        workflow = data.get("workflow_file") 
+        new_name = data.get("new_name")
+        
+        workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
+
+        if new_name == "":
+            copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+        else:
+            try:
+                copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
+            except Exception as exception:
+                return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
+
+        return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -363,15 +399,17 @@ def get_step_table(request):
         run_name = data.get("run_name")
 
         run = Run(run_name)
+
+        json_data = []
         
         if run.current_step is not None:
-            if "protein_df" in run.current_outputs:
-                data = run.current_outputs["protein_df"]
-                data["id"] = data.index
-                cleaned_data = data.replace(np.nan, None)
-                json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-            else:
-                json_data = [{}]
+            for dataframe in dataframes:
+                if dataframe in run.current_outputs:
+                    data = run.current_outputs[dataframe]
+                    data["id"] = data.index
+                    cleaned_data = data.replace(np.nan, None)
+                    json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+                    break
 
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
@@ -391,12 +429,12 @@ def calculate_step(request):
         calculation_data["section"] = run.current_step.section
         calculation_data["index"] = run.steps.current_step_index_in_section
         calculation_data["status"] = run.current_step.calculation_status
-        calculation_data["messages"] = [str(message) for message in run.current_messages.messages]
+        calculation_data["messages"] = [message for message in run.current_messages.messages]
 
         if calculation_data["status"] != "complete":
             return JsonResponse({"success": False, "message": calculation_data["messages"]
                                 , "data": calculation_data}, status=500)
-        return JsonResponse({"success": True, "message": "Calculated step", "data": calculation_data})
+        return JsonResponse({"success": True, "message": calculation_data["messages"], "data": calculation_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

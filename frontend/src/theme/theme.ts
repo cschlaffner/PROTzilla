@@ -9,7 +9,7 @@ export const defaultPalette = {
 
   text: "#2C2E34",
   textDisabled: "#C0C0C2",
-  onPrimary: "#FFF",
+  onPrimary: "#FFFFFF",
 
   protzillaGray: "#E0E0E0",
   protzillaLightGray: "#E8EDF3",
@@ -140,6 +140,7 @@ export const baseTheme = {
     shortNotificationDuration: 2000,
     standardNotificationDuration: 5000,
     longNotificationDuration: 10000,
+    veryLongNotificationDuration: 60000,
   },
   fonts: {
     default: "Helvetica Neue",
@@ -197,7 +198,8 @@ export const baseTheme = {
     swatch: "16px",
     buttonHeight: "40px",
     smallButtonHeight: "24px",
-    bigButtonDimension: "150px",
+    bigButtonDimension: "125px",
+    bigButtonContainerDimension: "150px",
     smallDropdownHeight: "32px",
     largeAvatar: "100px",
     navigationItemWidth: "240px",
@@ -205,11 +207,13 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    lineThickness: "1px",
+    lineMinLength: "10px",
     tooltipMaxWidth: "240px",
     tableRow: "40px",
 
     // Input Screen
-    templateSelectionHeight: "300px",
+    templateSelectionHeight: "325px",
     runSelectionMinHeight: "300px",
 
     //Runs Table
