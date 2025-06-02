@@ -168,7 +168,7 @@ def export_run(request):
         
         run_directory = RUNS_PATH / run_name
         run_zip_path = settings.FILE_UPLOAD_TEMP_DIR / run_name
-        run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip" #can this be run_zip_path? check if make archive would still work
+        run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip"
 
         make_archive(run_zip_path, "zip", run_directory)
         print(run_directory)
@@ -185,7 +185,6 @@ def import_run(request):
         run_name = run_file.removesuffix(".zip")
 
         run_zip = ZipFile(settings.FILE_UPLOAD_TEMP_DIR / run_file)
-
 
         run_zip.extractall(path=RUNS_PATH / run_name)
 

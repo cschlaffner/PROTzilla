@@ -109,10 +109,10 @@ export const IndexScreen: React.FC = () => {
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
-  const [isExportRunModalOpen, setIsExportRunModalOpen] = useState(false);
-  const [isImportRunModalOpen, setIsImportRunModalOpen] = useState(false);
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isExportRunModalOpen, openExportRunModal, closeExportRunModal] = useToggleableState(false);
+  const [isImportRunModalOpen, openImportRunModal, closeImportRunModal] = useToggleableState(false);
   const [isExportModalOpen, openExportModal, closeExportModal] = useToggleableState(false);
   const [isImportModalOpen, openImportModal, closeImportModel] = useToggleableState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
@@ -148,6 +148,7 @@ export const IndexScreen: React.FC = () => {
 
   useEffect(() => {
     void getRuns();
+    //only needed initially - functions that update runs will fetch them, too
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -255,6 +256,11 @@ export const IndexScreen: React.FC = () => {
       "blob",
     );
     saveAs(blob, (runName ?? "placeholder").toString() + ".zip");
+      notify({
+      title: "Exported successfully",
+      message: `Run ${String(runName)} has been exported`,
+      type: "success",
+    });
   };
 
   const handleImportRun = async (runName: InputValueType) => {
@@ -507,18 +513,18 @@ export const IndexScreen: React.FC = () => {
               <StyledButtonDiv>
                 <Button
                   onClick={() => {
-                    setIsExportRunModalOpen(true);
+                    openExportRunModal();
                   }}
                   icon="download"
-                  tooltip="Export a workflow"
+                  tooltip="Export a run"
                   tooltipPosition={"bottom"}
                 ></Button>
                 <Button
                   onClick={() => {
-                    setIsImportRunModalOpen(true);
+                    openImportRunModal();
                   }}
-                  icon="add"//should be replaced with "download" when PR #53 is merged to dev
-                  tooltip="Import a workflow"
+                  icon="download"
+                  tooltip="Import a run"
                   tooltipPosition={"bottom"}
                 ></Button>
               </StyledButtonDiv>
@@ -543,7 +549,7 @@ export const IndexScreen: React.FC = () => {
             title="Export a run"
             isOpen={isExportRunModalOpen}
             onClose={() => {
-              setIsExportRunModalOpen(false);
+              closeExportRunModal();
             }}
           >
             {runs.length > 1 ? (
@@ -574,7 +580,7 @@ export const IndexScreen: React.FC = () => {
             title="Import a run"
             isOpen={isImportRunModalOpen}
             onClose={() => {
-              setIsImportRunModalOpen(false);
+              closeImportRunModal();
             }}
           >
             <Form
