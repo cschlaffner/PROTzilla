@@ -26,15 +26,8 @@ const StyledNavbar = styled(Navbar)`
   top: 0;
   z-index: 1000;
 `;
-//should replace StyledWorkflowHeader from PR #53 
-const StyledHeader = styledDiv.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-`;
 
-const StyledWorkflowHeader = styledDiv.div`
+const StyledHeader = styledDiv.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,6 +38,18 @@ const StyledButtonDiv = styledDiv.div`
   position: relative;
   width: calc(2 * ${size("buttonHeight")} + ${spacing("buttonGap")})
 `;
+
+const StyledLeftButton = styled(Button)`
+  position: absolute;
+  top: 0px;
+  left: 0px;
+`
+
+const StyledRightButton = styled(Button)`
+  position: absolute;
+  top: 0px;
+  left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
+`
 
 const StyledContainer = styled.div`
   padding: ${spacing("small")};
@@ -128,10 +133,6 @@ export const IndexScreen: React.FC = () => {
     run_tags: [],
   }));
 
-
-  const customButtonSpacing =
-    (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() +
-    "px";
 
   const getRuns = async () => {
     const response = await callApi("run_information/");
@@ -347,29 +348,27 @@ export const IndexScreen: React.FC = () => {
       <StyledContainer>
         <StyledTemplateCard
           title={
-            <StyledWorkflowHeader>
+            <StyledHeader>
               Template Workflows
               <StyledButtonDiv>
-                <Button
+                <StyledLeftButton
                   onClick={() => {
                     openExportModal();
                   }}
                   icon="download"
                   tooltip="Export a workflow"
                   tooltipPosition={"left"}
-                  style={{ position: "absolute", top: "0px", left: "0px" }}
-                ></Button>
-                <Button
+                ></StyledLeftButton>
+                <StyledRightButton
                   onClick={() => {
                     openImportModal();
                   }}
                   icon="upload"
                   tooltip="Import a workflow"
                   tooltipPosition={"left"}
-                  style={{ position: "absolute", top: "0px", left: customButtonSpacing }}
-                ></Button>
+                ></StyledRightButton>
               </StyledButtonDiv>
-            </StyledWorkflowHeader>
+            </StyledHeader>
           }
         >
           <SearchInputField
@@ -511,22 +510,22 @@ export const IndexScreen: React.FC = () => {
             <StyledHeader>
               Run Selection
               <StyledButtonDiv>
-                <Button
+                <StyledLeftButton
                   onClick={() => {
                     openExportRunModal();
                   }}
                   icon="download"
                   tooltip="Export a run"
                   tooltipPosition={"bottom"}
-                ></Button>
-                <Button
+                ></StyledLeftButton>
+                <StyledRightButton
                   onClick={() => {
                     openImportRunModal();
                   }}
                   icon="download"
                   tooltip="Import a run"
                   tooltipPosition={"bottom"}
-                ></Button>
+                ></StyledRightButton>
               </StyledButtonDiv>
             </StyledHeader>
           }
