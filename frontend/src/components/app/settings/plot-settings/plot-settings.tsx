@@ -59,17 +59,9 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     isLoading,
     loadSettings,
     computeDisplaySizes,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
-    handleMarginTopChange,
-    handleMarginBottomChange,
-    handleMarginLeftChange,
-    handleMarginRightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
   } = usePlotSettings(isOpen);
 
   const theme = useTheme();
@@ -204,13 +196,28 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField value={settings.fileFormat} onChange={handleFileFormatChange} />
+            <FileFormatField
+              value={settings.fileFormat}
+              onChange={(v: string | null) => {
+                handleSettingChange("fileFormat", v ?? "");
+              }}
+            />
             <Row justify="between" align="center">
               <Col>
-                <WidthField value={settings.width} onChange={handleWidthChange} />
+                <WidthField
+                  value={settings.width}
+                  onChange={(v: number) => {
+                    handleSettingChange("width", v);
+                  }}
+                />
               </Col>
               <Col>
-                <HeightField value={settings.height} onChange={handleHeightChange} />
+                <HeightField
+                  value={settings.height}
+                  onChange={(v: number) => {
+                    handleSettingChange("height", v);
+                  }}
+                />
               </Col>
             </Row>
             <Row>
@@ -218,28 +225,36 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
                 <MarginField
                   label={"Margins, top"}
                   value={settings.marginTop}
-                  onChange={handleMarginTopChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginTop", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Bottom"}
                   value={settings.marginBottom}
-                  onChange={handleMarginBottomChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginBottom", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Left"}
                   value={settings.marginLeft}
-                  onChange={handleMarginLeftChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginLeft", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Right"}
                   value={settings.marginRight}
-                  onChange={handleMarginRightChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginRight", v);
+                  }}
                 />
               </Col>
             </Row>
@@ -260,10 +275,20 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
             </div>
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField value={settings.titleSize} onChange={handleTitleSizeChange} />
+                <TitleSizeField
+                  value={settings.titleSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("titleSize", v);
+                  }}
+                />
               </Col>
               <Col>
-                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
+                <TextSizeField
+                  value={settings.textSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("textSize", v);
+                  }}
+                />
               </Col>
             </Row>
           </SettingsDiv>

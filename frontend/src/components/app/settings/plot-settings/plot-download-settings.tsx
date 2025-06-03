@@ -71,18 +71,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     setComputedSettings,
     downloadPlot,
     getTitleFromLayout,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
-    handleMarginTopChange,
-    handleMarginBottomChange,
-    handleMarginLeftChange,
-    handleMarginRightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
-    handleTitleChange,
   } = usePlotSettings(isOpen);
 
   const [plot, setPlot] = useState({ data, layout });
@@ -161,13 +152,28 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         <Col md={7}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField onChange={handleFileFormatChange} value={settings.fileFormat} />
+            <FileFormatField
+              value={settings.fileFormat}
+              onChange={(v: string | null) => {
+                handleSettingChange("fileFormat", v ?? "");
+              }}
+            />
             <Row justify="between" align="center">
               <Col>
-                <WidthField value={settings.width} onChange={handleWidthChange} />
+                <WidthField
+                  value={settings.width}
+                  onChange={(value: number) => {
+                    handleSettingChange("width", value);
+                  }}
+                />
               </Col>
               <Col>
-                <HeightField value={settings.height} onChange={handleHeightChange} />
+                <HeightField
+                  value={settings.height}
+                  onChange={(v: number) => {
+                    handleSettingChange("height", v);
+                  }}
+                />
               </Col>
             </Row>
             <Row>
@@ -175,28 +181,36 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                 <MarginField
                   label={"Margins, top"}
                   value={settings.marginTop}
-                  onChange={handleMarginTopChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginTop", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Bottom"}
                   value={settings.marginBottom}
-                  onChange={handleMarginBottomChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginBottom", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Left"}
                   value={settings.marginLeft}
-                  onChange={handleMarginLeftChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginLeft", v);
+                  }}
                 />
               </Col>
               <Col>
                 <MarginField
                   label={"Right"}
                   value={settings.marginRight}
-                  onChange={handleMarginRightChange}
+                  onChange={(v: number) => {
+                    handleSettingChange("marginRight", v);
+                  }}
                 />
               </Col>
             </Row>
@@ -214,14 +228,26 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             />
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField onChange={handleTitleSizeChange} value={settings.titleSize} />
+                <TitleSizeField
+                  value={settings.titleSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("titleSize", v);
+                  }}
+                />
               </Col>
               <Col>
-                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
+                <TextSizeField
+                  value={settings.textSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("textSize", v);
+                  }}
+                />
               </Col>
             </Row>
             <TextInputField
-              onChange={handleTitleChange}
+              onChange={(v: string) => {
+                handleSettingChange("title", v);
+              }}
               label={"Title"}
               value={getTitleFromLayout(plot.layout)}
               subscript={

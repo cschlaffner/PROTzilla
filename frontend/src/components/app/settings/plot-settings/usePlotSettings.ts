@@ -193,7 +193,9 @@ export const usePlotSettings = (isOpen?: boolean) => {
     };
   };
 
-  // Because Plotly allows title to be a string or object of text & font
+  /**
+   * Because Plotly allows title to be a string or object of text & font
+   */
   const getTitleFromLayout = (layout: Partial<Layout>) => {
     const titleProp = layout.title;
     if (titleProp == null) {
@@ -205,62 +207,14 @@ export const usePlotSettings = (isOpen?: boolean) => {
     return titleProp.text ?? "";
   };
 
-  // Handle functions for input fields regarding the plot settings
-  const handleFileFormatChange = (value: string | null) => {
-    if (value === null) {
-      value = "";
-    }
+  // Handle functions
+  /**
+   * This function is used as generic handler if there are no side effects
+   */
+  const handleSettingChange = <K extends keyof PlotSettings>(key: K, value: PlotSettings[K]) => {
     setSettings((prev) => ({
       ...prev,
-      fileFormat: value,
-    }));
-  };
-
-  // TODO: handleNumberChange for all function that are exactly the same
-  // const handleSettingChange = <K extends keyof PlotSettings>(
-  //   key: K,
-  //   value: PlotSettings[K]
-  // ) => {
-  //   setSettings((prev) => ({
-  //     ...prev,
-  //     [key]: value,
-  //   }));
-  // };
-
-  const handleWidthChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      width: value,
-    }));
-  };
-  const handleHeightChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      height: value,
-    }));
-  };
-  const handleMarginTopChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      marginTop: value,
-    }));
-  };
-  const handleMarginBottomChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      marginBottom: value,
-    }));
-  };
-  const handleMarginLeftChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      marginLeft: value,
-    }));
-  };
-  const handleMarginRightChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      marginRight: value,
+      [key]: value,
     }));
   };
   const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,24 +236,6 @@ export const usePlotSettings = (isOpen?: boolean) => {
       }));
     }
   };
-  const handleTitleSizeChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      titleSize: value,
-    }));
-  };
-  const handleTextSizeChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      textSize: value,
-    }));
-  };
-  const handleTitleChange = (value: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      title: value,
-    }));
-  };
 
   return {
     isLoading,
@@ -313,17 +249,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
     downloadPlot,
     computeDisplaySizes,
     getTitleFromLayout,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
-    handleMarginTopChange,
-    handleMarginBottomChange,
-    handleMarginLeftChange,
-    handleMarginRightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
-    handleTitleChange,
   };
 };
