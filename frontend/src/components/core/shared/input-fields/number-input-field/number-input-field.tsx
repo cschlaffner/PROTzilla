@@ -23,14 +23,14 @@ const StepButton = styled(GrayButton)`
   padding: 0px;
 `;
 
-const StepButtonContainer = styled.div<{$isLast: boolean}>`
+const StepButtonContainer = styled.div<{ $isVisuallyLast: boolean }>`
   height: ${size("inputFieldHeightDefault")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0;
-  ${({ $isLast }) =>
-    $isLast
+  ${({ $isVisuallyLast }) =>
+    $isVisuallyLast
       ? css`
           ${StepButton}:first-child {
             border-radius: 0 ${radius("button")} 0 0;
@@ -118,8 +118,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         {...props}
       />
       {hasStepButtons && (
-        // TODO: Set isLast dynamically
-        <StepButtonContainer $isLast={false}>
+        <StepButtonContainer $isVisuallyLast={!props.separateSuffix}>
           <StepButton id="up" onPress={handleClick} icon="triangleUp" color="text" isSmall={true} />
           <StepButton
             id="down"
