@@ -67,7 +67,6 @@ export const MarginField: React.FC<NumberInputFieldProps> = ({ label, value, onC
       max={300}
       step={1}
       hasStepButtons={true}
-      //separateSuffix={""} // TODO Think about unit
       isInteger={true}
       onChange={onChange}
       value={value}
