@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 
 from backend.protzilla.data_preprocessing.plots_helper import generate_tics
 from backend.protzilla.utilities import default_intensity_column
-from backend.protzilla.constants.colors import *
+from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE, PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR
 
 def create_pie_plot(
     names_of_sectors: "list[str]",
@@ -29,7 +29,8 @@ def create_pie_plot(
 
     fig = px.pie(
         names=names_of_sectors,
-        values=values_of_sectors
+        values=values_of_sectors,
+        color_discrete_sequence=PLOT_COLOR_SEQUENCE,
     )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})

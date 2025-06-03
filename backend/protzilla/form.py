@@ -42,15 +42,23 @@ class NumberField(_baseField):
     max: int|None = None
     step: float = 1
     value: int = 0
+    isInteger: bool = True
+    hasStepButtons: bool = False
+    separatePrefix: str|None = None
+    separateSuffix: str|None = None
 
 
-@dataclass
+@dataclass         
 class FloatField(_baseField):
     type: str = "number"
-    min: int|None = None
-    max: int|None = None
+    min: float|None = None
+    max: float|None = None
     step: float = 1
     value: float = 0.0
+    isInteger: bool = False
+    hasStepButtons: bool = True
+    separatePrefix: str|None = None
+    separateSuffix: str|None = None
 
 
 @dataclass

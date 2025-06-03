@@ -9,7 +9,7 @@ export const defaultPalette = {
 
   text: "#2C2E34",
   textDisabled: "#C0C0C2",
-  onPrimary: "#FFF",
+  onPrimary: "#FFFFFF",
 
   protzillaGray: "#E0E0E0",
   protzillaLightGray: "#E8EDF3",
@@ -207,6 +207,8 @@ export const baseTheme = {
     inputFieldHeightDefault: "30px",
     inputFieldsMaxWidth: "500px",
     inputFieldListSmall: "100px",
+    lineThickness: "1px",
+    lineMinLength: "10px",
     tooltipMaxWidth: "240px",
     tableRow: "40px",
 
