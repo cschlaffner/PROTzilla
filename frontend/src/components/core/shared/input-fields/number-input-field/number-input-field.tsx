@@ -1,6 +1,6 @@
-import { border, borderColors, color, fontSize, size, spacing } from "@protzilla/theme";
+import { color, fontSize, radius, size, spacing } from "@protzilla/theme";
 import { useEffect, useRef, useState } from "react";
-import { styled } from "styled-components";
+import { css, styled } from "styled-components";
 
 import { NumberInputFieldProps } from "./number-input-field.props";
 import { GrayButton } from "../../button";
@@ -16,22 +16,35 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
-const StepButtonContainer = styled.div`
+const StepButton = styled(GrayButton)`
+  background-color: #e4e4e5;
+  min-height: 0px;
+  width: 15px;
+  padding: 0px;
+`;
+
+const StepButtonContainer = styled.div<{$isLast: boolean}>`
   height: ${size("inputFieldHeightDefault")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0;
-  margin-right: -${spacing("verySmall")};
-`;
-
-const StepButton = styled(GrayButton)`
-  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
-  border-radius: 0px;
-  background-color: #e4e4e5;
-  min-height: 0px;
-  width: 15px;
-  padding: 0px;
+  ${({ $isLast }) =>
+    $isLast
+      ? css`
+          ${StepButton}:first-child {
+            border-radius: 0 ${radius("button")} 0 0;
+          }
+          ${StepButton}:last-child {
+            border-radius: 0 0 ${radius("button")} 0;
+          }
+        `
+      : css`
+          margin-right: -${spacing("verySmall")};
+          ${StepButton} {
+            border-radius: 0;
+          }
+        `}
 `;
 
 export const NumberInputField: React.FC<NumberInputFieldProps> = ({
@@ -105,7 +118,8 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         {...props}
       />
       {hasStepButtons && (
-        <StepButtonContainer>
+        // TODO: Set isLast dynamically
+        <StepButtonContainer $isLast={false}>
           <StepButton id="up" onPress={handleClick} icon="triangleUp" color="text" isSmall={true} />
           <StepButton
             id="down"
