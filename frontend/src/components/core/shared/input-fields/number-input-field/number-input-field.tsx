@@ -6,6 +6,12 @@ import { NumberInputFieldProps } from "./number-input-field.props";
 import { GrayButton } from "../../button";
 import { InputContainer } from "../input-container";
 
+const InputWithButtonsWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
 const StyledInput = styled.input<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("small")};
@@ -16,19 +22,20 @@ const StyledInput = styled.input<{ $isSmall: boolean }>`
   width: 100%;
 `;
 
-const StepButtonContainer = styled.div`
+const StepButtonContainer = styled.div<{ $isLastElement: boolean }>`
   height: ${size("inputFieldHeightDefault")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
-  margin-right: -${spacing("verySmall")};
+  background-color: ${color("gray6")};
+  border-radius: ${({ $isLastElement }) => ($isLastElement ? `0 6px 6px 0` : `0`)};
+  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
+  overflow: hidden;
 `;
 
 const StepButton = styled(GrayButton)`
-  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
   border-radius: 0px;
-  background-color: #e4e4e5;
+  background-color: ${color("gray6")};
   min-height: 0px;
   width: 15px;
   padding: 0px;
@@ -42,6 +49,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   step,
   hasStepButtons = false,
   isInteger = false,
+  subscript,
   onChange,
   ...props
 }) => {
@@ -49,73 +57,129 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
   const [displayValue, setDisplayValue] = useState<string>(String(value));
 
+  function formatNumber(num: number, digits = 10): string {
+    const rounded = Number(num.toFixed(digits));
+    return isNaN(rounded) ? "" : rounded.toString();
+  }
+
+  useEffect(() => {
+    setDisplayValue(formatNumber(value));
+  }, [value]);
+
+  const hasMin = typeof min === "number";
+  const hasMax = typeof max === "number";
+
+  const handleChange = (e: { target: { value: string; }; }) => {
+    const raw = e.target.value;
+
+    if (!/^[-\d.]*$/.test(raw)) return;
+    if (isInteger && raw.includes(".")) return;
+
+    setDisplayValue(raw);
+  };
+
+  const handleBlur = () => {
+    if (displayValue === "" || displayValue === "-") {
+      setDisplayValue(String(Math.max(0, min ?? 0)));
+      return;
+    }
+
+    const num = isInteger ? parseInt(displayValue, 10) : parseFloat(displayValue);
+
+    if (isNaN(num)) {
+      setDisplayValue(String(value));
+      return;
+    }
+
+    if (hasMin && num < min) {
+      setDisplayValue(String(min));
+      onChange(min);
+      return;
+    }
+    if (hasMax && num > max) {
+      setDisplayValue(String(max));
+      onChange(max);
+      return;
+    }
+
+    const cleaned = isInteger ? String(Math.floor(num)) : String(num);
+    setDisplayValue(cleaned);
+    onChange(num);
+  };
+
   useEffect(() => {
     setDisplayValue(String(value));
   }, [value]);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
-      if (isInteger && newValue.includes(".")) {
-        return;
-      }
-
-      setDisplayValue(newValue);
-
-      const numericValue = Number(newValue);
-      const newNumericValue = isNaN(numericValue) ? 0 : numericValue;
-      onChange(newNumericValue);
-    }
-  };
-
-  const handleClick = (
-    e: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
-  ) => {
-    const { id } = e.currentTarget;
+  const handleClick = (direction: "up" | "down") => {
     const stepValue = step ?? 1;
     let newValue = value;
-    if (id.includes("up")) {
+
+    if (direction === "up") {
       newValue = value + stepValue;
-      if (max !== undefined) {
+      if (hasMax) {
         newValue = Math.min(newValue, max);
       }
-    } else if (id.includes("down")) {
+    } else {
       newValue = value - stepValue;
-      if (min !== undefined) {
+      if (hasMin) {
         newValue = Math.max(newValue, min);
       }
     }
-    onChange(newValue);
+
+    const formattedValue = Number(formatNumber(newValue, 10));
+    setDisplayValue(String(formattedValue));
+    onChange(formattedValue);
   };
 
+  const combinedSubscript = [
+    subscript,
+    isInteger ? "Enter an integer" : "Enter a float",
+    hasMin ? `Min: ${min.toString()}` : null,
+    hasMax ? `Max: ${max.toString()}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
   return (
-    <InputContainer {...props}>
-      <StyledInput
-        ref={inputRef}
-        type="text"
-        inputMode="numeric"
-        value={displayValue}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
-        onInput={handleInput}
-        // Disable isSmall when hasStepButtons is true
-        $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
-        {...props}
-      />
-      {hasStepButtons && (
-        <StepButtonContainer>
-          <StepButton id="up" onPress={handleClick} icon="triangleUp" color="text" isSmall={true} />
-          <StepButton
-            id="down"
-            onPress={handleClick}
-            icon="triangleDown"
-            color="text"
-            isSmall={true}
-          />
-        </StepButtonContainer>
-      )}
+    <InputContainer subscript={combinedSubscript} {...props}>
+      <InputWithButtonsWrapper>
+        <StyledInput
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={displayValue}
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          step={step}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          // Disable isSmall when hasStepButtons is true
+          $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
+          {...props}
+        />
+        {hasStepButtons && (
+          <StepButtonContainer $isLastElement={!props.separateSuffix}>
+            <StepButton
+              onClick={() => {
+                handleClick("up");
+              }}
+              icon="triangleUp"
+              color="text"
+              isSmall
+            />
+            <StepButton
+              onClick={() => {
+                handleClick("down");
+              }}
+              icon="triangleDown"
+              color="text"
+              isSmall
+            />
+          </StepButtonContainer>
+        )}
+      </InputWithButtonsWrapper>
     </InputContainer>
   );
 };
