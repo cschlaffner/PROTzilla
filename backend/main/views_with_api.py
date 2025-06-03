@@ -14,7 +14,7 @@ from django.http import JsonResponse, FileResponse
 from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
-from backend.protzilla.workflow import get_available_workflow_names
+from backend.protzilla.workflow import delete_workflow_file, get_available_workflow_names
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, WORKFLOWS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
@@ -278,6 +278,22 @@ def import_workflow(request):
                 return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
 
         return JsonResponse({"success": True, "message": "Imported the workflow"})
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def delete_workflow(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        workflow_name = data.get("workflow_name")
+
+        try:
+            success, filename = delete_workflow_file(workflow_name)
+            if not success:
+                return JsonResponse({"success": False, "message": f"Workflow {filename} does not exist."}, status=404)
+            return JsonResponse({"success": True, "message": "Deleted run"})
+        except Exception as e:
+            traceback.print_exc() 
+            return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

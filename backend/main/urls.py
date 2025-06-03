@@ -49,6 +49,7 @@ urlpatterns = [
     path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
     path("api/export_workflow/", views_with_api.export_workflow, name="export_workflow"),
     path("api/import_workflow/", views_with_api.import_workflow, name="import_workflow"),
+    path("api/delete_workflow/", views_with_api.delete_workflow, name="delete_workflow"),
 
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_settings, name="save_settings"),

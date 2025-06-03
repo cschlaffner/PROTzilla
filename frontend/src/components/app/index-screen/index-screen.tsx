@@ -344,6 +344,7 @@ export const IndexScreen: React.FC = () => {
                   setSelectedWorkflow(workflow);
                   setIsWorkflowModalOpen(true);
                 }}
+                refreshWorkflowList={getWorkflows}
               />
             ))}
           </StyledWorkflowContainer>
