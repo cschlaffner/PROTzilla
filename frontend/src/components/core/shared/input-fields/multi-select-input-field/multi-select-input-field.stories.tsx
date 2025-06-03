@@ -5,7 +5,7 @@ import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
 
 export default {
   component: MultiSelectInputField,
-  title: "Input Fields / Multi Select Input Field",
+  title: "Form Components / Multi Select Input Field",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<MultiSelectInputFieldProps>;
 

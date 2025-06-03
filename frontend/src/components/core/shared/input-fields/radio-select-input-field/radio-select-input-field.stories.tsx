@@ -5,7 +5,7 @@ import { RadioSelectInputFieldProps } from "./radio-select-input-field.props";
 
 export default {
   component: RadioSelectInputField,
-  title: "Input Fields / Radio Select Input Field",
+  title: "Form Components / Radio Select Input Field",
   argTypes: { onChange: { action: "changed" } },
 } as Meta<RadioSelectInputFieldProps>;
 

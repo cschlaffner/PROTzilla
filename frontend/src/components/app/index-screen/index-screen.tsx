@@ -1,19 +1,20 @@
 import { Navbar, RunsTable, useNotification } from "@protzilla/app";
 import {
+  Button,
   Card,
   Form,
-  Icon,
   InputValueType,
   Modal,
   SearchInputField,
   SecondaryButton,
+  SectionTitle,
   TagMenu,
-  Tooltip,
-  useTooltipScheduling,
   Workflow,
 } from "@protzilla/core";
+import { useToggleableState } from "@protzilla/hooks";
 import { size, spacing, styledDiv } from "@protzilla/theme";
 import { callApi, callApiWithParameters, Run } from "@protzilla/utils";
+import saveAs from "file-saver";
 import React, { useCallback, useEffect, useState } from "react";
 import { Container } from "react-grid-system";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,18 @@ const StyledNavbar = styled(Navbar)`
   position: sticky;
   top: 0;
   z-index: 1000;
+`;
+
+const StyledWorkflowHeader = styledDiv.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+`;
+
+const StyledButtonDiv = styledDiv.div`
+  position: relative;
+  width: calc(2 * ${size("buttonHeight")} + ${spacing("buttonGap")})
 `;
 
 const StyledContainer = styled.div`
@@ -61,7 +74,8 @@ const NavigationDiv = styledDiv.div`
 
 const StyledArrowButton = styled(SecondaryButton)`
   height: 10px;
-  padding: ${spacing("small")};
+  padding-left: ${spacing("small")};
+  padding-right: ${spacing("small")};
 `;
 const StyledRunSelectionCard = styled(Card)`
   min-height: ${size("runSelectionMinHeight")};
@@ -80,24 +94,18 @@ const StyledDiv = styledDiv.div`
   flex-direction: row;
 `;
 
-const InfoIcon = styled(Icon)`
-  padding-left: 10px;
-`;
-
 export const IndexScreen: React.FC = () => {
   const navigate = useNavigate();
   const notify = useNotification();
   const theme = useTheme();
-
-  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
-    useTooltipScheduling(true);
-  const [, setParentRef] = useState<HTMLDivElement | null>(null);
 
   const [workflows, setWorkflows] = useState<string[]>([]);
   const [searchTermTop, setSearchTermTop] = useState<string>("");
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isExportModalOpen, openExportModal, closeExportModal] = useToggleableState(false);
+  const [isImportModalOpen, openImportModal, closeImportModel] = useToggleableState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
   const [runs, setRuns] = useState<Run[]>([] as Run[]);
   //lazy initialization to prevent .map() error
@@ -110,6 +118,10 @@ export const IndexScreen: React.FC = () => {
     favourite_status: false,
     run_tags: [],
   }));
+
+  const customButtonSpacing =
+    (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() +
+    "px";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,15 +140,15 @@ export const IndexScreen: React.FC = () => {
     void fetchData();
   }, [notify]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await callApi("workflow_name_list/");
-      if (data) {
-        setWorkflows(data);
-      }
-    };
+  const getWorkflows = async () => {
+    const data = await callApi("workflow_name_list/");
+    if (data) {
+      setWorkflows(data);
+    }
+  };
 
-    void fetchData();
+  useEffect(() => {
+    void getWorkflows();
   }, []);
 
   const filteredWorkflows = workflows.filter((workflow) =>
@@ -225,9 +237,43 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const handleExportWorkflow = async (workflowName: InputValueType) => {
+    const blob: Blob = await callApiWithParameters(
+      "export_workflow/",
+      { workflow_name: workflowName ?? "standard" },
+      "blob",
+    );
+    saveAs(blob, (workflowName ?? "standard").toString() + ".yaml");
+    notify({
+      title: "Exported successfully",
+      message: `Workflow ${String(workflowName)} has been exported`,
+      type: "success",
+    });
+  };
   const workflowContainerSize = parseInt(
     (theme.sizes.bigButtonContainerDimension as unknown as string).replace("px", ""),
   );
+
+  const handleImportWorkflow = async (workflow: InputValueType, newName: InputValueType) => {
+    const response = await callApiWithParameters("import_workflow/", {
+      workflow_file: workflow ?? "",
+      new_name: newName ?? "",
+    });
+    if (response.success) {
+      notify({
+        title: "Imported successfull",
+        message: `Workflow ${String(workflow)} has been imported as ${newName == "" ? String(workflow).replace(".yaml", "") : String(newName)}`,
+        type: "success",
+      });
+      void getWorkflows();
+    } else {
+      notify({
+        title: "Something went wrong :(",
+        message: response.message,
+        type: "error",
+      });
+    }
+  };
 
   const scrollLeft = () => {
     const container = document.querySelector(".workflow-container");
@@ -246,14 +292,40 @@ export const IndexScreen: React.FC = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <StyledNavbar
-        allowRunEdit={false}
+        showRunInformation={false}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
         onOpenHelp={() => void navigate("/")}
       />
 
       <StyledContainer>
-        <StyledTemplateCard title="Template Workflows">
+        <StyledTemplateCard
+          title={
+            <StyledWorkflowHeader>
+              Template Workflows
+              <StyledButtonDiv>
+                <Button
+                  onClick={() => {
+                    openExportModal();
+                  }}
+                  icon="download"
+                  tooltip="Export a workflow"
+                  tooltipPosition={"left"}
+                  style={{ position: "absolute", top: "0px", left: "0px" }}
+                ></Button>
+                <Button
+                  onClick={() => {
+                    openImportModal();
+                  }}
+                  icon="upload"
+                  tooltip="Import a workflow"
+                  tooltipPosition={"left"}
+                  style={{ position: "absolute", top: "0px", left: customButtonSpacing }}
+                ></Button>
+              </StyledButtonDiv>
+            </StyledWorkflowHeader>
+          }
+        >
           <SearchInputField
             style={{ padding: "0", gap: "0", width: "30%" }}
             value={searchTermTop}
@@ -323,6 +395,69 @@ export const IndexScreen: React.FC = () => {
               }}
             ></Form>
           </Modal>
+          <Modal
+            title="Export a workflow"
+            isOpen={isExportModalOpen}
+            onClose={() => {
+              closeExportModal();
+            }}
+          >
+            {workflows.length > 1 ? (
+              <Form
+                formData={{
+                  label: "",
+                  isAutoSubmit: false,
+                  hasChangeIndicator: false,
+                  input_fields: [
+                    {
+                      type: "dropdown",
+                      name: "workflow",
+                      label: "Workflow:",
+                      options: workflows.map((workflow) => ({ label: workflow, value: workflow })),
+                      isVisible: true,
+                    },
+                  ],
+                }}
+                onChange={(data) => {
+                  void handleExportWorkflow(data.workflow);
+                }}
+              ></Form>
+            ) : (
+              <SectionTitle baseComponent={"h4"} description={"No workflows available"} />
+            )}
+          </Modal>
+          <Modal
+            title="Import a workflow"
+            isOpen={isImportModalOpen}
+            onClose={() => {
+              closeImportModel();
+            }}
+          >
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "file",
+                    name: "workflow",
+                    label: "Workflow:",
+                    isVisible: true,
+                  },
+                  {
+                    type: "text",
+                    name: "name",
+                    label: "Rename the workflow: (optional)",
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                void handleImportWorkflow(data.workflow, data.name);
+              }}
+            ></Form>
+          </Modal>
         </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
@@ -348,21 +483,8 @@ export const IndexScreen: React.FC = () => {
                 setSearchTermRuns(e);
               }}
               placeholder="Search runs"
+              subscript={"Search by run name, steps, or tags"}
             />
-            <div
-              onPointerEnter={handlePointerEnter}
-              onPointerLeave={handlePointerLeave}
-              ref={setParentRef}
-            >
-              <InfoIcon icon={"info"} isSmall={true} style={{ paddingLeft: "10px" }} />
-              <Tooltip
-                text={"Search by run name, steps, or tags"}
-                isShown={showTooltip}
-                anchor={mouseAnchor}
-                distance={5}
-                position={"bottomRight"}
-              />
-            </div>
           </StyledDiv>
           <RunsTable
             runs={runs}
