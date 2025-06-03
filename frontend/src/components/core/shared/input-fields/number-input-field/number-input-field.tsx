@@ -1,4 +1,4 @@
-import { color, fontSize, radius, size, spacing } from "@protzilla/theme";
+import { border, borderColors, color, fontSize, radius, size, spacing } from "@protzilla/theme";
 import { useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
 
@@ -25,6 +25,7 @@ const StepButton = styled(GrayButton)`
 
 const StepButtonContainer = styled.div<{ $isVisuallyLast: boolean }>`
   height: ${size("inputFieldHeightDefault")};
+  border-left: ${border("defaultStrength")} solid ${borderColors("default")};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
