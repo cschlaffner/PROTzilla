@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityType.IBAQ,
+                    value = IntensityType.IBAQ.value,
                     options = IntensityType
                 ),
                 CheckboxField(
@@ -88,7 +88,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum,
+                    value = AggregationMethods.sum.value,
                     options = AggregationMethods,
                 ),
             ],
@@ -121,7 +121,7 @@ class DiannImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum,
+                    value = AggregationMethods.sum.value,
                     options = AggregationMethods,
                 ),
             ]
@@ -139,17 +139,16 @@ class MsFraggerImport(ImportingStep):
 
     def create_form(self):
         return Form(
-            label="DIA-NN Import",
+            label="MS Fragger Combined Protein Import",
             input_fields=[
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
-                    value=None,
                 ),
                 DropdownField(
                     name="intensity_name",
                     label="intensity name",
-                    value=IntensityNameType.INTENSITY, #just a guess
+                    value=IntensityNameType.INTENSITY.value,
                     options=IntensityNameType,
                 ),
                 CheckboxField(
@@ -160,7 +159,7 @@ class MsFraggerImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum,
+                    value = AggregationMethods.sum.value,
                     options = AggregationMethods,
                 ),
             ]
@@ -183,13 +182,12 @@ class MetadataImport(ImportingStep):
                 FileInput(
                     name = "file_path",
                     label = "Metadata file",
-                    value = None,
                 ),
                 DropdownField(
                     name = "feature_orientation",
                     label = "Feature orientation",
                     options = FeatureOrientationType,
-                    value = FeatureOrientationType.COLUMNS,
+                    value = FeatureOrientationType.COLUMNS.value,
                 ),
             ],
         )
@@ -215,7 +213,6 @@ class MetadataImportMethodDiann(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Run-Relationship metadata file:",
-                    value=None,
                 ),
                 CheckboxField(
                     name="groupby_sample",
@@ -271,9 +268,7 @@ class MetadataColumnAssignment(ImportingStep):
                 if col not in metadata.columns
             ])
             if len(metadata_required_column.options) == 0:
-                metadata_required_column.set_options([
-                    Option("No required columns missing", "No required columns missing") #sollten die options hier vllt einfach leer gesetzt werden?
-                ])
+                metadata_required_column.set_options([])
             
             unknown_columns = list(
                 metadata.columns[
@@ -285,9 +280,7 @@ class MetadataColumnAssignment(ImportingStep):
                 Option(col, col) for col in unknown_columns
             ])
             if len(metadata_unknown_column.options) == 0:
-                metadata_unknown_column.set_options([
-                    Option("No unknown columns", "No unknown columns") #wie oben
-                ])
+                metadata_unknown_column.set_options([])
 
     calc_method = staticmethod(metadata_column_assignment)
 
@@ -313,12 +306,12 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
-                    value=None,
                 ),
                 DropdownField(
                     name="intensity_name",
                     label="Intensity parameter",
                     options=IntensityType,
+                    value=IntensityType.INTENSITY.value,
                 ),
                 CheckboxField(
                     name = "map_to_uniprot",
