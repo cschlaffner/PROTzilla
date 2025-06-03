@@ -1,7 +1,6 @@
 import json
 import sys
 from unittest import mock
-from unittest.mock import call
 
 import pytest
 
@@ -12,8 +11,7 @@ sys.path.append(f"{PROJECT_PATH}/..")
 sys.path.append(f"{PROJECT_PATH}")
 
 from backend.protzilla.runner import Runner, _serialize_graphs
-from backend.runner_cli import args_parser
-from backend.protzilla.steps import Output, Plots
+from runner_cli import args_parser
 from backend.main import settings
 
 
