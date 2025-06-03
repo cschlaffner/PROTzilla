@@ -57,34 +57,59 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
   const [displayValue, setDisplayValue] = useState<string>(String(value));
 
+  function formatNumber(num: number, digits = 10): string {
+    const rounded = Number(num.toFixed(digits));
+    return isNaN(rounded) ? "" : rounded.toString();
+  }
+
   useEffect(() => {
-    setDisplayValue(Number(value.toFixed(10)).toString());
+    setDisplayValue(formatNumber(value));
   }, [value]);
 
   const hasMin = typeof min === "number";
   const hasMax = typeof max === "number";
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newValue = e.target.value;
-    if (newValue === "" || newValue === "-" || !isNaN(Number(newValue))) {
-      if (isInteger && newValue.includes(".")) {
-        return;
-      }
+  const handleChange = (e: { target: { value: string; }; }) => {
+    const raw = e.target.value;
 
-      if (hasMax && Number(newValue) > max) {
-        newValue = max.toString();
-      }
-      if (hasMin && Number(newValue) < min) {
-        newValue = min.toString();
-      }
+    if (!/^[-\d.]*$/.test(raw)) return;
+    if (isInteger && raw.includes(".")) return;
 
-      setDisplayValue(newValue);
-
-      const numericValue = Number(newValue);
-      const newNumericValue = isNaN(numericValue) ? 0 : numericValue;
-      onChange(newNumericValue);
-    }
+    setDisplayValue(raw);
   };
+
+  const handleBlur = () => {
+    if (displayValue === "" || displayValue === "-") {
+      setDisplayValue(String(Math.max(0, min ?? 0)));
+      return;
+    }
+
+    const num = isInteger ? parseInt(displayValue, 10) : parseFloat(displayValue);
+
+    if (isNaN(num)) {
+      setDisplayValue(String(value));
+      return;
+    }
+
+    if (hasMin && num < min) {
+      setDisplayValue(String(min));
+      onChange(min);
+      return;
+    }
+    if (hasMax && num > max) {
+      setDisplayValue(String(max));
+      onChange(max);
+      return;
+    }
+
+    const cleaned = isInteger ? String(Math.floor(num)) : String(num);
+    setDisplayValue(cleaned);
+    onChange(num);
+  };
+
+  useEffect(() => {
+    setDisplayValue(String(value));
+  }, [value]);
 
   const handleClick = (direction: "up" | "down") => {
     const stepValue = step ?? 1;
@@ -101,8 +126,10 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
         newValue = Math.max(newValue, min);
       }
     }
-    setDisplayValue(Number(newValue.toFixed(10)).toString());
-    onChange(newValue);
+
+    const formattedValue = Number(formatNumber(newValue, 10));
+    setDisplayValue(String(formattedValue));
+    onChange(formattedValue);
   };
 
   const combinedSubscript = [
@@ -126,7 +153,8 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
           min={min}
           max={max}
           step={step}
-          onInput={handleInput}
+          onChange={handleChange}
+          onBlur={handleBlur}
           // Disable isSmall when hasStepButtons is true
           $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
           {...props}
