@@ -224,6 +224,9 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
               <Col>
                 <MarginField
                   label={"Margins, top"}
+                  info={
+                    "Plots with axes include default margins, so margin changes below 50 may not be noticeable."
+                  }
                   value={settings.marginTop}
                   onChange={(v: number) => {
                     handleSettingChange("marginTop", v);
