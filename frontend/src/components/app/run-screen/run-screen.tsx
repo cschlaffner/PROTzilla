@@ -82,7 +82,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [tableData, setTableData] = useState(mockTableData);
+  const [tableData, setTableData] = useState([mockTableData]);
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -187,11 +187,15 @@ export const RunScreen: React.FC = () => {
 
   const tableComponent = (
     <StyledTableContainer>
-      {tableData.length > 0 ? (
-        <div>
-          <DataTable data={tableData} />
-          <CSVButton data={tableData} style={{ marginTop: theme.spacing.buttonGap }} />
-        </div>
+      {tableData && tableData.length > 0 ? (
+        <>
+          {tableData.map((table, index) => (
+            <div key={index} style={{ display: "flex", flexDirection: "column" }}>
+              <DataTable data={table} />
+              <CSVButton data={table} style={{ marginTop: theme.spacing.buttonGap }} />
+            </div>
+          ))}
+        </>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
