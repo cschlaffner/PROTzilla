@@ -136,6 +136,7 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
           <Form
             formData={{
               label: "",
+              labelSubmitButton: "Change name",
               isAutoSubmit: false,
               hasChangeIndicator: false,
               input_fields: [
