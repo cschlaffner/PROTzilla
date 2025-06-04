@@ -108,65 +108,67 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
 
     return (
       <div ref={ref} id={"run-edit-menu"}>
-        <StyledModal title={"Edit run information"} isOpen={isOpen} onClose={onClose}>
-          <Row>
-            <SectionTitle baseComponent={"h6"} title={"Favourited: "} />
-            <IconButton
-              icon={"starFill"}
-              style={{
-                fill: selectedRun.favourite_status ? defaultPalette.primary : "",
+        {isOpen && (
+          <StyledModal title={"Edit run information"} isOpen={isOpen} onClose={onClose}>
+            <Row>
+              <SectionTitle baseComponent={"h6"} title={"Favourited: "} />
+              <IconButton
+                icon={"starFill"}
+                style={{
+                  fill: selectedRun.favourite_status ? defaultPalette.primary : "",
+                }}
+                onClick={() => {
+                  toggleFavorite();
+                }}
+              />
+            </Row>
+            <Row>
+              <SectionTitle baseComponent={"h6"} title={"Date created: "} />
+              <Text>{formatDate(selectedRun.creation_date)}</Text>
+            </Row>
+            <Row>
+              <SectionTitle baseComponent={"h6"} title={"Date last modified: "} />
+              <Text>{formatDate(selectedRun.modification_date)}</Text>
+            </Row>
+            <Row>
+              <SectionTitle baseComponent={"h6"} title={"Memory mode: "} />
+              <Text>{selectedRun.memory_mode}</Text>
+            </Row>
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "text",
+                    name: "run_name",
+                    label: "Enter a new name:",
+                    placeholder: selectedRun.run_name,
+                    value: selectedRun.run_name,
+                    isVisible: true,
+                  },
+                ],
               }}
-              onClick={() => {
-                toggleFavorite();
-              }}
-            />
-          </Row>
-          <Row>
-            <SectionTitle baseComponent={"h6"} title={"Date created: "} />
-            <Text>{formatDate(selectedRun.creation_date)}</Text>
-          </Row>
-          <Row>
-            <SectionTitle baseComponent={"h6"} title={"Date last modified: "} />
-            <Text>{formatDate(selectedRun.modification_date)}</Text>
-          </Row>
-          <Row>
-            <SectionTitle baseComponent={"h6"} title={"Memory mode: "} />
-            <Text>{selectedRun.memory_mode}</Text>
-          </Row>
-          <Form
-            formData={{
-              label: "",
-              isAutoSubmit: false,
-              hasChangeIndicator: false,
-              input_fields: [
-                {
-                  type: "text",
-                  name: "run_name",
-                  label: "Enter a new name:",
-                  placeholder: selectedRun.run_name,
-                  value: selectedRun.run_name,
-                  isVisible: true,
-                },
-              ],
-            }}
-            onChange={(data) => {
-              void handleNameChange(data.run_name as string);
-            }}
-          />
-          <TagMenuWrapper>
-            <SectionTitle baseComponent={"h6"} title={"Current tags: "} />
-            <TagMenu
-              setSelectedRun={setSelectedRun}
-              selectedRun={selectedRun}
-              handleAddTag={(tag) => {
-                handleAddTag(tag);
-              }}
-              handleDeleteTag={(tag) => {
-                handleDeleteTag(tag);
+              onChange={(data) => {
+                void handleNameChange(data.run_name as string);
               }}
             />
-          </TagMenuWrapper>
-        </StyledModal>
+            <TagMenuWrapper>
+              <SectionTitle baseComponent={"h6"} title={"Current tags: "} />
+              <TagMenu
+                setSelectedRun={setSelectedRun}
+                selectedRun={selectedRun}
+                handleAddTag={(tag) => {
+                  handleAddTag(tag);
+                }}
+                handleDeleteTag={(tag) => {
+                  handleDeleteTag(tag);
+                }}
+              />
+            </TagMenuWrapper>
+          </StyledModal>
+        )}
       </div>
     );
   },

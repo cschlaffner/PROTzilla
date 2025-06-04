@@ -351,58 +351,14 @@ export const IndexScreen: React.FC = () => {
             <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
             <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
           </NavigationDiv>
-          <Modal
-            title="Create run"
-            isOpen={isWorkflowModalOpen}
-            onClose={() => {
-              setIsWorkflowModalOpen(false);
-            }}
-          >
-            <Form
-              formData={{
-                label: "",
-                isAutoSubmit: false,
-                hasChangeIndicator: false,
-                input_fields: [
-                  {
-                    type: "text",
-                    name: "runname",
-                    label: "With name:",
-                    isVisible: true,
-                  },
-                  {
-                    type: "dropdown",
-                    name: "workflow",
-                    label: "With workflow:",
-                    options: workflowOptions,
-                    value: selectedWorkflow,
-                    isVisible: true,
-                  },
-                  {
-                    type: "dropdown",
-                    name: "df_mode",
-                    label: "With memory mode:",
-                    options: [
-                      { label: "disk", value: "disk" }, // TODO change label to "Standard" after backend refactor
-                      { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory" after backend refactor
-                    ],
-                    isVisible: true,
-                  },
-                ],
+          {isWorkflowModalOpen && (
+            <Modal
+              title="Create run"
+              isOpen={isWorkflowModalOpen}
+              onClose={() => {
+                setIsWorkflowModalOpen(false);
               }}
-              onChange={(data) => {
-                handleContinueRun(data);
-              }}
-            ></Form>
-          </Modal>
-          <Modal
-            title="Export a workflow"
-            isOpen={isExportModalOpen}
-            onClose={() => {
-              closeExportModal();
-            }}
-          >
-            {workflows.length > 1 ? (
+            >
               <Form
                 formData={{
                   label: "",
@@ -410,71 +366,126 @@ export const IndexScreen: React.FC = () => {
                   hasChangeIndicator: false,
                   input_fields: [
                     {
+                      type: "text",
+                      name: "runname",
+                      label: "With name:",
+                      isVisible: true,
+                    },
+                    {
                       type: "dropdown",
                       name: "workflow",
-                      label: "Workflow:",
-                      options: workflows.map((workflow) => ({ label: workflow, value: workflow })),
+                      label: "With workflow:",
+                      options: workflowOptions,
+                      value: selectedWorkflow,
+                      isVisible: true,
+                    },
+                    {
+                      type: "dropdown",
+                      name: "df_mode",
+                      label: "With memory mode:",
+                      options: [
+                        { label: "disk", value: "disk" }, // TODO change label to "Standard" after backend refactor
+                        { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory" after backend refactor
+                      ],
                       isVisible: true,
                     },
                   ],
                 }}
                 onChange={(data) => {
-                  void handleExportWorkflow(data.workflow);
+                  handleContinueRun(data);
+                }}
+              />
+            </Modal>
+          )}
+          {isExportModalOpen && (
+            <Modal
+              title="Export a workflow"
+              isOpen={isExportModalOpen}
+              onClose={() => {
+                closeExportModal();
+              }}
+            >
+              {workflows.length > 1 ? (
+                <Form
+                  formData={{
+                    label: "",
+                    isAutoSubmit: false,
+                    hasChangeIndicator: false,
+                    input_fields: [
+                      {
+                        type: "dropdown",
+                        name: "workflow",
+                        label: "Workflow:",
+                        options: workflows.map((workflow) => ({
+                          label: workflow,
+                          value: workflow,
+                        })),
+                        isVisible: true,
+                      },
+                    ],
+                  }}
+                  onChange={(data) => {
+                    void handleExportWorkflow(data.workflow);
+                  }}
+                ></Form>
+              ) : (
+                <SectionTitle baseComponent={"h4"} description={"No workflows available"} />
+              )}
+            </Modal>
+          )}
+          {isImportModalOpen && (
+            <Modal
+              title="Import a workflow"
+              isOpen={isImportModalOpen}
+              onClose={() => {
+                closeImportModel();
+              }}
+            >
+              <Form
+                formData={{
+                  label: "",
+                  isAutoSubmit: false,
+                  hasChangeIndicator: false,
+                  input_fields: [
+                    {
+                      type: "file",
+                      name: "workflow",
+                      label: "Workflow:",
+                      isVisible: true,
+                    },
+                    {
+                      type: "text",
+                      name: "name",
+                      label: "Rename the workflow: (optional)",
+                      isVisible: true,
+                    },
+                  ],
+                }}
+                onChange={(data) => {
+                  void handleImportWorkflow(data.workflow, data.name);
                 }}
               ></Form>
-            ) : (
-              <SectionTitle baseComponent={"h4"} description={"No workflows available"} />
-            )}
-          </Modal>
-          <Modal
-            title="Import a workflow"
-            isOpen={isImportModalOpen}
-            onClose={() => {
-              closeImportModel();
-            }}
-          >
-            <Form
-              formData={{
-                label: "",
-                isAutoSubmit: false,
-                hasChangeIndicator: false,
-                input_fields: [
-                  {
-                    type: "file",
-                    name: "workflow",
-                    label: "Workflow:",
-                    isVisible: true,
-                  },
-                  {
-                    type: "text",
-                    name: "name",
-                    label: "Rename the workflow: (optional)",
-                    isVisible: true,
-                  },
-                ],
-              }}
-              onChange={(data) => {
-                void handleImportWorkflow(data.workflow, data.name);
-              }}
-            ></Form>
-          </Modal>
+            </Modal>
+          )}
         </StyledTemplateCard>
 
         <StyledRunSelectionCard title="Run Selection">
-          <Modal
-            title="Run tags:"
-            isOpen={isTagModalOpen}
-            onClose={() => {
-              setIsTagModalOpen(false);
-            }}
-          >
-            <TagMenu
-              setSelectedRun={setSelectedRun}
-              selectedRun={selectedRun}
-              handleAddTag={handleAddTag}
-              handleDeleteTag={handleDeleteTag}
-            />
-          </Modal>
+          {isTagModalOpen && (
+            <Modal
+              title="Run tags:"
+              isOpen={isTagModalOpen}
+              onClose={() => {
+                setIsTagModalOpen(false);
+              }}
+            >
+              <TagMenu
+                setSelectedRun={setSelectedRun}
+                selectedRun={selectedRun}
+                handleAddTag={handleAddTag}
+                handleDeleteTag={handleDeleteTag}
+              />
+            </Modal>
+          )}
           <StyledDiv>
             <SearchInputField
               style={{ padding: "0", gap: "0", width: "30%" }}
