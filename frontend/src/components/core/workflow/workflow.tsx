@@ -54,6 +54,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
   const notify = useNotification();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleDeleteWorkflow = async (workflow: string) => {
     const response = await callApiWithParameters("delete_workflow/", { workflow_name: workflow });
@@ -75,7 +76,10 @@ export const Workflow: React.FC<WorkflowProps> = ({
   };
 
   return (
-    <StyledContainer>
+    <StyledContainer
+      onMouseEnter={() => { setIsHovered(true); }}
+      onMouseLeave={() => { setIsHovered(false); }}
+    >
       <BigButton icon={icon} isBig={true} onPress={onPress} />
       <NameText
         text={workflow}
@@ -90,7 +94,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
           distance={13}
         />
       </NameText>
-      <StyledCircularButton
+      {isHovered &&  <StyledCircularButton
         isSmall
         isCautious
         isShy
@@ -102,7 +106,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
         }}
       >
         <Icon icon={"trash"} style={{ height: "15px" }} />
-      </StyledCircularButton>
+      </StyledCircularButton> }
       <DeleteModal
         title={`Delete workflow "${workflow ?? ""}"?`}
         isOpen={isDeleteModalOpen}
