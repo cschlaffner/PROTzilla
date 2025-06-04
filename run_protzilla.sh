@@ -98,7 +98,10 @@ fi
 cd frontend
 
 # update npm
-npm update -g npm
+if ! npm update -g npm >/dev/null 2>&1; then
+  echo "Error: Failed to update npm. Please try running this script with sudo and your device's password. If this does not fix the issue, please contact a developer."
+  exit 1
+fi
 # Due to an issue with outdated signatures in Corepack, Corepack should be updated to its latest version first:
 npm install --global corepack@latest
 
