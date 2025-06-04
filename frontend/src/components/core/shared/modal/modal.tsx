@@ -43,6 +43,10 @@ const CardHeader = styled.div`
   width: 100%;
 `;
 
+const StyledCard = styled(Card)`
+  overflow-y: visible;
+`;
+
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (
     <Backdrop isOpen={isOpen} onClick={onClose}>
@@ -52,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           e.stopPropagation();
         }}
       >
-        <Card
+        <StyledCard
           title={
             <CardHeader>
               <SectionTitle baseComponent={"h2"} title={title} />
@@ -63,7 +67,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           }
         >
           {children}
-        </Card>
+        </StyledCard>
       </ModalContent>
     </Backdrop>
   );

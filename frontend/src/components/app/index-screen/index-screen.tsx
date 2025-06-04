@@ -362,6 +362,7 @@ export const IndexScreen: React.FC = () => {
               <Form
                 formData={{
                   label: "",
+                  labelSubmitButton: "Create Run",
                   isAutoSubmit: false,
                   hasChangeIndicator: false,
                   input_fields: [
@@ -394,7 +395,7 @@ export const IndexScreen: React.FC = () => {
                 onChange={(data) => {
                   handleContinueRun(data);
                 }}
-              />
+              ></Form>
             </Modal>
           )}
           {isExportModalOpen && (
@@ -409,6 +410,7 @@ export const IndexScreen: React.FC = () => {
                 <Form
                   formData={{
                     label: "",
+                    labelSubmitButton: "Export",
                     isAutoSubmit: false,
                     hasChangeIndicator: false,
                     input_fields: [
@@ -444,6 +446,7 @@ export const IndexScreen: React.FC = () => {
               <Form
                 formData={{
                   label: "",
+                  labelSubmitButton: "Import",
                   isAutoSubmit: false,
                   hasChangeIndicator: false,
                   input_fields: [
