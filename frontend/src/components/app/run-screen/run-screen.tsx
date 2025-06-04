@@ -10,7 +10,7 @@ import {
   SwitchCard,
 } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
-import { spacing, useTheme } from "@protzilla/theme";
+import { size, spacing, useTheme } from "@protzilla/theme";
 import {
   callApiWithParameters,
   dummyTextComponent1,
@@ -39,6 +39,12 @@ const StyledCardRow = styled(FlexRow)`
 
 const StyledFlexColumn = styled(FlexColumn)`
   height: 100%;
+`;
+
+const StyledListCardContainer = styled(FlexColumn)`
+  height: calc(
+    100vh - (${spacing("small")} * 3 + ${spacing("navbarHeight")} + ${size("smallButtonHeight")})
+  );
 `;
 
 const StyledCol = styled(Col)`
@@ -220,18 +226,20 @@ export const RunScreen: React.FC = () => {
 
       <StyledCardRow>
         <StyledFlexColumn>
-          <StyledListSwitchCard
-            nameComponent1="List"
-            component1={listEditorComponent}
-            nameComponent2="Node"
-            component2={dummyTextComponent1}
-            hasCardTitle={false}
-            styleProps={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-            }}
-          />
+          <StyledListCardContainer>
+            <StyledListSwitchCard
+              nameComponent1="List"
+              component1={listEditorComponent}
+              nameComponent2="Node"
+              component2={dummyTextComponent1}
+              hasCardTitle={false}
+              styleProps={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            />
+          </StyledListCardContainer>
         </StyledFlexColumn>
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>

@@ -14,6 +14,7 @@ const SidebarContainer = styled(motion.div)`
   flex-direction: column;
   padding: 0px 3px;
   width: 100%;
+  height: 100%;
   overflow: hidden;
 `;
 
@@ -50,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           style={{ marginLeft: isCollapsed ? "0" : "auto" }}
         />
       </SidebarHeader>
+      <div style={{ height: "100%", overflowY: "scroll" }}>
       {sections.map((section: Section, i: number) => {
         return (
           <SidebarSection
@@ -69,6 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           />
         );
       })}
+      </div>
     </SidebarContainer>
   );
 };

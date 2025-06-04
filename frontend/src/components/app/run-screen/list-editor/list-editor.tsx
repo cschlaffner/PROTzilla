@@ -30,6 +30,7 @@ const StyledFormColumn = styled.div`
   max-width: 500px;
   padding-top: ${spacing("small")};
   margin: 0 ${spacing("small")};
+  overflow-y: auto;
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
@@ -115,7 +116,8 @@ export const ListEditor: React.FC<ListEditorProps> = ({
   }, [currentStepCalculationStatus, runData.current_section, stepSectionIndex]);
 
   return (
-    <StyledRow>
+    <StyledRow style={{ height: "100%" }}>
+      <div style={{ height: "100%" }}>
       <Sidebar
         runName={runName}
         runData={runData}
@@ -124,9 +126,11 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         stepSectionIndex={stepSectionIndex}
         handleStepSelection={handleStepSelection}
       />
+      </div>
 
       <StyledDivider />
 
+      <div style={{ height: "100%", overflowY: "auto" }}>
       <StyledFormColumn>
         <BackendForm
           runName={runName}
@@ -139,6 +143,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
           onChange={onFormChanged}
         />
       </StyledFormColumn>
+      </div>
     </StyledRow>
   );
 };
