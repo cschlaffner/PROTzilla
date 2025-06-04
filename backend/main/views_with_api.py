@@ -117,7 +117,11 @@ def delete_run(request):
         run_name = data.get("run_name")
 
         try:
-            delete_run_folder(run_name)
+            if run_name not in Run._instances:
+                delete_run_folder(run_name)
+            else:
+                run = Run(run_name)
+                run.delete_run()
 
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
