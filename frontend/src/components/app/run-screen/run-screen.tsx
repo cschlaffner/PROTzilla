@@ -51,17 +51,16 @@ const StyledListSwitchCard = styled(SwitchCard)`
   height: 100%;
 `;
 
-const StyledPlotContainer = styled.div`
+const StyledContentContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
 `;
 
-const StyledTableContainer = styled.div`
-  width: 100%;
+const StyledContentDiv = styled.div`
   display: flex;
   flex-direction: column;
-`;
+`
 
 const FooterText = styled.div`
   text-align: center;
@@ -157,11 +156,11 @@ export const RunScreen: React.FC = () => {
   };
 
   const plotComponent = (
-    <StyledPlotContainer>
+    <StyledContentContainer>
       {plots && plots.length > 0 ? (
         <>
           {plots.map((plot, index) => (
-            <div key={index} style={{ display: "flex", flexDirection: "column" }}>
+            <StyledContentDiv key={index}>
               <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
               <SecondaryButton
                 text="Download plot"
@@ -170,7 +169,7 @@ export const RunScreen: React.FC = () => {
                   handleDownloadPlot(plot);
                 }}
               />
-            </div>
+            </StyledContentDiv>
           ))}
           <PlotDownloadSettings
             isOpen={isDownloadModalOpen}
@@ -182,24 +181,24 @@ export const RunScreen: React.FC = () => {
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
-    </StyledPlotContainer>
+    </StyledContentContainer>
   );
 
   const tableComponent = (
-    <StyledTableContainer>
+    <StyledContentContainer>
       {tableData && tableData.length > 0 ? (
         <>
           {tableData.map((table, index) => (
-            <div key={index} style={{ display: "flex", flexDirection: "column" }}>
+            <StyledContentDiv key={index}>
               <DataTable data={table} />
               <CSVButton data={table} style={{ marginTop: theme.spacing.buttonGap }} />
-            </div>
+            </StyledContentDiv>
           ))}
         </>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
-    </StyledTableContainer>
+    </StyledContentContainer>
   );
 
   const listEditorComponent = (
