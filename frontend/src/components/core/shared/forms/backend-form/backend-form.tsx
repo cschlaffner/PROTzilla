@@ -42,12 +42,13 @@ const SubmitButton = styled(Button)`
   font-size: ${fontSize("default")};
 `;
 
-export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
+export const BackendForm: React.FC<BackendFormProps> = memo(  function Form({
   runName,
   buttonText,
   previousStepCalculationStatus,
   currentStepCalculationStatus,
   current_step_index,
+  isLastStep,
   onNext,
   onSubmit,
   onChange,
@@ -150,10 +151,11 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <SubmitButton
               isDisabled={
                 previousStepCalculationStatus === "incomplete" ||
-                previousStepCalculationStatus === "failed"
+                previousStepCalculationStatus === "failed" ||
+                (isLastStep && currentStepCalculationStatus === "complete")
               }
               text={isloading ? "Loading..." : buttonText}
-              onClick={handleSubmit}
+              onPress={handleSubmit}
             />
           </StyledSubmitDiv>
         </StyledForm>

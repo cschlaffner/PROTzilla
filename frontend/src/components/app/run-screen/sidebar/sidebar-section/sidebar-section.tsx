@@ -59,8 +59,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   stepSectionIndex,
   runData,
   handleStepSelection,
-  currentSteps,
-  setCurrentSteps,
+  currentSteps
 }: SidebarSectionProps) => {
   const isCurrentSection = runData.current_section === (name as string);
 
@@ -70,8 +69,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   const [showHandle, setShowHandle] = useState(false);
 
-  const addStep = (newStep: Step) => {
-    setCurrentSteps((prevSteps: Step[]) => [...prevSteps, newStep]);
+  const addStep = () => {
+    handleStepSelection();
   };
 
   const deleteStep = async (index: number) => {
@@ -80,18 +79,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-    setCurrentSteps((prevSteps: Step[]) => prevSteps.filter((_: Step, i: number) => index !== i));
-    if (isCurrentSection) {
-      if (currentSteps.length === 0) {
-        handleStepSelection(undefined);
-      } else {
-        const newIndex = stepSectionIndex ? Math.min(stepSectionIndex, currentSteps.length - 1) : 0;
-        handleStepSelection({
-          section: name,
-          index: newIndex,
-        });
-      }
-    }
+    handleStepSelection();
   };
 
   return (

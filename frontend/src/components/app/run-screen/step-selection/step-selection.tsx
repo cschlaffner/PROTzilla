@@ -9,17 +9,17 @@ import {
 } from "@protzilla/core";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, shadow, size, spacing } from "@protzilla/theme";
-import { callApi, callApiWithParameters, Sections } from "@protzilla/utils";
+import { callApi, callApiWithParameters, SectionIDs } from "@protzilla/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelectionProps } from "./step-selection.props.ts";
 
 const sectionModes = {
-  [Sections.Importing]: "Importing",
-  [Sections.DataPreprocessing]: "Data Preprocessing",
-  [Sections.DataAnalysis]: "Data Analysis",
-  [Sections.DataIntegration]: "Data Integration",
+  [SectionIDs.Importing]: "Importing",
+  [SectionIDs.DataPreprocessing]: "Data Preprocessing",
+  [SectionIDs.DataAnalysis]: "Data Analysis",
+  [SectionIDs.DataIntegration]: "Data Integration",
 };
 
 const allSteps = "All steps";
@@ -122,7 +122,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   ...rest
 }) => {
   // - - -
-  const [selectedSection, setSelectedSection] = useState<Sections | null>(null);
+  const [selectedSection, setSelectedSection] = useState<SectionIDs | null>(null);
 
   // - - - Step list handling - - -
   const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
@@ -133,7 +133,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     if (!selectedSection) return;
     const fetchSteps = async () => {
       const data = await fetchStepList();
-      const list = data.filter((step) => (step.section as Sections) === section);
+      const list = data.filter((step) => (step.section as SectionIDs) === section);
       list.sort((a, b) => a.display_name.localeCompare(b.display_name));
       setAllStepsList(list);
     };
@@ -184,14 +184,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
-    const response = await callApiWithParameters("add_step/", {
+    await callApiWithParameters("add_step/", {
       // TODO add index
       run_name: run_name,
       method: method_name,
+    }).then(()=> {
+      onAddStep();
     });
-    if (response) {
-      onAddStep(response.data);
-    }
   };
 
   // - - - Modal handling - - -

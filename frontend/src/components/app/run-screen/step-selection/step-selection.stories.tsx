@@ -1,4 +1,4 @@
-import { Sections } from "@protzilla/utils";
+import { SectionIDs } from "@protzilla/utils";
 
 import { StepSelectionProps } from "./step-selection.props.ts";
 import { StepSelection } from "./step-selection.tsx";
@@ -14,7 +14,7 @@ export const importingSteps = (args: StepSelectionProps): React.ReactNode => (
 );
 importingSteps.args = {
   runName: "runrun",
-  section: Sections.Importing,
+  section: SectionIDs.Importing,
   isSmallButton: true,
   index: 0,
   handlePosition: { top: 400, left: 600 },
@@ -25,7 +25,7 @@ export const dataAnalysisSteps = (args: StepSelectionProps): React.ReactNode => 
 );
 dataAnalysisSteps.args = {
   runName: "runrun",
-  section: Sections.DataAnalysis,
+  section: SectionIDs.DataAnalysis,
   isSmallButton: true,
   index: 0,
   handlePosition: { top: 400, left: 600 },
@@ -36,7 +36,7 @@ export const dataIntegrationSteps = (args: StepSelectionProps): React.ReactNode 
 );
 dataIntegrationSteps.args = {
   runName: "runrun",
-  section: Sections.DataIntegration,
+  section: SectionIDs.DataIntegration,
   isSmallButton: true,
   index: 0,
   handlePosition: { top: 400, left: 600 },
@@ -47,7 +47,7 @@ export const dataPreprocessingSteps = (args: StepSelectionProps): React.ReactNod
 );
 dataPreprocessingSteps.args = {
   runName: "runrun",
-  section: Sections.DataPreprocessing,
+  section: SectionIDs.DataPreprocessing,
   isSmallButton: true,
   index: 0,
   handlePosition: { top: 400, left: 600 },
@@ -58,7 +58,7 @@ export const withBiggerButton = (args: StepSelectionProps): React.ReactNode => (
 );
 withBiggerButton.args = {
   runName: "runrun",
-  section: Sections.DataPreprocessing,
+  section: SectionIDs.DataPreprocessing,
   isSmallButton: false,
   index: 0,
   handlePosition: { top: 0, left: 0 },

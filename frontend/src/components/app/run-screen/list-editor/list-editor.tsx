@@ -40,18 +40,6 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 }) => {
   const [sections, setSections] = useState(emptySections);
 
-  const setCurrentSteps = (sectionIndex: number, updater: (prevSteps: Step[]) => Step[]) => {
-    setSections((prevSections) => {
-      return prevSections.map((section, idx) => {
-        if (idx === sectionIndex) {
-          const updatedSteps = updater(section.steps);
-          return { ...section, steps: updatedSteps };
-        }
-        return section;
-      });
-    });
-  };
-
   useEffect(() => {
     setSections(runData.displayed_steps);
   }, [runData]);
@@ -120,7 +108,6 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         runName={runName}
         runData={runData}
         sections={sections}
-        setCurrentSteps={setCurrentSteps}
         stepSectionIndex={stepSectionIndex}
         handleStepSelection={handleStepSelection}
       />
@@ -134,6 +121,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
           previousStepCalculationStatus={previousStepCalculationStatus}
           currentStepCalculationStatus={currentStepCalculationStatus}
           current_step_index={runData.current_step_index}
+          isLastStep={runData.current_step_index >= runData.displayed_steps.map((section)=>section.steps.length).reduce((acc, val) => acc + val, 0)-1}
           onNext={onNext}
           onSubmit={onFormSubmit}
           onChange={onFormChanged}
