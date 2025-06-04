@@ -200,6 +200,10 @@ class Run:
     def _run_write(self) -> None:
         self.disk_operator.write_run(self.steps)
 
+    def delete_run(self) -> None:
+        delete_run_folder(self.run_name)
+        self._instances.pop(self.run_name, None)  # remove instance from the class dictionary
+
     @property
     def run_path(self) -> str:
         return self.disk_operator.run_dir
