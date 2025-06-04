@@ -8,6 +8,6 @@ export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement
   isCollapsed: boolean;
   currentSteps: Step[];
   stepSectionIndex: number | undefined;
-  navigateOrRefreshSteps: (selectedStep?: SelectedStep | undefined) => void;
+  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
   runData: RunData;
 }

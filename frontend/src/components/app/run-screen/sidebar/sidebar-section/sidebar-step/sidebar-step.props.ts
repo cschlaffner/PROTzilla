@@ -9,7 +9,7 @@ export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement> {
   sectionLength: number;
   index: number;
   isSelected: boolean;
-  navigateOrRefreshSteps: (selectedStep?: SelectedStep | undefined) => void;
+  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
   deleteStep: (index: number) => void;
   setHandlePosition: React.Dispatch<React.SetStateAction<{ top: number; left: number }>>;
   setShowHandle: React.Dispatch<React.SetStateAction<boolean>>;

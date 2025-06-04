@@ -1,4 +1,3 @@
-import { useNotification } from "@protzilla/app";
 import {
   CollapsibleLabel,
   ContentText,
@@ -50,8 +49,6 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   setShowHandle,
   setHoveredStepIndex,
 }: SidebarStepProps) => {
-  const notify = useNotification();
-
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);

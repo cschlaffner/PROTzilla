@@ -1,6 +1,6 @@
 import { H3, Icon } from "@protzilla/core";
 import { spacing, styledDiv } from "@protzilla/theme";
-import { Section, Step } from "@protzilla/utils";
+import { Section } from "@protzilla/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { styled } from "styled-components";

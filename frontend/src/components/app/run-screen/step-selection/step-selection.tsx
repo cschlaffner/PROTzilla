@@ -188,7 +188,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
       // TODO add index
       run_name: run_name,
       method: method_name,
-    }).then(()=> {
+    }).then(() => {
       onAddStep();
     });
   };

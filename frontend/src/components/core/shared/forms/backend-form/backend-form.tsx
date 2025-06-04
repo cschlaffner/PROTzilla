@@ -42,7 +42,7 @@ const SubmitButton = styled(Button)`
   font-size: ${fontSize("default")};
 `;
 
-export const BackendForm: React.FC<BackendFormProps> = memo(  function Form({
+export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   runName,
   buttonText,
   previousStepCalculationStatus,

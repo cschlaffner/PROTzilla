@@ -121,7 +121,13 @@ export const ListEditor: React.FC<ListEditorProps> = ({
           previousStepCalculationStatus={previousStepCalculationStatus}
           currentStepCalculationStatus={currentStepCalculationStatus}
           current_step_index={runData.current_step_index}
-          isLastStep={runData.current_step_index >= runData.displayed_steps.map((section)=>section.steps.length).reduce((acc, val) => acc + val, 0)-1}
+          isLastStep={
+            runData.current_step_index >=
+            runData.displayed_steps
+              .map((section) => section.steps.length)
+              .reduce((acc, val) => acc + val, 0) -
+              1
+          }
           onNext={onNext}
           onSubmit={onFormSubmit}
           onChange={onFormChanged}
