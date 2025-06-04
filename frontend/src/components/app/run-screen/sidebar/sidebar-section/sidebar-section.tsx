@@ -1,5 +1,7 @@
 import { CollapsibleLabel, H3, Icon } from "@protzilla/core";
 import { callApiWithParameters, Step } from "@protzilla/utils";
+import { useNotification } from "@protzilla/app";
+
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { styled } from "styled-components";
@@ -69,6 +71,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   const [showHandle, setShowHandle] = useState(false);
 
+  const notify = useNotification();
+
   const addStep = () => {
     navigateOrRefreshSteps();
   };
@@ -78,6 +82,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       run_name: runName,
       section: name,
       index: index.toString(),
+    }).then((response)=>{
+      notify({
+        type: response.success ? "success" : "error",
+        title: response.message,
+      });
     });
     navigateOrRefreshSteps();
   };

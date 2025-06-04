@@ -200,6 +200,14 @@ def delete_step(request):
 
         index = int(index)
         run = Run(run_name)
+
+        if section == run.current_step.section and index == run.steps.current_step_index_in_section:
+            # if the step to be deleted is the current step, we need to go to the next step first
+            if run.steps.current_step_index > 0:
+                run.step_previous()
+            else:
+                return JsonResponse({"success": False, "message": "Cannot delete the first step"}, status=405)
+            
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})

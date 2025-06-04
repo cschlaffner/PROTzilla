@@ -106,14 +106,6 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    if (isSelected) {
-      notify({
-        title: "Unallowed action",
-        message: "You cannot delete the step you're currently on.",
-        type: "error",
-      });
-      return;
-    }
     deleteStep(index);
   };
 
