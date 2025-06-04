@@ -14,7 +14,7 @@ import {
   TitleSizeField,
   WidthField,
 } from "./plot-settings-input-fields";
-import { usePlotSettings } from "./usePlotSettings";
+import { PlotSettings, usePlotSettings } from "./usePlotSettings";
 import {
   Button,
   Modal,
@@ -120,7 +120,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           family: settings.selectedFont,
           size: displaySizes.textSize,
         },
-      }
+      },
     });
     // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,6 +137,21 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   const handleSaving = () => {
     void saveSettings();
   };
+
+  const marginFields: {
+    key: keyof PlotSettings;
+    label: string;
+    info?: string;
+  }[] = [
+    {
+      key: "marginTop",
+      label: "Top",
+      info: "Plots with axes include default margins, so margin changes below 50 may not be noticeable.",
+    },
+    { key: "marginBottom", label: "Bottom" },
+    { key: "marginLeft", label: "Left" },
+    { key: "marginRight", label: "Right" },
+  ];
 
   return (
     <StyledModal isOpen={isOpen} onClose={onClose} title="Download Plot">
@@ -177,45 +192,18 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               </Col>
             </Row>
             <Row>
-              <Col>
-                <MarginField
-                  label={"Margins, top"}
-                  info={
-                    "Plots with axes include default margins, so margin changes below 50 may not be noticeable."
-                  }
-                  value={settings.marginTop}
-                  onChange={(v: number) => {
-                    handleSettingChange("marginTop", v);
-                  }}
-                />
-              </Col>
-              <Col>
-                <MarginField
-                  label={"Bottom"}
-                  value={settings.marginBottom}
-                  onChange={(v: number) => {
-                    handleSettingChange("marginBottom", v);
-                  }}
-                />
-              </Col>
-              <Col>
-                <MarginField
-                  label={"Left"}
-                  value={settings.marginLeft}
-                  onChange={(v: number) => {
-                    handleSettingChange("marginLeft", v);
-                  }}
-                />
-              </Col>
-              <Col>
-                <MarginField
-                  label={"Right"}
-                  value={settings.marginRight}
-                  onChange={(v: number) => {
-                    handleSettingChange("marginRight", v);
-                  }}
-                />
-              </Col>
+              {marginFields.map(({ key, label, info }) => (
+                <Col key={key}>
+                  <MarginField
+                    label={label}
+                    info={info}
+                    value={settings[key] as number}
+                    onChange={(v: number) => {
+                      handleSettingChange(key, v);
+                    }}
+                  />
+                </Col>
+              ))}
             </Row>
             <SectionTitle
               baseComponent={"h5"}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { DatabaseSettings, GitHub } from "./other-settings/";
-import { PlotSettings } from "./plot-settings";
+import { PlotSettingsModal } from "./plot-settings";
 import { SettingsProps } from "./settings.props.ts";
 import { DiscardModal, Modal, ToggleableButton } from "../../core/";
 
@@ -113,7 +113,7 @@ export const Settings: React.FC<SettingsProps> = ({
           </SectionSelection>
           <SpecificSettings>
             {selectedSetting === "plot" && (
-              <PlotSettings isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
+              <PlotSettingsModal isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "github" && <GitHub />}

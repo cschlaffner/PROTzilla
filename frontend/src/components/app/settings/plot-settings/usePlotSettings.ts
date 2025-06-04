@@ -7,8 +7,6 @@ import { Figure, Layout } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
-import { PlotSettings } from "./plot-settings";
-
 export interface PlotSettings {
   // User-given parameters that are stored in backend
   fileFormat: string;
