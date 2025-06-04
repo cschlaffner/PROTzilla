@@ -95,14 +95,14 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    setPlot((prevPlot) => ({
-      ...prevPlot,
+    setPlot({
+      data: plot.data,
       layout: {
-        ...prevPlot.layout,
+        ...plot.layout,
         width: displaySizes.width,
         height: displaySizes.height,
         margin: {
-          ...prevPlot.layout.margin,
+          ...plot.layout.margin,
           t: settings.marginTop,
           b: settings.marginBottom,
           l: settings.marginLeft,
@@ -116,12 +116,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           text: settings.title ?? prevTitle,
         },
         font: {
-          ...prevPlot.layout.font,
+          ...plot.layout.font,
           family: settings.selectedFont,
           size: displaySizes.textSize,
         },
-      },
-    }));
+      }
+    });
     // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
