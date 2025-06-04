@@ -35,7 +35,7 @@ const StyledFormColumn = styled.div`
 export const ListEditor: React.FC<ListEditorProps> = ({
   onFormSubmit,
   runName,
-  handleStepSelection,
+  navigateOrRefreshSteps,
   runData,
 }) => {
   const [sections, setSections] = useState(emptySections);
@@ -75,7 +75,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         : "Calculate";
 
   const onNext = () => {
-    handleStepSelection(translateGlobalToSectionIndex(runData.current_step_index + 1, sections));
+    navigateOrRefreshSteps(translateGlobalToSectionIndex(runData.current_step_index + 1, sections));
   };
 
   const onFormChanged = useCallback(() => {
@@ -109,7 +109,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         runData={runData}
         sections={sections}
         stepSectionIndex={stepSectionIndex}
-        handleStepSelection={handleStepSelection}
+        navigateOrRefreshSteps={navigateOrRefreshSteps}
       />
 
       <StyledDivider />

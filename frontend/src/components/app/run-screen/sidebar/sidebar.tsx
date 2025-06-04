@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   runData,
   sections,
   stepSectionIndex,
-  handleStepSelection,
+  navigateOrRefreshSteps,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed={isCollapsed}
             stepSectionIndex={stepSectionIndex}
             runData={runData}
-            handleStepSelection={handleStepSelection}
+            navigateOrRefreshSteps={navigateOrRefreshSteps}
           />
         );
       })}

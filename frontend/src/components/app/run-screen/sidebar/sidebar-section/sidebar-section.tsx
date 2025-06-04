@@ -58,7 +58,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   isCollapsed,
   stepSectionIndex,
   runData,
-  handleStepSelection,
+  navigateOrRefreshSteps,
   currentSteps
 }: SidebarSectionProps) => {
   const isCurrentSection = runData.current_section === (name as string);
@@ -70,7 +70,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   const [showHandle, setShowHandle] = useState(false);
 
   const addStep = () => {
-    handleStepSelection();
+    navigateOrRefreshSteps();
   };
 
   const deleteStep = async (index: number) => {
@@ -79,7 +79,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       section: name,
       index: index.toString(),
     });
-    handleStepSelection();
+    navigateOrRefreshSteps();
   };
 
   return (
@@ -116,7 +116,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               sectionLength={currentSteps.length}
               index={j}
               isSelected={isCurrentSection && stepSectionIndex === j}
-              handleStepSelection={handleStepSelection}
+              navigateOrRefreshSteps={navigateOrRefreshSteps}
               deleteStep={() => {
                 void deleteStep(j);
               }}

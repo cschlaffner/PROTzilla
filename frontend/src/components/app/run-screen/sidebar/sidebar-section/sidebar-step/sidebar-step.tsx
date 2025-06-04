@@ -44,7 +44,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   sectionLength,
   index,
   isSelected,
-  handleStepSelection,
+  navigateOrRefreshSteps,
   deleteStep,
   setHandlePosition,
   setShowHandle,
@@ -98,7 +98,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const handleClick = () => {
-    handleStepSelection({
+    navigateOrRefreshSteps({
       section: sectionName,
       index: index,
     });

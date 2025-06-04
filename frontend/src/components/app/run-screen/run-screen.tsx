@@ -86,7 +86,7 @@ export const RunScreen: React.FC = () => {
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
-  const handleStepSelection = (selectedStep?: SelectedStep | undefined) => {
+  const navigateOrRefreshSteps = (selectedStep?: SelectedStep | undefined) => {
     /*
       If a step is selected, navigate to that step.
       If no step is selected, just refresh the run data to update the run list.
@@ -209,7 +209,7 @@ export const RunScreen: React.FC = () => {
     <ListEditor
       onFormSubmit={onFormSubmit}
       runName={runName}
-      handleStepSelection={handleStepSelection}
+      navigateOrRefreshSteps={navigateOrRefreshSteps}
       runData={runData}
     />
   );

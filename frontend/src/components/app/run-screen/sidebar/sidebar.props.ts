@@ -5,5 +5,5 @@ export interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   runData: RunData;
   sections: Section[];
   stepSectionIndex: number | undefined;
-  handleStepSelection: (selectedStep?: SelectedStep | undefined) => void;
+  navigateOrRefreshSteps: (selectedStep?: SelectedStep | undefined) => void;
 }
