@@ -1,3 +1,4 @@
+import { GridValidRowModel } from "@mui/x-data-grid";
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
@@ -16,7 +17,6 @@ import {
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  mockTableData,
   SelectedStep,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
@@ -81,7 +81,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [tableData, setTableData] = useState([mockTableData]);
+  const [tableData, setTableData] = useState<(readonly GridValidRowModel[])[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
