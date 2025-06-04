@@ -77,7 +77,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "intensity_name",
                     label = "Intensity parameter",
-                    value = IntensityType.IBAQ,
+                    value = IntensityType.IBAQ.value,
                     options = IntensityType
                 ),
                 CheckboxField(
@@ -88,7 +88,7 @@ class MaxQuantImport(ImportingStep):
                 DropdownField(
                     name = "aggregation_method",
                     label = "Aggregation method used to aggregate duplicate values for protein groups",
-                    value = AggregationMethods.sum,
+                    value = AggregationMethods.sum.value,
                     options = AggregationMethods,
                 ),
             ],
@@ -137,7 +137,7 @@ class MetadataImport(ImportingStep):
                     name = "feature_orientation",
                     label = "Feature orientation",
                     options = FeatureOrientationType,
-                    value = FeatureOrientationType.COLUMNS,
+                    value = FeatureOrientationType.COLUMNS.value,
                 ),
             ],
         )
