@@ -38,6 +38,7 @@ const OptionsList = styled.ul`
   position: absolute;
   width: 100%;
   z-index: 1000;
+  max-height: calc(6 * ${size("inputFieldHeightDefault")});
 `;
 
 const OptionItem = styled.li`
