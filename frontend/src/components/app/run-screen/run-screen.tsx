@@ -5,6 +5,7 @@ import {
   DataTable,
   FlexColumn,
   FlexRow,
+  H5,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
@@ -55,12 +56,13 @@ const StyledContentContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
+  gap: ${spacing("small")};
 `;
 
 const StyledContentDiv = styled.div`
   display: flex;
   flex-direction: column;
-`
+`;
 
 const FooterText = styled.div`
   text-align: center;
@@ -190,8 +192,9 @@ export const RunScreen: React.FC = () => {
         <>
           {tableData.map((table, index) => (
             <StyledContentDiv key={index}>
+              <H5>Tabelle mit Nummer</H5>
               <DataTable data={table} />
-              <CSVButton data={table} style={{ marginTop: theme.spacing.buttonGap }} />
+              <CSVButton data={table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
             </StyledContentDiv>
           ))}
         </>
@@ -239,9 +242,9 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
-              nameComponent1="Plot"
+              nameComponent1="Plots"
               component1={plotComponent}
-              nameComponent2="Table"
+              nameComponent2="Tables"
               component2={tableComponent}
             />
           </StyledCol>
