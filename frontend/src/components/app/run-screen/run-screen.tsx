@@ -14,10 +14,10 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing, useTheme } from "@protzilla/theme";
 import {
   callApiWithParameters,
-  ProtzillaTable,
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
+  ProtzillaTable,
   SelectedStep,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
