@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 import time
 
@@ -444,18 +445,26 @@ def gseapy_enrichment(
     return enriched, list(filtered_groups), None
 
 
+class GOAnalysisWithEnrichrBackgroundType(Enum):
+    upload_a_file = "Upload a file (recommended)"
+    choose_biomart_dataset = "Choose Biomart dataset"
+    number_of_expressed_genes = "Specify number of expressed genes (not recommended)"
+    all_genes = "Use all genes in the gene set"
+
+
 def GO_analysis_with_Enrichr(
     proteins_df,
     organism,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
-    direction="both",
-    gene_sets_path=None,
-    gene_sets_enrichr=None,
-    background_path=None,
-    background_number=None,
-    background_biomart=None,
+    differential_expression_threshold = 0,
+    direction = "both",
+    gene_sets_path = None,
+    gene_sets_enrichr = None,
+    background_type : GOAnalysisWithEnrichrBackgroundType = GOAnalysisWithEnrichrBackgroundType.all_genes.value,
+    background_path = None,
+    background_number = None,
+    background_biomart = None,
 ):
     """
     A method that performs online over-representation analysis for a given set of proteins
@@ -508,6 +517,13 @@ def GO_analysis_with_Enrichr(
         - both: functional enrichment info is retrieved for upregulated and downregulated
         proteins separately, but the terms are aggregated for the resulting dataframe
     :type direction: str
+    :param background_type: type of background to be used for the analysis.
+        Possible values:
+        - "Upload a file (recommended)"
+        - "Choose Biomart dataset"
+        - "Specify number of expressed genes (not recommended)"
+        - "Use all genes in the gene set"
+    :type background_type: string
     :param background_path: path to file with background proteins, .csv or .txt, one protein per line
     :type background_path: str or None
     :param background_number: number of background genes to use (not recommended),
@@ -519,6 +535,10 @@ def GO_analysis_with_Enrichr(
     :return: dictionary with results and filtered groups
     :rtype: dict
     """
+    if not isinstance(gene_mapping_df, pd.DataFrame):
+        msg = "No gene mapping dataframe provided. Please put a step before that imports the gene mapping."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
     out_messages = []
     if (
         not isinstance(proteins_df, pd.DataFrame)
@@ -542,29 +562,35 @@ def GO_analysis_with_Enrichr(
         msg = "No gene sets provided"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    # we need to map the biomart dataset name to the internal name
-    database = biomart_database("ENSEMBL_MART_ENSEMBL")
-    for dataset in database.datasets:
-        if database.datasets[dataset].display_name == background_biomart:
-            background_biomart = dataset
-            break
     # if gene sets from Enrichr are used, ignore background parameter because gseapy does not support it
     if gene_sets_enrichr and (
         background_path or background_number or background_biomart
     ):
         msg = "Background parameter is not supported when using Enrichr gene sets and will be ignored"
         out_messages.append(dict(level=logging.INFO, msg=msg))
-        background = background_path = background_number = background_biomart = None
+        background_type = background = None
 
-    if background_path:
+    if background_type == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value:
+        if not background_path:
+            msg = "No background file provided. Please upload a file with background proteins."
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         background = read_background_file(background_path)
         if (
             isinstance(background, dict) and "messages" in background
         ):  # an error occurred
             return background
-    elif background_number:
+    elif background_type == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value:
+        if not background_number:
+            msg = "No background number provided. Please specify the number of expressed genes."
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         background = background_number
-    elif background_biomart:
+    elif background_type == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value:
+        if not background_biomart:
+            msg = "No background biomart dataset provided. Please specify the name of the biomart dataset."
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
         # we need to map the biomart dataset name to the internal name
         database = biomart_database("ENSEMBL_MART_ENSEMBL")
         for dataset in database.datasets:
@@ -572,11 +598,8 @@ def GO_analysis_with_Enrichr(
                 background = dataset
                 break
 
-        background = background_biomart
-    else:
+    elif background_type == GOAnalysisWithEnrichrBackgroundType.all_genes.value:
         background = None
-        msg = "No background provided, using all genes in gene sets"
-        out_messages.append(dict(level=logging.WARNING, msg=msg))
 
     # remove all columns but "Protein ID" and differential_expression_col column
     proteins_df = proteins_df[["Protein ID", differential_expression_col]]
@@ -670,15 +693,22 @@ def GO_analysis_with_Enrichr(
     }
 
 
+class GOAnalysisOflineBackgroundType(Enum):
+    upload_a_file = "Upload a file (recommended)"
+    number_of_expressed_genes = "Specify number of expressed genes (not recommended)"
+    all_genes = "Use all genes in the gene set"
+
+
 def GO_analysis_offline(
     proteins_df,
     gene_sets_path,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
-    direction="both",
-    background_path=None,
-    background_number=None,
+    differential_expression_threshold = 0,
+    direction = "both",
+    backgorund_type : GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
+    background_path = None,
+    background_number = None,
 ):
     """
     A method that performs offline over-representation analysis for a given set of proteins
@@ -693,11 +723,6 @@ def GO_analysis_offline(
 
     :param proteins_df: proteins to be analyzed
     :type proteins_df: dataframe
-    :param differential_expression_col: name of the column in the proteins dataframe that contains values for
-        direction of expression change.
-    :type differential_expression_col: str
-    :param gene_mapping_df: dataframe with protein IDs and gene symbols
-    :type gene_mapping_df: pandas.DataFrame
     :param gene_sets_path: path to file containing gene sets. The identifiers
         in the gene_sets should be uppercase gene symbols.
 
@@ -711,13 +736,11 @@ def GO_analysis_offline(
         - .json:
             {Set_name: [Gene1, Gene2, ...], Set_name2: [Gene2, Gene3, ...]}
     :type gene_sets_path: str
-    :param background_path: background genes to be used for the analysis.
-        Should be provided as uppercase gene symbols. If no background is provided,
-        all genes in gene sets are used. The background is defined by your experiment.
-    :type background_path: str or None
-    :param background_number: number of background genes to be used for the analysis (not recommended)
-        assumes that all your genes could be found in background.
-    :type background_number: int or None
+    :param differential_expression_col: name of the column in the proteins dataframe that contains values for
+        direction of expression change.
+    :type differential_expression_col: str
+    :param gene_mapping_df: dataframe with protein IDs and gene symbols
+    :type gene_mapping_df: pandas.DataFrame
     :param differential_expression_threshold: threshold for differential expression.
         Proteins with values above this threshold are considered upregulated, proteins with
         differential_expression_col values below this threshold are considered downregulated.
@@ -732,6 +755,19 @@ def GO_analysis_offline(
         - both: functional enrichment info is retrieved for upregulated and downregulated
         proteins separately, but the terms are aggregated for the resulting dataframe
     :type direction: str
+    :param backgorund_type: type of background to be used for the analysis.
+        Possible values:
+        - "Upload a file (recommended)"
+        - "Specify number of expressed genes (not recommended)"
+        - "Use all genes in the gene set"
+    :type backgorund_type: GOAnalysisOflineBackgroundType
+    :param background_path: background genes to be used for the analysis.
+        Should be provided as uppercase gene symbols. If no background is provided,
+        all genes in gene sets are used. The background is defined by your experiment.
+    :type background_path: str or None
+    :param background_number: number of background genes to be used for the analysis (not recommended)
+        assumes that all your genes could be found in background.
+    :type background_number: int or None
 
     :return: dictionary with results dataframe
     :rtype: dict
@@ -795,18 +831,26 @@ def GO_analysis_offline(
     ):  # file could not be read successfully
         return gene_sets
 
-    if background_path:
+    if backgorund_type == GOAnalysisOflineBackgroundType.upload_a_file.value:
+        if not background_path:
+            msg = "No background file provided. Please provide a file with background proteins."
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         background = read_background_file(background_path)
         if isinstance(background, dict):  # an error occurred
             return background
-    elif background_number:
+        
+    elif backgorund_type == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value:
+        if not background_number:
+            msg = "No background number provided. Please provide a number of background genes."
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         background = background_number
-    else:
+    elif backgorund_type == GOAnalysisOflineBackgroundType.all_genes.value:
         background = None
-
-    if background is None:
-        msg = "No valid background provided, using all proteins in protein sets"
-        out_messages.append(dict(level=logging.INFO, msg=msg))
+    else:
+        msg = "Invalid background type. Please select one of the available options."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if direction == "up" or direction == "both":
         up_enriched, up_filtered_groups, error_msg = gseapy_enrichment(

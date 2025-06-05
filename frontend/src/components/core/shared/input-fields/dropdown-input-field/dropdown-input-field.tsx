@@ -73,18 +73,21 @@ const OptionItem = styled.li`
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
-    const getCurrentOption = () => {
+    const getCurrentOption = (): { label: string; value: string } => {
       //TODO QUICKFIX this should be .value in the future
-      if (options.length === 0) {
-        return { label: "", value: "" };
-      }
       return options.find((option) => option.label === value) ?? options[0];
     };
 
-    const [selectedOption, setSelectedOption] = useState(getCurrentOption());
+    const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
+      getCurrentOption(),
+    );
 
     // Sync state with props whenever options or value changes
     useEffect(() => {
+      if (options.length === 0) {
+        setSelectedOption(null);
+        return;
+      }
       const currentOption = getCurrentOption();
       setSelectedOption(currentOption);
       //TODO QUICKFIX this should be .value in the future
@@ -112,6 +115,8 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
     };
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!isOpen && options.length === 0) return;
+
       const target = event.target as HTMLElement;
       if (
         target.closest(".inline-prefix") ||
@@ -130,7 +135,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
             inlineSuffix={<Icon icon={isOpen ? "chevronUp" : "chevronDown"} isSmall />}
           >
             <StyledInputLabel className="selected-value-text" $isSmall={props.isSmall ?? false}>
-              {selectedOption.label}
+              {selectedOption?.label ?? "No options available"}
             </StyledInputLabel>
           </InputContainer>
         </div>
