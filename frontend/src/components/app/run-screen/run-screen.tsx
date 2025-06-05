@@ -1,4 +1,3 @@
-import { GridValidRowModel } from "@mui/x-data-grid";
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
@@ -15,6 +14,7 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing, useTheme } from "@protzilla/theme";
 import {
   callApiWithParameters,
+  ProtzillaTable,
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
@@ -83,7 +83,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [tableData, setTableData] = useState<(readonly GridValidRowModel[])[]>();
+  const [tableData, setTableData] = useState<ProtzillaTable[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -192,9 +192,9 @@ export const RunScreen: React.FC = () => {
         <>
           {tableData.map((table, index) => (
             <StyledContentDiv key={index}>
-              <H5>Tabelle mit Nummer</H5>
-              <DataTable data={table} />
-              <CSVButton data={table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
+              <H5>{table.name}</H5>
+              <DataTable data={table.table} />
+              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
             </StyledContentDiv>
           ))}
         </>
