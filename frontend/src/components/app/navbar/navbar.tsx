@@ -218,35 +218,33 @@ export const Navbar: React.FC<NavbarProps> = ({
         onDiscard={handleDiscard}
         onClose={closeDiscardModal}
       />
-      {isWorkflowSaveOpen && (
-        <Modal
-          title="Save run as a custom workflow"
-          isOpen={isWorkflowSaveOpen}
-          onClose={() => {
-            setIsWorkflowSaveOpen(false);
+      <Modal
+        title="Save run as a custom workflow"
+        isOpen={isWorkflowSaveOpen}
+        onClose={() => {
+          setIsWorkflowSaveOpen(false);
+        }}
+      >
+        <Form
+          formData={{
+            label: "",
+            labelSubmitButton: "Save workflow",
+            isAutoSubmit: false,
+            hasChangeIndicator: false,
+            input_fields: [
+              {
+                type: "text",
+                name: "workflowname",
+                label: "With workflow name:",
+                isVisible: true,
+              },
+            ],
           }}
-        >
-          <Form
-            formData={{
-              label: "",
-              labelSubmitButton: "Save workflow",
-              isAutoSubmit: false,
-              hasChangeIndicator: false,
-              input_fields: [
-                {
-                  type: "text",
-                  name: "workflowname",
-                  label: "With workflow name:",
-                  isVisible: true,
-                },
-              ],
-            }}
-            onChange={(data) => {
-              handleWorkflowSave(data);
-            }}
-          ></Form>
-        </Modal>
-      )}
+          onChange={(data) => {
+            handleWorkflowSave(data);
+          }}
+        ></Form>
+      </Modal>
     </FlexColumn>
   );
 };
