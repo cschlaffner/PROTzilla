@@ -294,7 +294,6 @@ export const IndexScreen: React.FC = () => {
       <StyledNavbar
         showRunInformation={false}
         onNavigateHome={() => void navigate("/")}
-        onOpenSettings={() => void navigate("/")}
         onOpenHelp={() => void navigate("/")}
       />
 

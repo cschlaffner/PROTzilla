@@ -12,7 +12,9 @@ const InputWithButtonsWrapper = styled.div`
   width: 100%;
 `;
 
-const StyledInput = styled.input<{ $isSmall: boolean }>`
+const StyledInput = styled.input.withConfig({
+  shouldForwardProp: (prop) => !["info"].includes(String(prop)),
+})<{ $isSmall: boolean }>`
   font-size: ${fontSize("default")};
   padding: 0px ${spacing("small")};
   background: ${color("transparent")};
@@ -51,6 +53,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   isInteger = false,
   subscript,
   onChange,
+  separateSuffix,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +72,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const hasMin = typeof min === "number";
   const hasMax = typeof max === "number";
 
-  const handleChange = (e: { target: { value: string; }; }) => {
+  const handleChange = (e: { target: { value: string } }) => {
     const raw = e.target.value;
 
     if (!/^[-\d.]*$/.test(raw)) return;
@@ -160,7 +163,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
           {...props}
         />
         {hasStepButtons && (
-          <StepButtonContainer $isLastElement={!props.separateSuffix}>
+          <StepButtonContainer $isLastElement={!separateSuffix}>
             <StepButton
               onClick={() => {
                 handleClick("up");

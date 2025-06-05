@@ -2,7 +2,6 @@ export interface NavbarProps extends Omit<React.HTMLAttributes<HTMLElement>, "ti
   title?: string;
   memoryUsage?: string;
   onNavigateHome: () => void;
-  onOpenSettings: () => void;
   onOpenHelp: () => void;
   showRunInformation: boolean;
 }

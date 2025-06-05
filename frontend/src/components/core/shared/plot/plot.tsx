@@ -4,10 +4,10 @@ import { styled, useTheme } from "styled-components";
 
 import { PlotProps } from "./plot.props";
 
-const PlotDiv = styled.div<{ hasBorder: boolean }>`
+const PlotDiv = styled.div<{ $hasBorder: boolean }>`
   width: fit-content;
   height: fit-content;
-  border: ${({ hasBorder }) => (hasBorder ? border("defaultStrength") : "none")} solid
+  border: ${({ $hasBorder }) => ($hasBorder ? border("defaultStrength") : "none")} solid
     ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
 `;
@@ -23,7 +23,7 @@ export const PlotComponent: React.FC<PlotProps> = ({
   return (
     <div style={{ width: "100%", height: "100%", flexGrow: 1, minHeight: 0 }}>
       {
-        <PlotDiv hasBorder={hasBorder ?? false}>
+        <PlotDiv $hasBorder={hasBorder ?? false}>
           <div style={{ margin: theme.borders.defaultStrength }}>
             <Plot
               data={data}

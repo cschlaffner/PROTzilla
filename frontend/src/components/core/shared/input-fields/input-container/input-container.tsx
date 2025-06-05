@@ -6,7 +6,9 @@ import { InputContainerProps } from "./input-container.props";
 import { InfoIComponent } from "../../icon-i";
 import { InputLabel, Text } from "../../text";
 
-const GridContainer = styledDiv.div`
+const GridContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "info",
+})`
   align-items: center;
   display: grid;
   grid-template-columns: auto 1fr;

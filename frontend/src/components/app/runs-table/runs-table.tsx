@@ -44,7 +44,7 @@ const TableContent = styled.div`
   }
 `;
 
-const TableRow = styled.div<{ preSelected?: boolean }>`
+const TableRow = styled.div<{ $preSelected?: boolean }>`
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -54,8 +54,8 @@ const TableRow = styled.div<{ preSelected?: boolean }>`
     background-color: ${color("protzillaLightBlue")};
   }
 
-  ${({ preSelected, theme }) =>
-    preSelected
+  ${({ $preSelected, theme }) =>
+    $preSelected
       ? `
           border: ${theme.borders.defaultStrength} solid ${theme.colors.primary};
           border-radius: ${theme.borders.defaultRadius};
@@ -229,7 +229,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
                   setPreSelectedRun(run.run_name);
                 }
               }}
-              preSelected={run.run_name === preSelectedRun}
+              $preSelected={run.run_name === preSelectedRun}
               style={{
                 cursor: "pointer",
               }}

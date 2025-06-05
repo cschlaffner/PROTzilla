@@ -33,6 +33,7 @@ const StyledSVG = styled.svg.withConfig({
   shouldForwardProp: (prop) =>
     prop.toString() !== "isDisabled" &&
     prop.toString() !== "color" &&
+    prop.toString() !== "isBig" &&
     prop.toString() !== "isSmall",
 })<Pick<IconProps, "color" | "isDisabled" | "isSmall" | "isBig">>`
   width: ${({ isSmall, isBig }) => size(isSmall ? "smallIcon" : isBig ? "bigIcon" : "icon")};

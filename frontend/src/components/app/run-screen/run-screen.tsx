@@ -214,7 +214,6 @@ export const RunScreen: React.FC = () => {
         title={runName}
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
-        onOpenSettings={() => void navigate("/")}
         onOpenHelp={() => void navigate("/")}
       />
 

@@ -6,10 +6,10 @@ import { SwitchCardProps } from "./switch-card.props";
 import { Switch } from "../../switch";
 import { Card } from "../card";
 
-const SwitchDiv = styled.div<{ hasSwitchAlginStart: boolean }>`
+const SwitchDiv = styled.div<{ $hasSwitchAlginStart: boolean }>`
   display: flex;
-  justify-content: ${({ hasSwitchAlginStart }) =>
-    hasSwitchAlginStart ? "flex-start" : "flex-end"};
+  justify-content: ${({ $hasSwitchAlginStart }) =>
+    $hasSwitchAlginStart ? "flex-start" : "flex-end"};
   padding-bottom: ${spacing("small")};
 `;
 
@@ -33,7 +33,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
         ...(styleProps ?? {}),
       }}
     >
-      <SwitchDiv hasSwitchAlginStart={hasSwitchAlginStart}>
+      <SwitchDiv $hasSwitchAlginStart={hasSwitchAlginStart}>
         <Switch
           options={[
             { value: "component1", label: nameComponent1 },

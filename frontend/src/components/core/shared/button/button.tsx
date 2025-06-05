@@ -18,11 +18,18 @@ import {
 
 const StyledButton = styled.button.withConfig({
   shouldForwardProp: (prop: string) =>
-    !["isDisabled", "isActive", "onlyIcon", "onlyText", "isShy", "isSmall"].includes(
-      prop.toString(),
-    ),
+    ![
+      "isDisabled",
+      "isActive",
+      "onlyIcon",
+      "onlyText",
+      "isShy",
+      "isSmall",
+      "isCautious",
+      "isBig",
+    ].includes(prop.toString()),
 })<
-  Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall"> & {
+  Pick<ButtonProps, "iconRight" | "isDisabled" | "isShy" | "isSmall" | "isCautious" | "isBig"> & {
     onlyIcon?: boolean;
     onlyText?: boolean;
   }

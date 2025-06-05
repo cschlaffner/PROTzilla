@@ -15,7 +15,7 @@ import { styled, useTheme } from "styled-components";
 
 import { ScreenNotificationProps } from "./screen-notification.props";
 
-const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
+const Container = styled(FlexRow)<{ $isShown: boolean; type: string }>`
   background-color: ${({ type }) =>
     type === "error"
       ? color("protzillaRed")
@@ -32,9 +32,9 @@ const Container = styled(FlexRow)<{ isShown: boolean; type: string }>`
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-  opacity: ${({ isShown }) => (isShown ? 1 : 0)};
-  transform: ${({ isShown }) => (isShown ? "translateY(0)" : "translateY(-10px)")};
-  pointer-events: ${({ isShown }) => (isShown ? "auto" : "none")};
+  opacity: ${({ $isShown }) => ($isShown ? 1 : 0)};
+  transform: ${({ $isShown }) => ($isShown ? "translateY(0)" : "translateY(-10px)")};
+  pointer-events: ${({ $isShown }) => ($isShown ? "auto" : "none")};
   z-index: ${zIndex("notification")};
   position: relative;
   overflow: hidden;
@@ -82,15 +82,15 @@ const CloseIcon = styled(GrayButton)`
   }
 `;
 
-const ProgressBar = styled.div<{ active: boolean; duration: number }>`
+const ProgressBar = styled.div<{ $active: boolean; $duration: number }>`
   position: absolute;
   bottom: 0;
   left: 0;
   height: ${spacing("verySmall")};
   background-color: rgba(255, 255, 255, 0.5);
-  width: ${({ active }) => (active ? "100%" : "0%")};
+  width: ${({ $active }) => ($active ? "100%" : "0%")};
   transition: width
-    ${({ active, duration }) => (active ? `${duration.toString()}ms linear` : "none")};
+    ${({ $active, $duration }) => ($active ? `${$duration.toString()}ms linear` : "none")};
   border-radius: ${radius("default")};
 `;
 
@@ -166,7 +166,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
 
   return (
     <Container
-      isShown={isShown}
+      $isShown={isShown}
       type={type}
       onMouseEnter={setIsHovered}
       onMouseLeave={setIsUnhovered}
@@ -195,7 +195,7 @@ export const ScreenNotification: React.FC<ScreenNotificationProps> = ({
       </TextContainer>
       {isShown && <CloseIcon icon="close" onPress={handleClose} isShy />}
       {isClosingAutomatically && closeAfterMs > 0 && (
-        <ProgressBar active={hasStartedProgressBar} duration={closeAfterMs} />
+        <ProgressBar $active={hasStartedProgressBar} $duration={closeAfterMs} />
       )}
     </Container>
   );
