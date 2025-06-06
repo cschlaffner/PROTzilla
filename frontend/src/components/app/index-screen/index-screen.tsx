@@ -27,7 +27,7 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const StyledWorkflowHeader = styledDiv.div`
+const StyledHeader = styledDiv.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -37,6 +37,18 @@ const StyledWorkflowHeader = styledDiv.div`
 const StyledButtonDiv = styledDiv.div`
   position: relative;
   width: calc(2 * ${size("buttonHeight")} + ${spacing("buttonGap")})
+`;
+
+const StyledLeftButton = styled(Button)`
+  position: absolute;
+  top: 0px;
+  left: 0px;
+`;
+
+const StyledRightButton = styled(Button)`
+  position: absolute;
+  top: 0px;
+  left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
 `;
 
 const StyledContainer = styled.div`
@@ -104,6 +116,8 @@ export const IndexScreen: React.FC = () => {
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isExportRunModalOpen, openExportRunModal, closeExportRunModal] = useToggleableState(false);
+  const [isImportRunModalOpen, openImportRunModal, closeImportRunModal] = useToggleableState(false);
   const [isExportModalOpen, openExportModal, closeExportModal] = useToggleableState(false);
   const [isImportModalOpen, openImportModal, closeImportModel] = useToggleableState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
@@ -119,26 +133,24 @@ export const IndexScreen: React.FC = () => {
     run_tags: [],
   }));
 
-  const customButtonSpacing =
-    (parseInt(theme.sizes.buttonHeight, 10) + parseInt(theme.spacing.buttonGap, 10)).toString() +
-    "px";
+  const getRuns = async () => {
+    const response = await callApi("run_information/");
+    if (response.success) {
+      setRuns(response.data[0]);
+    } else {
+      notify({
+        title: "Error",
+        message: response.message,
+        type: "error",
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await callApi("run_information/");
-      if (response.success) {
-        setRuns(response.data[0]);
-      } else {
-        notify({
-          title: "Error",
-          message: response.message,
-          type: "error",
-        });
-      }
-    };
-
-    void fetchData();
-  }, [notify]);
+    void getRuns();
+    //only needed initially - functions that update runs will fetch them, too
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getWorkflows = async () => {
     const data = await callApi("workflow_name_list/");
@@ -237,6 +249,39 @@ export const IndexScreen: React.FC = () => {
     [notify, navigate],
   );
 
+  const handleExportRun = async (runName: InputValueType) => {
+    const blob: Blob = await callApiWithParameters(
+      "export_run/",
+      { run_name: runName ?? "placeholder" },
+      "blob",
+    );
+    saveAs(blob, (runName ?? "placeholder").toString() + ".zip");
+    notify({
+      title: "Exported successfully",
+      message: `Run ${String(runName)} has been exported`,
+      type: "success",
+    });
+  };
+
+  const handleImportRun = async (runName: InputValueType) => {
+    const response = await callApiWithParameters("import_run/", {
+      run_file: runName ?? "",
+    });
+    if (response.success) {
+      notify({
+        title: "Imported successfully",
+        message: `Run ${String(runName)} has been imported`,
+        type: "success",
+      });
+      void getRuns();
+    } else {
+      notify({
+        title: "Something went wrong",
+        message: String(response.message),
+        type: "error",
+      });
+    }
+  };
   const handleExportWorkflow = async (workflowName: InputValueType) => {
     const blob: Blob = await callApiWithParameters(
       "export_workflow/",
@@ -301,29 +346,27 @@ export const IndexScreen: React.FC = () => {
       <StyledContainer>
         <StyledTemplateCard
           title={
-            <StyledWorkflowHeader>
+            <StyledHeader>
               Template Workflows
               <StyledButtonDiv>
-                <Button
+                <StyledLeftButton
                   onClick={() => {
                     openExportModal();
                   }}
                   icon="download"
                   tooltip="Export a workflow"
                   tooltipPosition={"left"}
-                  style={{ position: "absolute", top: "0px", left: "0px" }}
-                ></Button>
-                <Button
+                ></StyledLeftButton>
+                <StyledRightButton
                   onClick={() => {
                     openImportModal();
                   }}
                   icon="upload"
                   tooltip="Import a workflow"
                   tooltipPosition={"left"}
-                  style={{ position: "absolute", top: "0px", left: customButtonSpacing }}
-                ></Button>
+                ></StyledRightButton>
               </StyledButtonDiv>
-            </StyledWorkflowHeader>
+            </StyledHeader>
           }
         >
           <SearchInputField
@@ -463,7 +506,31 @@ export const IndexScreen: React.FC = () => {
           </Modal>
         </StyledTemplateCard>
 
-        <StyledRunSelectionCard title="Run Selection">
+        <StyledRunSelectionCard
+          title={
+            <StyledHeader>
+              Run Selection
+              <StyledButtonDiv>
+                <StyledLeftButton
+                  onClick={() => {
+                    openExportRunModal();
+                  }}
+                  icon="download"
+                  tooltip="Export a run"
+                  tooltipPosition={"bottom"}
+                ></StyledLeftButton>
+                <StyledRightButton
+                  onClick={() => {
+                    openImportRunModal();
+                  }}
+                  icon="download"
+                  tooltip="Import a run"
+                  tooltipPosition={"bottom"}
+                ></StyledRightButton>
+              </StyledButtonDiv>
+            </StyledHeader>
+          }
+        >
           <Modal
             title="Run tags:"
             isOpen={isTagModalOpen}
@@ -477,6 +544,63 @@ export const IndexScreen: React.FC = () => {
               handleAddTag={handleAddTag}
               handleDeleteTag={handleDeleteTag}
             />
+          </Modal>
+          <Modal
+            title="Export a run"
+            isOpen={isExportRunModalOpen}
+            onClose={() => {
+              closeExportRunModal();
+            }}
+          >
+            {runs.length > 1 ? (
+              <Form
+                formData={{
+                  label: "",
+                  isAutoSubmit: false,
+                  hasChangeIndicator: false,
+                  input_fields: [
+                    {
+                      type: "dropdown",
+                      name: "run",
+                      label: "Choose a run:",
+                      options: runs.map((run) => ({ label: run.run_name, value: run.run_name })),
+                      isVisible: true,
+                    },
+                  ],
+                }}
+                onChange={(data) => {
+                  void handleExportRun(data.run);
+                }}
+              ></Form>
+            ) : (
+              <SectionTitle baseComponent={"h4"} description={"No runs available"} />
+            )}
+          </Modal>
+          <Modal
+            title="Import a run"
+            isOpen={isImportRunModalOpen}
+            onClose={() => {
+              closeImportRunModal();
+            }}
+          >
+            <Form
+              formData={{
+                label: "",
+                isAutoSubmit: false,
+                hasChangeIndicator: false,
+                input_fields: [
+                  {
+                    type: "file",
+                    name: "run",
+                    label: "Choose a run (.zip):",
+                    isVisible: true,
+                  },
+                ],
+              }}
+              onChange={(data) => {
+                void handleImportRun(data.run);
+              }}
+            ></Form>
           </Modal>
           <StyledDiv>
             <SearchInputField
