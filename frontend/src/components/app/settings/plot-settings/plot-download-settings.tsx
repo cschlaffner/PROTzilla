@@ -1,5 +1,5 @@
 import { color, spacing, zIndex } from "@protzilla/theme";
-import { Data, Figure, Layout } from "plotly.js";
+import { Data, Figure, Layout, Plots } from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -77,6 +77,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   } = usePlotSettings(isOpen);
 
   const [plot, setPlot] = useState({ data, layout });
+  const divId = "plot-id";
   // For keeping the original title of the plot
   const [prevTitle, setPrevTitle] = useState(() => getTitleFromLayout(layout));
 
@@ -88,6 +89,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   }, [data, layout]);
 
   useEffect(() => {
+    const plotDiv = document.getElementById(divId);
     const displaySizes = computeDisplaySizes();
     setComputedSettings({
       width: displaySizes.width,
@@ -122,6 +124,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         },
       },
     });
+    if (plotDiv) {
+      Plots.resize(plotDiv);
+    }
     // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
@@ -145,7 +150,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   }[] = [
     {
       key: "marginTop",
-      label: "Top",
+      label: "Margin, top",
       info: "Plots with axes include default margins, so margin changes below 50 may not be noticeable.",
     },
     { key: "marginBottom", label: "Bottom" },
@@ -253,7 +258,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             layout={plot.layout}
             hasBorder={true}
             hasResizing={false}
-            divId={"plot-id"}
+            divId={divId}
           />
         </Col>
       </Row>

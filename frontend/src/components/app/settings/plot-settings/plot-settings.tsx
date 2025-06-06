@@ -1,7 +1,7 @@
 import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
 import { color, fontSize, fontWeight, spacing, useTheme, zIndex } from "@protzilla/theme";
 import isEqual from "fast-deep-equal";
-import { Data, Layout } from "plotly.js";
+import { Data, Layout, Plots } from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -112,9 +112,10 @@ export const PlotSettingsModal: React.FC<PlotSettingsModalProps> = ({
   };
 
   const [plot, setPlot] = useState(initialPlot);
+  const plotDivId = "plot-id";
 
   useEffect(() => {
-    // Update settings
+    const plotDiv = document.getElementById(plotDivId);
     const displaySizes = computeDisplaySizes();
     setComputedSettings({
       width: displaySizes.width,
@@ -151,6 +152,9 @@ export const PlotSettingsModal: React.FC<PlotSettingsModalProps> = ({
         },
       },
     }));
+    if (plotDiv) {
+      Plots.resize(plotDiv);
+    }
     // Update hasChanges flag for onClose action
     setHasChanges(!isEqual(settings, savedSettings));
 
@@ -189,7 +193,7 @@ export const PlotSettingsModal: React.FC<PlotSettingsModalProps> = ({
   }[] = [
     {
       key: "marginTop",
-      label: "Top",
+      label: "Margin, top",
       info: "Plots with axes include default margins, so margin changes below 50 may not be noticeable.",
     },
     { key: "marginBottom", label: "Bottom" },
@@ -294,6 +298,7 @@ export const PlotSettingsModal: React.FC<PlotSettingsModalProps> = ({
             layout={plot.layout as Partial<Layout>}
             hasBorder={true}
             hasResizing={false}
+            divId={plotDivId}
           />
         </Col>
       </Row>
