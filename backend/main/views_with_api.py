@@ -373,39 +373,21 @@ def get_step_table(request):
         json_data = []
         
         if run.current_step is not None:
-            for dataframe in dataframes:
-                if dataframe in run.current_outputs:
-                    data = run.current_outputs[dataframe]
+            for key in run.current_outputs:
+                if key[0] in dataframes:
+                    data = key[1]
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(dataframe)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-
-        return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
-    else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
-def get_step_random_output(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-
-        run = Run(run_name)
-
-        json_data = []
-        
-        if run.current_step is not None:
-            for key in run.current_outputs:
-                if ("_df" not in key[0]) and (key[0] != "messages") and (type(key[1]) == list): 
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key[0])}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+                elif ("_df" not in key[0]) and (key[0] != "messages") and (type(key[1]) == list): 
                     data = key[1]
                     data = pd.DataFrame({key[0]:data})
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": "funny name"})
-
-        return JsonResponse({"success": True, "message": "Got the output for the step", "data": json_data}, safe=False)
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": key[0]})
+        return JsonResponse({"success": True, "message": "Got the tables for the step", "data": json_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-
 
 def calculate_step(request):
     if request.method == "POST":

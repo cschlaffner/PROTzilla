@@ -1,11 +1,9 @@
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
-  Card,
   CSVButton,
   DataTable,
   FlexColumn,
   FlexRow,
-  H5,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
@@ -73,9 +71,6 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
-const  TableHeader = styled(H5)`
-  margin-bottom: ${spacing("small")};
-`
 
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -89,7 +84,6 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [tableData, setTableData] = useState<Table[]>();
-  const [outputData, setOutputData] = useState<Table[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -103,7 +97,6 @@ export const RunScreen: React.FC = () => {
         void getRunData();
         void getStepPlots();
         void getStepTable();
-        void getStepOutput();
       });
     }
   };
@@ -145,15 +138,6 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
-  const getStepOutput = useCallback(async () => {
-    const response = await callApiWithParameters("get_step_random_output/", {
-      run_name: runName,
-    });
-    if (response) {
-      const data = response.data;
-      setOutputData(data);
-    }
-  }, [runName]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -203,49 +187,33 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const singleTableComponent = (table: Table) =>  (
+    <StyledContentDiv>
+      <DataTable data={table.table} />
+      <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
+    </StyledContentDiv>
+  );
+
   const tableComponent = (
-    <StyledContentContainer>
-      {tableData && tableData.length > 0 ? (
-        <>
-          {tableData.map((table, index) => (
-            <StyledContentDiv key={index}>
-              <TableHeader>{table.name}</TableHeader>
-              <DataTable data={table.table} />
-              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
-            </StyledContentDiv>
-          ))}
-        </>
+    <StyledContentContainer>{
+      tableData && tableData.length > 0 ? (
+        <SwitchCard
+          components={
+            tableData.map((table) => ({value: singleTableComponent(table), name: table.name}))}
+        /> 
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
     </StyledContentContainer>
-  );
-
-  const listComponent = (
-    <StyledContentContainer>
-      {outputData && outputData.length > 0 ? (
-        <>
-          {outputData.map((table, index) => (
-            <StyledContentDiv key={index}>
-              <TableHeader>{table.name}</TableHeader>
-              <DataTable data={table.table} />
-              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
-            </StyledContentDiv>
-          ))}
-          <Card title={"funny titel"}>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatum minima, est recusandae fuga magnam, dolor at commodi officiis necessitatibus porro facere, odit alias deleniti repellat modi dicta sint. Pariatur, itaque.</Card>
-        </>
-      ) : (
-        <SectionTitle baseComponent={"h4"} description={"No output available for this step."} />
-      )}
-    </StyledContentContainer>
-  );
+  )
 
   const otherComponent = (
     <SwitchCard
-      nameComponent1="Tables"
-      component1={tableComponent}
-      nameComponent2="Other"
-      component2={listComponent}
+      components={
+        [
+          {name: "🚧", value: dummyTextComponent1}
+        ]
+      }
     />
   )
 
@@ -272,10 +240,12 @@ export const RunScreen: React.FC = () => {
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            nameComponent1="List"
-            component1={listEditorComponent}
-            nameComponent2="Node"
-            component2={dummyTextComponent1}
+            components={
+              [
+                {name: "List", value: listEditorComponent},
+                {name: "Node", value: dummyTextComponent1}
+              ]
+            }
             hasCardTitle={false}
             styleProps={{
               display: "flex",
@@ -287,10 +257,13 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
-              nameComponent1="Plots"
-              component1={plotComponent}
-              nameComponent2="Other"
-              component2={otherComponent}
+              components={
+                [
+                  {name: "Plots", value: plotComponent},
+                  {name: "Tables", value: tableComponent},
+                  {name: "Further Output", value: otherComponent}
+                ]
+              }
               hasCardTitle={false}
             />
           </StyledCol>

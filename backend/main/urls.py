@@ -44,7 +44,6 @@ urlpatterns = [
     path("api/get_step_form/", views_with_api.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views_with_api.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views_with_api.get_step_table, name="get_step_table"),
-    path("api/get_step_random_output/", views_with_api.get_step_random_output, name="get_step_random_output"),
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
     path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
     path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),

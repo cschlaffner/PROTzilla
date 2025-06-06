@@ -146,3 +146,4 @@ def set_filtered_data(run, index, key, filtered_data):
 
 def get_display_name(dataframe):
     name = dataframe.replace("_df", "")
+    return name

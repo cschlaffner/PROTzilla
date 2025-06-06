@@ -1,10 +1,7 @@
-import type { ReactNode } from "react";
+import { SwitchComponent } from "@protzilla/utils";
 
 export interface SwitchCardProps {
-  nameComponent1: string;
-  component1: ReactNode;
-  nameComponent2: string;
-  component2: ReactNode;
+  components: SwitchComponent[]
   hasSwitchAlginStart?: boolean;
   hasCardTitle?: boolean;
   styleProps?: React.CSSProperties;

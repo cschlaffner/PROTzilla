@@ -5,6 +5,7 @@ import { css, styled } from "styled-components";
 import { SecondaryButton } from "../button";
 import { Text } from "../text";
 import { SwitchOptionProps } from "./switch-option.props";
+import { Tooltip, useTooltipScheduling } from "@protzilla/core";
 
 const SwitchOptionContainer = styled(SecondaryButton)<{
   isDisabled?: boolean;
@@ -29,6 +30,11 @@ const SwitchOptionLabel = styled(Text).withConfig({
   font-weight: ${fontWeight("bold")};
   color: ${(props) => color(props.isActive ? "onPrimary" : "primary")};
   transition: color ${duration("short")}ms;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+  text-overflow: ellipsis;
+  height: 100%;
 `;
 
 export const SwitchOption: React.FC<SwitchOptionProps> = ({
@@ -42,6 +48,8 @@ export const SwitchOption: React.FC<SwitchOptionProps> = ({
   const changeHandler = useCallback(() => {
     if (onChange && !isDisabled) onChange(value);
   }, [value, isDisabled, onChange]);
+  const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
+    useTooltipScheduling(true);
 
   return (
     <SwitchOptionContainer
@@ -50,8 +58,17 @@ export const SwitchOption: React.FC<SwitchOptionProps> = ({
       onPress={changeHandler}
       isShy={true}
       isSmall={true}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
     >
       <SwitchOptionLabel isActive={isActive} text={label} />
+      <Tooltip
+        text={label}
+        isShown={showTooltip}
+        anchor={mouseAnchor}
+        position="bottomRight"
+        distance={13}
+      />
     </SwitchOptionContainer>
   );
 };

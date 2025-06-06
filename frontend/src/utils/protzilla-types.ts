@@ -95,3 +95,8 @@ export interface CalculationMessage {
   msg: string;
   trace: string;
 }
+
+export interface SwitchComponent {
+  name: string,
+  value: React.ReactNode
+}
