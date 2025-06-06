@@ -2,6 +2,7 @@ import { Meta, StoryFn } from "@storybook/react";
 
 import { SwitchCard, SwitchCardProps } from "./";
 import { PlotComponent } from "../../plot";
+import { SwitchComponent } from "utils/protzilla-types";
 
 export default {
   component: SwitchCard,
@@ -33,10 +34,12 @@ const plotLayout: Partial<Plotly.Layout> = {
   },
 };
 
+const components: SwitchComponent[] = [
+  {name: "Plot", value: <PlotComponent data={plotData} layout={plotLayout} />},
+  {name: "Table", value: <p>Caution, construction is in progress here! Come back later</p>}
+]
+
 export const Default = Template.bind({});
 Default.args = {
-  nameComponent1: "Plot",
-  component1: <PlotComponent data={plotData} layout={plotLayout} />,
-  nameComponent2: "Table",
-  component2: <p>Caution, construction is in progress here! Come back later</p>,
+  components: components,
 };
