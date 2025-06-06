@@ -64,7 +64,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
         ...prevRun,
         run_tags: [...prevRun.run_tags, tag],
       }));
-      setExistingTags((tags) => tags.includes(tag) ? tags : [...tags, tag]);
+      setExistingTags((tags) => (tags.includes(tag) ? tags : [...tags, tag]));
     },
     [handleAddTag, setSelectedRun],
   );

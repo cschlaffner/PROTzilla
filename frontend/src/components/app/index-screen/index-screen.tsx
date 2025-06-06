@@ -43,13 +43,13 @@ const StyledLeftButton = styled(Button)`
   position: absolute;
   top: 0px;
   left: 0px;
-`
+`;
 
 const StyledRightButton = styled(Button)`
   position: absolute;
   top: 0px;
   left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
-`
+`;
 
 const StyledContainer = styled.div`
   padding: ${spacing("small")};
@@ -132,7 +132,6 @@ export const IndexScreen: React.FC = () => {
     favourite_status: false,
     run_tags: [],
   }));
-
 
   const getRuns = async () => {
     const response = await callApi("run_information/");
@@ -257,7 +256,7 @@ export const IndexScreen: React.FC = () => {
       "blob",
     );
     saveAs(blob, (runName ?? "placeholder").toString() + ".zip");
-      notify({
+    notify({
       title: "Exported successfully",
       message: `Run ${String(runName)} has been exported`,
       type: "success",
@@ -267,23 +266,22 @@ export const IndexScreen: React.FC = () => {
   const handleImportRun = async (runName: InputValueType) => {
     const response = await callApiWithParameters("import_run/", {
       run_file: runName ?? "",
-    })      
-    if (response.success){
+    });
+    if (response.success) {
       notify({
         title: "Imported successfully",
         message: `Run ${String(runName)} has been imported`,
         type: "success",
       });
       void getRuns();
-    }
-    else{
+    } else {
       notify({
         title: "Something went wrong",
         message: String(response.message),
         type: "error",
       });
     }
-  }
+  };
   const handleExportWorkflow = async (workflowName: InputValueType) => {
     const blob: Blob = await callApiWithParameters(
       "export_workflow/",
