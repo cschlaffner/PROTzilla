@@ -156,6 +156,12 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
           step={step}
           onChange={handleChange}
           onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleBlur();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
           // Disable isSmall when hasStepButtons is true
           $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
           {...props}
