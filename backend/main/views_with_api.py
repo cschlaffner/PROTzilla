@@ -171,8 +171,7 @@ def export_run(request):
         run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip"
 
         make_archive(run_zip_path, "zip", run_directory)
-        print(run_directory)
-        print(run_zip_path)
+        
         return FileResponse(open(run_zip_path_absolute, "rb"), as_attachment=True)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
