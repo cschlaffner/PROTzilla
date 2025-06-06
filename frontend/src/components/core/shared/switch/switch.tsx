@@ -1,7 +1,6 @@
-import { color, duration, opacity, radius } from "@protzilla/theme";
-import { UIStateProps } from "@protzilla/utils";
+import { radius } from "@protzilla/theme";
 import React from "react";
-import { css, styled } from "styled-components";
+import { styled } from "styled-components";
 
 import { SwitchOption } from "./switch-option";
 import { SwitchProps } from "./switch.props";
