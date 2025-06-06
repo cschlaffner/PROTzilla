@@ -374,7 +374,6 @@ def get_step_table(request):
                     data = run.current_outputs[dataframe]
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(dataframe)}) # TODO this line should be removed when its on dev, it exists only for test purposes.
                     json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(dataframe)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
 
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
