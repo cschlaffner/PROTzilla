@@ -44,8 +44,8 @@ const CardHeader = styled.div`
 `;
 
 const StyledCard = styled(Card)`
-  overflow-y: visible
-  `;
+  overflow-y: visible;
+`;
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (

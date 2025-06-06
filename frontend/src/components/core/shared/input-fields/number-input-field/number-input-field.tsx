@@ -70,7 +70,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const hasMin = typeof min === "number";
   const hasMax = typeof max === "number";
 
-  const handleChange = (e: { target: { value: string; }; }) => {
+  const handleChange = (e: { target: { value: string } }) => {
     const raw = e.target.value;
 
     if (!/^[-\d.]*$/.test(raw)) return;
