@@ -17,8 +17,8 @@ import {
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  Table,
   SelectedStep,
+  Table,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
