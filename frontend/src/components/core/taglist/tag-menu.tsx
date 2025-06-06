@@ -88,6 +88,7 @@ export const TagMenu: React.FC<TagMenuProps> = ({
       <Form
         formData={{
           label: "",
+          labelSubmitButton: "Add Tag",
           isAutoSubmit: false,
           hasChangeIndicator: false,
           input_fields: [

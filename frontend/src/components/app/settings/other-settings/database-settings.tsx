@@ -175,6 +175,7 @@ export const DatabaseSettings = () => {
       <Form
         formData={{
           label: "",
+          labelSubmitButton: "Add database",
           isAutoSubmit: false,
           hasChangeIndicator: false,
           input_fields: [
