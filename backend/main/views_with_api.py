@@ -380,6 +380,29 @@ def get_step_table(request):
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def get_step_random_output(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+
+        run = Run(run_name)
+
+        json_data = []
+        
+        if run.current_step is not None:
+            for key in run.current_outputs:
+                if ("_df" not in key[0]) and (key[0] != "messages") and (type(key[1]) == list): 
+                    data = key[1]
+                    data = pd.DataFrame({key[0]:data})
+                    data["id"] = data.index
+                    cleaned_data = data.replace(np.nan, None)
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": "funny name"})
+
+        return JsonResponse({"success": True, "message": "Got the output for the step", "data": json_data}, safe=False)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def calculate_step(request):
     if request.method == "POST":

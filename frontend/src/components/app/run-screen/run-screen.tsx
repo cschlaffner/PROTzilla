@@ -1,5 +1,6 @@
 import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
+  Card,
   CSVButton,
   DataTable,
   FlexColumn,
@@ -88,6 +89,7 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [tableData, setTableData] = useState<Table[]>();
+  const [outputData, setOutputData] = useState<Table[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -101,6 +103,7 @@ export const RunScreen: React.FC = () => {
         void getRunData();
         void getStepPlots();
         void getStepTable();
+        void getStepOutput();
       });
     }
   };
@@ -139,6 +142,16 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const data = response.data;
       setTableData(data);
+    }
+  }, [runName]);
+
+  const getStepOutput = useCallback(async () => {
+    const response = await callApiWithParameters("get_step_random_output/", {
+      run_name: runName,
+    });
+    if (response) {
+      const data = response.data;
+      setOutputData(data);
     }
   }, [runName]);
 
@@ -208,6 +221,34 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const listComponent = (
+    <StyledContentContainer>
+      {outputData && outputData.length > 0 ? (
+        <>
+          {outputData.map((table, index) => (
+            <StyledContentDiv key={index}>
+              <TableHeader>{table.name}</TableHeader>
+              <DataTable data={table.table} />
+              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
+            </StyledContentDiv>
+          ))}
+          <Card title={"funny titel"}>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatum minima, est recusandae fuga magnam, dolor at commodi officiis necessitatibus porro facere, odit alias deleniti repellat modi dicta sint. Pariatur, itaque.</Card>
+        </>
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No output available for this step."} />
+      )}
+    </StyledContentContainer>
+  );
+
+  const otherComponent = (
+    <SwitchCard
+      nameComponent1="Tables"
+      component1={tableComponent}
+      nameComponent2="Other"
+      component2={listComponent}
+    />
+  )
+
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}
@@ -248,8 +289,9 @@ export const RunScreen: React.FC = () => {
             <SwitchCard
               nameComponent1="Plots"
               component1={plotComponent}
-              nameComponent2="Tables"
-              component2={tableComponent}
+              nameComponent2="Other"
+              component2={otherComponent}
+              hasCardTitle={false}
             />
           </StyledCol>
           <FooterText>{randomMessage}</FooterText>
