@@ -49,6 +49,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   step,
   hasStepButtons = false,
   isInteger = false,
+  hasExtendedSubscript = true,
   subscript,
   onChange,
   ...props
@@ -142,7 +143,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     .join(" | ");
 
   return (
-    <InputContainer subscript={combinedSubscript} {...props}>
+    <InputContainer subscript={hasExtendedSubscript ? combinedSubscript : subscript} {...props}>
       <InputWithButtonsWrapper>
         <StyledInput
           ref={inputRef}
