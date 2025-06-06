@@ -9,12 +9,12 @@ import { Tooltip, useTooltipScheduling } from "@protzilla/core";
 
 const SwitchOptionContainer = styled(SecondaryButton)<{
   isDisabled?: boolean;
+  isActive?: boolean;
 }>`
   cursor: ${(props) => (props.isDisabled ? "not-allowed" : "pointer")};
-  flex: 1;
-  width: 80px;
+  min-width: 80px;
   height: 100%;
-
+  background-color: ${(props) => color(props.isActive ? "primary" : "secondary")};
   ${(props) =>
     props.isDisabled &&
     css`
@@ -31,10 +31,6 @@ const SwitchOptionLabel = styled(Text).withConfig({
   color: ${(props) => color(props.isActive ? "onPrimary" : "primary")};
   transition: color ${duration("short")}ms;
   white-space: nowrap;
-  overflow: hidden;
-  user-select: none;
-  text-overflow: ellipsis;
-  height: 100%;
 `;
 
 export const SwitchOption: React.FC<SwitchOptionProps> = ({
@@ -55,6 +51,7 @@ export const SwitchOption: React.FC<SwitchOptionProps> = ({
     <SwitchOptionContainer
       {...rest}
       isDisabled={isDisabled}
+      isActive={isActive}
       onPress={changeHandler}
       isShy={true}
       isSmall={true}
