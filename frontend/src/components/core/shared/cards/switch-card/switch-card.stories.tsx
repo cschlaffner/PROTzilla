@@ -35,9 +35,9 @@ const plotLayout: Partial<Plotly.Layout> = {
 };
 
 const components: SwitchComponent[] = [
-  {name: "Plot", value: <PlotComponent data={plotData} layout={plotLayout} />},
-  {name: "Table", value: <p>Caution, construction is in progress here! Come back later</p>}
-]
+  { name: "Plot", value: <PlotComponent data={plotData} layout={plotLayout} /> },
+  { name: "Table", value: <p>Caution, construction is in progress here! Come back later</p> },
+];
 
 export const Default = Template.bind({});
 Default.args = {

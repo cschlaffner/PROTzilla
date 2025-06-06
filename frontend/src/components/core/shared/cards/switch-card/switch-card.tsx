@@ -20,11 +20,11 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   hasCardTitle = true,
   styleProps,
 }) => {
-  const [switchState, setSwitchState] = useState<SwitchComponent>({name: "Error", value: <></>});
+  const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
 
   useEffect(() => {
-    setSwitchState(components[0])
-  }, [components])
+    setSwitchState(components[0]);
+  }, [components]);
 
   return (
     <div
@@ -37,7 +37,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
     >
       <SwitchDiv hasSwitchAlginStart={hasSwitchAlginStart}>
         <Switch
-          options={components.map((component) => ({value: component, label: component.name}))}
+          options={components.map((component) => ({ value: component, label: component.name }))}
           value={switchState}
           onChange={setSwitchState}
         />

@@ -79,7 +79,7 @@ export const emptyRunData: RunData = {
 };
 
 export interface Table {
-  table: (readonly GridValidRowModel[]);
+  table: readonly GridValidRowModel[];
   name: string;
 }
 
@@ -97,6 +97,6 @@ export interface CalculationMessage {
 }
 
 export interface SwitchComponent {
-  name: string,
-  value: React.ReactNode
+  name: string;
+  value: React.ReactNode;
 }
