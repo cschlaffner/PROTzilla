@@ -17,7 +17,7 @@ import {
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  ProtzillaTable,
+  Table,
   SelectedStep,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
@@ -87,7 +87,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [tableData, setTableData] = useState<ProtzillaTable[]>();
+  const [tableData, setTableData] = useState<Table[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 

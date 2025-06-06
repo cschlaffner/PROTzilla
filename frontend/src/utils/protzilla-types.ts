@@ -78,7 +78,7 @@ export const emptyRunData: RunData = {
   memory_usage: "",
 };
 
-export interface ProtzillaTable {
+export interface Table {
   table: (readonly GridValidRowModel[]);
   name: string;
 }
