@@ -10,7 +10,7 @@
 | backend/main/urls.py                                                          |        6 |        6 |      0% |     16-23 |
 | backend/main/views.py                                                         |        7 |        7 |      0% |      1-10 |
 | backend/main/views\_settings.py                                               |      137 |      137 |      0% |     1-219 |
-| backend/main/views\_with\_api.py                                              |      296 |      296 |      0% |     1-573 |
+| backend/main/views\_with\_api.py                                              |      317 |      317 |      0% |     1-613 |
 | backend/main/views\_with\_api\_helper.py                                      |       70 |       58 |     17% |7-37, 41, 50, 55-56, 69-131, 135-138, 148-154 |
 | backend/protzilla/\_\_init\_\_.py                                             |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                               |        7 |        1 |     86% |         1 |
@@ -73,7 +73,7 @@
 | backend/protzilla/workflow.py                                                 |        5 |        1 |     80% |         6 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-|                                                                     **TOTAL** | **6233** | **2581** | **59%** |           |
+|                                                                     **TOTAL** | **6254** | **2602** | **58%** |           |
 
 
 ## Setup coverage badge
