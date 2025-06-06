@@ -1,8 +1,8 @@
 import { Meta, StoryFn } from "@storybook/react";
+import { SwitchComponent } from "utils/protzilla-types";
 
 import { SwitchCard, SwitchCardProps } from "./";
 import { PlotComponent } from "../../plot";
-import { SwitchComponent } from "utils/protzilla-types";
 
 export default {
   component: SwitchCard,
