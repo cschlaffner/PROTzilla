@@ -261,7 +261,7 @@ export const IndexScreen: React.FC = () => {
     });
     if (response.success) {
       notify({
-        title: "Imported successfull",
+        title: "Imported successfully",
         message: `Workflow ${String(workflow)} has been imported as ${newName == "" ? String(workflow).replace(".yaml", "") : String(newName)}`,
         type: "success",
       });

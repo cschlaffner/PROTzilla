@@ -19,7 +19,7 @@ from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, WORKFLOWS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_with_api_helper import get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
+from backend.main.views_with_api_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -378,8 +378,7 @@ def get_step_table(request):
                     data = run.current_outputs[dataframe]
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                    break
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(dataframe)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
 
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
