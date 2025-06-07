@@ -1,16 +1,16 @@
 import { styled } from "styled-components";
+import { fontSize, spacing } from "theme/utils";
 
 import { Modal } from "../";
 import { DeleteModalProps } from "./delete-modal.props";
 import { Button, SecondaryButton } from "../../button";
 import { Text } from "../../text";
-import { spacing, fontSize} from "theme/utils";
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: ${spacing("buttonGap")};
-  padding-top: ${spacing("small")};;
+  padding-top: ${spacing("small")};
 `;
 
 const StyledText = styled(Text)`
