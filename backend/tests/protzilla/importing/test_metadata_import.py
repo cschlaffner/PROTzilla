@@ -14,12 +14,12 @@ def test_metadata_import(run_imported):
     run_imported.step_next()
     run_imported.current_form(
         {
-            "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
+            "file_path": TEST_METADATA_PATH / "metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
         }
     )
     run_imported.step_calculate()
-    test_metadata = pd.read_csv(f"{TEST_METADATA_PATH}/metadata_cut_columns.csv")
+    test_metadata = pd.read_csv(TEST_METADATA_PATH / "metadata_cut_columns.csv")
     pd.testing.assert_frame_equal(
         test_metadata, run_imported.current_outputs["metadata_df"]
     )

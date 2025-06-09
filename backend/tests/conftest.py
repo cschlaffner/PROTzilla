@@ -45,12 +45,11 @@ def run_name_and_cleanup():
 
 @pytest.fixture
 def maxquant_data_file():
-    #return f"{TEST_MSDATA_PATH}/MaxQuant/small.tsv"
-    return str((Path(TEST_MSDATA_PATH) / "MaxQuant" / "small.tsv").absolute())
+    return TEST_MSDATA_PATH / "MaxQuant/small.tsv"
 
 @pytest.fixture
 def metadata_file():
-    return f"{TEST_METADATA_PATH}/metadata_cut_columns.csv"
+    return TEST_METADATA_PATH / "metadata_cut_columns.csv"
 
 
 @pytest.fixture(scope="function")
@@ -67,7 +66,6 @@ def run_empty(run_name_and_cleanup):
 
 @pytest.fixture(scope="function")
 def run_imported(run_name_and_cleanup, maxquant_data_file):
-    print("MAXQUANT FILE:",maxquant_data_file)
     run_name = run_name_and_cleanup
     run = Run(run_name=run_name, workflow_name="test-run-empty", df_mode="memory")
     run.step_add(MaxQuantImport())
