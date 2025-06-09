@@ -12,6 +12,8 @@ from plotly.io import to_json
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
 from backend.protzilla.form import Form
@@ -26,6 +28,11 @@ from backend.main.views_helper import get_display_name, get_step, get_displayed_
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 dataframes = ["protein_df", "metadata_df", "peptide_df"]
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    csrf_token = get_token(request)
+    return JsonResponse({"csrfToken": csrf_token, "message": "CSRF cookie set."})
 
 def run_information_list(request):
     run_info = get_available_run_info()
