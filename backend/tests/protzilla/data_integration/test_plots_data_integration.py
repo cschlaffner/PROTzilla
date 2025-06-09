@@ -170,13 +170,13 @@ def test_gsea_dot_plot(show_figures, data_folder_tests, helpers):
         data_folder_tests / "gsea_result_sig_prot.csv", header=0
     )
     dot_base64 = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         gene_sets=["KEGG_2016"],
         cutoff=0.25,
         dot_size=3,
         title="KEGG GSEA dotplot test",
         show_ring=False,
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
@@ -186,14 +186,14 @@ def test_gsea_dot_plot_remove_names(show_figures, data_folder_tests, helpers):
         data_folder_tests / "gsea_preranked_enriched.csv", header=0
     )
     dot_base64 = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         gene_sets=["KEGG_2019"],
         cutoff=1,
         dot_size=3,
         title="KEGG GSEA dotplot test",
         show_ring=False,
         remove_library_names=True,
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
@@ -203,9 +203,9 @@ def test_gsea_dot_plot_wrong_df(data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", header=0
     )
     current_out = gsea_dot_plot(
-        input_df=enrichment_df,
+        gsea_df=enrichment_df,
         cutoff=0.25,
-    )[0]
+    )
 
     assert "messages" in current_out
     assert "Please input a dataframe from GSEA" in current_out["messages"][0]["msg"]
@@ -214,9 +214,9 @@ def test_gsea_dot_plot_wrong_df(data_folder_tests):
 def test_gsea_dot_plot_empty_df():
     df = pd.DataFrame({"NES": [], "FDR q-val": [], "lead_genes": []})
     current_out = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         cutoff=0.25,
-    )[0]
+    )
 
     assert "messages" in current_out
     assert "No data to plot" in current_out["messages"][0]["msg"]
@@ -225,12 +225,12 @@ def test_gsea_dot_plot_empty_df():
 def test_gsea_dot_plot_cutoff(data_folder_tests):
     df = pd.read_csv(data_folder_tests / "gsea_result_sig_prot.csv", header=0)
     current_out = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets=["KEGG_2016"],
         cutoff=0,
         dot_size=3,
         title="KEGG GSEA dotplot test",
-    )[0]
+    )
     assert "messages" in current_out
     assert "No data to plot when applying cutoff" in current_out["messages"][0]["msg"]
 
@@ -238,22 +238,22 @@ def test_gsea_dot_plot_cutoff(data_folder_tests):
 def test_gsea_dot_plot_gene_sets(data_folder_tests, helpers, show_figures):
     df = pd.read_csv(data_folder_tests / "gsea_result_sig_prot.csv", header=0)
     dot_base64 = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets="KEGG_2016",
         cutoff=0.25,
         dot_size=3,
         title="KEGG GSEA dotplot test",
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
     dot_base64 = gsea_dot_plot(
-        input_df=df,
+        gsea_df=df,
         gene_sets="all",
         cutoff=0.25,
         dot_size=3,
         title="KEGG GSEA dotplot test",
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
@@ -270,7 +270,7 @@ def test_gsea_enrichment_plot(data_folder_tests, helpers, show_figures):
         term_dict=enrichment_details,
         term_name="KEGG_2015__alzheimers disease",
         ranking=ranking,
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(enrichment_plot["plot_base64"])
 
@@ -278,7 +278,7 @@ def test_gsea_enrichment_plot(data_folder_tests, helpers, show_figures):
 def test_gsea_enrichment_plot_wrong_term_dict():
     current_out = gsea_enrichment_plot(
         term_dict=dict(awrongdictkey="wrongdictvalue"),
-    )[0]
+    )
     assert "messages" in current_out
     assert (
         "Please input a dictionary with enrichment details"
@@ -290,7 +290,7 @@ def test_gsea_enrichment_plot_no_term_name():
     current_out = gsea_enrichment_plot(
         term_dict=dict(nes=0),
         term_name="",
-    )[0]
+    )
     assert "messages" in current_out
     assert "Please input a term name" in current_out["messages"][0]["msg"]
 
@@ -305,7 +305,7 @@ def test_gsea_enrichment_plot_wrong_ranking(data_folder_tests):
         term_dict=enrichment_details,
         term_name="KEGG_2015__alzheimers disease",
         ranking=ranking,
-    )[0]
+    )
     assert "messages" in current_out
     assert (
         "Please input a ranking output dataframe" in current_out["messages"][0]["msg"]
@@ -325,6 +325,6 @@ def test_gsea_enrichment_plot_fails(data_folder_tests):
         term_dict=enrichment_details,
         term_name="KEGG_2015__alzheimers disease",
         ranking=ranking,
-    )[0]
+    )
     assert "messages" in current_out
     assert "Could not plot enrichment" in current_out["messages"][0]["msg"]

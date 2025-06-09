@@ -80,9 +80,16 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     handleTitleChange,
   } = usePlotSettings(isOpen);
 
-  const initialPlot = { data, layout };
-  const [plot, updatePlot] = useState(initialPlot);
-  const [prevTitle] = useState<string>(getTitleFromLayout(initialPlot.layout));
+  const [plot, setPlot] = useState({ data, layout });
+  // For keeping the original title of the plot
+  const [prevTitle, setPrevTitle] = useState(() => getTitleFromLayout(layout));
+
+  useEffect(() => {
+    setPlot({ data, layout });
+    setPrevTitle(getTitleFromLayout(layout));
+    // Only include variables, used functions will not change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, layout]);
 
   useEffect(() => {
     const displaySizes = computeDisplaySizes();
@@ -92,7 +99,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    updatePlot((prevPlot) => ({
+    setPlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
@@ -175,6 +182,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
               onChange={handleTitleChange}
               label={"Title"}
               value={getTitleFromLayout(plot.layout)}
+              subscript={
+                "You can use basic HTML tags for formatting. For example, <b>Title</b> appears as bold text."
+              }
             />
           </SettingsDiv>
         </Col>

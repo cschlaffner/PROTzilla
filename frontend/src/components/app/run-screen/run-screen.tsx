@@ -1,22 +1,26 @@
-import { ListEditor, Navbar } from "@protzilla/app";
+import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
+  CSVButton,
   DataTable,
   FlexColumn,
   FlexRow,
+  H5,
   PlotComponent,
+  SecondaryButton,
   SectionTitle,
   SwitchCard,
 } from "@protzilla/core";
-import { spacing } from "@protzilla/theme";
+import { useToggleableState } from "@protzilla/hooks";
+import { spacing, useTheme } from "@protzilla/theme";
 import {
   callApiWithParameters,
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  mockPlots,
-  mockTableData,
   SelectedStep,
+  Table,
 } from "@protzilla/utils";
+import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -48,17 +52,16 @@ const StyledListSwitchCard = styled(SwitchCard)`
   height: 100%;
 `;
 
-const StyledPlotContainer = styled.div`
+const StyledContentContainer = styled.div`
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  gap: ${spacing("small")};
 `;
 
-const StyledTableContainer = styled.div`
-  width: 100%;
-  height: 100%;
+const StyledContentDiv = styled.div`
   display: flex;
+  flex-direction: column;
 `;
 
 const FooterText = styled.div`
@@ -69,16 +72,24 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
+const  TableHeader = styled(H5)`
+  margin-bottom: ${spacing("small")};
+`
+
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
   const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [plots, setPlots] = useState(mockPlots);
-  const [tableData, setTableData] = useState(mockTableData);
+  const [plots, setPlots] = useState<Figure[]>();
+  const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
+  const [tableData, setTableData] = useState<Table[]>();
+
+  const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
   const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
     if (selectedStep) {
@@ -145,26 +156,56 @@ export const RunScreen: React.FC = () => {
     void getStepTable();
   };
 
+  const handleDownloadPlot = (plot: Figure) => {
+    setSelectedPlot(plot);
+    openDownloadModal();
+  };
+
   const plotComponent = (
-    <StyledPlotContainer>
-      {plots.length > 0 ? (
-        plots.map((plot, index) => (
-          <PlotComponent key={index} data={plot.data} layout={plot.layout} hasResizing={true} />
-        ))
+    <StyledContentContainer>
+      {plots && plots.length > 0 ? (
+        <>
+          {plots.map((plot, index) => (
+            <StyledContentDiv key={index}>
+              <PlotComponent data={plot.data} layout={plot.layout} hasResizing={true} />
+              <SecondaryButton
+                text="Download plot"
+                style={{ width: "auto", alignSelf: "flex-start" }}
+                onClick={() => {
+                  handleDownloadPlot(plot);
+                }}
+              />
+            </StyledContentDiv>
+          ))}
+          <PlotDownloadSettings
+            isOpen={isDownloadModalOpen}
+            onClose={closeDownloadModal}
+            data={selectedPlot.data}
+            layout={selectedPlot.layout}
+          />
+        </>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
       )}
-    </StyledPlotContainer>
+    </StyledContentContainer>
   );
 
   const tableComponent = (
-    <StyledTableContainer>
-      {tableData.length > 0 ? (
-        <DataTable data={tableData} />
+    <StyledContentContainer>
+      {tableData && tableData.length > 0 ? (
+        <>
+          {tableData.map((table, index) => (
+            <StyledContentDiv key={index}>
+              <TableHeader>{table.name}</TableHeader>
+              <DataTable data={table.table} />
+              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
+            </StyledContentDiv>
+          ))}
+        </>
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
-    </StyledTableContainer>
+    </StyledContentContainer>
   );
 
   const listEditorComponent = (
@@ -205,9 +246,9 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
-              nameComponent1="Plot"
+              nameComponent1="Plots"
               component1={plotComponent}
-              nameComponent2="Table"
+              nameComponent2="Tables"
               component2={tableComponent}
             />
           </StyledCol>

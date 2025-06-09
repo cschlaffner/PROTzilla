@@ -2,8 +2,9 @@ PLOT_COLOR_SEQUENCE = [
     "#4A536A",
     "#CE5A5A",
     "#87A8B9",
-    "#8E3325",
-    "#E2A46D",
+    "#A7A1B2",
+    "#F1A765",
+    "#8E3F25",
 ]
 """List of colors to use in plots."""
 

@@ -16,6 +16,7 @@ from backend.protzilla.data_integration.enrichment_analysis_helper import (
     read_background_file,
 )
 from backend.protzilla.data_integration.enrichment_analysis import (
+    GOAnalysisOflineBackgroundType,
     get_functional_enrichment_with_delay,
     GO_analysis_offline,
     GO_analysis_with_Enrichr,
@@ -24,6 +25,7 @@ from backend.protzilla.data_integration.enrichment_analysis import (
     merge_up_down_regulated_dfs_gseapy,
 )
 from backend.protzilla.data_integration.enrichment_analysis_gsea import (
+    GeneSetsType,
     create_genes_intensity_wide_df,
     gsea,
     gsea_preranked,
@@ -669,6 +671,7 @@ def test_GO_analysis_offline_background(
         differential_expression_col="fold_change",
         differential_expression_threshold=1.0,  # all are downregulated
         direction="down",
+        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path=background_path,
         gene_mapping_df=offline_mock_mapping[0],
     )
@@ -747,6 +750,7 @@ def test_GO_analysis_offline_invalid_background_set_file():
         gene_sets_path="a_valid_filetype.gmt",
         differential_expression_col="fold_change",
         direction="up",
+        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path="an_invalid_filetype.png",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
@@ -999,6 +1003,7 @@ def test_gsea():
         grouping="Group",
         group1="CTR",
         group2="AD",
+        gene_sets_type = GeneSetsType.choose_from_enrichr_options.value,
         gene_sets_enrichr=["KEGG_2016"],
         min_size=7,
         number_of_permutations=500,
@@ -1064,6 +1069,7 @@ def test_gsea_no_gene_sets():
         grouping="Group",
         group1="CTR",
         group2="AD",
+        gene_sets_type=GeneSetsType.choose_from_enrichr_options.value,
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
     assert "messages" in current_out
@@ -1107,6 +1113,7 @@ def test_gsea_no_gene_symbols():
         grouping="Group",
         group1="CTR",
         group2="AD",
+        gene_sets_type=GeneSetsType.choose_from_enrichr_options.value,
         gene_sets_enrichr=["KEGG_2019_Human"],
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
@@ -1301,7 +1308,7 @@ def test_gsea_preranked():
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
     numerical_equal = np.isclose(
-        current_out["ranking"], expected_ranking, rtol=1e-05, atol=1e-08
+        current_out["ranking"].squeeze(), expected_ranking, rtol=1e-05, atol=1e-08
     )
     assert numerical_equal.all()
 
@@ -1342,7 +1349,7 @@ def test_gsea_preranked_wrong_protein_df():
         df, gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"])
     )
     assert "messages" in current_out
-    assert "Proteins must be a dataframe" in current_out["messages"][0]["msg"]
+    assert "Ranking column " in current_out["messages"][0]["msg"]
 
 
 def test_gsea_preranked_no_gene_sets():

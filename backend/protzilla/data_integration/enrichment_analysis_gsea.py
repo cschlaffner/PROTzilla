@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 
 import gseapy
@@ -140,13 +141,20 @@ def gsea_preranked(
     :return: dictionary with results dataframe, ranking, enrichment detail dataframe per enriched gene set and messages
     :rtype: dict
     """
-    if (
-        not isinstance(protein_df, pd.DataFrame)
-        or "Protein ID" not in protein_df.columns
-        or ranking_column not in protein_df.columns
-        or not protein_df[ranking_column].dtype == np.number
-    ):
+    if not isinstance(protein_df, pd.DataFrame):
         msg = "Proteins must be a dataframe with Protein ID and numeric ranking column (e.g. p values)"
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+    
+    if "Protein ID" not in protein_df.columns:
+        msg = "Protein ID column not found in protein_df. The dataframe must contain a column with protein IDs called 'Protein ID'."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+    if ranking_column not in protein_df.columns:
+        msg = f"Ranking column '{ranking_column}' not found in protein_df."
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+    if (not protein_df[ranking_column].dtype == np.number):
+        msg = f"Ranking column '{ranking_column}' must be numeric. Please check your input data or choose a different column."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if gene_sets_path:
@@ -219,9 +227,9 @@ def gsea_preranked(
 
     out_dict = {
         "enrichment_df": enrichment_df,
-        "ranking": preranked_result.ranking,
+        "ranking": preranked_result.ranking.to_frame(),
     }
-    out_dict.update(preranked_result.results)
+    # out_dict.update(preranked_result.results) These Informations are to big for the yaml. If they are needed they should put at least partly into a dataframe
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"
@@ -276,23 +284,28 @@ def create_genes_intensity_wide_df(
     return df
 
 
+class GeneSetsType(Enum):
+    upload_a_file = "Upload a file"
+    choose_from_enrichr_options = "Choose from Enrichr options"
+
 def gsea(
     protein_df,
     metadata_df,
     grouping,
     gene_mapping_df,
-    group1=None,
-    group2=None,
-    gene_sets_path=None,
-    gene_sets_enrichr=None,
-    min_size=15,
-    max_size=500,
-    number_of_permutations=1000,
-    permutation_type="phenotype",
-    ranking_method="signal_to_noise",
-    weighted_score=1.0,
-    seed=123,
-    threads=4,
+    group1 = None,
+    group2 = None,
+    gene_sets_type = GeneSetsType.upload_a_file.value,
+    gene_sets_path = None,
+    gene_sets_enrichr = None,
+    min_size = 15,
+    max_size = 500,
+    number_of_permutations = 1000,
+    permutation_type = "phenotype",
+    ranking_method = "signal_to_noise",
+    weighted_score = 1.0,
+    seed = 123,
+    threads = 4,
 ):
     """
     Performs Gene Set Enrichment Analysis (GSEA) on a dataframe with protein IDs, samples and intensities.
@@ -313,6 +326,11 @@ def gsea(
     :type group1: str
     :param group2: name of group 2
     :type group2: str
+    :param gene_sets_type: type of gene sets to use, either upload a file or choose from Enrichr options
+        Options:
+        - "Upload a file"
+        - "Choose from Enrichr options"
+    :type gene_sets_type: str
     :param gene_sets_path: path to file with gene sets
          The file can be a .csv, .txt, .json or .gmt file.
         .gmt files are not parsed because GSEApy can handle them directly.
@@ -384,18 +402,23 @@ def gsea(
         msg = "Negative values in the dataframe. Please use a different ranking method."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if gene_sets_path:
+    if gene_sets_type == GeneSetsType.upload_a_file.value:
+        if not gene_sets_path:
+            msg = "No gene sets file provided"
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         gene_sets = read_protein_or_gene_sets_file(gene_sets_path)
         if isinstance(gene_sets, dict) and "messages" in gene_sets:  # an error occurred
             return gene_sets
-    elif gene_sets_enrichr:
+    elif gene_sets_type == GeneSetsType.choose_from_enrichr_options.value:
+        if not gene_sets_enrichr:
+            msg = "No gene sets provided"
+            return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+        
         if not isinstance(gene_sets_enrichr, list):
             gene_sets = [gene_sets_enrichr]
         else:
             gene_sets = gene_sets_enrichr
-    else:
-        msg = "No gene sets provided"
-        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # only keep samples from the two groups
     group_samples = metadata_df.loc[
@@ -461,9 +484,9 @@ def gsea(
 
     out_dict = {
         "enrichment_df": enrichment_df,
-        "ranking": gsea_result.ranking,
+        "ranking": gsea_result.ranking.to_frame(),
     }
-    out_dict.update(gsea_result.results)
+    # out_dict.update(preranked_result.results) These Informations are to big for the yaml. If they are needed they should put at least partly into a dataframe
 
     if filtered_groups:
         msg = "Some proteins could not be mapped to gene symbols and were excluded from the analysis"

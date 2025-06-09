@@ -1,35 +1,31 @@
 import json
 import io
+from shutil import copy2, make_archive
+import traceback
+from zipfile import ZipFile
+from pathlib import Path
 import re
 import traceback
-import shutil
 
 import numpy as np
 from plotly.io import to_json
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
-from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
 from backend.protzilla.form import Form
 from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
 from backend.protzilla.workflow import get_available_workflow_names
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, WORKFLOWS_PATH
+from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH, WORKFLOWS_PATH
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_helper import get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
+from backend.main.views_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 dataframes = ["protein_df", "metadata_df", "peptide_df"]
-
-@ensure_csrf_cookie
-def get_csrf_token(request):
-    csrf_token = get_token(request)
-    return JsonResponse({"csrfToken": csrf_token, "message": "CSRF cookie set."})
 
 def run_information_list(request):
     run_info = get_available_run_info()
@@ -123,7 +119,11 @@ def delete_run(request):
         run_name = data.get("run_name")
 
         try:
-            delete_run_folder(run_name)
+            if run_name not in Run._instances:
+                delete_run_folder(run_name)
+            else:
+                run = Run(run_name)
+                run.delete_run()
 
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
@@ -162,6 +162,36 @@ def update_run_name(request):
             if isinstance(e, OSError):
                 return JsonResponse({"success": False, "message": "Run name already exists."})
             return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+def export_run(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name") 
+        
+        run_directory = RUNS_PATH / run_name
+        run_zip_path = settings.FILE_UPLOAD_TEMP_DIR / run_name
+        run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip"
+
+        make_archive(run_zip_path, "zip", run_directory)
+        
+        return FileResponse(open(run_zip_path_absolute, "rb"), as_attachment=True)
+    else:
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+    
+def import_run(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_file = data.get("run_file") 
+        
+        run_name = run_file.removesuffix(".zip")
+
+        run_zip = ZipFile(settings.FILE_UPLOAD_TEMP_DIR / run_file)
+
+        run_zip.extractall(path=RUNS_PATH / run_name)
+
+        return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -276,10 +306,10 @@ def import_workflow(request):
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
 
         if new_name == "":
-            shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+            copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
         else:
             try:
-                shutil.copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
+                copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
             except Exception as exception:
                 return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
 
@@ -380,8 +410,7 @@ def get_step_table(request):
                     data = run.current_outputs[dataframe]
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data = cleaned_data.to_dict(orient="records") # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                    break
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(dataframe)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
 
         return JsonResponse({"success": True, "message": "Got the table for the step", "data": json_data}, safe=False)
     else:
