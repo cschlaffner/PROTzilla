@@ -8,7 +8,7 @@ import {
   useTooltipScheduling,
 } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
-import { color, defaultPalette } from "@protzilla/theme";
+import { color, defaultPalette, size, spacing } from "@protzilla/theme";
 import { callApiWithParameters, formatDate, Run } from "@protzilla/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,8 +20,13 @@ const TableContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-
-  height: 86%;
+    
+  // Adjusted to navbar, template selection, title, header and search bar.
+  // Simplified with 3 * large spacing as approximation for items in run selection card above this table
+  height: calc(
+    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
+      (3 * ${spacing("small")}) - (3 * ${spacing("large")})); 
+  );
 
   &:hover {
     overflow-x: auto;
