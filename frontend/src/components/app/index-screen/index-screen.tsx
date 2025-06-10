@@ -36,7 +36,7 @@ const StyledHeader = styledDiv.div`
 
 const StyledButtonDiv = styledDiv.div`
   position: relative;
-  width: calc(2 * ${size("buttonHeight")} + ${spacing("buttonGap")})
+  width: calc(3 * ${size("buttonHeight")} + 2 * ${spacing("buttonGap")})
 `;
 
 const StyledLeftButton = styled(Button)`
@@ -51,6 +51,12 @@ const StyledRightButton = styled(Button)`
   left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
 `;
 
+const StyledIconButton = styled(SecondaryButton)`
+  position: absolute;
+  top: 0px;
+  left: calc(2 * ${size("buttonHeight")} + 2 * ${spacing("buttonGap")});
+`;
+
 const StyledContainer = styled.div`
   padding: ${spacing("small")};
   gap: ${spacing("small")};
@@ -60,20 +66,9 @@ const StyledContainer = styled.div`
   box-sizing: border-box;
 `;
 
-const StyledWorkflowContainer = styled(Container)`
-  display: flex;
-  overflow-x: auto;
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const StyledTemplateCard = styled(Card)`
-  height: ${size("templateSelectionHeight")};
+const StyledTemplateCard = styled(Card)<{ isCollapsed: boolean }>`
+  height: ${({ isCollapsed }) =>
+    isCollapsed ? size("collapsetemplateSelectionHeight") : size("templateSelectionHeight")};
   width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
@@ -89,16 +84,32 @@ const StyledArrowButton = styled(SecondaryButton)`
   padding-left: ${spacing("small")};
   padding-right: ${spacing("small")};
 `;
-const StyledRunSelectionCard = styled(Card)`
+const StyledRunSelectionCard = styled(Card)<{ isExtended: boolean }>`
   min-height: ${size("runSelectionMinHeight")};
-  height: calc(
-    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
-      (3 * ${spacing("small")})
-  );
+  height: ${({ isExtended, theme }) =>
+    isExtended
+      ? `calc(100vh - 
+      (${theme.spacing.navbarHeight} + ${theme.sizes.templateSelectionHeight} 
+      + (3 * ${theme.spacing.small})) 
+      + (${theme.sizes.templateSelectionHeight} - ${theme.sizes.collapsetemplateSelectionHeight}))`
+      : `calc(100vh - (${theme.spacing.navbarHeight} 
+      + ${theme.sizes.templateSelectionHeight} + (3 * ${theme.spacing.small})))`};
   width: calc(100vw - (2 * ${spacing("small")}));
   box-sizing: border-box;
 
   overflow-y: auto;
+`;
+
+const StyledWorkflowContainer = styled(Container)`
+  display: flex;
+  overflow-x: auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const StyledDiv = styledDiv.div`
@@ -116,6 +127,8 @@ export const IndexScreen: React.FC = () => {
   const [searchTermRuns, setSearchTermRuns] = useState<string>("");
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isWorkflowTemplateCollapsed, collapseWorkflowTemplate, uncollapseWorkflowTemplate] =
+    useToggleableState(false);
   const [isExportRunModalOpen, openExportRunModal, closeExportRunModal] = useToggleableState(false);
   const [isImportRunModalOpen, openImportRunModal, closeImportRunModal] = useToggleableState(false);
   const [isExportModalOpen, openExportModal, closeExportModal] = useToggleableState(false);
@@ -146,21 +159,20 @@ export const IndexScreen: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    void getRuns();
-    //only needed initially - functions that update runs will fetch them, too
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const getWorkflows = async () => {
     const data = await callApi("workflow_name_list/");
-    if (data) {
+    if (data && data.length > 0) {
       setWorkflows(data);
+    } else {
+      collapseWorkflowTemplate();
     }
   };
 
   useEffect(() => {
+    void getRuns();
     void getWorkflows();
+    //only needed initially - functions that update runs will fetch them, too
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredWorkflows = workflows.filter((workflow) =>
@@ -345,10 +357,20 @@ export const IndexScreen: React.FC = () => {
 
       <StyledContainer>
         <StyledTemplateCard
+          isCollapsed={isWorkflowTemplateCollapsed}
           title={
             <StyledHeader>
               Template Workflows
               <StyledButtonDiv>
+                <StyledIconButton
+                  isShy={true}
+                  icon={isWorkflowTemplateCollapsed ? "list" : "chevronDoubleLeft"}
+                  onClick={() => {
+                    isWorkflowTemplateCollapsed
+                      ? uncollapseWorkflowTemplate()
+                      : collapseWorkflowTemplate();
+                  }}
+                ></StyledIconButton>
                 <StyledLeftButton
                   onClick={() => {
                     openExportModal();
@@ -369,31 +391,37 @@ export const IndexScreen: React.FC = () => {
             </StyledHeader>
           }
         >
-          <SearchInputField
-            style={{ padding: "0", gap: "0", width: "30%" }}
-            value={searchTermTop}
-            onChange={(e) => {
-              setSearchTermTop(e);
-            }}
-            placeholder="Search workflows"
-          />
-          <StyledWorkflowContainer className={"workflow-container"}>
-            {filteredWorkflows.map((workflow) => (
-              <Workflow
-                key={workflow}
-                icon="add"
-                workflow={workflow}
-                onPress={() => {
-                  setSelectedWorkflow(workflow);
-                  setIsWorkflowModalOpen(true);
+          {!isWorkflowTemplateCollapsed ? (
+            <>
+              <SearchInputField
+                style={{ padding: "0", gap: "0", width: "30%" }}
+                value={searchTermTop}
+                onChange={(e) => {
+                  setSearchTermTop(e);
                 }}
+                placeholder="Search workflows"
               />
-            ))}
-          </StyledWorkflowContainer>
-          <NavigationDiv>
-            <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
-            <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
-          </NavigationDiv>
+              <StyledWorkflowContainer className={"workflow-container"}>
+                {filteredWorkflows.map((workflow) => (
+                  <Workflow
+                    key={workflow}
+                    icon="add"
+                    workflow={workflow}
+                    onPress={() => {
+                      setSelectedWorkflow(workflow);
+                      setIsWorkflowModalOpen(true);
+                    }}
+                  />
+                ))}
+              </StyledWorkflowContainer>
+              <NavigationDiv>
+                <StyledArrowButton icon={"chevronLeft"} isSmall={true} onPress={scrollLeft} />
+                <StyledArrowButton icon={"chevronRight"} isSmall={true} onPress={scrollRight} />
+              </NavigationDiv>
+            </>
+          ) : (
+            <></>
+          )}
           <Modal
             title="Create run"
             isOpen={isWorkflowModalOpen}
@@ -510,6 +538,7 @@ export const IndexScreen: React.FC = () => {
         </StyledTemplateCard>
 
         <StyledRunSelectionCard
+          isExtended={isWorkflowTemplateCollapsed}
           title={
             <StyledHeader>
               Run Selection
