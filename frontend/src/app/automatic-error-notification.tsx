@@ -1,8 +1,8 @@
+import { useNotification } from "@protzilla/app";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef } from "react";
 
 import { useStore } from "../app/store";
-import { useNotification } from "../components";
 
 export const AutomaticErrorNotification = observer(() => {
   const store = useStore();

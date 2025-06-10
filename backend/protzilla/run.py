@@ -15,7 +15,6 @@ from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.disk_operator import YamlOperator
 
 
 def get_available_run_names() -> list[str]:
@@ -45,6 +44,8 @@ def get_available_run_info() -> str | tuple[
 
     :return: a list of all runs, a list of favourited runs and a list of all tags.
     """
+    from backend.protzilla.disk_operator import YamlOperator # import here to avoid import error with runner
+
     if not paths.RUNS_PATH.exists():
         return f"No runs have been found in {paths.RUNS_PATH}."
 
@@ -199,6 +200,10 @@ class Run:
     def _run_write(self) -> None:
         self.disk_operator.write_run(self.steps)
 
+    def delete_run(self) -> None:
+        delete_run_folder(self.run_name)
+        self._instances.pop(self.run_name, None)  # remove instance from the class dictionary
+
     @property
     def run_path(self) -> str:
         return self.disk_operator.run_dir
@@ -237,6 +242,10 @@ class Run:
     def _workflow_read(self) -> None:
         self.steps = self.disk_operator.read_workflow()
         self._metadata = self.metadata_read()
+        self.update_metadata({
+            "df_mode": self.steps.df_mode,
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     def _workflow_save(self, workflow_name: str | None = None) -> None:
@@ -248,6 +257,9 @@ class Run:
     @auto_save
     def step_add(self, step: Step, step_index: int | None = None) -> None:
         self.steps.add_step(step)
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
@@ -258,6 +270,9 @@ class Run:
         section: str | None = None,
     ) -> None:
         self.steps.remove_step(step=step, step_index=step_index, section=section)
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save

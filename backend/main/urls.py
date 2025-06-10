@@ -34,6 +34,8 @@ urlpatterns = [
     path("api/delete_run/", views_with_api.delete_run, name="delete_run"),
     path("api/continue_run/", views_with_api.continue_run, name="continue_run"),
     path("api/update_run_name/", views_with_api.update_run_name, name="update_run_name"),
+    path("api/export_run/", views_with_api.export_run, name="export_run"),
+    path("api/import_run/", views_with_api.import_run, name="import_run"),
     path("api/add_plot/", views_with_api.add_plot, name="add_plot"),
     path("api/add_step/", views_with_api.add_step, name="add_step"),
     path("api/delete_step/", views_with_api.delete_step, name="delete_step"),
@@ -47,6 +49,8 @@ urlpatterns = [
     path("api/get_run_data/", views_with_api.get_run_data, name="get_run_data"),
     path("api/upload_file/", views_with_api.upload_file, name="upload_file"),
     path("api/calculate_step/", views_with_api.calculate_step, name="calculate_step"),
+    path("api/export_workflow/", views_with_api.export_workflow, name="export_workflow"),
+    path("api/import_workflow/", views_with_api.import_workflow, name="import_workflow"),
 
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_settings, name="save_settings"),

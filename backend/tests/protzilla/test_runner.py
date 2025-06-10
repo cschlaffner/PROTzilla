@@ -1,7 +1,6 @@
 import json
 import sys
 from unittest import mock
-from unittest.mock import call
 
 import pytest
 
@@ -12,8 +11,7 @@ sys.path.append(f"{PROJECT_PATH}/..")
 sys.path.append(f"{PROJECT_PATH}")
 
 from backend.protzilla.runner import Runner, _serialize_graphs
-from backend.runner_cli import args_parser
-from backend.protzilla.steps import Output, Plots
+from runner_cli import args_parser
 from backend.main import settings
 
 
@@ -111,7 +109,7 @@ def test_runner_imports(
         {'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1},
         {'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None},
         {'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []},
-        {'proteins_df': None, 'differential_expression_threshold': 1, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
+        {'proteins_df': None, 'differential_expression_threshold': 0, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
         {'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''}
     ]
 

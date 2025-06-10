@@ -115,7 +115,9 @@ class Step:
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
-            
+
+            self.calculation_status = "complete"
+
             # delete tempfiles
             for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
                 if file.is_file():
@@ -133,7 +135,7 @@ class Step:
             self.messages.append(
                 dict(
                     level=logging.ERROR,
-                    msg=f"An error occured while validating inputs or outputs: {e}. Please check your parameters.",
+                    msg=f"An error occured while validating inputs or outputs: {e} Please check your parameters.",
                     trace=format_trace(traceback.format_exception(e)),
                 )
             )
@@ -265,7 +267,13 @@ class Step:
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
-        
+        if list(self.output.output.keys()) == ["messages"]:
+            message_string = ""
+            for message in self.messages.messages:
+                message_string += f"{message['msg']}\n"
+            raise ValueError(
+                f"Output validation failed: Output only contains messages: {message_string}."
+            )
         for key in self.output_keys:
             if key not in self.output or self.output[key] is None:
                 if not soft_check:
