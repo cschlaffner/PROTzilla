@@ -458,7 +458,10 @@ export const IndexScreen: React.FC = () => {
                       type: "dropdown",
                       name: "workflow",
                       label: "Workflow:",
-                      options: workflows.map((workflow) => ({ label: workflow, value: workflow })),
+                      options: workflows.map((workflow) => ({
+                        label: workflow,
+                        value: workflow,
+                      })),
                       isVisible: true,
                     },
                   ],
