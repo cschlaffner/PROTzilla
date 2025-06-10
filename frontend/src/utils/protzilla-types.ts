@@ -79,7 +79,7 @@ export const emptyRunData: RunData = {
 };
 
 export interface Table {
-  table: (readonly GridValidRowModel[]);
+  table: readonly GridValidRowModel[];
   name: string;
 }
 

@@ -72,9 +72,9 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
-const  TableHeader = styled(H5)`
+const TableHeader = styled(H5)`
   margin-bottom: ${spacing("small")};
-`
+`;
 
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -198,7 +198,10 @@ export const RunScreen: React.FC = () => {
             <StyledContentDiv key={index}>
               <TableHeader>{table.name}</TableHeader>
               <DataTable data={table.table} />
-              <CSVButton data={table.table} style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }} />
+              <CSVButton
+                data={table.table}
+                style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
+              />
             </StyledContentDiv>
           ))}
         </>
