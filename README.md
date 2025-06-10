@@ -7,11 +7,10 @@
 | backend/\_\_init\_\_.py                                                       |        0 |        0 |    100% |           |
 | backend/main/\_\_init\_\_.py                                                  |        0 |        0 |    100% |           |
 | backend/main/upload\_handler.py                                               |       36 |       36 |      0% |      1-67 |
-| backend/main/urls.py                                                          |        6 |        6 |      0% |     16-23 |
-| backend/main/views.py                                                         |        7 |        7 |      0% |      1-10 |
+| backend/main/urls.py                                                          |        5 |        5 |      0% |     16-22 |
+| backend/main/views.py                                                         |      323 |      323 |      0% |     1-621 |
+| backend/main/views\_helper.py                                                 |       70 |       58 |     17% |7-37, 41, 50, 55-56, 69-131, 135-138, 148-154 |
 | backend/main/views\_settings.py                                               |      137 |      137 |      0% |     1-219 |
-| backend/main/views\_with\_api.py                                              |      317 |      317 |      0% |     1-613 |
-| backend/main/views\_with\_api\_helper.py                                      |       70 |       58 |     17% |7-37, 41, 50, 55-56, 69-131, 135-138, 148-154 |
 | backend/protzilla/\_\_init\_\_.py                                             |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                               |        7 |        1 |     86% |         1 |
 | backend/protzilla/data\_analysis/\_\_init\_\_.py                              |        0 |        0 |    100% |           |
@@ -53,7 +52,7 @@
 | backend/protzilla/form.py                                                     |      148 |       67 |     55% |11, 21, 29-30, 35-36, 48-49, 61-62, 68-69, 75-76, 82, 88-89, 95, 97-98, 104, 106-112, 120, 131-132, 136, 156-159, 163, 174-179, 182-185, 188-196, 205-207, 218-254 |
 | backend/protzilla/form\_helper.py                                             |       13 |        6 |     54% |7, 15-16, 28-29, 33 |
 | backend/protzilla/importing/\_\_init\_\_.py                                   |        0 |        0 |    100% |           |
-| backend/protzilla/importing/metadata\_import.py                               |       70 |       28 |     60% |28, 30, 32, 34, 50-51, 96, 102-109, 124-151, 177-202 |
+| backend/protzilla/importing/metadata\_import.py                               |       70 |       30 |     57% |28, 30, 32, 34, 50-51, 92, 98-104, 115, 126-151, 177-202 |
 | backend/protzilla/importing/ms\_data\_import.py                               |      121 |       61 |     50% |29, 31-33, 83, 93-95, 105, 110-111, 123-126, 134, 153, 189, 215, 240-300 |
 | backend/protzilla/importing/peptide\_import.py                                |       47 |        6 |     87% |17-18, 55-56, 79-80 |
 | backend/protzilla/methods/data\_analysis.py                                   |      443 |      229 |     48% |22-23, 29, 47, 57-58, 62-63, 67-70, 72, 77-78, 83, 101, 113, 119-120, 143-144, 151, 158-159, 169, 171, 178, 182-189, 192-196, 210, 220, 277-283, 291, 299-300, 320-321, 325-328, 339, 345-351, 368, 372-374, 378, 380, 394-397, 399-404, 417-419, 421, 425-427, 451, 466-485, 507-509, 521, 525-530, 535-541, 549-550, 561, 565, 580-603, 634-636, 638, 648, 667-669, 673-677, 685-687, 691, 693-697, 704, 706-707, 716-718, 725-727, 736-740, 745, 747, 759-762, 767, 779-782, 787, 789, 804, 806-812, 818-826, 830-834, 839, 844, 846, 849-851, 857-863, 873, 882-883, 891-902, 913, 918, 922-924, 932, 937-939, 943-1000 |
@@ -73,7 +72,7 @@
 | backend/protzilla/workflow.py                                                 |        5 |        1 |     80% |         6 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-|                                                                     **TOTAL** | **6254** | **2602** | **58%** |           |
+|                                                                     **TOTAL** | **6252** | **2602** | **58%** |           |
 
 
 ## Setup coverage badge
