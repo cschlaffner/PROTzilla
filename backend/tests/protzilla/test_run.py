@@ -118,6 +118,51 @@ class TestRun:
         run_imported.step_set_outdated()
         assert run_imported.current_step.calculation_status == "outdated"
 
+    def test_step_finished(self, run_standard, maxquant_data_file, metadata_file):
+        assert run_standard.current_step.calculation_status == "incomplete"
+
+        parameters = {
+            "file_path": maxquant_data_file,
+            "intensity_name": "Intensity",
+            "map_to_uniprot": False,
+            "aggregation_method": "Sum",
+        }
+        run_standard.current_form(parameters)
+        run_standard.step_calculate()
+
+        assert run_standard.current_step.calculation_status == "complete"
+
+        run_standard.step_next()
+
+        assert run_standard.current_step.calculation_status == "incomplete"
+
+        parameters = {
+            "file_path": f"",
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        }
+        run_standard.current_form(parameters)
+        run_standard.step_calculate()
+
+        assert run_standard.current_step.calculation_status == "failed"
+
+        parameters = {
+            "file_path": "nonexistent_file.txt",
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        }
+        run_standard.current_form(parameters)
+        run_standard.step_calculate()
+
+        assert run_standard.current_step.calculation_status == "failed"
+
+        parameters = {
+            "file_path": metadata_file,
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        }
+        run_standard.current_form(parameters)
+        run_standard.step_calculate()
+
+        assert run_standard.current_step.calculation_status == "complete"
+
     def test_multiple_steps_calculate(self, run_imported):
         step1 = FilterSamplesByProteinsMissing()
         step2 = ImputationByKNN()
