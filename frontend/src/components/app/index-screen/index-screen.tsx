@@ -366,9 +366,11 @@ export const IndexScreen: React.FC = () => {
                   isShy={true}
                   icon={isWorkflowTemplateCollapsed ? "list" : "chevronDoubleLeft"}
                   onClick={() => {
-                    isWorkflowTemplateCollapsed
-                      ? uncollapseWorkflowTemplate()
-                      : collapseWorkflowTemplate();
+                    if (isWorkflowTemplateCollapsed) {
+                      uncollapseWorkflowTemplate();
+                    } else {
+                      collapseWorkflowTemplate();
+                    }
                   }}
                 ></StyledIconButton>
                 <StyledLeftButton
