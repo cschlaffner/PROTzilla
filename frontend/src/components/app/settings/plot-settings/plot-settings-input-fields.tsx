@@ -52,6 +52,7 @@ export const WidthField: React.FC<NumberInputFieldProps> = ({ value, onChange })
       hasStepButtons={true}
       separateSuffix={"mm"}
       isInteger={true}
+      hasExtendedSubscript={false}
       onChange={onChange}
       value={value}
     />
@@ -86,6 +87,7 @@ export const HeightField: React.FC<NumberInputFieldProps> = ({ value, onChange }
       hasStepButtons={true}
       separateSuffix={"mm"}
       isInteger={true}
+      hasExtendedSubscript={false}
       onChange={onChange}
       value={value}
     />
@@ -186,6 +188,7 @@ export const TitleSizeField: React.FC<NumberInputFieldProps> = ({ value, onChang
       hasStepButtons={true}
       separateSuffix={"pt"}
       isInteger={true}
+      hasExtendedSubscript={false}
       value={value}
       onChange={onChange}
     />
@@ -203,6 +206,7 @@ export const TextSizeField: React.FC<NumberInputFieldProps> = ({ value, onChange
       hasStepButtons={true}
       separateSuffix={"pt"}
       isInteger={true}
+      hasExtendedSubscript={false}
       onChange={onChange}
       value={value}
     />
