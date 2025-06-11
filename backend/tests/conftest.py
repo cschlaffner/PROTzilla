@@ -11,11 +11,13 @@ import pandas as pd
 import pytest
 from PIL import Image
 
+from django.conf import settings
+
 from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
 from backend.protzilla.constants.paths import RUNS_PATH
-from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH
+from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH, TEST_TEMPLATE_PATH
 from backend.protzilla.utilities import random_string
 
 
@@ -265,3 +267,11 @@ class Helpers:
 @pytest.fixture
 def helpers():
     return Helpers
+
+@pytest.fixture(scope="session", autouse=True)
+def test_template_dir():
+    """
+    Adds the backend/tests/templates directory to Django's template DIRS during tests,
+    so that test-only templates like dummy index.html can be used.
+    """
+    settings.TEMPLATES[0]['DIRS'].insert(0, TEST_TEMPLATE_PATH)
