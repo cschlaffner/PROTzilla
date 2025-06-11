@@ -653,6 +653,7 @@ export const IndexScreen: React.FC = () => {
             setRuns={setRuns}
             openTagModal={setIsTagModalOpen}
             setSelectedRun={setSelectedRun}
+            isExtended={isWorkflowTemplateCollapsed}
           />
         </StyledRunSelectionCard>
       </StyledContainer>
