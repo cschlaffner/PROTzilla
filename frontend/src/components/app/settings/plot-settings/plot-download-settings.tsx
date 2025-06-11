@@ -1,5 +1,5 @@
 import { color, spacing, zIndex } from "@protzilla/theme";
-import { Data, Figure, Layout } from "plotly.js";
+import { Data, Figure, Layout, Plots } from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -9,11 +9,12 @@ import {
   FileFormatField,
   FontField,
   HeightField,
+  MarginField,
   TextSizeField,
   TitleSizeField,
   WidthField,
 } from "./plot-settings-input-fields";
-import { usePlotSettings } from "./usePlotSettings";
+import { PlotSettings, usePlotSettings } from "./usePlotSettings";
 import {
   Button,
   Modal,
@@ -34,6 +35,11 @@ const SettingsDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("verySmall")};
+`;
+
+const StyledDiv = styled.div`
+  overflow: auto;
+  max-height: 70vh;
 `;
 
 const Footer = styled.div`
@@ -70,17 +76,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     setComputedSettings,
     downloadPlot,
     getTitleFromLayout,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
-    handleTitleChange,
   } = usePlotSettings(isOpen);
 
   const [plot, setPlot] = useState({ data, layout });
+  const divId = "plot-id";
   // For keeping the original title of the plot
   const [prevTitle, setPrevTitle] = useState(() => getTitleFromLayout(layout));
 
@@ -92,6 +94,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   }, [data, layout]);
 
   useEffect(() => {
+    const plotDiv = document.getElementById(divId);
     const displaySizes = computeDisplaySizes();
     setComputedSettings({
       width: displaySizes.width,
@@ -99,12 +102,19 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    setPlot((prevPlot) => ({
-      ...prevPlot,
+    setPlot({
+      data: plot.data,
       layout: {
-        ...prevPlot.layout,
+        ...plot.layout,
         width: displaySizes.width,
         height: displaySizes.height,
+        margin: {
+          ...plot.layout.margin,
+          t: settings.marginTop,
+          b: settings.marginBottom,
+          l: settings.marginLeft,
+          r: settings.marginRight,
+        },
         title: {
           font: {
             family: settings.selectedFont,
@@ -113,12 +123,15 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           text: settings.title ?? prevTitle,
         },
         font: {
-          ...prevPlot.layout.font,
+          ...plot.layout.font,
           family: settings.selectedFont,
           size: displaySizes.textSize,
         },
       },
-    }));
+    });
+    if (plotDiv) {
+      Plots.resize(plotDiv);
+    }
     // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
@@ -135,6 +148,21 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     void saveSettings();
   };
 
+  const marginFields: {
+    key: keyof PlotSettings;
+    label: string;
+    info?: string;
+  }[] = [
+    {
+      key: "marginTop",
+      label: "Margin, top",
+      info: "Plots with axes include default margins, so margin changes below 50 may not be noticeable.",
+    },
+    { key: "marginBottom", label: "Bottom" },
+    { key: "marginLeft", label: "Left" },
+    { key: "marginRight", label: "Right" },
+  ];
+
   return (
     <StyledModal isOpen={isOpen} onClose={onClose} title="Download Plot">
       <SectionTitle
@@ -146,17 +174,46 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       />
 
       <Row>
-        <Col md={6}>
+        <Col md={7}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField onChange={handleFileFormatChange} value={settings.fileFormat} />
+            <FileFormatField
+              value={settings.fileFormat}
+              onChange={(v: string | null) => {
+                handleSettingChange("fileFormat", v ?? "");
+              }}
+            />
             <Row justify="between" align="center">
               <Col>
-                <WidthField value={settings.width} onChange={handleWidthChange} />
+                <WidthField
+                  value={settings.width}
+                  onChange={(value: number) => {
+                    handleSettingChange("width", value);
+                  }}
+                />
               </Col>
               <Col>
-                <HeightField value={settings.height} onChange={handleHeightChange} />
+                <HeightField
+                  value={settings.height}
+                  onChange={(v: number) => {
+                    handleSettingChange("height", v);
+                  }}
+                />
               </Col>
+            </Row>
+            <Row>
+              {marginFields.map(({ key, label, info }) => (
+                <Col key={key}>
+                  <MarginField
+                    label={label}
+                    info={info}
+                    value={settings[key] as number}
+                    onChange={(v: number) => {
+                      handleSettingChange(key, v);
+                    }}
+                  />
+                </Col>
+              ))}
             </Row>
             <SectionTitle
               baseComponent={"h5"}
@@ -172,14 +229,26 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             />
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField onChange={handleTitleSizeChange} value={settings.titleSize} />
+                <TitleSizeField
+                  value={settings.titleSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("titleSize", v);
+                  }}
+                />
               </Col>
               <Col>
-                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
+                <TextSizeField
+                  value={settings.textSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("textSize", v);
+                  }}
+                />
               </Col>
             </Row>
             <TextInputField
-              onChange={handleTitleChange}
+              onChange={(v: string) => {
+                handleSettingChange("title", v);
+              }}
               label={"Title"}
               value={getTitleFromLayout(plot.layout)}
               subscript={
@@ -188,14 +257,16 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
             />
           </SettingsDiv>
         </Col>
-        <Col md={6}>
-          <PlotComponent
-            data={plot.data}
-            layout={plot.layout}
-            hasBorder={true}
-            hasResizing={false}
-            divId={"plot-id"}
-          />
+        <Col md={5}>
+          <StyledDiv>
+            <PlotComponent
+              data={plot.data}
+              layout={plot.layout}
+              hasBorder={true}
+              hasResizing={false}
+              divId={divId}
+            />
+          </StyledDiv>
         </Col>
       </Row>
       <Footer>

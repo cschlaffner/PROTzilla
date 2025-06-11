@@ -58,6 +58,23 @@ export const WidthField: React.FC<NumberInputFieldProps> = ({ value, onChange })
   );
 };
 
+// Margins: Number
+export const MarginField: React.FC<NumberInputFieldProps> = ({ label, info, value, onChange }) => {
+  return (
+    <NumberInputField
+      label={label}
+      info={info}
+      min={0}
+      max={300}
+      step={1}
+      hasStepButtons={true}
+      isInteger={true}
+      onChange={onChange}
+      value={value}
+    />
+  );
+};
+
 // Height: Number
 export const HeightField: React.FC<NumberInputFieldProps> = ({ value, onChange }) => {
   return (
