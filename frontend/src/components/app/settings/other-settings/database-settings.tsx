@@ -129,7 +129,7 @@ export const DatabaseSettings = () => {
     if (response?.success) {
       notify({
         title: "Database upload",
-        message: "Database uploaded successfully.",
+        message: response.message as string,
         type: "success",
         isClosingAutomatically: true,
       });

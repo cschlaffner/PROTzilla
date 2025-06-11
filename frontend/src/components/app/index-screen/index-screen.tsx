@@ -218,7 +218,7 @@ export const IndexScreen: React.FC = () => {
   };
 
   const handleContinueRun = useCallback(
-    (data: Record<string, InputValueType>) => {
+    async (data: Record<string, InputValueType>) => {
       const runName = data.runname;
       if (!runName) {
         notify({
@@ -228,22 +228,37 @@ export const IndexScreen: React.FC = () => {
         });
         return;
       }
-      void callApiWithParameters("add_run/", {
+      const response = await callApiWithParameters("add_run/", {
         run_name: runName,
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
-      }).then(() => {
+      });
+      let convertedRunName: string;
+      if (response.success) {
+        convertedRunName = response.data.run_name as string;
+        setSelectedRun((prev) => ({
+          ...prev,
+          run_name: convertedRunName,
+        }));
         notify({
           title: "Run created",
-          message: `Run ${String(data.runname)} has been created`,
+          message: response.message,
           type: "success",
         });
-
-        void callApiWithParameters("continue_run/", {
-          run_name: runName as string,
-        }).then(() => {
-          void navigate("/run", { state: { runName } });
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          traceback: response.traceback,
+          type: "error",
         });
+        return;
+      }
+
+      void callApiWithParameters("continue_run/", {
+        run_name: convertedRunName,
+      }).then(() => {
+        void navigate("/run", { state: { runName: convertedRunName } });
       });
     },
     [notify, navigate],
