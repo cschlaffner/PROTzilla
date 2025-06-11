@@ -1,3 +1,5 @@
+import { GridValidRowModel } from "@mui/x-data-grid";
+
 export interface UIStateProps {
   isDisabled?: boolean;
 }
@@ -75,6 +77,11 @@ export const emptyRunData: RunData = {
   displayed_steps: emptySections,
   memory_usage: "",
 };
+
+export interface Table {
+  table: readonly GridValidRowModel[];
+  name: string;
+}
 
 export interface RequestData {
   index: number;

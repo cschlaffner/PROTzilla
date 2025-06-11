@@ -204,7 +204,7 @@ export const DatabaseSettings = () => {
           void handleAddDatabase(
             data.database_name as string,
             data.database_file as string,
-            data.verification_checkbox === "true",
+            data.verification_checkbox as boolean,
           );
         }}
       />

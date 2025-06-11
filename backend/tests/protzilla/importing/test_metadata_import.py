@@ -1,6 +1,6 @@
 import pandas as pd
 
-from backend.protzilla.constants.paths import BACKEND_PATH # TODO S change paths in whole file
+from backend.tests.paths import TEST_METADATA_PATH
 from backend.protzilla.methods.importing import (
     DiannImport,
     MetadataColumnAssignment,
@@ -9,18 +9,17 @@ from backend.protzilla.methods.importing import (
 )
 from backend.protzilla.steps import Step
 
-
 def test_metadata_import(run_imported):
     run_imported.step_add(MetadataImport())
     run_imported.step_next()
     run_imported.current_form(
         {
-            "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
+            "file_path": TEST_METADATA_PATH / "metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
         }
     )
     run_imported.step_calculate()
-    test_metadata = pd.read_csv(f"{BACKEND_PATH}/tests/metadata_cut_columns.csv")
+    test_metadata = pd.read_csv(TEST_METADATA_PATH / "metadata_cut_columns.csv")
     pd.testing.assert_frame_equal(
         test_metadata, run_imported.current_outputs["metadata_df"]
     )
@@ -31,7 +30,7 @@ def test_metadata_import(run_imported):
 #     run_empty.step_add(DiannImport())
 #     run_empty.current_form(
 #         {
-#             "file_path": f"{BACKEND_PATH}/tests/test_data/DIANN_data/20230605 24h prodi DMSO report.pg_matrix.tsv",
+#             "file_path": f"{TEST_METADATA_PATH}/DIANN/20230605 24h prodi DMSO report.pg_matrix.tsv",
 #             "map_to_uniprot": "False",
 #             "aggregation_method": "Sum",
 #         }
@@ -47,16 +46,16 @@ def test_metadata_import(run_imported):
 #     run_empty.step_next()
 #     run_empty.current_form(
 #         {
-#             "file_path": f"{BACKEND_PATH}/tests/test_data/DIANN_data/sample run relationship.xlsx",
+#             "file_path": f"{TEST_METADATA_PATH}/DIANN/sample run relationship.xlsx",
 #             "groupby_sample": True,
 #         }
 #     )
 #     run_empty.step_calculate()
 #     test_metadata = pd.read_csv(
-#         f"{BACKEND_PATH}/tests/test_data/DIANN_data/correct_metadata_table.csv"
+#         f"{TEST_METADATA_PATH}/DIANN/correct_metadata_table.csv"
 #     )
 #     test_protein_df = pd.read_csv(
-#         f"{BACKEND_PATH}/tests/test_data/DIANN_data/correct_protein_df.csv"
+#         f"{TEST_METADATA_PATH}/DIANN/correct_protein_df.csv"
 #     )
 #     pd.testing.assert_frame_equal(
 #         test_metadata, run_empty.current_outputs["metadata_df"]
@@ -71,7 +70,7 @@ def test_metadata_orientation(run_empty):
     run_empty.step_next()
     run_empty.current_form(
         {
-            "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
+            "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
         }
     )
@@ -79,7 +78,7 @@ def test_metadata_orientation(run_empty):
     metadata_df_a = run_empty.current_outputs["metadata_df"]
     run_empty.current_form(
         {
-            "file_path": f"{BACKEND_PATH}/tests/metadata_cut_rows.csv",
+            "file_path": f"{TEST_METADATA_PATH}/metadata_cut_rows.csv",
             "feature_orientation": "Rows (samples in columns, features in rows)",
         }
     )
@@ -96,7 +95,7 @@ def test_metadata_orientation(run_empty):
 #     run_empty.step_next()
 #     run_empty.current_form(
 #         {
-#             "file_path": f"{BACKEND_PATH}/tests/metadata_cut_columns.csv",
+#             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
 #             "feature_orientation": "Columns (samples in rows, features in columns)",
 #         }
 #     )

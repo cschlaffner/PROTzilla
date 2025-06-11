@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import TEST_DATA_PATH
+from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.data_preprocessing.peptide_filter import by_pep_value, by_pep_value_plot
 from backend.protzilla.importing import peptide_import
 

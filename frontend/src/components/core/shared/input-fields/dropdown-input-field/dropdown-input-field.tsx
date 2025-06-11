@@ -73,24 +73,26 @@ const OptionItem = styled.li`
 
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
-    const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
+    const getCurrentOption = (): { label: string; value: string } => {
       //TODO QUICKFIX this should be .value in the future
-      options.find((option) => option.label === value) ?? options[0],
+      return options.find((option) => option.label === value) ?? options[0];
+    };
+
+    const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
+      getCurrentOption(),
     );
 
+    // Sync state with props whenever options or value changes
     useEffect(() => {
       if (options.length === 0) {
         setSelectedOption(null);
         return;
       }
-
+      const currentOption = getCurrentOption();
+      setSelectedOption(currentOption);
       //TODO QUICKFIX this should be .value in the future
-      const initialOption = options.find((option) => option.label === value) ?? options[0];
-      setSelectedOption(initialOption);
-
-      if (initialOption.label !== value) {
-        //TODO QUICKFIX this should be .value in the future
-        onChange(initialOption.label); //TODO QUICKFIX this should be .value in the future
+      if (currentOption.label !== value) {
+        onChange(currentOption.label); //TODO QUICKFIX this should be .value in the future
       }
       //component should only rerender on change of options because of multiple occurrences of dropdown forms
       //eslint-disable-next-line react-hooks/exhaustive-deps
