@@ -253,7 +253,7 @@ export const RunScreen: React.FC = () => {
               components={[
                 { name: "Plots", value: plotComponent },
                 { name: "Tables", value: tableComponent },
-                { name: "Further Output", value: otherComponent },
+                { name: "Other Output", value: otherComponent },
               ]}
               hasCardTitle={false}
             />

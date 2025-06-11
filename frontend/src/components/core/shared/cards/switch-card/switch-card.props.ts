@@ -2,7 +2,7 @@ import { SwitchComponent } from "@protzilla/utils";
 
 export interface SwitchCardProps {
   components: SwitchComponent[];
-  hasSwitchAlginStart?: boolean;
+  hasSwitchAlignStart?: boolean;
   hasCardTitle?: boolean;
   styleProps?: React.CSSProperties;
 }
