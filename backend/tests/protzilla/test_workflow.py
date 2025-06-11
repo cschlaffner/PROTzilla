@@ -1,17 +1,11 @@
-import pytest
-
 from unittest import mock
-from pathlib import Path
 
 from backend.protzilla.constants import paths
+from backend.tests.paths import TEST_WORKFLOWS_PATH
 from backend.protzilla.workflow import get_available_workflow_names 
 
-@pytest.fixture
-def workflows_path(request):
-    return Path(request.config.rootdir) / "/tests/test_workflows"
-
-def test_get_available_workflow_names(workflows_path):
-    with mock.patch.object(paths, "WORKFLOWS_PATH", paths.TEST_WORKFLOW_PATH):
+def test_get_available_workflow_names():
+    with mock.patch.object(paths, "WORKFLOWS_PATH", TEST_WORKFLOWS_PATH):
         expected_files = [
             "example_workflow_short",
             "example_workflow"
