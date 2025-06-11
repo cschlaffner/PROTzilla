@@ -28,7 +28,7 @@ const TableContainer = styledDiv.div<{ $isExtended?: boolean }>`
   height: ${({ $isExtended, theme }) =>
     $isExtended
       ? `calc(100vh - ${theme.spacing.navbarHeight} 
-        - ${theme.sizes.collapsetemplateSelectionHeight} 
+        - ${theme.sizes.collapseTemplateSelectionHeight} 
         - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`
       : `calc(100vh - ${theme.spacing.navbarHeight} 
         - ${theme.sizes.templateSelectionHeight} 

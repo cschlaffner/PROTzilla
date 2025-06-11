@@ -82,7 +82,7 @@ const StyledContainer = styled.div`
 
 const StyledTemplateCard = styled(Card)<{ isCollapsed: boolean }>`
   height: ${({ isCollapsed }) =>
-    isCollapsed ? size("collapsetemplateSelectionHeight") : size("templateSelectionHeight")};
+    isCollapsed ? size("collapseTemplateSelectionHeight") : size("templateSelectionHeight")};
   width: calc(100vw - (2 * ${spacing("small")}));
 `;
 
@@ -105,7 +105,7 @@ const StyledRunSelectionCard = styled(Card)<{ isExtended: boolean }>`
       ? `calc(100vh - 
       (${theme.spacing.navbarHeight} + ${theme.sizes.templateSelectionHeight} 
       + (3 * ${theme.spacing.small})) 
-      + (${theme.sizes.templateSelectionHeight} - ${theme.sizes.collapsetemplateSelectionHeight}))`
+      + (${theme.sizes.templateSelectionHeight} - ${theme.sizes.collapseTemplateSelectionHeight}))`
       : `calc(100vh - (${theme.spacing.navbarHeight} 
       + ${theme.sizes.templateSelectionHeight} + (3 * ${theme.spacing.small})))`};
   width: calc(100vw - (2 * ${spacing("small")}));
