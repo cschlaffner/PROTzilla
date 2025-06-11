@@ -52,7 +52,7 @@ jobs:
 
       - name: Run tests and build coverage file
         run: |
-          export PYTHONPATH=. pytest 
+          export PYTHONPATH=backend pytest 
           pytest --cache-clear --cov=. --cov-report term-missing backend/tests/
 
       - name: Format with black

@@ -1,7 +1,7 @@
-from django.test import SimpleTestCase
+from django.test import TestCase
 from django.urls import reverse
 
-class FrontendRoutingTest(SimpleTestCase):
+class FrontendRoutingTest(TestCase):
 
     def test_get_csrf_token_url(self):
         response = self.client.get(reverse('get_csrf_token'))
