@@ -15,9 +15,10 @@ const SwitchDiv = styled.div<{ hasSwitchAlignStart: boolean }>`
 `;
 
 const StyledCard = styled(Card)<{ hasShadow: boolean }>`
-  ${({ hasShadow }) =>
-    hasShadow ? `box-shadow: ${shadow("box_shadow")}` : "box-shadow: none"};
+  box-shadow: ${({ hasShadow }) =>
+    hasShadow ? shadow("box_shadow") : "none"};
 `;
+
 
 export const SwitchCard: React.FC<SwitchCardProps> = ({
   components,
