@@ -37,6 +37,11 @@ const SettingsDiv = styled.div`
   gap: ${spacing("verySmall")};
 `;
 
+const StyledDiv = styled.div`
+  overflow: auto;
+  max-height: 70vh;
+`;
+
 const Footer = styled.div`
   bottom: 0;
   left: 0;
@@ -253,13 +258,15 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={5}>
-          <PlotComponent
-            data={plot.data}
-            layout={plot.layout}
-            hasBorder={true}
-            hasResizing={false}
-            divId={divId}
-          />
+          <StyledDiv>
+            <PlotComponent
+              data={plot.data}
+              layout={plot.layout}
+              hasBorder={true}
+              hasResizing={false}
+              divId={divId}
+            />
+          </StyledDiv>
         </Col>
       </Row>
       <Footer>
