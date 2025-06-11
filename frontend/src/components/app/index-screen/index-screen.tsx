@@ -450,7 +450,7 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-                handleContinueRun(data);
+                void handleContinueRun(data);
               }}
             ></Form>
           </Modal>
