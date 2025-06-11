@@ -22,7 +22,8 @@ const TableContainer = styled.div`
   overflow-x: hidden;
     
   // Adjusted to navbar, template selection, title, header and search bar.
-  // Simplified with 3 * large spacing as approximation for items in run selection card above this table
+  // Simplified with 3 * large spacing as approximation for items in
+  // run selection card above this table
   height: calc(
     100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
       (3 * ${spacing("small")}) - (3 * ${spacing("large")})); 

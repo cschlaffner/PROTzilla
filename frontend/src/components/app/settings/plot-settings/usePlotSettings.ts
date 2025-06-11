@@ -191,9 +191,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
 
   // Handle functions for input fields regarding the plot settings
   const handleFileFormatChange = (value: string | null) => {
-    if (value === null) {
-      value = "";
-    }
+    value ??= "";
+
     setSettings((prev) => ({
       ...prev,
       fileFormat: value,
