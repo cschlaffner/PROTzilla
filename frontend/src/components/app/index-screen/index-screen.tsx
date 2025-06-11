@@ -526,7 +526,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     openImportRunModal();
                   }}
-                  icon="download"
+                  icon="upload"
                   tooltip="Import a run"
                   tooltipPosition={"bottom"}
                 ></StyledRightButton>
