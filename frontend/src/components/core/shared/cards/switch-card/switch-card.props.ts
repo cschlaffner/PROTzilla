@@ -4,5 +4,6 @@ export interface SwitchCardProps {
   components: SwitchComponent[];
   hasSwitchAlignStart?: boolean;
   hasCardTitle?: boolean;
+  hasShadow?: boolean;
   styleProps?: React.CSSProperties;
 }

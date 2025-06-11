@@ -1,4 +1,4 @@
-import { spacing } from "@protzilla/theme";
+import { shadow, spacing } from "@protzilla/theme";
 import { SwitchComponent } from "@protzilla/utils";
 import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
@@ -14,10 +14,16 @@ const SwitchDiv = styled.div<{ hasSwitchAlignStart: boolean }>`
   padding-bottom: ${spacing("small")};
 `;
 
+const StyledCard = styled(Card)<{ hasShadow: boolean }>`
+  ${({ hasShadow }) =>
+    hasShadow ? `box-shadow: ${shadow("box_shadow")}` : "box-shadow: none"};
+`;
+
 export const SwitchCard: React.FC<SwitchCardProps> = ({
   components,
   hasSwitchAlignStart = true,
   hasCardTitle = true,
+  hasShadow = true,
   styleProps,
 }) => {
   const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
@@ -42,15 +48,17 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
           onChange={setSwitchState}
         />
       </SwitchDiv>
-      <Card
+      <StyledCard
+      hasShadow={hasShadow}
         {...(hasCardTitle
           ? {
               title: switchState.name,
             }
-          : {})}
+          : {})
+        } 
       >
         {switchState.value}
-      </Card>
+      </StyledCard>
     </div>
   );
 };

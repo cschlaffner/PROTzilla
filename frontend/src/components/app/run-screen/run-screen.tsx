@@ -199,6 +199,7 @@ export const RunScreen: React.FC = () => {
     <StyledContentContainer>
       {tableData && tableData.length > 0 ? (
         <SwitchCard
+          hasShadow={false}
           components={tableData.map((table) => ({
             value: singleTableComponent(table),
             name: table.name,
@@ -210,7 +211,7 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const otherComponent = <SwitchCard components={[{ name: "🚧", value: dummyTextComponent1 }]} />;
+  const otherComponent = <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />;
 
   const listEditorComponent = (
     <ListEditor
