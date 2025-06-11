@@ -211,7 +211,9 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const otherComponent = <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />;
+  const otherComponent = (
+    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
+  );
 
   const listEditorComponent = (
     <ListEditor

@@ -15,10 +15,8 @@ const SwitchDiv = styled.div<{ hasSwitchAlignStart: boolean }>`
 `;
 
 const StyledCard = styled(Card)<{ hasShadow: boolean }>`
-  box-shadow: ${({ hasShadow }) =>
-    hasShadow ? shadow("box_shadow") : "none"};
+  box-shadow: ${({ hasShadow }) => (hasShadow ? shadow("box_shadow") : "none")};
 `;
-
 
 export const SwitchCard: React.FC<SwitchCardProps> = ({
   components,
@@ -50,13 +48,12 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
         />
       </SwitchDiv>
       <StyledCard
-      hasShadow={hasShadow}
+        hasShadow={hasShadow}
         {...(hasCardTitle
           ? {
               title: switchState.name,
             }
-          : {})
-        } 
+          : {})}
       >
         {switchState.value}
       </StyledCard>
