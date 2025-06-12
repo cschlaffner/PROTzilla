@@ -23,11 +23,16 @@ const TableContainer = styledDiv.div<{ $isExtended?: boolean }>`
     
   // Adjusted to navbar, template selection, title, header and search bar.
   // Adapts to whether the workflows are collapsed and therefore the runtable being expanded
-  // Simplified with 3 * large spacing as approximation for items in run selection card above this table
+  // Simplified with 3 * large spacing as approximation for 
+  // items in run selection card above this table
   height: ${({ $isExtended, theme }) =>
     $isExtended
-      ? `calc(100vh - ${theme.spacing.navbarHeight} - ${theme.sizes.collapsetemplateSelectionHeight} - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`
-      : `calc(100vh - ${theme.spacing.navbarHeight} - ${theme.sizes.templateSelectionHeight} - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`};
+      ? `calc(100vh - ${theme.spacing.navbarHeight} 
+        - ${theme.sizes.collapsetemplateSelectionHeight} 
+        - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`
+      : `calc(100vh - ${theme.spacing.navbarHeight} 
+        - ${theme.sizes.templateSelectionHeight} 
+        - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`};
   
   &:hover {
     overflow-x: auto;

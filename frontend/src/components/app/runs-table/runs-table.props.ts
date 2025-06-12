@@ -7,5 +7,6 @@ export interface RunsTableProps extends React.HTMLAttributes<HTMLDivElement> {
   setRuns: React.Dispatch<React.SetStateAction<Run[]>>;
   openTagModal: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedRun: React.Dispatch<React.SetStateAction<Run>>;
-  isExtended: boolean; // used to determine height of runs table when workflow selection is collapsed
+  isExtended: boolean;  // used to determine height of runs 
+                        // table when workflow selection is collapsed
 }

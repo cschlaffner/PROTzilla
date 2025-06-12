@@ -375,7 +375,7 @@ export const IndexScreen: React.FC = () => {
           title={
             <StyledHeader>
               <StyledTitleDiv>
-              <StyledIconButton
+                <StyledIconButton
                   isShy={true}
                   icon={isWorkflowTemplateCollapsed ? "list" : "chevronDoubleUp"}
                   onClick={() => {
@@ -386,12 +386,9 @@ export const IndexScreen: React.FC = () => {
                     }
                   }}
                 ></StyledIconButton>
-              <StyledRightElement>
-              Template Workflows
-              </StyledRightElement>
+                <StyledRightElement>Template Workflows</StyledRightElement>
               </StyledTitleDiv>
               <StyledButtonDiv>
-
                 <StyledLeftButton
                   onClick={() => {
                     openExportModal();
