@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit --pretty -p ./tsconfig.app.json",
     "test": "vitest run --passWithNoTests",
     "preview": "vite preview",
-    "prepare": "husky",
+    "prepare": "cd .. && husky frontend/.husky",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -86,6 +86,12 @@
   "eslintConfig": {
     "extends": [
       "plugin:storybook/recommended"
+    ]
+  },
+  "lint-staged": {
+    "**/*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
     ]
   }
 }
