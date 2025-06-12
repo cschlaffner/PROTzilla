@@ -10,5 +10,6 @@ export interface NumberInputFieldProps extends InputContainerProps, UIStateProps
   step?: number;
   hasStepButtons?: boolean;
   isInteger?: boolean;
+  hasExtendedSubscript?: boolean;
   onChange: (value: number) => void;
 }

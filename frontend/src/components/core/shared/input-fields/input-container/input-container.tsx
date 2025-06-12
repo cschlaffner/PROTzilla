@@ -35,8 +35,8 @@ const StyledInputFrame = styled.div.withConfig({
     ${borderColors("default")};
   border-radius: ${border("defaultRadius")};
   display: flex;
-  gap: ${spacing("verySmall")};
   width: 100%;
+  overflow: hidden;
 `;
 
 const StyledSeparateAffix = styledDiv.div`

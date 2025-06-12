@@ -175,6 +175,7 @@ export const DatabaseSettings = () => {
       <Form
         formData={{
           label: "",
+          labelSubmitButton: "Add database",
           isAutoSubmit: false,
           hasChangeIndicator: false,
           input_fields: [
@@ -203,7 +204,7 @@ export const DatabaseSettings = () => {
           void handleAddDatabase(
             data.database_name as string,
             data.database_file as string,
-            data.verification_checkbox === "true",
+            data.verification_checkbox as boolean,
           );
         }}
       />

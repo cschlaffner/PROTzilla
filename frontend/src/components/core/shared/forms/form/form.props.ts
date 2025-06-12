@@ -18,6 +18,7 @@ export interface FormProps {
 
 export interface FormData {
   label: string;
+  labelSubmitButton?: string;
   isAutoSubmit: boolean;
   hasChangeIndicator: boolean;
   input_fields: InputField[];
