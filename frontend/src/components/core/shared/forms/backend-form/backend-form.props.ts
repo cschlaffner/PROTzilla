@@ -18,6 +18,7 @@ export interface BackendFormProps {
   previousStepCalculationStatus: StepStatus | undefined;
   currentStepCalculationStatus: StepStatus | undefined;
   current_step_index: number;
+  isLastStep: boolean;
   onNext: () => void;
   onChange: () => void;
   onSubmit: (request: RequestData) => void;

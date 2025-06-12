@@ -3,6 +3,6 @@ import { RunData, SelectedStep } from "@protzilla/utils";
 export interface ListEditorProps {
   onFormSubmit: () => void;
   runName: string;
-  handleStepSelection: (selectedStep: SelectedStep | undefined) => void;
+  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
   runData: RunData;
 }
