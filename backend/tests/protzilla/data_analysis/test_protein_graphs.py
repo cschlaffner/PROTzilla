@@ -10,8 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import RUNS_PATH
-from backend.tests.paths import TEST_DATA_PATH
+from backend.tests.paths import TEST_DATA_PATH, TEST_RUNS_PATH
 from backend.protzilla.data_analysis.protein_graphs import (
     _create_contigs_dict,
     _create_graph_index,
@@ -788,9 +787,9 @@ def test_create_prot_variation_graph(
     run_name = (
         tests_folder_name + "/test_create_prot_variation_graph_" + random_string()
     )
-    (RUNS_PATH / run_name).mkdir(exist_ok=True)
+    (TEST_RUNS_PATH / run_name).mkdir(exist_ok=True)
 
-    output_folder = RUNS_PATH / run_name / f"graphs"
+    output_folder = TEST_RUNS_PATH / run_name / f"graphs"
     graph_path = output_folder / f"{protein_id}.graphml"
     planned_msg = (
         f"Graph created for protein {protein_id} at {graph_path} using {protein_path}"
@@ -1325,12 +1324,12 @@ def test_peptides_to_isoform_integration_test(
     tests_folder_name,
 ):
     run_name = f"{tests_folder_name}/test_peptides_to_isoform_integration_test"
-    run_path = RUNS_PATH / run_name
+    run_path = TEST_RUNS_PATH / run_name
     (run_path / "graphs").mkdir(parents=True, exist_ok=True)
-    test_protein_path = Path(TEST_DATA_PATH / "proteins" / "test_protein_variation.txt")
+    test_protein_path = TEST_DATA_PATH / "proteins/test_protein_variation.txt"
     test_protein_destination = Path(run_path / "graphs" / "test_protein_variation.txt")
     shutil.copy(test_protein_path, test_protein_destination)
-
+    print("RUNNAME ",run_name)
     protein_id = "test_protein_variation"
     out_dict = peptides_to_isoform(
         peptide_df=integration_test_peptides,
@@ -1380,7 +1379,7 @@ def test_peptides_to_isoform_integration_test_shortcut(
     tests_folder_name,
 ):
     run_name = f"{tests_folder_name}/test_peptides_to_isoform_integration_test_shortcut"
-    run_path = RUNS_PATH / run_name
+    run_path = TEST_RUNS_PATH / run_name
     (run_path / "graphs").mkdir(parents=True, exist_ok=True)
 
     protein_id = "test_protein-shortcut"
@@ -1491,7 +1490,7 @@ def test_peptides_to_isoform_integration_test_longer_variations(
 ):
     run_name = f"{tests_folder_name}/test_peptides_to_isoform_integration_test_longer_variations"
     run_path = (
-        RUNS_PATH
+        TEST_RUNS_PATH
         / tests_folder_name
         / "test_peptides_to_isoform_integration_test_longer_variations"
     )

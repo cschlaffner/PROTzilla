@@ -53,7 +53,7 @@ class Runner:
             if run_name is not None and run_name.strip() is not None
             else f"runner_{random_string()}"
         )
-
+        print("PATH: ", RUNS_PATH, self.run_name)
         if os.path.exists(Path(f"{RUNS_PATH}/{self.run_name}")):
             self._overwrite_run_prompt()
             print("\n\n")

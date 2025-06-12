@@ -6,6 +6,7 @@ import pytest
 import yaml
 
 from backend.protzilla.utilities import random_string
+from backend.tests.paths import TEST_RUNS_PATH
 
 from backend.protzilla.runner import Runner
 from runner_cli import args_parser
@@ -95,9 +96,11 @@ def test_run_already_exists(monkeypatch, capsys, tests_folder_name):
     test_args = ["standard", "ms_data", f"--run_name={run_name}"]
     Runner(**args_parser().parse_args(test_args).__dict__)
 
+    assert (TEST_RUNS_PATH / run_name).exists()
     mock_input_no = mock.Mock(return_value="n")
     monkeypatch.setattr("builtins.input", mock_input_no)
-    pytest.raises(SystemExit, Runner, **args_parser().parse_args(test_args).__dict__)
+    with pytest.raises(SystemExit):
+        Runner(**args_parser().parse_args(test_args).__dict__)
 
     mock_input_yes = mock.Mock(return_value="y")
     monkeypatch.setattr("builtins.input", mock_input_yes)

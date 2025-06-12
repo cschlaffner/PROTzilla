@@ -3,6 +3,7 @@ import io
 import logging
 import time
 import uuid
+import tempfile
 from pathlib import Path
 from shutil import rmtree
 
@@ -12,12 +13,13 @@ import pytest
 from PIL import Image
 
 from django.conf import settings
+from unittest.mock import patch
 
 from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
 from backend.protzilla.constants.paths import RUNS_PATH
-from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH, TEST_TEMPLATE_PATH
+from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH, TEST_TEMPLATE_PATH, TEST_RUNS_PATH, TEST_WORKFLOWS_PATH
 from backend.protzilla.utilities import random_string
 
 
@@ -29,20 +31,34 @@ def pytest_addoption(parser):
         help="If 'True', tests will open figures using the default renderer",
     )
 
+@pytest.fixture(scope="session",autouse=True)
+def setup_paths_and_cleanup():
+
+    TEST_RUNS_PATH.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.protzilla.constants.paths.RUNS_PATH", TEST_RUNS_PATH),
+        patch("backend.protzilla.runner.RUNS_PATH", TEST_RUNS_PATH),
+        patch("backend.protzilla.data_analysis.protein_graphs.RUNS_PATH", TEST_RUNS_PATH),
+        patch("backend.protzilla.constants.paths.WORKFLOWS_PATH", TEST_WORKFLOWS_PATH)
+    ):
+        yield
+        
+    # After the test or fixture that uses this fixture is done, remove the directory
+    while TEST_RUNS_PATH.exists():
+        time.sleep(1)
+        rmtree(TEST_RUNS_PATH)
+
+
 
 @pytest.fixture(scope="function")
 def run_name_and_cleanup():
     # Generate a unique run name
     run_name = f"test_run_{uuid.uuid4()}"
-    run_path = Path(RUNS_PATH) / run_name
 
     # Yield the run name to the test or fixture that uses this fixture
     yield run_name
 
-    # After the test or fixture that uses this fixture is done, remove the directory
-    while run_path.exists():
-        time.sleep(1)
-        rmtree(run_path)
 
 
 @pytest.fixture
@@ -92,9 +108,6 @@ def show_figures(request):
 def tests_folder_name():
     name = f"tests_{random_string()}"
     yield name
-    while Path(f"{RUNS_PATH}/{name}").exists():
-        time.sleep(1)
-        rmtree(Path(f"{RUNS_PATH}/{name}"))
 
 
 @pytest.fixture
