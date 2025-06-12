@@ -32,11 +32,16 @@ const StyledHeader = styledDiv.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding-bottom: ${spacing("medium")}
 `;
 
 const StyledButtonDiv = styledDiv.div`
   position: relative;
-  width: calc(3 * ${size("buttonHeight")} + 2 * ${spacing("buttonGap")})
+  width: calc(3 * ${size("buttonHeight")} + 2 * ${spacing("buttonGap")});
+`;
+
+const StyledTitleDiv = styledDiv.div`
+  position: relative;
 `;
 
 const StyledLeftButton = styled(Button)`
@@ -51,10 +56,19 @@ const StyledRightButton = styled(Button)`
   left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
 `;
 
+const StyledRightElement = styled.div`
+  position: absolute;
+  height: ${size("buttonHeight")};
+  top: 0px;
+  left: calc(${size("buttonHeight")} + ${spacing("buttonGap")});
+  white-space: nowrap;
+  line-height: ${size("buttonHeight")};
+  text-align: center;
+`;
+
 const StyledIconButton = styled(SecondaryButton)`
   position: absolute;
   top: 0px;
-  left: calc(2 * ${size("buttonHeight")} + 2 * ${spacing("buttonGap")});
 `;
 
 const StyledContainer = styled.div`
@@ -360,9 +374,8 @@ export const IndexScreen: React.FC = () => {
           isCollapsed={isWorkflowTemplateCollapsed}
           title={
             <StyledHeader>
-              Template Workflows
-              <StyledButtonDiv>
-                <StyledIconButton
+              <StyledTitleDiv>
+              <StyledIconButton
                   isShy={true}
                   icon={isWorkflowTemplateCollapsed ? "list" : "chevronDoubleUp"}
                   onClick={() => {
@@ -373,6 +386,12 @@ export const IndexScreen: React.FC = () => {
                     }
                   }}
                 ></StyledIconButton>
+              <StyledRightElement>
+              Template Workflows
+              </StyledRightElement>
+              </StyledTitleDiv>
+              <StyledButtonDiv>
+
                 <StyledLeftButton
                   onClick={() => {
                     openExportModal();
