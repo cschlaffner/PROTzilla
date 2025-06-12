@@ -1,3 +1,4 @@
+import { useNotification } from "@protzilla/app";
 import { CollapsibleLabel, H3, Icon } from "@protzilla/core";
 import { callApiWithParameters, Step } from "@protzilla/utils";
 import { motion } from "framer-motion";
@@ -58,9 +59,8 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
   isCollapsed,
   stepSectionIndex,
   runData,
-  handleStepSelection,
+  navigateOrRefreshSteps,
   currentSteps,
-  setCurrentSteps,
 }: SidebarSectionProps) => {
   const isCurrentSection = runData.current_section === (name as string);
 
@@ -70,8 +70,10 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   const [showHandle, setShowHandle] = useState(false);
 
-  const addStep = (newStep: Step) => {
-    setCurrentSteps((prevSteps: Step[]) => [...prevSteps, newStep]);
+  const notify = useNotification();
+
+  const addStep = () => {
+    navigateOrRefreshSteps();
   };
 
   const deleteStep = async (index: number) => {
@@ -79,19 +81,13 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
       run_name: runName,
       section: name,
       index: index.toString(),
+    }).then((response) => {
+      notify({
+        type: response.success ? "success" : "error",
+        title: response.message,
+      });
     });
-    setCurrentSteps((prevSteps: Step[]) => prevSteps.filter((_: Step, i: number) => index !== i));
-    if (isCurrentSection) {
-      if (currentSteps.length === 0) {
-        handleStepSelection(undefined);
-      } else {
-        const newIndex = stepSectionIndex ? Math.min(stepSectionIndex, currentSteps.length - 1) : 0;
-        handleStepSelection({
-          section: name,
-          index: newIndex,
-        });
-      }
-    }
+    navigateOrRefreshSteps();
   };
 
   return (
@@ -128,7 +124,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               sectionLength={currentSteps.length}
               index={j}
               isSelected={isCurrentSection && stepSectionIndex === j}
-              handleStepSelection={handleStepSelection}
+              navigateOrRefreshSteps={navigateOrRefreshSteps}
               deleteStep={() => {
                 void deleteStep(j);
               }}
