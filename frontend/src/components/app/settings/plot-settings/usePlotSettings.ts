@@ -7,13 +7,15 @@ import { Figure, Layout } from "plotly.js";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 
-import { PlotSettings } from "./plot-settings";
-
 export interface PlotSettings {
   // User-given parameters that are stored in backend
   fileFormat: string;
   width: number;
   height: number;
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
   selectedFont: string;
   customFont: string;
   titleSize: number;
@@ -39,6 +41,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
     fileFormat: "",
     width: 0,
     height: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    marginRight: 0,
     selectedFont: "",
     customFont: "",
     titleSize: 0,
@@ -64,6 +70,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
         fileFormat: response.file_format,
         width: response.width,
         height: response.height,
+        marginTop: response.margin_top,
+        marginBottom: response.margin_bottom,
+        marginLeft: response.margin_left,
+        marginRight: response.margin_right,
         selectedFont: response.font,
         customFont: response.custom_font,
         titleSize: response.title_size,
@@ -87,6 +97,10 @@ export const usePlotSettings = (isOpen?: boolean) => {
       file_format: settings.fileFormat,
       width: settings.width,
       height: settings.height,
+      margin_top: settings.marginTop,
+      margin_bottom: settings.marginBottom,
+      margin_left: settings.marginLeft,
+      margin_right: settings.marginRight,
       font: settings.selectedFont,
       custom_font: settings.customFont,
       title_size: settings.titleSize,
@@ -177,7 +191,9 @@ export const usePlotSettings = (isOpen?: boolean) => {
     };
   };
 
-  // Because Plotly allows title to be a string or object of text & font
+  /**
+   * Because Plotly allows title to be a string or object of text & font
+   */
   const getTitleFromLayout = (layout: Partial<Layout>) => {
     const titleProp = layout.title;
     if (titleProp == null) {
@@ -189,25 +205,14 @@ export const usePlotSettings = (isOpen?: boolean) => {
     return titleProp.text ?? "";
   };
 
-  // Handle functions for input fields regarding the plot settings
-  const handleFileFormatChange = (value: string | null) => {
-    value ??= "";
-
+  // Handle functions
+  /**
+   * This function is used as generic handler if there are no side effects
+   */
+  const handleSettingChange = <K extends keyof PlotSettings>(key: K, value: PlotSettings[K]) => {
     setSettings((prev) => ({
       ...prev,
-      fileFormat: value,
-    }));
-  };
-  const handleWidthChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      width: value,
-    }));
-  };
-  const handleHeightChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      height: value,
+      [key]: value,
     }));
   };
   const handleFontChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,24 +234,6 @@ export const usePlotSettings = (isOpen?: boolean) => {
       }));
     }
   };
-  const handleTitleSizeChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      titleSize: value,
-    }));
-  };
-  const handleTextSizeChange = (value: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      textSize: value,
-    }));
-  };
-  const handleTitleChange = (value: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      title: value,
-    }));
-  };
 
   return {
     isLoading,
@@ -260,13 +247,8 @@ export const usePlotSettings = (isOpen?: boolean) => {
     downloadPlot,
     computeDisplaySizes,
     getTitleFromLayout,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
-    handleTitleChange,
   };
 };
