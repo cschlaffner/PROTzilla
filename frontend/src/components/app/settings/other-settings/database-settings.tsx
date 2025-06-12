@@ -136,7 +136,7 @@ export const DatabaseSettings = () => {
     } else {
       notify({
         title: "Database upload failed",
-        message: response.message || "Unknown error",
+        message: response.message ?? "Unknown error",
         type: "error",
         isClosingAutomatically: true,
       });
