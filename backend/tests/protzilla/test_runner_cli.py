@@ -5,18 +5,14 @@ from unittest import mock
 import pytest
 import yaml
 
-from backend.protzilla.constants.paths import PROJECT_PATH, BACKEND_PATH
 from backend.protzilla.utilities import random_string
 
-# sys.path.append(f"{PROJECT_PATH}/..")
-# sys.path.append(f"{PROJECT_PATH}")
-sys.path.append(f"{PROJECT_PATH}/..") # TODO S check if these changes are the ones that fix the issure/ keep expected behaviour (here and in test_runner.py)
-sys.path.append(f"{PROJECT_PATH}")
-sys.path.append(f"{BACKEND_PATH}")
-
 from backend.protzilla.runner import Runner
-from backend.runner_cli import args_parser
+from runner_cli import args_parser
 
+@pytest.fixture
+def metadata_file_path():
+    return "metadata_cut_columns.csv"
 
 def test_parse_run_name(tests_folder_name):
     run_name = f"{tests_folder_name}/test_parse_run_name_{random_string()}"
@@ -66,17 +62,16 @@ def test_parse_ms_data(tests_folder_name):
     assert Runner(**parsed_args).ms_data_path == ms_data_path
 
 
-def test_parse_meta_data(tests_folder_name):
+def test_parse_meta_data(tests_folder_name, metadata_file_path):
     run_name = f"{tests_folder_name}/test_parse_meta_data_{random_string()}"
-    meta_data_path = "tests/metadata_cut_columns.csv"
     test_args = [
         "standard",
         "ms_data",
         f"--run_name={run_name}",
-        f"--meta_data_path={meta_data_path}",
+        f"--meta_data_path={metadata_file_path}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
-    assert Runner(**parsed_args).meta_data_path == meta_data_path
+    assert Runner(**parsed_args).meta_data_path == metadata_file_path
 
 
 def test_parse_all_plots(tests_folder_name):

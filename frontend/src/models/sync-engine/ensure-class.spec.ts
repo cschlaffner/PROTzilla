@@ -5,7 +5,7 @@ describe("EnsureClass", () => {
     class Item {
       public name!: string;
     }
-    // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+     
     class Project {
       @EnsureClass<Item[]>(Item)
       public accessor items: Item[] = [];

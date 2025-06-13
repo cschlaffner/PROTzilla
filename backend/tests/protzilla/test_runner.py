@@ -1,35 +1,25 @@
 import json
 import sys
 from unittest import mock
-from unittest.mock import call
 
 import pytest
 
-from backend.protzilla.constants.paths import BACKEND_PATH, PROJECT_PATH, TEST_WORKFLOW_PATH
+from backend.tests.paths import TEST_MSDATA_PATH, TEST_METADATA_PATH, TEST_WORKFLOWS_PATH
 from backend.protzilla.utilities import random_string
 
-sys.path.append(f"{PROJECT_PATH}/..")
-sys.path.append(f"{PROJECT_PATH}")
-
 from backend.protzilla.runner import Runner, _serialize_graphs
-from backend.runner_cli import args_parser
-from backend.protzilla.steps import Output, Plots
+from runner_cli import args_parser
 from backend.main import settings
 
 
 @pytest.fixture
-def ms_data_path():
-    return "tests/proteinGroups_small_cut.txt"
+def ms_data_file_path():
+    return "MaxQuant/proteinGroups_small_cut.txt"
 
 
 @pytest.fixture
-def metadata_path():
-    return "tests/metadata_cut_columns.csv"
-
-
-@pytest.fixture
-def peptide_path():
-    return "tests/test_data/peptides_vsmall.txt"
+def metadata_file_path():
+    return "metadata_cut_columns.csv"
 
 
 def mock_perform_method(runner: Runner):
@@ -63,13 +53,13 @@ def mock_perform_plot(runner: Runner):
 
 
 def test_runner_imports(
-    monkeypatch, tests_folder_name, ms_data_path, metadata_path, peptide_path
+    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
 ):
     importing_args = [
         "standard",  # expects max-quant import, metadata import
-        ms_data_path,
+        ms_data_file_path,
         f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_path}",
+        f"--meta_data_path={metadata_file_path}",
     ]
 
     kwargs = args_parser().parse_args(importing_args).__dict__
@@ -100,8 +90,8 @@ def test_runner_imports(
         'PlotGOEnrichmentBarPlot'
     ]
     expected_method_parameters = [
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/proteinGroups_small_cut.txt'), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/metadata_cut_columns.csv'), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
         {'percentage': 0.5, 'graph_type': 'Pie chart'},
         {'deviation_threshold': 2.0, 'graph_type': 'Pie chart'},
         {'number_of_neighbours': 5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'},
@@ -111,7 +101,7 @@ def test_runner_imports(
         {'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1},
         {'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None},
         {'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []},
-        {'proteins_df': None, 'differential_expression_threshold': 1, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
+        {'proteins_df': None, 'differential_expression_threshold': 0, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
         {'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''}
     ]
 
@@ -121,11 +111,11 @@ def test_runner_imports(
 
 
 def test_runner_raises_error_for_missing_metadata_arg(
-    monkeypatch, tests_folder_name, ms_data_path
+    monkeypatch, tests_folder_name, ms_data_file_path
 ):
     no_metadata_args = [
         "only_import",
-        ms_data_path,
+        ms_data_file_path,
         f"--run_name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(no_metadata_args).__dict__
@@ -138,12 +128,12 @@ def test_runner_raises_error_for_missing_metadata_arg(
         runner.compute_workflow()
 
 
-def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_path, metadata_path):
+def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path):
     calculating_args = [
         "only_import_and_filter_proteins",
-        ms_data_path,
+        ms_data_file_path,
         f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_path}",
+        f"--meta_data_path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -163,19 +153,19 @@ def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_path, metadat
         "FilterProteinsBySamplesMissing",
     ]
     assert mock_method.inputs == [
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/proteinGroups_small_cut.txt'), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / 'tests/metadata_cut_columns.csv'), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
+        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
         {'percentage': 0.5, 'graph_type': 'Pie chart'},
     ]
     mock_plot.assert_not_called()
 
 
-def test_runner_calculates_logging(caplog, tests_folder_name, ms_data_path):
+def test_runner_calculates_logging(caplog, tests_folder_name):
     calculating_args = [
         "only_import_and_filter_proteins",
-        "wrong_ms_data_path",
+        "wrong_ms_data_file_path",
         f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_path}",
+        f"--meta_data_path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -201,7 +191,7 @@ def test_serialize_graphs():
 
 def test_serialize_workflow_graphs():
     with open(
-        TEST_WORKFLOW_PATH / "example_workflow.json", "r"
+        TEST_WORKFLOWS_PATH / "example_workflow.json", "r"
     ) as f:
         workflow_config = json.load(f)
 
@@ -221,13 +211,14 @@ def test_serialize_workflow_graphs():
             assert _serialize_graphs(step["graphs"]) == serial_filter_graphs
 
 
-def test_integration_runner(metadata_path, ms_data_path, tests_folder_name, monkeypatch):
+def test_integration_runner(metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
+    print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
-            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
+            "ms_data_path": f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
+            "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",
@@ -242,13 +233,13 @@ def test_integration_runner(metadata_path, ms_data_path, tests_folder_name, monk
     runner.compute_workflow()
 
 
-def test_integration_runner_no_plots(metadata_path, ms_data_path, tests_folder_name, monkeypatch):
+def test_integration_runner_no_plots(metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch):
     name = tests_folder_name + "/test_runner_integration" + random_string()
     runner = Runner(
         **{
             "workflow": "standard",
-            "ms_data_path": f"{BACKEND_PATH}/{ms_data_path}",
-            "meta_data_path": f"{BACKEND_PATH}/{metadata_path}",
+            "ms_data_path": f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
+            "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "disk",

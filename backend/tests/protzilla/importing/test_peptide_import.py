@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import TEST_DATA_PATH
+from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.importing import peptide_import
 
 

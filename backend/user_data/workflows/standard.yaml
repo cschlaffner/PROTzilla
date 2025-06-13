@@ -63,7 +63,7 @@ steps:
     inputs: { }
     type: PlotVolcano
   - form_inputs:
-      differential_expression_threshold: 1
+      differential_expression_threshold: 0
       direction: both
       gene_sets_restring: [ ]
       organism: 9606

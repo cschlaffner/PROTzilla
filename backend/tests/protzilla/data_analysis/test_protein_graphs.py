@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.protzilla.constants.paths import RUNS_PATH, TEST_DATA_PATH
+from backend.protzilla.constants.paths import RUNS_PATH
+from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.data_analysis.protein_graphs import (
     _create_contigs_dict,
     _create_graph_index,

@@ -1,0 +1,15 @@
+import type { UIStateProps } from "@protzilla/utils";
+
+import { InputContainerProps } from "../input-container";
+
+export interface NumberInputFieldProps extends InputContainerProps, UIStateProps {
+  value?: number;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  hasStepButtons?: boolean;
+  isInteger?: boolean;
+  hasExtendedSubscript?: boolean;
+  onChange: (value: number) => void;
+}

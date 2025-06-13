@@ -1,4 +1,4 @@
-import { Section, Sections, SelectedStep } from "../components/sidebar/types.ts";
+import { Section, SectionIDs, SelectedStep } from "@protzilla/utils";
 
 export const translateGlobalToSectionIndex = (
   globalIndex: number,
@@ -11,5 +11,5 @@ export const translateGlobalToSectionIndex = (
     }
     i -= section.steps.length;
   }
-  return { section: Sections.Importing, index: 0 };
+  return { section: SectionIDs.Importing, index: 0 };
 };
