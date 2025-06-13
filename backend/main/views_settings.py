@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
-from backend.main.views_helper import convert_name
+from backend.main.views_helper import sanitize_name
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.disk_operator import YamlOperator
@@ -107,7 +107,7 @@ def database_upload(request):
         file_name = data.get("file")
         path = settings.FILE_UPLOAD_TEMP_DIR / file_name
 
-        converted_name, message = convert_name(name)
+        converted_name, message = sanitize_name(name)
 
         if converted_name is None or converted_name == "":
             msg = "Filename cannot be empty."

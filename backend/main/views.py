@@ -26,7 +26,7 @@ from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
 from backend.main.views_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, \
-    get_all_possible_steps, convert_name
+    get_all_possible_steps, sanitize_name
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -113,7 +113,7 @@ def add_run(request):
         workflow_name = data.get("workflow_name")
         df_mode_name = data.get("df_mode_name")
 
-        converted_run_name, additional_message = convert_name(run_name)
+        converted_run_name, additional_message = sanitize_name(run_name)
 
         try:
             Run(converted_run_name, workflow_name, df_mode_name,)
@@ -161,7 +161,7 @@ def update_run_name(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         new_run_name = data.get("new_run_name")
-        converted_run_name, additional_message = convert_name(new_run_name)
+        converted_run_name, additional_message = sanitize_name(new_run_name)
 
         try:
             if converted_run_name in get_available_run_names():

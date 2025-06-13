@@ -4,14 +4,12 @@ from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
 
 
-def convert_name(name: str) -> [str, str]:
+def sanitize_name(name: str) -> [str, str]:
     """
     Converts a run name or database name to a valid filename by replacing spaces and special characters with underscores.
     """
     original_name = name
-    name = name.strip()
-    name = re.sub(r"[^\w\s-]", "_", name)  # replace special characters with underscores
-    name = re.sub(r"[-\s]+", "_", name)  # replace spaces and hyphens with underscores
+    name = re.sub(r"[^\w-]|[\s]", "_", name)  # replace special characters and spaces with underscores
     message = ""
     if original_name != name:
         message = f" \n Provided name '{original_name}' has been converted to '{name}' to ensure it is a valid filename."
