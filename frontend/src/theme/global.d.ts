@@ -25,6 +25,7 @@ declare module "plotly.js-dist";
 declare module "plotly.js-dist-min";
 declare module "file-saver";
 
+// The original interface requires frames, which is not relevant for PROTzilla
 declare module "plotly.js" {
   interface Figure {
     data: Data[];

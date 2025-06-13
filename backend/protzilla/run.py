@@ -13,7 +13,7 @@ from typing import Any
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
-from backend.protzilla.steps import Messages, Output, Plots, Step
+from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
 from backend.protzilla.utilities import format_trace
 
 
@@ -191,7 +191,7 @@ class Run:
 
     @error_handling
     def _run_read(self) -> None:
-        self.steps = self.disk_operator.read_run()
+        self.steps: StepManager = self.disk_operator.read_run()
         self.steps.disk_operator = self.disk_operator
         self.df_mode = self.steps.df_mode
         self._metadata = self.metadata_read()
