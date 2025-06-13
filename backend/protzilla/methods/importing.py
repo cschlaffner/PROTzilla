@@ -304,14 +304,14 @@ class PeptideImport(ImportingStep):
             label="MaxQuant Peptide Import",
             input_fields=[
                 FileInput(
-                    name="file_path",
-                    label="Peptide file",
+                    name = "file_path",
+                    label = "Peptide file",
                 ),
                 DropdownField(
-                    name="intensity_name",
-                    label="Intensity parameter",
-                    options=IntensityType,
-                    value=IntensityType.INTENSITY.value,
+                    name = "intensity_name",
+                    label = "Intensity parameter",
+                    options = IntensityType,
+                    value = IntensityType.INTENSITY.value,
                 ),
                 CheckboxField(
                     name = "map_to_uniprot",
@@ -326,11 +326,15 @@ class PeptideImport(ImportingStep):
         map_to_uniprot_field = form["map_to_uniprot"]
 
         intensity_name_field.value = run.steps.get_step_input(
-            [MaxQuantImport, MsFraggerImport, DiannImport], "intensity_name"
+            [MaxQuantImport, MsFraggerImport, DiannImport],
+            "intensity_name",
+            default = intensity_name_field.value
         )
 
         map_to_uniprot_field.value = run.steps.get_step_input(
-            [MaxQuantImport, MsFraggerImport, DiannImport], "map_to_uniprot"
+            [MaxQuantImport, MsFraggerImport, DiannImport],
+            "map_to_uniprot",
+            default = map_to_uniprot_field.value
         )
 
     calc_method = staticmethod(peptide_import)
