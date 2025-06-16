@@ -1,4 +1,3 @@
-import { useNotification } from "@protzilla/app";
 import {
   BigButton,
   CircularButton,
@@ -9,7 +8,6 @@ import {
   useTooltipScheduling,
 } from "@protzilla/core";
 import { color, size, spacing } from "@protzilla/theme";
-import { callApiWithParameters } from "@protzilla/utils";
 import { useState } from "react";
 import { Container } from "react-grid-system";
 import { styled } from "styled-components";
@@ -43,42 +41,30 @@ const StyledCircularButton = styled(CircularButton)`
   z-index: 1;
 `;
 
+const SytledIcon = styled(Icon)`
+  height: calc(${size("smallButtonHeight")} - ${spacing("small")});
+`;
+
 export const Workflow: React.FC<WorkflowProps> = ({
   workflow,
   onPress,
   icon,
-  refreshWorkflowList,
+  handleDeleteWorkflow,
 }) => {
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
 
-  const notify = useNotification();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleDeleteWorkflow = async (workflow: string) => {
-    const response = await callApiWithParameters("delete_workflow/", { workflow_name: workflow });
-    if (response.success) {
-      notify({
-        title: "Delete Workflow",
-        message: `Workflow "${workflow}" deleted successfully.`,
-        type: "info",
-      });
-      await refreshWorkflowList();
-    } else {
-      notify({
-        title: "Delete Workflow Failed",
-        message: `Failed to delete workflow "${workflow}": ${String(response.message)}`,
-        type: "error",
-      });
-    }
-    setIsDeleteModalOpen(false);
-  };
-
   return (
     <StyledContainer
-      onMouseEnter={() => { setIsHovered(true); }}
-      onMouseLeave={() => { setIsHovered(false); }}
+      onMouseEnter={() => {
+        setIsHovered(true);
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+      }}
     >
       <BigButton icon={icon} isBig={true} onPress={onPress} />
       <NameText
@@ -94,25 +80,28 @@ export const Workflow: React.FC<WorkflowProps> = ({
           distance={13}
         />
       </NameText>
-      {isHovered &&  <StyledCircularButton
-        isSmall
-        isCautious
-        isShy
-        onClick={(e) => {
-          if (workflow) {
-            setIsDeleteModalOpen(true);
-          }
-          e.stopPropagation();
-        }}
-      >
-        <Icon icon={"trash"} style={{ height: "15px" }} />
-      </StyledCircularButton> }
+      {isHovered && (
+        <StyledCircularButton
+          isSmall
+          isCautious
+          isShy
+          onClick={(e) => {
+            if (workflow) {
+              setIsDeleteModalOpen(true);
+            }
+            e.stopPropagation();
+          }}
+        >
+          <SytledIcon icon={"trash"} />
+        </StyledCircularButton>
+      )}
       <DeleteModal
         title={`Delete workflow "${workflow ?? ""}"?`}
         isOpen={isDeleteModalOpen}
         onConfirm={() => {
           if (workflow) {
-            void handleDeleteWorkflow(workflow);
+            handleDeleteWorkflow(workflow);
+            setIsDeleteModalOpen(false);
           }
         }}
         onClose={() => {

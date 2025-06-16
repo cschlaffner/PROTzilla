@@ -335,6 +335,24 @@ export const IndexScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteWorkflow = async (workflow: string) => {
+    const response = await callApiWithParameters("delete_workflow/", { workflow_name: workflow });
+    if (response.success) {
+      notify({
+        title: "Delete Workflow",
+        message: `Workflow "${workflow}" deleted successfully.`,
+        type: "info",
+      });
+      void getWorkflows();
+    } else {
+      notify({
+        title: "Delete Workflow Failed",
+        message: `Failed to delete workflow "${workflow}": ${String(response.message)}`,
+        type: "error",
+      });
+    }
+  };
+
   const scrollLeft = () => {
     const container = document.querySelector(".workflow-container");
     if (container) {
@@ -398,11 +416,13 @@ export const IndexScreen: React.FC = () => {
                 key={workflow}
                 icon="add"
                 workflow={workflow}
+                handleDeleteWorkflow={(workflow_name) => {
+                  void handleDeleteWorkflow(workflow_name);
+                }}
                 onPress={() => {
                   setSelectedWorkflow(workflow);
                   setIsWorkflowModalOpen(true);
                 }}
-                refreshWorkflowList={getWorkflows}
               />
             ))}
           </StyledWorkflowContainer>
