@@ -214,6 +214,8 @@ class Run:
         if self.run_name != new_run_name:
             self.disk_operator.update_run_name(new_run_name)
             self.update_modification_date()
+            self._instances.pop(self.run_name, None)
+            self._instances[new_run_name] = self
             self.run_name = new_run_name
 
     @error_handling
