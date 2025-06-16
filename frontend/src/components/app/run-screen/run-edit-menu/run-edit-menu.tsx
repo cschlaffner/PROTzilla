@@ -74,8 +74,9 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
     }, [runName, notify]);
 
     const handleNameChange = async (newName: string) => {
+      const previousName = selectedRun.run_name;
       const response = await callApiWithParameters("update_run_name/", {
-        run_name: selectedRun.run_name,
+        run_name: previousName,
         new_run_name: newName,
       });
       if (!response?.success) {
@@ -86,15 +87,19 @@ export const RunEditMenu = forwardRef<HTMLDivElement, RunEditMenuProps>(
         });
         throw new Error("Failed to update run name");
       } else {
+        const convertedRunName = response.data.run_name as string;
+        setSelectedRun((prev) => ({
+          ...prev,
+          run_name: convertedRunName,
+          modification_date: new Date().toLocaleString("en-US"),
+        }));
         notify({
           title: "Run name updated",
-          message: `Run name changed from ${selectedRun.run_name} to ${newName}`,
+          message: `Run name changed from ${previousName} to ${convertedRunName}`,
           type: "success",
         });
 
-        selectedRun.run_name = newName;
-        selectedRun.modification_date = new Date().toLocaleString("en-US");
-        onChangeRunName(newName);
+        onChangeRunName(convertedRunName);
       }
     };
 
