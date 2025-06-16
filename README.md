@@ -8,9 +8,9 @@
 | backend/main/\_\_init\_\_.py                                                  |        0 |        0 |    100% |           |
 | backend/main/upload\_handler.py                                               |       36 |       36 |      0% |      1-67 |
 | backend/main/urls.py                                                          |        5 |        5 |      0% |     16-22 |
-| backend/main/views.py                                                         |      327 |      327 |      0% |     1-635 |
-| backend/main/views\_helper.py                                                 |       70 |       58 |     17% |7-37, 41, 50, 55-56, 69-131, 135-138, 148-154 |
-| backend/main/views\_settings.py                                               |      137 |      137 |      0% |     1-219 |
+| backend/main/views.py                                                         |      331 |      331 |      0% |     1-662 |
+| backend/main/views\_helper.py                                                 |       77 |       63 |     18% |11-17, 21-29, 32-49, 51-62, 66-69, 78-106, 124-144, 147-168 |
+| backend/main/views\_settings.py                                               |      139 |      139 |      0% |     1-228 |
 | backend/protzilla/\_\_init\_\_.py                                             |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                               |        7 |        1 |     86% |         1 |
 | backend/protzilla/data\_analysis/\_\_init\_\_.py                              |        0 |        0 |    100% |           |
@@ -72,7 +72,7 @@
 | backend/protzilla/workflow.py                                                 |        5 |        1 |     80% |         6 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-|                                                                     **TOTAL** | **6256** | **2606** | **58%** |           |
+|                                                                     **TOTAL** | **6269** | **2617** | **58%** |           |
 
 
 ## Setup coverage badge
