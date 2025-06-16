@@ -36,7 +36,11 @@ const ChangeIndicator = styled.div`
 `;
 
 export const Form: React.FC<FormProps> = ({ formData, onChange, onFormTouched }) => {
-  const [formValues, setFormValues] = useState<Record<string, InputValueType>>({});
+  const initialValues: Record<string, InputValueType> = {};
+  for (const inputField of formData.input_fields) {
+    initialValues[inputField.name] = inputField.value ?? "";
+  }
+  const [formValues, setFormValues] = useState<Record<string, InputValueType>>(initialValues);
   const [submittedValues, setSubmittedValues] = useState<Record<string, InputValueType>>({});
   const [isChanged, setIsChanged] = useState(false);
   const [hasformTouchedTriggered, setHasFormTouchedTriggered] = useState(false);
@@ -89,7 +93,7 @@ export const Form: React.FC<FormProps> = ({ formData, onChange, onFormTouched })
             <ChangeIndicator>New changes can be submitted</ChangeIndicator>
           )}
           <SubmitButton
-            text="Submit"
+            text={formData.labelSubmitButton ?? "Submit"}
             onClick={handleSubmit}
             isDisabled={!isChanged && formData.hasChangeIndicator}
           />

@@ -14,7 +14,8 @@ from PIL import Image
 from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
-from backend.protzilla.constants.paths import RUNS_PATH, TEST_DATA_PATH
+from backend.protzilla.constants.paths import RUNS_PATH
+from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH
 from backend.protzilla.utilities import random_string
 
 
@@ -44,7 +45,11 @@ def run_name_and_cleanup():
 
 @pytest.fixture
 def maxquant_data_file():
-    return str((Path(TEST_DATA_PATH) / "data_import" / "maxquant_small.tsv").absolute())
+    return TEST_MSDATA_PATH / "MaxQuant/small.tsv"
+
+@pytest.fixture
+def metadata_file():
+    return TEST_METADATA_PATH / "metadata_cut_columns.csv"
 
 
 @pytest.fixture(scope="function")

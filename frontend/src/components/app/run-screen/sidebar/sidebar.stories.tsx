@@ -12,7 +12,7 @@ const Template = () => (
   // <Sidebar
   //   runData={[]}
   //   runName={""}
-  //   handleStepSelection={() => {
+  //   navigateOrRefreshSteps={() => {
   //     //donothing
   //   }}
   // />

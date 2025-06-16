@@ -100,7 +100,7 @@ REM Check for pnpm and install if not present
 pnpm --version >nul 2>&1
 if %errorlevel% NEQ 0 (
 	echo Pnpm is not installed. Installing pnpm...
-	call powershell.exe -ExecutionPolicy Bypass -Command "$env:PNPM_VERSION = '10.8.0'; Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression"
+	call powershell.exe -ExecutionPolicy Bypass -Command "$env:PNPM_VERSION = '10.10.0'; Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression"
 ) else (
 	echo Pnpm is already installed. Version:
 	pnpm --version

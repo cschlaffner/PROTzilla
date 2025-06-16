@@ -1,6 +1,6 @@
 import { H3, Icon } from "@protzilla/core";
 import { spacing, styledDiv } from "@protzilla/theme";
-import { Section, Step } from "@protzilla/utils";
+import { Section } from "@protzilla/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { styled } from "styled-components";
@@ -28,9 +28,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   runName,
   runData,
   sections,
-  setCurrentSteps,
   stepSectionIndex,
-  handleStepSelection,
+  navigateOrRefreshSteps,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -59,13 +58,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={section.name}
             runName={runName}
             currentSteps={section.steps}
-            setCurrentSteps={(updater: (prevSteps: Step[]) => Step[]) => {
-              setCurrentSteps(i, updater);
-            }}
             isCollapsed={isCollapsed}
             stepSectionIndex={stepSectionIndex}
             runData={runData}
-            handleStepSelection={handleStepSelection}
+            navigateOrRefreshSteps={navigateOrRefreshSteps}
           />
         );
       })}

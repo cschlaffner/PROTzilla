@@ -28,6 +28,7 @@ export const mockPlots: Figure[] = [
   },
 ];
 
+//for testing purposes
 export const mockTableData: GridRowsProp = [
   {
     Sample: "AD01_C1_INSOLUBLE_01",

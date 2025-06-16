@@ -1,9 +1,11 @@
+import { GridValidRowModel } from "@mui/x-data-grid";
+
 export interface UIStateProps {
   isDisabled?: boolean;
 }
 
 export interface SelectedStep {
-  section: Sections;
+  section: SectionIDs;
   index: number;
 }
 
@@ -16,7 +18,7 @@ export interface Step {
   status: StepStatus;
 }
 
-export const enum Sections {
+export const enum SectionIDs {
   Importing = "importing",
   DataPreprocessing = "data_preprocessing",
   DataAnalysis = "data_analysis",
@@ -24,29 +26,29 @@ export const enum Sections {
 }
 
 export interface Section {
-  id: Sections;
+  id: SectionIDs;
   name: string;
   steps: Step[];
 }
 
 export const emptySections: Section[] = [
   {
-    id: Sections.Importing,
+    id: SectionIDs.Importing,
     name: "Importing",
     steps: [],
   },
   {
-    id: Sections.DataPreprocessing,
+    id: SectionIDs.DataPreprocessing,
     name: "Data Preprocessing",
     steps: [],
   },
   {
-    id: Sections.DataAnalysis,
+    id: SectionIDs.DataAnalysis,
     name: "Data Analysis",
     steps: [],
   },
   {
-    id: Sections.DataIntegration,
+    id: SectionIDs.DataIntegration,
     name: "Data Integration",
     steps: [],
   },
@@ -75,6 +77,11 @@ export const emptyRunData: RunData = {
   displayed_steps: emptySections,
   memory_usage: "",
 };
+
+export interface Table {
+  table: readonly GridValidRowModel[];
+  name: string;
+}
 
 export interface RequestData {
   index: number;

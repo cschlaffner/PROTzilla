@@ -163,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button icon={"home"} onPress={onNavigateHome} />
         </NavbarLeft>
         <NavbarCenter>
-          <NavbarCenterTitle text={showRunInformation ? title : "PROTzilla"} />
+          <NavbarCenterTitle text={showRunInformation ? runName : "PROTzilla"} />
           {showRunInformation && (
             <div>
               <Button
@@ -228,6 +228,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <Form
           formData={{
             label: "",
+            labelSubmitButton: "Save workflow",
             isAutoSubmit: false,
             hasChangeIndicator: false,
             input_fields: [

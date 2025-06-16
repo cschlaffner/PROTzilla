@@ -70,7 +70,8 @@ class SearchField(_baseField):
 
 @dataclass
 class CheckboxField(_baseField):
-    type: str = "checkbox"
+    type: str = "single-checkbox"
+    text: str = "" # text shown next to the checkbox
     value: bool = False
 
 
@@ -93,6 +94,8 @@ class MultiSelectField(_baseField):
     options: List[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
+    def set_options(self, options: list[Option] | Enum) -> None:
+        self.options = options
 
 @dataclass
 class DropdownField(_baseField):
@@ -181,6 +184,9 @@ class Form:
         "to do fieldname in form to check if the field exists"
         
         return fieldname in self._field_map
+    
+    def __iter__(self):
+        return self.input_fields
 
     @property
     def values(self) -> Dict[str, str]:

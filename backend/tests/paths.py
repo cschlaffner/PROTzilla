@@ -1,0 +1,10 @@
+from backend.protzilla.constants.paths import BACKEND_PATH
+
+TEST_DATA_PATH = BACKEND_PATH / "tests/test_data"
+TEST_WORKFLOWS_PATH = TEST_DATA_PATH / "workflows"
+TEST_PEPTIDES_PATH = TEST_DATA_PATH / "peptides"
+TEST_ENRICHMENT_PATH = TEST_DATA_PATH / "enrichment_data"
+
+TEST_IMPORTING_DATA_PATH = TEST_DATA_PATH / "import_data"
+TEST_METADATA_PATH = TEST_IMPORTING_DATA_PATH / "metadata"
+TEST_MSDATA_PATH = TEST_IMPORTING_DATA_PATH / "ms_data"
