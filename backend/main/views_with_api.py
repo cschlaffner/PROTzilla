@@ -373,18 +373,18 @@ def get_step_table(request):
         json_data = []
         
         if run.current_step is not None:
-            for key in run.current_outputs:
-                if key[0] in dataframes:
-                    data = key[1]
+            for key, value in run.current_outputs:
+                if key in dataframes:
+                    data = value
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key[0])}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                elif ("_df" not in key[0]) and (key[0] != "messages") and (type(key[1]) == list): 
-                    data = key[1]
-                    data = pd.DataFrame({key[0]:data})
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+                elif ("_df" not in key) and (key != "messages") and (type(value) == list): 
+                    data = value
+                    data = pd.DataFrame({key:data})
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": key[0]})
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": key})
         return JsonResponse({"success": True, "message": "Got the tables for the step", "data": json_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)

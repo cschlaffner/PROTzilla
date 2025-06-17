@@ -10,7 +10,7 @@ import {
   SwitchCard,
 } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
-import { spacing, useTheme } from "@protzilla/theme";
+import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
   dummyTextComponent1,
@@ -63,6 +63,12 @@ const StyledContentDiv = styled.div`
   flex-direction: column;
 `;
 
+const StyledCSVButton = styled(CSVButton)`
+  width: auto;
+  align-telf: flex-end;
+  margin-top: ${spacing("buttonGap")};
+`;
+
 const FooterText = styled.div`
   text-align: center;
   padding: ${spacing("small")};
@@ -74,7 +80,6 @@ const FooterText = styled.div`
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
 
   const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
@@ -188,10 +193,7 @@ export const RunScreen: React.FC = () => {
   const singleTableComponent = (table: Table) => (
     <StyledContentDiv>
       <DataTable data={table.table} />
-      <CSVButton
-        data={table.table}
-        style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
-      />
+      <StyledCSVButton data={table.table} />
     </StyledContentDiv>
   );
 
