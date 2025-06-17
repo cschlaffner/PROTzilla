@@ -129,14 +129,14 @@ export const DatabaseSettings = () => {
     if (response?.success) {
       notify({
         title: "Database upload",
-        message: "Database uploaded successfully.",
+        message: response.message as string,
         type: "success",
         isClosingAutomatically: true,
       });
     } else {
       notify({
         title: "Database upload failed",
-        message: response.message || "Unknown error",
+        message: response.message ?? "Unknown error",
         type: "error",
         isClosingAutomatically: true,
       });
@@ -204,7 +204,7 @@ export const DatabaseSettings = () => {
           void handleAddDatabase(
             data.database_name as string,
             data.database_file as string,
-            data.verification_checkbox === "true",
+            data.verification_checkbox as boolean,
           );
         }}
       />

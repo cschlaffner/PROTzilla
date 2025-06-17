@@ -49,6 +49,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   step,
   hasStepButtons = false,
   isInteger = false,
+  hasExtendedSubscript = true,
   subscript,
   onChange,
   ...props
@@ -69,7 +70,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const hasMin = typeof min === "number";
   const hasMax = typeof max === "number";
 
-  const handleChange = (e: { target: { value: string; }; }) => {
+  const handleChange = (e: { target: { value: string } }) => {
     const raw = e.target.value;
 
     if (!/^[-\d.]*$/.test(raw)) return;
@@ -142,7 +143,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     .join(" | ");
 
   return (
-    <InputContainer subscript={combinedSubscript} {...props}>
+    <InputContainer subscript={hasExtendedSubscript ? combinedSubscript : subscript} {...props}>
       <InputWithButtonsWrapper>
         <StyledInput
           ref={inputRef}
@@ -155,6 +156,12 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
           step={step}
           onChange={handleChange}
           onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleBlur();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
           // Disable isSmall when hasStepButtons is true
           $isSmall={hasStepButtons ? false : (props.isSmall ?? false)}
           {...props}

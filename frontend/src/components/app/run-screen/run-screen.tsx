@@ -91,7 +91,12 @@ export const RunScreen: React.FC = () => {
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
-  const handleStepSelection = (selectedStep: SelectedStep | undefined) => {
+  const navigateOrRefreshSteps = (selectedStep?: SelectedStep) => {
+    /*
+      If a step is selected, navigate to that step.
+      If no step is selected, just refresh the run data to update the run list.
+    */
+
     if (selectedStep) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
@@ -102,6 +107,8 @@ export const RunScreen: React.FC = () => {
         void getStepPlots();
         void getStepTable();
       });
+    } else {
+      void getRunData();
     }
   };
 
@@ -221,7 +228,7 @@ export const RunScreen: React.FC = () => {
     <ListEditor
       onFormSubmit={onFormSubmit}
       runName={runName}
-      handleStepSelection={handleStepSelection}
+      navigateOrRefreshSteps={navigateOrRefreshSteps}
       runData={runData}
     />
   );

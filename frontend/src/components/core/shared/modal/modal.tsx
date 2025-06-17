@@ -44,31 +44,33 @@ const CardHeader = styled.div`
 `;
 
 const StyledCard = styled(Card)`
-  overflow-y: visible
-  `;
+  overflow-y: visible;
+`;
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className }) => {
   return (
-    <Backdrop isOpen={isOpen} onClick={onClose}>
-      <ModalContent
-        className={className}
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-      >
-        <StyledCard
-          title={
-            <CardHeader>
-              <SectionTitle baseComponent={"h2"} title={title} />
-              <CloseButton onClick={onClose}>
-                <Icon icon="close"></Icon>
-              </CloseButton>
-            </CardHeader>
-          }
+    isOpen && (
+      <Backdrop isOpen={isOpen} onClick={onClose}>
+        <ModalContent
+          className={className}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         >
-          {children}
-        </StyledCard>
-      </ModalContent>
-    </Backdrop>
+          <StyledCard
+            title={
+              <CardHeader>
+                <SectionTitle baseComponent={"h2"} title={title} />
+                <CloseButton onClick={onClose}>
+                  <Icon icon="close"></Icon>
+                </CloseButton>
+              </CardHeader>
+            }
+          >
+            {children}
+          </StyledCard>
+        </ModalContent>
+      </Backdrop>
+    )
   );
 };
