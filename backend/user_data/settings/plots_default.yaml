@@ -5,3 +5,7 @@ height: 70
 text_size: 9
 title_size: 11
 width: 90
+margin_top: 40
+margin_bottom: 20
+margin_left: 20
+margin_right: 20

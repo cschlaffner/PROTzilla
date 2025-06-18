@@ -19,7 +19,7 @@ export class RootStore {
   public client = defaultStorageClient;
 
   /** The current language. */
-  @observable public accessor language: string = "en";
+  @observable public accessor language = "en";
 
   /** The current theme. */
   @observable public accessor colorMode: ColorMode = "light";

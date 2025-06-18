@@ -545,12 +545,15 @@ class StepManager:
         step_type: type[Step] | list[type[Step]],
         input_key: str,
         instance_identifier: str | None = None,
+        default: Any = None,
     ):
         """
         Get the specific input of the inputs of a specific step type. The step type can also a parent class of the
         step type, in which case the input of the most recent step of the specific type is returned.
         :param step_type: The type of the step as a class object
         :param input_key: The key of the desired input in the input dictionary of the step
+        :param instance_identifier: The instance identifier of the step to get the input from
+        :param default: The default value to return if the input is not found
         :return: The value of the input of the step or None
         """
 
@@ -569,7 +572,7 @@ class StepManager:
                 and input_key in step.inputs
             ):
                 return step.inputs[input_key]
-        return None
+        return default
 
     def all_steps_in_section(self, section: str) -> list[Step]:
         """

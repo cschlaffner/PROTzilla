@@ -8,6 +8,8 @@ import re
 import traceback
 
 import numpy as np
+from django.contrib import messages
+from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
@@ -23,7 +25,8 @@ from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH, WOR
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, get_all_possible_steps
+from backend.main.views_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, \
+    get_all_possible_steps, sanitize_name
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -110,13 +113,15 @@ def add_run(request):
         workflow_name = data.get("workflow_name")
         df_mode_name = data.get("df_mode_name")
 
-        try:
-            Run(run_name, workflow_name, df_mode_name)
+        converted_run_name, additional_message = sanitize_name(run_name)
 
-            return JsonResponse({"success": True, "message": f"Created run {run_name}."})
+        try:
+            Run(converted_run_name, workflow_name, df_mode_name)
+            message = f"Created run {converted_run_name}. \n{additional_message}" if len(additional_message) > 0 else f"Created run {converted_run_name}."
+            return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
         except Exception as e:
-            traceback.print_exc() #not sure if it still needs to be here 
-            return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
+            msg = "Error when creating run: " + str(e)
+            return JsonResponse({"success": False, "message": msg, "traceback": format_trace(traceback.format_exception(e))}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
@@ -156,15 +161,17 @@ def update_run_name(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         new_run_name = data.get("new_run_name")
+        converted_run_name, additional_message = sanitize_name(new_run_name)
 
         try:
-            if new_run_name in get_available_run_names():
-                return JsonResponse({"success": False, "message": "Run name already exists."})
+            if converted_run_name in get_available_run_names():
+                return JsonResponse({"success": False, "message": f"Run name {converted_run_name} already exists."})
 
             run = Run(run_name)
-            run.update_run_name(new_run_name)
+            run.update_run_name(converted_run_name)
 
-            return JsonResponse({"success": True, "message": "Renamed run"})
+            message = f"Run name updated from {run_name} to {converted_run_name}. \n{additional_message}" if len(additional_message) > 0 else f"Run name updated from {run_name} to {converted_run_name}."
+            return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
         except Exception as e:
             if isinstance(e, OSError):
                 return JsonResponse({"success": False, "message": "Run name already exists."})
@@ -243,6 +250,14 @@ def delete_step(request):
 
         index = int(index)
         run = Run(run_name)
+
+        if section == run.current_step.section and index == run.steps.current_step_index_in_section:
+            # if the step to be deleted is the current step, we need to go to the next step first
+            if run.steps.current_step_index > 0:
+                run.step_previous()
+            else:
+                return JsonResponse({"success": False, "message": "Cannot delete the first step"}, status=405)
+
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})

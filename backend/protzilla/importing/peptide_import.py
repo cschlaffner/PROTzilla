@@ -68,27 +68,18 @@ def peptide_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
     return dict(peptide_df=cleaned)
 
 
-def evidence_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
+def evidence_import(file_path : Path, map_to_uniprot) -> dict:
     try:
-        assert intensity_name in [
-            "Intensity",
-            "iBAQ",
-            "LFQ intensity",
-        ], f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=e)])
 
-    # Intensity -> Intensity, iBAQ -> LFQ, LFQ -> LFQ
-    peptide_intensity_name = (
-        "LFQ intensity" if intensity_name == "iBAQ" else intensity_name
-    )
 
     id_columns = [
         "Experiment",
         "Leading razor protein",
         "Sequence",
-        peptide_intensity_name,
+        "Intensity",
         "Modifications",
         "Modified sequence",
         "Missed cleavages",
