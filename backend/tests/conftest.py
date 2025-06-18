@@ -61,6 +61,7 @@ def run_name():
 
 @pytest.fixture(scope="session")
 def static_run_name():
+    #provide a static run_name to use in multiple tests
     static_run_name = "static_run_name"
     yield static_run_name
 

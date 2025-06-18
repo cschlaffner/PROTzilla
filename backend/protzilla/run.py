@@ -182,7 +182,7 @@ class Run:
             self._workflow_read()
         else:
             self.__class__._instances.pop(run_name)
-            raise ValueError(
+            raise FileNotFoundError(
                 f"No run named {run_name} or workflow named {workflow_name} has been found. Please reference an existing run or workflow to create a new one."
             )
 
