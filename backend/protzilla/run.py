@@ -15,6 +15,7 @@ from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.utilities import format_trace
+from backend.protzilla.workflow import get_available_workflow_names
 
 
 def get_available_run_names() -> list[str]:
@@ -64,7 +65,7 @@ def get_available_run_info() -> str | tuple[
             metadata = {}
         tags = metadata.get("tags", set())
 
-        run_name = {
+        run = {
             "run_name": run_name,
             "creation_date": metadata.get("creation_date", "date not available"),
             "modification_date": metadata.get("modification_date", "date not available"),
@@ -74,10 +75,10 @@ def get_available_run_info() -> str | tuple[
             "run_tags": list(tags)
         }
 
-        if run_name["favourite_status"]:
-            runs_favourited.append(run_name)
+        if run["favourite_status"]:
+            runs_favourited.append(run)
         else:
-            runs.append(run_name)
+            runs.append(run)
 
         for tag in tags:
             all_tags.add(tag)
@@ -176,12 +177,13 @@ class Run:
 
         if run_name in get_available_run_names():
             self._run_read()
-        elif workflow_name:
+        elif workflow_name and workflow_name in get_available_workflow_names():
             self.df_mode = df_mode
             self._workflow_read()
         else:
+            self.__class__._instances.pop(run_name)
             raise ValueError(
-                f"No run named {run_name} has been found and no workflow has been provided. Please reference an existing run or provide a workflow to create a new one."
+                f"No run named {run_name} or workflow named {workflow_name} has been found. Please reference an existing run or workflow to create a new one."
             )
 
         self._initialized = True
@@ -212,9 +214,13 @@ class Run:
     @auto_save
     def update_run_name(self, new_run_name: str) -> None:
         if self.run_name != new_run_name:
+            old_name = self.run_name
             self.disk_operator.update_run_name(new_run_name)
             self.update_modification_date()
             self.run_name = new_run_name
+
+            self.__class__._instances[new_run_name] = self
+            self.__class__._instances.pop(old_name, None)
 
     @error_handling
     def metadata_read(self) -> dict:

@@ -111,7 +111,7 @@ def add_run(request):
         df_mode_name = data.get("df_mode_name")
 
         try:
-            Run(run_name, workflow_name, df_mode_name,)
+            Run(run_name, workflow_name, df_mode_name)
 
             return JsonResponse({"success": True, "message": f"Created run {run_name}."})
         except Exception as e:

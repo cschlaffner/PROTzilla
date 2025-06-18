@@ -52,14 +52,17 @@ def setup_paths_and_cleanup():
 
 
 @pytest.fixture(scope="function")
-def run_name_and_cleanup():
+def run_name():
     # Generate a unique run name
     run_name = f"test_run_{uuid.uuid4()}"
 
     # Yield the run name to the test or fixture that uses this fixture
     yield run_name
 
-
+@pytest.fixture(scope="session")
+def static_run_name():
+    static_run_name = "static_run_name"
+    yield static_run_name
 
 @pytest.fixture
 def maxquant_data_file():
@@ -71,20 +74,20 @@ def metadata_file():
 
 
 @pytest.fixture(scope="function")
-def run_standard(run_name_and_cleanup):
-    run_name = run_name_and_cleanup
+def run_standard(run_name):
+    run_name = run_name
     yield Run(run_name=run_name, workflow_name="standard", df_mode="memory")
 
 
 @pytest.fixture(scope="function")
-def run_empty(run_name_and_cleanup):
-    run_name = run_name_and_cleanup
+def run_empty(run_name):
+    run_name = run_name
     yield Run(run_name=run_name, workflow_name="test-run-empty", df_mode="memory")
 
 
 @pytest.fixture(scope="function")
-def run_imported(run_name_and_cleanup, maxquant_data_file):
-    run_name = run_name_and_cleanup
+def run_imported(run_name, maxquant_data_file):
+    run_name = run_name
     run = Run(run_name=run_name, workflow_name="test-run-empty", df_mode="memory")
     run.step_add(MaxQuantImport())
     run.current_form(
