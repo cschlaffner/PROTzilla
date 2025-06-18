@@ -1,3 +1,5 @@
+import { action } from "@storybook/addon-actions";
+
 import { Workflow } from "./workflow";
 import { WorkflowProps } from "./workflow.props";
 
@@ -13,4 +15,8 @@ workflow.args = {
   icon: "add",
   workflow: "test_workflowsssssssssssuuuuuuuuuuuuuuuuuuuuuuppperlang",
   onPress: {},
+  refreshWorkflowList: async () => {
+    action("refreshWorkflowList")();
+    return Promise.resolve();
+  },
 };
