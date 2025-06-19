@@ -1,4 +1,3 @@
-import { useNotification } from "@protzilla/app";
 import {
   CollapsibleLabel,
   ContentText,
@@ -44,14 +43,12 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   sectionLength,
   index,
   isSelected,
-  handleStepSelection,
+  navigateOrRefreshSteps,
   deleteStep,
   setHandlePosition,
   setShowHandle,
   setHoveredStepIndex,
 }: SidebarStepProps) => {
-  const notify = useNotification();
-
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [whiteSpace, setWhiteSpace] = useState("normal");
   const stepRef = useRef<HTMLDivElement | null>(null);
@@ -98,7 +95,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const handleClick = () => {
-    handleStepSelection({
+    navigateOrRefreshSteps({
       section: sectionName,
       index: index,
     });
@@ -106,14 +103,6 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    if (isSelected) {
-      notify({
-        title: "Unallowed action",
-        message: "You cannot delete the step you're currently on.",
-        type: "error",
-      });
-      return;
-    }
     deleteStep(index);
   };
 

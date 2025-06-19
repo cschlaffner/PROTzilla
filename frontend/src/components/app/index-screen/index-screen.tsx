@@ -245,7 +245,7 @@ export const IndexScreen: React.FC = () => {
   };
 
   const handleContinueRun = useCallback(
-    (data: Record<string, InputValueType>) => {
+    async (data: Record<string, InputValueType>) => {
       const runName = data.runname;
       if (!runName) {
         notify({
@@ -255,22 +255,37 @@ export const IndexScreen: React.FC = () => {
         });
         return;
       }
-      void callApiWithParameters("add_run/", {
+      const response = await callApiWithParameters("add_run/", {
         run_name: runName,
         workflow_name: data.workflow ?? "",
         df_mode_name: data.df_mode ?? "disk",
-      }).then(() => {
+      });
+      let convertedRunName: string;
+      if (response.success) {
+        convertedRunName = response.data.run_name as string;
+        setSelectedRun((prev) => ({
+          ...prev,
+          run_name: convertedRunName,
+        }));
         notify({
           title: "Run created",
-          message: `Run ${String(data.runname)} has been created`,
+          message: response.message,
           type: "success",
         });
-
-        void callApiWithParameters("continue_run/", {
-          run_name: runName as string,
-        }).then(() => {
-          void navigate("/run", { state: { runName } });
+      } else {
+        notify({
+          title: "Error",
+          message: response.message,
+          traceback: response.traceback,
+          type: "error",
         });
+        return;
+      }
+
+      void callApiWithParameters("continue_run/", {
+        run_name: convertedRunName,
+      }).then(() => {
+        void navigate("/run", { state: { runName: convertedRunName } });
       });
     },
     [notify, navigate],
@@ -342,6 +357,24 @@ export const IndexScreen: React.FC = () => {
       notify({
         title: "Something went wrong :(",
         message: response.message,
+        type: "error",
+      });
+    }
+  };
+
+  const handleDeleteWorkflow = async (workflow: string) => {
+    const response = await callApiWithParameters("delete_workflow/", { workflow_name: workflow });
+    if (response.success) {
+      notify({
+        title: "Delete Workflow",
+        message: `Workflow "${workflow}" deleted successfully.`,
+        type: "info",
+      });
+      void getWorkflows();
+    } else {
+      notify({
+        title: "Delete Workflow Failed",
+        message: `Failed to delete workflow "${workflow}": ${String(response.message)}`,
         type: "error",
       });
     }
@@ -426,6 +459,9 @@ export const IndexScreen: React.FC = () => {
                     key={workflow}
                     icon="add"
                     workflow={workflow}
+                    handleDeleteWorkflow={(workflow_name) => {
+                      void handleDeleteWorkflow(workflow_name);
+                    }}
                     onPress={() => {
                       setSelectedWorkflow(workflow);
                       setIsWorkflowModalOpen(true);
@@ -482,7 +518,7 @@ export const IndexScreen: React.FC = () => {
                 ],
               }}
               onChange={(data) => {
-                handleContinueRun(data);
+                void handleContinueRun(data);
               }}
             ></Form>
           </Modal>

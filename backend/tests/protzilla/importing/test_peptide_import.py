@@ -61,7 +61,7 @@ def peptide_df(intensity_name):
     return peptide_df
 
 
-def evidence_df(intensity_name):
+def evidence_df():
     # sample, protein id, sequence, intensity, pep
     peptide_protein_list = (
         [
@@ -105,7 +105,7 @@ def evidence_df(intensity_name):
             "Sample",
             "Protein ID",
             "Sequence",
-            intensity_name,
+            "Intensity",
             "Modifications",
             "Modified sequence",
             "Missed cleavages",
@@ -153,11 +153,9 @@ def test_peptide_import_ibaq():
     )
 
 
-@pytest.mark.parametrize("intensity_name", ["Intensity"])
-def test_evidence_import(intensity_name):
+def test_evidence_import():
     outputs = peptide_import.evidence_import(
         file_path=f"{TEST_DATA_PATH}/peptides/evidence-vsmall.txt",
-        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -168,13 +166,13 @@ def test_evidence_import(intensity_name):
 
     assert np.allclose(
         outputs["peptide_df"]["PEP"],
-        evidence_df(intensity_name)["PEP"],
+        evidence_df()["PEP"],
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
     )
 
     pd.testing.assert_frame_equal(
         outputs["peptide_df"].drop(columns=["PEP"]),
-        evidence_df(intensity_name).drop(columns=["PEP"]),
+        evidence_df().drop(columns=["PEP"]),
         check_dtype=False,
     )

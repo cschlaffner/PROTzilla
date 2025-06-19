@@ -1,7 +1,7 @@
 import { Button, PlotComponent, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
-import { color, fontSize, fontWeight, spacing, zIndex } from "@protzilla/theme";
+import { color, fontSize, fontWeight, spacing, useTheme, zIndex } from "@protzilla/theme";
 import isEqual from "fast-deep-equal";
-import { Data, Layout } from "plotly.js";
+import { Data, Layout, Plots } from "plotly.js-dist-min";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
@@ -11,11 +11,12 @@ import {
   FileFormatField,
   FontField,
   HeightField,
+  MarginField,
   TextSizeField,
   TitleSizeField,
   WidthField,
 } from "./plot-settings-input-fields";
-import { usePlotSettings } from "./usePlotSettings";
+import { PlotSettings, usePlotSettings } from "./usePlotSettings";
 
 const SettingsDiv = styled.div`
   display: flex;
@@ -43,13 +44,17 @@ const Label = styled(Text)`
   margin: 4px 0;
 `;
 
-export interface PlotSettingsProps {
+export interface PlotSettingsModalProps {
   isOpen: boolean;
   onClose: (hasChanges: boolean) => void;
   setHasChanges: (hasChanges: boolean) => void;
 }
 
-export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, setHasChanges }) => {
+export const PlotSettingsModal: React.FC<PlotSettingsModalProps> = ({
+  isOpen,
+  onClose,
+  setHasChanges,
+}) => {
   const {
     settings,
     savedSettings,
@@ -58,30 +63,32 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     isLoading,
     loadSettings,
     computeDisplaySizes,
-    handleFileFormatChange,
-    handleWidthChange,
-    handleHeightChange,
+    handleSettingChange,
     handleFontChange,
     handleCustomFontChange,
-    handleTitleSizeChange,
-    handleTextSizeChange,
   } = usePlotSettings(isOpen);
+
+  const theme = useTheme();
 
   const initialPlot = {
     data: [
       {
-        marker: { color: color("protzillaDarkBlue") },
         x: ["Example 1"],
         y: [0.7],
         name: "Example 1",
         type: "bar",
+        marker: {
+          color: [theme.colors.protzillaDarkBlue],
+        },
       },
       {
-        marker: { color: color("protzillaRed") },
         x: ["Example 2"],
         y: [0.3],
         name: "Example 2",
         type: "bar",
+        marker: {
+          color: [theme.colors.protzillaRed],
+        },
       },
     ],
     layout: {
@@ -91,33 +98,24 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         font: { family: "Sans Serif", size: 15 },
         text: "Very important title",
       },
-      font: { family: "Sans Serif", size: 10 },
-      xaxis: { anchor: "y", title: { text: "x-axis" } },
-      yaxis: { anchor: "x", title: { text: "y-axis" } },
-      template: {
-        layout: {
-          colorway: ["#4A536A", "#CE5A5A"],
-          dragmode: "pan",
-          margin: { b: 55, t: 50, r: 50, l: 50 },
-          modebar: {
-            remove: ["autoScale2d", "lasso", "lasso2d", "toImage", "select2d"],
-          },
-          plot_bgcolor: "white",
-          title: {
-            x: 0.5,
-            xanchor: "center",
-            y: 0.95,
-            yanchor: "top",
-          },
-          yaxis: { gridcolor: "lightgrey", zerolinecolor: "lightgrey" },
-        },
+      margin: {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
       },
+      font: { family: "Sans Serif", size: 10 },
+      xaxis: { anchor: "y", title: { text: "x-axis" }, automargin: true },
+      yaxis: { anchor: "x", title: { text: "y-axis" }, automargin: true },
+      showlegend: true,
     },
   };
-  const [plot, updatePlot] = useState(initialPlot);
+
+  const [plot, setPlot] = useState(initialPlot);
+  const plotDivId = "plot-id";
 
   useEffect(() => {
-    // Update settings
+    const plotDiv = document.getElementById(plotDivId);
     const displaySizes = computeDisplaySizes();
     setComputedSettings({
       width: displaySizes.width,
@@ -125,12 +123,19 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
-    updatePlot((prevPlot) => ({
+    setPlot((prevPlot) => ({
       ...prevPlot,
       layout: {
         ...prevPlot.layout,
         width: displaySizes.width,
         height: displaySizes.height,
+        margin: {
+          ...prevPlot.layout.margin,
+          t: settings.marginTop,
+          b: settings.marginBottom,
+          l: settings.marginLeft,
+          r: settings.marginRight,
+        },
         title: {
           ...prevPlot.layout.title,
           font: {
@@ -147,6 +152,9 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         },
       },
     }));
+    if (plotDiv) {
+      Plots.resize(plotDiv);
+    }
     // Update hasChanges flag for onClose action
     setHasChanges(!isEqual(settings, savedSettings));
 
@@ -178,6 +186,21 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
     );
   }
 
+  const marginFields: {
+    key: keyof PlotSettings;
+    label: string;
+    info?: string;
+  }[] = [
+    {
+      key: "marginTop",
+      label: "Margin, top",
+      info: "Plots with axes include default margins, so margin changes below 50 may not be noticeable.",
+    },
+    { key: "marginBottom", label: "Bottom" },
+    { key: "marginLeft", label: "Left" },
+    { key: "marginRight", label: "Right" },
+  ];
+
   return (
     <div>
       <SectionTitle
@@ -196,14 +219,43 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
         <Col md={6}>
           <SettingsDiv>
             <SectionTitle baseComponent={"h5"} title={"Format and Size"} />
-            <FileFormatField value={settings.fileFormat} onChange={handleFileFormatChange} />
+            <FileFormatField
+              value={settings.fileFormat}
+              onChange={(v: string | null) => {
+                handleSettingChange("fileFormat", v ?? "");
+              }}
+            />
             <Row justify="between" align="center">
               <Col>
-                <WidthField value={settings.width} onChange={handleWidthChange} />
+                <WidthField
+                  value={settings.width}
+                  onChange={(v: number) => {
+                    handleSettingChange("width", v);
+                  }}
+                />
               </Col>
               <Col>
-                <HeightField value={settings.height} onChange={handleHeightChange} />
+                <HeightField
+                  value={settings.height}
+                  onChange={(v: number) => {
+                    handleSettingChange("height", v);
+                  }}
+                />
               </Col>
+            </Row>
+            <Row>
+              {marginFields.map(({ key, label, info }) => (
+                <Col key={key}>
+                  <MarginField
+                    label={label}
+                    info={info}
+                    value={settings[key] as number}
+                    onChange={(v: number) => {
+                      handleSettingChange(key, v);
+                    }}
+                  />
+                </Col>
+              ))}
             </Row>
             <SectionTitle
               baseComponent={"h5"}
@@ -222,10 +274,20 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
             </div>
             <Row justify="between" align="center">
               <Col>
-                <TitleSizeField value={settings.titleSize} onChange={handleTitleSizeChange} />
+                <TitleSizeField
+                  value={settings.titleSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("titleSize", v);
+                  }}
+                />
               </Col>
               <Col>
-                <TextSizeField value={settings.textSize} onChange={handleTextSizeChange} />
+                <TextSizeField
+                  value={settings.textSize}
+                  onChange={(v: number) => {
+                    handleSettingChange("textSize", v);
+                  }}
+                />
               </Col>
             </Row>
           </SettingsDiv>
@@ -236,6 +298,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({ isOpen, onClose, set
             layout={plot.layout as Partial<Layout>}
             hasBorder={true}
             hasResizing={false}
+            divId={plotDivId}
           />
         </Col>
       </Row>

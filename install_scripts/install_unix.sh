@@ -27,10 +27,11 @@ else
   echo "Installing Miniconda..."
   echo "$URL_TO_USE"
   curl -O $URL_TO_USE
-  bash $VERSION_TO_USE -p "$HOME"/miniconda
+  bash $VERSION_TO_USE -b -p "$HOME"/miniconda
   export PATH="$HOME/miniconda/bin:$PATH"
-  source $HOME/miniconda/bin/activate
+  source "$HOME/miniconda/etc/profile.d/conda.sh"
   conda config --set auto_activate_base false
+  conda init
 fi
 
 if ! conda --version >/dev/null; then

@@ -4,9 +4,12 @@ import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineVitestConfig } from "vitest/config";
 
+const isProduction = process.env.NODE_ENV === "production";
+const basePath = isProduction ? "/static/" : "/";
+
 // https://vite.dev/config/
 const viteConfig = defineViteConfig({
-  base: "/static/",
+  base: basePath,
   plugins: [
     react({
       babel: {

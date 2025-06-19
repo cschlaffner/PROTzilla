@@ -7,4 +7,5 @@ export interface WorkflowProps {
   onPress?: (
     event: React.PointerEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
   ) => void;
+  handleDeleteWorkflow: (workflow: string) => void;
 }

@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
+from backend.main.views_helper import sanitize_name
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.disk_operator import YamlOperator
@@ -106,12 +107,14 @@ def database_upload(request):
         file_name = data.get("file")
         path = settings.FILE_UPLOAD_TEMP_DIR / file_name
 
-        if name is None or name == "":
+        converted_name, message = sanitize_name(name)
+
+        if converted_name is None or converted_name == "":
             msg = "Filename cannot be empty."
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
             return JsonResponse({"success": False, "message": msg}, status=400)
 
-        if database_path(name).exists():
+        if database_path(converted_name).exists():
             msg = "Filename already taken."
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
             return JsonResponse({"success": False, "message": msg}, status=400)
@@ -121,7 +124,7 @@ def database_upload(request):
 
         just_copy_string = data.get("just_copy", False)
         if just_copy_string == "True":
-            shutil.copy(path, database_path(name))
+            shutil.copy(path, database_path(converted_name))
             num_proteins = 0
         else:
             if path.suffix != ".tsv":
@@ -141,7 +144,7 @@ def database_upload(request):
                 messages.add_message(request, messages.ERROR, msg, "alert-danger")
                 return JsonResponse({"success": False, "message": msg}, status=400)
 
-            dataframe.to_csv(database_path(name), sep="\t", index=False)
+            dataframe.to_csv(database_path(converted_name), sep="\t", index=False)
             num_proteins = len(dataframe)
 
         if not database_metadata_path.parent.exists():
@@ -152,13 +155,13 @@ def database_upload(request):
                 database_metadata = json.load(f)
         else:
             database_metadata = {}
-        database_metadata[name] = dict(
+        database_metadata[converted_name] = dict(
             num_proteins=num_proteins, date=date.today().isoformat()
         )
         with open(database_metadata_path, "w") as f:
             json.dump(database_metadata, f)
 
-        return JsonResponse({"success": True, "message": "Database uploaded successfully"}, status=200)
+        return JsonResponse({"success": True, "message": f"Database uploaded successfully. \n {message}" if len(message) > 0 else "Database uploaded successfully"}, status=200)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 

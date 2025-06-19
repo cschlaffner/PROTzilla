@@ -40,5 +40,3 @@ To open PROTzilla in development mode, run the `protzilla_dev` script for your O
 - `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user.
 
 Additionally, you can launch the storybook by `pnpm storybook` to inspect UI components independently.
-
-For more technical details and further information on how to contribute to PROTzilla, please see the [developer guide in our wiki](https://github.com/cschlaffner/PROTzilla/wiki/Developer-Guide).
