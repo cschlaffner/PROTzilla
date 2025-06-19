@@ -27,12 +27,13 @@ const StyledNavbar = styled(Navbar)`
   z-index: 1000;
 `;
 
-const StyledHeader = styledDiv.div`
+const StyledHeader = styledDiv.div<{ hasPaddingBottom: boolean }>`
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-bottom: ${spacing("medium")}
+  padding-bottom: ${({ hasPaddingBottom }) =>
+    hasPaddingBottom ? spacing("medium") : "0"}
 `;
 
 const StyledButtonDiv = styledDiv.div`
@@ -373,7 +374,7 @@ export const IndexScreen: React.FC = () => {
         <StyledTemplateCard
           isCollapsed={isWorkflowTemplateCollapsed}
           title={
-            <StyledHeader>
+            <StyledHeader hasPaddingBottom={!isWorkflowTemplateCollapsed}>
               <StyledTitleDiv>
                 <StyledIconButton
                   isShy={true}
@@ -558,7 +559,7 @@ export const IndexScreen: React.FC = () => {
         <StyledRunSelectionCard
           isExtended={isWorkflowTemplateCollapsed}
           title={
-            <StyledHeader>
+            <StyledHeader hasPaddingBottom={false}>
               Run Selection
               <StyledButtonDiv>
                 <StyledLeftButton
