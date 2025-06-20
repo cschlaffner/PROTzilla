@@ -4,6 +4,7 @@ export { default as arrowRight } from "./arrow-right.svg?react";
 export { default as burgerMenu } from "./burger-menu.svg?react";
 export { default as checkmark } from "./checkmark.svg?react";
 export { default as chevronDoubleLeft } from "./chevron-double-left.svg?react";
+export { default as chevronDoubleUp } from "./chevron-double-up.svg?react";
 export { default as chevronDown } from "./chevron-down.svg?react";
 export { default as chevronLeft } from "./chevron-left.svg?react";
 export { default as chevronRight } from "./chevron-right.svg?react";

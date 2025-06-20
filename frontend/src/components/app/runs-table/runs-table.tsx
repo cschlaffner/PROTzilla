@@ -8,7 +8,7 @@ import {
   useTooltipScheduling,
 } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
-import { color, defaultPalette, size, spacing } from "@protzilla/theme";
+import { color, defaultPalette, styledDiv } from "@protzilla/theme";
 import { callApiWithParameters, formatDate, Run } from "@protzilla/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,19 +16,24 @@ import { styled, useTheme } from "styled-components";
 
 import { RunsTableProps } from "./runs-table.props";
 
-const TableContainer = styled.div`
+const TableContainer = styledDiv.div<{ $isExtended?: boolean }>`
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
     
   // Adjusted to navbar, template selection, title, header and search bar.
-  // Simplified with 3 * large spacing as approximation for items in
-  // run selection card above this table
-  height: calc(
-    100vh - ${spacing("navbarHeight")} - ${size("templateSelectionHeight")} -
-      (3 * ${spacing("small")}) - (3 * ${spacing("large")})); 
-  );
-
+  // Adapts to whether the workflows are collapsed and therefore the runtable being expanded
+  // Simplified with 3 * large spacing as approximation for 
+  // items in run selection card above this table
+  height: ${({ $isExtended, theme }) =>
+    $isExtended
+      ? `calc(100vh - ${theme.spacing.navbarHeight} 
+        - ${theme.sizes.collapseTemplateSelectionHeight} 
+        - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`
+      : `calc(100vh - ${theme.spacing.navbarHeight} 
+        - ${theme.sizes.templateSelectionHeight} 
+        - (3 * ${theme.spacing.small}) - (3 * ${theme.spacing.large}))`};
+  
   &:hover {
     overflow-x: auto;
   }
@@ -104,6 +109,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   setRuns,
   openTagModal,
   setSelectedRun,
+  isExtended = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -194,7 +200,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
   };
 
   return (
-    <TableContainer>
+    <TableContainer $isExtended={isExtended}>
       <TableHeader>
         <TableCol width={theme.sizes.verySmallCellWidth}>Fav.</TableCol>
         <TableCol width={theme.sizes.largeCellWidth}>Run Name</TableCol>
