@@ -214,6 +214,7 @@ export const baseTheme = {
 
     // Input Screen
     templateSelectionHeight: "325px",
+    collapseTemplateSelectionHeight: "100px",
     runSelectionMinHeight: "300px",
 
     //Runs Table
