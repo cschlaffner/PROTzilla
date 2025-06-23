@@ -1,7 +1,6 @@
-import { color, duration, opacity, radius } from "@protzilla/theme";
-import { UIStateProps } from "@protzilla/utils";
+import { radius } from "@protzilla/theme";
 import React from "react";
-import { css, styled } from "styled-components";
+import { styled } from "styled-components";
 
 import { SwitchOption } from "./switch-option";
 import { SwitchProps } from "./switch.props";
@@ -11,25 +10,9 @@ const SwitchContainer = styled.div`
   flex-direction: row;
   position: relative;
   user-select: none;
-  background-color: ${color("secondary")};
   display: flex;
   align-items: center;
   justify-content: center;
-`;
-
-const ActiveSwitchOption = styled.div<UIStateProps>`
-  height: 100%;
-  transition: left ${duration("short")}ms;
-  position: absolute;
-  border-radius: ${radius("button")};
-  background-color: ${color("primary")};
-  display: flex;
-
-  ${(props) =>
-    props.isDisabled &&
-    css`
-      opacity: ${opacity("disabled")};
-    `}
 `;
 
 export const Switch: React.FC<SwitchProps> = ({
@@ -53,13 +36,6 @@ export const Switch: React.FC<SwitchProps> = ({
     <SwitchContainer {...rest}>
       {length && (
         <>
-          <ActiveSwitchOption
-            isDisabled={isDisabled}
-            style={{
-              width: `${String(100 / length)}%`,
-              left: `${String((100 / length) * activeIndex)}%`,
-            }}
-          />
           {options.map(({ value: itemValue, isDisabled: isItemDisabled, ...itemRest }, index) => (
             <SwitchOption
               isActive={index === activeIndex}

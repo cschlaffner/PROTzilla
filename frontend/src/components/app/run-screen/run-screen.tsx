@@ -4,14 +4,13 @@ import {
   DataTable,
   FlexColumn,
   FlexRow,
-  H5,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
   SwitchCard,
 } from "@protzilla/core";
 import { useToggleableState } from "@protzilla/hooks";
-import { spacing, useTheme } from "@protzilla/theme";
+import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
   dummyTextComponent1,
@@ -64,6 +63,12 @@ const StyledContentDiv = styled.div`
   flex-direction: column;
 `;
 
+const StyledCSVButton = styled(CSVButton)`
+  width: auto;
+  align-telf: flex-end;
+  margin-top: ${spacing("buttonGap")};
+`;
+
 const FooterText = styled.div`
   text-align: center;
   padding: ${spacing("small")};
@@ -72,14 +77,9 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
-const TableHeader = styled(H5)`
-  margin-bottom: ${spacing("small")};
-`;
-
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
 
   const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
@@ -197,25 +197,31 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const singleTableComponent = (table: Table) => (
+    <StyledContentDiv>
+      <DataTable data={table.table} />
+      <StyledCSVButton data={table.table} />
+    </StyledContentDiv>
+  );
+
   const tableComponent = (
     <StyledContentContainer>
       {tableData && tableData.length > 0 ? (
-        <>
-          {tableData.map((table, index) => (
-            <StyledContentDiv key={index}>
-              <TableHeader>{table.name}</TableHeader>
-              <DataTable data={table.table} />
-              <CSVButton
-                data={table.table}
-                style={{ width: "auto", alignSelf: "flex-end", marginTop: theme.spacing.buttonGap }}
-              />
-            </StyledContentDiv>
-          ))}
-        </>
+        <SwitchCard
+          hasShadow={false}
+          components={tableData.map((table) => ({
+            value: singleTableComponent(table),
+            name: table.name,
+          }))}
+        />
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
       )}
     </StyledContentContainer>
+  );
+
+  const otherComponent = (
+    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
   );
 
   const listEditorComponent = (
@@ -241,10 +247,10 @@ export const RunScreen: React.FC = () => {
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            nameComponent1="List"
-            component1={listEditorComponent}
-            nameComponent2="Node"
-            component2={dummyTextComponent1}
+            components={[
+              { name: "List", value: listEditorComponent },
+              { name: "Node", value: dummyTextComponent1 },
+            ]}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
@@ -256,10 +262,12 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
-              nameComponent1="Plots"
-              component1={plotComponent}
-              nameComponent2="Tables"
-              component2={tableComponent}
+              components={[
+                { name: "Plots", value: plotComponent },
+                { name: "Tables", value: tableComponent },
+                { name: "Other Output", value: otherComponent },
+              ]}
+              hasCardTitle={false}
             />
           </StyledCol>
           <FooterText>{randomMessage}</FooterText>

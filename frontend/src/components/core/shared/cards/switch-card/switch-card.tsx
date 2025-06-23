@@ -1,28 +1,35 @@
-import { spacing } from "@protzilla/theme";
-import React, { useState } from "react";
+import { shadow, spacing } from "@protzilla/theme";
+import { SwitchComponent } from "@protzilla/utils";
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { SwitchCardProps } from "./switch-card.props";
 import { Switch } from "../../switch";
 import { Card } from "../card";
 
-const SwitchDiv = styled.div<{ hasSwitchAlginStart: boolean }>`
+const SwitchDiv = styled.div<{ hasSwitchAlignStart: boolean }>`
   display: flex;
-  justify-content: ${({ hasSwitchAlginStart }) =>
-    hasSwitchAlginStart ? "flex-start" : "flex-end"};
+  justify-content: ${({ hasSwitchAlignStart }) =>
+    hasSwitchAlignStart ? "flex-start" : "flex-end"};
   padding-bottom: ${spacing("small")};
 `;
 
+const StyledCard = styled(Card)<{ hasShadow: boolean }>`
+  box-shadow: ${({ hasShadow }) => (hasShadow ? shadow("box_shadow") : "none")};
+`;
+
 export const SwitchCard: React.FC<SwitchCardProps> = ({
-  nameComponent1,
-  component1,
-  nameComponent2,
-  component2,
-  hasSwitchAlginStart = true,
+  components,
+  hasSwitchAlignStart = true,
   hasCardTitle = true,
+  hasShadow = true,
   styleProps,
 }) => {
-  const [switchState, setSwitchState] = useState<string>("component1");
+  const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
+
+  useEffect(() => {
+    setSwitchState(components[0]);
+  }, [components]);
 
   return (
     <div
@@ -33,26 +40,23 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
         ...(styleProps ?? {}),
       }}
     >
-      <SwitchDiv hasSwitchAlginStart={hasSwitchAlginStart}>
+      <SwitchDiv hasSwitchAlignStart={hasSwitchAlignStart}>
         <Switch
-          options={[
-            { value: "component1", label: nameComponent1 },
-            { value: "component2", label: nameComponent2 },
-          ]}
+          options={components.map((component) => ({ value: component, label: component.name }))}
           value={switchState}
           onChange={setSwitchState}
-          defaultValue="component1"
         />
       </SwitchDiv>
-      <Card
+      <StyledCard
+        hasShadow={hasShadow}
         {...(hasCardTitle
           ? {
-              title: switchState === "component1" ? nameComponent1 : nameComponent2,
+              title: switchState.name,
             }
           : {})}
       >
-        {switchState === "component1" ? component1 : component2}
-      </Card>
+        {switchState.value}
+      </StyledCard>
     </div>
   );
 };
