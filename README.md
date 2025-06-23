@@ -8,8 +8,8 @@
 | backend/main/\_\_init\_\_.py                                                  |        0 |        0 |    100% |           |
 | backend/main/upload\_handler.py                                               |       36 |       36 |      0% |      1-67 |
 | backend/main/urls.py                                                          |        5 |        5 |      0% |     16-22 |
-| backend/main/views.py                                                         |      344 |      344 |      0% |     1-696 |
-| backend/main/views\_helper.py                                                 |       77 |       63 |     18% |11-17, 21-29, 32-49, 51-62, 66-69, 78-106, 124-144, 147-168 |
+| backend/main/views.py                                                         |      350 |      350 |      0% |     1-705 |
+| backend/main/views\_helper.py                                                 |       78 |       64 |     18% |11-17, 21-29, 32-49, 51-62, 66-69, 78-106, 124-144, 147-169 |
 | backend/main/views\_settings.py                                               |      139 |      139 |      0% |     1-228 |
 | backend/protzilla/\_\_init\_\_.py                                             |        0 |        0 |    100% |           |
 | backend/protzilla/all\_steps.py                                               |        7 |        1 |     86% |         1 |
@@ -72,7 +72,7 @@
 | backend/protzilla/workflow.py                                                 |       11 |        7 |     36% |  6, 14-20 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-|                                                                     **TOTAL** | **6320** | **2695** | **57%** |           |
+|                                                                     **TOTAL** | **6327** | **2702** | **57%** |           |
 
 
 ## Setup coverage badge
