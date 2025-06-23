@@ -156,5 +156,6 @@ def set_filtered_data(run, index, key, filtered_data):
     else:
         run.current_filtered_data[key] = filtered_data
 
-def get_display_name(dataframe):
+def get_display_name(dataframe: str):
     name = dataframe.replace("_df", "")
+    return name
