@@ -1167,6 +1167,86 @@ class ClusteringKMeans(DataAnalysisStep):
         "cluster_centers_df",
     ]
 
+    def create_form(self):
+        return Form(
+            label="KMeans Clustering",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be clustered",
+                    options=AnalysisLevel,
+                ),
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    value=ModelSelection.grid_search,
+                    options=ModelSelection,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select scoring for choosing best model",
+                    options=ClusteringScoring,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClusteringScoring,
+                ),
+                NumberField(
+                    name="n_clusters",
+                    label="Number of clusters to find",
+                    value=8,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for centroid initialisation",
+                    value=0,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+                MultiSelectField(
+                    name="init_centroid_strategy",
+                    label="Method for initialisation of centroids",
+                    value=[InitCentroidStrategy.random],
+                    options=InitCentroidStrategy,
+                ),
+                NumberField(
+                    name="n_init",
+                    label="Number of times to run k-means with different seeds",
+                    value=10,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="max_iter",
+                    label="Max iterations per run",
+                    value=300,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="tolerance",
+                    label="Relative tolerance",
+                    value=1e-4,
+                    min=0,
+                    step=1e-5,
+                ),
+            ],
+        )
+
+    
+
     calc_method = staticmethod(k_means)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -1178,7 +1258,10 @@ class ClusteringKMeans(DataAnalysisStep):
 class ClusteringExpectationMaximisation(DataAnalysisStep):
     display_name = "Expectation-maximization (EM)"
     operation = "clustering"
-    method_description = "A clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
+    method_description = (
+        "A clustering algorithm that seeks to find the maximum likelihood estimates "
+        "for a mixture of multivariate Gaussian distributions."
+    )
 
     output_keys = [
         "model",
@@ -1186,6 +1269,70 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
         "cluster_labels_df",
         "cluster_labels_probabilities_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="EM Clustering",
+            input_fields=[
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    value=ModelSelection.grid_search,
+                    options=ModelSelection,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select scoring for choosing best model",
+                    options=ClusteringScoring,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    value=[ClusteringScoring.adjusted_rand_score],
+                    options=ClusteringScoring,
+                ),
+                NumberField(
+                    name="n_components",
+                    label="Number of mixture components",
+                    value=1,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="reg_covar",
+                    label="Regularization added to covariance diagonal",
+                    value=1e-6,
+                    min=0,
+                    step=1e-6,
+                ),
+                MultiSelectField(
+                    name="covariance_type",
+                    label="Covariance type",
+                    value=[ClusteringCovarianceType.full],
+                    options=ClusteringCovarianceType,
+                ),
+                MultiSelectField(
+                    name="init_params",
+                    label="Initialization method",
+                    options=ClusteringInitParams,
+                ),
+                NumberField(
+                    name="max_iter",
+                    label="Maximum number of EM iterations",
+                    value=100,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Random seed",
+                    value=0,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+            ],
+        )
 
     calc_method = staticmethod(expectation_maximisation)
 
@@ -1199,7 +1346,7 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
     display_name = "Hierarchical Agglomerative Clustering"
     operation = "clustering"
     method_description = (
-        "Performs hierarchical clustering utilizing a bottom-up approach"
+        "Performs hierarchical clustering utilizing a bottom-up approach."
     )
 
     output_keys = [
@@ -1207,6 +1354,49 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
         "model_evaluation_df",
         "cluster_labels_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="Hierarchical Agglomerative Clustering",
+            input_fields=[
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    value=ModelSelection.grid_search,
+                    options=ModelSelection,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for choosing best estimator",
+                    value=ClusteringScoring.adjusted_rand_score,
+                    options=ClusteringScoring,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClusteringScoring,
+                ),
+                NumberField(
+                    name="n_clusters",
+                    label="The number of clusters to find",
+                    value=2,
+                    min=1,
+                    step=1,
+                ),
+                MultiSelectField(
+                    name="metric",
+                    label="Distance metric",
+                    value=[ClusteringMetric.euclidean],
+                    options=ClusteringMetric,
+                ),
+                MultiSelectField(
+                    name="linkage",
+                    label="Linkage criterion",
+                    value=[ClusteringLinkage.ward],
+                    options=ClusteringLinkage,
+                ),
+            ],
+        )
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
@@ -1219,7 +1409,11 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 class ClassificationRandomForest(DataAnalysisStep):
     display_name = "Random Forest"
     operation = "classification"
-    method_description = "A random forest is a meta estimator that fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting."
+    method_description = (
+        "A random forest is a meta estimator that fits a number of decision tree classifiers "
+        "on various sub-samples of the dataset and uses averaging to improve the predictive accuracy "
+        "and control over-fitting."
+    )
 
     output_keys = [
         "model",
@@ -1229,6 +1423,120 @@ class ClassificationRandomForest(DataAnalysisStep):
         "y_train_df",
         "y_test_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="Random Forest Classification",
+            input_fields=[
+                NumberField(
+                    name="test_size",
+                    label="Test size",
+                    value=0.20,
+                    min=0,
+                    step=0.01,
+                ),
+                DropdownField(
+                    name="split_stratify",
+                    label="Stratify the split",
+                    value=YesNo.yes,
+                    options=YesNo,
+                ),
+                DropdownField(
+                    name="validatation_strategy",
+                    label="Validation strategy",
+                    value=ClassificationValidationStrategy.k_fold,
+                    options=ClassificationValidationStrategy,
+                ),
+                NumberField(
+                    name="train_val_split",
+                    label="Size of validation set (absolute or proportion)",
+                    value=0.20,
+                    min=0,
+                    step=0.01,
+                ),
+                NumberField(
+                    name="n_splits",
+                    label="Number of folds",
+                    value=5,
+                    min=2,
+                    step=1,
+                ),
+                DropdownField(
+                    name="shuffle",
+                    label="Shuffle before split",
+                    value=YesNo.yes,
+                    options=YesNo,
+                ),
+                NumberField(
+                    name="n_repeats",
+                    label="Number of repeats for cross-validation",
+                    value=10,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="random_state_cv",
+                    label="Random seed (CV)",
+                    value=42,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+                NumberField(
+                    name="p_samples",
+                    label="Size of the test sets",
+                    value=1,
+                    min=0,
+                    step=1,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    value=[ClassificationScoring.accuracy],
+                    options=ClassificationScoring,
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Parameter tuning strategy",
+                    value=ModelSelection.grid_search,
+                    options=ModelSelection,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Scoring for best model selection",
+                    value=ClassificationScoring.accuracy,
+                    options=ClassificationScoring,
+                ),
+                NumberField(
+                    name="n_estimators",
+                    label="Number of trees",
+                    value=100,
+                    min=1,
+                    step=1,
+                ),
+                MultiSelectField(
+                    name="criterion",
+                    label="Split quality function",
+                    value=[ClusteringCriterion.gini],
+                    options=ClusteringCriterion,
+                ),
+                NumberField(
+                    name="max_depth",
+                    label="Max tree depth",
+                    value=1,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Random seed",
+                    value=6,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+            ],
+        )
 
     calc_method = staticmethod(random_forest)
 
@@ -1241,7 +1549,10 @@ class ClassificationRandomForest(DataAnalysisStep):
 class ClassificationSVM(DataAnalysisStep):
     display_name = "Support Vector Machine"
     operation = "classification"
-    method_description = "A support vector machine constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification."
+    method_description = (
+        "A support vector machine constructs a hyperplane or set of hyperplanes in a high- "
+        "or infinite-dimensional space, which can be used for classification."
+    )
 
     output_keys = [
         "model",
@@ -1251,6 +1562,120 @@ class ClassificationSVM(DataAnalysisStep):
         "y_train_df",
         "y_test_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="Support Vector Machine",
+            input_fields=[
+                NumberField(
+                    name="test_size",
+                    label="Test size",
+                    value=0.20,
+                    min=0,
+                    step=0.01,
+                ),
+                DropdownField(
+                    name="split_stratify",
+                    label="Stratify the split",
+                    value=YesNo.yes,
+                    options=YesNo,
+                ),
+                DropdownField(
+                    name="validatation_strategy",
+                    label="Validation strategy",
+                    value=ClassificationValidationStrategy.k_fold,
+                    options=ClassificationValidationStrategy,
+                ),
+                NumberField(
+                    name="train_val_split",
+                    label="Size of validation set (absolute or percentage)",
+                    value=0.20,
+                    min=0,
+                    step=0.01,
+                ),
+                NumberField(
+                    name="n_splits",
+                    label="Number of folds",
+                    value=5,
+                    min=2,
+                    step=1,
+                ),
+                DropdownField(
+                    name="shuffle",
+                    label="Shuffle before split",
+                    value=YesNo.yes,
+                    options=YesNo,
+                ),
+                NumberField(
+                    name="n_repeats",
+                    label="Number of repeats for CV",
+                    value=10,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="random_state_cv",
+                    label="Random seed (CV)",
+                    value=42,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+                NumberField(
+                    name="p_samples",
+                    label="Size of the test sets",
+                    value=1,
+                    min=0,
+                    step=1,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    value=[ClassificationScoring.accuracy],
+                    options=ClassificationScoring,
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Parameter tuning strategy",
+                    value=ModelSelection.grid_search,
+                    options=ModelSelection,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Scoring for best model selection",
+                    value=ClassificationScoring.accuracy,
+                    options=ClassificationScoring,
+                ),
+                NumberField(
+                    name="C",
+                    label="C (inverse regularization strength)",
+                    value=1.0,
+                    min=0.0,
+                    step=0.01,
+                ),
+                MultiSelectField(
+                    name="kernel",
+                    label="SVM kernel type",
+                    value=[ClassificationKernel.linear],
+                    options=ClassificationKernel,
+                ),
+                NumberField(
+                    name="tolerance",
+                    label="Tolerance for stopping criterion",
+                    value=1e-4,
+                    min=0.0,
+                    step=1e-5,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Random seed",
+                    value=6,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+            ]
+        )
 
     calc_method = staticmethod(svm)
 
@@ -1289,6 +1714,56 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
     calc_method = staticmethod(t_sne)
 
+    def create_form(self):
+        return Form(
+            label="t-SNE",
+            input_fields=[
+                NumberField(
+                    name="n_components",
+                    label="Dimension of the embedded space",
+                    value=2,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="perplexity",
+                    label="Perplexity",
+                    value=30.0,
+                    min=5.0,
+                    max=50.0,
+                    step=1.0,
+                ),
+                MultiSelectField(
+                    name="metric",
+                    label="Metric",
+                    value=[DimensionReductionMetric.euclidean],
+                    options=DimensionReductionMetric,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    value=6,
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Maximum number of iterations for the optimization",
+                    value=1000,
+                    min=250,
+                    step=1,
+                ),
+                NumberField(
+                    name="n_iter_without_progress",
+                    label="Max iterations without progress before abort",
+                    value=300,
+                    min=250,
+                    step=1,
+                ),
+            ]
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
         inputs["sample_group_df"] = steps.metadata_df
@@ -1304,6 +1779,57 @@ class DimensionReductionUMAP(DataAnalysisStep):
 
     calc_method = staticmethod(umap)
 
+    def create_form(self):
+        return Form(
+            label="UMAP",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Dimension reduction of a dataframe using UMAP"
+                ),
+                NumberField(
+                    name="n_neighbors",
+                    label="The size of local neighborhood (in terms of number of neighboring sample points) used for manifold approximation",
+                    min=2,
+                    max=100,
+                    step=1,
+                    value=15,
+                ),
+                NumberField(
+                    name="n_components",
+                    label="Number of components",
+                    min=1,
+                    max=100,
+                    step=1,
+                    value=2,
+                ),
+                FloatField(
+                    name="min_dist",
+                    label="The effective minimum distance between embedded points",
+                    min=0.1,
+                    step=0.1,
+                    value=0.1,
+                ),
+                DropdownField(
+                    name="metric",
+                    label="Distance metric"
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+            ]
+        )
+
+    def modify_form(self, form, run):
+        form["input_df"].set_options(
+            form_helper.get_choices_for_protein_df_steps(run)
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.get_step_output(
             Step, "protein_df", inputs["input_df"]
@@ -1314,7 +1840,12 @@ class DimensionReductionUMAP(DataAnalysisStep):
 class ProteinGraphPeptidesToIsoform(DataAnalysisStep):
     display_name = "Peptides to Isoform"
     operation = "protein_graph"
-    method_description = "Create a variation graph (.graphml) for a Protein and map the peptides onto the graph for coverage visualisation. The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. Only `Variant`-Features are included in the graph. This, currently, only works with Uniport-IDs and while you are online."
+    method_description = (
+        "Create a variation graph (.graphml) for a Protein and map the peptides onto the graph for coverage "
+        "visualisation. The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. "
+        "Only `Variant`-Features are included in the graph. This, currently, only works with Uniport-IDs and while "
+        "you are online."
+    )
 
     output_keys = [
         "graph_path",
@@ -1326,6 +1857,32 @@ class ProteinGraphPeptidesToIsoform(DataAnalysisStep):
 
     calc_method = staticmethod(peptides_to_isoform)
 
+    def create_form(self):
+        return Form(
+            label="Peptides to Isoform",
+            input_fields=[
+                TextField(
+                    name="protein_ID",
+                    label="Protein ID",
+                    value="Enter the Uniprot-ID of the protein",
+                ),
+                NumberField(
+                    name="k",
+                    label="k-mer length",
+                    min=1,
+                    step=1,
+                    value=5,
+                ),
+                NumberField(
+                    name="allowed_mismatches",
+                    label="Number of allowed mismatched amino acids per peptide. For many allowed mismatches, this can take a long time.",
+                    min=0,
+                    step=1,
+                    value=2,
+                ),
+            ]
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.peptide_df
         inputs["isoform_df"] = steps.isoform_df
@@ -1335,7 +1892,11 @@ class ProteinGraphPeptidesToIsoform(DataAnalysisStep):
 class ProteinGraphVariationGraph(DataAnalysisStep):
     display_name = "Protein Variation Graph"
     operation = "protein_graph"
-    method_description = "Create a variation graph (.graphml) for a protein, including variation-features. The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. This, currently, only works with Uniport-IDs and while you are online."
+    method_description = (
+        "Create a variation graph (.graphml) for a protein, including variation-features. "
+        "The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. "
+        "This, currently, only works with Uniport-IDs and while you are online."
+    )
 
     output_keys = [
         "graph_path",
@@ -1343,6 +1904,18 @@ class ProteinGraphVariationGraph(DataAnalysisStep):
     ]
 
     calc_method = staticmethod(variation_graph)
+
+    def create_form(self):
+        return Form(
+            label="Protein Variation Graph",
+            input_fields=[
+                TextField(
+                    name="protein_ID",
+                    label="Protein ID",
+                    value="Enter the Uniprot-ID of the protein",
+                )
+            ],
+        )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.peptide_df
@@ -1353,7 +1926,11 @@ class ProteinGraphVariationGraph(DataAnalysisStep):
 class FLEXIQuantLF(DataAnalysisStep):
     display_name = "FLEXIQuant-LF"
     operation = "modification_quantification"
-    method_description = "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified peptides and to quantify the degree of modification based solely on the unmodified peptide species."
+    method_description = (
+        "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect "
+        "modified peptides and to quantify the degree of modification based solely on the "
+        "unmodified peptide species."
+    )
 
     output_keys = [
         "raw_scores",
@@ -1364,12 +1941,57 @@ class FLEXIQuantLF(DataAnalysisStep):
 
     plot_method = staticmethod(flexiquant_lf)
 
+    def create_form(self):
+        return Form(
+            label="FLEXIQuant-LF Parameters",
+            input_fields=[
+                DropdownField(name="peptide_df", label="Peptide dataframe"),
+                DropdownField(name="grouping_column", label="Grouping column in metadata"),
+                DropdownField(name="reference_group", label="Reference group"),
+                DropdownField(name="protein_id", label="Protein ID"),
+                NumberField(
+                    name="num_init", label="Number of RANSAC initiations",
+                    value=30, min=1, max=60, step=1
+                ),
+                FloatField(
+                    name="mod_cutoff", label="Modification cutoff",
+                    value=0.5, min=0, max=1, step=0.01
+                )
+            ]
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        grouping_column_field = form["grouping_column"]
+        reference_group_field = form["reference_group"]
+        protein_id_field = form["protein_id"]
+
+        peptide_df_field.set_options(
+            form_helper.get_choices(run, "peptide_df")
+        )
+
+        grouping_column_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df.drop("Sample", axis=1).columns[1:])
+        )
+
+        grouping_col = grouping_column_field.value or grouping_column_field.options[0][0]
+        reference_group_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping_col].unique())
+        )
+
+        peptide_df_id = peptide_df_field.value or peptide_df_field.options[0][0]
+        peptide_df = run.steps.get_step_output(Step, "peptide_df", peptide_df_id)
+        if peptide_df is not None:
+            protein_id_field.set_options(
+                form_helper.to_choices(peptide_df["Protein ID"].unique())
+            )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["peptide_df"]
         )
-
         inputs["metadata_df"] = steps.metadata_df
+        return inputs
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):
@@ -1377,30 +1999,74 @@ class SelectPeptidesForProtein(DataAnalysisStep):
     operation = "Peptide analysis"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
-    output_keys = [
-        "peptide_df",
-    ]
+    output_keys = ["peptide_df"]
 
     calc_method = staticmethod(select_peptides_of_protein)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+    def create_form(self):
+        return Form(
+            label="Select Peptides of Protein",
+            input_fields=[
+                DropdownField(name="peptide_df", label="Step to use peptide dataframe from"),
+                BooleanField(name="auto_select", label="Automatically select most significant Protein", value=False),
+                DropdownField(name="protein_list", label="Select a list of Proteins from which you want to choose your Proteins of Interest"),
+                BooleanField(name="sort_proteins", label="Sort Proteins by p-value", value=False),
+                MultiSelectField(name="protein_ids", label="Protein IDs"),
+            ]
         )
 
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        auto_select = form["auto_select"].value
+        protein_list_field = form["protein_list"]
+        sort_proteins = form["sort_proteins"].value
+        protein_ids_field = form["protein_ids"]
+
+        peptide_df_field.set_options(
+            form_helper.get_choices(run, "peptide_df", Step)
+        )
+        peptide_df_field.set_value(
+            run.steps.get_instance_identifiers(DataPreprocessingStep, "peptide_df")[-1]
+        )
+
+        # Protein list options
+        choices = [("all proteins", "all proteins")]
+        choices.extend(form_helper.get_choices(run, "significant_proteins_df", DataAnalysisStep))
+        protein_list_field.set_options(choices)
+
+        # Logic depending on auto_select toggle
+        if auto_select:
+            form["sort_proteins"].visible = False
+            form["protein_ids"].visible = False
+        else:
+            form["sort_proteins"].visible = True
+            form["protein_ids"].visible = True
+
+            chosen_list = protein_list_field.value or protein_list_field.options[0][0]
+            if chosen_list == "all proteins":
+                protein_ids_field.set_options(
+                    form_helper.to_choices(run.steps.get_step_output(Step, "protein_df")["Protein ID"].unique())
+                )
+            else:
+                df = run.steps.get_step_output(DataAnalysisStep, "significant_proteins_df", chosen_list)
+                if sort_proteins:
+                    df = df.sort_values(by="corrected_p_value")
+                protein_ids_field.set_options(form_helper.to_choices(df["Protein ID"].unique()))
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df", inputs["peptide_df"])
         inputs["metadata_df"] = steps.metadata_df
 
         if inputs["auto_select"]:
-            significant_proteins = (
-                steps.get_step_output(DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]))
-            index_of_most_significant_protein = significant_proteins['corrected_p_value'].idxmin()
-            most_significant_protein = significant_proteins.loc[index_of_most_significant_protein]
+            significant_proteins = steps.get_step_output(
+                DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]
+            )
+            index_of_most_significant = significant_proteins["corrected_p_value"].idxmin()
+            most_significant_protein = significant_proteins.loc[index_of_most_significant]
             inputs["protein_id"] = [most_significant_protein["Protein ID"]]
             self.messages.append({
                 "level": logging.INFO,
-                "msg":
-                    f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {inputs['protein_list']}"
+                "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']} from {inputs['protein_list']}"
             })
 
         return inputs
@@ -1409,36 +2075,76 @@ class SelectPeptidesForProtein(DataAnalysisStep):
 class PTMsPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of a single protein of interest. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of a single protein of interest. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
-    output_keys = [
-        "ptm_df",
-    ]
+    output_keys = ["ptm_df"]
 
     calc_method = staticmethod(ptms_per_sample)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+    def create_form(self):
+        return Form(
+            label="PTMs per Sample",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Peptide dataframe containing the peptides of a single protein",
+                ),
+            ]
         )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        choices = form_helper.get_choices(run, "peptide_df")
+        peptide_df_field.set_options(choices)
+
+        single_protein_peptides = run.steps.get_instance_identifiers(
+            SelectPeptidesForProtein, "peptide_df"
+        )
+        if single_protein_peptides:
+            peptide_df_field.set_value(single_protein_peptides[0])
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df", inputs["peptide_df"])
         return inputs
 
 
 class PTMsProteinAndPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample and Protein"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of all Proteins. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of all Proteins. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
-    output_keys = [
-        "ptm_df",
-    ]
+    output_keys = ["ptm_df"]
 
     calc_method = staticmethod(ptms_per_protein_and_sample)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+    def create_form(self):
+        return Form(
+            label="PTMs per Sample and Protein",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Peptide dataframe containing the peptides of a single protein",
+                ),
+            ]
         )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        choices = form_helper.get_choices(run, "peptide_df")
+        peptide_df_field.set_options(choices)
+
+        single_protein_peptides = run.steps.get_instance_identifiers(
+            SelectPeptidesForProtein, "peptide_df"
+        )
+        if single_protein_peptides:
+            peptide_df_field.set_value(single_protein_peptides[0])
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df", inputs["peptide_df"])
         return inputs
