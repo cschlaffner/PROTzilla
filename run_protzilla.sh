@@ -103,7 +103,7 @@ if ! npm update -g npm >/dev/null 2>&1; then
   exit 1
 fi
 # Due to an issue with outdated signatures in Corepack, Corepack should be updated to its latest version first:
-npm install --global corepack@latest
+npm install corepack@latest
 
 # install needed pnpm version
 corepack enable
