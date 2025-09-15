@@ -7,6 +7,11 @@ LINUX_MINICONDA="Miniconda3-latest-Linux-x86_64.sh"
 URL_TO_USE=""
 VERSION_TO_USE=""
 
+accept_conda_tos() {
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+}
+
 # check if the script is running on macos or linux
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   URL_TO_USE=$CONDA_URL$LINUX_MINICONDA
@@ -32,6 +37,7 @@ else
   source "$HOME/miniconda/etc/profile.d/conda.sh"
   conda config --set auto_activate_base false
   conda init
+  accept_conda_tos
 fi
 
 if ! conda --version >/dev/null; then
