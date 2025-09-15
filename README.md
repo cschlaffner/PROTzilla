@@ -15,7 +15,7 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 2. Enter repository folder <br> `cd PROTzilla`
 3. Run install script <br>
     **For Windows:** Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
-    **For macOS & Linux:** Execute `./run_protzilla.sh` <br>
+    **For macOS & Linux:** Execute `./install_protzilla.sh` <br>
 
 The script automatically installs all software dependencies and creates the environment. The initial set-up might take up to 15 minutes.
 
