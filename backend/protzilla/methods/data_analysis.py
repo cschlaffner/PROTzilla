@@ -529,15 +529,62 @@ class PlotScatterPlot(DataAnalysisStep):
 
 
 class PlotClustergram(DataAnalysisStep):
+    # TODO are there tests for this stuff?
     display_name = "Clustergram"
     operation = "plot"
     method_description = "Creates a clustergram from data"
 
     plot_method = staticmethod(clustergram_plot)
 
+    def create_form(self):
+        return Form(
+            label="Clustergram",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                ),
+                # TODO: might be overkill here since the convention seems to be that this is pre-selected
+                DropdownField(
+                    name="metadata_df",
+                    label="Choose dataframe to be used for annotating sample metadata",
+                    # required=False, TODO: can or do we need to mirror this somehow? - or is it enough to no select anything?
+                ),
+                DropdownField(
+                    name="metadata_column",
+                    label="Choose the column of the metadata dataframe that should be used for annotation",
+                ),
+                CheckboxField(
+                    name="flip_axes",
+                    label="Flip axis",
+                    # TODO if flipping axis is possible wouldn't it be cool to also be able to specify which axis to
+                    #  flip, i.e. which columns will be selected from the dataframe
+                    text="Flip axes",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(
+            run,
+        )
+        form["metadata_df"].options = form_helper.get_choices(
+            run,
+            output_key='metadata_df',
+        )
+        if form.values['metadata_df'] is not None:
+            form["metadata_column"].options = form_helper.get_choices_for_metadata_non_sample_columns(
+                run,
+                instance_identifier=form.values['metadata_df']
+            )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["input_df"] = steps.get_step_output(
+            Step, "protein_df", inputs["input_df"]
+        )
+        inputs["metadata_df"] = steps.get_step_output(
+            Step, "metadata_df", inputs["metadata_df"]
+        )
         return inputs
 
 
@@ -586,8 +633,8 @@ class PlotProtQuant(DataAnalysisStep):
             run
         )
 
-        if (form["input_df"].options):
-            if (not form["input_df"].value):
+        if form["input_df"].options:
+            if not form["input_df"].value:
                 form["input_df"].value = form["input_df"].options[0].label
 
             form["protein_group"].options = form_helper.to_choices(
@@ -671,7 +718,7 @@ class ClusteringKMeans(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -691,7 +738,7 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -712,7 +759,7 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -734,7 +781,7 @@ class ClassificationRandomForest(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -756,7 +803,7 @@ class ClassificationSVM(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -776,7 +823,7 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -791,7 +838,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 

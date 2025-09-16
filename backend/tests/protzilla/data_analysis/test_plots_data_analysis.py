@@ -55,6 +55,8 @@ def wide_4d_df():
 
 @pytest.fixture
 def color_df():
+    # TODO: if scatterplot should be properly included, this fixture has to be adapted to mimic actual metadata, i.e. a
+    #  df where samples are a column and not the index
     return pd.DataFrame(
         np.array(
             [
@@ -66,6 +68,21 @@ def color_df():
         ),
         columns=["Color"],
         index=["Sample1", "Sample2", "Sample3", "Sample4"],
+    )
+
+
+@pytest.fixture
+def metadata_df():
+    return pd.DataFrame(
+        np.array(
+            [
+                ["Sample1", "Group1"],
+                ["Sample2", "Group2"],
+                ["Sample3", "Group1"],
+                ["Sample4", "Group1"],
+            ]
+        ),
+        columns=["Sample", "Group"],
     )
 
 
@@ -111,8 +128,13 @@ def test_scatter_plot_color_df_2d(show_figures, wide_2d_df):
     assert any("The color dataframe should have 1 dimension only" in message["msg"] for message in outputs["messages"])
 
 
-def test_clustergram(show_figures, wide_4d_df, color_df):
-    outputs = clustergram_plot(wide_4d_df, color_df, "no")
+def test_clustergram(show_figures, wide_4d_df, metadata_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df,
+        metadata_column='Group',
+        flip_axes=False
+    )
     assert "plots" in outputs
     fig = outputs["plots"][0]
     if show_figures:
@@ -129,18 +151,29 @@ def test_prot_quant_plot(show_figures, wide_4d_df):
     return
 
 
-def test_clustergram_no_sample_group_df(show_figures, wide_4d_df):
-    outputs = clustergram_plot(wide_4d_df, "", "no")
+def test_clustergram_no_metadata(show_figures, wide_4d_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df=None,
+        flip_axes=False
+    )
     assert "plots" in outputs
     fig = outputs["plots"][0]
     if show_figures:
         fig.show()
-    return
 
 
 def test_clustergram_input_not_right_type(wide_4d_df):
-    outputs1 = clustergram_plot([1, 2, 3, 4, 5], "", "no")
-    outputs2 = clustergram_plot(wide_4d_df, [1, 2, 3, 4, 5], "no")
+    outputs1 = clustergram_plot(
+        [1, 2, 3, 4, 5],
+        metadata_df=None,
+        flip_axes=False
+    )
+    outputs2 = clustergram_plot(
+        wide_4d_df,
+        metadata_df=[1, 2, 3, 4, 5],
+        flip_axes=False
+    )
     assert "messages" in outputs1
     assert "plots" not in outputs1
     assert any(
@@ -156,46 +189,67 @@ def test_clustergram_input_not_right_type(wide_4d_df):
 
 
 def test_clustergram_dimension_mismatch(wide_4d_df):
-    sample_group_df_5_samples = pd.DataFrame(
+    metadata_df_5_samples = pd.DataFrame(
         np.array(
             [
-                [4, 10, 3],
-                [8, 2, 4],
-                [2, 7, 1],
-                [13, 5, 7],
-                [13, 3, 9],
+                ["Sample1", "Group1"],
+                ["Sample2", "Group2"],
+                ["Sample3", "Group1"],
+                ["Sample4", "Group1"],
+                ["Sample5", "Group3"],
             ]
         ),
-        columns=["Protein1", "Protein2", "Protein3"],
-        index=["Sample1", "Sample2", "Sample3", "Sample4", "Sample5"],
+        columns=["Sample", "Group"],
     )
     outputs = clustergram_plot(
         wide_4d_df,
-        sample_group_df_5_samples,
-        "no",
+        metadata_df_5_samples,
+        metadata_column='Group',
+        flip_axes=False
+    )
+    assert "plots" in outputs
+
+    metadata_df_3_samples = pd.DataFrame(
+        np.array(
+            [
+                ["Sample1", "Group1"],
+                ["Sample2", "Group2"],
+                ["Sample3", "Group1"],
+            ]
+        ),
+        columns=["Sample", "Group"],
+    )
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df_3_samples,
+        metadata_column='Group',
+        flip_axes=False
     )
     assert "messages" in outputs
     assert "plots" not in outputs
-    assert any("There is a dimension mismatch" in message["msg"] for message in outputs["messages"])
+    assert any(
+        "The input dataframe and the grouping contain different samples" in message["msg"]
+        for message in outputs["messages"]
+    )
 
 
 def test_clustergram_different_samples(wide_4d_df):
-    sample_group_df_different_samples = pd.DataFrame(
+    metadata_df_different_samples = pd.DataFrame(
         np.array(
             [
-                [4, 10, 3],
-                [8, 2, 4],
-                [2, 7, 1],
-                [13, 5, 7],
+                ["Sample1", "Group1"],
+                ["Sample2", "Group2"],
+                ["Sample5", "Group1"],
+                ["Sample4", "Group1"],
             ]
         ),
-        columns=["Protein1", "Protein2", "Protein3"],
-        index=["Sample1", "Sample2", "Sample5", "Sample4"],
+        columns=["Sample", "Group"],
     )
     outputs = clustergram_plot(
         wide_4d_df,
-        sample_group_df_different_samples,
-        "no",
+        metadata_df_different_samples,
+        metadata_column='Group',
+        flip_axes=False
     )
     assert "messages" in outputs
     assert "plots" not in outputs
