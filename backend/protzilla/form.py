@@ -71,7 +71,7 @@ class SearchField(_baseField):
 @dataclass
 class CheckboxField(_baseField):
     type: str = "single-checkbox"
-    text: str = "" # text shown next to the checkbox
+    text: str = ""  # text shown next to the checkbox
     value: bool = False
 
 

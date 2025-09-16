@@ -22,16 +22,26 @@ def get_choices(
     """
     Returns the instance identifiers containing the passed output key.
     :param run: the run object
-    :param output_key: the output key (e.g. "protein_df" or "enrichment_df"
+    :param output_key: the output key (e.g. "protein_df" or "enrichment_df")
     :return: a list of tuples containing the instance identifier and the instance identifier
     """
     choices = to_choices(run.steps.get_instance_identifiers(step_type, output_key))
     return list(reversed(choices))
 
 
-def get_choices_for_metadata_non_sample_columns(run: Run) -> list[Option]:
+def get_choices_for_metadata_non_sample_columns(run: Run, instance_identifier: str | None = None) -> list[Option]:
+    if instance_identifier is None:
+        metadata_df = run.steps.metadata_df
+    else:
+        metadata_df = run.steps.get_step_output(
+            Step,
+            output_key='metadata_df',
+            instance_identifier=instance_identifier
+        )
+        if metadata_df is None:
+            return []
     return to_choices(
-        run.steps.metadata_df.columns[
-            run.steps.metadata_df.columns != "Sample"
+        metadata_df.columns[
+            metadata_df.columns != "Sample"
         ].unique()
     )
