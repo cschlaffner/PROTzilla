@@ -17,7 +17,10 @@ def get_choices_for_protein_df_steps(run: Run) -> list[Option]:
 
 
 def get_choices(
-    run: Run, output_key: str, step_type: type[Step] = Step
+        run: Run,
+        output_key: str,
+        step_type: type[Step] = Step,
+        required: bool = True,
 ) -> list[Option]:
     """
     Returns the instance identifiers containing the passed output key.
@@ -25,7 +28,7 @@ def get_choices(
     :param output_key: the output key (e.g. "protein_df" or "enrichment_df")
     :return: a list of tuples containing the instance identifier and the instance identifier
     """
-    choices = to_choices(run.steps.get_instance_identifiers(step_type, output_key))
+    choices = to_choices(run.steps.get_instance_identifiers(step_type, output_key), required=required)
     return list(reversed(choices))
 
 
