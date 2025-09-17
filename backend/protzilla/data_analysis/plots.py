@@ -213,9 +213,10 @@ def clustergram_plot(
         assert isinstance(metadata_df, pd.DataFrame) or not metadata_df
 
         input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+        assert not input_df_wide.isna().any(axis=None)
 
         if isinstance(metadata_df, pd.DataFrame):
-            assert metadata_column in metadata_df.columns  # TODO: catch this properly and add test
+            assert metadata_column in metadata_df.columns
             # TODO: debatable if this filtering should be done here or in the filtering steps
             filtered_metadata_df = metadata_df[metadata_df['Sample'].isin(input_df_wide.index)]
 
@@ -246,11 +247,7 @@ def clustergram_plot(
             row_colors = None
             color_label_dict = None
 
-        # TODO: center values?
-        # TODO: run tests - if they are runnable
-        #  - All assertion errors properly hit? [first two missing]
-        #  - axis flipping works as intended
-        #  - different grouping colums
+        # TODO: Would be nice to actually center values at the z-score of 0
         clustergram = Clustergram(
             flip_axes=flip_axes,
             data=input_df_wide.values,
@@ -258,7 +255,6 @@ def clustergram_plot(
             row_colors=row_colors,
             row_colors_to_label_dict=color_label_dict,
             column_labels=input_df_wide.columns.values.tolist(),
-            color_threshold={"row": 250, "col": 700},
             line_width=2,
             color_map=px.colors.diverging.RdBu,
             hidden_labels=["row", "col"],
@@ -267,20 +263,23 @@ def clustergram_plot(
         clustergram.update_layout(
             autosize=True,
         )
-        # TODO: plot overflows screen - if steps are not collapsed
-        # TODO: why are cluster lines green?
         return dict(plots=[clustergram])
     except AssertionError as e:
         if not isinstance(input_df, pd.DataFrame):
             msg = (
-                'The selected input for "input dataframe" is not a dataframe, '
-                'dataframes have the suffix "df"'
+                'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
             )
-        elif not isinstance(metadata_df, pd.DataFrame):
+        elif not isinstance(metadata_df, pd.DataFrame) and metadata_df is not None:
             msg = (
-                'The selected input for "grouping dataframe" is not a dataframe, '
-                'dataframes have the suffix "df"'
+                'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
             )
+        elif input_df_wide.isna().any(axis=None):
+            msg = (
+                'The selected input dataframe contains missing values. These should be filtered out or imputed before '
+                'creating a clustergram plot.'
+            )
+        elif isinstance(metadata_df, pd.DataFrame) and metadata_column not in metadata_df.columns:
+            msg = "The column selected for annotation is not present in the corresponding metadata dataframe"
         elif isinstance(metadata_df, pd.DataFrame) and len(input_df_wide) != len(filtered_metadata_df):
             msg = "The input dataframe and the grouping contain different samples"
         else:

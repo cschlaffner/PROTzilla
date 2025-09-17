@@ -128,13 +128,8 @@ def test_scatter_plot_color_df_2d(show_figures, wide_2d_df):
     assert any("The color dataframe should have 1 dimension only" in message["msg"] for message in outputs["messages"])
 
 
-def test_clustergram(show_figures, wide_4d_df, metadata_df):
-    outputs = clustergram_plot(
-        wide_4d_df,
-        metadata_df,
-        metadata_column='Group',
-        flip_axes=False
-    )
+def test_prot_quant_plot(show_figures, wide_4d_df):
+    outputs = prot_quant_plot(wide_4d_df, "Protein1")
     assert "plots" in outputs
     fig = outputs["plots"][0]
     if show_figures:
@@ -142,8 +137,13 @@ def test_clustergram(show_figures, wide_4d_df, metadata_df):
     return
 
 
-def test_prot_quant_plot(show_figures, wide_4d_df):
-    outputs = prot_quant_plot(wide_4d_df, "Protein1")
+def test_clustergram(show_figures, wide_4d_df, metadata_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df,
+        metadata_column='Group',
+        flip_axes=False
+    )
     assert "plots" in outputs
     fig = outputs["plots"][0]
     if show_figures:
@@ -161,6 +161,22 @@ def test_clustergram_no_metadata(show_figures, wide_4d_df):
     fig = outputs["plots"][0]
     if show_figures:
         fig.show()
+
+
+def test_clustergram_nans_in_input(wide_4d_df):
+    nan_df = wide_4d_df.copy()
+    nan_df.iloc[0, 0] = np.nan
+
+    outputs = clustergram_plot(
+        nan_df,
+        metadata_df=None,
+        flip_axes=False
+    )
+    assert "messages" in outputs
+    assert "plots" not in outputs
+    assert any(
+        "The selected input dataframe contains missing values." in message["msg"] for message in outputs["messages"]
+    )
 
 
 def test_clustergram_input_not_right_type(wide_4d_df):
@@ -184,7 +200,7 @@ def test_clustergram_input_not_right_type(wide_4d_df):
     assert "messages" in outputs2
     assert "plots" not in outputs2
     assert any(
-        'The selected input for "grouping dataframe" is not a dataframe, ' in message["msg"]
+        'The selected input for "metadata dataframe" is not a dataframe, ' in message["msg"]
         for message in outputs2["messages"])
 
 
@@ -257,3 +273,32 @@ def test_clustergram_different_samples(wide_4d_df):
         "The input dataframe and the grouping contain different samples" in message["msg"]
         for message in outputs["messages"]
     )
+
+
+def test_clustergram_no_matching_metadata_column(wide_4d_df, metadata_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df,
+        metadata_column='DefinitelyNotAValidColuuuuuuuuuuuuuuuuuuuumn',
+        flip_axes=False
+    )
+    assert "plots" not in outputs
+    assert "messages" in outputs
+    assert any(
+        "The column selected for annotation is not present in the corresponding metadata dataframe" in message["msg"]
+        for message in outputs["messages"]
+    )
+
+
+def test_clustergram_flip_axes(show_figures, wide_4d_df, metadata_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df,
+        metadata_column='Group',
+        flip_axes=True
+    )
+    assert "plots" in outputs
+    fig = outputs["plots"][0]
+    if show_figures:
+        fig.show()
+    return

@@ -529,7 +529,6 @@ class PlotScatterPlot(DataAnalysisStep):
 
 
 class PlotClustergram(DataAnalysisStep):
-    # TODO are there tests for this stuff?
     display_name = "Clustergram"
     operation = "plot"
     method_description = "Creates a clustergram from data"
@@ -544,11 +543,11 @@ class PlotClustergram(DataAnalysisStep):
                     name="input_df",
                     label="Choose dataframe to be plotted",
                 ),
-                # TODO: might be overkill here since the convention seems to be that this is pre-selected
+                # TODO: might be overkill to add a field to let user select a metadata dataframe (since the convention
+                #  seems to be that there's only one metadata dataframe and that one is pre-selected)
                 DropdownField(
                     name="metadata_df",
                     label="Choose dataframe to be used for annotating sample metadata",
-                    # required=False, TODO: can or do we need to mirror this somehow? - or is it enough to no select anything?
                 ),
                 DropdownField(
                     name="metadata_column",
@@ -571,6 +570,7 @@ class PlotClustergram(DataAnalysisStep):
         form["metadata_df"].options = form_helper.get_choices(
             run,
             output_key='metadata_df',
+            required=False,
         )
         if form.values['metadata_df'] is not None:
             form["metadata_column"].options = form_helper.get_choices_for_metadata_non_sample_columns(
