@@ -6,7 +6,7 @@ import pandas as pd
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
 
 
-def peptide_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
+def peptide_import(file_path: Path, intensity_name, map_to_uniprot) -> dict:
     try:
         assert intensity_name in [
             "Intensity",
@@ -42,7 +42,7 @@ def peptide_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
         id_df = df[id_columns]
         intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
+            c[len(peptide_intensity_name) + 1:] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),
@@ -68,12 +68,11 @@ def peptide_import(file_path : Path, intensity_name, map_to_uniprot) -> dict:
     return dict(peptide_df=cleaned)
 
 
-def evidence_import(file_path : Path, map_to_uniprot) -> dict:
+def evidence_import(file_path: Path, map_to_uniprot) -> dict:
     try:
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=e)])
-
 
     id_columns = [
         "Experiment",
