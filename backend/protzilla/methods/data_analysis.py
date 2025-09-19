@@ -34,6 +34,8 @@ from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Plots, Step, StepManager
+from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, create_bar_ptm_visualization, \
+    create_details_ptm_visualization
 
 
 class TTestType(Enum):
@@ -431,7 +433,8 @@ class PlotVolcano(DataAnalysisStep):
     method_description = ("Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
                           "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
                           "can define a fold change threshold and an alpha level to highlight significant items.")
-    
+
+    plot_method = staticmethod(create_volcano_plot)
     output_keys = []
 
     def create_form(self):
@@ -486,8 +489,6 @@ class PlotVolcano(DataAnalysisStep):
             items_of_interest = step_output["PTM"].unique()
 
         items_of_interest_field.options = (form_helper.to_choices(items_of_interest))
-
-    plot_method = staticmethod(create_volcano_plot)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["p_values"] = steps.get_step_output(
@@ -989,3 +990,56 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
             Step, "peptide_df", inputs["peptide_df"]
         )
         return inputs
+
+
+class PTMVisualizationStep(DataAnalysisStep):
+    operation = "plot"
+    output_keys = []
+
+    def create_form(self):
+        return Form(
+            label="PTM Visualization",
+            input_fields=[
+                # TODO[Chris]: would be cleaner to rewrite Tariks stuff so that imported evidence file data could be
+                #  reused - However Tarik has a custom parsing function so that would require extra work.
+                #  Downside: any filtering that may have been applied to the evidence file could not be used here
+                #   - rewrite
+                FileInput(
+                    name="evidence_file_path",
+                    label="MaxQuant Evidence file",
+                ),
+                FileInput(
+                    name="fasta_file_path",
+                    label="FASTA file",
+                ),
+                FileInput(
+                    name="groups_file_path",
+                    label="Metadata used to define groups",
+                ),
+                FileInput(
+                    name="regions_file_path",
+                    label="Metadata used to define regions",  # TODO[Chris]: what does it even do?
+                ),
+            ]
+        )
+
+
+class PTMOverviewVisualization(PTMVisualizationStep):
+    display_name = "PTM Visualization - Overview Plot"
+    method_description = "TODO"  # TODO
+
+    plot_method = staticmethod(create_overview_ptm_visualization)
+
+
+class PTMBarVisualization(PTMVisualizationStep):
+    display_name = "PTM Visualization - Bar Plot"
+    method_description = "TODO"  # TODO
+
+    plot_method = staticmethod(create_bar_ptm_visualization)
+
+
+class PTMDetailsVisualization(PTMVisualizationStep):
+    display_name = "PTM Visualization - Details Plot"
+    method_description = "TODO"  # TODO
+
+    plot_method = staticmethod(create_details_ptm_visualization)
