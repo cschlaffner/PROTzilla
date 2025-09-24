@@ -1,7 +1,10 @@
 import re
-from backend.protzilla.all_steps import get_all_methods
+
+from backend.protzilla.constants.paths import SETTINGS_PATH
+from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
+from protzilla.constants.paths import DEFAULT_PLOT_SETTINGS_FILE_STEM
 
 
 def sanitize_name(name: str) -> [str, str]:
@@ -15,6 +18,7 @@ def sanitize_name(name: str) -> [str, str]:
         message = f" \n Provided name '{original_name}' has been converted to '{name}' to ensure it is a valid filename."
     return name, message
 
+
 def parameters_from_post(post):
     d = dict(post)
     if "csrfmiddlewaretoken" in d:
@@ -27,6 +31,7 @@ def parameters_from_post(post):
         else:
             parameters[k] = convert_str_if_possible(v[0])
     return parameters
+
 
 def convert_str_if_possible(s):
     try:
@@ -47,23 +52,11 @@ def convert_str_if_possible(s):
             return numbers
         return s
 
-def get_all_possible_steps() -> list[dict]:
-    """
-        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
-
-        :return: List of step dictionaries via the steps to_dict function.
-        :rtype: List[dict]
-        """
-    steps = get_all_methods()
-    step_list = []
-    for step in steps:
-        step_list.append(step.to_dict(step))
-    return step_list
 
 def get_step(
-    step: Step
+        step: Step
 ) -> dict:
-    return(
+    return (
         {
             "id": step.instance_identifier,
             "name": step.display_name,
@@ -72,9 +65,11 @@ def get_step(
         }
     )
 
+
 def get_displayed_steps(
-    steps: StepManager,
-) -> list[dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
+        steps: StepManager,
+) -> list[
+    dict]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
     displayed_steps = []
     index_global = 0
 
@@ -106,6 +101,7 @@ def get_displayed_steps(
             }
         )
     return displayed_steps
+
 
 # TODO display_message, display_messages, clear_messages
 
@@ -156,6 +152,19 @@ def set_filtered_data(run, index, key, filtered_data):
     else:
         run.current_filtered_data[key] = filtered_data
 
+
 def get_display_name(dataframe: str):
     name = dataframe.replace("_df", "")
     return name
+
+
+def load_plot_settings_from_file(file_stem) -> dict:
+    op = YamlOperator()
+    path = SETTINGS_PATH / f"{file_stem}.yaml"
+
+    if file_stem == DEFAULT_PLOT_SETTINGS_FILE_STEM or not path.exists():
+        default_path = SETTINGS_PATH / f"{DEFAULT_PLOT_SETTINGS_FILE_STEM}.yaml"
+        plot_settings = op.read(default_path)
+    else:
+        plot_settings = op.read(path)
+    return plot_settings

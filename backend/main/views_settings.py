@@ -1,23 +1,23 @@
 import json
 import shutil
 from datetime import date
+from io import BytesIO
 
 import pandas
 import plotly.graph_objects as go
 import plotly.io as pio
-from io import BytesIO
 from PIL import Image
-
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
-from backend.main.views_helper import sanitize_name
+from backend.main.views_helper import sanitize_name, load_plot_settings_from_file
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.disk_operator import YamlOperator
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
+
 
 # <--- Plot Export --->
 
@@ -29,16 +29,10 @@ def load_settings(request):
             return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
         templateName = data.get("templateName")
 
-        op = YamlOperator()
-        path = SETTINGS_PATH / (templateName + ".yaml")
-        default_path = SETTINGS_PATH / ("plots_default.yaml")
-
-        if (templateName == "plots_default" or not path.exists()):
-            settings = op.read(default_path)
-        else:
-            settings = op.read(path)
-        return JsonResponse(settings)
+        plot_settings = load_plot_settings_from_file(templateName)
+        return JsonResponse(plot_settings)
     return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+
 
 def save_settings(request):
     if request.method == "POST":
@@ -54,12 +48,14 @@ def save_settings(request):
         return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
     return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
 
+
 def download_plot(request):
     if request.method == "POST":
         params = json.loads(request.body.decode("utf-8"))
         fig = go.Figure(json.loads(params["plot"]))
         file = get_plot_file(fig, params)
     return FileResponse(file)
+
 
 def get_plot_file(fig: go.Figure, params: dict):
     file_format = params["fileFormat"]
