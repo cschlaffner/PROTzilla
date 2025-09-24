@@ -1001,13 +1001,9 @@ class PTMVisualizationStep(DataAnalysisStep):
         return Form(
             label="PTM Visualization",
             input_fields=[
-                # TODO[Chris]: would be cleaner to rewrite Tarik's stuff so that imported evidence file data could be
-                #  reused - However Tarik has a custom parsing function so that would require extra work.
-                #  Downside: any filtering that may have been applied to the evidence file could not be used here
-                #   - rewrite
-                FileInput(
-                    name="evidence_file_path",
-                    label="MaxQuant Evidence file",
+                DropdownField(
+                    name="evidence_df",
+                    label="Dataframe that contains the MaxQuant evidence data",
                 ),
                 FloatField(
                     name="evidence_file_q_value_threshold",
@@ -1027,6 +1023,19 @@ class PTMVisualizationStep(DataAnalysisStep):
                 ),
             ]
         )
+
+    def modify_form(self, form, run):
+        form["evidence_df"].options = form_helper.get_choices(
+            run,
+            output_key='peptide_df',  # TODO: will the other peptide import also results in a peptide_df?
+            required=True  # TODO: check that this works
+        )
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["evidence_df"] = steps.get_step_output(
+            Step, "peptide_df", inputs["evidence_df"]
+        )
+        return inputs
 
 
 class PTMOverviewVisualization(PTMVisualizationStep):
@@ -1051,6 +1060,9 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
         return form
 
 
+#####################
+# TODO: somehow these are not working yet
+#######################
 class PTMBarVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Bar Plot"
     method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "

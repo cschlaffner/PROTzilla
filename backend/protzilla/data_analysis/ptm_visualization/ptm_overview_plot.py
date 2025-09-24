@@ -1,6 +1,8 @@
 import types
 from pathlib import Path
 
+import pandas as pd
+
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import MaxQuantPreprocessor
 from protein_sequencing.overview_plot import OverviewPlotter
 from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_general_config_module, \
@@ -30,7 +32,7 @@ def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
 
 
 def create_overview_ptm_visualization(
-        evidence_file_path: Path,
+        evidence_df: pd.DataFrame,
         evidence_file_q_value_threshold: float,
         fasta_file_path: Path,
         regions_file_path: Path,
@@ -40,18 +42,19 @@ def create_overview_ptm_visualization(
     # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
     # TODO: test all of this
     # TODO: clean the ptm_visualization directory
+    # TODO: somewhere there's a bug which will load an old evidence file instead of using the new one (maybe has sth.
+    #  to do with reloading)
 
     out_dir = Path(__file__).parent / 'tmp'
 
     config_module = get_general_config_module(regions_file_path, out_dir)
     preprocessor_config_module = get_preprocessor_config_module(
-        evidence_file_path=evidence_file_path,
         fasta_file_path=fasta_file_path,
         groups_file_path=None,
         q_value_threshold=evidence_file_q_value_threshold,
         out_dir=out_dir
     )
-    MaxQuantPreprocessor(config_module, preprocessor_config_module)
+    MaxQuantPreprocessor(config_module, preprocessor_config_module, evidence_df=evidence_df)
 
     plot_config_module = get_overview_plot_config_module(out_dir)
     overview_plotter = OverviewPlotter(

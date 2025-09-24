@@ -2,6 +2,8 @@ import itertools
 import types
 from pathlib import Path
 
+import pandas as pd
+
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import MaxQuantPreprocessor
 from protein_sequencing.details_plot import DetailsPlotter
 from protzilla.constants.colors import PLOT_COLOR_SEQUENCE
@@ -54,7 +56,7 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
 
 
 def create_details_ptm_visualization(
-        evidence_file_path: Path,
+        evidence_df: pd.DataFrame,
         evidence_file_q_value_threshold: float,
         fasta_file_path: Path,
         regions_file_path: Path,
@@ -65,13 +67,12 @@ def create_details_ptm_visualization(
 
     config_module = get_general_config_module(regions_file_path, out_dir)
     preprocessor_config_module = get_preprocessor_config_module(
-        evidence_file_path=evidence_file_path,
         fasta_file_path=fasta_file_path,
         groups_file_path=groups_file_path,
         q_value_threshold=evidence_file_q_value_threshold,
         out_dir=out_dir
     )
-    MaxQuantPreprocessor(config_module, preprocessor_config_module)
+    MaxQuantPreprocessor(config_module, preprocessor_config_module, evidence_df=evidence_df)
 
     plot_config_module = get_details_plot_config_module(groups_file_path, out_dir)
     plotter = DetailsPlotter(
