@@ -91,7 +91,7 @@ def get_general_config_module(
 
         # Plot Settings
         # 0 for horizontal, 1 for vertical, note figure height and width are then automatically swapped
-        # TODO: customize
+        # TODO: customize (settings?)
         'FIGURE_ORIENTATION': 0,
 
         'PTMS_TO_HIGHLIGHT': [],  # Unused for now
@@ -121,7 +121,6 @@ def get_general_config_module(
 
 
 def get_preprocessor_config_module(
-        evidence_file_path: Path,
         fasta_file_path: Path,
         groups_file_path: Path | None,
         q_value_threshold: float,
@@ -139,7 +138,6 @@ def get_preprocessor_config_module(
         'ALIGNED_FASTA_FILE': str(out_dir / "aligned.fasta"),
 
         # MaxQuant
-        'MAX_QUANT_FILE': evidence_file_path,
         'THRESHOLD': q_value_threshold
     })
     return preprocessor_config_module
