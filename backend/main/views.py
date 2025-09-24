@@ -25,8 +25,9 @@ from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH, WOR
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_helper import get_display_name, get_step, get_displayed_steps, parameters_from_post, \
-    get_all_possible_steps, sanitize_name
+from backend.main.views_helper import (get_display_name, get_step, get_displayed_steps, parameters_from_post,
+                                       sanitize_name)
+from protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 

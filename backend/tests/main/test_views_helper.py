@@ -1,4 +1,5 @@
-from backend.main.views_helper import get_all_possible_steps
+from protzilla.all_steps import get_all_possible_steps
+
 
 def test_get_all_possible_step_names():
     expected_step_names = ["MaxQuantImport", 

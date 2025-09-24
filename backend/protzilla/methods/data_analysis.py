@@ -532,7 +532,8 @@ class PlotScatterPlot(DataAnalysisStep):
 class PlotClustergram(DataAnalysisStep):
     display_name = "Clustergram"
     operation = "plot"
-    method_description = "Creates a clustergram from data"
+    method_description = ("Creates a 2D clustergram from data using the samples on one axis and the proteins on the "
+                          "other axis. The data is clustered using euclidean distances for hierarchical clustering.")
 
     plot_method = staticmethod(clustergram_plot)
 
@@ -1000,7 +1001,7 @@ class PTMVisualizationStep(DataAnalysisStep):
         return Form(
             label="PTM Visualization",
             input_fields=[
-                # TODO[Chris]: would be cleaner to rewrite Tariks stuff so that imported evidence file data could be
+                # TODO[Chris]: would be cleaner to rewrite Tarik's stuff so that imported evidence file data could be
                 #  reused - However Tarik has a custom parsing function so that would require extra work.
                 #  Downside: any filtering that may have been applied to the evidence file could not be used here
                 #   - rewrite
@@ -1008,17 +1009,21 @@ class PTMVisualizationStep(DataAnalysisStep):
                     name="evidence_file_path",
                     label="MaxQuant Evidence file",
                 ),
+                FloatField(
+                    name="evidence_file_q_value_threshold",
+                    label="MaxQuant Evidence file q-value threshold",
+                    min=0.0,
+                    max=1.0,
+                    value=0.01,
+                    hasStepButtons=False
+                ),
                 FileInput(
                     name="fasta_file_path",
                     label="FASTA file",
                 ),
                 FileInput(
-                    name="groups_file_path",
-                    label="Metadata used to define groups",
-                ),
-                FileInput(
                     name="regions_file_path",
-                    label="Metadata used to define regions",  # TODO[Chris]: what does it even do?
+                    label="Metadata used to define regions",
                 ),
             ]
         )
@@ -1026,20 +1031,37 @@ class PTMVisualizationStep(DataAnalysisStep):
 
 class PTMOverviewVisualization(PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
-    method_description = "TODO"  # TODO
+    method_description = "Visualizes selected PTMs on a given protein sequence (including isoforms)"
 
     plot_method = staticmethod(create_overview_ptm_visualization)
 
 
-class PTMBarVisualization(PTMVisualizationStep):
+class _PTMVisualizationWithGroups(PTMVisualizationStep):
+    def create_form(self):
+        base_form = super(_PTMVisualizationWithGroups, self).create_form()
+        form = Form(
+            label=base_form.label,
+            input_fields=base_form.input_fields + [
+                FileInput(
+                    name="groups_file_path",
+                    label="Metadata used to define groups",
+                ),
+            ]
+        )
+        return form
+
+
+class PTMBarVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Bar Plot"
-    method_description = "TODO"  # TODO
+    method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
+                          "shows PTM frequency across groups as a bar plot.")
 
     plot_method = staticmethod(create_bar_ptm_visualization)
 
 
-class PTMDetailsVisualization(PTMVisualizationStep):
+class PTMDetailsVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Details Plot"
-    method_description = "TODO"  # TODO
+    method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
+                          "shows PTM and cleavage frequency across groups as heatmaps.")
 
     plot_method = staticmethod(create_details_ptm_visualization)

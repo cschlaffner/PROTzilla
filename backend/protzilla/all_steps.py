@@ -75,5 +75,20 @@ _forward_mapping = [
     data_integration.PlotGSEAEnrichmentPlot,
 ]
 
+
 def get_all_methods():
     return _forward_mapping
+
+
+def get_all_possible_steps() -> list[dict]:
+    """
+        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
+
+        :return: List of step dictionaries via the steps to_dict function.
+        :rtype: List[dict]
+        """
+    steps = get_all_methods()
+    step_list = []
+    for step in steps:
+        step_list.append(step.to_dict(step))
+    return step_list
