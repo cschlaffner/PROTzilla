@@ -15,8 +15,6 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_intensity_data, mann_whitney_test_on_ptm_data)
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
-from backend.protzilla.data_analysis.ptm_analysis import ptms_per_sample, \
-    ptms_per_protein_and_sample, select_peptides_of_protein
 from backend.protzilla.data_analysis.model_evaluation import evaluate_classification_model
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
@@ -31,11 +29,13 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_sample,
 )
 from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
+from backend.protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
+    create_bar_ptm_visualization, \
+    create_details_ptm_visualization
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
-from backend.protzilla.steps import Plots, Step, StepManager
-from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, create_bar_ptm_visualization, \
-    create_details_ptm_visualization
+from backend.protzilla.methods.importing import EvidenceImport
+from backend.protzilla.steps import Step, StepManager
 
 
 class TTestType(Enum):
@@ -1027,8 +1027,9 @@ class PTMVisualizationStep(DataAnalysisStep):
     def modify_form(self, form, run):
         form["evidence_df"].options = form_helper.get_choices(
             run,
-            output_key='peptide_df',  # TODO: will the other peptide import also results in a peptide_df?
-            required=True  # TODO: check that this works
+            output_key='peptide_df',
+            step_type=EvidenceImport,
+            required=True
         )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -1060,9 +1061,6 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
         return form
 
 
-#####################
-# TODO: somehow these are not working yet
-#######################
 class PTMBarVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Bar Plot"
     method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "

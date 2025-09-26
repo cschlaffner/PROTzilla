@@ -29,8 +29,7 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
             'A': ('PTM', modification_file),
         },
 
-        # TODO erstmal weglassen
-        'CLEAVAGES_TO_HIGHLIGHT': ['2-4', '15'],  # TODO[Chris]: make customizable - but what does it translate to?
+        'CLEAVAGES_TO_HIGHLIGHT': [],
         'CLEAVAGE_HIGHLIGHT_COLOR': '#ff0000',
 
         # TODO: settings
@@ -44,7 +43,6 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
         'PTM_SCALE_COLOR_MID': '#F5F5F5',
         'PTM_SCALE_COLOR_HIGH': '#01665E',
         'PTM_LEGEND_TITLE': 'PTM Patient <br>Frequency',
-        # TODO[Chris]: what is this even for? - why is it mapped to list
         'GROUPS': details_groups,
         'PTM_RECT_LENGTH': 25,
         # TODO: customizable
