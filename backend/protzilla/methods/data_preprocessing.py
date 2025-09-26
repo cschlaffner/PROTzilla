@@ -495,11 +495,12 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
         return Form(
             label="Normalisation by reference protein",
             input_fields=[
-                FormDivider("""A function to perform protein-intensity normalisation in reference to
-                    a selected protein on your dataframe. Normalises the data on the level 
-                    of each sample. Divides each intensity by the intensity of the chosen 
-                    reference protein in each sample. Samples where this value is zero 
-                    will be removed and returned separately."""),
+                InfoField(
+                    label="A function to perform protein-intensity normalisation in reference to a selected protein "
+                          "on your dataframe. Normalises the data on the level of each sample. Divides each intensity "
+                          "by the intensity of the chosen reference protein in each sample. Samples where this value "
+                          "is zero will be removed and returned separately."
+                ),
                 TextField(
                     name="reference_protein",
                     label="Reference protein",
@@ -538,10 +539,12 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per dataset",
             input_fields=[
-                FormDivider("""A function to impute missing values for each protein by taking into account 
-                    data from the entire dataframe. Sets missing value to the smallest measured 
-                        value in the dataframe. The user can also assign a shrinking factor to take a 
-                        fraction of that minimum value for imputation."""),
+                InfoField(
+                    label="A function to impute missing values for each protein by taking into account data from the "
+                          "entire dataframe. Sets missing value to the smallest measured value in the dataframe. The "
+                          "user can also assign a shrinking factor to take a fraction of that minimum value for "
+                          "imputation."
+                ),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -590,10 +593,12 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per protein",
             input_fields=[
-                FormDivider("""A function to impute missing values for each protein by taking into account data from each protein. 
-                        Sets missing value to the smallest measured value for each protein column. The user can also assign a 
-                        shrinking factor to take a fraction of that minimum value for imputation. CAVE: All proteins without 
-                        any values will be filtered out."""),
+                InfoField(
+                    label="A function to impute missing values for each protein by taking into account data from each "
+                          "protein. Sets missing value to the smallest measured value for each protein column. The "
+                          "user can also assign a shrinking factor to take a fraction of that minimum value for "
+                          "imputation. CAVE: All proteins without any values will be filtered out."
+                ),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -642,7 +647,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per sample",
             input_fields=[
-                FormDivider("Sets missing intensity values to the smallest measured value for each sample"),
+                InfoField(label="Sets missing intensity values to the smallest measured value for each sample"),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
