@@ -42,8 +42,6 @@ def create_overview_ptm_visualization(
     # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
     # TODO: test all of this
     # TODO: clean the ptm_visualization directory
-    # TODO: somewhere there's a bug which will load an old evidence file instead of using the new one (maybe has sth.
-    #  to do with reloading)
 
     out_dir = Path(__file__).parent / 'tmp'
 
@@ -63,7 +61,6 @@ def create_overview_ptm_visualization(
         input_file=str(fasta_file_path),
         output_path=str(out_dir)
     )
-    # TODO[Chris]: PROTzilla colors? - yes - bzw wäre cool, wenn das irgendwie customizable
     fig = overview_plotter.create_overview_plot()
 
     return dict(plots=[fig])

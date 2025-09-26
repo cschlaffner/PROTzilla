@@ -7,13 +7,11 @@ from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM
 
 
 def load_regions_from_csv(regions_file_path: Path) -> list:
-    # TODO: figure out how the other default_config is loaded in code because apparently our csv is not used for actual
-    #  regions
     regions = []
     with open(regions_file_path, 'r') as f:
         csvreader = csv.DictReader(f, delimiter=',')
         for row in csvreader:
-            regions.append((row['name'], int(row['region_end']), row['group'], ''))
+            regions.append((row['name'], int(row['region_end']), row['group'], row['short_name']))
     return regions
 
 
