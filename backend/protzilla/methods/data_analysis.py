@@ -1021,6 +1021,12 @@ class PTMVisualizationStep(DataAnalysisStep):
                     name="regions_file_path",
                     label="Metadata used to define regions",
                 ),
+                InfoField(
+                    label="The file for regions should be a CSV file with the following columns: name, region_end, "
+                          "group, short_name. These specify the name of the region, the end position of the region "
+                          "(the start is either 1 or the end of the previous region), the (treatment) group the "
+                          "region belongs to, and a short name for the region.",
+                ),
             ]
         )
 

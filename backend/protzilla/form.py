@@ -1,8 +1,8 @@
 from __future__ import annotations
-from enum import Enum
+
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
-from pathlib import Path
+from enum import Enum
 from typing import Any, List, Dict, Union, TYPE_CHECKING
 
 from backend.main import settings
@@ -127,7 +127,7 @@ class FileInput(_baseField):
 
 
 @dataclass
-class FormDivider():
+class FormDivider:
     """
     To separate the form into sections.
     `label` is the shown title of the section.
@@ -135,8 +135,18 @@ class FormDivider():
     label: str
     type: str = "form-divider"
 
+
+@dataclass
+class InfoField:
+    """
+    A field to show additional information to the user.
+    """
+    label: str
+    type: str = "info-field"
+
+
 InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
-StructualField = Union[FormDivider]
+StructualField = Union[FormDivider, InfoField]
 
 
 @dataclass
@@ -198,7 +208,7 @@ class Form:
 
         values = {}
         for field in self.input_fields:
-            if isinstance(field, FormDivider):
+            if isinstance(field, FormDivider) or isinstance(field, InfoField):
                 continue
             elif isinstance(field, FileInput):
                 values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None

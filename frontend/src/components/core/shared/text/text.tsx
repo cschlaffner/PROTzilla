@@ -123,6 +123,10 @@ export const InputLabel = styled(Text)`
   margin: 4px 0;
 `;
 
+export const InfoText = styled(({ ...rest }: LinkProps) => <Text as="span" {...rest} />)`
+  color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
+`;
+
 const CollapsibleContainer = styled(motion.div)`
   overflow: hidden;
   white-space: nowrap;
