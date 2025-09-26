@@ -1058,6 +1058,7 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
         form = Form(
             label=base_form.label,
             input_fields=base_form.input_fields + [
+                # TODO: should an info field here that states how group file should look
                 FileInput(
                     name="groups_file_path",
                     label="Metadata used to define groups",
