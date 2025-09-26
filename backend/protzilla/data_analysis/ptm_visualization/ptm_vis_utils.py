@@ -32,7 +32,6 @@ def get_general_config_module(
         regions_file_path: Path,
         out_dir: Path
 ) -> types.ModuleType:
-    # TODO: would need some kind of annotation/hint (displayed to the user) how the regions file should look like
     regions = load_regions_from_csv(regions_file_path)
 
     # TODO: save this dict at the proper location and load from there
