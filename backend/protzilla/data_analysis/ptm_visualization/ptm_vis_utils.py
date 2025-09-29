@@ -10,6 +10,10 @@ def load_regions_from_csv(regions_file_path: Path) -> list:
     regions = []
     with open(regions_file_path, 'r') as f:
         csvreader = csv.DictReader(f, delimiter=',')
+        # TODO: add assert for columns
+        assert set(csvreader.fieldnames) >= {'name', 'region_end', 'group', 'short_name'}, \
+            ("Regions file must contain at least the columns 'name', 'region_end', 'group' and 'short_name but got "
+             f"{csvreader.fieldnames}")
         for row in csvreader:
             regions.append((row['name'], int(row['region_end']), row['group'], row['short_name']))
     return regions
@@ -144,6 +148,9 @@ def get_group_dict_from_csv(groups_file_path: Path) -> dict:
     groups = {}
     with open(groups_file_path, 'r') as f:
         csvreader = csv.DictReader(f, delimiter=',')
+        assert set(csvreader.fieldnames) >= {'file_name', 'group_name', 'replicate'}, \
+            ("Groups file must contain at least the columns 'file_name', 'group_name' and 'replicate' but got "
+             f"{csvreader.fieldnames}")
         for row in csvreader:
             # Seems weird. Is weird. But I didn't want to touch the underlying code
             groups[row['group_name']] = row['group_name']

@@ -12,6 +12,8 @@ from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_general_
 def get_bar_plot_config_module(groups_file_path: Path, out_dir: Path) -> types.ModuleType:
     modification_file = out_dir / 'result_max_quant_mods.csv'
     bar_groups = get_group_dict_from_csv(groups_file_path)
+    if len(bar_groups) == 0:
+        raise ValueError("No groups found in the provided groups file for bar plot visualization.")
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
         # TODO: probably needs to be more dynamic (which PTMs are here)

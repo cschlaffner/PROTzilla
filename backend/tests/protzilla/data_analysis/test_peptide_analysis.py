@@ -17,7 +17,7 @@ def test_select_peptides_of_protein(peptides_df, evidence_peptide_df, df_num):
     assert (filtered_peptides_df["Protein ID"] == "Protein2").all()
 
 
-def test_ptms_per_sampel(evidence_peptide_df):
+def test_ptms_per_sample(evidence_peptide_df):
     ptm_df = ptms_per_sample(evidence_peptide_df)["ptm_df"]
 
     assert ptm_df.columns.tolist() == ["Sample", "Acetyl (Protein N-term)", "Oxidation (M)", "Unmodified", "Total Amount of Peptides"]

@@ -18,6 +18,8 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
     groups = get_group_dict_from_csv(groups_file_path)
     # TODO[Chris]: hacky way to map groups to some colors - do we care? Need more colors?
     details_groups = {k: ([v], color) for (k, v), color in zip(groups.items(), itertools.cycle(PLOT_COLOR_SEQUENCE))}
+    if len(details_groups) == 0:
+        raise ValueError("No groups found in the provided groups file for details plot visualization.")
 
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
