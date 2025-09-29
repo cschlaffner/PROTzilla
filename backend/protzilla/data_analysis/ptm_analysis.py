@@ -68,7 +68,7 @@ def ptms_per_protein_and_sample(peptide_df: pd.DataFrame) -> dict:
     modi = (
         modification_df.drop(["Sample", "Protein ID"], axis=1).apply(lambda x: ('(' + x.astype(str) + ') ' + x.name + ", ")))
 
-    for column, data in modi.iteritems():
+    for column, data in modi.items():
         modi[column] = np.where(modification_df[column] > 0, modi[column], "")
 
     modification_df["Modifications"] = modi.apply(''.join, axis=1)
@@ -85,7 +85,7 @@ def aggregate_ptms(peptide_df: pd.DataFrame, group_by: list[str]):
         [peptide_df[group_by],
          (peptide_df['Modifications'].str.get_dummies(sep=","))], axis=1)
 
-    for column, data in modification_df.iteritems():
+    for column, data in modification_df.items():
         amount, name = from_string(column)
         if amount > 1:
             modification_df[column] = modification_df[column].multiply(amount)
