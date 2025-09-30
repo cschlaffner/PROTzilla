@@ -158,13 +158,16 @@ def get_display_name(dataframe: str):
     return name
 
 
-def load_plot_settings_from_file(file_stem) -> dict:
+def load_settings_from_file(file_stem: str, default_file_stem: str | None = None) -> dict:
     op = YamlOperator()
     path = SETTINGS_PATH / f"{file_stem}.yaml"
 
-    if file_stem == DEFAULT_PLOT_SETTINGS_FILE_STEM or not path.exists():
-        default_path = SETTINGS_PATH / f"{DEFAULT_PLOT_SETTINGS_FILE_STEM}.yaml"
-        plot_settings = op.read(default_path)
+    if not path.exists():
+        if default_file_stem is not None:
+            default_path = SETTINGS_PATH / f"{default_file_stem}.yaml"
+            plot_settings = op.read(default_path)
+        else:
+            raise FileNotFoundError(f"Settings file {path} does not exist.")
     else:
         plot_settings = op.read(path)
     return plot_settings

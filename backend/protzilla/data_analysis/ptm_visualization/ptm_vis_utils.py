@@ -2,7 +2,7 @@ import csv
 import types
 from pathlib import Path
 
-from main.views_helper import load_plot_settings_from_file
+from main.views_helper import load_settings_from_file
 from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM
 
 
@@ -10,7 +10,6 @@ def load_regions_from_csv(regions_file_path: Path) -> list:
     regions = []
     with open(regions_file_path, 'r') as f:
         csvreader = csv.DictReader(f, delimiter=',')
-        # TODO: add assert for columns
         assert set(csvreader.fieldnames) >= {'name', 'region_end', 'group', 'short_name'}, \
             ("Regions file must contain at least the columns 'name', 'region_end', 'group' and 'short_name but got "
              f"{csvreader.fieldnames}")
@@ -74,7 +73,7 @@ def get_general_config_module(
         },
     }
 
-    protzilla_settings = load_plot_settings_from_file(file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM)
+    protzilla_settings = load_settings_from_file(file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM)
 
     config_module = types.ModuleType('main_config')
     config_module.__dict__.update({

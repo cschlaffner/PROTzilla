@@ -4,6 +4,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import { DatabaseSettings, GitHub } from "./other-settings/";
+import { PTMVisSettings } from "./other-settings/ptm-vis-settings.tsx";
 import { PlotSettingsModal } from "./plot-settings";
 import { SettingsProps } from "./settings.props.ts";
 import { DiscardModal, Modal, ToggleableButton } from "../../core/";
@@ -102,6 +103,16 @@ export const Settings: React.FC<SettingsProps> = ({
               }}
             />
             <SectionButton
+              id={"ptm-vis"}
+              isActive={selectedSetting === "ptm-vis"}
+              /**TODO switch icon**/
+              icon={"github"}
+              text={"PTM Visualizations"}
+              onPress={() => {
+                handleSwitchSection("ptm-vis");
+              }}
+            />
+            <SectionButton
               id={"github"}
               isActive={selectedSetting === "github"}
               text={"About Us"}
@@ -112,10 +123,12 @@ export const Settings: React.FC<SettingsProps> = ({
             />
           </SectionSelection>
           <SpecificSettings>
+            {/*TODO: adapt*/}
             {selectedSetting === "plot" && (
               <PlotSettingsModal isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
+            {selectedSetting === "ptm-vis" && <PTMVisSettings />}
             {selectedSetting === "github" && <GitHub />}
           </SpecificSettings>
           <DiscardModal
