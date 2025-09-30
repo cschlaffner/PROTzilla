@@ -11,42 +11,52 @@ from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
-from backend.main.views_helper import sanitize_name, load_plot_settings_from_file
+from backend.main.views_helper import sanitize_name, load_settings_from_file
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.disk_operator import YamlOperator
+from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM, DEFAULT_PLOT_SETTINGS_FILE_STEM, \
+    DEFAULT_PTM_SETTINGS_FILE_STEM, CUSTOM_PTM_SETTINGS_FILE_STEM
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
-# <--- Plot Export --->
-
-def load_settings(request):
+def load_settings(request, default_file_stem: str):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
         except:
             return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
-        templateName = data.get("templateName")
+        template_name = data.get("templateName")
 
-        plot_settings = load_plot_settings_from_file(templateName)
-        return JsonResponse(plot_settings)
+        settings = load_settings_from_file(template_name, default_file_stem)
+        return JsonResponse(settings)
     return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
 
 
-def save_settings(request):
+def save_settings(request, filename: str):
     if request.method == "POST":
         settings = json.loads(request.body.decode("utf-8"))
         op = YamlOperator()
-        path = SETTINGS_PATH / ("plots.yaml")
+        path = SETTINGS_PATH / filename
         try:
             op.write(path, settings)
         except:
             return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
-        
+
         # TODO Update Plotly template that is used in run screen
         return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
     return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+
+
+# <--- Plot Export --->
+
+def load_plot_settings(request, default_file_stem: str = DEFAULT_PLOT_SETTINGS_FILE_STEM):
+    return load_settings(request, default_file_stem)
+
+
+def save_plot_settings(request):
+    return save_settings(request, f"{CUSTOM_PLOT_SETTINGS_FILE_STEM}.yaml")
 
 
 def download_plot(request):
@@ -72,6 +82,44 @@ def get_plot_file(fig: go.Figure, params: dict):
         binary = BytesIO(img)
     binary.seek(0)
     return binary
+
+
+# <--- PTM Settings --->
+
+def load_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FILE_STEM):
+    return load_settings(request, default_file_stem)
+
+
+def save_ptm_settings(request):
+    if request.method == "POST":
+        ptm_settings = json.loads(request.body.decode("utf-8"))
+
+        file_name = ptm_settings.get("file")
+        path = settings.FILE_UPLOAD_TEMP_DIR / file_name
+
+        if path.suffix != ".csv":
+            msg = "File must be a comma-separated file with the extension .csv"
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+        try:
+            dataframe = pandas.read_csv(path)
+        except UnicodeDecodeError:
+            msg = "File could not be decoded."
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+        op = YamlOperator()
+        path = SETTINGS_PATH / f"{CUSTOM_PTM_SETTINGS_FILE_STEM}.yaml"
+        try:
+            op.write(path, ptm_settings)
+        except:
+            return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
+
+        # TODO Update Plotly template that is used in run screen
+        return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
+    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+
 
 # <--- Databases --->
 
@@ -182,6 +230,7 @@ def database_delete(request):
         return JsonResponse({"success": True, "message": "Database deleted successfully"}, status=200)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def database_path(name):
     return EXTERNAL_DATA_PATH / "uniprot" / f"{name}.tsv"

@@ -40,7 +40,6 @@ def create_overview_ptm_visualization(
     # TODO: install as package and not clone from github directly
     # TODO: unify plot functions into a single one?
     # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
-    # TODO: test all of this
     # TODO: clean the ptm_visualization directory
 
     out_dir = Path(__file__).parent / 'tmp'

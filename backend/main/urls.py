@@ -52,12 +52,14 @@ urlpatterns = [
     path("api/import_workflow/", views.import_workflow, name="import_workflow"),
     path("api/delete_workflow/", views.delete_workflow, name="delete_workflow"),
 
-    path("api/load_settings", views_settings.load_settings, name="load_settings"),
-    path("api/save_settings", views_settings.save_settings, name="save_settings"),
+    path("api/load_settings", views_settings.load_plot_settings, name="load_settings"),
+    path("api/save_settings", views_settings.save_plot_settings, name="save_settings"),
     path("api/download_plot", views_settings.download_plot, name="download_plot"),
     path("api/get_databases", views_settings.get_databases, name="get_databases"),
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),
+    path("api/load_ptm_settings", views_settings.load_ptm_settings, name="load_ptm_settings"),
+    path("api/save_ptm_settings", views_settings.save_ptm_settings, name="save_ptm_settings"),
 
     # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
     re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
