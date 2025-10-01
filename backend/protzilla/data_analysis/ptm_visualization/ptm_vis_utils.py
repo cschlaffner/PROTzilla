@@ -3,7 +3,8 @@ import types
 from pathlib import Path
 
 from main.views_helper import load_settings_from_file
-from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM
+from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM, CUSTOM_PTM_SETTINGS_FILE_STEM, \
+    DEFAULT_PLOT_SETTINGS_FILE_STEM, DEFAULT_PTM_SETTINGS_FILE_STEM
 
 
 def load_regions_from_csv(regions_file_path: Path) -> list:
@@ -28,7 +29,7 @@ def get_modifications_dict(full_modifications_dict) -> dict:
 
 
 def get_included_modifications_dict(full_modifications_dict) -> dict:
-    return {k: v['sites'] for k, v in full_modifications_dict.items()}
+    return {k: list(v['sites']) for k, v in full_modifications_dict.items()}
 
 
 def get_general_config_module(
@@ -37,43 +38,15 @@ def get_general_config_module(
 ) -> types.ModuleType:
     regions = load_regions_from_csv(regions_file_path)
 
-    # TODO: save this dict at the proper location and load from there
-    #   - könnte man in settings speichern (dann aber auch ordentlich abfangen, wenn user welche will, die nicht
-    #     drin sind) und dann auch PTMs dort auslesen und man kann es aus nem dropdown auswählen
-    blah_modifications = {
-        'Phospho': {
-            'name': 'Phosphorylation',
-            'color': '#000000',
-            'sites': ['S', 'T', 'Y'],
-        },
-        'Acetyl': {
-            'name': 'Acetylation',
-            'color': '#93478F',
-            'sites': ['K'],
-        },
-        'Methyl': {
-            'name': 'Methylation',
-            'color': '#C35728',
-            'sites': ['K', 'R'],
-        },
-        'GG': {
-            'name': 'Ubiquitination',
-            'color': '#548056',
-            'sites': ['K'],
-        },
-        'Citrullination': {
-            'name': 'Citrullination',
-            'color': '#FF17E3',
-            'sites': ['R'],
-    },
-        'Deamidated': {
-            'name': 'Deamidation',
-            'color': '#34AEEB',
-            'sites': ['N', 'Q', 'R'],
-        },
-    }
-
-    protzilla_settings = load_settings_from_file(file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM)
+    # TODO: this loading might need some tests
+    protzilla_plot_settings = load_settings_from_file(
+        file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
+        default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM
+    )
+    protzilla_ptm_settings = load_settings_from_file(
+        file_stem=CUSTOM_PTM_SETTINGS_FILE_STEM,
+        default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM
+    )
 
     config_module = types.ModuleType('main_config')
     config_module.__dict__.update({
@@ -83,39 +56,34 @@ def get_general_config_module(
         'REGIONS': regions,
         # Modification Settings
         'MODIFICATION_LEGEND_TITLE': 'PTMs',
-        'MODIFICATIONS': get_modifications_dict(blah_modifications),
-        'INCLUDED_MODIFICATIONS': get_included_modifications_dict(blah_modifications),
+        'MODIFICATIONS': get_modifications_dict(protzilla_ptm_settings['modifications']),
+        'INCLUDED_MODIFICATIONS': get_included_modifications_dict(protzilla_ptm_settings['modifications']),
 
         # Input Output Settings
         'OUTPUT_FOLDER': out_dir,
 
         # Plot Settings
         # 0 for horizontal, 1 for vertical, note figure height and width are then automatically swapped
-        # TODO: customize (settings?)
-        'FIGURE_ORIENTATION': 0,
+        'FIGURE_ORIENTATION': 1 if protzilla_ptm_settings['vertical_orientation'] else 0,
 
         'PTMS_TO_HIGHLIGHT': [],  # Unused for now
         'PTM_HIGHLIGHT_LABEL_COLOR': '#cfcfcf',
 
         # just change width and height to change the size of the figure not the orientation
-        'FIGURE_WIDTH': convert_settings_mm_size_to_px(protzilla_settings['width']),
-        'FIGURE_HEIGHT': convert_settings_mm_size_to_px(protzilla_settings['height']),
-        'FONT_SIZE': protzilla_settings['text_size'],
+        'FIGURE_WIDTH': convert_settings_mm_size_to_px(protzilla_plot_settings['width']),
+        'FIGURE_HEIGHT': convert_settings_mm_size_to_px(protzilla_plot_settings['height']),
+        'FONT_SIZE': protzilla_plot_settings['text_size'],
 
         # Default Parameters
-        'FONT': protzilla_settings['custom_font'] if protzilla_settings['custom_font'] else protzilla_settings['font'],
+        'FONT': protzilla_plot_settings['custom_font'] if protzilla_plot_settings['custom_font'] else protzilla_plot_settings['font'],
 
         # Sequence Plot
-        'SEQUENCE_PLOT_FONT_SIZE': protzilla_settings['text_size'],
+        'SEQUENCE_PLOT_FONT_SIZE': protzilla_plot_settings['text_size'],
         'SEQUENCE_PLOT_HEIGHT': 50,
         'EXONS_GAP': 10,
         'MIN_EXON_LENGTH': 5,
 
-        # TODO: customize in den allgemeinen settings
-        'SEQUENCE_REGION_COLORS': {
-            'A': 'white',
-            'B': 'lightgrey',
-        },
+        'SEQUENCE_REGION_COLORS': protzilla_ptm_settings['color_settings']['sequence_region_colors'],
     })
     return config_module
 

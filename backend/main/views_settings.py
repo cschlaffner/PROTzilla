@@ -87,38 +87,97 @@ def get_plot_file(fig: go.Figure, params: dict):
 # <--- PTM Settings --->
 
 def load_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FILE_STEM):
-    return load_settings(request, default_file_stem)
-
-
-def save_ptm_settings(request):
     if request.method == "POST":
-        ptm_settings = json.loads(request.body.decode("utf-8"))
+        try:
+            data = json.loads(request.body)
+        except:
+            return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
+        template_name = data.get("templateName")
 
-        file_name = ptm_settings.get("file")
-        path = settings.FILE_UPLOAD_TEMP_DIR / file_name
+        settings = load_settings_from_file(template_name, default_file_stem)
+        return JsonResponse(settings)
+    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
 
-        if path.suffix != ".csv":
+
+def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FILE_STEM):
+    # TODO: maybe revert the functions above or combine with code here
+    # TODO: functions?
+    if not request.method == "POST":
+        return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+
+    ptm_settings_yaml_path = SETTINGS_PATH / f"{CUSTOM_PTM_SETTINGS_FILE_STEM}.yaml"
+    op = YamlOperator()
+    if not ptm_settings_yaml_path.exists():
+        default_settings_yaml_path = SETTINGS_PATH / f"{default_file_stem}.yaml"
+        old_settings = op.read(default_settings_yaml_path)
+    else:
+        old_settings = op.read(ptm_settings_yaml_path)
+
+    new_settings = json.loads(request.body.decode("utf-8"))
+
+    if (ptm_settings_filename := new_settings.get("ptm_settings_file", '')) != '':
+        ptm_settings_path = settings.FILE_UPLOAD_TEMP_DIR / ptm_settings_filename
+
+        if ptm_settings_path.suffix != ".csv":
             msg = "File must be a comma-separated file with the extension .csv"
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
             return JsonResponse({"success": False, "message": msg}, status=400)
 
         try:
-            dataframe = pandas.read_csv(path)
+            ptm_settings_df = pandas.read_csv(ptm_settings_path)
         except UnicodeDecodeError:
             msg = "File could not be decoded."
             messages.add_message(request, messages.ERROR, msg, "alert-danger")
             return JsonResponse({"success": False, "message": msg}, status=400)
 
-        op = YamlOperator()
-        path = SETTINGS_PATH / f"{CUSTOM_PTM_SETTINGS_FILE_STEM}.yaml"
-        try:
-            op.write(path, ptm_settings)
-        except:
-            return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
+        required_columns = {"short", "name", "sites", "color"}  # TODO: maybe make less restrictive
+        if not required_columns.issubset(set(ptm_settings_df.columns)):
+            msg = f"File must contain at least the columns {', '.join(required_columns)}"
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
 
-        # TODO Update Plotly template that is used in run screen
-        return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
-    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+        new_settings["modifications"] = {
+            row["short"]: {
+                "name": row["name"],
+                "sites": "".join(row["sites"].split(",")),
+                "color": row["color"]
+            } for _, row in ptm_settings_df.iterrows()
+        }
+
+    if (color_settings_file := new_settings.get("color_settings_file", '')) != '':
+        color_settings_path = settings.FILE_UPLOAD_TEMP_DIR / color_settings_file
+
+        # TODO[Chris]: csv might not be ideal because sequence region colors are more like a dict
+        if color_settings_path.suffix != ".csv":
+            msg = "File must be a comma-separated file with the extension .csv"
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+        try:
+            color_settings_df = pandas.read_csv(color_settings_path)
+        except UnicodeDecodeError:
+            msg = "File could not be decoded."
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+        required_columns = {"name", "color"}
+        if not required_columns.issubset(set(color_settings_df.columns)):
+            msg = f"File must contain at least the columns {', '.join(required_columns)}"
+            messages.add_message(request, messages.ERROR, msg, "alert-danger")
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+        new_settings["color_settings"] = dict(
+            old_settings['color_settings'],
+            **{row["name"]: row["color"] for _, row in color_settings_df.iterrows()}
+        )
+
+    old_settings.update(new_settings)
+    try:
+        op.write(ptm_settings_yaml_path, old_settings)
+    except:
+        return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
+
+    return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
 
 
 # <--- Databases --->
@@ -225,7 +284,6 @@ def database_delete(request):
                 del database_metadata[database_name]
                 with open(database_metadata_path, "w") as f:
                     json.dump(database_metadata, f)
-
 
         return JsonResponse({"success": True, "message": "Database deleted successfully"}, status=200)
     else:
