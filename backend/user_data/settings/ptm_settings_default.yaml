@@ -1,0 +1,19 @@
+color_settings:
+  cleavage_label_color: '#333333'
+  cleavage_scale_color_high: '#542788'
+  cleavage_scale_color_low: '#B35806'
+  cleavage_scale_color_mid: '#F7F7F7'
+  ptm_scale_color_high: '#01665E'
+  ptm_scale_color_low: '#B35806'
+  ptm_scale_color_mid: '#F5F5F5'
+  sequence_region_colors:
+    A: '#FFFFFF'
+    B: '#D3D3D3'
+label_angle: 0
+modifications:
+  Phospho:
+    color: '#000000'
+    name: Phosphorylation
+    sites: STY
+ptm_settings_file: ''
+vertical_orientation: false
