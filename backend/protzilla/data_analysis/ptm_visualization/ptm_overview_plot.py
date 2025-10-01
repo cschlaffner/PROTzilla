@@ -14,7 +14,8 @@ def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
         # TODO: probably needs to be more dynamic (which PTMs are here)
-        #    - get from the settings-PTM list
+        #   - get from the settings-PTM list
+        #   - would also be nice if this is customizable...
         'MODIFICATIONS_GROUP': {
             'Phospho': 'B',
             'Acetyl': 'B',

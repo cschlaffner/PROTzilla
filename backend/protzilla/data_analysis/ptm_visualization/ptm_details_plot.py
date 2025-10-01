@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from main.views_helper import load_settings_from_file
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import MaxQuantPreprocessor
 from protein_sequencing.details_plot import DetailsPlotter
 from protzilla.constants.colors import PLOT_COLOR_SEQUENCE
+from protzilla.constants.paths import CUSTOM_PTM_SETTINGS_FILE_STEM, DEFAULT_PTM_SETTINGS_FILE_STEM
 from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_general_config_module, \
     get_preprocessor_config_module, get_group_dict_from_csv
 
@@ -21,6 +23,12 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
     if len(details_groups) == 0:
         raise ValueError("No groups found in the provided groups file for details plot visualization.")
 
+    settings = load_settings_from_file(
+        file_stem=CUSTOM_PTM_SETTINGS_FILE_STEM,
+        default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM
+    )
+    color_settings = settings['color_settings']
+
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
         # Details plot settings
@@ -34,21 +42,21 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
         'CLEAVAGES_TO_HIGHLIGHT': [],
         'CLEAVAGE_HIGHLIGHT_COLOR': '#ff0000',
 
-        # TODO: settings
-        'CLEAVAGE_LABEL_COLOR': '#333333',
-        'CLEAVAGE_SCALE_COLOR_LOW': '#B35806',
-        'CLEAVAGE_SCALE_COLOR_MID': '#F7F7F7',
-        'CLEAVAGE_SCALE_COLOR_HIGH': '#542788',
+        'CLEAVAGE_LABEL_COLOR': color_settings['cleavage_label_color'],
+        'CLEAVAGE_SCALE_COLOR_LOW': color_settings['cleavage_scale_color_low'],
+        'CLEAVAGE_SCALE_COLOR_MID': color_settings['cleavage_scale_color_mid'],
+        'CLEAVAGE_SCALE_COLOR_HIGH': color_settings['cleavage_scale_color_high'],
+        # TODO: also setting?
         'CLEAVAGE_LEGEND_TITLE': 'Proteolytic<br>Cleavage<br>Patient<br>Frequency',
 
-        'PTM_SCALE_COLOR_LOW': '#B35806',
-        'PTM_SCALE_COLOR_MID': '#F5F5F5',
-        'PTM_SCALE_COLOR_HIGH': '#01665E',
+        'PTM_SCALE_COLOR_LOW': color_settings['ptm_scale_color_low'],
+        'PTM_SCALE_COLOR_MID': color_settings['ptm_scale_color_mid'],
+        'PTM_SCALE_COLOR_HIGH': color_settings['ptm_scale_color_high'],
+        # TODO: also setting?
         'PTM_LEGEND_TITLE': 'PTM Patient <br>Frequency',
         'GROUPS': details_groups,
         'PTM_RECT_LENGTH': 25,
-        # TODO: customizable
-        'REGION_LABEL_ANGLE_GROUPS': 0,
+        'REGION_LABEL_ANGLE_GROUPS': settings['label_angle'],
         'SHOW_PLOT': False,
         'SAVE_PLOT': False,
     })
@@ -62,7 +70,6 @@ def create_details_ptm_visualization(
         regions_file_path: Path,
         groups_file_path: Path,
 ) -> dict:
-    # TODO: figure out how to do region labels
     out_dir = Path(__file__).parent / 'tmp'
 
     config_module = get_general_config_module(regions_file_path, out_dir)
