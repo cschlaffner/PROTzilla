@@ -1,5 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { Form, SectionTitle, Text } from "@protzilla/core";
+import { Form, Link, SectionTitle, Text } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
 import { useEffect, useState } from "react";
@@ -16,7 +16,6 @@ const isColorLight = (hex_color_string: string): boolean => {
   const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
   return luma > 128;
 };
-
 const ColorText = styled(Text)`
   color: ${(props) => props.text ?? "#000000"};
   background-color: ${(props) => {
@@ -24,6 +23,29 @@ const ColorText = styled(Text)`
   }};
   font-weight: bold;
 `;
+
+const ContentDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: ${spacing("small")};
+`;
+
+// const saveFile = (url: string, filename: string) => {
+//   const a = document.createElement("a");
+//   a.href = "/home/hendraet/stud_sync/Studium/phd/proteomics/PROTzilla/frontend/src/components/app/settings/other-settings/ptm_settings_default.yaml"
+//   a.download = filename || "file-name";
+//   document.body.appendChild(a);
+//   a.click();
+//   document.body.removeChild(a);
+// }
+//
+// const downloadYAML = () => {
+//   const file = new Blob(["Hello, file!"], { type: "text/plain" });
+//   const url = window.URL.createObjectURL(file);
+//   saveFile(url, "myFile.yaml");
+//   window.URL.revokeObjectURL(url);
+// };
 
 const SettingsTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
@@ -52,7 +74,7 @@ const SettingsEntry = styled.div`
 interface PTMProps {
   name: string;
   color: string;
-  sites: string;
+  sites: string[];
 }
 
 const PTM = ({ name, color, sites }: PTMProps) => {
@@ -61,13 +83,14 @@ const PTM = ({ name, color, sites }: PTMProps) => {
       <Text text={name + ":"} style={{ fontWeight: "bold" }} />
       <Text text=" Color: " />
       <ColorText text={color} />
-      <Text text={", Sites: " + sites.split("").join(", ")} />
+      <Text text={", Sites: " + sites.join(", ")} />
     </div>
   );
 };
 
 interface ColorSettingsProps {
   sequence_region_colors: Record<string, string>;
+  group_label_colors: Record<string, string>;
   cleavage_label_color: string;
   cleavage_scale_color_low: string;
   cleavage_scale_color_mid: string;
@@ -79,6 +102,7 @@ interface ColorSettingsProps {
 
 const ColorSettings = ({
   sequence_region_colors,
+  group_label_colors,
   cleavage_label_color,
   cleavage_scale_color_low,
   cleavage_scale_color_mid,
@@ -111,8 +135,15 @@ const ColorSettings = ({
       </div>
       <Text text="Sequence Region Colors:" />
       {Object.entries(sequence_region_colors).map(([region, color], index) => (
-        <div key={index}>
+        <div key={"sequence_region_" + index.toString()}>
           <Text text={region + ": "} style={{ paddingLeft: "12px" }} />
+          <ColorText text={color} />
+        </div>
+      ))}
+      <Text text="Group Label Colors:" />
+      {Object.entries(group_label_colors).map(([group, color], index) => (
+        <div key={"group_label_" + index.toString()}>
+          <Text text={group + ": "} style={{ paddingLeft: "12px" }} />
           <ColorText text={color} />
         </div>
       ))}
@@ -120,40 +151,14 @@ const ColorSettings = ({
   );
 };
 
-interface PTMSettingsProps {
-  modifications: PTMProps[];
-  color_settings: ColorSettingsProps;
+interface OtherSettingsProps {
   label_angle: number;
   vertical_orientation: boolean;
-  handleDelete?: () => void;
 }
 
-const PTMSettings = ({
-  modifications,
-  color_settings,
-  label_angle,
-  vertical_orientation,
-}: PTMSettingsProps) => {
+const OtherSettings = ({ label_angle, vertical_orientation }: OtherSettingsProps) => {
   return (
     <div>
-      <SettingsSectionTitle baseComponent="h5" title="Custom PTM Settings" />
-      {modifications.map((modification, index) => (
-        <SettingsEntry key={index}>
-          <PTM name={modification.name} color={modification.color} sites={modification.sites} />
-        </SettingsEntry>
-      ))}
-      <SettingsSectionTitle baseComponent="h5" title="Custom Color Settings" />
-      <ColorSettings
-        sequence_region_colors={color_settings.sequence_region_colors}
-        cleavage_label_color={color_settings.cleavage_label_color}
-        cleavage_scale_color_low={color_settings.cleavage_scale_color_low}
-        cleavage_scale_color_mid={color_settings.cleavage_scale_color_mid}
-        cleavage_scale_color_high={color_settings.cleavage_scale_color_high}
-        ptm_scale_color_low={color_settings.ptm_scale_color_low}
-        ptm_scale_color_mid={color_settings.ptm_scale_color_mid}
-        ptm_scale_color_high={color_settings.ptm_scale_color_high}
-      />
-      <SettingsSectionTitle baseComponent="h5" title="Other Settings" />
       <SettingsEntry>
         <Text text={"Angle of modification labels: " + label_angle.toString()} />
       </SettingsEntry>
@@ -168,15 +173,50 @@ const PTMSettings = ({
   );
 };
 
+interface PTMSettingsProps {
+  modifications: PTMProps[];
+  color_settings: ColorSettingsProps;
+  other_settings: OtherSettingsProps;
+  handleDelete?: () => void;
+}
+
+const PTMSettings = ({ modifications, color_settings, other_settings }: PTMSettingsProps) => {
+  return (
+    <div>
+      <SettingsSectionTitle baseComponent="h5" title="Custom PTM Settings" />
+      {modifications.map((modification, index) => (
+        <SettingsEntry key={index}>
+          <PTM name={modification.name} color={modification.color} sites={modification.sites} />
+        </SettingsEntry>
+      ))}
+      <SettingsSectionTitle baseComponent="h5" title="Custom Color Settings" />
+      <ColorSettings
+        sequence_region_colors={color_settings.sequence_region_colors}
+        group_label_colors={color_settings.group_label_colors}
+        cleavage_label_color={color_settings.cleavage_label_color}
+        cleavage_scale_color_low={color_settings.cleavage_scale_color_low}
+        cleavage_scale_color_mid={color_settings.cleavage_scale_color_mid}
+        cleavage_scale_color_high={color_settings.cleavage_scale_color_high}
+        ptm_scale_color_low={color_settings.ptm_scale_color_low}
+        ptm_scale_color_mid={color_settings.ptm_scale_color_mid}
+        ptm_scale_color_high={color_settings.ptm_scale_color_high}
+      />
+      <SettingsSectionTitle baseComponent="h5" title="Other Settings" />
+      <OtherSettings
+        label_angle={other_settings.label_angle}
+        vertical_orientation={other_settings.vertical_orientation}
+      />
+    </div>
+  );
+};
+
 export const PTMVisSettings = () => {
   const notify = useNotification();
-  // TODO: not ideal to initialize all of this here  - maybe at least move to variable
   const [ptmSettings, setPTMSettings] = useState<PTMSettingsProps>({
     modifications: [],
     color_settings: {
-      sequence_region_colors: {
-        A: "#1f77b4",
-      },
+      sequence_region_colors: { A: "#1f77b4" },
+      group_label_colors: { A: "#2ca02c" },
       cleavage_label_color: "#ff7f0e",
       cleavage_scale_color_low: "#d62728",
       cleavage_scale_color_mid: "#ffbb78",
@@ -185,8 +225,10 @@ export const PTMVisSettings = () => {
       ptm_scale_color_mid: "#c5b0d5",
       ptm_scale_color_high: "#8c564b",
     },
-    label_angle: 0,
-    vertical_orientation: false,
+    other_settings: {
+      label_angle: 0,
+      vertical_orientation: false,
+    },
   });
 
   const fetchPTMSettings = async (templateName: string) => {
@@ -197,8 +239,7 @@ export const PTMVisSettings = () => {
       const ptmSettings: PTMSettingsProps = {
         modifications: Object.values(response.modifications),
         color_settings: response.color_settings,
-        label_angle: response.label_angle,
-        vertical_orientation: response.vertical_orientation,
+        other_settings: response.other_settings,
       };
       setPTMSettings(ptmSettings);
     }
@@ -208,17 +249,9 @@ export const PTMVisSettings = () => {
     void fetchPTMSettings("ptm_settings");
   }, []);
 
-  const handlePTMSettingsUpdate = async (
-    ptmSettingsFile: string,
-    colorSettingsFile: string,
-    labelAngle: number,
-    verticalOrientation: boolean,
-  ) => {
+  const handlePTMSettingsUpdate = async (ptmSettingsFile: string) => {
     const response = await callApiWithParameters("save_ptm_settings", {
       ptm_settings_file: ptmSettingsFile,
-      color_settings_file: colorSettingsFile,
-      label_angle: labelAngle,
-      vertical_orientation: verticalOrientation,
     });
     if (response?.success) {
       notify({
@@ -238,21 +271,6 @@ export const PTMVisSettings = () => {
 
     void fetchPTMSettings("ptm_settings");
   };
-
-  /** TODO
-   - [ ] verfügbare Modifications (in Kurzform als dict key)
-     - [ ] Mapping auf Farben
-     - [ ] Lang-Namen
-     - [ ] Sites
-   - colors
-     - [ ] Cleavage und PTM colors (see e.g. CLEAVAGE_LABEL_COLOR) - TODO: mainly for details
-     - [ ] Sequence Region colors (A und B)
-   - [ ] Legend titles TODO: maybe integrate in file above
-   - [X] Angle of labels
-   - [X] Figure Orientation
-   - [-] Inversion of AXIS group (A/B) -- seems redundant if user can specifiy where to plot
-   - [ ] Maybe multi-select to arrange PTMs into above/below (- or also steer via file)
-   **/
 
   return (
     <div>
@@ -274,55 +292,32 @@ export const PTMVisSettings = () => {
           hasChangeIndicator: false,
           input_fields: [
             {
-              // TODO: some kind of specification would be nice
-              // TODO: optional colors
               type: "file",
               name: "ptm_settings_file",
-              label: "Upload custom PTM settings (CSV file):",
-              isVisible: true,
-            },
-            {
-              // TODO: some kind of specification would be nice
-              type: "file",
-              name: "color_settings_file",
-              label: "Upload custom colors (CSV file):",
-              isVisible: true,
-            },
-            {
-              type: "single-checkbox",
-              name: "vertical_orientation",
-              label: "Figure orientation",
-              text: "Plot protein sequences vertically",
-              isVisible: true,
-            },
-            {
-              type: "number",
-              name: "label_angle",
-              label: "Angle of modification labels (in degrees)",
-              value: 0,
-              min: 0,
-              max: 359,
+              label: "Upload custom PTM settings (YAML file):",
               isVisible: true,
             },
           ],
         }}
         onChange={(data) => {
-          void handlePTMSettingsUpdate(
-            data.ptm_settings_file as string,
-            data.color_settings_file as string,
-            data.label_angle as number,
-            data.vertical_orientation as boolean,
-          );
+          void handlePTMSettingsUpdate(data.ptm_settings_file as string);
         }}
       />
+      <ContentDiv>
+        <Link
+          text={"Click here to download an example for a settings YAML file"}
+          // TODO: finish this fucking fiesta
+          // onClick={downloadYAML}
+        />
+      </ContentDiv>
       <SettingsTitle baseComponent={"h2"} title={"Current Settings"} />
+      <SectionTitle baseComponent={"h4"} title={"How to cite"} />
       <SettingsList>
         {
           <PTMSettings
             modifications={ptmSettings.modifications}
             color_settings={ptmSettings.color_settings}
-            label_angle={ptmSettings.label_angle}
-            vertical_orientation={ptmSettings.vertical_orientation}
+            other_settings={ptmSettings.other_settings}
           />
         }
       </SettingsList>

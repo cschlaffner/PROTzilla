@@ -39,9 +39,10 @@ def create_overview_ptm_visualization(
         regions_file_path: Path,
 ) -> dict:
     # TODO: install as package and not clone from github directly
-    # TODO: unify plot functions into a single one?
     # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
     # TODO: clean the ptm_visualization directory
+    # TODO: übrige PTMs im Other Output Tab anzeigen und ne Warning dafür ausgeben (oder als Tabelle)
+    # TODO: merge YAML files und Download button für default
 
     out_dir = Path(__file__).parent / 'tmp'
 

@@ -19,15 +19,14 @@ def get_bar_plot_config_module(groups_file_path: Path, out_dir: Path) -> types.M
         # TODO: probably needs to be more dynamic (which PTMs are here)
         'MODIFICATIONS_GROUP': {
             'Phospho': 'A',
-            'Acetyl': 'A',
-            'GG': 'A',
-            'Citrullination': 'A',
+            'Acetyl': 'B',
+            'GG': 'B',
+            'Citrullination': 'B',
             'Methyl': 'A',
             'Deamidated': 'A',
         },
         'BAR_GROUPS': bar_groups,
         'BAR_WIDTH': 0.8,
-        # TODO: settings
         'INVERT_AXIS_GROUP_B': True,
         'BAR_INPUT_FILE': modification_file,
         'SHOW_PLOT': False,

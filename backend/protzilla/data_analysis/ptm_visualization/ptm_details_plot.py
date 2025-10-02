@@ -17,17 +17,29 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
     modification_file = out_dir / 'result_max_quant_mods.csv'
     cleavage_file = out_dir / 'result_max_quant_cleavages.csv'
 
-    groups = get_group_dict_from_csv(groups_file_path)
-    # TODO[Chris]: hacky way to map groups to some colors - do we care? Need more colors?
-    details_groups = {k: ([v], color) for (k, v), color in zip(groups.items(), itertools.cycle(PLOT_COLOR_SEQUENCE))}
-    if len(details_groups) == 0:
-        raise ValueError("No groups found in the provided groups file for details plot visualization.")
-
     settings = load_settings_from_file(
         file_stem=CUSTOM_PTM_SETTINGS_FILE_STEM,
         default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM
     )
     color_settings = settings['color_settings']
+
+    groups = get_group_dict_from_csv(groups_file_path)
+    try:
+        details_groups = {k: ([v], color_settings['group_label_colors'][k]) for k, v in groups.items()}
+    except KeyError:
+        try:
+            details_groups = {
+                k: ([v], color) for (k, v), color in zip(groups.items(), itertools.cycle(PLOT_COLOR_SEQUENCE))
+            }
+        except:
+            raise ValueError(
+                "Not all groups in the provided groups file have a corresponding label color defined in the settings. "
+                "Couldn't use default color cycle as fallback. Please provide colors for all group labels in the "
+                "'PTM Visualization' settings.."
+            )
+
+    if len(details_groups) == 0:
+        raise ValueError("No groups found in the provided groups file for details plot visualization.")
 
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
@@ -46,14 +58,12 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
         'CLEAVAGE_SCALE_COLOR_LOW': color_settings['cleavage_scale_color_low'],
         'CLEAVAGE_SCALE_COLOR_MID': color_settings['cleavage_scale_color_mid'],
         'CLEAVAGE_SCALE_COLOR_HIGH': color_settings['cleavage_scale_color_high'],
-        # TODO: also setting?
-        'CLEAVAGE_LEGEND_TITLE': 'Proteolytic<br>Cleavage<br>Patient<br>Frequency',
+        'CLEAVAGE_LEGEND_TITLE': 'Proteolytic<br>Cleavage<br>Frequency',
 
         'PTM_SCALE_COLOR_LOW': color_settings['ptm_scale_color_low'],
         'PTM_SCALE_COLOR_MID': color_settings['ptm_scale_color_mid'],
         'PTM_SCALE_COLOR_HIGH': color_settings['ptm_scale_color_high'],
-        # TODO: also setting?
-        'PTM_LEGEND_TITLE': 'PTM Patient <br>Frequency',
+        'PTM_LEGEND_TITLE': 'PTM <br>Frequency',
         'GROUPS': details_groups,
         'PTM_RECT_LENGTH': 25,
         'REGION_LABEL_ANGLE_GROUPS': settings['label_angle'],

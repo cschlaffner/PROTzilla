@@ -105,8 +105,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <SectionButton
               id={"ptm-vis"}
               isActive={selectedSetting === "ptm-vis"}
-              /**TODO switch icon**/
-              icon={"github"}
+              icon={"barChartSteps"}
               text={"PTM Visualizations"}
               onPress={() => {
                 handleSwitchSection("ptm-vis");
@@ -123,7 +122,6 @@ export const Settings: React.FC<SettingsProps> = ({
             />
           </SectionSelection>
           <SpecificSettings>
-            {/*TODO: adapt*/}
             {selectedSetting === "plot" && (
               <PlotSettingsModal isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
             )}
