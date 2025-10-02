@@ -38,7 +38,6 @@ def get_general_config_module(
 ) -> types.ModuleType:
     regions = load_regions_from_csv(regions_file_path)
 
-    # TODO: this loading might need some tests
     protzilla_plot_settings = load_settings_from_file(
         file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
         default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM
