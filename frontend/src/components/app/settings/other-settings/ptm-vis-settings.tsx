@@ -1,7 +1,7 @@
 import { useNotification } from "@protzilla/app";
 import { Form, Link, SectionTitle, Text } from "@protzilla/core";
 import { spacing } from "@protzilla/theme";
-import { callApiWithParameters } from "@protzilla/utils";
+import { callApi, callApiWithParameters } from "@protzilla/utils";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
@@ -31,21 +31,27 @@ const ContentDiv = styled.div`
   gap: ${spacing("small")};
 `;
 
-// const saveFile = (url: string, filename: string) => {
-//   const a = document.createElement("a");
-//   a.href = "/home/hendraet/stud_sync/Studium/phd/proteomics/PROTzilla/frontend/src/components/app/settings/other-settings/ptm_settings_default.yaml"
-//   a.download = filename || "file-name";
-//   document.body.appendChild(a);
-//   a.click();
-//   document.body.removeChild(a);
-// }
-//
-// const downloadYAML = () => {
-//   const file = new Blob(["Hello, file!"], { type: "text/plain" });
-//   const url = window.URL.createObjectURL(file);
-//   saveFile(url, "myFile.yaml");
-//   window.URL.revokeObjectURL(url);
-// };
+const saveFile = (url: string, filename: string) => {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "file-name";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+const downloadYAML = () => {
+  void (async () => {
+    // so that the linter shuts up
+    const response = await callApi("load_default_ptm_settings_yaml");
+    if (response) {
+      const file = new Blob([response.example_settings], { type: "text/plain" });
+      const url = window.URL.createObjectURL(file);
+      saveFile(url, "example_ptm_settings.yaml");
+      window.URL.revokeObjectURL(url);
+    }
+  })();
+};
 
 const SettingsTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
@@ -306,8 +312,7 @@ export const PTMVisSettings = () => {
       <ContentDiv>
         <Link
           text={"Click here to download an example for a settings YAML file"}
-          // TODO: finish this fucking fiesta
-          // onClick={downloadYAML}
+          onClick={downloadYAML}
         />
       </ContentDiv>
       <SettingsTitle baseComponent={"h2"} title={"Current Settings"} />

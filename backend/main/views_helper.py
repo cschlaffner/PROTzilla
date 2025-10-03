@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.disk_operator import YamlOperator
@@ -171,3 +172,10 @@ def load_settings_from_file(file_stem: str, default_file_stem: str | None = None
     else:
         plot_settings = op.read(path)
     return plot_settings
+
+
+def load_yaml_from_file(path: Path) -> str:
+    if not path.exists():
+        raise FileNotFoundError(f"File {path} does not exist.")
+    with path.open("r") as f:
+        return f.read()

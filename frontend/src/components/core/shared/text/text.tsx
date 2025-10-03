@@ -51,8 +51,8 @@ export const ContentText = styled(Text)`
   font-size: ${fontSize("h6")};
 `;
 
-export const Link = styled(({ ...rest }: LinkProps) => (
-  <Text as="a" target="_blank" rel="noreferrer" {...rest} />
+export const Link = styled(({ text, ...rest }: LinkProps) => (
+  <Text as="a" target="_blank" rel="noreferrer" text={text} {...rest} />
 ))`
   color: ${(props) => color(props.isDisabled ? "linkDisabled" : "link")};
   cursor: pointer;
