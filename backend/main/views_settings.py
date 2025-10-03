@@ -15,6 +15,7 @@ from backend.main.views_helper import sanitize_name, load_settings_from_file
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
 from backend.protzilla.disk_operator import YamlOperator
+from main.views_helper import load_yaml_from_file
 from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM, DEFAULT_PLOT_SETTINGS_FILE_STEM, \
     DEFAULT_PTM_SETTINGS_FILE_STEM, CUSTOM_PTM_SETTINGS_FILE_STEM
 
@@ -84,6 +85,15 @@ def get_plot_file(fig: go.Figure, params: dict):
 
 def load_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FILE_STEM):
     return load_settings(request, default_file_stem)
+
+
+def load_default_ptm_settings_as_yaml(request):
+    try:
+        example_settings = load_yaml_from_file(SETTINGS_PATH / f"{DEFAULT_PTM_SETTINGS_FILE_STEM}.yaml")
+    except:
+        return JsonResponse({"success": False, "message": "Couldn't load default settings from file."}, status=400)
+
+    return JsonResponse({'example_settings': example_settings})
 
 
 def _load_dict_from_yaml_file(request, filename: str) -> tuple[dict | None, str]:

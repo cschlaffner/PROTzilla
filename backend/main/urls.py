@@ -59,6 +59,11 @@ urlpatterns = [
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),
     path("api/load_ptm_settings", views_settings.load_ptm_settings, name="load_ptm_settings"),
+    path(
+        "api/load_default_ptm_settings_yaml",
+        views_settings.load_default_ptm_settings_as_yaml,
+        name="load_default_ptm_settings_yaml"
+    ),
     path("api/save_ptm_settings", views_settings.save_ptm_settings, name="save_ptm_settings"),
 
     # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
