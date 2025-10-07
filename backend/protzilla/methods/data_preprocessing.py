@@ -341,7 +341,7 @@ class TransformationLog(DataPreprocessingStep):
     operation = "transformation"
     method_description = "Transform data by log"
 
-    input_keys = [ "protein_df", "peptide_df", "log_base"]
+    input_keys = ["protein_df", "peptide_df", "log_base"]
 
     def create_form(self):
         return Form(

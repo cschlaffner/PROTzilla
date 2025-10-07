@@ -31,7 +31,7 @@ from protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
-dataframes = ["protein_df", "metadata_df", "peptide_df"]
+dataframes = ["protein_df", "metadata_df", "peptide_df", "modification_df"]
 
 @ensure_csrf_cookie
 def get_csrf_token(request):

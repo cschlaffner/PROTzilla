@@ -3,10 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from protein_sequencing.data_preprocessing.max_quant_preprocessor import MaxQuantPreprocessor
 from protein_sequencing.overview_plot import OverviewPlotter
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_general_config_module, \
-    get_preprocessor_config_module
+from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import preprocess_files
 
 
 def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
@@ -32,28 +30,20 @@ def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
     return plot_config_module
 
 
-def create_overview_ptm_visualization(
+def get_detected_modifications(
         evidence_df: pd.DataFrame,
         evidence_file_q_value_threshold: float,
         fasta_file_path: Path,
         regions_file_path: Path,
 ) -> dict:
-    # TODO: install as package and not clone from github directly
-    # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
-    # TODO: clean the ptm_visualization directory
-    # TODO: übrige PTMs im Other Output Tab anzeigen und ne Warning dafür ausgeben (oder als Tabelle)
-    # TODO: merge YAML files und Download button für default
-
-    out_dir = Path(__file__).parent / 'tmp'
-
-    config_module = get_general_config_module(regions_file_path, out_dir)
-    preprocessor_config_module = get_preprocessor_config_module(
+    # Although this function is used by different steps, it is tied to the OverviewPlot and thus is placed in this file
+    # Everything else would require a bigger rework of the underlying code.
+    config_module, out_dir = preprocess_files(
+        evidence_df=evidence_df,
+        evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
-        groups_file_path=None,
-        q_value_threshold=evidence_file_q_value_threshold,
-        out_dir=out_dir
+        regions_file_path=regions_file_path
     )
-    MaxQuantPreprocessor(config_module, preprocessor_config_module, evidence_df=evidence_df)
 
     plot_config_module = get_overview_plot_config_module(out_dir)
     overview_plotter = OverviewPlotter(
@@ -62,6 +52,48 @@ def create_overview_ptm_visualization(
         input_file=str(fasta_file_path),
         output_path=str(out_dir)
     )
-    fig = overview_plotter.create_overview_plot()
 
-    return dict(plots=[fig])
+    modifications_by_position = overview_plotter.get_modifications_per_position(
+        overview_plotter.plot_config.INPUT_FILE,
+        filter_based_on_modifications_group=False
+    )
+    modifications_list = [
+        (location, mod[0][0], mod[1], mod[3])
+        for location, sublist in modifications_by_position.items()
+        for mod in sublist
+    ]
+    modification_df = pd.DataFrame(modifications_list, columns=('Location', 'Amino Acid', 'Modification', 'Group'))
+    return dict(modification_df=modification_df)
+
+
+def create_overview_ptm_visualization(
+        evidence_df: pd.DataFrame,
+        evidence_file_q_value_threshold: float,
+        fasta_file_path: Path,
+        regions_file_path: Path,
+) -> dict:
+    # TODO: install as package and not clone from github directly
+    #   - check that ptm-vis is pushed
+    # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
+    # TODO: clean the ptm_visualization directory
+    # TODO: run tests again
+    #  - calc method for ptm vis
+    #  - check that warning is thrown when other PTMs are present
+
+    config_module, out_dir = preprocess_files(
+        evidence_df=evidence_df,
+        evidence_file_q_value_threshold=evidence_file_q_value_threshold,
+        fasta_file_path=fasta_file_path,
+        regions_file_path=regions_file_path
+    )
+
+    plot_config_module = get_overview_plot_config_module(out_dir)
+    overview_plotter = OverviewPlotter(
+        config=config_module,
+        plot_config=plot_config_module,
+        input_file=str(fasta_file_path),
+        output_path=str(out_dir)
+    )
+    fig, messages = overview_plotter.create_overview_plot()
+
+    return dict(plots=[fig], messages=messages)
