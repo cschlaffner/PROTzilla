@@ -29,13 +29,14 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_sample,
 )
 from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
-from backend.protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
-    create_bar_ptm_visualization, \
-    create_details_ptm_visualization
+from backend.protzilla.data_analysis.ptm_visualization import create_bar_ptm_visualization
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.methods.importing import EvidenceImport
 from backend.protzilla.steps import Step, StepManager
+from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
+    create_details_ptm_visualization
+from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import get_detected_modifications
 
 
 class TTestType(Enum):
@@ -1049,6 +1050,7 @@ class PTMOverviewVisualization(PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
     method_description = "Visualizes selected PTMs on a given protein sequence (including isoforms)"
 
+    calc_method = staticmethod(get_detected_modifications)
     plot_method = staticmethod(create_overview_ptm_visualization)
 
 
@@ -1066,6 +1068,8 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
             ]
         )
         return form
+
+    calc_method = staticmethod(get_detected_modifications)
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):

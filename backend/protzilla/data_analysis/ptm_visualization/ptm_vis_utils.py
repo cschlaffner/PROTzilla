@@ -2,9 +2,12 @@ import csv
 import types
 from pathlib import Path
 
+import pandas as pd
+
 from main.views_helper import load_settings_from_file
+from protein_sequencing.data_preprocessing.max_quant_preprocessor import MaxQuantPreprocessor
 from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM, CUSTOM_PTM_SETTINGS_FILE_STEM, \
-    DEFAULT_PLOT_SETTINGS_FILE_STEM, DEFAULT_PTM_SETTINGS_FILE_STEM
+    DEFAULT_PLOT_SETTINGS_FILE_STEM, DEFAULT_PTM_SETTINGS_FILE_STEM, UPLOAD_PATH
 
 
 def load_regions_from_csv(regions_file_path: Path) -> list:
@@ -63,7 +66,7 @@ def get_general_config_module(
 
         # Plot Settings
         # 0 for horizontal, 1 for vertical, note figure height and width are then automatically swapped
-        'FIGURE_ORIENTATION': 1 if protzilla_ptm_settings['vertical_orientation'] else 0,
+        'FIGURE_ORIENTATION': 1 if protzilla_ptm_settings['other_settings']['vertical_orientation'] else 0,
 
         'PTMS_TO_HIGHLIGHT': [],  # Unused for now
         'PTM_HIGHLIGHT_LABEL_COLOR': '#cfcfcf',
@@ -121,3 +124,24 @@ def get_group_dict_from_csv(groups_file_path: Path) -> dict:
             # Seems weird. Is weird. But I didn't want to touch the underlying code
             groups[row['group_name']] = row['group_name']
     return groups
+
+
+def preprocess_files(
+        evidence_df: pd.DataFrame,
+        evidence_file_q_value_threshold: float,
+        fasta_file_path: Path,
+        regions_file_path: Path,
+        groups_file_path: Path | None = None
+) -> tuple[types.ModuleType, Path]:
+    out_dir = UPLOAD_PATH / 'ptm_tmp'
+
+    config_module = get_general_config_module(regions_file_path, out_dir)
+    preprocessor_config_module = get_preprocessor_config_module(
+        fasta_file_path=fasta_file_path,
+        groups_file_path=groups_file_path,
+        q_value_threshold=evidence_file_q_value_threshold,
+        out_dir=out_dir
+    )
+
+    MaxQuantPreprocessor(config_module, preprocessor_config_module, evidence_df=evidence_df)
+    return config_module, out_dir
