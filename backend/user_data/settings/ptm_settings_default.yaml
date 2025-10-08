@@ -27,6 +27,12 @@ modifications:
       - K
     color: "#548056"
     above_below: B
+  GlyGly:
+    name: Ubiquitination
+    sites:
+      - K
+    color: "#548056"
+    above_below: B
   Citrullination:
     name: Citrullination
     sites:
