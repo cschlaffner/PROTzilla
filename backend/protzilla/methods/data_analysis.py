@@ -1025,8 +1025,9 @@ class PTMVisualizationStep(DataAnalysisStep):
                 InfoField(
                     label="The file for regions should be a CSV file with the following columns: name, region_end, "
                           "group, short_name. These specify the name of the region, the end position of the region "
-                          "(the start is either 1 or the end of the previous region), the (treatment) group the "
-                          "region belongs to, and a short name for the region.",
+                          "(the start is either 1 or the end of the previous region), the (color) group the "
+                          "region belongs to (which can be specified in the settings), and a short name for the "
+                          "region.",
                 ),
             ]
         )
@@ -1060,10 +1061,15 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
         form = Form(
             label=base_form.label,
             input_fields=base_form.input_fields + [
-                # TODO: should an info field here that states how group file should look
                 FileInput(
                     name="groups_file_path",
                     label="Metadata used to define groups",
+                ),
+                InfoField(
+                    label="The groups file should be a CSV file with the following columns: file_name, group_name, "
+                          "replicate. These specify the name of the name of the experiment in the evidence file (not "
+                          "raw file name), the name that should be displayed when referencing the group, and "
+                          "optionally the replicate number (1, 2, ...).",
                 ),
             ]
         )
