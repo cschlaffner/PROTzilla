@@ -20,19 +20,19 @@ modifications:
     sites:
       - K
     color: "#93478F"
-    above_below: A
+    above_below: B
   GG:
     name: Ubiquitination
     sites:
       - K
     color: "#548056"
-    above_below: A
+    above_below: B
   Citrullination:
     name: Citrullination
     sites:
       - R
     color: "#4682B4"
-    above_below: A
+    above_below: B
   Deamidated:
     name: Deamidation
     sites:

@@ -1,0 +1,11 @@
+Location,Amino Acid,Modification,Isoform
+"1","M","Oxidation","general"
+"9","S","Phospho","general"
+"14","S","Phospho","general"
+"36","T","Phospho","general"
+"153","R","Citrullination","general"
+"155","K","Acetyl","general"
+"155","K","GG","general"
+"410","S","Phospho","exon2"
+"412","T","Phospho","exon2"
+"414","R","Citrullination","exon2"

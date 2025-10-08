@@ -4,24 +4,17 @@ from pathlib import Path
 import pandas as pd
 
 from protein_sequencing.overview_plot import OverviewPlotter
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import preprocess_files
+from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import preprocess_files, \
+    get_modification_groups_from_settings
 
 
 def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
     modification_file = out_dir / 'result_max_quant_mods.csv'
+    modifications_group = get_modification_groups_from_settings()
+
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
-        # TODO: probably needs to be more dynamic (which PTMs are here)
-        #   - get from the settings-PTM list
-        #   - would also be nice if this is customizable...
-        'MODIFICATIONS_GROUP': {
-            'Phospho': 'B',
-            'Acetyl': 'B',
-            'GG': 'B',
-            'Citrullination': 'B',
-            'Methyl': 'B',
-            'Deamidated': 'B',
-        },
+        'MODIFICATIONS_GROUP': modifications_group,
         'INPUT_FILE': modification_file,
         'SEQUENCE_MIN_LINE_LENGTH': 20,
         'SHOW_PLOT': False,
@@ -62,7 +55,7 @@ def get_detected_modifications(
         for location, sublist in modifications_by_position.items()
         for mod in sublist
     ]
-    modification_df = pd.DataFrame(modifications_list, columns=('Location', 'Amino Acid', 'Modification', 'Group'))
+    modification_df = pd.DataFrame(modifications_list, columns=('Location', 'Amino Acid', 'Modification', 'Isoform'))
     return dict(modification_df=modification_df)
 
 
@@ -76,9 +69,6 @@ def create_overview_ptm_visualization(
     #   - check that ptm-vis is pushed
     # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
     # TODO: clean the ptm_visualization directory
-    # TODO: run tests again
-    #  - calc method for ptm vis
-    #  - check that warning is thrown when other PTMs are present
 
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,

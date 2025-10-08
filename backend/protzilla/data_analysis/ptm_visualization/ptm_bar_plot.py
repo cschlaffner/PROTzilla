@@ -4,25 +4,20 @@ from pathlib import Path
 import pandas as pd
 
 from protein_sequencing.bar_plot import BarPlotter
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_group_dict_from_csv, preprocess_files
+from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import get_group_dict_from_csv, preprocess_files, \
+    get_modification_groups_from_settings
 
 
 def get_bar_plot_config_module(groups_file_path: Path, out_dir: Path) -> types.ModuleType:
     modification_file = out_dir / 'result_max_quant_mods.csv'
     bar_groups = get_group_dict_from_csv(groups_file_path)
+    modifications_group = get_modification_groups_from_settings()
+
     if len(bar_groups) == 0:
         raise ValueError("No groups found in the provided groups file for bar plot visualization.")
     plot_config_module = types.ModuleType('plot_config')
     plot_config_module.__dict__.update({
-        # TODO: probably needs to be more dynamic (which PTMs are here)
-        'MODIFICATIONS_GROUP': {
-            'Phospho': 'A',
-            'Acetyl': 'B',
-            'GG': 'B',
-            'Citrullination': 'B',
-            'Methyl': 'A',
-            'Deamidated': 'A',
-        },
+        'MODIFICATIONS_GROUP': modifications_group,
         'BAR_GROUPS': bar_groups,
         'BAR_WIDTH': 0.8,
         'INVERT_AXIS_GROUP_B': True,

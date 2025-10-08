@@ -23,18 +23,23 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
 
     groups = get_group_dict_from_csv(groups_file_path)
     try:
-        details_groups = {k: ([v], color_settings['group_label_colors'][k]) for k, v in groups.items()}
-    except KeyError:
-        try:
-            details_groups = {
-                k: ([v], color) for (k, v), color in zip(groups.items(), itertools.cycle(PLOT_COLOR_SEQUENCE))
-            }
-        except:
-            raise ValueError(
-                "Not all groups in the provided groups file have a corresponding label color defined in the settings. "
-                "Couldn't use default color cycle as fallback. Please provide colors for all group labels in the "
-                "'PTM Visualization' settings.."
-            )
+        missing_groups = set(groups.keys()) - set(color_settings['group_label_colors'].keys())
+        given_color_dict = {
+            k: ([v], color_settings['group_label_colors'][k])
+            for k, v in groups.items()
+            if k not in missing_groups
+        }
+        fallback_dict = {k: v for k, v in groups.items() if k in missing_groups}
+        fallback_color_dict = {
+            k: ([v], color) for (k, v), color in zip(fallback_dict.items(), itertools.cycle(PLOT_COLOR_SEQUENCE))
+        }
+        details_groups = {**given_color_dict, **fallback_color_dict}
+    except:
+        raise ValueError(
+            "Not all groups in the provided groups file have a corresponding label color defined in the settings. "
+            "Couldn't use default color cycle as fallback. Please provide colors for all group labels in the "
+            "'PTM Visualization' settings.."
+        )
 
     if len(details_groups) == 0:
         raise ValueError("No groups found in the provided groups file for details plot visualization.")
