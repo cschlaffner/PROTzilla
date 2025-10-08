@@ -126,6 +126,18 @@ def get_group_dict_from_csv(groups_file_path: Path) -> dict:
     return groups
 
 
+def get_modification_groups_from_settings(
+        file_stem: str = CUSTOM_PTM_SETTINGS_FILE_STEM,
+        default_file_stem: str = DEFAULT_PTM_SETTINGS_FILE_STEM
+) -> dict:
+    modification_settings = load_settings_from_file(
+        file_stem=file_stem,
+        default_file_stem=default_file_stem,
+    )['modifications']
+
+    return {k: v['above_below'] for k, v in modification_settings.items()}
+
+
 def preprocess_files(
         evidence_df: pd.DataFrame,
         evidence_file_q_value_threshold: float,

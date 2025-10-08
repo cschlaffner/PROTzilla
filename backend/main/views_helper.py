@@ -159,9 +159,13 @@ def get_display_name(dataframe: str):
     return name
 
 
-def load_settings_from_file(file_stem: str, default_file_stem: str | None = None) -> dict:
+def load_settings_from_file(
+        file_stem: str,
+        default_file_stem: str | None = None,
+        settings_path: Path = SETTINGS_PATH
+) -> dict:
     op = YamlOperator()
-    path = SETTINGS_PATH / f"{file_stem}.yaml"
+    path = settings_path / f"{file_stem}.yaml"
 
     if not path.exists():
         if default_file_stem is not None:

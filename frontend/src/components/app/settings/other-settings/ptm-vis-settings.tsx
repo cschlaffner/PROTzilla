@@ -81,15 +81,17 @@ interface PTMProps {
   name: string;
   color: string;
   sites: string[];
+  above_below: string;
 }
 
-const PTM = ({ name, color, sites }: PTMProps) => {
+const PTM = ({ name, color, sites, above_below }: PTMProps) => {
   return (
     <div>
       <Text text={name + ":"} style={{ fontWeight: "bold" }} />
       <Text text=" Color: " />
       <ColorText text={color} />
       <Text text={", Sites: " + sites.join(", ")} />
+      <Text text={", Above/below sequence: " + (above_below == "A" ? "above" : "below")} />
     </div>
   );
 };
@@ -192,7 +194,12 @@ const PTMSettings = ({ modifications, color_settings, other_settings }: PTMSetti
       <SettingsSectionTitle baseComponent="h5" title="Custom PTM Settings" />
       {modifications.map((modification, index) => (
         <SettingsEntry key={index}>
-          <PTM name={modification.name} color={modification.color} sites={modification.sites} />
+          <PTM
+            name={modification.name}
+            color={modification.color}
+            sites={modification.sites}
+            above_below={modification.above_below}
+          />
         </SettingsEntry>
       ))}
       <SettingsSectionTitle baseComponent="h5" title="Custom Color Settings" />
@@ -316,7 +323,6 @@ export const PTMVisSettings = () => {
         />
       </ContentDiv>
       <SettingsTitle baseComponent={"h2"} title={"Current Settings"} />
-      <SectionTitle baseComponent={"h4"} title={"How to cite"} />
       <SettingsList>
         {
           <PTMSettings
