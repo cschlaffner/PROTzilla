@@ -67,9 +67,6 @@ def create_overview_ptm_visualization(
 ) -> dict:
     # TODO: install as package and not clone from github directly
     #   - check that ptm-vis is pushed
-    # TODO[Chris]: would be good to have a second set of fasta files/regions/PTMs to test this properly
-    # TODO: clean the ptm_visualization directory
-    # TODO: use Tau files in test
 
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,
