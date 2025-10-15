@@ -49,8 +49,6 @@ def test_get_all_possible_step_names():
                            "ModelEvaluationClassificationModel",
                            "DimensionReductionTSNE",
                            "DimensionReductionUMAP",
-                           "ProteinGraphPeptidesToIsoform",
-                           "ProteinGraphVariationGraph",
                            "SelectPeptidesForProtein",
                            "FLEXIQuantLF",
                            "PTMsPerSample",

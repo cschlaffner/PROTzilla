@@ -52,8 +52,6 @@ _forward_mapping = [
     data_analysis.ModelEvaluationClassificationModel,
     data_analysis.DimensionReductionTSNE,
     data_analysis.DimensionReductionUMAP,
-    data_analysis.ProteinGraphPeptidesToIsoform,
-    data_analysis.ProteinGraphVariationGraph,
     data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
     data_analysis.PTMsPerSample,

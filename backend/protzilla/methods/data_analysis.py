@@ -22,7 +22,6 @@ from backend.protzilla.data_analysis.plots import (
     prot_quant_plot,
     scatter_plot,
 )
-from backend.protzilla.data_analysis.protein_graphs import peptides_to_isoform, variation_graph
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
     ptms_per_protein_and_sample,
@@ -858,45 +857,6 @@ class DimensionReductionUMAP(DataAnalysisStep):
         inputs["input_df"] = steps.get_step_output(
             Step, "protein_df", inputs["input_df"]
         )
-        return inputs
-
-
-class ProteinGraphPeptidesToIsoform(DataAnalysisStep):
-    display_name = "Peptides to Isoform"
-    operation = "protein_graph"
-    method_description = "Create a variation graph (.graphml) for a Protein and map the peptides onto the graph for coverage visualisation. The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. Only `Variant`-Features are included in the graph. This, currently, only works with Uniport-IDs and while you are online."
-
-    output_keys = [
-        "graph_path",
-        "protein_id",
-        "peptide_matches",
-        "peptide_mismatches",
-        "filtered_blocks",
-    ]
-
-    calc_method = staticmethod(peptides_to_isoform)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.peptide_df
-        inputs["isoform_df"] = steps.isoform_df
-        return inputs
-
-
-class ProteinGraphVariationGraph(DataAnalysisStep):
-    display_name = "Protein Variation Graph"
-    operation = "protein_graph"
-    method_description = "Create a variation graph (.graphml) for a protein, including variation-features. The protein data will be downloaded from https://rest.uniprot.org/uniprotkb/<Protein ID>.txt. This, currently, only works with Uniport-IDs and while you are online."
-
-    output_keys = [
-        "graph_path",
-        "filtered_blocks",
-    ]
-
-    calc_method = staticmethod(variation_graph)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.peptide_df
-        inputs["isoform_df"] = steps.isoform_df
         return inputs
 
 
