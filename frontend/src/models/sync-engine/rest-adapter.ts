@@ -23,7 +23,7 @@ export class RESTAdapter<M> implements IStorageAdapter<M> {
 
   public async read<E extends keyof M>(entity: E, id: ID): Promise<Snapshot<M[E]> | undefined> {
     const response = await this.axiosInstance.get<Snapshot<M[E]>>(
-      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${String(id)}`,
+      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${id}`,
     );
     return response.data;
   }
@@ -44,15 +44,13 @@ export class RESTAdapter<M> implements IStorageAdapter<M> {
     newValue: Snapshot<Partial<M[E]>>,
   ): Promise<void> {
     await this.axiosInstance.patch(
-      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${String(id)}`,
+      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${id}`,
       newValue,
     );
   }
 
   public async delete<E extends keyof M>(entity: E, id: ID): Promise<void> {
-    await this.axiosInstance.delete(
-      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${String(id)}`,
-    );
+    await this.axiosInstance.delete(`${this.baseUrl}/${this.mapEntityToRoute(entity)}/${id}`);
   }
 
   public dispatch<E extends keyof M>(
