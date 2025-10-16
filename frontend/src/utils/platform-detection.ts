@@ -12,9 +12,7 @@ export const isFirefox = (): boolean =>
   navigator ? Boolean(~navigator.userAgent.toLowerCase().indexOf("firefox")) : false;
 
 export const isSafari = (): boolean =>
-  navigator
-    ? Boolean(/^((?!chrome|android).)*safari/i.test(navigator.userAgent.toLowerCase()))
-    : false;
+  navigator ? /^((?!chrome|android).)*safari/i.test(navigator.userAgent.toLowerCase()) : false;
 
 export const isWindows = (): boolean =>
   platform ? Boolean(~platform.toLowerCase().indexOf("win")) : false;

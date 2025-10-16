@@ -27,7 +27,7 @@ const FlexContainer = styledDiv.div`
 `;
 
 const StyledInputFrame = styled.div.withConfig({
-  shouldForwardProp: (prop: string) => prop.toString() !== "smallBorder",
+  shouldForwardProp: (prop: string) => prop !== "smallBorder",
 })<{ smallBorder: boolean }>`
   box-sizing: border-box;
   background-color: ${color("transparent")};
