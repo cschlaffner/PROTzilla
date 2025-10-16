@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 from datetime import date
 from io import BytesIO
@@ -19,7 +20,7 @@ from main.views_helper import load_yaml_from_file
 from protzilla.constants.paths import CUSTOM_PLOT_SETTINGS_FILE_STEM, DEFAULT_PLOT_SETTINGS_FILE_STEM, \
     DEFAULT_PTM_SETTINGS_FILE_STEM, CUSTOM_PTM_SETTINGS_FILE_STEM
 
-database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
+DATABASE_METADATA_PATH = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 
 def load_settings(request, default_file_stem: str):
@@ -162,8 +163,9 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 def get_databases(request):
     databases = uniprot_databases()
     df_infos = []
-    if database_metadata_path.exists():
-        with open(database_metadata_path, "r") as f:
+    # second check avoids errors if the metadata is somehow empty and thus prevents the database listing from displaying
+    if DATABASE_METADATA_PATH.exists() and os.path.getsize(DATABASE_METADATA_PATH) > 0:
+        with open(DATABASE_METADATA_PATH, "r") as f:
             database_metadata = json.load(f)
     else:
         database_metadata = {}
@@ -227,18 +229,18 @@ def database_upload(request):
             dataframe.to_csv(database_path(converted_name), sep="\t", index=False)
             num_proteins = len(dataframe)
 
-        if not database_metadata_path.parent.exists():
-            database_metadata_path.parent.mkdir(parents=True)
+        if not DATABASE_METADATA_PATH.parent.exists():
+            DATABASE_METADATA_PATH.parent.mkdir(parents=True)
 
-        if database_metadata_path.exists():
-            with open(database_metadata_path, "r") as f:
+        if DATABASE_METADATA_PATH.exists():
+            with open(DATABASE_METADATA_PATH, "r") as f:
                 database_metadata = json.load(f)
         else:
             database_metadata = {}
         database_metadata[converted_name] = dict(
             num_proteins=num_proteins, date=date.today().isoformat()
         )
-        with open(database_metadata_path, "w") as f:
+        with open(DATABASE_METADATA_PATH, "w") as f:
             json.dump(database_metadata, f)
 
         return JsonResponse({"success": True, "message": f"Database uploaded successfully. \n {message}" if len(message) > 0 else "Database uploaded successfully"}, status=200)
@@ -253,13 +255,13 @@ def database_delete(request):
         path = database_path(database_name)
         path.unlink()
 
-        if database_metadata_path.exists():
-            with open(database_metadata_path, "r") as f:
+        if DATABASE_METADATA_PATH.exists():
+            with open(DATABASE_METADATA_PATH, "r") as f:
                 database_metadata = json.load(f)
 
             if database_name in database_metadata:
                 del database_metadata[database_name]
-                with open(database_metadata_path, "w") as f:
+                with open(DATABASE_METADATA_PATH, "w") as f:
                     json.dump(database_metadata, f)
 
         return JsonResponse({"success": True, "message": "Database deleted successfully"}, status=200)
