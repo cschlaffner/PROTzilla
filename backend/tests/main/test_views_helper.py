@@ -10,6 +10,7 @@ def test_get_all_possible_step_names():
                            "MetadataColumnAssignment",
                            "PeptideImport",
                            "EvidenceImport",
+                           "ExampleDatasetImport",
                            "FilterProteinsBySamplesMissing",
                            "FilterByProteinsCount",
                            "FilterSamplesByProteinsMissing",
