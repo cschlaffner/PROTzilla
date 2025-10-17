@@ -18,6 +18,7 @@ export * from "./input-fields/search-input-field";
 export * from "./input-fields/text-input-field";
 export * from "./input-fields/form-divider";
 export * from "./input-fields/info-field";
+export * from "./input-fields/header-info-field";
 export * from "./modal";
 export * from "./plot";
 export * from "./section-title";

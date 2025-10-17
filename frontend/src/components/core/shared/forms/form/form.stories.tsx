@@ -24,6 +24,12 @@ primary.args = {
     hasChangeIndicator: true,
     input_fields: [
       {
+        type: "header-info-field",
+        name: "header-info",
+        isVisible: true,
+        label: "This is some additional information.",
+      },
+      {
         type: "text",
         name: "username",
         isVisible: true,
@@ -65,6 +71,12 @@ submit.args = {
     isAutoSubmit: false,
     hasChangeIndicator: true,
     input_fields: [
+      {
+        type: "header-info-field",
+        name: "header-info",
+        isVisible: true,
+        label: "This is some additional information.",
+      },
       {
         type: "text",
         name: "username",
