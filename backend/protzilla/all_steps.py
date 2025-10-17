@@ -13,6 +13,7 @@ _forward_mapping = [
     importing.MetadataColumnAssignment,
     importing.PeptideImport,
     importing.EvidenceImport,
+    importing.ExampleDatasetImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,

@@ -13,39 +13,9 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
-
-
-class IntensityType(Enum):
-    IBAQ = "iBAQ"
-    INTENSITY = "Intensity"
-    LFQ_INTENSITY = "LFQ intensity"
-
-
-class IntensityNameType(Enum):
-    INTENSITY = "Intensity"
-    MAXLFQ_TOTAL_iNTENSITY = "MaxLFQ Total Intensity"
-    MAXLFQ_INTENSITY = "MaxLFQ Intensity"
-    TOTAL_INTENSITY = "Total Intensity"
-    MAXLFQ_UNIQUE_INTENSITY = "MaxLFQ Unique Intensity"
-    UNIQUE_SPECTRAL_COUNT = "Unique Spectral Count"
-    UNIQUE_INTENSITY = "Unique Intensity"
-    SPECTRAL_COUNT = "Spectral Count"
-    TOTAL_SPECTRAL_COUNT = "Total Spectral Count"
-
-
-class FeatureOrientationType(Enum):
-    COLUMNS = "Columns (samples in rows, features in columns)"
-    ROWS = "Rows (features in rows, samples in columns)"
-
-
-class EmptyEnum(Enum):
-    pass
-
-
-class AggregationMethods(Enum):
-    sum = "Sum"
-    median = "Median"
-    mean = "Mean"
+from protzilla.importing.example_dataset_import import example_dataset_import
+from protzilla.importing.import_utils import IntensityType, AggregationMethods, IntensityNameType, \
+    FeatureOrientationType
 
 
 class ImportingStep(Step):
@@ -371,3 +341,22 @@ class EvidenceImport(ImportingStep):
         )
 
     calc_method = staticmethod(evidence_import)
+
+
+class ExampleDatasetImport(ImportingStep):
+    display_name = "Example Dataset Import"
+    operation = "example_import"
+    method_description = ("Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
+                          "dataset]")  # TODO: has to be adapted
+
+    output_keys = ["metadata_df", "peptide_df", "protein_df"]
+
+    def create_form(self):
+        return Form(
+            label="Example Dataset Import",
+            input_fields=[
+                HeaderInfoField(label=self.method_description)
+            ]
+        )
+
+    calc_method = staticmethod(example_dataset_import)

@@ -21,6 +21,7 @@ export * from "./shared/input-fields/search-input-field";
 export * from "./shared/input-fields/text-input-field";
 export * from "./shared/input-fields/form-divider";
 export * from "./shared/input-fields/info-field";
+export * from "./shared/input-fields/header-info-field";
 export * from "./shared/modal";
 export * from "./shared/plot";
 export * from "./shared/section-title";

@@ -139,20 +139,29 @@ class FormDivider:
 @dataclass
 class InfoField:
     """
-    A field to show additional information to the user.
+    A field to show additional information for a specific field to the user.
     """
     label: str
     type: str = "info-field"
 
 
+@dataclass
+class HeaderInfoField:
+    """
+    A field to show additional information to the user at the top of the form.
+    """
+    label: str
+    type: str = "header-info-field"
+
+
 InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
-StructualField = Union[FormDivider, InfoField]
+StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
 
 
 @dataclass
 class Form:
     label: str
-    input_fields: List[InputField|StructualField]
+    input_fields: List[InputField | StructuralField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
@@ -208,7 +217,7 @@ class Form:
 
         values = {}
         for field in self.input_fields:
-            if isinstance(field, FormDivider) or isinstance(field, InfoField):
+            if isinstance(field, FormDivider) or isinstance(field, InfoField) or isinstance(field, HeaderInfoField):
                 continue
             elif isinstance(field, FileInput):
                 values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None

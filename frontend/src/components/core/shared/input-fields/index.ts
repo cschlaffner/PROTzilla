@@ -10,3 +10,4 @@ export * from "./search-input-field";
 export * from "./text-input-field";
 export * from "./form-divider";
 export * from "./info-field";
+export * from "./header-info-field";
