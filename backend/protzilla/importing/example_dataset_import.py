@@ -1,20 +1,20 @@
-from pathlib import Path
-
-from protzilla.constants.paths import EXAMPLE_DATASET_PROTEIN_FILE, EXAMPLE_DATASET_METADATA_FILE, \
-    EXAMPLE_DATASET_PEPTIDE_FILE
+from protzilla.constants.paths import EXAMPLE_DATASET_PROTEIN_FILE, EXAMPLE_DATASET_METADATA_FILE, EXAMPLE_DATASET_EVIDENCE_FILE
 from protzilla.importing.import_utils import IntensityType, FeatureOrientationType
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.ms_data_import import max_quant_import
-from protzilla.importing.peptide_import import evidence_import, peptide_import
+from protzilla.importing.peptide_import import evidence_import
 
 
 def example_dataset_import():
-    intensity_name = IntensityType.IBAQ.value
+    intensity_name = IntensityType.LFQ_INTENSITY.value
     protein_import_dict = max_quant_import(
         file_path=EXAMPLE_DATASET_PROTEIN_FILE,
         intensity_name=intensity_name,
         aggregation_method='Sum'
     )
+    # Return messages
+    if 'protein_df' not in protein_import_dict:
+        return protein_import_dict
 
     metadata_import_dict = metadata_import_method(
         protein_df=protein_import_dict['protein_df'],
@@ -25,15 +25,14 @@ def example_dataset_import():
     # TODO[later]: check if peptides df would be more helpful/different in some cases - both result in peptides_df, so
     #  if would probably more efficient to import peptides.txt
     #   - but also depends on the final dataset that we use
-    # peptide_import_dict = evidence_import(
+    peptide_import_dict = evidence_import(
+        file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
+        map_to_uniprot=False
+    )
+    # peptide_import_dict = peptide_import(
     #     file_path=EXAMPLE_DATASET_PEPTIDE_FILE,
     #     map_to_uniprot=False
     # )
-    peptide_import_dict = peptide_import(
-        file_path=EXAMPLE_DATASET_PEPTIDE_FILE,
-        intensity_name=intensity_name,
-        map_to_uniprot=False
-    )
 
     combined_messages = (
                 protein_import_dict.pop('messages', [])

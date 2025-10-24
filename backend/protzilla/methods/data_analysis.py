@@ -996,7 +996,7 @@ class PTMVisualizationStep(DataAnalysisStep):
         form["evidence_df"].options = form_helper.get_choices(
             run,
             output_key='peptide_df',
-            step_type=EvidenceImport,  # TODO: would the normal PeptideImport also work?
+            step_type=Step,
             required=True
         )
 

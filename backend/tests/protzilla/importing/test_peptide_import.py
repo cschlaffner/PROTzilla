@@ -28,18 +28,6 @@ def peptide_df(intensity_name):
     )
 
     intensity_name_to_intensities = {
-        "LFQ intensity": [
-            np.NAN,
-            np.NAN,
-            253840.0,
-            1371200.0,
-            3048300.0,
-            3957900.0,
-            np.NAN,
-            8533900.0,
-            np.NAN,
-            6923600.0,
-        ],
         "Intensity": [
             253840.0,
             1371200.0,
@@ -127,7 +115,6 @@ def evidence_df():
 def test_peptide_import(intensity_name):
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -144,7 +131,6 @@ def test_peptide_import(intensity_name):
 def test_peptide_import_ibaq():
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name="iBAQ",
         map_to_uniprot=False,
     )
 
