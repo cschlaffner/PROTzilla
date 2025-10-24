@@ -215,7 +215,12 @@ export const RunScreen: React.FC = () => {
           }))}
         />
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
+        <SectionTitle
+          baseComponent={"h4"}
+          description={
+            "No data table available for this step (yet). With large datasets it may take a while for tables to be displayed."
+          }
+        />
       )}
     </StyledContentContainer>
   );
