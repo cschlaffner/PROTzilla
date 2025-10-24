@@ -33,31 +33,37 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 dataframes = ["protein_df", "metadata_df", "peptide_df", "modification_df"]
 
+
 @ensure_csrf_cookie
 def get_csrf_token(request):
     csrf_token = get_token(request)
     return JsonResponse({"csrfToken": csrf_token, "message": "CSRF cookie set."})
+
 
 def run_information_list(request):
     run_info = get_available_run_info()
     if type(run_info) == str:
         return JsonResponse({"success": False, "message": run_info}, safe=False)
     if not run_info or len(run_info) == 0:
-        return JsonResponse({"success": False, "message": "An unknown error occurred when creating run table."},safe=False)
+        return JsonResponse({"success": False, "message": "An unknown error occurred when creating run table."},
+                            safe=False)
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
     available_run_info = [all_available_runs, all_tags]
 
     return JsonResponse({"success": True, "data": available_run_info}, safe=False)
 
+
 def all_steps(request):
     steps = get_all_possible_steps()
     return JsonResponse(steps, safe=False)
+
 
 def workflow_name_list(request):
     workflow_names = get_available_workflow_names()
 
     return JsonResponse(workflow_names, safe=False)
+
 
 def toggle_favourite(request):
     if request.method == "POST":
@@ -72,6 +78,7 @@ def toggle_favourite(request):
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def add_tag(request):
     if request.method == "POST":
@@ -90,6 +97,7 @@ def add_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def delete_tag(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -107,6 +115,7 @@ def delete_tag(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def add_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -117,14 +126,18 @@ def add_run(request):
         converted_run_name, additional_message = sanitize_name(run_name)
 
         try:
-            Run(converted_run_name, workflow_name, df_mode_name,)
-            message = f"Created run {converted_run_name}. \n{additional_message}" if len(additional_message) > 0 else f"Created run {converted_run_name}."
+            Run(converted_run_name, workflow_name, df_mode_name, )
+            message = f"Created run {converted_run_name}. \n{additional_message}" if len(
+                additional_message) > 0 else f"Created run {converted_run_name}."
             return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
         except Exception as e:
             msg = "Error when creating run: " + str(e)
-            return JsonResponse({"success": False, "message": msg, "traceback": format_trace(traceback.format_exception(e))}, status=404)
+            return JsonResponse(
+                {"success": False, "message": msg, "traceback": format_trace(traceback.format_exception(e))},
+                status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def delete_run(request):
     if request.method == "POST":
@@ -140,10 +153,11 @@ def delete_run(request):
 
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
-            traceback.print_exc() #not sure if it still needs to be here 
+            traceback.print_exc()  #not sure if it still needs to be here
             return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def continue_run(request):
     if request.method == "POST":
@@ -151,12 +165,12 @@ def continue_run(request):
         run_name = data.get("run_name")
 
         Run(run_name)
-        
 
         return JsonResponse({"success": True, "message": "Continued run"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def update_run_name(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -171,7 +185,8 @@ def update_run_name(request):
             run = Run(run_name)
             run.update_run_name(converted_run_name)
 
-            message = f"Run name updated from {run_name} to {converted_run_name}. \n{additional_message}" if len(additional_message) > 0 else f"Run name updated from {run_name} to {converted_run_name}."
+            message = f"Run name updated from {run_name} to {converted_run_name}. \n{additional_message}" if len(
+                additional_message) > 0 else f"Run name updated from {run_name} to {converted_run_name}."
             return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
         except Exception as e:
             if isinstance(e, OSError):
@@ -180,26 +195,28 @@ def update_run_name(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def export_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        run_name = data.get("run_name") 
-        
+        run_name = data.get("run_name")
+
         run_directory = RUNS_PATH / run_name
         run_zip_path = settings.FILE_UPLOAD_TEMP_DIR / run_name
         run_zip_path_absolute = settings.FILE_UPLOAD_TEMP_DIR / f"{run_name}.zip"
 
         make_archive(run_zip_path, "zip", run_directory)
-        
+
         return FileResponse(open(run_zip_path_absolute, "rb"), as_attachment=True)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def import_run(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        run_file = data.get("run_file") 
-        
+        run_file = data.get("run_file")
+
         run_name = run_file.removesuffix(".zip")
 
         run_zip = ZipFile(settings.FILE_UPLOAD_TEMP_DIR / run_file)
@@ -209,6 +226,7 @@ def import_run(request):
         return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def add_plot(request):
     if request.method == "POST":
@@ -227,7 +245,8 @@ def add_plot(request):
         return JsonResponse({"success": True, "message": "Created plot"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def add_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -242,11 +261,13 @@ def add_step(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def delete_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        section = data.get("section") #this is a bit different to the original, but frontend prob has to deal with it :)
+        section = data.get(
+            "section")  #this is a bit different to the original, but frontend prob has to deal with it :)
         index = data.get("index")
 
         index = int(index)
@@ -265,6 +286,7 @@ def delete_step(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def update_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -279,14 +301,16 @@ def update_step(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def navigate_to_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        section = data.get("section") #this is a bit different to the original, but frontend prob has to deal with it :)
+        section = data.get(
+            "section")  #this is a bit different to the original, but frontend prob has to deal with it :)
         index = data.get("index")
 
-        index = int(index) 
+        index = int(index)
         run = Run(run_name)
         run.step_goto(index, section)
 
@@ -308,24 +332,26 @@ def save_workflow(request):
         return JsonResponse({"success": True, "message": "Saved workflow"})
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def export_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        workflow_name = data.get("workflow_name") 
-        
+        workflow_name = data.get("workflow_name")
+
         workflow_file = WORKFLOWS_PATH / f"{workflow_name}.yaml"
 
         return FileResponse(open(workflow_file, "rb"), as_attachment=True)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def import_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        workflow = data.get("workflow_file") 
+        workflow = data.get("workflow_file")
         new_name = data.get("new_name")
-        
+
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
 
         if new_name == "":
@@ -340,6 +366,7 @@ def import_workflow(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def delete_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -351,7 +378,7 @@ def delete_workflow(request):
                 return JsonResponse({"success": False, "message": f"Workflow {filename} does not exist."}, status=404)
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
-            traceback.print_exc() 
+            traceback.print_exc()
             return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
@@ -379,7 +406,8 @@ def download_table(request):
         return FileResponse(csv_bytes, content_type="text/csv")
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def get_run_data(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -402,23 +430,26 @@ def get_run_data(request):
         return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
-    
+
+
 def get_step_form(request):
     if request.method == "POST":
-        data:dict = json.loads(request.body)
+        data: dict = json.loads(request.body)
         run_name = data.get("run_name")
         new_form_values = data.get("data")
 
         run = Run(run_name)
 
-        if new_form_values!={}:
+        if new_form_values != {}:
             run.steps.set_steps_outdated()
 
         form = run.current_form(new_form_values)
 
-        return JsonResponse({"success": True, "message": "Received input parameters", "data": form}, safe=False, encoder=Form.CustomEncoder)
+        return JsonResponse({"success": True, "message": "Received input parameters", "data": form}, safe=False,
+                            encoder=Form.CustomEncoder)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def get_step_plots(request):
     if request.method == "POST":
@@ -435,6 +466,7 @@ def get_step_plots(request):
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
+
 def get_step_table(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -443,23 +475,27 @@ def get_step_table(request):
         run = Run(run_name)
 
         json_data = []
-        
+
         if run.current_step is not None:
             for key, value in run.current_outputs:
                 if key in dataframes:
                     data = value
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key)}) # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                elif ("_df" not in key) and (key != "messages") and (type(value) == list): 
+                    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every
+                    #  get_step_table (can take a few seconds) - which also leads to the data table not being displayed
+                    #  on time and the frontend just showing: "No data table available for this step".
+                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key)})
+                elif ("_df" not in key) and (key != "messages") and (type(value) == list):
                     data = value
-                    data = pd.DataFrame({key:data})
+                    data = pd.DataFrame({key: data})
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
                     json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": key})
         return JsonResponse({"success": True, "message": "Got the tables for the step", "data": json_data}, safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def calculate_step(request):
     if request.method == "POST":
@@ -479,10 +515,12 @@ def calculate_step(request):
 
         if calculation_data["status"] != "complete":
             return JsonResponse({"success": False, "message": calculation_data["messages"]
-                                , "data": calculation_data}, status=500)
-        return JsonResponse({"success": True, "message": calculation_data["messages"], "data": calculation_data}, safe=False)
+                                    , "data": calculation_data}, status=500)
+        return JsonResponse({"success": True, "message": calculation_data["messages"], "data": calculation_data},
+                            safe=False)
     else:
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
 
 def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
