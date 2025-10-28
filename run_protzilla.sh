@@ -6,7 +6,7 @@ ENV_NAME="protzilla"
 
 echo "starting protzilla..."
 # Workaround if started non-interactively and conda is not initialized through sourcing .bashrc or .zshrc
-if ! conda --version >/dev/null; then
+if ! conda --version &>/dev/null; then
   eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 else
   eval "$(conda shell.bash hook)"

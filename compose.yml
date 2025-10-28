@@ -1,0 +1,9 @@
+services:
+  protzilla:
+    build: .
+    ports:
+      - "8000:8000"
+
+    # Use this if you want to persistently store user data
+    # volumes:
+      # - '~/.protzilla/user_data:./home/prot/zilla/backend/user_data'
