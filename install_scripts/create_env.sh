@@ -1,19 +1,9 @@
 #!/bin/bash
 
-if ! [[ "$OSTYPE" == "linux-gnu"* ]] && ! [[ "$OSTYPE" == "darwin"* ]]; then
-  echo "OS not supported, use the install_windows.bat script (to be written)."
-  exit 1
-fi
-
 ENV_NAME="protzilla"
 
-# Check if the environment exists, create if not
-if conda info --envs | grep -q "$ENV_NAME"; then
-  echo "$ENV_NAME environment already exists."
-else
-  echo "Creating $ENV_NAME environment..."
-  conda create -y --name $ENV_NAME python=3.11
-fi
+echo "Creating $ENV_NAME environment..."
+conda create -y --name $ENV_NAME python=3.11
 
 # Activate the new environment
 eval "$(conda shell.bash hook)"
