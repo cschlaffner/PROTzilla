@@ -33,7 +33,7 @@ if ! g++ --version >/dev/null; then
   exit 1
 fi
 
-if ! conda --version >/dev/null; then
+if ! conda --version 2&>1>/dev/null; then
   echo "conda is not accessible. Checking if conda is installed..."
   if [ ! -d "$HOME/miniconda3" ] && [ ! -d "$HOME/miniconda" ] && [ ! -d "$HOME/anaconda3" ] && [ ! -d "$HOME/anaconda" ]; then
     echo "Miniconda or Anaconda are not installed. Running install_unix.sh..."
