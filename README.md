@@ -14,19 +14,19 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 2. Enter repository folder <br> `cd PROTzilla`
 
 ### :whale: Using Docker (recommended)
-1. Make sure you have Docker and Docker Compose installed <br> [https://www.docker.com/]
+1. Make sure you have [Docker](https://www.docker.com/) and Docker Compose installed
 2. Run `docker compose up --build` (or `docker-compose up --build` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell (useful for production environments)
 3. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
 
 ### Windows native 
-[!NOTE]
-We ensure compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
+> [!NOTE]
+> We ensure native compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
 
 1. Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
 
 ### Linux/macOS native
-[!NOTE]
-This deployment script is kept for legacy reasons and might not work well on every kind of system.
+> [!NOTE]
+> This deployment script is kept for legacy reasons and might not work well on every kind of system.
 
 1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes
 2. Execute `./run_protzilla.sh` to run PROTzilla.
