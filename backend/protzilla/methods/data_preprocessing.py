@@ -18,8 +18,10 @@ from backend.protzilla.utilities import format_trace
 from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.form import *
 
+
 class EmptyEnum(Enum):
     pass
+
 
 class LogTransformationBaseType(Enum):
     log2 = "log2"
@@ -132,7 +134,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separatePrefix="\u03C3"
+                    separatePrefix="\u03C3",
                 ),
                 DropdownField(
                     name="graph_type",
@@ -145,6 +147,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     calc_method = staticmethod(filter_samples.by_protein_count)
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
+
 
 class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
@@ -497,9 +500,9 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
             input_fields=[
                 InfoField(
                     label="A function to perform protein-intensity normalisation in reference to a selected protein "
-                          "on your dataframe. Normalises the data on the level of each sample. Divides each intensity "
-                          "by the intensity of the chosen reference protein in each sample. Samples where this value "
-                          "is zero will be removed and returned separately."
+                    "on your dataframe. Normalises the data on the level of each sample. Divides each intensity "
+                    "by the intensity of the chosen reference protein in each sample. Samples where this value "
+                    "is zero will be removed and returned separately."
                 ),
                 TextField(
                     name="reference_protein",
@@ -523,7 +526,7 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(normalisation.by_reference_protein)
@@ -541,9 +544,9 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
             input_fields=[
                 InfoField(
                     label="A function to impute missing values for each protein by taking into account data from the "
-                          "entire dataframe. Sets missing value to the smallest measured value in the dataframe. The "
-                          "user can also assign a shrinking factor to take a fraction of that minimum value for "
-                          "imputation."
+                    "entire dataframe. Sets missing value to the smallest measured value in the dataframe. The "
+                    "user can also assign a shrinking factor to take a fraction of that minimum value for "
+                    "imputation."
                 ),
                 FloatField(
                     name="shrinking_value",
@@ -577,7 +580,7 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_dataset)
@@ -595,9 +598,9 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
             input_fields=[
                 InfoField(
                     label="A function to impute missing values for each protein by taking into account data from each "
-                          "protein. Sets missing value to the smallest measured value for each protein column. The "
-                          "user can also assign a shrinking factor to take a fraction of that minimum value for "
-                          "imputation. CAVE: All proteins without any values will be filtered out."
+                    "protein. Sets missing value to the smallest measured value for each protein column. The "
+                    "user can also assign a shrinking factor to take a fraction of that minimum value for "
+                    "imputation. CAVE: All proteins without any values will be filtered out."
                 ),
                 FloatField(
                     name="shrinking_value",
@@ -631,7 +634,7 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -647,7 +650,9 @@ class ImputationByMinPerSample(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per sample",
             input_fields=[
-                InfoField(label="Sets missing intensity values to the smallest measured value for each sample"),
+                InfoField(
+                    label="Sets missing intensity values to the smallest measured value for each sample"
+                ),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -680,7 +685,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -729,7 +734,7 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_simple_imputer)
@@ -778,7 +783,6 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
-
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
@@ -848,10 +852,8 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
-
-

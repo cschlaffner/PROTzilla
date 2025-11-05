@@ -1,4 +1,3 @@
-
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
@@ -81,11 +80,11 @@ def get_all_methods():
 
 def get_all_possible_steps() -> list[dict]:
     """
-        Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
+    Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
 
-        :return: List of step dictionaries via the steps to_dict function.
-        :rtype: List[dict]
-        """
+    :return: List of step dictionaries via the steps to_dict function.
+    :rtype: List[dict]
+    """
     steps = get_all_methods()
     step_list = []
     for step in steps:

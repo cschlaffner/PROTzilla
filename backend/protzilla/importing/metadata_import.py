@@ -86,7 +86,9 @@ def metadata_import_method(
         meta_df.drop(index=0, inplace=True)
         meta_df.index = meta_df.index - 1
 
-        file_path = BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv"
+        file_path = (
+            BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv"
+        )
         meta_df.to_csv(file_path, index=False)
         return metadata_import_method(protein_df, file_path, "Columns")
 
@@ -127,9 +129,7 @@ def metadata_import_method_diann(
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
 
-    if str(file_path).startswith(
-        f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"
-    ):
+    if str(file_path).startswith(f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"):
         os.remove(file_path)
 
     if groupby_sample:
