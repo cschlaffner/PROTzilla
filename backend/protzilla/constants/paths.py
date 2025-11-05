@@ -1,6 +1,8 @@
 from pathlib import Path
 
-PROJECT_PATH = Path(__file__).resolve().parent.parent.parent.parent  # path to the root of the project
+PROJECT_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent
+)  # path to the root of the project
 BACKEND_PATH = Path(PROJECT_PATH, "backend")
 FRONTEND_PATH = Path(PROJECT_PATH, "frontend")
 USER_DATA_PATH = Path(BACKEND_PATH, "user_data")
@@ -18,7 +20,5 @@ DEFAULT_PTM_SETTINGS_FILE_STEM = "ptm_settings_default"
 EXAMPLE_DATASET_DIR = USER_DATA_PATH / "example_dataset"
 EXAMPLE_DATASET_PROTEIN_FILE = EXAMPLE_DATASET_DIR / "proteinGroups.txt"
 EXAMPLE_DATASET_METADATA_FILE = EXAMPLE_DATASET_DIR / "meta.csv"
-# TODO: clean
-# EXAMPLE_DATASET_PEPTIDE_FILE = EXAMPLE_DATASET_DIR / "peptides.txt"
 # TODO: use real file
 EXAMPLE_DATASET_EVIDENCE_FILE = EXAMPLE_DATASET_DIR / "evidence_small.txt"

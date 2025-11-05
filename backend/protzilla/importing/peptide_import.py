@@ -29,7 +29,7 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
         id_df = df[id_columns]
         intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1:] for c in intensity_df.columns
+            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),
@@ -79,16 +79,15 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         low_memory=False,
         na_values=["", 0],
         keep_default_na=True,
-        usecols=lambda x: x.capitalize() in id_columns
+        usecols=lambda x: x.capitalize() in id_columns,
     )
 
     # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case
     # TODO: maybe write test for this
     df = df.rename(columns={c: c.capitalize() for c in df.columns})
-    df = df.rename(columns={
-        "Leading razor protein": "Protein ID",
-        "Experiment": "Sample"
-    })
+    df = df.rename(
+        columns={"Leading razor protein": "Protein ID", "Experiment": "Sample"}
+    )
 
     df.dropna(subset=["Protein ID"], inplace=True)
     df.sort_values(

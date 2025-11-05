@@ -19,14 +19,31 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
 from backend.protzilla.form import Form
-from backend.protzilla.run import Run, delete_run_folder, get_available_run_info, get_available_run_names
-from backend.protzilla.workflow import delete_workflow_file, get_available_workflow_names
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, RUNS_PATH, WORKFLOWS_PATH
+from backend.protzilla.run import (
+    Run,
+    delete_run_folder,
+    get_available_run_info,
+    get_available_run_names,
+)
+from backend.protzilla.workflow import (
+    delete_workflow_file,
+    get_available_workflow_names,
+)
+from backend.protzilla.constants.paths import (
+    EXTERNAL_DATA_PATH,
+    RUNS_PATH,
+    WORKFLOWS_PATH,
+)
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.steps import Step
-from backend.main.views_helper import (get_display_name, get_step, get_displayed_steps, parameters_from_post,
-                                       sanitize_name)
+from backend.main.views_helper import (
+    get_display_name,
+    get_step,
+    get_displayed_steps,
+    parameters_from_post,
+    sanitize_name,
+)
 from protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
@@ -45,8 +62,13 @@ def run_information_list(request):
     if type(run_info) == str:
         return JsonResponse({"success": False, "message": run_info}, safe=False)
     if not run_info or len(run_info) == 0:
-        return JsonResponse({"success": False, "message": "An unknown error occurred when creating run table."},
-                            safe=False)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "An unknown error occurred when creating run table.",
+            },
+            safe=False,
+        )
     runs, runs_favourite, all_tags = run_info
     all_available_runs = runs_favourite + runs
     available_run_info = [all_available_runs, all_tags]
@@ -77,7 +99,9 @@ def toggle_favourite(request):
 
         return JsonResponse({"success": True, "message": "Favourited run"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def add_tag(request):
@@ -95,7 +119,9 @@ def add_tag(request):
 
         return JsonResponse({"success": True, "message": "Added tag"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def delete_tag(request):
@@ -113,7 +139,9 @@ def delete_tag(request):
 
         return JsonResponse({"success": True, "message": "Deleted tag"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def add_run(request):
@@ -126,17 +154,37 @@ def add_run(request):
         converted_run_name, additional_message = sanitize_name(run_name)
 
         try:
-            Run(converted_run_name, workflow_name, df_mode_name, )
-            message = f"Created run {converted_run_name}. \n{additional_message}" if len(
-                additional_message) > 0 else f"Created run {converted_run_name}."
-            return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
+            Run(
+                converted_run_name,
+                workflow_name,
+                df_mode_name,
+            )
+            message = (
+                f"Created run {converted_run_name}. \n{additional_message}"
+                if len(additional_message) > 0
+                else f"Created run {converted_run_name}."
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": message,
+                    "data": {"run_name": converted_run_name},
+                }
+            )
         except Exception as e:
             msg = "Error when creating run: " + str(e)
             return JsonResponse(
-                {"success": False, "message": msg, "traceback": format_trace(traceback.format_exception(e))},
-                status=404)
+                {
+                    "success": False,
+                    "message": msg,
+                    "traceback": format_trace(traceback.format_exception(e)),
+                },
+                status=404,
+            )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def delete_run(request):
@@ -153,10 +201,18 @@ def delete_run(request):
 
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
-            traceback.print_exc()  #not sure if it still needs to be here
-            return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
+            traceback.print_exc()  # not sure if it still needs to be here
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": format_trace(traceback.format_exception(e)),
+                },
+                status=404,
+            )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def continue_run(request):
@@ -168,7 +224,9 @@ def continue_run(request):
 
         return JsonResponse({"success": True, "message": "Continued run"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def update_run_name(request):
@@ -180,20 +238,41 @@ def update_run_name(request):
 
         try:
             if converted_run_name in get_available_run_names():
-                return JsonResponse({"success": False, "message": f"Run name {converted_run_name} already exists."})
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "message": f"Run name {converted_run_name} already exists.",
+                    }
+                )
 
             run = Run(run_name)
             run.update_run_name(converted_run_name)
 
-            message = f"Run name updated from {run_name} to {converted_run_name}. \n{additional_message}" if len(
-                additional_message) > 0 else f"Run name updated from {run_name} to {converted_run_name}."
-            return JsonResponse({"success": True, "message": message, "data": {"run_name": converted_run_name}})
+            message = (
+                f"Run name updated from {run_name} to {converted_run_name}. \n{additional_message}"
+                if len(additional_message) > 0
+                else f"Run name updated from {run_name} to {converted_run_name}."
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": message,
+                    "data": {"run_name": converted_run_name},
+                }
+            )
         except Exception as e:
             if isinstance(e, OSError):
-                return JsonResponse({"success": False, "message": "Run name already exists."})
-            return JsonResponse({"success": False, "message": "Error when renaming run: " + str(e)}, status=404)
+                return JsonResponse(
+                    {"success": False, "message": "Run name already exists."}
+                )
+            return JsonResponse(
+                {"success": False, "message": "Error when renaming run: " + str(e)},
+                status=404,
+            )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def export_run(request):
@@ -209,7 +288,9 @@ def export_run(request):
 
         return FileResponse(open(run_zip_path_absolute, "rb"), as_attachment=True)
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def import_run(request):
@@ -225,7 +306,9 @@ def import_run(request):
 
         return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def add_plot(request):
@@ -244,7 +327,9 @@ def add_plot(request):
 
         return JsonResponse({"success": True, "message": "Created plot"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def add_step(request):
@@ -257,9 +342,18 @@ def add_step(request):
         step = StepFactory.create_step(method, run.steps)
         run.step_add(step)
 
-        return JsonResponse({"success": True, "message": "Added step: " + method, "data": get_step(step)}, safe=False)
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Added step: " + method,
+                "data": get_step(step),
+            },
+            safe=False,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def delete_step(request):
@@ -267,24 +361,33 @@ def delete_step(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         section = data.get(
-            "section")  #this is a bit different to the original, but frontend prob has to deal with it :)
+            "section"
+        )  # this is a bit different to the original, but frontend prob has to deal with it :)
         index = data.get("index")
 
         index = int(index)
         run = Run(run_name)
 
-        if section == run.current_step.section and index == run.steps.current_step_index_in_section:
+        if (
+            section == run.current_step.section
+            and index == run.steps.current_step_index_in_section
+        ):
             # if the step to be deleted is the current step, we need to go to the next step first
             if run.steps.current_step_index > 0:
                 run.step_previous()
             else:
-                return JsonResponse({"success": False, "message": "Cannot delete the first step"}, status=405)
+                return JsonResponse(
+                    {"success": False, "message": "Cannot delete the first step"},
+                    status=405,
+                )
 
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def update_step(request):
@@ -299,7 +402,9 @@ def update_step(request):
 
         return JsonResponse({"success": True, "message": "Updated step method"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def navigate_to_step(request):
@@ -307,7 +412,8 @@ def navigate_to_step(request):
         data = json.loads(request.body)
         run_name = data.get("run_name")
         section = data.get(
-            "section")  #this is a bit different to the original, but frontend prob has to deal with it :)
+            "section"
+        )  # this is a bit different to the original, but frontend prob has to deal with it :)
         index = data.get("index")
 
         index = int(index)
@@ -316,7 +422,9 @@ def navigate_to_step(request):
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def save_workflow(request):
@@ -326,12 +434,14 @@ def save_workflow(request):
         workflow_name = data.get("workflow_name")
 
         run = Run(run_name)
-        new_workflow_name = re.sub(r'[^\w\.-]', '-', workflow_name)
+        new_workflow_name = re.sub(r"[^\w\.-]", "-", workflow_name)
         run._workflow_save(new_workflow_name)
 
         return JsonResponse({"success": True, "message": "Saved workflow"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def export_workflow(request):
@@ -343,7 +453,9 @@ def export_workflow(request):
 
         return FileResponse(open(workflow_file, "rb"), as_attachment=True)
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def import_workflow(request):
@@ -360,11 +472,16 @@ def import_workflow(request):
             try:
                 copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
             except Exception as exception:
-                return JsonResponse({"success": False, "message": "That is not a valid name"}, status=405)
+                return JsonResponse(
+                    {"success": False, "message": "That is not a valid name"},
+                    status=405,
+                )
 
         return JsonResponse({"success": True, "message": "Imported the workflow"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def delete_workflow(request):
@@ -375,13 +492,27 @@ def delete_workflow(request):
         try:
             success, filename = delete_workflow_file(workflow_name)
             if not success:
-                return JsonResponse({"success": False, "message": f"Workflow {filename} does not exist."}, status=404)
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "message": f"Workflow {filename} does not exist.",
+                    },
+                    status=404,
+                )
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
             traceback.print_exc()
-            return JsonResponse({"success": False, "message": format_trace(traceback.format_exception(e))}, status=404)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": format_trace(traceback.format_exception(e)),
+                },
+                status=404,
+            )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def download_table(request):
@@ -405,7 +536,9 @@ def download_table(request):
 
         return FileResponse(csv_bytes, content_type="text/csv")
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def get_run_data(request):
@@ -427,9 +560,14 @@ def get_run_data(request):
             run_data["current_step"] = None
             run_data["memory_usage"] = get_memory_usage()
 
-        return JsonResponse({"success": True, "message": "Got the data for the run", "data": run_data}, safe=False)
+        return JsonResponse(
+            {"success": True, "message": "Got the data for the run", "data": run_data},
+            safe=False,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def get_step_form(request):
@@ -445,10 +583,15 @@ def get_step_form(request):
 
         form = run.current_form(new_form_values)
 
-        return JsonResponse({"success": True, "message": "Received input parameters", "data": form}, safe=False,
-                            encoder=Form.CustomEncoder)
+        return JsonResponse(
+            {"success": True, "message": "Received input parameters", "data": form},
+            safe=False,
+            encoder=Form.CustomEncoder,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def get_step_plots(request):
@@ -462,9 +605,14 @@ def get_step_plots(request):
         else:
             plots = []
 
-        return JsonResponse({"success": True, "message": "Got the plot(s) for the step", "data": plots}, safe=False)
+        return JsonResponse(
+            {"success": True, "message": "Got the plot(s) for the step", "data": plots},
+            safe=False,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def get_step_table(request):
@@ -485,16 +633,34 @@ def get_step_table(request):
                     # TODO #49 this should be refactored to be stored somewhere and not be calculated on every
                     #  get_step_table (can take a few seconds) - which also leads to the data table not being displayed
                     #  on time and the frontend just showing: "No data table available for this step".
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": get_display_name(key)})
-                elif ("_df" not in key) and (key != "messages") and (type(value) == list):
+                    json_data.append(
+                        {
+                            "table": cleaned_data.to_dict(orient="records"),
+                            "name": get_display_name(key),
+                        }
+                    )
+                elif (
+                    ("_df" not in key) and (key != "messages") and (type(value) == list)
+                ):
                     data = value
                     data = pd.DataFrame({key: data})
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    json_data.append({"table": cleaned_data.to_dict(orient="records"), "name": key})
-        return JsonResponse({"success": True, "message": "Got the tables for the step", "data": json_data}, safe=False)
+                    json_data.append(
+                        {"table": cleaned_data.to_dict(orient="records"), "name": key}
+                    )
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Got the tables for the step",
+                "data": json_data,
+            },
+            safe=False,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def calculate_step(request):
@@ -511,19 +677,38 @@ def calculate_step(request):
         calculation_data["section"] = run.current_step.section
         calculation_data["index"] = run.steps.current_step_index_in_section
         calculation_data["status"] = run.current_step.calculation_status
-        calculation_data["messages"] = [message for message in run.current_messages.messages]
+        calculation_data["messages"] = [
+            message for message in run.current_messages.messages
+        ]
 
         if calculation_data["status"] != "complete":
-            return JsonResponse({"success": False, "message": calculation_data["messages"]
-                                    , "data": calculation_data}, status=500)
-        return JsonResponse({"success": True, "message": calculation_data["messages"], "data": calculation_data},
-                            safe=False)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": calculation_data["messages"],
+                    "data": calculation_data,
+                },
+                status=500,
+            )
+        return JsonResponse(
+            {
+                "success": True,
+                "message": calculation_data["messages"],
+                "data": calculation_data,
+            },
+            safe=False,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def upload_file(request):
-    if request.method == 'POST' and request.FILES.get('file'):
+    if request.method == "POST" and request.FILES.get("file"):
         return JsonResponse({"success": True, "message": "File uploaded successfully!"})
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method or no file provided"}, status=400)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method or no file provided"},
+            status=400,
+        )
