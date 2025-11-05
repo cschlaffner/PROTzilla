@@ -62,13 +62,13 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         return dict(messages=[dict(level=logging.ERROR, msg=e)])
 
     id_columns = [
-        "Experiment",
         "Leading razor protein",
         "Sequence",
         "Intensity",
         "Modifications",
         "Modified sequence",
         "Missed cleavages",
+        "Experiment",
         "PEP",
         "Raw file",
     ]
@@ -79,12 +79,13 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         low_memory=False,
         na_values=["", 0],
         keep_default_na=True,
-        usecols=lambda x: x.capitalize() in id_columns,
+        usecols=lambda x: (x.capitalize() if ' ' in x else x) in id_columns,
     )
 
     # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case
-    # TODO: maybe write test for this
-    df = df.rename(columns={c: c.capitalize() for c in df.columns})
+    # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
+    #  require bigger changes in the code
+    df = df.rename(columns={c: c.capitalize() if ' ' in c else c for c in df.columns})
     df = df.rename(
         columns={"Leading razor protein": "Protein ID", "Experiment": "Sample"}
     )
