@@ -6,12 +6,12 @@ from numpy import array, nan, sqrt, square
 from scipy.stats import f, median_abs_deviation
 from sklearn import linear_model
 
+from protzilla.utilities import fig_to_base64
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from seaborn import distplot, diverging_palette, lineplot, scatterplot
-
-from backend.protzilla.utilities import fig_to_base64
 
 CONFIDENCE_BAND_ALPHA = 0.3
 
@@ -20,7 +20,7 @@ def flexiquant_lf(
     peptide_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     reference_group: str,
-    protein_id: str,
+    protein_group: str,
     grouping_column: str,
     num_init: int = 50,
     mod_cutoff: float = 0.5,
@@ -33,12 +33,12 @@ def flexiquant_lf(
     :param peptide_df: DataFrame containing peptide intensities.
     :param metadata_df: DataFrame containing metadata.
     :param reference_group: Name of the reference group.
-    :param protein_id: Protein ID that should be analysed.
+    :param protein_group: Protein ID that should be analysed.
     :param num_init: Number of initializations for RANSAC regression.
     :param mod_cutoff: RM score cutoff value for modified peptides.
     """
 
-    df = peptide_df[peptide_df["Protein ID"] == protein_id].pivot_table(
+    df = peptide_df[peptide_df["Protein ID"] == protein_group].pivot_table(
         index="Sample", columns="Sequence", values="Intensity", aggfunc="first"
     )
     df.reset_index(inplace=True)
@@ -94,7 +94,7 @@ def flexiquant_lf(
     sample_column = df["Sample"]
 
     # calculate median intensities for unmodified peptides of control
-    median_intensities = df_control.median(axis=0)
+    median_intensities = df_control.median(axis=0, numeric_only=True)
 
     # initiate empty lists to save results of linear regressions
     slope_list = []
@@ -229,7 +229,7 @@ def flexiquant_lf(
     df_raw_scores.drop("Slope", axis=1, inplace=True)
     df_raw_scores_T = df_raw_scores.T
     df_raw_scores_T = df_raw_scores_T.apply(pd.to_numeric, errors="coerce")
-    mad = df_raw_scores_T.mad(axis=0)
+    mad = (df_raw_scores_T - df_raw_scores_T.mean()).abs().mean()
     median = df_raw_scores_T.median(axis=0)
 
     # calculate cutoff value for each time point (> 3*MAD)
