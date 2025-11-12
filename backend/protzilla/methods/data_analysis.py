@@ -30,10 +30,11 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
-from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Plots, Step, StepManager
+from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
+from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
 
 
 class TTestType(Enum):
@@ -261,7 +262,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
         grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
 
-        if (grouping_field.options == []):
+        if grouping_field.options == []:
             return
         
         grouping = grouping_field.value
@@ -586,8 +587,8 @@ class PlotProtQuant(DataAnalysisStep):
             run
         )
 
-        if (form["input_df"].options):
-            if (not form["input_df"].value):
+        if form["input_df"].options:
+            if not form["input_df"].value:
                 form["input_df"].value = form["input_df"].options[0].label
 
             form["protein_group"].options = form_helper.to_choices(
@@ -853,7 +854,9 @@ class ProteinGraphVariationGraph(DataAnalysisStep):
 class FLEXIQuantLF(DataAnalysisStep):
     display_name = "FLEXIQuant-LF"
     operation = "modification_quantification"
-    method_description = "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified peptides and to quantify the degree of modification based solely on the unmodified peptide species."
+    method_description = ("FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
+                          "peptides and to quantify the degree of modification based solely on the unmodified peptide "
+                          "species.")
 
     output_keys = [
         "raw_scores",
@@ -864,12 +867,112 @@ class FLEXIQuantLF(DataAnalysisStep):
 
     plot_method = staticmethod(flexiquant_lf)
 
+    def create_form(self):
+        return Form(
+            label="Volcano Plot",
+            input_fields=[
+                # TODO: maybe no field for this
+                DropdownField(
+                    name="peptide_df",
+                    label="Peptide DataFrame",
+                ),
+                DropdownField(
+                    name="grouping_column",
+                    label="Grouping column in metadata",
+                ),
+                DropdownField(
+                    name="reference_group",
+                    label="Reference group",
+                ),
+                DropdownField(
+                    name="protein_group",
+                    label="Protein Group",
+                ),
+                NumberField(
+                    name="num_init",
+                    label="Number of RANSAC initiations",
+                    value=30,
+                    min=1,
+                    max=60,
+                    step=1,
+                ),
+                FloatField(
+                    name="mod_cutoff",
+                    label="Modification cutoff",
+                    value=0.5,
+                    min=0,
+                    max=1
+                )
+            ],
+        )
+
+    def modify_form(self, form, run):
+        grouping_field = form["grouping_column"]
+        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+
+        if grouping_field.options == []:
+            return
+        grouping = grouping_field.value
+
+        reference_group_field = form["reference_group"]
+        # Set choices for group1 field based on selected grouping
+        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+
+        # TODO: needed?
+        # if not form["input_df"].value:
+        #     form["input_df"].value = form["input_df"].options[0].label
+
+        form["protein_group"].options = form_helper.to_choices(
+            run.steps.get_step_output(
+                step_type=Step,
+                output_key="peptide_df",
+                # instance_identifier=form["peptide_df"].value,  # TODO
+            )["Protein ID"].unique()
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["peptide_df"]
         )
 
         inputs["metadata_df"] = steps.metadata_df
+
+
+class MultiFLEXLF(DataAnalysisStep):
+    display_name = "MultiFLEX-LF"
+    operation = "modification_quantification"
+    method_description = "Quantifies the extent of protein modifications in proteomics data by using robust linear regression to compare modified and unmodified peptide precursors and facilitates the analysis of modification dynamics and coregulated modifications across large datasets without the need for preselecting specific proteins."
+
+    input_keys = [
+        "peptide_df",
+        "metadata_df",
+        "reference_group",
+        "num_init",
+        "mod_cutoff",
+        "imputation_cosine_similarity",
+        "deseq2_normalization",
+        "colormap",
+    ]
+
+    output_keys = [
+        "RM_scores_clustered",
+        "diff_modified",
+        "raw_scores",
+        "removed_peptides",
+        "RM_scores",
+    ]
+
+    def method(self, inputs: dict) -> dict:
+        return multiflex_lf(**inputs)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(
+            Step, "peptide_df", inputs["peptide_df"]
+        )
+
+        inputs["metadata_df"] = steps.metadata_df
+        inputs["colormap"] = int(inputs["colormap"])
+        return inputs
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):
