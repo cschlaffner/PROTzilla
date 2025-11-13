@@ -871,11 +871,6 @@ class FLEXIQuantLF(DataAnalysisStep):
         return Form(
             label="Volcano Plot",
             input_fields=[
-                # TODO: maybe no field for this
-                DropdownField(
-                    name="peptide_df",
-                    label="Peptide DataFrame",
-                ),
                 DropdownField(
                     name="grouping_column",
                     label="Grouping column in metadata",
@@ -915,18 +910,12 @@ class FLEXIQuantLF(DataAnalysisStep):
         grouping = grouping_field.value
 
         reference_group_field = form["reference_group"]
-        # Set choices for group1 field based on selected grouping
         reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-
-        # TODO: needed?
-        # if not form["input_df"].value:
-        #     form["input_df"].value = form["input_df"].options[0].label
 
         form["protein_group"].options = form_helper.to_choices(
             run.steps.get_step_output(
                 step_type=Step,
                 output_key="peptide_df",
-                # instance_identifier=form["peptide_df"].value,  # TODO
             )["Protein ID"].unique()
         )
 
@@ -934,7 +923,6 @@ class FLEXIQuantLF(DataAnalysisStep):
         inputs["peptide_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["peptide_df"]
         )
-
         inputs["metadata_df"] = steps.metadata_df
 
 

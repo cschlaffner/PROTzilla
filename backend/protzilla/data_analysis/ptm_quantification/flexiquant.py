@@ -1,17 +1,13 @@
 import logging
 
-import matplotlib
+import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from numpy import array, nan, sqrt, square
+from plotly.subplots import make_subplots
 from scipy.stats import f, median_abs_deviation
 from sklearn import linear_model
-
-from protzilla.utilities import fig_to_base64
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-from seaborn import distplot, diverging_palette, lineplot, scatterplot
 
 CONFIDENCE_BAND_ALPHA = 0.3
 
@@ -25,6 +21,7 @@ def flexiquant_lf(
     num_init: int = 50,
     mod_cutoff: float = 0.5,
 ) -> dict:
+    # TODO: maybe do a bit of input validation
     """
     FLEXIQuant-LF is a method to quantify protein modification extent in label-free proteomics data.
 
@@ -50,6 +47,7 @@ def flexiquant_lf(
         copy=False,
     )
 
+    # TODO: test for this
     if not grouping_column in df:
         return dict(
             messages=[
@@ -63,6 +61,7 @@ def flexiquant_lf(
     # delete columns where all entries are nan
     df.dropna(how="all", axis=1, inplace=True)
 
+    # TODO: test for this
     if reference_group not in df[grouping_column].unique():
         return dict(
             messages=[
@@ -117,6 +116,7 @@ def flexiquant_lf(
 
         df_train.sort_index(inplace=True, axis=0)
 
+        # TODO: test for this (all peptides smaller than 5)?
         # if number of peptides is smaller than 5, skip sample and continue with next interation
         if len(df_train) < 5:
             # set all metrices to nan
@@ -271,21 +271,21 @@ def flexiquant_lf(
     df_RM["Sample"] = sample_column
     df_RM_mod["Sample"] = sample_column
 
+    # TODO: test that number number of images matches number of samples
     for sample in sample_column:
         if sample in plot_dict:
             regression_plots.append(
-                fig_to_base64(
-                    create_regression_plots(
-                        *plot_dict[sample],
-                        sample_column,
-                        df_RM[df_RM["Sample"] == sample].iloc[0],
-                        mod_cutoff=mod_cutoff,
-                        grouping_column=grouping_column,
-                    )
+                create_regression_plots(
+                    *plot_dict[sample],
+                    sample_column,
+                    df_RM[df_RM["Sample"] == sample].iloc[0],
+                    mod_cutoff=mod_cutoff,
+                    grouping_column=grouping_column,
                 )
             )
 
     messages = []
+    # TODO: test this
     if len(regression_plots) == 0:
         messages.append(
             dict(
@@ -294,6 +294,7 @@ def flexiquant_lf(
             )
         )
     else:
+        # TODO: test that message is correct
         if len(regression_plots) == len(sample_column):
             messages.append(
                 dict(
@@ -302,6 +303,7 @@ def flexiquant_lf(
                 )
             )
         else:
+            # TODO: test that this is hit
             messages.append(
                 dict(
                     level=logging.INFO,
@@ -406,16 +408,16 @@ def calculate_confidence_band(
 
 
 def create_regression_plots(
-    dataframe_train: pd.DataFrame,
-    idx: int,
-    r2_score_model: float,
-    r2_score_data: float,
-    slope: float,
-    alpha: float,
-    sample_column: pd.Series,
-    rm_scores: pd.DataFrame,
-    mod_cutoff: float,
-    grouping_column: str,
+        dataframe_train: pd.DataFrame,
+        idx: int,
+        r2_score_model: float,
+        r2_score_data: float,
+        slope: float,
+        alpha: float,
+        sample_column: pd.Series,
+        rm_scores: pd.DataFrame,
+        mod_cutoff: float,
+        grouping_column: str,
 ):
     """
     Creates a scatter plot with regression line and confidence bands.
@@ -431,37 +433,66 @@ def create_regression_plots(
     :param mod_cutoff: RM score cutoff value for modified peptides.
     :param grouping_column: Name of the grouping column.
     """
-
-    # create new figure with two subplots
-    fig = plt.figure(figsize=(16, 9))
-    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 6])
-    ax1 = plt.subplot(gs[1])
-    ax0 = plt.subplot(gs[0], sharex=ax1)
-
-    # set space between subplots
-    gs.update(hspace=0.05)
-
-    # plot histogram in upper subplot
-    plt.sca(ax0)
-
-    # add title
-    plt.title("RANSAC Linear Regression of Sample " + str(sample_column[idx]))
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        row_heights=[1/7, 6/7],
+        shared_xaxes=True,
+        vertical_spacing=0.02,
+    )
 
     # plot histogram
-    distplot(a=dataframe_train["Reference intensity"], bins=150, kde=False)
+    fig.add_trace(
+        go.Histogram(
+            x=dataframe_train["Reference intensity"],
+            nbinsx=150,
+            showlegend=False
+        ),
+        row=1,
+        col=1
+    )
 
-    # remove axis and tick labels
-    plt.xlabel("")
-    plt.tick_params(
-        axis="x",  # changes apply to the x-axis
-        which="both",  # both major and minor ticks are affected
-        bottom=True,  # ticks along the bottom edge are off
-        top=False,  # ticks along the top edge are off
-        labelbottom=False,
-    )  # labels along the bottom edge are off
+    dataframe_train.sort_values('Reference intensity', inplace=True)
 
-    # plot scatter plot
-    plt.sca(ax1)
+    # draw regression line
+    line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
+    max_int = dataframe_train["Reference intensity"].max()
+    min_int = min(
+        dataframe_train["Reference intensity"].min(),
+        dataframe_train["Sample intensity"].min(),
+    )
+    X = [min_int - 2, max_int]
+    y = [min_int - 2, slope * max_int]
+    fig.add_trace(
+        go.Scatter(x=X, y=y, mode="lines", line=dict(color="darkblue", dash="solid"), name=line_label),
+        row=2,
+        col=1
+    )
+
+    # draw confidence band
+    fig.add_trace(
+        go.Scatter(
+            x=dataframe_train["Reference intensity"],
+            y=dataframe_train["CB low"],
+            mode="lines",
+            # TODO: all these colors are not controlled by the color scheme
+            line=dict(color="darkgreen", dash="dash"),
+            name="CB, alpha=" + str(alpha),
+        ),
+        row=2,
+        col=1
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dataframe_train["Reference intensity"],
+            y=dataframe_train["CB high"],
+            mode="lines",
+            line=dict(color="darkgreen", dash="dash"),
+            name="CB, alpha=" + str(alpha),
+        ),
+        row=2,
+        col=1
+    )
 
     rm_scores = rm_scores.drop(
         [
@@ -471,7 +502,8 @@ def create_regression_plots(
             "Reproducibility factor",
             grouping_column,
             "Sample",
-        ]
+        ],
+        errors='ignore'
     )
     # rm_scores.dropna(inplace=True)
     rm_scores.clip(0, 1, inplace=True)
@@ -483,61 +515,65 @@ def create_regression_plots(
     )
     rm_scores.fillna(-1, inplace=True)
 
-    palette = diverging_palette(h_neg=0, h_pos=120, as_cmap=True, center="dark")
-
     def cmap(values: list[float]):
-        nanIdx = set([i for i, x in enumerate(values) if x == -1])
-        return [
-            color if i not in nanIdx else [0.75, 0.75, 0.75, 1.0]
-            for i, color in enumerate(palette(values))
+        # Tries to mimic the original FLEXIQuant color scale, but isn't perfect
+        colorscale = [
+            f"rgba({0.8340245009323628*255},{0.237592525883977*255},{0.413389203308121*255})"
+            "rgb(99, 99, 99)",  # light gray in the middle
+            f"rgb({0.310841115279521*255},{0.516974408539226*255},{0.221301273388138*255})",
         ]
+        colorscale = px.colors.sample_colorscale(colorscale, [i / 255 for i in range(256)])
 
-    scatterplot(
-        x="Reference intensity",
-        y="Sample intensity",
-        data=dataframe_train,
-        hue=list(rm_scores.index),
-        palette=cmap(scale_to_mod_cutoff(list(rm_scores["RM score"]), mod_cutoff)),
-    )
+        # Interpolate colors from the scale
+        def interp_color(val):
+            if np.isnan(val):
+                return 'rgba(191, 191, 191, 1.0)'  # gray for NaN / -1
+            idx = int(val * (len(colorscale) - 1))
+            return colorscale[idx]
 
-    # draw regression line
-    line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
-    max_int = dataframe_train["Reference intensity"].max()
-    min_int = min(
-        dataframe_train["Reference intensity"].min(),
-        dataframe_train["Sample intensity"].min(),
-    )
-    X = [min_int - 2, max_int]
-    y = [min_int - 2, slope * max_int]
-    plt.plot(X, y, color="darkblue", linestyle="-", label=line_label)
+        return [interp_color(v) for v in values]
 
-    # draw confidence band
-    lineplot(
-        x="Reference intensity",
-        y="CB low",
-        data=dataframe_train,
-        color="darkgreen",
-        label="CB, alpha=" + str(alpha),
-    )
-    lineplot(
-        x="Reference intensity", y="CB high", data=dataframe_train, color="darkgreen"
-    )
-
-    # set line style of CB lines to dashed
-    for i in [len(ax1.lines) - 1, len(ax1.lines) - 2]:
-        ax1.lines[i].set_linestyle("--")
-
-    # create legend if sample has 20 peptides or less otherwise don't create a legend
+    # If we have less than 20 peptides, plot each point individually to get a legend
     if len(dataframe_train) <= 20:
-        # set right x axis limit
-        plt.gca().set_xlim(right=1.4 * max_int)
-        plt.legend()
+        for i, row in dataframe_train.iterrows():
+            fig.add_trace(
+                go.Scatter(
+                    x=[row["Reference intensity"]],
+                    y=[row["Sample intensity"]],
+                    mode="markers",
+                    name=row.name,
+                    marker=dict(color=cmap(scale_to_mod_cutoff([rm_scores.loc[i, "RM score"]], mod_cutoff))),
+                ),
+                row=2,
+                col=1
+            )
     else:
-        plt.gca().get_legend().remove()
+        fig.add_trace(
+            go.Scatter(
+                x=dataframe_train["Reference intensity"],
+                y=dataframe_train["Sample intensity"],
+                mode="markers",
+                marker=dict(
+                    color=cmap(scale_to_mod_cutoff(list(rm_scores["RM score"]), mod_cutoff))
+                ),
+                showlegend=False,
+            ),
+            row=2,
+            col=1
+        )
 
-    # set y axis label
-    plt.ylabel("Intensity sample " + str(sample_column[idx]))
-    plt.xlabel("Reference intensity")
+    fig.update_layout(
+        title_text="RANSAC Linear Regression of Sample " + str(sample_column[idx]),
+        xaxis1=dict(
+            showticklabels=False,
+        ),
+        xaxis2=dict(
+            title_text="Reference intensity",
+        ),
+        yaxis2=dict(
+            title_text="Intensity sample " + str(sample_column[idx]),
+        ),
+    )
 
     return fig
 
