@@ -425,7 +425,6 @@ def get_step_plots(request):
         run_name = data.get("run_name")
 
         run = Run(run_name)
-        # TODO probably have to add a case here that deals with the base64 plots - probably not easily doable without converting flexiquant to plotly
         if run.current_step is not None:
             plots = [to_json(plot) for plot in run.current_plots.plots]
         else:
