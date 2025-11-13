@@ -237,14 +237,14 @@ def test_peptide_df() -> pd.DataFrame:
         ["Sample02", "MadeUp-2", "SHOUDLNTAPPEAR", 234234.0, 0.86723, "CTR"],
         ["Sample03", "MadeUp-1;MadeUp", "SHOULDAPPEAR", 234234.0, 0.57263, "D"],
         ["Sample01", "MadeDown", "VCOOLSEQ1", 253840.0, 0.98734, "D"],
-        ["Sample02", "MadeDown", "VCOOLSEQ2", np.NaN, 0.86723, "CTR"],
+        ["Sample02", "MadeDown", "VCOOLSEQ2", np.nan, 0.86723, "CTR"],
         ["Sample03", "MadeDown", "VCOOLSEQ3", 0, 0.87643, "D"],
-        ["Sample01", "MadeLeft", "LCOOLSEQ1", np.NaN, 0.2876, "D"],
+        ["Sample01", "MadeLeft", "LCOOLSEQ1", np.nan, 0.2876, "D"],
         ["Sample02", "MadeLeft-2;MadeLeft", "LCOOLSEQ2", 13200.0, 0.549078, "CTR"],
         ["Sample03", "MadeLeft", "LCOOLSEQ3", 7100.0, 0.726354, "D"],
-        ["Sample01", "MadeRight", "RCOOLSEQ", np.NaN, 0.75498, "D"],
-        ["Sample02", "MadeRight", "RCOOLSEQ", np.NaN, 0.87423, "CTR"],
-        ["Sample03", "MadeRight", "RCOOLSEQ", np.NaN, 0.01922, "D"],
+        ["Sample01", "MadeRight", "RCOOLSEQ", np.nan, 0.75498, "D"],
+        ["Sample02", "MadeRight", "RCOOLSEQ", np.nan, 0.87423, "CTR"],
+        ["Sample03", "MadeRight", "RCOOLSEQ", np.nan, 0.01922, "D"],
     )
 
     peptide_df = pd.DataFrame(
@@ -271,10 +271,10 @@ def integration_test_peptides() -> pd.DataFrame:
         ["Sample02", "test_protein_variation", "ABC", 234, 0.87452],
         ["Sample03", "test_protein_variation", "ABC", 234234.0, 0.87452],
         ["Sample01", "test_protein_variation", "DETYYY", 253840.0, 0.98734],
-        ["Sample02", "test_protein_variation", "DETYYY", np.NaN, 0.98734],
+        ["Sample02", "test_protein_variation", "DETYYY", np.nan, 0.98734],
         ["Sample03", "test_protein_variation", "DETYYY", 0, 0.98734],
         ["Sample01", "test_protein_variation-2", "DETXXX", 253840.0, 0.98734],
-        ["Sample02", "test_protein_variation-2", "DETXXX", np.NaN, 0.98734],
+        ["Sample02", "test_protein_variation-2", "DETXXX", np.nan, 0.98734],
         ["Sample03", "test_protein_variation-2", "DETXXX", 0, 0.98734],
         [
             "Sample01",
@@ -287,7 +287,7 @@ def integration_test_peptides() -> pd.DataFrame:
             "Sample02",
             "test_protein_variation-1;test_protein_variation",
             "DET",
-            np.NaN,
+            np.nan,
             0.98734,
         ],
         [
@@ -298,7 +298,7 @@ def integration_test_peptides() -> pd.DataFrame:
             0.98734,
         ],
         ["Sample01", "test_protein_variation", "ZZZ", 0, 0.98734],
-        ["Sample02", "test_protein_variation", "ZZZ", np.NaN, 0.98734],
+        ["Sample02", "test_protein_variation", "ZZZ", np.nan, 0.98734],
         ["Sample03", "test_protein_variation", "ZZZ", 0, 0.98734],
         ["Sample01", "test_protein_variation", "ABCVEG", 9845, 0.98734],
         [
