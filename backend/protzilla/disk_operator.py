@@ -270,20 +270,22 @@ class DiskOperator:
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
             if not workflow_mode:
-                # If step status is not "complete", reset dump state (definitely need to dump again)
-                if step.calculation_status != "complete":
-                    step.is_dumped = False
-
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(
-                    # step.instance_identifier, step.plots, step.calculation_status
-                    step
+                    step.instance_identifier, 
+                    step.plots, 
+                    step.is_dumped
                 )
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(
-                    instance_identifier=step.instance_identifier, output=step.output
+                    step.instance_identifier,
+                    step.output,
+                    step.is_dumped
                 )
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
+
+                # If step status is not "complete", reset dump state (definitely need to dump again)
+                step.is_dumped = (step.calculation_status == "complete")
             return step_data
 
     def _read_outputs(self, output: dict) -> Output:
@@ -296,12 +298,18 @@ class DiskOperator:
                     step_output[key] = value
             return Output(step_output)
 
-    def _write_output(self, instance_identifier: str, output: Output) -> dict:
+    def _write_output(self, instance_identifier: str, output: Output, is_dumped: Bool = False) -> dict:
         with ErrorHandler():
             output_data = {}
             for key, value in output:
                 if isinstance(value, pd.DataFrame):
                     file_path = self.dataframe_dir / f"{instance_identifier}_{key}.csv"
+
+                    # If file already exists AND has been dumped, don't dump again
+                    # (no changes possible)
+                    if file_path.exists() and is_dumped:
+                        continue
+
                     self.dataframe_operator.write(file_path, value)
                     output_data[key] = str(file_path)
                 else:
@@ -316,19 +324,17 @@ class DiskOperator:
             return Plots(figures)
         return Plots([])
 
-    def _write_plots(self, step) -> dict:
+    def _write_plots(self, instance_identifier: str, plots: Plots, is_dumped: Bool = False) -> dict:
         with ErrorHandler():
             plots_data = {}
-            # If step is not outdated, don't write plots again
-            # (nothing could have possibly changed)
-            if step.calculation_status == "complete" and step.is_dumped:
-                print(f"Step {step.instance_identifier} does not need update")
-                return
+            for i, plot in enumerate(plots):
+                file_path = self.plot_dir / f"{instance_identifier}_plot{i}.json"
 
-            print(f"Step {step.instance_identifier} needs update, is {status}")
+                # If file already exists AND has been dumped, don't dump again
+                # (no changes possible)
+                if file_path.exists() and is_dumped:
+                    continue
 
-            for i, plot in enumerate(step.plots):
-                file_path = self.plot_dir / f"{step.instance_identifier}_plot{i}.json"
                 self.plot_dir.mkdir(parents=True, exist_ok=True)
                 if not isinstance(
                     plot, bytes
@@ -336,8 +342,6 @@ class DiskOperator:
                     write_json(plot, file_path)
                     plot.write_image(str(file_path).replace(".json", ".png"))
                     plots_data[i] = str(file_path)
-
-            step.is_dumped = True
 
     @property
     def run_dir(self):
