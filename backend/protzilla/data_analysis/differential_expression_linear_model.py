@@ -86,10 +86,10 @@ def linear_model(
         protein_df[grouping] = protein_df[grouping].replace([group1, group2], [-1, 1])
         group1_intensities = protein_df[protein_df[grouping] == -1][
             intensity_name
-        ].values
+        ]
         group2_intensities = protein_df[protein_df[grouping] == 1][
             intensity_name
-        ].values
+        ]
 
         # if a protein has a NaN value in a sample, user should remove it
         if (

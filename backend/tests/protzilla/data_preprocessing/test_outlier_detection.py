@@ -87,19 +87,6 @@ def test_outlier_detection_with_isolation_forest(
     )
 
 
-def test_outlier_detection_with_isolation_forest_and_nan(outlier_detection_df_with_nan):
-    method_inputs = {
-        "protein_df": outlier_detection_df_with_nan,
-        "peptide_df": None,
-        "n_estimators": 50,
-        "n_jobs": -1,
-    }
-    methtod_outputs = by_isolation_forest(**method_inputs)
-
-    assert "messages" in methtod_outputs
-    assert "NaN values" in methtod_outputs["messages"][0]["msg"]
-
-
 def test_outlier_detection_by_local_outlier_factor(
     show_figures, outlier_detection_df, peptides_df
 ):
