@@ -270,9 +270,14 @@ class DiskOperator:
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
             if not workflow_mode:
+                # If step status is not "complete", reset dump state (definitely need to dump again)
+                if step.calculation_status != "complete":
+                    step.is_dumped = False
+
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(
-                    step.instance_identifier, step.plots
+                    # step.instance_identifier, step.plots, step.calculation_status
+                    step
                 )
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(
                     instance_identifier=step.instance_identifier, output=step.output
@@ -311,11 +316,19 @@ class DiskOperator:
             return Plots(figures)
         return Plots([])
 
-    def _write_plots(self, instance_identifier: str, plots: Plots) -> dict:
+    def _write_plots(self, step) -> dict:
         with ErrorHandler():
             plots_data = {}
-            for i, plot in enumerate(plots):
-                file_path = self.plot_dir / f"{instance_identifier}_plot{i}.json"
+            # If step is not outdated, don't write plots again
+            # (nothing could have possibly changed)
+            if step.calculation_status == "complete" and step.is_dumped:
+                print(f"Step {step.instance_identifier} does not need update")
+                return
+
+            print(f"Step {step.instance_identifier} needs update, is {status}")
+
+            for i, plot in enumerate(step.plots):
+                file_path = self.plot_dir / f"{step.instance_identifier}_plot{i}.json"
                 self.plot_dir.mkdir(parents=True, exist_ok=True)
                 if not isinstance(
                     plot, bytes
@@ -323,7 +336,8 @@ class DiskOperator:
                     write_json(plot, file_path)
                     plot.write_image(str(file_path).replace(".json", ".png"))
                     plots_data[i] = str(file_path)
-            return plots_data
+
+            step.is_dumped = True
 
     @property
     def run_dir(self):

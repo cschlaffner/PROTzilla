@@ -198,7 +198,11 @@ class Run:
 
     @error_handling
     def _run_write(self) -> None:
+        import time
+        start = time.time()
         self.disk_operator.write_run(self.steps)
+        end = time.time()
+        print(f"Save took {str(end-start)}")
 
     def delete_run(self) -> None:
         delete_run_folder(self.run_name)
