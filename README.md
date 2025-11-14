@@ -28,8 +28,13 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 > [!NOTE]
 > This deployment script is kept for legacy reasons and might not work well on every kind of system.
 
-1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes
-2. Execute `./run_protzilla.sh` to run PROTzilla.
+1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes. 
+2. Execute `./run_protzilla.sh` to run PROTzilla. <br>
+
+If this script does not work, you can try to use the docker scripts natively:
+1. Execute `./install_scripts/install_dependencies.sh` once <br>
+2. Execute `./install_scripts/build_frontend.sh` for every frontend change <br>
+3. Execute `./run_protzilla.sh` to run. <br>
 
 ## &#x1F996; Start & use PROTzilla
 If your deployment was successful, open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
