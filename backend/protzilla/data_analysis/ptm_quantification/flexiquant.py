@@ -102,6 +102,7 @@ def flexiquant_lf(
     reproducibility_list = []
 
     df_distance_RL = df.copy()
+    df_distance_RL.drop("Sample", axis=1, inplace=True)
 
     regression_plots = []
 
@@ -271,7 +272,6 @@ def flexiquant_lf(
     df_RM["Sample"] = sample_column
     df_RM_mod["Sample"] = sample_column
 
-    # TODO: test that number number of images matches number of samples
     for sample in sample_column:
         if sample in plot_dict:
             regression_plots.append(
@@ -578,7 +578,7 @@ def create_regression_plots(
     return fig
 
 
-def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series):
+def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series) -> pd.DataFrame:
     """
     Calculates raw scores for each sample based on the distance to the regression line.
 
