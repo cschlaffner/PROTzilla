@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import os
 import traceback
 from dataclasses import dataclass
@@ -7,7 +8,6 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
-from django.utils.datetime_safe import datetime
 from plotly.io import read_json, write_json
 
 import backend.protzilla.utilities as utilities
@@ -168,7 +168,7 @@ class DiskOperator:
                 self.run_dir.mkdir(parents=True, exist_ok=True)
             self.metadata_path.touch()
             logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
-            date = datetime.now().strftime(metadata_date_format)
+            date = datetime.datetime.now().strftime(metadata_date_format)
             metadata = {
                 "creation_date": date,
                 "modification_date": date
@@ -178,7 +178,7 @@ class DiskOperator:
     def update_modification_date(self):
         with ErrorHandler():
             metadata = self.read_metadata()
-            metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
+            metadata["modification_date"] = datetime.datetime.now().strftime(metadata_date_format)
             self.write_metadata(metadata)
 
     def update_run_name(self, new_run_name: str) -> None:

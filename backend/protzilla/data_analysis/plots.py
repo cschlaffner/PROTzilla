@@ -357,13 +357,13 @@ def prot_quant_plot(
         if group_to_compare != protein_group:
             if similarity_measure == "euclidean distance":
                 distance = euclidean_distances(
-                    stats.zscore(wide_df[protein_group]).values.reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).values.reshape(1, -1),
+                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             else:
                 distance = cosine_similarity(
-                    stats.zscore(wide_df[protein_group]).values.reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).values.reshape(1, -1),
+                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             if similarity_measure == "euclidean distance":
                 if distance <= similarity:
