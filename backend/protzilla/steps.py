@@ -36,6 +36,7 @@ class Step:
     method_description: str = None
     output_keys: list[str] = []
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = "incomplete"
+    is_dumped: bool = False # Whether or not the current state of the step has been written to disk
 
     def __init__(self, instance_identifier: str | None = None):
         self.inputs: dict = {}
