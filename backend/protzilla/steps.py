@@ -37,8 +37,6 @@ class Step:
     output_keys: list[str] = []
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = "incomplete"
 
-    # Latch to indicate whether or not the output/plots of the step have been written to disk
-    is_dumped: bool = False 
 
     def __init__(self, instance_identifier: str | None = None):
         self.inputs: dict = {}
@@ -50,6 +48,18 @@ class Step:
         
         self.form: Form = self.create_form()
         self.form.modify_form = MethodType(self.modify_form, self.form)
+
+        # Keeps track of calculations to avoid repetitive dumping
+        self.artifact_versions = {
+            "output" : {
+                "generated": 0,
+                "dumped": 0,
+                },
+            "plots" : {
+                "generated": 0,
+                "dumped": 0,
+                }
+        }
 
         if self.instance_identifier is None:
             logging.warning(
@@ -110,6 +120,7 @@ class Step:
                 calc_output = self.calc_method(**self.calculation_input)
                 self.handle_calc_outputs(calc_output)
                 self.validate_outputs()
+                self.artifact_versions["output"]["generated"] += 1
 
             self.calculation_status = "complete"
             if (steps.failed_step_index == stepIndex):
@@ -118,11 +129,13 @@ class Step:
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
+                self.artifact_versions["plots"]["generated"] += 1
 
             self.calculation_status = "complete"
+            print(self.artifact_versions)
 
             # delete tempfiles
-            for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
+            for file in settings.FILE_UPLOAD_TEMP_DIR.iterdir():
                 if file.is_file():
                     file.unlink()
 
@@ -712,10 +725,7 @@ class StepManager:
                 # as it is preceeded by a calculation, after which everything is written to
                 # disk anyway. Better would be if it would just replace the dfs with their respective paths
                 self.current_step.output = Output(
-                    self.disk_operator._write_output(
-                        instance_identifier=self.current_step.instance_identifier,
-                        output=self.current_step.output,
-                    )
+                    self.disk_operator._write_output(self.current_step)
                 )
             self.current_step_index += 1
         else:
@@ -758,10 +768,8 @@ class StepManager:
             )
 
         if self.df_mode == "disk":
-            self.disk_operator._write_output(
-                instance_identifier=self.current_step.instance_identifier,
-                output=self.current_step.output,
-            )
+            self.disk_operator._write_output(self.current_step)
+
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index
