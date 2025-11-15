@@ -71,11 +71,6 @@ class DataFrameOperator:
     @staticmethod
     def write(file_path: Path, dataframe: pd.DataFrame):
         with ErrorHandler():
-            if file_path.exists():
-                logger.warning(
-                    f"Skipping writing dataframe to {file_path}, valid file already exists"
-                )
-                return
             logger.info(f"Writing dataframe to {file_path}")
             dataframe.to_csv(file_path, index=False)
 
@@ -281,9 +276,6 @@ class DiskOperator:
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
-
-                # If step status is not "complete", reset dump state (definitely need to dump again)
-                step.is_dumped = (step.calculation_status == "complete")
             return step_data
 
     def _read_outputs(self, output: dict) -> Output:
