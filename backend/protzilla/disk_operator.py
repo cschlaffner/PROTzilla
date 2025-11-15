@@ -263,6 +263,12 @@ class DiskOperator:
             step.calculation_status = step_data.get(KEYS.STEP_CALCULATION_STATUS,"incomplete")
             return step
 
+    def _dump_is_outdated(self, step: Step, key: str) -> bool:
+        return step.artifact_versions[key]["generated"] > step.artifact_versions[key]["dumped"]
+
+    def _update_dump_state(self, step: Step, key: str) -> None:
+        step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
+
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
         with ErrorHandler():
             step_data = {}
@@ -271,16 +277,8 @@ class DiskOperator:
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
-                step_data[KEYS.STEP_PLOTS] = self._write_plots(
-                    step.instance_identifier, 
-                    step.plots, 
-                    step.is_dumped
-                )
-                step_data[KEYS.STEP_OUTPUTS] = self._write_output(
-                    step.instance_identifier,
-                    step.output,
-                    step.is_dumped
-                )
+                step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
+                step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
 
@@ -298,23 +296,24 @@ class DiskOperator:
                     step_output[key] = value
             return Output(step_output)
 
-    def _write_output(self, instance_identifier: str, output: Output, is_dumped: Bool = False) -> dict:
+    def _write_output(self, step: Step) -> dict:
         with ErrorHandler():
+            # Skip dumping if version matches
+            if not self._dump_is_outdated(step, "output"):
+                return
+
             output_data = {}
-            for key, value in output:
+            for key, value in step.output:
                 if isinstance(value, pd.DataFrame):
-                    file_path = self.dataframe_dir / f"{instance_identifier}_{key}.csv"
-
-                    # If file already exists AND has been dumped, don't dump again
-                    # (no changes possible)
-                    if file_path.exists() and is_dumped:
-                        continue
-
+                    file_path = self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
                     self.dataframe_operator.write(file_path, value)
                     output_data[key] = str(file_path)
                 else:
                     output_data[key] = value
+
+            self._update_dump_state(step, "output")
             return output_data
+
 
     def _read_plots(self, plots: dict) -> Plots:
         if plots:
@@ -324,16 +323,15 @@ class DiskOperator:
             return Plots(figures)
         return Plots([])
 
-    def _write_plots(self, instance_identifier: str, plots: Plots, is_dumped: Bool = False) -> dict:
+    def _write_plots(self, step: Step) -> dict:
         with ErrorHandler():
-            plots_data = {}
-            for i, plot in enumerate(plots):
-                file_path = self.plot_dir / f"{instance_identifier}_plot{i}.json"
+            # Skip dumping if version matches
+            if not self._dump_is_outdated(step, "plots"):
+                return
 
-                # If file already exists AND has been dumped, don't dump again
-                # (no changes possible)
-                if file_path.exists() and is_dumped:
-                    continue
+            plots_data = {}
+            for i, plot in enumerate(step.plots):
+                file_path = self.plot_dir / f"{step.instance_identifier}_plot{i}.json"
 
                 self.plot_dir.mkdir(parents=True, exist_ok=True)
                 if not isinstance(
@@ -342,6 +340,8 @@ class DiskOperator:
                     write_json(plot, file_path)
                     plot.write_image(str(file_path).replace(".json", ".png"))
                     plots_data[i] = str(file_path)
+
+            self._update_dump_state(step, "plots")
 
     @property
     def run_dir(self):
