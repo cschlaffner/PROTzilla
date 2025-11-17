@@ -21,6 +21,9 @@ if (TYPE_CHECKING):
     from backend.protzilla.run import Run
     from backend.protzilla.disk_operator import DiskOperator
 
+# To avoid race conditions when dumping to disk
+from threading import Lock
+
 
 class Section(Enum):
     IMPORTING = "importing"
@@ -45,6 +48,7 @@ class Step:
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
         self.instance_identifier = instance_identifier
+        self.disk_write_mutex = Lock()
         
         self.form: Form = self.create_form()
         self.form.modify_form = MethodType(self.modify_form, self.form)

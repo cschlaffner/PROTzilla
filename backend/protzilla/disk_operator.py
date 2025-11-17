@@ -289,7 +289,7 @@ class DiskOperator:
             return Output(step_output)
 
     def _write_output(self, step: Step) -> dict:
-        with ErrorHandler():
+        with ErrorHandler(), step.disk_write_mutex:
             # Skip dumping if version matches
             if not self._dump_is_outdated(step, "output"):
                 return
@@ -316,7 +316,7 @@ class DiskOperator:
         return Plots([])
 
     def _write_plots(self, step: Step) -> dict:
-        with ErrorHandler():
+        with ErrorHandler(), step.disk_write_mutex:
             # Skip dumping if version matches
             if not self._dump_is_outdated(step, "plots"):
                 return
