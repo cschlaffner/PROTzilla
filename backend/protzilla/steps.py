@@ -136,7 +136,6 @@ class Step:
                 self.artifact_versions["plots"]["generated"] += 1
 
             self.calculation_status = "complete"
-            print(self.artifact_versions)
 
             # delete tempfiles
             for file in settings.FILE_UPLOAD_TEMP_DIR.iterdir():
