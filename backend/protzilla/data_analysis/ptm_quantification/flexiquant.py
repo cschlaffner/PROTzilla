@@ -39,7 +39,7 @@ def flexiquant_lf(
     )
     df.reset_index(inplace=True)
 
-    if grouping_column not in metadata_df:
+    if grouping_column not in metadata_df.columns:
         return dict(
             messages=[
                 dict(
