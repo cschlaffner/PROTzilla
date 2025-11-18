@@ -2,14 +2,15 @@ import logging
 import time
 from collections import Counter
 from copy import copy
-from math import sqrt
+from math import sqrt, ceil
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objects as go
+from django.forms import formset_factory
 from matplotlib.colors import Normalize
 from numpy import arange, array, flip, nan, ones
-from plotly.figure_factory import create_dendrogram
-from plotly.graph_objects import Heatmap
+from plotly.figure_factory import create_dendrogram, create_distplot
 from plotly.subplots import make_subplots
 from pydeseq2.preprocessing import deseq2_norm
 from scipy.cluster.hierarchy import linkage
@@ -20,6 +21,7 @@ from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 from protzilla.utilities.utilities import fig_to_base64
 
 
+# TODO: also needs form
 # TODO: PR still has some comments that need to be fixed
 # TODO: add pydeseq2 to requirements.txt
 # TODO: tests?
@@ -27,12 +29,14 @@ def multiflex_lf(
     peptide_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     reference_group: str,
+    grouping_column: str,
     num_init: int = 30,
     mod_cutoff: float = 0.5,
+    # TODO: check what these params change and try to test them
     imputation_cosine_similarity: float = 0.98,
     deseq2_normalization: bool = True,
     colormap: int = 1,
-):
+) -> dict:
     """
     Quantifies the extent of protein modifications in proteomics data by using robust linear regression to compare modified and unmodified peptide precursors
     and facilitates the analysis of modification dynamics and coregulated modifications across large datasets without the need for preselecting specific proteins.
@@ -98,15 +102,22 @@ def multiflex_lf(
     df_diff_modified = pd.DataFrame()
     df_raw_scores = pd.DataFrame()
     df_removed_peptides = pd.DataFrame()
-    df_RM_scores = pd.DataFrame()
+    RM_scores_df = pd.DataFrame()
 
     skipped_proteins = []
 
     for protein in list_proteins:
         flexi_result = flexiquant_lf(
-            peptide_df, metadata_df, reference_group, protein, num_init, mod_cutoff
+            peptide_df=peptide_df,
+            metadata_df=metadata_df,
+            reference_group=reference_group,
+            protein_group=protein,
+            grouping_column=grouping_column,
+            num_init=num_init,
+            mod_cutoff=mod_cutoff,
         )
 
+        # TODO: test
         if any(
             [
                 message
@@ -153,7 +164,6 @@ def multiflex_lf(
         df_diff_modified = pd.concat([df_diff_modified, protein_diff_modified])
 
         protein_removed_peptides = flexi_result["removed_peptides"]
-        protein_removed_peptides.remove("Sample")
         protein_removed_peptides_df = pd.DataFrame(
             {"ProteinID": protein, "PeptideID": protein_removed_peptides}
         )
@@ -184,9 +194,10 @@ def multiflex_lf(
             .rename(columns={"index": "PeptideID"})
             .set_index(["ProteinID", "PeptideID"])
         )
-        df_RM_scores = pd.concat([df_RM_scores, protein_RM_scores])
+        RM_scores_df = pd.concat([RM_scores_df, protein_RM_scores])
 
-    if df_RM_scores.empty:
+    # TODO: test
+    if RM_scores_df.empty:
         return dict(
             messages=[
                 dict(
@@ -197,12 +208,11 @@ def multiflex_lf(
         )
 
     # list of all groups for creation the distribution plots and protein-wise heatmaps
-    list_groups = list(set(df_RM_scores.columns.get_level_values("Group")))
+    list_groups = list(set(RM_scores_df.columns.get_level_values("Group")))
     list_groups.sort()
 
-    rm_score_dist_plots = fig_to_base64(
-        create_RM_score_distribution_plots(df_RM_scores, list_groups)
-    )
+    rm_score_dist_plots = create_RM_score_distribution_plots(RM_scores_df, list_groups)
+    rm_score_dist_plots.show()
 
     # define the colormap for the heatmap as specified by the user
     if colormap == 1:
@@ -249,7 +259,7 @@ def multiflex_lf(
 
     # sort the proteins descending by number of peptides and samples with a RM scores below the modification cutoff
     sorted_proteins = list(
-        df_RM_scores[df_RM_scores < mod_cutoff]
+        RM_scores_df[RM_scores_df < mod_cutoff]
         .count(axis=1)
         .groupby("ProteinID")
         .sum()
@@ -261,7 +271,7 @@ def multiflex_lf(
     # go through all protein in the sorted order
     for protein_id in sorted_proteins:
         # dataframe of the RM scores of the current protein
-        df_RM_scores_protein = df_RM_scores.loc[protein_id]
+        df_RM_scores_protein = RM_scores_df.loc[protein_id]
 
         # skip the protein, if dataframe empty
         if df_RM_scores_protein.empty:
@@ -277,10 +287,11 @@ def multiflex_lf(
         )
 
     # keep only peptides that have RM scores in at least two groups
-    to_remove = df_RM_scores.loc[
-        df_RM_scores.groupby("Group", axis=1).count().replace(0, nan).count(axis=1) < 2
+    # TODO: test this by using the FLexiquant data, which has only one group
+    to_remove = RM_scores_df.loc[
+        RM_scores_df.groupby("Group", axis=1).count().replace(0, nan).count(axis=1) < 2
     ].index
-    df_RM_scores_all_proteins_reduced = df_RM_scores.drop(to_remove, axis=0)
+    df_RM_scores_all_proteins_reduced = RM_scores_df.drop(to_remove, axis=0)
     removed_peptides = pd.DataFrame(list(to_remove))
     to_remove = pd.DataFrame()
 
@@ -293,7 +304,6 @@ def multiflex_lf(
         df_RM_scores_all_proteins_reduced, round(1 - imputation_cosine_similarity, 3)
     )
     removed_peptides = pd.concat([removed_peptides, removed])
-    removed = pd.DataFrame()
 
     # check if RM scores dataframe is empty, if true return error and finish analysis
     if df_RM_scores_all_proteins_imputed.empty:
@@ -313,7 +323,7 @@ def multiflex_lf(
         )
 
     if deseq2_normalization:
-        groups = pd.DataFrame(list(df_RM_scores.columns))
+        groups = pd.DataFrame(list(RM_scores_df.columns))
         groups.columns = ["Group", "Sample"]
         df_normalization = df_RM_scores_all_proteins_imputed.copy()
 
@@ -344,11 +354,11 @@ def multiflex_lf(
             round(1 - imputation_cosine_similarity, 5),
         )
         # dataframe of peptides that were removed during imputation
-        removed_peptides = removed_peptides.append(removed)
-        removed = pd.DataFrame()
+        if len(removed) > 0:
+            removed_peptides = pd.concat((removed_peptides, removed))
 
         rm_score_dist_plots = fig_to_base64(
-            create_RM_score_distribution_plots(
+            create_RM_score_distribution_plots_old(
                 df_RM_scores_all_proteins_reduced, list_groups
             )
         )
@@ -402,13 +412,130 @@ def multiflex_lf(
         diff_modified=df_diff_modified,
         raw_scores=df_raw_scores,
         removed_peptides=removed_peptides,
-        RM_scores=df_RM_scores,
+        RM_scores=RM_scores_df,
         plots=[rm_score_dist_plots, peptide_clustering_fig] + heatmap_plots,
         messages=[message],
     )
 
 
-def create_RM_score_distribution_plots(df_RM_scores, list_groups):
+def create_RM_score_distribution_plots(RM_scores_df: pd.DataFrame, list_groups: list[str]) -> go.Figure:
+    """
+    Constructs a figure of distribution plots of the RM scores. For every group a separate plot is created
+    with the different samples in different colors.
+    """
+
+    # initialize the figure with a size that accounts for 7ptx7pt plots of every sample group
+    num_subplots = ceil(sqrt(len(list_groups)))
+
+    # if num_subplots % 1 != 0:
+    #     num_subplots = int(int(num_subplots) + 1)
+    # else:
+    #     num_subplots = int(num_subplots)
+    #
+    # fig = plt.figure(figsize=(7 * num_subplots, 7 * num_subplots))
+
+    fig = make_subplots(
+        rows=num_subplots,
+        cols=num_subplots,
+        subplot_titles=["Group: " + group for group in list_groups],
+        horizontal_spacing=0.05,
+        vertical_spacing=0.05,
+    )
+
+    # list of colors for the color coding of the different samples in one group
+    # TODO: find workaround
+    colors_list = color_palette(
+        "husl",
+        Counter(RM_scores_df.columns.get_level_values("Group")).most_common(1)[0][1],
+    )  # int(df_group_all_prots.shape[1]/2)
+    colors_list = [f'rgba({int(r*255)},{int(g*255)},{int(b*255)},1)' for r, g, b in colors_list]
+
+    # create the distribution plots for every group and apply kernel density estimation if possible
+    for i, group in enumerate(list_groups):
+        df_group = RM_scores_df[group]
+        row = i // num_subplots + 1
+        col = i % num_subplots + 1
+
+        # ax = fig.add_subplot(num_subplots, num_subplots, i)
+        for sample in df_group:
+            sample_data = df_group[sample].dropna()
+            fig.add_trace(
+                go.Histogram(
+                    x=sample_data,
+                    nbinsx=30,
+                    name=sample,
+                    # marker_color=colors_list[: df_group.shape[1]],  # TODO
+                    opacity=0.75,
+                    showlegend=df_group.shape[1] <= 10
+                ),
+                row=row,
+                col=col,
+            )
+
+            # TODO: double check that this is actually working correctly
+            kde = create_distplot([sample_data.tolist()], group_labels=[''], show_hist=False)
+            fig.add_trace(
+                go.Scatter(
+                    x=kde.data[0].x,
+                    y=kde.data[0].y,
+                    mode='lines',
+                    # marker=dict(color='#636efa'),  # TODO
+                    showlegend=False,
+                    yaxis='y'
+                ),
+                row=row,
+                col=col,
+            )
+
+        # try:
+        #     histplot(
+        #         df_group,
+        #         ax=ax,
+        #         kde=True,  # TODO: diff
+        #         stat="count",
+        #         bins=30,
+        #         palette=colors_list[: df_group.shape[1]],
+        #         edgecolor=None,
+        #     )
+        # except:
+        #     histplot(
+        #         df_group,
+        #         ax=ax,
+        #         kde=False,
+        #         stat="count",
+        #         bins=30,
+        #         palette=colors_list[: df_group.shape[1]],
+        #         edgecolor=None,
+        #     )
+        #
+        # plt.xticks(fontsize=8)
+        # plt.yticks(fontsize=8)
+        # plt.xlim(0, 3)
+        # plt.title("Group: " + group, fontsize=16)
+        # plt.xlabel("RM score")
+        #
+        # # show sample legend if group contains 10 samples or less
+        # if df_group.shape[1] > 10:
+        #     plt.legend([], [], frameon=False)
+        #
+        # plt.tight_layout(h_pad=2)
+
+    # fig.suptitle("Distribution of RM scores of FLEXIQuant-LF ", fontsize=20)
+    # plt.subplots_adjust(top=0.90)
+    #
+    # plt.close()
+
+    # TODO: maybe adjust x-axis so that scales match
+    fig.update_layout(
+        title_text="Distribution of RM scores of multiFLEX-LF",
+        barmode='overlay',
+    )
+
+    # TODO: why does showing the figure take ages?
+    return fig
+
+
+def create_RM_score_distribution_plots_old(df_RM_scores, list_groups):
     """
     Constructs a figure of distribution plots of the RM scores. For every group a seperate plot is created
     with the different samples in different colors.
@@ -497,7 +624,7 @@ def create_heatmap(
 
     df_RM_scores = df_RM_scores.astype(float)
     fig.add_trace(
-        Heatmap(
+        go.Heatmap(
             z=df_RM_scores.values,
             x=df_RM_scores.columns.get_level_values("Sample"),
             y=df_RM_scores.index.get_level_values("PeptideID"),
@@ -508,7 +635,7 @@ def create_heatmap(
             showscale=True,
             colorbar=dict(
                 title="RM score",
-                titleside="top",
+                title_side="top",
                 tickmode="array",
                 thicknessmode="pixels",
                 thickness=25,
@@ -672,7 +799,7 @@ def peptide_clustering(
         )
 
     # create heatmap
-    heatmap = Heatmap(
+    heatmap = go.Heatmap(
         z=heat_data,
         colorscale=cmap,
         zmin=0,
@@ -681,7 +808,7 @@ def peptide_clustering(
         hovertemplate="Sample: %{x}<br />Protein: %{y}<br />RM score: %{z}<br />ID: %{customdata}",
         colorbar=dict(
             title="RM score",
-            titleside="top",
+            title_side="top",
             tickmode="array",
             thicknessmode="pixels",
             thickness=25,
