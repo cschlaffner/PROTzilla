@@ -32,7 +32,7 @@
       "@protzilla/utils": ["utils"]
     },
 
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"]
   },
   "include": ["src", ".storybook/*.ts", ".storybook/*.tsx", "testSetup.ts"]
 }

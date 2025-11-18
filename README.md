@@ -9,18 +9,35 @@
 
 PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. The shareable, reproducible workflows and the integration of knowledge databases support automated analysis and transparent reporting in proteomics research.
 
-## :gear: Set up & install PROTzilla
-
+## :gear: Deploy PROTzilla
 1. Clone the PROTzilla repository <br> `git clone https://github.com/cschlaffner/PROTzilla.git`
 2. Enter repository folder <br> `cd PROTzilla`
-3. Run install script <br>
-    **For Windows:** Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
-    **For macOS & Linux:** Execute `./run_protzilla.sh` <br>
 
-The script automatically installs all software dependencies and creates the environment. The initial set-up might take up to 15 minutes.
+### :whale: Using Docker (recommended)
+1. Make sure you have [Docker](https://www.docker.com/) and Docker Compose installed
+2. Run `docker compose up --build` (or `docker-compose up --build` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell (useful for production environments)
+3. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
+
+### Windows native 
+> [!NOTE]
+> We ensure native compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
+
+1. Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
+
+### Linux/macOS native
+> [!NOTE]
+> This deployment script is kept for legacy reasons and might not work well on every kind of system.
+
+1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes. 
+2. Execute `./run_protzilla.sh` to run PROTzilla. <br>
+
+If this script does not work, you can try to use the docker scripts natively:
+1. Execute `./install_scripts/install_dependencies.sh` once <br>
+2. Execute `./install_scripts/build_frontend.sh` for every frontend change <br>
+3. Execute `./run_protzilla.sh` to run. <br>
 
 ## &#x1F996; Start & use PROTzilla
-Simply run the `run_protzilla` script for your OS and open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
+If your deployment was successful, open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
 
 ## :bulb: Quick Introduction on how to use PROTzilla in the browser
 **Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click on `Calculate` in the last step. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
