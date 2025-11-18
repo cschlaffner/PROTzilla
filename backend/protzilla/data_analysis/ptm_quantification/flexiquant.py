@@ -13,15 +13,14 @@ CONFIDENCE_BAND_ALPHA = 0.3
 
 
 def flexiquant_lf(
-    peptide_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    reference_group: str,
-    protein_group: str,
-    grouping_column: str,
-    num_init: int = 50,
-    mod_cutoff: float = 0.5,
+        peptide_df: pd.DataFrame,
+        metadata_df: pd.DataFrame,
+        reference_group: str,
+        protein_group: str,
+        grouping_column: str,
+        num_init: int = 50,
+        mod_cutoff: float = 0.5,
 ) -> dict:
-    # TODO: maybe do a bit of input validation
     """
     FLEXIQuant-LF is a method to quantify protein modification extent in label-free proteomics data.
 
@@ -40,15 +39,7 @@ def flexiquant_lf(
     )
     df.reset_index(inplace=True)
 
-    df = pd.merge(
-        left=df,
-        right=metadata_df[["Sample", grouping_column]],
-        on="Sample",
-        copy=False,
-    )
-
-    # TODO: test for this
-    if not grouping_column in df:
+    if grouping_column not in metadata_df:
         return dict(
             messages=[
                 dict(
@@ -58,10 +49,16 @@ def flexiquant_lf(
             ]
         )
 
+    df = pd.merge(
+        left=df,
+        right=metadata_df[["Sample", grouping_column]],
+        on="Sample",
+        copy=False,
+    )
+
     # delete columns where all entries are nan
     df.dropna(how="all", axis=1, inplace=True)
 
-    # TODO: test for this
     if reference_group not in df[grouping_column].unique():
         return dict(
             messages=[
@@ -117,7 +114,6 @@ def flexiquant_lf(
 
         df_train.sort_index(inplace=True, axis=0)
 
-        # TODO: test for this (all peptides smaller than 5)?
         # if number of peptides is smaller than 5, skip sample and continue with next interation
         if len(df_train) < 5:
             # set all metrices to nan
@@ -239,7 +235,7 @@ def flexiquant_lf(
     # remove peptides with raw scores > cutoff for each sample
     df_raw_scores_T_cutoff = df_raw_scores_T[
         round(df_raw_scores_T, 5) <= round(cutoff, 5)
-    ]
+        ]
     removed = pd.Series(
         df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
     )
@@ -285,30 +281,29 @@ def flexiquant_lf(
             )
 
     messages = []
-    # TODO: test this
     if len(regression_plots) == 0:
         messages.append(
             dict(
                 level=logging.WARNING,
-                msg="No samples were processed. This is probably due to the fact that there are not enough valid peptides in the samples.",
+                msg="No samples were processed. This is probably due to the fact that there are not enough valid "
+                    "peptides in the samples.",
             )
         )
     else:
-        # TODO: test that message is correct
         if len(regression_plots) == len(sample_column):
             messages.append(
                 dict(
                     level=logging.INFO,
-                    msg=f"All {len(sample_column)} samples have been processed successfully. {len(removed)} peptides have been removed.",
+                    msg=f"All {len(sample_column)} samples have been processed successfully. {len(removed)} peptides "
+                        f"have been removed.",
                 )
             )
         else:
-            # TODO: test that this is hit
             messages.append(
                 dict(
                     level=logging.INFO,
                     msg=f"{len(regression_plots)}/{len(sample_column)} samples have been processed successfully. "
-                    f"The remaining samples have been skipped due to insufficient valid peptides. {len(removed)} peptides have been removed.",
+                        f"The remaining samples have been skipped due to insufficient valid peptides. {len(removed)} peptides have been removed.",
                 )
             )
 
@@ -323,15 +318,15 @@ def flexiquant_lf(
 
 
 def calculate_confidence_band(
-    slope: float,
-    median_int: float,
-    dataframe_train: pd.DataFrame,
-    X: array,
-    y: pd.Series,
-    row: pd.Series,
-    idx: int,
-    matrix_distance_RL: pd.DataFrame,
-    alpha: float,
+        slope: float,
+        median_int: float,
+        dataframe_train: pd.DataFrame,
+        X: array,
+        y: pd.Series,
+        row: pd.Series,
+        idx: int,
+        matrix_distance_RL: pd.DataFrame,
+        alpha: float,
 ):
     """
     Calculates confidence bands arround the regression line.
@@ -436,7 +431,7 @@ def create_regression_plots(
     fig = make_subplots(
         rows=2,
         cols=1,
-        row_heights=[1/7, 6/7],
+        row_heights=[1 / 7, 6 / 7],
         shared_xaxes=True,
         vertical_spacing=0.02,
     )
@@ -518,9 +513,9 @@ def create_regression_plots(
     def cmap(values: list[float]):
         # Tries to mimic the original FLEXIQuant color scale, but isn't perfect
         colorscale = [
-            f"rgba({0.8340245009323628*255},{0.237592525883977*255},{0.413389203308121*255})"
+            f"rgba({0.8340245009323628 * 255},{0.237592525883977 * 255},{0.413389203308121 * 255})"
             "rgb(99, 99, 99)",  # light gray in the middle
-            f"rgb({0.310841115279521*255},{0.516974408539226*255},{0.221301273388138*255})",
+            f"rgb({0.310841115279521 * 255},{0.516974408539226 * 255},{0.221301273388138 * 255})",
         ]
         colorscale = px.colors.sample_colorscale(colorscale, [i / 255 for i in range(256)])
 
