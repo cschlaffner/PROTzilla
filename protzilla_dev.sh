@@ -10,7 +10,7 @@ if ! [[ "$OSTYPE" == "linux-gnu"* ]] && ! [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 if ! conda --version >/dev/null; then
-  echo "conda is not accessible. Please execute run_protzilla.sh first to setup project."
+  echo "conda is not accessible. Please execute install_protzilla.sh first to setup project."
 fi
 
 eval "$(conda shell.bash hook)"
