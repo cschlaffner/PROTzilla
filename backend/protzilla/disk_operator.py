@@ -162,25 +162,28 @@ class DiskOperator:
             if not self.run_dir.exists():
                 self.run_dir.mkdir(parents=True, exist_ok=True)
             self.metadata_path.touch()
-            logger.info(f"Metadata file {self.metadata_path} did not exist and was created")
+            logger.info(
+                f"Metadata file {self.metadata_path} did not exist and was created"
+            )
             date = datetime.now().strftime(metadata_date_format)
-            metadata = {
-                "creation_date": date,
-                "modification_date": date
-            }
+            metadata = {"creation_date": date, "modification_date": date}
             self.yaml_operator.write(self.metadata_path, metadata)
 
     def update_modification_date(self):
         with ErrorHandler():
             metadata = self.read_metadata()
-            metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
+            metadata["modification_date"] = datetime.now().strftime(
+                metadata_date_format
+            )
             self.write_metadata(metadata)
 
     def update_run_name(self, new_run_name: str) -> None:
         with ErrorHandler():
             new_run_dir = paths.RUNS_PATH / new_run_name
             if new_run_dir.exists():
-                logger.warning(f"Run directory {new_run_dir} for run {self.run_name} already exists.")
+                logger.warning(
+                    f"Run directory {new_run_dir} for run {self.run_name} already exists."
+                )
                 return
             os.rename(self.run_dir, new_run_dir)
             self.run_name = new_run_name
@@ -218,9 +221,10 @@ class DiskOperator:
         """
         # if we are writing the run, chances are the outputs of the current step
         # have recently been (re)calculcated, therefore invalidating the existing file
-        
+
         return any(
-            step.instance_identifier in file.name and step.calculation_status!="incomplete"
+            step.instance_identifier in file.name
+            and step.calculation_status != "incomplete"
             for step in steps.all_steps
         )
 
@@ -255,11 +259,16 @@ class DiskOperator:
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
             step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
-            step.calculation_status = step_data.get(KEYS.STEP_CALCULATION_STATUS,"incomplete")
+            step.calculation_status = step_data.get(
+                KEYS.STEP_CALCULATION_STATUS, "incomplete"
+            )
             return step
 
     def _dump_is_outdated(self, step: Step, key: str) -> bool:
-        return step.artifact_versions[key]["generated"] > step.artifact_versions[key]["dumped"]
+        return (
+            step.artifact_versions[key]["generated"]
+            > step.artifact_versions[key]["dumped"]
+        )
 
     def _update_dump_state(self, step: Step, key: str) -> None:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
@@ -297,7 +306,9 @@ class DiskOperator:
             output_data = {}
             for key, value in step.output:
                 if isinstance(value, pd.DataFrame):
-                    file_path = self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
+                    file_path = (
+                        self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
+                    )
                     self.dataframe_operator.write(file_path, value)
                     output_data[key] = str(file_path)
                 else:
@@ -305,7 +316,6 @@ class DiskOperator:
 
             self._update_dump_state(step, "output")
             return output_data
-
 
     def _read_plots(self, plots: dict) -> Plots:
         if plots:
@@ -370,5 +380,7 @@ def sanitize_inputs(inputs: dict) -> dict:
     return {
         key: value
         for key, value in inputs.items()
-        if type(value) != pd.DataFrame and not utilities.check_is_path(value) and key != "peptide_df"
+        if type(value) != pd.DataFrame
+        and not utilities.check_is_path(value)
+        and key != "peptide_df"
     }
