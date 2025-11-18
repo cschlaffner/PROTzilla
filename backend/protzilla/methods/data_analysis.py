@@ -1471,7 +1471,7 @@ class ClassificationSVM(DataAnalysisStep):
 
     def create_form(self):
         return Form(
-            label="Random Forest",
+            label="Support Vector Machine",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1909,10 +1909,10 @@ class FLEXIQuantLF(DataAnalysisStep):
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
         grouping_column_field.set_options(form_helper.to_choices(run.steps.metadata_df.drop("Sample", axis=1).columns[1:]))
 
-        chosen_grouping_column = self.data.get("grouping_column", grouping_column_field.value)
+        chosen_grouping_column = grouping_column_field.value
         reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[chosen_grouping_column].unique()))
 
-        peptide_df_instance_id = self.data.get("peptide_df", peptide_df_field.value)
+        peptide_df_instance_id = peptide_df_field.value
         protein_id_field.set_options(form_helper.to_choices(
             run.steps.get_step_output(Step, "peptide_df", peptide_df_instance_id)["Protein ID"].unique()
         ))
@@ -1996,11 +1996,11 @@ class SelectPeptidesForProtein(DataAnalysisStep):
                         ).sort_values(by="corrected_p_value")["Protein ID"].unique()
                     ))
                 else:
-                    protein_ids_field.set_options(form_helper.to_choices(
-                        run.steps.get_step_output(
-                            DataAnalysisStep, "significant_proteins_df", chosen_list
-                        )["Protein ID"].unique()
-                    ))
+                    significant_proteins = run.steps.get_step_output(DataAnalysisStep, "significant_proteins_df", chosen_list)
+                    if significant_proteins is not None:
+                        protein_ids_field.set_options(form_helper.to_choices(
+                            significant_proteins["Protein ID"].unique()
+                        ))
 
     calc_method = staticmethod(select_peptides_of_protein)
 
@@ -2081,7 +2081,7 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
 
     def create_form(self):
         return Form(
-            label="PTMs per Sample",
+            label="PTMs per Sample and Protein",
             input_fields=[
                 DropdownField(
                     name="peptide_df",
