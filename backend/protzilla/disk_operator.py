@@ -345,6 +345,8 @@ class DiskOperator:
 
             self._update_dump_state(step, "plots")
 
+            return plots_data
+
     @property
     def run_dir(self):
         return paths.RUNS_PATH / self.run_name
