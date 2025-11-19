@@ -508,7 +508,8 @@ def create_regression_plots(
     rm_scores = dataframe_train.merge(
         rm_scores, left_index=True, right_index=True, how="left"
     )
-    rm_scores.fillna(-1, inplace=True)
+    with pd.option_context('future.no_silent_downcasting', True):
+        rm_scores.fillna(-1, inplace=True)
 
     def cmap(values: list[float]):
         # Tries to mimic the original FLEXIQuant color scale, but isn't perfect
