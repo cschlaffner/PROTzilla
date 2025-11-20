@@ -299,17 +299,15 @@ class DiskOperator:
 
     def _write_output(self, step: Step) -> dict:
         with ErrorHandler(), step.disk_write_mutex:
-            # Skip dumping if version matches
-            if not self._dump_is_outdated(step, "output"):
-                return
-
             output_data = {}
             for key, value in step.output:
                 if isinstance(value, pd.DataFrame):
                     file_path = (
                         self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
                     )
-                    self.dataframe_operator.write(file_path, value)
+                    # Only dump if outdated version
+                    if self._dump_is_outdated(step, "output"):
+                        self.dataframe_operator.write(file_path, value)
                     output_data[key] = str(file_path)
                 else:
                     output_data[key] = value
