@@ -70,10 +70,19 @@ def multiflex_lf(
             "Intensity": peptide_df["Intensity"],
         }
     )
+    if grouping_column not in metadata_df.columns:
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=f"Grouping column {grouping_column} not found in metadata.",
+                )
+            ],
+        )
 
     # add Group column to input
     df_intens_matrix_all_proteins = pd.merge(
-        df_intens_matrix_all_proteins, metadata_df[["Sample", "Group"]], on="Sample"
+        df_intens_matrix_all_proteins, metadata_df[["Sample", grouping_column]], on="Sample"
     )
 
     # check if reference identifier exists in Group column
@@ -84,6 +93,15 @@ def multiflex_lf(
                 dict(
                     level=logging.ERROR,
                     msg=f"Reference group {reference_group} not found in metadata.",
+                )
+            ],
+        )
+    if df_intens_matrix_all_proteins[grouping_column].nunique() < 2:
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg="At least two groups are required for multiFLEX-LF analysis.",
                 )
             ],
         )
@@ -117,6 +135,7 @@ def multiflex_lf(
 
     skipped_proteins = []
 
+    flexi_error_messages = set()
     for protein in list_proteins:
         flexi_result = flexiquant_lf(
             peptide_df=peptide_df,
@@ -129,14 +148,14 @@ def multiflex_lf(
         )
 
         # TODO: test
-        if any(
-                [
-                    message
-                    for message in flexi_result["messages"]
-                    if message["level"] == logging.ERROR
-                ]
-        ):
+        error_messages = [
+            message
+            for message in flexi_result["messages"]
+            if message["level"] == logging.ERROR
+        ]
+        if any(error_messages):
             skipped_proteins.append(protein)
+            flexi_error_messages.update(msg['msg'] for msg in error_messages)
             continue
 
         protein_raw_scores = flexi_result["raw_scores"]
@@ -207,13 +226,17 @@ def multiflex_lf(
         )
         RM_scores_df = pd.concat([RM_scores_df, protein_RM_scores])
 
-    # TODO: test
     if RM_scores_df.empty:
+        if len(flexi_error_messages) > 0:
+            message = ("RM scores were not computed because the FlexiQuant-LF analysis failed for all proteins!\n"
+                       "Errors:\n- ") + "\n- ".join(flexi_error_messages)
+        else:
+            message = "RM scores were not computed! Intensities of at least 5 peptides per protein have to be given!"
         return dict(
             messages=[
                 dict(
-                    level=logging.WARNING,
-                    msg="RM scores were not computed! Intensities of at least 5 peptides per protein have to be given!",
+                    level=logging.ERROR,
+                    msg=message,
                 )
             ],
         )
@@ -259,13 +282,26 @@ def multiflex_lf(
         )
 
     # keep only peptides that have RM scores in at least two groups
-    # TODO: test this by using the FLexiquant data, which has only one group
-    # TODO: do we need error handling?
     to_remove = RM_scores_df.loc[
         RM_scores_df.T.groupby("Group").count().replace(0, nan).count() < 2
     ].index
     df_RM_scores_all_proteins_reduced = RM_scores_df.drop(to_remove, axis=0)
     removed_peptides = pd.DataFrame(list(to_remove))
+
+    if df_RM_scores_all_proteins_reduced.empty:
+        # TODO: would be nice to test in case where enough groups are present
+        if len(removed_peptides) > 0:
+            removed_peptides.columns = ["ProteinID", "PeptideID"]
+            removed_peptides = removed_peptides.set_index(["ProteinID"])
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg="No peptides with RM scores in at least two groups available for clustering!",
+                )
+            ],
+            removed_peptides=removed_peptides,
+        )
 
     # impute missing values for clustering
     (

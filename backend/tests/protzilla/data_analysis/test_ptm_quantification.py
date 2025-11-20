@@ -10,7 +10,7 @@ from protzilla.importing.peptide_import import peptide_import
 from tests.paths import TEST_DATA_PATH
 
 
-def get_peptide_df() -> pd.DataFrame:
+def get_peptide_df_AD_only() -> pd.DataFrame:
     df = peptide_import(
         TEST_DATA_PATH / 'peptides/peptides_tau_AD01.txt',
         'Intensity',
@@ -21,34 +21,12 @@ def get_peptide_df() -> pd.DataFrame:
 
 @pytest.fixture
 def peptide_df_single_group():
-    # TODO: maybe renaming
-    return get_peptide_df()
-
-
-# TODO: maybe use newly created small dataset with both groups - see below
-@pytest.fixture
-def peptide_df_few_peptides():
-    # TODO: maybe renaming
-    peptide_df = get_peptide_df()
-    all_peptides = peptide_df['Sequence'].unique()
-    selected_peptides = all_peptides[:8]
-    peptide_df_shortened = peptide_df[peptide_df['Sequence'].isin(selected_peptides)]
-    return peptide_df_shortened
-
-
-@pytest.fixture
-def peptide_df():
-    df = peptide_import(
-        TEST_DATA_PATH / 'peptides/peptides_tau_AD01_CTR01.txt',
-        'Intensity',
-        map_to_uniprot=False
-    )['peptide_df']
-    return df
+    return get_peptide_df_AD_only()
 
 
 @pytest.fixture
 def peptide_df_one_sample_with_few_peptides():
-    peptide_df = get_peptide_df()
+    peptide_df = get_peptide_df_AD_only()
     first_sample = peptide_df['Sample'].iloc[0]
     first_sample_peptides = peptide_df[peptide_df['Sample'] == first_sample]['Sequence'].unique()
     selected_peptides = first_sample_peptides[:3]
@@ -58,6 +36,29 @@ def peptide_df_one_sample_with_few_peptides():
                 & ~(peptide_df['Sequence'].isin(selected_peptides))
         )
     ]
+    return peptide_df_shortened
+
+
+def get_peptide_df_AD_CTR() -> pd.DataFrame:
+    df = peptide_import(
+        TEST_DATA_PATH / 'peptides/peptides_tau_AD01_CTR01.txt',
+        'Intensity',
+        map_to_uniprot=False
+    )['peptide_df']
+    return df
+
+
+@pytest.fixture
+def peptide_df():
+    return get_peptide_df_AD_CTR()
+
+
+@pytest.fixture
+def peptide_df_few_peptides():
+    peptide_df = get_peptide_df_AD_CTR()
+    all_peptides = peptide_df['Sequence'].unique()
+    selected_peptides = all_peptides[:8]
+    peptide_df_shortened = peptide_df[peptide_df['Sequence'].isin(selected_peptides)]
     return peptide_df_shortened
 
 
@@ -78,6 +79,7 @@ def metadata_df():
     return df
 
 
+# TODO: maybe remove
 # def metadata_df():
 #     dummy_protein_df = pd.DataFrame({'Sample': [
 #         'AD01_C1_INSOLUBLE_01',
@@ -97,7 +99,7 @@ def test_flexiquant(peptide_df, metadata_df):
     reference_group = 'AD'
     protein_group = 'P10636'
     grouping_column = 'Group'
-    num_samples = peptide_df[peptide_df['Sample'].str.contains(reference_group)]['Sample'].nunique()
+    num_samples = peptide_df['Sample'].nunique()
 
     mod_cutoff = 0.5
     result = flexiquant_lf(
@@ -137,7 +139,7 @@ def test_flexiquant_grouping_column_not_in_df(peptide_df, metadata_df):
     assert result['messages'][0]['msg'] == f"No {grouping_column} column found in provided dataframe."
 
 
-def test_flexiquant_reference_cond_not_in_group(peptide_df, metadata_df):
+def test_flexiquant_reference_group_not_in_group(peptide_df, metadata_df):
     reference_group = 'AAAAAAD'
     protein_group = 'P10636'
     grouping_column = 'Group'
@@ -216,7 +218,6 @@ def test_multiflex(peptide_df, metadata_df):
         deseq2_normalization=True,
         colormap=1,
     )
-    # TODO: maybe use old test case to provoke the other imputation error
     assert 'plots' in result and len(result['plots']) == 3
     plots = result['plots']
     rm_score_hist_data = plots[0].data
@@ -233,3 +234,89 @@ def test_multiflex(peptide_df, metadata_df):
     assert len(heatmap_data) == 1 and 'heatmap' in set(trace.type for trace in heatmap_data)
 
 
+def test_multiflex_grouping_column_not_in_df(peptide_df, metadata_df):
+    reference_group = 'AD'
+    grouping_column = 'NonExistentGroup'
+
+    result = multiflex_lf(
+        peptide_df=peptide_df,
+        metadata_df=metadata_df,
+        reference_group=reference_group,
+        grouping_column=grouping_column,
+        num_init=30,
+        mod_cutoff=0.5,
+        imputation_cosine_similarity=0.98,
+        deseq2_normalization=True,
+        colormap=1,
+    )
+    assert 'messages' in result
+    assert result['messages'][0]['msg'] == f"Grouping column {grouping_column} not found in metadata."
+
+
+def test_multiflex_reference_group_not_in_df(peptide_df, metadata_df):
+    reference_group = 'AAAAADDDDDD'
+    grouping_column = 'Group'
+
+    result = multiflex_lf(
+        peptide_df=peptide_df,
+        metadata_df=metadata_df,
+        reference_group=reference_group,
+        grouping_column=grouping_column,
+        num_init=30,
+        mod_cutoff=0.5,
+        imputation_cosine_similarity=0.98,
+        deseq2_normalization=True,
+        colormap=1,
+    )
+    assert 'messages' in result and len(result['messages']) == 1
+    assert result['messages'][0]['msg'] == f"Reference group {reference_group} not found in metadata."
+
+
+def test_multiflex_not_enough_valid_peptides(peptide_df_few_peptides, metadata_df):
+    # TODO: migrate peptide_df_few_peptides so that it has two groups
+    reference_group = 'AD'
+    grouping_column = 'Group'
+
+    result = multiflex_lf(
+        peptide_df=peptide_df_few_peptides,
+        metadata_df=metadata_df,
+        reference_group=reference_group,
+        grouping_column=grouping_column,
+        num_init=30,
+        mod_cutoff=0.5,
+        imputation_cosine_similarity=0.98,
+        deseq2_normalization=True,
+        colormap=1,
+    )
+    assert 'messages' in result and len(result['messages']) == 1
+    assert result['messages'][0]['msg'] == ('RM scores were not computed! Intensities of at least 5 peptides per '
+                                            'protein have to be given!')
+
+
+def test_multiflex_only_one_group(peptide_df_single_group, metadata_df):
+    reference_group = 'AD'
+    grouping_column = 'Group'
+
+    result = multiflex_lf(
+        peptide_df=peptide_df_single_group,
+        metadata_df=metadata_df,
+        reference_group=reference_group,
+        grouping_column=grouping_column,
+        num_init=30,
+        mod_cutoff=0.5,
+        imputation_cosine_similarity=0.98,
+        deseq2_normalization=True,
+        colormap=1,
+    )
+
+    assert 'messages' in result
+    assert result['messages'][0]['msg'] == "At least two groups are required for multiFLEX-LF analysis."
+
+# TODO:
+#  - Flexiquant produces errors and thus skips samples
+#  - No peptides present in two conditions
+#  - Imputation was unsuccessful - use old dataset
+#  - Test non_deseq2 normalization
+#  - Test cases similar to the Flexiquant tests above
+#  - for both: test other grouping column to see if there's more hard-coded stuff - make sure to use pytest option for
+#    "stratification"
