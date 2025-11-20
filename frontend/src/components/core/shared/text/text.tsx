@@ -127,6 +127,11 @@ export const InfoText = styled(({ ...rest }: LinkProps) => <Text as="span" {...r
   color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
 `;
 
+export const HeaderInfoText = styled(Text)`
+  font-size: ${fontSize("h6")};
+  color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
+`;
+
 const CollapsibleContainer = styled(motion.div)`
   overflow: hidden;
   white-space: nowrap;
