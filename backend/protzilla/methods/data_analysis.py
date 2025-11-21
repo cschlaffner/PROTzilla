@@ -15,8 +15,6 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_intensity_data, mann_whitney_test_on_ptm_data)
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
-from backend.protzilla.data_analysis.ptm_analysis import ptms_per_sample, \
-    ptms_per_protein_and_sample, select_peptides_of_protein
 from backend.protzilla.data_analysis.model_evaluation import evaluate_classification_model
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
@@ -32,9 +30,9 @@ from backend.protzilla.data_analysis.ptm_analysis import (
 )
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
-from backend.protzilla.steps import Plots, Step, StepManager
+from backend.protzilla.steps import Step, StepManager
 from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
-from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
+from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf, MultiFlexColorMaps
 
 
 class TTestType(Enum):
@@ -869,7 +867,7 @@ class FLEXIQuantLF(DataAnalysisStep):
 
     def create_form(self):
         return Form(
-            label="Volcano Plot",
+            label="FLEXIQuant-LF",
             input_fields=[
                 DropdownField(
                     name="grouping_column",
@@ -921,26 +919,20 @@ class FLEXIQuantLF(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+            step_type=Step,
+            output_key="peptide_df",
         )
         inputs["metadata_df"] = steps.metadata_df
+        return inputs
 
 
 class MultiFLEXLF(DataAnalysisStep):
     display_name = "MultiFLEX-LF"
     operation = "modification_quantification"
-    method_description = "Quantifies the extent of protein modifications in proteomics data by using robust linear regression to compare modified and unmodified peptide precursors and facilitates the analysis of modification dynamics and coregulated modifications across large datasets without the need for preselecting specific proteins."
-
-    input_keys = [
-        "peptide_df",
-        "metadata_df",
-        "reference_group",
-        "num_init",
-        "mod_cutoff",
-        "imputation_cosine_similarity",
-        "deseq2_normalization",
-        "colormap",
-    ]
+    method_description = ("Quantifies the extent of protein modifications in proteomics data by using robust linear "
+                          "regression to compare modified and unmodified peptide precursors and facilitates the "
+                          "analysis of modification dynamics and coregulated modifications across large datasets "
+                          "without the need for preselecting specific proteins.")
 
     output_keys = [
         "RM_scores_clustered",
@@ -948,18 +940,77 @@ class MultiFLEXLF(DataAnalysisStep):
         "raw_scores",
         "removed_peptides",
         "RM_scores",
+        "skipped_proteins"
     ]
 
-    def method(self, inputs: dict) -> dict:
-        return multiflex_lf(**inputs)
+    plot_method = staticmethod(multiflex_lf)
+
+    def create_form(self):
+        return Form(
+            label="multiFLEX-LF",
+            input_fields=[
+                DropdownField(
+                    name="grouping_column",
+                    label="Grouping column in metadata",
+                ),
+                DropdownField(
+                    name="reference_group",
+                    label="Reference group",
+                ),
+                NumberField(
+                    name="num_init",
+                    label="Number of RANSAC initiations",
+                    value=30,
+                    min=1,
+                    max=60,
+                    step=1,
+                    hasStepButtons=True,
+                ),
+                FloatField(
+                    name="mod_cutoff",
+                    label="Modification cutoff",
+                    value=0.5,
+                    min=0,
+                    max=1
+                ),
+                FloatField(
+                    name="imputation_cosine_similarity",
+                    label="Cosine similarity for imputation",
+                    value=0.98,
+                    min=0,
+                    max=1
+                ),
+                CheckboxField(
+                    name="deseq2_normalization",
+                    label="DESeq2 normalization",
+                    text="Use DESeq2 normalization",
+                ),
+                DropdownField(
+                    name="colormap",
+                    label="Color Map for Heatmap",
+                    options=MultiFlexColorMaps,
+                ),
+            ],
+        )
+
+    # TODO: merge mit flexiquant? - maybe also the form above
+    def modify_form(self, form, run):
+        grouping_field = form["grouping_column"]
+        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+
+        if grouping_field.options == []:
+            return
+        grouping = grouping_field.value
+
+        reference_group_field = form["reference_group"]
+        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+            step_type=Step,
+            output_key="peptide_df",
         )
-
         inputs["metadata_df"] = steps.metadata_df
-        inputs["colormap"] = int(inputs["colormap"])
         return inputs
 
 

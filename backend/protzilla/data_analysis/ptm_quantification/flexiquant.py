@@ -527,6 +527,7 @@ def create_regression_plots(
             idx = int(val * (len(colorscale) - 1))
             return colorscale[idx]
 
+        # TODO: fix list index out of range for high/low mod_cutoff
         return [interp_color(v) for v in values]
 
     # If we have less than 20 peptides, plot each point individually to get a legend
@@ -630,19 +631,26 @@ def normalize_t3median(dataframe: pd.DataFrame):
     return dataframe_t3med
 
 
-def scale_to_mod_cutoff(values: list[float], cutoff: float) -> list[float]:
+def scale_to_mod_cutoff(values: list[float], cutoff: float, eps: float = 1e-6) -> list[float]:
     """
     Scales values to a cutoff value.
 
     :param values: List of values to be scaled.
     :param cutoff: Cutoff value.
+    :param eps: Small value to avoid division by zero.
     """
+    if cutoff == 0:
+        cutoff += eps
+    if cutoff == 1:
+        cutoff -= eps
 
-    return [
+    # TODO: understand what this function does and then fix it so that the values do not run out of bounds
+    scaled_values = [
         0.5 + (v - cutoff) * 0.5 / (1 - cutoff)
         if v >= 0.5
         else v * 0.5 / cutoff
         if v >= 0
-        else v
+        else v  # -1 stays -1
         for v in values
     ]
+    return scaled_values

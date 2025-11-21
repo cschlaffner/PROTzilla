@@ -11,7 +11,7 @@ django-cors-headers==4.9.0
 gseapy==1.1.10
 isort==7.0.0
 joblib==1.5.2
-kaleido==1.2.0
+kaleido~=0.1
 networkx==3.5
 numba==0.62.1
 numpy<=2.2.5  # because of parmed in dashbio

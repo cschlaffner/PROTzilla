@@ -1,8 +1,6 @@
 import pandas as pd
 import pytest
-from gseapy import heatmap
 
-from protzilla.data_analysis.plots import clustergram_plot
 from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
 from protzilla.importing.metadata_import import metadata_import_method
@@ -87,19 +85,23 @@ def metadata_df():
 
 
 @pytest.mark.parametrize(
-    "reference_group,grouping_column",
+    "reference_group,grouping_column,mod_cutoff",
     [
-        ('AD', 'Group'),
-        ('CTR', 'Group'),
-        ('C1', 'Batch'),
-        ('C2', 'Batch'),
+        ('AD', 'Group', 0.5),
+        ('CTR', 'Group', 0.5),
+        ('C1', 'Batch', 0.5),
+        ('C2', 'Batch', 0.5),
+        # TODO: include after fixing functions
+        # ('AD', 'Group', 0.),
+        # ('AD', 'Group', 0.05),
+        # ('AD', 'Group', 0.95),
+        # ('AD', 'Group', 1.),
     ],
 )
-def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column):
+def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, mod_cutoff):
     protein_group = 'P10636'
     num_samples = peptide_df['Sample'].nunique()
 
-    mod_cutoff = 0.5
     result = flexiquant_lf(
         peptide_df,
         metadata_df,
@@ -218,20 +220,20 @@ def check_multiflex_plots_valid(result: dict, n_samples):
 
 
 @pytest.mark.parametrize(
-    "deseq2_normalization,reference_group,grouping_column,colormap",
+    "deseq2_normalization,reference_group,grouping_column,colormap,imputation_cosine_similarity",
     [
-        (True, 'AD', 'Group', 0),
-        (False, 'AD', 'Group', 1),
-        (True, 'CTR', 'Group', 2),
-        (False, 'CTR', 'Group', 3),
-        (True, 'C1', 'Batch', 4),
-        (False, 'C1', 'Batch', 5),
-        (False, 'AD', 'Group', 6),
-        (False, 'AD', 'Group', 7),
-        (False, 'AD', 'Group', 8),
+        (True, 'AD', 'Group', "Red-Blue", 0.),
+        (False, 'AD', 'Group', "Pink-Green", 1.),
+        (True, 'CTR', 'Group', "Purple-Green", 0.98),
+        (False, 'CTR', 'Group', "Orange-Purple", 0.5),
+        (True, 'C1', 'Batch', "Red-Grey", 0.5),
+        (False, 'C1', 'Batch', "Red-Yellow-Green", 0.5),
+        (False, 'AD', 'Group', "Red-Yellow-Blue", 0.5),
+        (False, 'AD', 'Group', "Coloooooooooooor", 0.5),
+
     ],
 )
-def test_multiflex(peptide_df, metadata_df, deseq2_normalization, reference_group, grouping_column, colormap):
+def test_multiflex(peptide_df, metadata_df, deseq2_normalization, reference_group, grouping_column, colormap, imputation_cosine_similarity):
     n_samples = metadata_df['Sample'].nunique()
 
     result = multiflex_lf(
@@ -239,10 +241,9 @@ def test_multiflex(peptide_df, metadata_df, deseq2_normalization, reference_grou
         metadata_df=metadata_df,
         reference_group=reference_group,
         grouping_column=grouping_column,
-        # TODO: test any of these args?
         num_init=30,
         mod_cutoff=0.5,
-        imputation_cosine_similarity=0.98,
+        imputation_cosine_similarity=imputation_cosine_similarity,
         deseq2_normalization=deseq2_normalization,
         colormap=colormap,
     )

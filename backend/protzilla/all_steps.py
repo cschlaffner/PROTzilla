@@ -56,6 +56,7 @@ _forward_mapping = [
     data_analysis.ProteinGraphVariationGraph,
     data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
+    data_analysis.MultiFLEXLF,
     data_analysis.PTMsPerSample,
     data_analysis.PTMsProteinAndPerSample,
     data_preprocessing.ImputationByMinPerSample,
