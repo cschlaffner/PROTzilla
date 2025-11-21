@@ -1,5 +1,6 @@
 import logging
 from collections import Counter
+from enum import Enum
 from math import sqrt, ceil
 
 import pandas as pd
@@ -16,7 +17,16 @@ from scipy.spatial.distance import cdist
 from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 
 
-# TODO: also needs form
+class MultiFlexColorMaps(Enum):
+    RdBu = "Red-Blue"
+    PiYG = "Pink-Green"
+    PRGn = "Purple-Green"  # preserves original first colormap==3 branch
+    PuOr = "Orange-Purple"
+    RdGy = "Red-Grey"
+    RdYlGn = "Red-Yellow-Green"
+    RdYlBu = "Red-Yellow-Blue"
+
+
 def multiflex_lf(
         peptide_df: pd.DataFrame,
         metadata_df: pd.DataFrame,
@@ -26,7 +36,7 @@ def multiflex_lf(
         mod_cutoff: float = 0.5,
         imputation_cosine_similarity: float = 0.98,
         deseq2_normalization: bool = True,
-        colormap: int = 1,
+        colormap: str = next(iter(MultiFlexColorMaps)).name,
 ) -> dict:
     """
     Quantifies the extent of protein modifications in proteomics data by using robust linear regression to compare modified and unmodified peptide precursors
@@ -60,14 +70,14 @@ def multiflex_lf(
     """
 
     # create dataframe input for multiflex-lf
-    df_intens_matrix_all_proteins = pd.DataFrame(
-        {
-            "ProteinID": peptide_df["Protein ID"],
-            "PeptideID": peptide_df["Sequence"],
-            "Sample": peptide_df["Sample"],
-            "Intensity": peptide_df["Intensity"],
-        }
+    df_intens_matrix_all_proteins = (
+        peptide_df[["Protein ID", "Sequence", "Sample", "Intensity"]]
+        .rename(columns={
+            "Sequence": "PeptideID",
+            "Protein ID": "ProteinID"
+        })
     )
+
     if grouping_column not in metadata_df.columns:
         return dict(
             messages=[
@@ -99,8 +109,10 @@ def multiflex_lf(
             )],
         )
 
+    # TODO: inefficient? - How to deal with large datasets? At least warn user?
     df_intens_matrix_all_proteins = (
-        df_intens_matrix_all_proteins.dropna(subset=["Intensity"])
+        df_intens_matrix_all_proteins
+        .dropna(subset="Intensity")
         .groupby(["ProteinID", "PeptideID", grouping_column, "Sample"])["Intensity"]
         .apply(max)
         .unstack(level=[grouping_column, "Sample"])
@@ -236,19 +248,10 @@ def multiflex_lf(
         )
 
     # define the colormap for the heatmap as specified by the user
-    _cmaps = {
-        1: "RdBu",
-        2: "PiYG",
-        3: "PRGn",  # preserves original first colormap==3 branch
-        4: "PuOr",
-        5: "RdGy",
-        6: "RdYlGn",
-        7: "RdYlBu",
-    }
-    if colormap in _cmaps:
-        color_map = _cmaps[colormap]
-    else:
-        color_map = _cmaps[next(iter(_cmaps))]  # Picks first key from dict
+    try:
+        color_map = MultiFlexColorMaps(colormap).name
+    except ValueError:
+        color_map = next(iter(MultiFlexColorMaps)).name  # Picks first key from enum
 
     # sort the proteins descending by number of peptides and samples with a RM scores below the modification cutoff
     sorted_proteins = list(
