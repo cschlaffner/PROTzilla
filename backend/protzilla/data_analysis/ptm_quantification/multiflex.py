@@ -17,7 +17,6 @@ from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 
 
 # TODO: also needs form
-# TODO: tests?
 def multiflex_lf(
         peptide_df: pd.DataFrame,
         metadata_df: pd.DataFrame,
@@ -25,7 +24,6 @@ def multiflex_lf(
         grouping_column: str,
         num_init: int = 30,
         mod_cutoff: float = 0.5,
-        # TODO: check what these params change and try to test them (in a small grid_search way?)
         imputation_cosine_similarity: float = 0.98,
         deseq2_normalization: bool = True,
         colormap: int = 1,
@@ -86,36 +84,31 @@ def multiflex_lf(
     )
 
     # check if reference identifier exists in Group column
-    # TODO: test
-    if str(reference_group) not in set(df_intens_matrix_all_proteins["Group"].astype(str)):
+    if str(reference_group) not in set(df_intens_matrix_all_proteins[grouping_column].astype(str)):
         return dict(
-            messages=[
-                dict(
+            messages=[dict(
                     level=logging.ERROR,
                     msg=f"Reference group {reference_group} not found in metadata.",
-                )
-            ],
+            )],
         )
     if df_intens_matrix_all_proteins[grouping_column].nunique() < 2:
         return dict(
-            messages=[
-                dict(
+            messages=[dict(
                     level=logging.ERROR,
                     msg="At least two groups are required for multiFLEX-LF analysis.",
-                )
-            ],
+            )],
         )
 
     df_intens_matrix_all_proteins = (
         df_intens_matrix_all_proteins.dropna(subset=["Intensity"])
-        .groupby(["ProteinID", "PeptideID", "Group", "Sample"])["Intensity"]
+        .groupby(["ProteinID", "PeptideID", grouping_column, "Sample"])["Intensity"]
         .apply(max)
-        .unstack(level=["Group", "Sample"])
+        .unstack(level=[grouping_column, "Sample"])
         .T
     )
     df_intens_matrix_all_proteins = df_intens_matrix_all_proteins.set_index(
         [
-            df_intens_matrix_all_proteins.index.get_level_values("Group"),
+            df_intens_matrix_all_proteins.index.get_level_values(grouping_column),
             df_intens_matrix_all_proteins.index.get_level_values("Sample"),
         ]
     )
@@ -135,7 +128,7 @@ def multiflex_lf(
 
     skipped_proteins = []
 
-    flexi_error_messages = set()
+    flexi_error_messages = []
     for protein in list_proteins:
         flexi_result = flexiquant_lf(
             peptide_df=peptide_df,
@@ -147,7 +140,6 @@ def multiflex_lf(
             mod_cutoff=mod_cutoff,
         )
 
-        # TODO: test
         error_messages = [
             message
             for message in flexi_result["messages"]
@@ -155,7 +147,9 @@ def multiflex_lf(
         ]
         if any(error_messages):
             skipped_proteins.append(protein)
-            flexi_error_messages.update(msg['msg'] for msg in error_messages)
+            flexi_error_messages.extend(
+                f'FlexiQuant skipped protein {protein} because: {msg["msg"]}' for msg in error_messages
+            )
             continue
 
         protein_raw_scores = flexi_result["raw_scores"]
@@ -169,7 +163,7 @@ def multiflex_lf(
                 "R2 model",
                 "R2 data",
                 "Reproducibility factor",
-                "Group",
+                grouping_column,
             ],
             inplace=True,
         )
@@ -181,7 +175,7 @@ def multiflex_lf(
         df_raw_scores = pd.concat([df_raw_scores, protein_raw_scores])
 
         protein_diff_modified = flexi_result["diff_modified"]
-        protein_diff_modified.drop(columns=["Group"], inplace=True)
+        protein_diff_modified.drop(columns=[grouping_column], inplace=True)
         protein_diff_modified = protein_diff_modified.T
         protein_diff_modified.columns = protein_diff_modified.loc["Sample"]
         protein_diff_modified["ProteinID"] = protein
@@ -204,8 +198,8 @@ def multiflex_lf(
         protein_RM_scores = flexi_result["RM_scores"]
         protein_RM_scores = protein_RM_scores.T
         protein_RM_scores.columns = pd.MultiIndex.from_arrays(
-            [protein_RM_scores.loc["Group"], protein_RM_scores.loc["Sample"]],
-            names=["Group", "Sample"],
+            [protein_RM_scores.loc[grouping_column], protein_RM_scores.loc["Sample"]],
+            names=[grouping_column, "Sample"],
         )
         protein_RM_scores["ProteinID"] = protein
         protein_RM_scores.drop(
@@ -215,7 +209,7 @@ def multiflex_lf(
                 "R2 model",
                 "R2 data",
                 "Reproducibility factor",
-                "Group",
+                grouping_column,
             ],
             inplace=True,
         )
@@ -254,7 +248,7 @@ def multiflex_lf(
     if colormap in _cmaps:
         color_map = _cmaps[colormap]
     else:
-        color_map = _cmaps[0]
+        color_map = _cmaps[next(iter(_cmaps))]  # Picks first key from dict
 
     # sort the proteins descending by number of peptides and samples with a RM scores below the modification cutoff
     sorted_proteins = list(
@@ -283,13 +277,12 @@ def multiflex_lf(
 
     # keep only peptides that have RM scores in at least two groups
     to_remove = RM_scores_df.loc[
-        RM_scores_df.T.groupby("Group").count().replace(0, nan).count() < 2
+        RM_scores_df.T.groupby(grouping_column).count().replace(0, nan).count() < 2
     ].index
     df_RM_scores_all_proteins_reduced = RM_scores_df.drop(to_remove, axis=0)
     removed_peptides = pd.DataFrame(list(to_remove))
 
     if df_RM_scores_all_proteins_reduced.empty:
-        # TODO: would be nice to test in case where enough groups are present
         if len(removed_peptides) > 0:
             removed_peptides.columns = ["ProteinID", "PeptideID"]
             removed_peptides = removed_peptides.set_index(["ProteinID"])
@@ -312,7 +305,6 @@ def multiflex_lf(
     removed_peptides = pd.concat([removed_peptides, removed])
 
     # check if RM scores dataframe is empty, if true return error and finish analysis
-    # TODO: test
     if df_RM_scores_all_proteins_imputed.empty:
         # add removed peptides to csv file
         if len(removed_peptides) > 0:
@@ -330,13 +322,12 @@ def multiflex_lf(
         )
 
     # list of all groups for creation the distribution plots and protein-wise heatmaps
-    list_groups = list(set(RM_scores_df.columns.get_level_values("Group")))
+    list_groups = list(set(RM_scores_df.columns.get_level_values(grouping_column)))
     list_groups.sort()
 
-    # TODO: test this whole path
     if deseq2_normalization:
         groups = pd.DataFrame(list(RM_scores_df.columns))
-        groups.columns = ["Group", "Sample"]
+        groups.columns = [grouping_column, "Sample"]
         df_normalization = df_RM_scores_all_proteins_imputed.copy()
 
         # one column per peptide, one row per sample
@@ -367,9 +358,17 @@ def multiflex_lf(
         if len(removed) > 0:
             removed_peptides = pd.concat((removed_peptides, removed))
 
-        rm_score_dist_plots = create_RM_score_distribution_plots(df_RM_scores_all_proteins_reduced, list_groups)
+        rm_score_dist_plots = create_RM_score_distribution_plots(
+            df_RM_scores_all_proteins_reduced,
+            grouping_column=grouping_column,
+            list_groups=list_groups
+        )
     else:
-        rm_score_dist_plots = create_RM_score_distribution_plots(RM_scores_df, list_groups)
+        rm_score_dist_plots = create_RM_score_distribution_plots(
+            RM_scores_df,
+            grouping_column=grouping_column,
+            list_groups=list_groups
+        )
 
     if len(removed_peptides) > 0:
         removed_peptides.columns = ["ProteinID", "PeptideID"]
@@ -414,14 +413,16 @@ def multiflex_lf(
         diff_modified=df_diff_modified,
         raw_scores=df_raw_scores,
         removed_peptides=removed_peptides,
+        skipped_proteins=skipped_proteins,
         RM_scores=RM_scores_df,
         plots=[rm_score_dist_plots, peptide_clustering_fig] + heatmap_plots,
-        messages=[],
+        messages=flexi_error_messages,
     )
 
 
 def create_RM_score_distribution_plots(
         RM_scores_df: pd.DataFrame,
+        grouping_column: str,
         list_groups: list[str],
         nbins: int = 30
 ) -> go.Figure:
@@ -436,13 +437,13 @@ def create_RM_score_distribution_plots(
     fig = make_subplots(
         cols=num_cols,
         rows=num_groups // num_cols + (num_groups % num_cols > 0),
-        subplot_titles=["Group: " + group for group in list_groups],
+        subplot_titles=[f"{grouping_column}: " + group for group in list_groups],
         horizontal_spacing=0.05,
         vertical_spacing=0.05,
     )
 
     # list of colors for the color coding of the different samples in one group
-    n_most_common_group = Counter(RM_scores_df.columns.get_level_values("Group")).most_common(1)[0][1]
+    n_most_common_group = Counter(RM_scores_df.columns.get_level_values(grouping_column)).most_common(1)[0][1]
     colors_list = colors.sample_colorscale('Phase', [i / n_most_common_group for i in range(n_most_common_group)])
 
     data_min = RM_scores_df.min(axis=None)
