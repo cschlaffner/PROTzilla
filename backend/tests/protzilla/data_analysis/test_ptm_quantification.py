@@ -91,11 +91,10 @@ def metadata_df():
         ('CTR', 'Group', 0.5),
         ('C1', 'Batch', 0.5),
         ('C2', 'Batch', 0.5),
-        # TODO: include after fixing functions
-        # ('AD', 'Group', 0.),
-        # ('AD', 'Group', 0.05),
-        # ('AD', 'Group', 0.95),
-        # ('AD', 'Group', 1.),
+        ('AD', 'Group', 0.),
+        ('AD', 'Group', 0.05),
+        ('AD', 'Group', 0.95),
+        ('AD', 'Group', 1.),
     ],
 )
 def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, mod_cutoff):
@@ -111,6 +110,17 @@ def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, m
         num_init=30,
         mod_cutoff=mod_cutoff
     )
+    # Check calculations
+    meta_columns = ['Sample', 'Group', 'Reproducibility factor', 'R2 data', 'R2 model', 'Slope']
+    rm_scores = result['RM_scores'].drop(meta_columns, axis=1)
+    diff_mod_mask = result['diff_modified'].drop(['Sample', 'Group'], axis=1)
+    diff_mod_scores = rm_scores[diff_mod_mask].where(diff_mod_mask, other=-1)
+    assert diff_mod_scores.lt(mod_cutoff).all().all()
+
+    non_diff_mod_scores = rm_scores[~diff_mod_mask].fillna(mod_cutoff + 1)
+    assert non_diff_mod_scores.ge(mod_cutoff).all().all()
+
+    # Check plots
     assert 'plots' in result and len(result['plots']) == num_samples
     removed_peptides = result['removed_peptides']
     assert set(removed_peptides).isdisjoint(set(result['diff_modified']))
@@ -400,3 +410,6 @@ def test_multiflex_flexiquant_errors(peptide_df_not_all_proteins_present_in_both
             and set(result['skipped_proteins']) == set(proteins_not_in_control)
     )
     check_multiflex_plots_valid(result, n_samples)
+
+# TODO: test case for more and less than 20 peptides
+# TODO: nochmal mit dem APCC Datensatz aus Paper testen
