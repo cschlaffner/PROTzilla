@@ -44,6 +44,8 @@ def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
         # If duplicates are not remove this could negatively impact downstream analysis, e.g. produces wrong p-values
         # in differential expression tests.
         meta_df = meta_df.drop_duplicates()
+        if meta_df.empty:
+            raise pd.errors.EmptyDataError
         msg = "Metadata file successfully imported."
         return meta_df, msg
     except pd.errors.EmptyDataError:

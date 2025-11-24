@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 from numpy import array, nan, sqrt, square
@@ -10,6 +11,31 @@ from scipy.stats import f, median_abs_deviation
 from sklearn import linear_model
 
 CONFIDENCE_BAND_ALPHA = 0.3
+
+
+def rm_score_to_color(value: float, mod_cutoff: float) -> str:
+    """
+    Maps RM score to a color.
+
+    :param value: RM score value.
+    :param mod_cutoff: Modification cutoff value.
+    :return: Color as a string.
+    """
+    colorscale = px.colors.sample_colorscale(
+        px.colors.diverging.RdBu,
+        [0.1, 0.9]
+    )
+    # TODO: use three-tiered color scheme? If yes, what about cutoff?
+    if np.isnan(value):
+        return 'rgba(191, 191, 191, 1.0)'  # gray for NaN / -1
+    elif value < mod_cutoff:
+        return colorscale[0]
+    else:
+        colorscale = px.colors.sample_colorscale(
+            px.colors.sequential.Greens,
+            [0.9]
+        )
+        return colorscale[0]
 
 
 def flexiquant_lf(
@@ -196,27 +222,25 @@ def flexiquant_lf(
         # calculate confidence band
         alpha = 0.3
         df_distance_RL, df_train = calculate_confidence_band(
-            slope,
-            median_intensities,
-            df_train,
-            X,
-            y,
-            row,
-            idx,
-            df_distance_RL,
-            CONFIDENCE_BAND_ALPHA,
+            slope=slope,
+            median_int=median_intensities,
+            dataframe_train=df_train,
+            X=df_train["Reference intensity"],
+            y=y,
+            row=row,
+            idx=idx,
+            matrix_distance_RL=df_distance_RL,
+            alpha=CONFIDENCE_BAND_ALPHA,
         )
 
-        # plot scatter plot with regression line
-
-        plot_dict[sample_column[idx]] = [
-            df_train,
-            idx,
-            r2_score_model,
-            r2_score_data,
-            slope,
-            alpha,
-        ]
+        plot_dict[sample_column[idx]] = dict(
+            dataframe_train=df_train,
+            idx=idx,
+            r2_score_model=r2_score_model,
+            r2_score_data=r2_score_data,
+            slope=slope,
+            alpha=alpha,
+        )
 
     df_distance_RL["Slope"] = slope_list
     df_raw_scores = calc_raw_scores(df_distance_RL, median_intensities)
@@ -235,7 +259,7 @@ def flexiquant_lf(
     # remove peptides with raw scores > cutoff for each sample
     df_raw_scores_T_cutoff = df_raw_scores_T[
         round(df_raw_scores_T, 5) <= round(cutoff, 5)
-        ]
+    ]
     removed = pd.Series(
         df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
     )
@@ -272,9 +296,9 @@ def flexiquant_lf(
         if sample in plot_dict:
             regression_plots.append(
                 create_regression_plots(
-                    *plot_dict[sample],
-                    sample_column,
-                    df_RM[df_RM["Sample"] == sample].iloc[0],
+                    **plot_dict[sample],
+                    sample_column=sample_column,
+                    rm_scores=df_RM[df_RM["Sample"] == sample].iloc[0],
                     mod_cutoff=mod_cutoff,
                     grouping_column=grouping_column,
                 )
@@ -327,9 +351,9 @@ def calculate_confidence_band(
         idx: int,
         matrix_distance_RL: pd.DataFrame,
         alpha: float,
-):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Calculates confidence bands arround the regression line.
+    Calculates confidence bands around the regression line.
 
     :param slope: Slope of the regression line.
     :param median_int: Median intensity of the reference group.
@@ -343,7 +367,7 @@ def calculate_confidence_band(
     """
 
     # calculate predicted intensity with Reference intensity of a peptide and slope of the sample (Y hat)
-    Y_pred = slope * median_int
+    Y_pred = median_int * X
 
     # calculate W
     N = len(dataframe_train)
@@ -390,10 +414,10 @@ def calculate_confidence_band(
     pred_ints = median_int * slope
 
     # calculate distance to regression line
-    distance_RL = pred_ints - row
+    distances_to_regression_line = pred_ints - row
 
     # save distances in matrix_distance
-    matrix_distance_RL.loc[idx] = distance_RL
+    matrix_distance_RL.loc[idx] = distances_to_regression_line
 
     # add CBs as columns to dataframe_train
     dataframe_train["CB low"] = CB_low
@@ -511,25 +535,6 @@ def create_regression_plots(
     with pd.option_context('future.no_silent_downcasting', True):
         rm_scores.fillna(-1, inplace=True)
 
-    def cmap(values: list[float]):
-        # Tries to mimic the original FLEXIQuant color scale, but isn't perfect
-        colorscale = [
-            f"rgba({0.8340245009323628 * 255},{0.237592525883977 * 255},{0.413389203308121 * 255})"
-            "rgb(99, 99, 99)",  # light gray in the middle
-            f"rgb({0.310841115279521 * 255},{0.516974408539226 * 255},{0.221301273388138 * 255})",
-        ]
-        colorscale = px.colors.sample_colorscale(colorscale, [i / 255 for i in range(256)])
-
-        # Interpolate colors from the scale
-        def interp_color(val):
-            if np.isnan(val):
-                return 'rgba(191, 191, 191, 1.0)'  # gray for NaN / -1
-            idx = int(val * (len(colorscale) - 1))
-            return colorscale[idx]
-
-        # TODO: fix list index out of range for high/low mod_cutoff
-        return [interp_color(v) for v in values]
-
     # If we have less than 20 peptides, plot each point individually to get a legend
     if len(dataframe_train) <= 20:
         for i, row in dataframe_train.iterrows():
@@ -539,7 +544,9 @@ def create_regression_plots(
                     y=[row["Sample intensity"]],
                     mode="markers",
                     name=row.name,
-                    marker=dict(color=cmap(scale_to_mod_cutoff([rm_scores.loc[i, "RM score"]], mod_cutoff))),
+                    marker=dict(
+                        color=rm_score_to_color(rm_scores.loc[i, "RM score"], mod_cutoff)
+                    ),
                 ),
                 row=2,
                 col=1
@@ -551,7 +558,7 @@ def create_regression_plots(
                 y=dataframe_train["Sample intensity"],
                 mode="markers",
                 marker=dict(
-                    color=cmap(scale_to_mod_cutoff(list(rm_scores["RM score"]), mod_cutoff))
+                    color=rm_scores["RM score"].apply(lambda v: rm_score_to_color(v, mod_cutoff))
                 ),
                 showlegend=False,
             ),
@@ -575,6 +582,7 @@ def create_regression_plots(
     return fig
 
 
+# TODO: this probs also needs a test case
 def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series) -> pd.DataFrame:
     """
     Calculates raw scores for each sample based on the distance to the regression line.
@@ -605,7 +613,7 @@ def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series) -> pd.Data
     return df_rs
 
 
-def normalize_t3median(dataframe: pd.DataFrame):
+def normalize_t3median(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Applies Top3 median normalization to dataframe.
     Determines the median of the three highest values in each row and divides every value in the row by it.
@@ -629,28 +637,3 @@ def normalize_t3median(dataframe: pd.DataFrame):
         dataframe_t3med.loc[idx] = row_norm
 
     return dataframe_t3med
-
-
-def scale_to_mod_cutoff(values: list[float], cutoff: float, eps: float = 1e-6) -> list[float]:
-    """
-    Scales values to a cutoff value.
-
-    :param values: List of values to be scaled.
-    :param cutoff: Cutoff value.
-    :param eps: Small value to avoid division by zero.
-    """
-    if cutoff == 0:
-        cutoff += eps
-    if cutoff == 1:
-        cutoff -= eps
-
-    # TODO: understand what this function does and then fix it so that the values do not run out of bounds
-    scaled_values = [
-        0.5 + (v - cutoff) * 0.5 / (1 - cutoff)
-        if v >= 0.5
-        else v * 0.5 / cutoff
-        if v >= 0
-        else v  # -1 stays -1
-        for v in values
-    ]
-    return scaled_values
