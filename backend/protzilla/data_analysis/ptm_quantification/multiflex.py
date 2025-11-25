@@ -109,29 +109,7 @@ def multiflex_lf(
             )],
         )
 
-    # TODO: inefficient? - How to deal with large datasets? At least warn user?
-    df_intens_matrix_all_proteins = (
-        df_intens_matrix_all_proteins
-        .dropna(subset="Intensity")
-        .groupby(["ProteinID", "PeptideID", grouping_column, "Sample"])["Intensity"]
-        .apply(max)
-        .unstack(level=[grouping_column, "Sample"])
-        .T
-    )
-    df_intens_matrix_all_proteins = df_intens_matrix_all_proteins.set_index(
-        [
-            df_intens_matrix_all_proteins.index.get_level_values(grouping_column),
-            df_intens_matrix_all_proteins.index.get_level_values("Sample"),
-        ]
-    )
-    df_intens_matrix_all_proteins = df_intens_matrix_all_proteins.sort_index(axis=0).sort_index(axis=1)
-
-    # create a list of all proteins in the dataset
-    list_proteins = (
-        df_intens_matrix_all_proteins.columns.get_level_values("ProteinID")
-        .unique()
-        .sort_values()
-    )
+    list_proteins = sorted(df_intens_matrix_all_proteins.dropna(subset="Intensity")['ProteinID'].unique().tolist())
 
     df_diff_modified = pd.DataFrame()
     df_raw_scores = pd.DataFrame()
@@ -141,7 +119,10 @@ def multiflex_lf(
     skipped_proteins = []
 
     flexi_error_messages = []
-    for protein in list_proteins:
+
+    # TODO
+    from tqdm import tqdm
+    for protein in tqdm(list_proteins):
         flexi_result = flexiquant_lf(
             peptide_df=peptide_df,
             metadata_df=metadata_df,
