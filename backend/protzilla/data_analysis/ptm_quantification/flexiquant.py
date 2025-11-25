@@ -3,7 +3,6 @@ import logging
 import numpy as np
 import pandas as pd
 import plotly
-import plotly.express as px
 import plotly.graph_objects as go
 from numpy import array, nan, sqrt, square
 from plotly.subplots import make_subplots
@@ -13,29 +12,46 @@ from sklearn import linear_model
 CONFIDENCE_BAND_ALPHA = 0.3
 
 
-def rm_score_to_color(value: float, mod_cutoff: float) -> str:
+def rm_score_to_color(value: float, mod_cutoff: float, colors: list[str] = plotly.colors.qualitative.D3) -> str:
     """
     Maps RM score to a color.
 
     :param value: RM score value.
     :param mod_cutoff: Modification cutoff value.
+    :param colors: List of colors to use.
     :return: Color as a string.
     """
-    colorscale = px.colors.sample_colorscale(
-        px.colors.diverging.RdBu,
-        [0.1, 0.9]
-    )
     # TODO: use three-tiered color scheme? If yes, what about cutoff?
     if np.isnan(value):
-        return 'rgba(191, 191, 191, 1.0)'  # gray for NaN / -1
+        return colors[7]
     elif value < mod_cutoff:
-        return colorscale[0]
+        return colors[3]  # red
     else:
-        colorscale = px.colors.sample_colorscale(
-            px.colors.sequential.Greens,
-            [0.9]
-        )
-        return colorscale[0]
+        return colors[2]  # green
+
+
+def postprocess_raw_scores(df_raw_scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    # Assume df_raw_scores is your input DataFrame
+    # calculate MAD per sample
+    df_raw_scores.drop("Slope", axis=1, inplace=True)
+    df_raw_scores_T = df_raw_scores.T
+    df_raw_scores_T = df_raw_scores_T.apply(pd.to_numeric, errors="coerce")
+    mad = (df_raw_scores_T - df_raw_scores_T.mean()).abs().mean()
+    median = df_raw_scores_T.median(axis=0)
+
+    # calculate cutoff value for each time point (> 3*MAD)
+    cutoff = median + 3 * mad
+
+    # remove peptides with raw scores > cutoff for each sample
+    df_raw_scores_T_cutoff = df_raw_scores_T[
+        round(df_raw_scores_T, 5) <= round(cutoff, 5)
+        ]
+    removed = pd.Series(
+        df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
+    )
+    df_raw_scores_T_cutoff.dropna(axis=0, how="all", inplace=True)
+    df_raw_scores_cutoff = df_raw_scores_T_cutoff.T
+    return df_raw_scores_cutoff, removed
 
 
 def flexiquant_lf(
@@ -56,6 +72,7 @@ def flexiquant_lf(
     :param metadata_df: DataFrame containing metadata.
     :param reference_group: Name of the reference group.
     :param protein_group: Protein ID that should be analysed.
+    :param grouping_column: Name of the grouping column in metadata_df.
     :param num_init: Number of initializations for RANSAC regression.
     :param mod_cutoff: RM score cutoff value for modified peptides.
     """
@@ -244,7 +261,7 @@ def flexiquant_lf(
 
     df_distance_RL["Slope"] = slope_list
     df_raw_scores = calc_raw_scores(df_distance_RL, median_intensities)
-
+    # TODO
     # Assume df_raw_scores is your input DataFrame
     # calculate MAD per sample
     df_raw_scores.drop("Slope", axis=1, inplace=True)
@@ -258,13 +275,15 @@ def flexiquant_lf(
 
     # remove peptides with raw scores > cutoff for each sample
     df_raw_scores_T_cutoff = df_raw_scores_T[
-        round(df_raw_scores_T, 5) <= round(cutoff, 5)
+           round(df_raw_scores_T, 5) <= round(cutoff, 5)
     ]
     removed = pd.Series(
-        df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
+            df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
     )
     df_raw_scores_T_cutoff.dropna(axis=0, how="all", inplace=True)
     df_raw_scores_cutoff = df_raw_scores_T_cutoff.T
+    # df_raw_scores_cutoff, removed = postprocess_raw_scores(df_raw_scores)
+    # TODO end
 
     # apply t3median normalization to calculate RM scores
     df_RM = normalize_t3median(df_raw_scores_cutoff)
@@ -390,9 +409,9 @@ def calculate_confidence_band(
     CB_high = []
 
     # iterate through median peptide intensities
-    for idx_2, elm in dataframe_train["Reference intensity"].items():
+    for idx_2, reference_intensity in dataframe_train["Reference intensity"].items():
         # calculate squared distance to mean X (numerator)
-        dist_X_bar = square(elm - X_bar)
+        dist_X_bar = square(reference_intensity - X_bar)
 
         # calculate sum of squared distances to mean X(denominator)
         sum_dist_X_bar = sum(square(X - X_bar))
@@ -401,7 +420,7 @@ def calculate_confidence_band(
         s = float(sqrt(MSE * ((1 / N) + (dist_X_bar / sum_dist_X_bar))))
 
         # calculate predicted intensity for given X
-        Y_hat = slope * elm
+        Y_hat = slope * reference_intensity
 
         # calculate high and low CB values and append to list
         cb_low = Y_hat - W * s
@@ -532,8 +551,6 @@ def create_regression_plots(
     rm_scores = dataframe_train.merge(
         rm_scores, left_index=True, right_index=True, how="left"
     )
-    with pd.option_context('future.no_silent_downcasting', True):
-        rm_scores.fillna(-1, inplace=True)
 
     # If we have less than 20 peptides, plot each point individually to get a legend
     if len(dataframe_train) <= 20:
@@ -582,7 +599,6 @@ def create_regression_plots(
     return fig
 
 
-# TODO: this probs also needs a test case
 def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series) -> pd.DataFrame:
     """
     Calculates raw scores for each sample based on the distance to the regression line.
