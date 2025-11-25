@@ -261,29 +261,7 @@ def flexiquant_lf(
 
     df_distance_RL["Slope"] = slope_list
     df_raw_scores = calc_raw_scores(df_distance_RL, median_intensities)
-    # TODO
-    # Assume df_raw_scores is your input DataFrame
-    # calculate MAD per sample
-    df_raw_scores.drop("Slope", axis=1, inplace=True)
-    df_raw_scores_T = df_raw_scores.T
-    df_raw_scores_T = df_raw_scores_T.apply(pd.to_numeric, errors="coerce")
-    mad = (df_raw_scores_T - df_raw_scores_T.mean()).abs().mean()
-    median = df_raw_scores_T.median(axis=0)
-
-    # calculate cutoff value for each time point (> 3*MAD)
-    cutoff = median + 3 * mad
-
-    # remove peptides with raw scores > cutoff for each sample
-    df_raw_scores_T_cutoff = df_raw_scores_T[
-           round(df_raw_scores_T, 5) <= round(cutoff, 5)
-    ]
-    removed = pd.Series(
-            df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
-    )
-    df_raw_scores_T_cutoff.dropna(axis=0, how="all", inplace=True)
-    df_raw_scores_cutoff = df_raw_scores_T_cutoff.T
-    # df_raw_scores_cutoff, removed = postprocess_raw_scores(df_raw_scores)
-    # TODO end
+    df_raw_scores_cutoff, removed = postprocess_raw_scores(df_raw_scores)
 
     # apply t3median normalization to calculate RM scores
     df_RM = normalize_t3median(df_raw_scores_cutoff)
@@ -386,7 +364,7 @@ def calculate_confidence_band(
     """
 
     # calculate predicted intensity with Reference intensity of a peptide and slope of the sample (Y hat)
-    Y_pred = median_int * X
+    Y_pred = slope * median_int
 
     # calculate W
     N = len(dataframe_train)
