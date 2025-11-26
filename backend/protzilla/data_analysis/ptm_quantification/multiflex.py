@@ -28,15 +28,15 @@ class MultiFlexColorMaps(Enum):
 
 
 def multiflex_lf(
-        peptide_df: pd.DataFrame,
-        metadata_df: pd.DataFrame,
-        reference_group: str,
-        grouping_column: str,
-        num_init: int = 30,
-        mod_cutoff: float = 0.5,
-        imputation_cosine_similarity: float = 0.98,
-        deseq2_normalization: bool = True,
-        colormap: str = next(iter(MultiFlexColorMaps)).name,
+    peptide_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    reference_group: str,
+    grouping_column: str,
+    num_init: int = 30,
+    mod_cutoff: float = 0.5,
+    imputation_cosine_similarity: float = 0.98,
+    deseq2_normalization: bool = True,
+    colormap: str = next(iter(MultiFlexColorMaps)).name,
 ) -> dict:
     """
     Quantifies the extent of protein modifications in proteomics data by using robust linear regression to compare modified and unmodified peptide precursors
@@ -70,13 +70,9 @@ def multiflex_lf(
     """
 
     # create dataframe input for multiflex-lf
-    df_intens_matrix_all_proteins = (
-        peptide_df[["Protein ID", "Sequence", "Sample", "Intensity"]]
-        .rename(columns={
-            "Sequence": "PeptideID",
-            "Protein ID": "ProteinID"
-        })
-    )
+    df_intens_matrix_all_proteins = peptide_df[
+        ["Protein ID", "Sequence", "Sample", "Intensity"]
+    ].rename(columns={"Sequence": "PeptideID", "Protein ID": "ProteinID"})
 
     if grouping_column not in metadata_df.columns:
         return dict(
@@ -90,26 +86,38 @@ def multiflex_lf(
 
     # add Group column to input
     df_intens_matrix_all_proteins = pd.merge(
-        df_intens_matrix_all_proteins, metadata_df[["Sample", grouping_column]], on="Sample"
+        df_intens_matrix_all_proteins,
+        metadata_df[["Sample", grouping_column]],
+        on="Sample",
     )
 
     # check if reference identifier exists in Group column
-    if str(reference_group) not in set(df_intens_matrix_all_proteins[grouping_column].astype(str)):
+    if str(reference_group) not in set(
+        df_intens_matrix_all_proteins[grouping_column].astype(str)
+    ):
         return dict(
-            messages=[dict(
+            messages=[
+                dict(
                     level=logging.ERROR,
                     msg=f"Reference group {reference_group} not found in metadata.",
-            )],
+                )
+            ],
         )
     if df_intens_matrix_all_proteins[grouping_column].nunique() < 2:
         return dict(
-            messages=[dict(
+            messages=[
+                dict(
                     level=logging.ERROR,
                     msg="At least two groups are required for multiFLEX-LF analysis.",
-            )],
+                )
+            ],
         )
 
-    list_proteins = sorted(df_intens_matrix_all_proteins.dropna(subset="Intensity")['ProteinID'].unique().tolist())
+    list_proteins = sorted(
+        df_intens_matrix_all_proteins.dropna(subset="Intensity")["ProteinID"]
+        .unique()
+        .tolist()
+    )
 
     df_diff_modified = pd.DataFrame()
     df_raw_scores = pd.DataFrame()
@@ -139,7 +147,8 @@ def multiflex_lf(
         if any(error_messages):
             skipped_proteins.append(protein)
             flexi_error_messages.extend(
-                f'FlexiQuant skipped protein {protein} because: {msg["msg"]}' for msg in error_messages
+                f'FlexiQuant skipped protein {protein} because: {msg["msg"]}'
+                for msg in error_messages
             )
             continue
 
@@ -213,8 +222,10 @@ def multiflex_lf(
 
     if RM_scores_df.empty:
         if len(flexi_error_messages) > 0:
-            message = ("RM scores were not computed because the FlexiQuant-LF analysis failed for all proteins!\n"
-                       "Errors:\n- ") + "\n- ".join(flexi_error_messages)
+            message = (
+                "RM scores were not computed because the FlexiQuant-LF analysis failed for all proteins!\n"
+                "Errors:\n- "
+            ) + "\n- ".join(flexi_error_messages)
         else:
             message = "RM scores were not computed! Intensities of at least 5 peptides per protein have to be given!"
         return dict(
@@ -283,7 +294,9 @@ def multiflex_lf(
         df_RM_scores_all_proteins_reduced,
         df_RM_scores_all_proteins_imputed,
         removed,
-    ) = missing_value_imputation(df_RM_scores_all_proteins_reduced, round(1 - imputation_cosine_similarity, 3))
+    ) = missing_value_imputation(
+        df_RM_scores_all_proteins_reduced, round(1 - imputation_cosine_similarity, 3)
+    )
     removed_peptides = pd.concat([removed_peptides, removed])
 
     # check if RM scores dataframe is empty, if true return error and finish analysis
@@ -324,7 +337,9 @@ def multiflex_lf(
 
         # keep only normalized RM scores which were not missing before the previous imputation
         # then reimpute the missing values
-        df_RM_scores_all_proteins_reduced = df_normalization[~df_RM_scores_all_proteins_reduced.isna()]
+        df_RM_scores_all_proteins_reduced = df_normalization[
+            ~df_RM_scores_all_proteins_reduced.isna()
+        ]
         df_RM_scores_all_proteins_reduced = round(df_RM_scores_all_proteins_reduced, 5)
 
         # impute missing values again
@@ -343,13 +358,11 @@ def multiflex_lf(
         rm_score_dist_plots = create_RM_score_distribution_plots(
             df_RM_scores_all_proteins_reduced,
             grouping_column=grouping_column,
-            list_groups=list_groups
+            list_groups=list_groups,
         )
     else:
         rm_score_dist_plots = create_RM_score_distribution_plots(
-            RM_scores_df,
-            grouping_column=grouping_column,
-            list_groups=list_groups
+            RM_scores_df, grouping_column=grouping_column, list_groups=list_groups
         )
 
     if len(removed_peptides) > 0:
@@ -403,10 +416,10 @@ def multiflex_lf(
 
 
 def create_RM_score_distribution_plots(
-        RM_scores_df: pd.DataFrame,
-        grouping_column: str,
-        list_groups: list[str],
-        nbins: int = 30
+    RM_scores_df: pd.DataFrame,
+    grouping_column: str,
+    list_groups: list[str],
+    nbins: int = 30,
 ) -> go.Figure:
     """
     Constructs a figure of distribution plots of the RM scores. For every group a separate plot is created
@@ -425,8 +438,12 @@ def create_RM_score_distribution_plots(
     )
 
     # list of colors for the color coding of the different samples in one group
-    n_most_common_group = Counter(RM_scores_df.columns.get_level_values(grouping_column)).most_common(1)[0][1]
-    colors_list = colors.sample_colorscale('Phase', [i / n_most_common_group for i in range(n_most_common_group)])
+    n_most_common_group = Counter(
+        RM_scores_df.columns.get_level_values(grouping_column)
+    ).most_common(1)[0][1]
+    colors_list = colors.sample_colorscale(
+        "Phase", [i / n_most_common_group for i in range(n_most_common_group)]
+    )
 
     data_min = RM_scores_df.min(axis=None)
     data_max = RM_scores_df.max(axis=None)
@@ -460,11 +477,11 @@ def create_RM_score_distribution_plots(
                 go.Scatter(
                     x=x_eval,
                     y=pdf,
-                    mode='lines',
+                    mode="lines",
                     marker_color=colors_list[sample_idx],
                     showlegend=False,
-                    yaxis='y',
-                    legendgroup=sample
+                    yaxis="y",
+                    legendgroup=sample,
                 ),
                 row=row,
                 col=col,
@@ -479,17 +496,14 @@ def create_RM_score_distribution_plots(
     )
     fig.update_layout(
         title_text="Distribution of RM scores of multiFLEX-LF",
-        barmode='overlay',
+        barmode="overlay",
     )
 
     return fig
 
 
 def create_heatmap(
-        df_RM_scores: pd.DataFrame,
-        protein_id: str,
-        color_scale: str,
-        mod_cutoff: float
+    df_RM_scores: pd.DataFrame, protein_id: str, color_scale: str, mod_cutoff: float
 ) -> go.Figure:
     """
     Constructs a heatmap of the RM scores for a protein
@@ -577,7 +591,7 @@ def missing_value_imputation(df_RM_scores: pd.DataFrame, max_cos_dist: float):
         # get the index of the closest peptides
         index_impute = df_RM_scores_other_peps[
             cos_dist_other_peps <= max_cos_dist
-            ].index
+        ].index
 
         # skip peptide if less than 2 close peptides were found
         if len(index_impute) < 2:
@@ -589,9 +603,9 @@ def missing_value_imputation(df_RM_scores: pd.DataFrame, max_cos_dist: float):
         )
 
         # replace the missing values with the calculated values
-        df_RM_scores_imputed.loc[
-            peptide, df_imputation_values.index
-        ] = df_imputation_values
+        df_RM_scores_imputed.loc[peptide, df_imputation_values.index] = (
+            df_imputation_values
+        )
 
     # remove all peptides that still have missing values
     remove_nans = df_RM_scores_imputed[df_RM_scores_imputed.isna().any(axis=1)].index
@@ -627,13 +641,13 @@ def RM_score_distance(u: float, v: float, mod_cutoff: float):
 
 
 def peptide_clustering(
-        df_RM_scores: pd.DataFrame,
-        linkage_matrix: pd.DataFrame,
-        mod_cutoff: float,
-        cmap: str,
-        colors: list[str],
-        clust_threshold: float | None,
-        clust_ids: list,
+    df_RM_scores: pd.DataFrame,
+    linkage_matrix: pd.DataFrame,
+    mod_cutoff: float,
+    cmap: str,
+    colors: list[str],
+    clust_threshold: float | None,
+    clust_ids: list,
 ):
     """
     Clustering results are saved as interactive HTML file with the dendrogram and the heatmap.

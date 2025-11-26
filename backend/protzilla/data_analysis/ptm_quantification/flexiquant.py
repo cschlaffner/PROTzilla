@@ -12,7 +12,9 @@ from sklearn import linear_model
 CONFIDENCE_BAND_ALPHA = 0.3
 
 
-def rm_score_to_color(value: float, mod_cutoff: float, colors: list[str] = plotly.colors.qualitative.D3) -> str:
+def rm_score_to_color(
+    value: float, mod_cutoff: float, colors: list[str] = plotly.colors.qualitative.D3
+) -> str:
     """
     Maps RM score to a color.
 
@@ -29,7 +31,9 @@ def rm_score_to_color(value: float, mod_cutoff: float, colors: list[str] = plotl
         return colors[2]  # green
 
 
-def postprocess_raw_scores(df_raw_scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+def postprocess_raw_scores(
+    df_raw_scores: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.Series]:
     # Assume df_raw_scores is your input DataFrame
     # calculate MAD per sample
     df_raw_scores.drop("Slope", axis=1, inplace=True)
@@ -44,7 +48,7 @@ def postprocess_raw_scores(df_raw_scores: pd.DataFrame) -> tuple[pd.DataFrame, p
     # remove peptides with raw scores > cutoff for each sample
     df_raw_scores_T_cutoff = df_raw_scores_T[
         round(df_raw_scores_T, 5) <= round(cutoff, 5)
-        ]
+    ]
     removed = pd.Series(
         df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
     )
@@ -54,13 +58,13 @@ def postprocess_raw_scores(df_raw_scores: pd.DataFrame) -> tuple[pd.DataFrame, p
 
 
 def flexiquant_lf(
-        peptide_df: pd.DataFrame,
-        metadata_df: pd.DataFrame,
-        reference_group: str,
-        protein_group: str,
-        grouping_column: str,
-        num_init: int = 50,
-        mod_cutoff: float = 0.5,
+    peptide_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    reference_group: str,
+    protein_group: str,
+    grouping_column: str,
+    num_init: int = 50,
+    mod_cutoff: float = 0.5,
 ) -> dict:
     """
     FLEXIQuant-LF is a method to quantify protein modification extent in label-free proteomics data.
@@ -306,7 +310,7 @@ def flexiquant_lf(
             dict(
                 level=logging.WARNING,
                 msg="No samples were processed. This is probably due to the fact that there are not enough valid "
-                    "peptides in the samples.",
+                "peptides in the samples.",
             )
         )
     else:
@@ -315,7 +319,7 @@ def flexiquant_lf(
                 dict(
                     level=logging.INFO,
                     msg=f"All {len(sample_column)} samples have been processed successfully. {len(removed)} peptides "
-                        f"have been removed.",
+                    f"have been removed.",
                 )
             )
         else:
@@ -323,7 +327,7 @@ def flexiquant_lf(
                 dict(
                     level=logging.INFO,
                     msg=f"{len(regression_plots)}/{len(sample_column)} samples have been processed successfully. "
-                        f"The remaining samples have been skipped due to insufficient valid peptides. {len(removed)} peptides have been removed.",
+                    f"The remaining samples have been skipped due to insufficient valid peptides. {len(removed)} peptides have been removed.",
                 )
             )
 
@@ -338,15 +342,15 @@ def flexiquant_lf(
 
 
 def calculate_confidence_band(
-        slope: float,
-        median_int: float,
-        dataframe_train: pd.DataFrame,
-        X: array,
-        y: pd.Series,
-        row: pd.Series,
-        idx: int,
-        matrix_distance_RL: pd.DataFrame,
-        alpha: float,
+    slope: float,
+    median_int: float,
+    dataframe_train: pd.DataFrame,
+    X: array,
+    y: pd.Series,
+    row: pd.Series,
+    idx: int,
+    matrix_distance_RL: pd.DataFrame,
+    alpha: float,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Calculates confidence bands around the regression line.
@@ -423,16 +427,16 @@ def calculate_confidence_band(
 
 
 def create_regression_plots(
-        dataframe_train: pd.DataFrame,
-        idx: int,
-        r2_score_model: float,
-        r2_score_data: float,
-        slope: float,
-        alpha: float,
-        sample_column: pd.Series,
-        rm_scores: pd.DataFrame,
-        mod_cutoff: float,
-        grouping_column: str,
+    dataframe_train: pd.DataFrame,
+    idx: int,
+    r2_score_model: float,
+    r2_score_data: float,
+    slope: float,
+    alpha: float,
+    sample_column: pd.Series,
+    rm_scores: pd.DataFrame,
+    mod_cutoff: float,
+    grouping_column: str,
 ):
     """
     Creates a scatter plot with regression line and confidence bands.
@@ -459,15 +463,13 @@ def create_regression_plots(
     # plot histogram
     fig.add_trace(
         go.Histogram(
-            x=dataframe_train["Reference intensity"],
-            nbinsx=150,
-            showlegend=False
+            x=dataframe_train["Reference intensity"], nbinsx=150, showlegend=False
         ),
         row=1,
-        col=1
+        col=1,
     )
 
-    dataframe_train.sort_values('Reference intensity', inplace=True)
+    dataframe_train.sort_values("Reference intensity", inplace=True)
 
     # draw regression line
     line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
@@ -475,9 +477,15 @@ def create_regression_plots(
     X = np.array([0.999 * dataframe_train["Reference intensity"].min(), max_int])
     y = slope * X
     fig.add_trace(
-        go.Scatter(x=X, y=y, mode="lines", line=dict(color="darkblue", dash="solid"), name=line_label),
+        go.Scatter(
+            x=X,
+            y=y,
+            mode="lines",
+            line=dict(color="darkblue", dash="solid"),
+            name=line_label,
+        ),
         row=2,
-        col=1
+        col=1,
     )
 
     # draw confidence band
@@ -491,7 +499,7 @@ def create_regression_plots(
             name="CB, alpha=" + str(alpha),
         ),
         row=2,
-        col=1
+        col=1,
     )
     fig.add_trace(
         go.Scatter(
@@ -502,7 +510,7 @@ def create_regression_plots(
             name="CB, alpha=" + str(alpha),
         ),
         row=2,
-        col=1
+        col=1,
     )
 
     rm_scores = rm_scores.drop(
@@ -514,7 +522,7 @@ def create_regression_plots(
             grouping_column,
             "Sample",
         ],
-        errors='ignore'
+        errors="ignore",
     )
     # rm_scores.dropna(inplace=True)
     rm_scores.clip(0, 1, inplace=True)
@@ -535,11 +543,13 @@ def create_regression_plots(
                     mode="markers",
                     name=row.name,
                     marker=dict(
-                        color=rm_score_to_color(rm_scores.loc[i, "RM score"], mod_cutoff)
+                        color=rm_score_to_color(
+                            rm_scores.loc[i, "RM score"], mod_cutoff
+                        )
                     ),
                 ),
                 row=2,
-                col=1
+                col=1,
             )
     else:
         fig.add_trace(
@@ -548,12 +558,14 @@ def create_regression_plots(
                 y=dataframe_train["Sample intensity"],
                 mode="markers",
                 marker=dict(
-                    color=rm_scores["RM score"].apply(lambda v: rm_score_to_color(v, mod_cutoff))
+                    color=rm_scores["RM score"].apply(
+                        lambda v: rm_score_to_color(v, mod_cutoff)
+                    )
                 ),
                 showlegend=False,
             ),
             row=2,
-            col=1
+            col=1,
         )
 
     fig.update_layout(

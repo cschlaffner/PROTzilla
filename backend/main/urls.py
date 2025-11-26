@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, re_path
 from django.views.generic import TemplateView
@@ -20,12 +21,13 @@ from django.views.generic import TemplateView
 from . import views, views_settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views.run_information_list, name="run_information"),
     path("api/step_list/", views.all_steps, name="step_list"),
-    path("api/workflow_name_list/", views.workflow_name_list, name="workflow_name_list"),
-
+    path(
+        "api/workflow_name_list/", views.workflow_name_list, name="workflow_name_list"
+    ),
     path("api/toggle_favourite/", views.toggle_favourite, name="toggle_favourite"),
     path("api/add_tag/", views.add_tag, name="add_tag"),
     path("api/delete_tag/", views.delete_tag, name="delete_tag"),
@@ -41,7 +43,9 @@ urlpatterns = [
     path("api/update_step/", views.update_step, name="update_step"),
     path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
     path("api/save_workflow/", views.save_workflow, name="save_workflow"),
-    path("api/download_table/", views.download_table, name="download_table"), #might function?
+    path(
+        "api/download_table/", views.download_table, name="download_table"
+    ),  # might function?
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views.get_step_table, name="get_step_table"),
@@ -51,14 +55,12 @@ urlpatterns = [
     path("api/export_workflow/", views.export_workflow, name="export_workflow"),
     path("api/import_workflow/", views.import_workflow, name="import_workflow"),
     path("api/delete_workflow/", views.delete_workflow, name="delete_workflow"),
-
     path("api/load_settings", views_settings.load_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_settings, name="save_settings"),
     path("api/download_plot", views_settings.download_plot, name="download_plot"),
     path("api/get_databases", views_settings.get_databases, name="get_databases"),
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),
-
     # catches all urls unknown to the backend to check if the frontend at index.html knows them - must be last url
-    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
+    re_path(r"^.*$", TemplateView.as_view(template_name="index.html")),
 ]

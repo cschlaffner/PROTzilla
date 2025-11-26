@@ -32,8 +32,7 @@ const StyledHeader = styledDiv.div<{ hasPaddingBottom: boolean }>`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-bottom: ${({ hasPaddingBottom }) =>
-    hasPaddingBottom ? spacing("medium") : "0"}
+  padding-bottom: ${({ hasPaddingBottom }) => (hasPaddingBottom ? spacing("medium") : "0")}
 `;
 
 const StyledButtonDiv = styledDiv.div`
