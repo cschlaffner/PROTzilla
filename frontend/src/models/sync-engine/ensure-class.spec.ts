@@ -5,7 +5,7 @@ describe("EnsureClass", () => {
     class Item {
       public name!: string;
     }
-     
+
     class Project {
       @EnsureClass<Item[]>(Item)
       public accessor items: Item[] = [];

@@ -37,6 +37,7 @@ from backend.protzilla.data_integration.database_query import check_biomart_avai
 
 biomart_availability = check_biomart_availability()
 
+
 @patch("restring.restring.get_functional_enrichment")
 def test_get_functional_enrichment_with_delay(mock_enrichment):
     MIN_WAIT_TIME = 1
@@ -212,16 +213,16 @@ def test_GO_analysis_with_STRING(mock_enrichment, background):
 @patch(
     "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
-def test_GO_analysis_with_STRING_one_direction_missing(
-    mock_enrichment
-):
+def test_GO_analysis_with_STRING_one_direction_missing(mock_enrichment):
     proteins_df = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-log2_fold_change_df.csv"
     )
     up_proteins_df = proteins_df[proteins_df["log2_fold_change"] > 0]
     down_proteins_df = proteins_df[proteins_df["log2_fold_change"] < 0]
 
-    up_df = pd.read_csv(TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0)
+    up_df = pd.read_csv(
+        TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0
+    )
     down_df = pd.read_csv(
         TEST_ENRICHMENT_PATH / "down_enrichment_KEGG_Process.csv", header=0
     )
@@ -436,6 +437,7 @@ def test_GO_analysis_with_no_gene_sets_input():
     assert "messages" in current_out
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
+
 @pytest.mark.skip(reason="The API doesn't work.")
 @patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
@@ -515,6 +517,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
     assert "messages" in current_out
     assert "No background provided" in current_out["messages"][0]["msg"]
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
+
 
 @pytest.mark.skip(reason="The api dosn't work")
 def test_GO_analysis_Enrichr_wrong_background_file():
@@ -1014,7 +1017,7 @@ def test_gsea():
         grouping="Group",
         group1="CTR",
         group2="AD",
-        gene_sets_type = GeneSetsType.choose_from_enrichr_options.value,
+        gene_sets_type=GeneSetsType.choose_from_enrichr_options.value,
         gene_sets_enrichr=["KEGG_2016"],
         min_size=7,
         number_of_permutations=500,
@@ -1023,13 +1026,19 @@ def test_gsea():
     assert "messages" in current_out
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
-    current_out["enrichment_df"] = current_out["enrichment_df"].sort_values(by='Term').reset_index(drop=True)
-    expected_enrichment_df = expected_enrichment_df.sort_values(by='Term').reset_index(drop=True)
+    current_out["enrichment_df"] = (
+        current_out["enrichment_df"].sort_values(by="Term").reset_index(drop=True)
+    )
+    expected_enrichment_df = expected_enrichment_df.sort_values(by="Term").reset_index(
+        drop=True
+    )
 
     column_names = ["Name", "Term", "Tag %", "Gene %", "Lead_genes", "Lead_proteins"]
     # Compare all specified columns
     for column in column_names:
-        assert df_column_equal(current_out['enrichment_df'], expected_enrichment_df, column)
+        assert df_column_equal(
+            current_out["enrichment_df"], expected_enrichment_df, column
+        )
 
     # Compare the numeric columns separately with a tolerance for numerical equality
     numerical_columns = [
@@ -1319,8 +1328,12 @@ def test_gsea_preranked():
     assert "messages" in current_out
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
-    current_out["enrichment_df"] = current_out["enrichment_df"].sort_values(by='Term').reset_index(drop=True)
-    expected_enrichment_df = expected_enrichment_df.sort_values(by='Term').reset_index(drop=True)
+    current_out["enrichment_df"] = (
+        current_out["enrichment_df"].sort_values(by="Term").reset_index(drop=True)
+    )
+    expected_enrichment_df = expected_enrichment_df.sort_values(by="Term").reset_index(
+        drop=True
+    )
 
     numerical_equal = np.isclose(
         current_out["ranking"].squeeze(), expected_ranking, rtol=1e-05, atol=1e-08
@@ -1330,7 +1343,9 @@ def test_gsea_preranked():
     column_names = ["Name", "Term", "Tag %", "Gene %", "Lead_genes", "Lead_proteins"]
     # Compare all specified columns
     for column in column_names:
-        assert df_column_equal(current_out['enrichment_df'], expected_enrichment_df, column)
+        assert df_column_equal(
+            current_out["enrichment_df"], expected_enrichment_df, column
+        )
 
     # Compare the numeric columns separately with a tolerance for numerical equality
     numerical_columns = [

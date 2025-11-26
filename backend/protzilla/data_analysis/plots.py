@@ -8,7 +8,11 @@ import plotly.graph_objects as go
 from scipy import stats
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE, PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR
+from backend.protzilla.constants.colors import (
+    PLOT_COLOR_SEQUENCE,
+    PLOT_PRIMARY_COLOR,
+    PLOT_SECONDARY_COLOR,
+)
 from backend.protzilla.utilities.clustergram import Clustergram
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 

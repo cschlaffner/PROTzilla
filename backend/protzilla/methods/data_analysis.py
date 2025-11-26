@@ -8,21 +8,32 @@ from backend.protzilla.data_analysis.clustering import (
     k_means,
 )
 from backend.protzilla.data_analysis.differential_expression_anova import anova
-from backend.protzilla.data_analysis.differential_expression_kruskal_wallis import kruskal_wallis_test_on_ptm_data, \
-    kruskal_wallis_test_on_intensity_data
-from backend.protzilla.data_analysis.differential_expression_linear_model import linear_model
+from backend.protzilla.data_analysis.differential_expression_kruskal_wallis import (
+    kruskal_wallis_test_on_ptm_data,
+    kruskal_wallis_test_on_intensity_data,
+)
+from backend.protzilla.data_analysis.differential_expression_linear_model import (
+    linear_model,
+)
 from backend.protzilla.data_analysis.differential_expression_mann_whitney import (
-    mann_whitney_test_on_intensity_data, mann_whitney_test_on_ptm_data)
+    mann_whitney_test_on_intensity_data,
+    mann_whitney_test_on_ptm_data,
+)
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
-from backend.protzilla.data_analysis.model_evaluation import evaluate_classification_model
+from backend.protzilla.data_analysis.model_evaluation import (
+    evaluate_classification_model,
+)
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
     prot_quant_plot,
     scatter_plot,
 )
-from backend.protzilla.data_analysis.protein_graphs import peptides_to_isoform, variation_graph
+from backend.protzilla.data_analysis.protein_graphs import (
+    peptides_to_isoform,
+    variation_graph,
+)
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
     ptms_per_protein_and_sample,
@@ -32,7 +43,10 @@ from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, StepManager
 from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
-from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf, MultiFlexColorMaps
+from protzilla.data_analysis.ptm_quantification.multiflex import (
+    multiflex_lf,
+    MultiFlexColorMaps,
+)
 
 
 class TTestType(Enum):
@@ -234,7 +248,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="grouping",
@@ -250,7 +264,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                 ),
             ],
         )
-    
+
     def modify_form(self, form, run):
         protein_field = form["protein_df"]
         grouping_field = form["grouping"]
@@ -258,27 +272,37 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         group2_field = form["group2"]
 
         protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
 
         if grouping_field.options == []:
             return
-        
+
         grouping = grouping_field.value
 
         # Set choices for group1 field based on selected grouping
-        group1_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+        group1_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
 
-        #set choices for group2 field based on selected grouping and group1
-        if (group1_field.value in run.steps.metadata_df[grouping].unique()):
-            group2_field.set_options([
-                Option(el, el)
-                for el in run.steps.metadata_df[grouping].unique()
-                if el != group1_field.value
-            ])
+        # set choices for group2 field based on selected grouping and group1
+        if group1_field.value in run.steps.metadata_df[grouping].unique():
+            group2_field.set_options(
+                [
+                    Option(el, el)
+                    for el in run.steps.metadata_df[grouping].unique()
+                    if el != group1_field.value
+                ]
+            )
         else:
-            group2_field.set_options(list(reversed(
-                form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-            ))
+            group2_field.set_options(
+                list(
+                    reversed(
+                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                    )
+                )
+            )
 
     calc_method = staticmethod(t_test)
 
@@ -315,8 +339,10 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
 class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
     display_name = "Mann-Whitney Test"
     operation = "differential_expression"
-    method_description = ("A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -331,7 +357,9 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         if steps.get_step_output(Step, "protein_df", inputs["protein_df"]) is not None:
-            inputs["protein_df"] = steps.get_step_output(Step, "protein_df", inputs["protein_df"])
+            inputs["protein_df"] = steps.get_step_output(
+                Step, "protein_df", inputs["protein_df"]
+            )
         inputs["metadata_df"] = steps.metadata_df
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
         return inputs
@@ -340,8 +368,10 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
 class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
     display_name = "Mann-Whitney Test"
     operation = "Peptide analysis"
-    method_description = ("A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_ptm_df",
@@ -363,8 +393,10 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
 class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
     display_name = "Kruskal-Wallis Test"
     operation = "differential_expression"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -384,8 +416,10 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
 class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
     display_name = "Kruskal-Wallis Test"
     operation = "differential_expression"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -397,7 +431,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
     calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(Step, "protein_df", inputs["protein_df"])
+        inputs["protein_df"] = steps.get_step_output(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
         return inputs
@@ -406,8 +442,10 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
 class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
     display_name = "Kruskal-Wallis Test"
     operation = "Peptide analysis"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_ptm_df",
@@ -427,10 +465,12 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
 class PlotVolcano(DataAnalysisStep):
     display_name = "Volcano Plot"
     operation = "plot"
-    method_description = ("Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
-                          "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
-                          "can define a fold change threshold and an alpha level to highlight significant items.")
-    
+    method_description = (
+        "Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
+        "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
+        "can define a fold change threshold and an alpha level to highlight significant items."
+    )
+
     output_keys = []
 
     def create_form(self):
@@ -451,10 +491,10 @@ class PlotVolcano(DataAnalysisStep):
                 MultiSelectField(
                     name="items_of_interest",
                     label="Items of interest (will be highlighted)",
-                )
+                ),
             ],
         )
-    
+
     def modify_form(self, form, run):
         input_dict_field = form["input_dict"]
         items_of_interest_field = form["items_of_interest"]
@@ -462,12 +502,13 @@ class PlotVolcano(DataAnalysisStep):
         input_dict_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
-                    Step, ["corrected_p_values_df", "log2_fold_change_df"],
+                    Step,
+                    ["corrected_p_values_df", "log2_fold_change_df"],
                 )
             )
         )
 
-        if(input_dict_field.value == None):
+        if input_dict_field.value == None:
             return
 
         input_dict_instance_id = input_dict_field.value
@@ -484,7 +525,7 @@ class PlotVolcano(DataAnalysisStep):
         if step_output is not None:
             items_of_interest = step_output["PTM"].unique()
 
-        items_of_interest_field.options = (form_helper.to_choices(items_of_interest))
+        items_of_interest_field.options = form_helper.to_choices(items_of_interest)
 
     plot_method = staticmethod(create_volcano_plot)
 
@@ -513,7 +554,7 @@ class PlotVolcano(DataAnalysisStep):
 
 class PlotScatterPlot(DataAnalysisStep):
     display_name = "Scatter Plot"
-    operation = "plot" 
+    operation = "plot"
     method_description = "Creates a scatter plot from data. This requires a dimension reduction method to be run first, as the input dataframe should contain only 2 or 3 columns."
 
     plot_method = staticmethod(scatter_plot)
@@ -581,9 +622,7 @@ class PlotProtQuant(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(
-            run
-        )
+        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(run)
 
         if form["input_df"].options:
             if not form["input_df"].value:
@@ -615,7 +654,6 @@ class PlotProtQuant(DataAnalysisStep):
                 max=999,
                 step=1,
             )
-        
 
     plot_method = staticmethod(prot_quant_plot)
 
@@ -853,16 +891,21 @@ class BaseFLEXLF(DataAnalysisStep):
     """
     A base class for FLEXIQuantLF and MultiFLEXLF to reduce code duplication.
     """
+
     def modify_form(self, form, run):
         grouping_field = form["grouping_column"]
-        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
 
         if grouping_field.options == []:
             return
         grouping = grouping_field.value
 
         reference_group_field = form["reference_group"]
-        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+        reference_group_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["peptide_df"] = steps.get_step_output(
@@ -891,11 +934,7 @@ class BaseFLEXLF(DataAnalysisStep):
                 step=1,
             ),
             FloatField(
-                name="mod_cutoff",
-                label="Modification cutoff",
-                value=0.5,
-                min=0,
-                max=1
+                name="mod_cutoff", label="Modification cutoff", value=0.5, min=0, max=1
             ),
         )
 
@@ -903,9 +942,11 @@ class BaseFLEXLF(DataAnalysisStep):
 class FLEXIQuantLF(BaseFLEXLF):
     display_name = "FLEXIQuant-LF"
     operation = "modification_quantification"
-    method_description = ("FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
-                          "peptides and to quantify the degree of modification based solely on the unmodified peptide "
-                          "species.")
+    method_description = (
+        "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
+        "peptides and to quantify the degree of modification based solely on the unmodified peptide "
+        "species."
+    )
 
     output_keys = [
         "raw_scores",
@@ -924,7 +965,7 @@ class FLEXIQuantLF(BaseFLEXLF):
                     name="protein_group",
                     label="Protein Group",
                 ),
-                *self.get_base_form_fields()
+                *self.get_base_form_fields(),
             ],
         )
 
@@ -941,10 +982,12 @@ class FLEXIQuantLF(BaseFLEXLF):
 class MultiFLEXLF(BaseFLEXLF):
     display_name = "MultiFLEX-LF"
     operation = "modification_quantification"
-    method_description = ("Quantifies the extent of protein modifications in proteomics data by using robust linear "
-                          "regression to compare modified and unmodified peptide precursors and facilitates the "
-                          "analysis of modification dynamics and coregulated modifications across large datasets "
-                          "without the need for preselecting specific proteins.")
+    method_description = (
+        "Quantifies the extent of protein modifications in proteomics data by using robust linear "
+        "regression to compare modified and unmodified peptide precursors and facilitates the "
+        "analysis of modification dynamics and coregulated modifications across large datasets "
+        "without the need for preselecting specific proteins."
+    )
 
     output_keys = [
         "RM_scores_clustered",
@@ -952,7 +995,7 @@ class MultiFLEXLF(BaseFLEXLF):
         "raw_scores",
         "removed_peptides",
         "RM_scores",
-        "skipped_proteins"
+        "skipped_proteins",
     ]
 
     plot_method = staticmethod(multiflex_lf)
@@ -967,7 +1010,7 @@ class MultiFLEXLF(BaseFLEXLF):
                     label="Cosine similarity for imputation",
                     value=0.98,
                     min=0,
-                    max=1
+                    max=1,
                 ),
                 CheckboxField(
                     name="deseq2_normalization",
@@ -981,7 +1024,6 @@ class MultiFLEXLF(BaseFLEXLF):
                 ),
             ],
         )
-
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):
@@ -1003,17 +1045,23 @@ class SelectPeptidesForProtein(DataAnalysisStep):
         inputs["metadata_df"] = steps.metadata_df
 
         if inputs["auto_select"]:
-            significant_proteins = (
-                steps.get_step_output(DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]))
-            index_of_most_significant_protein = significant_proteins['corrected_p_value'].idxmin()
-            most_significant_protein = significant_proteins.loc[index_of_most_significant_protein]
+            significant_proteins = steps.get_step_output(
+                DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]
+            )
+            index_of_most_significant_protein = significant_proteins[
+                "corrected_p_value"
+            ].idxmin()
+            most_significant_protein = significant_proteins.loc[
+                index_of_most_significant_protein
+            ]
             inputs["protein_id"] = [most_significant_protein["Protein ID"]]
-            self.messages.append({
-                "level": logging.INFO,
-                "msg":
-                    f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {inputs['protein_list']}"
-            })
+            self.messages.append(
+                {
+                    "level": logging.INFO,
+                    "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
+                    f"from {inputs['protein_list']}",
+                }
+            )
 
         return inputs
 
@@ -1021,8 +1069,10 @@ class SelectPeptidesForProtein(DataAnalysisStep):
 class PTMsPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of a single protein of interest. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of a single protein of interest. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
     output_keys = [
         "ptm_df",
@@ -1040,8 +1090,10 @@ class PTMsPerSample(DataAnalysisStep):
 class PTMsProteinAndPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample and Protein"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of all Proteins. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of all Proteins. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
     output_keys = [
         "ptm_df",

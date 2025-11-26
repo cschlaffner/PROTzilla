@@ -7,7 +7,12 @@ from plotly.subplots import make_subplots
 
 from backend.protzilla.data_preprocessing.plots_helper import generate_tics
 from backend.protzilla.utilities import default_intensity_column
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE, PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR
+from backend.protzilla.constants.colors import (
+    PLOT_COLOR_SEQUENCE,
+    PLOT_PRIMARY_COLOR,
+    PLOT_SECONDARY_COLOR,
+)
+
 
 def create_pie_plot(
     names_of_sectors: "list[str]",
@@ -62,7 +67,7 @@ def create_bar_plot(
         x=names_of_sectors,
         y=values_of_sectors,
         color=[PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR],
-        color_discrete_map="identity"
+        color_discrete_map="identity",
     )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
@@ -119,13 +124,13 @@ def create_box_plots(
             y=dataframe_a[intensity_name_a],
             x=dataframe_a[group_by],
             marker_color=PLOT_PRIMARY_COLOR,
-            name=name_a
+            name=name_a,
         )
         trace1 = go.Box(
             y=dataframe_b[intensity_name_b],
             x=dataframe_b[group_by],
             marker_color=PLOT_SECONDARY_COLOR,
-            name=name_b
+            name=name_b,
         )
         fig.add_trace(trace0, 1, 1)
         fig.add_trace(trace1, 1, 2)
@@ -136,22 +141,19 @@ def create_box_plots(
         trace0 = go.Box(
             y=dataframe_a[intensity_name_a],
             marker_color=PLOT_PRIMARY_COLOR,
-            name=name_a
+            name=name_a,
         )
         trace1 = go.Box(
             y=dataframe_b[intensity_name_b],
             marker_color=PLOT_SECONDARY_COLOR,
-            name=name_b
+            name=name_b,
         )
         fig.add_trace(trace0, 1, 1)
         fig.add_trace(trace1, 1, 2)
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
-    fig.update_yaxes(
-        title=y_title,
-        rangemode="tozero"
-    )
+    fig.update_yaxes(title=y_title, rangemode="tozero")
     if visual_transformation == "log10":
         fig.update_yaxes(type="log")
     return fig
@@ -251,10 +253,7 @@ def create_histograms(
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
-    fig.update_yaxes(
-        title=y_title,
-        rangemode="tozero"
-    )
+    fig.update_yaxes(title=y_title, rangemode="tozero")
     return fig
 
 
@@ -298,14 +297,9 @@ def create_anomaly_score_bar_plot(
     )
     fig.update_coloraxes(showscale=False)
     fig.update_xaxes(
-        categoryorder="category ascending",
-        visible=False,
-        showticklabels=False
+        categoryorder="category ascending", visible=False, showticklabels=False
     )
-    fig.update_yaxes(
-        visible=True,
-        showticklabels=True
-    )
+    fig.update_yaxes(visible=True, showticklabels=True)
     return fig
 
 
@@ -345,12 +339,10 @@ def create_pca_2d_scatter_plot(
     e_variance_0 = round(explained_variance_ratio[0], 4) * 100
     e_variance_1 = round(explained_variance_ratio[1], 4) * 100
     fig.update_xaxes(
-        showticklabels=False,
-        title=f"Principal Component 1 ({e_variance_0:.2f} %)"
+        showticklabels=False, title=f"Principal Component 1 ({e_variance_0:.2f} %)"
     )
     fig.update_yaxes(
-        showticklabels=False,
-        title=f"Principal Component 2 ({e_variance_1:.2f} %)"
+        showticklabels=False, title=f"Principal Component 2 ({e_variance_1:.2f} %)"
     )
     return fig
 
@@ -397,16 +389,16 @@ def create_pca_3d_scatter_plot(
         scene={
             "xaxis": {
                 "title": f"Principal Component 1 ({x_percent:.2f} %)",
-                "showticklabels": False
+                "showticklabels": False,
             },
             "yaxis": {
                 "title": f"Principal Component 2 ({y_percent:.2f} %)",
-                "showticklabels": False
+                "showticklabels": False,
             },
             "zaxis": {
                 "title": f"Principal Component 3 ({z_percent:.2f} %)",
-                "showticklabels": False
-            }
+                "showticklabels": False,
+            },
         }
     )
     return fig

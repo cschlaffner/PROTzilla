@@ -1,6 +1,9 @@
 import logging
 
-from backend.protzilla.methods.data_preprocessing import ImputationByKNN, FilterSamplesByProteinsMissing
+from backend.protzilla.methods.data_preprocessing import (
+    ImputationByKNN,
+    FilterSamplesByProteinsMissing,
+)
 from backend.protzilla.methods.importing import MaxQuantImport
 
 
@@ -46,12 +49,12 @@ class TestRun:
         step = MaxQuantImport()
         run_empty.step_add(step)
         run_empty.current_form(
-             {
+            {
                 "file_path": maxquant_data_file,
                 "map_to_uniprot": False,
                 "intensity_name": "Intensity",
-                "aggregation_method": "Sum"
-             }
+                "aggregation_method": "Sum",
+            }
         )
         run_empty.step_calculate()
         assert run_empty.current_step.output["protein_df"] is not None
@@ -67,7 +70,7 @@ class TestRun:
                 "graph_type": "Boxplot",
                 "group_by": "None",
                 "visual_transformation": "log10",
-                "graph_type_quantities": "Pie chart"
+                "graph_type_quantities": "Pie chart",
             }
         )
         run_imported.step_calculate()
@@ -108,7 +111,7 @@ class TestRun:
         run_imported.step_change_method("DiannImport")
         assert run_imported.current_step.__class__.__name__ == "DiannImport"
 
-    def test_set_steps_outdated(self,run_imported):
+    def test_set_steps_outdated(self, run_imported):
         step = ImputationByKNN()
         run_imported.step_add(step)
         run_imported.step_next()
@@ -183,8 +186,11 @@ class TestRun:
         assert run_imported.current_step.calculation_status == "outdated"
         run_imported.step_calculate()
         assert run_imported.current_step.calculation_status == "complete"
-        assert step2_output["protein_df"].equals(run_imported.current_step.output["protein_df"])
+        assert step2_output["protein_df"].equals(
+            run_imported.current_step.output["protein_df"]
+        )
         run_imported.step_goto(0, "data_preprocessing")
         assert run_imported.current_step.calculation_status == "complete"
-        assert step1_output["protein_df"].equals(run_imported.current_step.output["protein_df"])
-
+        assert step1_output["protein_df"].equals(
+            run_imported.current_step.output["protein_df"]
+        )

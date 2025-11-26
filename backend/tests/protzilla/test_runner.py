@@ -4,7 +4,11 @@ from unittest import mock
 
 import pytest
 
-from backend.tests.paths import TEST_MSDATA_PATH, TEST_METADATA_PATH, TEST_WORKFLOWS_PATH
+from backend.tests.paths import (
+    TEST_MSDATA_PATH,
+    TEST_METADATA_PATH,
+    TEST_WORKFLOWS_PATH,
+)
 from backend.protzilla.utilities import random_string
 
 from backend.protzilla.runner import Runner, _serialize_graphs
@@ -75,34 +79,80 @@ def test_runner_imports(
     runner.compute_workflow()
 
     expected_methods = [
-        'MaxQuantImport',
-        'MetadataImport',
-        'FilterProteinsBySamplesMissing',
-        'FilterSamplesByProteinIntensitiesSum',
-        'ImputationByKNN',
-        'OutlierDetectionByLocalOutlierFactor',
-        'TransformationLog',
-        'NormalisationByMedian',
-        'PlotProtQuant',
-        'DifferentialExpressionTTest',
-        'PlotVolcano',
-        'EnrichmentAnalysisGOAnalysisWithString',
-        'PlotGOEnrichmentBarPlot'
+        "MaxQuantImport",
+        "MetadataImport",
+        "FilterProteinsBySamplesMissing",
+        "FilterSamplesByProteinIntensitiesSum",
+        "ImputationByKNN",
+        "OutlierDetectionByLocalOutlierFactor",
+        "TransformationLog",
+        "NormalisationByMedian",
+        "PlotProtQuant",
+        "DifferentialExpressionTTest",
+        "PlotVolcano",
+        "EnrichmentAnalysisGOAnalysisWithString",
+        "PlotGOEnrichmentBarPlot",
     ]
     expected_method_parameters = [
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
-        {'percentage': 0.5, 'graph_type': 'Pie chart'},
-        {'deviation_threshold': 2.0, 'graph_type': 'Pie chart'},
-        {'number_of_neighbours': 5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10', 'graph_type_quantities': 'Pie chart'},
-        {'number_of_neighbors': 20},
-        {'log_base': 'log2', 'graph_type': 'Boxplot', 'group_by': 'None'},
-        {'percentile': 0.5, 'graph_type': 'Boxplot', 'group_by': 'None', 'visual_transformation': 'log10'},
-        {'input_df': None, 'protein_group': None, 'similarity_measure': 'euclidean distance', 'similarity': 1},
-        {'ttest_type': "Welch's t-Test", 'protein_df': None, 'multiple_testing_correction_method': 'Benjamini-Hochberg', 'alpha': 0.05, 'grouping': None, 'group1': None, 'group2': None},
-        {'input_dict': None, 'fc_threshold': 1, 'items_of_interest': []},
-        {'proteins_df': None, 'differential_expression_threshold': 0, 'gene_sets_restring': [], 'organism': 9606, 'direction': 'both', 'background_path': None},
-        {'input_df_step_instance': None, 'cutoff': 0.05, 'gene_sets': ['Process', 'Component', 'Function', 'KEGG'], 'value': 'p-value', 'top_terms': 10, 'title': ''}
+        {
+            "file_path": (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path),
+            "intensity_name": "iBAQ",
+            "map_to_uniprot": False,
+            "aggregation_method": "Sum",
+        },
+        {
+            "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        },
+        {"percentage": 0.5, "graph_type": "Pie chart"},
+        {"deviation_threshold": 2.0, "graph_type": "Pie chart"},
+        {
+            "number_of_neighbours": 5,
+            "graph_type": "Boxplot",
+            "group_by": "None",
+            "visual_transformation": "log10",
+            "graph_type_quantities": "Pie chart",
+        },
+        {"number_of_neighbors": 20},
+        {"log_base": "log2", "graph_type": "Boxplot", "group_by": "None"},
+        {
+            "percentile": 0.5,
+            "graph_type": "Boxplot",
+            "group_by": "None",
+            "visual_transformation": "log10",
+        },
+        {
+            "input_df": None,
+            "protein_group": None,
+            "similarity_measure": "euclidean distance",
+            "similarity": 1,
+        },
+        {
+            "ttest_type": "Welch's t-Test",
+            "protein_df": None,
+            "multiple_testing_correction_method": "Benjamini-Hochberg",
+            "alpha": 0.05,
+            "grouping": None,
+            "group1": None,
+            "group2": None,
+        },
+        {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
+        {
+            "proteins_df": None,
+            "differential_expression_threshold": 0,
+            "gene_sets_restring": [],
+            "organism": 9606,
+            "direction": "both",
+            "background_path": None,
+        },
+        {
+            "input_df_step_instance": None,
+            "cutoff": 0.05,
+            "gene_sets": ["Process", "Component", "Function", "KEGG"],
+            "value": "p-value",
+            "top_terms": 10,
+            "title": "",
+        },
     ]
 
     assert mock_method.call_count == 13
@@ -128,7 +178,9 @@ def test_runner_raises_error_for_missing_metadata_arg(
         runner.compute_workflow()
 
 
-def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path):
+def test_runner_calculates(
+    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
+):
     calculating_args = [
         "only_import_and_filter_proteins",
         ms_data_file_path,
@@ -153,9 +205,17 @@ def test_runner_calculates(monkeypatch, tests_folder_name, ms_data_file_path, me
         "FilterProteinsBySamplesMissing",
     ]
     assert mock_method.inputs == [
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path), 'intensity_name': 'iBAQ', 'map_to_uniprot': False, 'aggregation_method': 'Sum'},
-        {'file_path': (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path), 'feature_orientation': 'Columns (samples in rows, features in columns)'},
-        {'percentage': 0.5, 'graph_type': 'Pie chart'},
+        {
+            "file_path": (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path),
+            "intensity_name": "iBAQ",
+            "map_to_uniprot": False,
+            "aggregation_method": "Sum",
+        },
+        {
+            "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        },
+        {"percentage": 0.5, "graph_type": "Pie chart"},
     ]
     mock_plot.assert_not_called()
 
@@ -190,9 +250,7 @@ def test_serialize_graphs():
 
 
 def test_serialize_workflow_graphs():
-    with open(
-        TEST_WORKFLOWS_PATH / "example_workflow.json", "r"
-    ) as f:
+    with open(TEST_WORKFLOWS_PATH / "example_workflow.json", "r") as f:
         workflow_config = json.load(f)
 
     serial_imputation_graphs = {
@@ -211,7 +269,9 @@ def test_serialize_workflow_graphs():
             assert _serialize_graphs(step["graphs"]) == serial_filter_graphs
 
 
-def test_integration_runner(metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch):
+def test_integration_runner(
+    metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch
+):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
     print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
     runner = Runner(
@@ -233,7 +293,9 @@ def test_integration_runner(metadata_file_path, ms_data_file_path, tests_folder_
     runner.compute_workflow()
 
 
-def test_integration_runner_no_plots(metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch):
+def test_integration_runner_no_plots(
+    metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch
+):
     name = tests_folder_name + "/test_runner_integration" + random_string()
     runner = Runner(
         **{

@@ -10,11 +10,17 @@ from backend.protzilla.data_integration import (
     di_plots,
     enrichment_analysis,
 )
-from backend.protzilla.data_integration.database_query import biomart_database, uniprot_databases
+from backend.protzilla.data_integration.database_query import (
+    biomart_database,
+    uniprot_databases,
+)
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
 from backend.protzilla.form import *
 from backend.protzilla.steps import Plots, Step, StepManager
-from backend.protzilla.data_integration.enrichment_analysis import GOAnalysisOflineBackgroundType, GOAnalysisWithEnrichrBackgroundType
+from backend.protzilla.data_integration.enrichment_analysis import (
+    GOAnalysisOflineBackgroundType,
+    GOAnalysisWithEnrichrBackgroundType,
+)
 import matplotlib.colors as mcolors
 
 PROTEIN_DF = "protein_df"
@@ -25,9 +31,6 @@ class Direction(Enum):
     up = "up"
     down = "down"
     both = "both"
-
-
-
 
 
 class Organism(Enum):
@@ -114,38 +117,38 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
             label="GO analysis with STRING",
             input_fields=[
                 DropdownField(
-                    name = "proteins_df",
-                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                    name="proteins_df",
+                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
                 ),
                 NumberField(
-                    name = "differential_expression_threshold",
-                    label = "Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    value = 0,
-                    min = 0,
-                    max = 4294967295,
-                    step = 1,
+                    name="differential_expression_threshold",
+                    label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
+                    value=0,
+                    min=0,
+                    max=4294967295,
+                    step=1,
                     hasStepButtons=True,
                 ),
                 MultiSelectField(
-                    name = "gene_sets_restring",
-                    label = "Knowledge bases for enrichment",
+                    name="gene_sets_restring",
+                    label="Knowledge bases for enrichment",
                 ),
                 NumberField(
-                    name = "organism",
-                    label = "Organism / NCBI taxon identifiers (e.g. Human is 9606)",
-                    value = 9606,
+                    name="organism",
+                    label="Organism / NCBI taxon identifiers (e.g. Human is 9606)",
+                    value=9606,
                 ),
                 DropdownField(
-                    name = "direction",
-                    label = "Direction of the analysis",
-                    value = Direction.both.value,
-                    options = Direction,
+                    name="direction",
+                    label="Direction of the analysis",
+                    value=Direction.both.value,
+                    options=Direction,
                 ),
                 FileInput(
-                    name = "background_path",
-                    label = "Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
+                    name="background_path",
+                    label="Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
@@ -153,15 +156,13 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
         gene_sets_restring_field = form["gene_sets_restring"]
 
         proteins_df_field.set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
         )
 
         gene_sets_restring_field.options = form_helper.to_choices(
             restring.settings.file_types
         )
-        
+
     calc_method = staticmethod(enrichment_analysis.GO_analysis_with_STRING)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -190,77 +191,77 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
 
     def create_form(self):
         return Form(
-            label = "GO analysis with Enrichr",
-            input_fields = [
+            label="GO analysis with Enrichr",
+            input_fields=[
                 DropdownField(
-                    name = "protein_df_step_instance",
-                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC). Maybe do a differential expression analysis first",
+                    name="protein_df_step_instance",
+                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC). Maybe do a differential expression analysis first",
                 ),
                 NumberField(
-                    name = "differential_expression_threshold",
-                    label = "Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
-                            "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    min = 0,
-                    max = 4294967295,
-                    value = 0,
+                    name="differential_expression_threshold",
+                    label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
+                    "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
+                    min=0,
+                    max=4294967295,
+                    value=0,
                 ),
                 DropdownField(
-                    name = "gene_mapping_step_instance",
-                    label = "Gene mapping",
+                    name="gene_mapping_step_instance",
+                    label="Gene mapping",
                 ),
                 DropdownField(
-                    name = "direction",
-                    label = "Direction of the analysis",
-                    value = Direction.both.value,
-                    options = Direction,
+                    name="direction",
+                    label="Direction of the analysis",
+                    value=Direction.both.value,
+                    options=Direction,
                 ),
                 DropdownField(
-                    name = "organism",
-                    label = "Organism",
-                    value = Organism.human.value,
-                    options = Organism,
+                    name="organism",
+                    label="Organism",
+                    value=Organism.human.value,
+                    options=Organism,
                 ),
                 DropdownField(
-                    name = "gene_sets_field",
-                    label = "Gene sets",
-                    value = GeneSetsType.choose_from_enrichr_options.value,
-                    options = GeneSetsType,
+                    name="gene_sets_field",
+                    label="Gene sets",
+                    value=GeneSetsType.choose_from_enrichr_options.value,
+                    options=GeneSetsType,
                 ),
                 FileInput(
-                    name = "gene_sets_path",
-                    label = "Upload gene sets with uppercase gene symbols (any of the following file types: .gmt, .txt, .csv, "
-                            ".json \n"
-                            ".txt (one set per line): SetName followed by tab-separated list of proteins\n"
-                            ".csv (one set per line): SetName, Gene1, Gene2, ...\n"
-                            r".json: {SetName: [Gene1, Gene2, ...], SetName2: [Gene2, Gene3,...]})"
+                    name="gene_sets_path",
+                    label="Upload gene sets with uppercase gene symbols (any of the following file types: .gmt, .txt, .csv, "
+                    ".json \n"
+                    ".txt (one set per line): SetName followed by tab-separated list of proteins\n"
+                    ".csv (one set per line): SetName, Gene1, Gene2, ...\n"
+                    r".json: {SetName: [Gene1, Gene2, ...], SetName2: [Gene2, Gene3,...]})",
                 ),
                 DropdownField(
-                    name = "gene_sets_enrichr",
-                    label = "Gene set libraries",
+                    name="gene_sets_enrichr",
+                    label="Gene set libraries",
                 ),
                 DropdownField(
-                    name = "background_type",
-                    label = "Background",
-                    value = GOAnalysisWithEnrichrBackgroundType.all_genes.value,
-                    options = GOAnalysisWithEnrichrBackgroundType,
+                    name="background_type",
+                    label="Background",
+                    value=GOAnalysisWithEnrichrBackgroundType.all_genes.value,
+                    options=GOAnalysisWithEnrichrBackgroundType,
                 ),
                 FileInput(
-                    name = "background_path",
-                    label = "Background set with uppercase gene symbols (one gene per line, csv or txt)",
+                    name="background_path",
+                    label="Background set with uppercase gene symbols (one gene per line, csv or txt)",
                 ),
                 NumberField(
-                    name = "background_number",
-                    label = "Number of expressed genes in the background",
-                    min = 1,
-                    max = 4294967295,
-                    step = 1,
-                    value = 1,
+                    name="background_number",
+                    label="Number of expressed genes in the background",
+                    min=1,
+                    max=4294967295,
+                    step=1,
+                    value=1,
                 ),
                 DropdownField(
-                    name = "background_biomart",
-                    label = "Biomart dataset",
+                    name="background_biomart",
+                    label="Biomart dataset",
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
@@ -274,16 +275,11 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
         background_path_field = form["background_path"]
         background_number_field = form["background_number"]
 
-
         protein_df_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
         )
         gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, "gene_mapping_df"
-            )
+            form_helper.get_choices(run, "gene_mapping_df")
         )
 
         for field_name in [
@@ -294,7 +290,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             "background_biomart",
         ]:
             form[field_name].isVisible = False
-        
+
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enricher_field.isVisible = True
             gene_sets_enricher_field.set_options(
@@ -304,9 +300,10 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             )
         else:
             gene_sets_path_field.isVisible = True
-        
+
         if (
-           background_type_field.value == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value 
+            background_type_field.value
+            == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value
         ):
             background_biomart_field.isVisible = True
             database = biomart_database("ENSEMBL_MART_ENSEMBL")
@@ -319,14 +316,15 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
                 )
             )
         elif (
-            background_type_field.value == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value
+            background_type_field.value
+            == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value
         ):
             background_path_field.isVisible = True
         elif (
-            background_type_field.value == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
+            background_type_field.value
+            == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
-
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
@@ -360,59 +358,59 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
 
     def create_form(self):
         return Form(
-            label = "GO analysis offline",
-            input_fields = [
+            label="GO analysis offline",
+            input_fields=[
                 DropdownField(
-                    name = "protein_df_step_instance",
-                    label = "Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
+                    name="protein_df_step_instance",
+                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
                 ),
                 NumberField(
-                    name = "differential_expression_threshold",
-                    label = "Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
+                    name="differential_expression_threshold",
+                    label="Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
                     'values < threshold downregulated. If "log" is in the name of differential_expression_col, '
                     "threshold is applied symmetrically: e.g. log2_fold_change > threshold is upregulated, "
                     "if log2_fold_change < -threshold downregulated",
-                    value = 0,
-                    min = 0,
-                    max = 4294967295,
+                    value=0,
+                    min=0,
+                    max=4294967295,
                 ),
                 DropdownField(
-                    name = "gene_mapping_step_instance",
-                    label = "Gene mapping",
+                    name="gene_mapping_step_instance",
+                    label="Gene mapping",
                 ),
                 FileInput(
-                    name = "gene_sets_path",
-                    label = "Upload gene sets with uppercase gene symbols (any of the following file "
+                    name="gene_sets_path",
+                    label="Upload gene sets with uppercase gene symbols (any of the following file "
                     "types: .gmt, .txt, .csv, .json | .txt (one set per line): SetName "
                     "followed by tab-separated list of proteins | .csv (one set per line): "
                     "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
                     "SetName2: [Gene2, Gene3, ...]})",
                 ),
                 DropdownField(
-                    name = "direction",
-                    label = "Direction of the analysis",
-                    value = Direction.both.value,
-                    options = Direction,
+                    name="direction",
+                    label="Direction of the analysis",
+                    value=Direction.both.value,
+                    options=Direction,
                 ),
                 DropdownField(
-                    name = "background_type",
-                    label = "Background",
-                    value = GOAnalysisOflineBackgroundType.upload_a_file.value,
-                    options = GOAnalysisOflineBackgroundType,
+                    name="background_type",
+                    label="Background",
+                    value=GOAnalysisOflineBackgroundType.upload_a_file.value,
+                    options=GOAnalysisOflineBackgroundType,
                 ),
                 FileInput(
-                    name = "background_path",
-                    label = "Background set with uppercase gene symbols (one gene per line, csv or txt)",
+                    name="background_path",
+                    label="Background set with uppercase gene symbols (one gene per line, csv or txt)",
                 ),
                 NumberField(
-                    name = "background_number",
-                    label = "Number of expressed genes in the background",
-                    min = 1,
-                    max = 4294967295,
-                    step = 1,
-                    value = 1
+                    name="background_number",
+                    label="Number of expressed genes in the background",
+                    min=1,
+                    max=4294967295,
+                    step=1,
+                    value=1,
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
@@ -423,14 +421,10 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
         background_number_field = form["background_number"]
 
         protein_df_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
         )
         gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, "gene_mapping_df"
-            )
+            form_helper.get_choices(run, "gene_mapping_df")
         )
 
         background_path_field.isVisible = False
@@ -446,12 +440,12 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
             == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
-        
-
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
+            Step,
+            "differentially_expressed_proteins_df",
+            inputs["protein_df_step_instance"],
         )  # TODO name fix
         if (
             inputs.get("proteins_df") is None
@@ -478,81 +472,81 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
 
     def create_form(self):
         return Form(
-            label = "GSEA",
-            input_fields = [
+            label="GSEA",
+            input_fields=[
                 DropdownField(
-                    name = "protein_df_step_instance",
-                    label = "Dataframe with protein IDs, samples and intensities",
+                    name="protein_df_step_instance",
+                    label="Dataframe with protein IDs, samples and intensities",
                 ),
                 DropdownField(
-                    name = "gene_mapping_step_instance",
-                    label = "Gene mapping",
+                    name="gene_mapping_step_instance",
+                    label="Gene mapping",
                 ),
                 DropdownField(
                     # TODO: Dynamic parameters
-                    name = "gene_sets_type",
-                    label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsType.choose_from_enrichr_options.value,
-                    options = GeneSetsType,
+                    name="gene_sets_type",
+                    label="How do you want to provide the gene sets? (reselect to show dynamic fields)",
+                    value=GeneSetsType.choose_from_enrichr_options.value,
+                    options=GeneSetsType,
                 ),
                 FileInput(
-                    name = "gene_sets_path",
-                    label = "Upload gene sets with uppercase gene symbols (any of the following file "
-                            "types: .gmt, .txt, .csv, .json | .txt (one set per line): SetName "
-                            "followed by tab-separated list of proteins | .csv (one set per line): "
-                            "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
-                            "SetName2: [Gene2, Gene3, ...]})",
+                    name="gene_sets_path",
+                    label="Upload gene sets with uppercase gene symbols (any of the following file "
+                    "types: .gmt, .txt, .csv, .json | .txt (one set per line): SetName "
+                    "followed by tab-separated list of proteins | .csv (one set per line): "
+                    "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
+                    "SetName2: [Gene2, Gene3, ...]})",
                 ),
                 DropdownField(
-                    name = "gene_sets_enrichr",
-                    label = "Gene sets",
+                    name="gene_sets_enrichr",
+                    label="Gene sets",
                 ),
                 DropdownField(
-                    name = "grouping",
-                    label = "Grouping from metadata",
+                    name="grouping",
+                    label="Grouping from metadata",
                 ),
                 DropdownField(
-                    name = "group1",
-                    label = "Group1",
+                    name="group1",
+                    label="Group1",
                 ),
                 DropdownField(
-                    name = "group2",
-                    label = "Group2",
+                    name="group2",
+                    label="Group2",
                 ),
                 NumberField(
-                    name = "min_size",
-                    label = "Minimum number of genes from gene set also in data",
-                    value = 15,
+                    name="min_size",
+                    label="Minimum number of genes from gene set also in data",
+                    value=15,
                 ),
                 NumberField(
-                    name = "max_size",
-                    label = "Maximum number of genes from gene set also in data",
-                    value = 500,
+                    name="max_size",
+                    label="Maximum number of genes from gene set also in data",
+                    value=500,
                 ),
                 NumberField(
-                    name = "number_of_permutations",
-                    label = "Number of permutations",
-                    value = 1000,
+                    name="number_of_permutations",
+                    label="Number of permutations",
+                    value=1000,
                 ),
                 DropdownField(
-                    name = "permutation_type",
-                    label = "Permutation type (if samples >=15 set to phenotype)",
-                    value = PermutationTypeField.phenotype.value,
-                    options = PermutationTypeField,
+                    name="permutation_type",
+                    label="Permutation type (if samples >=15 set to phenotype)",
+                    value=PermutationTypeField.phenotype.value,
+                    options=PermutationTypeField,
                 ),
                 DropdownField(
-                    name = "ranking_method",
-                    label = "Method to calculate correlation or ranking",
-                    value = RankingMethodField.signal_to_noise.value,
-                    options = RankingMethodField,
+                    name="ranking_method",
+                    label="Method to calculate correlation or ranking",
+                    value=RankingMethodField.signal_to_noise.value,
+                    options=RankingMethodField,
                 ),
                 FloatField(
-                    name = "weighted_score",
-                    label = "Weighted score for the enrichment score calculation, recommended values: "
-                            "0, 1, 1.5 or 2",
-                    value = 1,
+                    name="weighted_score",
+                    label="Weighted score for the enrichment score calculation, recommended values: "
+                    "0, 1, 1.5 or 2",
+                    value=1,
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
@@ -566,14 +560,10 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
         group2_field = form["group2"]
 
         protein_df_field.set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
         )
         gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, "gene_mapping_df"
-            )
+            form_helper.get_choices(run, "gene_mapping_df")
         )
 
         gene_sets_enrichr_field.isVisible = False
@@ -595,13 +585,11 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
 
         if not grouping_field.value:
             return
-        
+
         group1_field.set_options(
-            form_helper.to_choices(
-                run.steps.metadata_df[grouping_field.value].unique()
-            )
+            form_helper.to_choices(run.steps.metadata_df[grouping_field.value].unique())
         )
-        if (group1_field.value in run.steps.metadata_df[grouping_field.value].unique()):
+        if group1_field.value in run.steps.metadata_df[grouping_field.value].unique():
             group2_field.set_options(
                 [
                     Option(el, el)
@@ -617,10 +605,12 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
                     )
                 )
             )
-    
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["protein_df"] = steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
+            Step,
+            "differentially_expressed_proteins_df",
+            inputs["protein_df_step_instance"],
         )
         inputs["metadata_df"] = steps.metadata_df
         inputs["gene_mapping_df"] = steps.get_step_output(
@@ -639,133 +629,131 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
 
     def create_form(self):
         return Form(
-            label = "GSEA preranked",
-            input_fields = [
+            label="GSEA preranked",
+            input_fields=[
                 DropdownField(
-                    name = "protein_df_step_instance",
-                    label = "Dataframe with protein IDs, samples and intensities",
+                    name="protein_df_step_instance",
+                    label="Dataframe with protein IDs, samples and intensities",
                 ),
                 DropdownField(
-                    name = "gene_mapping_step_instance",
-                    label = "Gene mapping",
+                    name="gene_mapping_step_instance",
+                    label="Gene mapping",
                 ),
                 DropdownField(
-                    name = "ranking_column",
-                    label = "Column to use for ranking",
+                    name="ranking_column",
+                    label="Column to use for ranking",
                 ),
                 DropdownField(
-                    name = "ranking_direction",
-                    label = "Sort the ranking column (ascending - smaller values are better, "
-                            "descending - larger values are better)",
-                    value = RankingDirectionField.ascending.value,
-                    options = RankingDirectionField,
+                    name="ranking_direction",
+                    label="Sort the ranking column (ascending - smaller values are better, "
+                    "descending - larger values are better)",
+                    value=RankingDirectionField.ascending.value,
+                    options=RankingDirectionField,
                 ),
                 DropdownField(
-                    name = "gene_sets_field",
-                    label = "How do you want to provide the gene sets? (reselect to show dynamic fields)",
-                    value = GeneSetsType.choose_from_enrichr_options.value,
-                    options = GeneSetsType,
+                    name="gene_sets_field",
+                    label="How do you want to provide the gene sets? (reselect to show dynamic fields)",
+                    value=GeneSetsType.choose_from_enrichr_options.value,
+                    options=GeneSetsType,
                     # Todo: Dynamic parameters
                 ),
                 FileInput(
-                    name = "gene_sets_path",
-                    label = "Upload gene sets with uppercase gene symbols (any of the following file "
-                            "types: .gmt, .txt, .csv, .json | .txt (one set per line): SetName "
-                            "followed by tab-separated list of proteins | .csv (one set per line): "
-                            "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
-                            "SetName2: [Gene2, Gene3, ...]})",
+                    name="gene_sets_path",
+                    label="Upload gene sets with uppercase gene symbols (any of the following file "
+                    "types: .gmt, .txt, .csv, .json | .txt (one set per line): SetName "
+                    "followed by tab-separated list of proteins | .csv (one set per line): "
+                    "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
+                    "SetName2: [Gene2, Gene3, ...]})",
                 ),
                 DropdownField(
-                    name = "gene_sets_enrichr",
-                    label = "Gene sets",
+                    name="gene_sets_enrichr",
+                    label="Gene sets",
                 ),
                 NumberField(
-                    name = "min_size",
-                    label = "Minimum number of genes from gene set also in data",
-                    value = 15,
+                    name="min_size",
+                    label="Minimum number of genes from gene set also in data",
+                    value=15,
                 ),
                 NumberField(
-                    name = "max_size",
-                    label = "Maximum number of genes from gene set also in data",
-                    value = 500,
+                    name="max_size",
+                    label="Maximum number of genes from gene set also in data",
+                    value=500,
                 ),
                 NumberField(
-                    name = "number_of_permutations",
-                    label = "Number of permutations",
-                    value = 1000,
+                    name="number_of_permutations",
+                    label="Number of permutations",
+                    value=1000,
                 ),
                 DropdownField(
-                    name = "permutation_type",
-                    label = "Permutation type (if samples >=15 set to phenotype)",
-                    value = PermutationTypeField.phenotype.value,
-                    options = PermutationTypeField,
-                ), 
+                    name="permutation_type",
+                    label="Permutation type (if samples >=15 set to phenotype)",
+                    value=PermutationTypeField.phenotype.value,
+                    options=PermutationTypeField,
+                ),
                 DropdownField(
-                    name = "ranking_method",
-                    label = "Method to calculate correlation or ranking",
-                    value = RankingMethodField.signal_to_noise.value,
-                    options = RankingMethodField,
+                    name="ranking_method",
+                    label="Method to calculate correlation or ranking",
+                    value=RankingMethodField.signal_to_noise.value,
+                    options=RankingMethodField,
                 ),
                 FloatField(
-                    name = "weighted_score",
-                    label = "Weighted score for the enrichment score calculation, recommended values: "
-                            "0, 1, 1.5 or 2",
-                    value = 1,
+                    name="weighted_score",
+                    label="Weighted score for the enrichment score calculation, recommended values: "
+                    "0, 1, 1.5 or 2",
+                    value=1,
                 ),
-            ]
+            ],
         )
-    
+
     def modify_form(self, form, run):
         protein_df_step_instance_field = form["protein_df_step_instance"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         ranking_column_field = form["ranking_column"]
 
         protein_df_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
         )
 
         gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, "gene_mapping_df"
-            )
+            form_helper.get_choices(run, "gene_mapping_df")
         )
 
         if protein_df_step_instance_field.value:
-            column_names = list(run.steps.get_step_output(
-                Step, "differentially_expressed_proteins_df", protein_df_step_instance_field.value
-            ))
+            column_names = list(
+                run.steps.get_step_output(
+                    Step,
+                    "differentially_expressed_proteins_df",
+                    protein_df_step_instance_field.value,
+                )
+            )
             ranking_column_field.set_options([Option(el, el) for el in column_names])
         else:
             ranking_column_field.set_options()
-        
+
         gene_sets_field = form["gene_sets_field"]
         gene_sets_enrichr_field = form["gene_sets_enrichr"]
         gene_sets_path_field = form["gene_sets_path"]
-        
+
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enrichr_field.isVisible = True
             gene_sets_enrichr_field.set_options(
-                form_helper.to_choices(
-                    gseapy.get_library_name()
-                )
+                form_helper.to_choices(gseapy.get_library_name())
             )
         else:
             gene_sets_path_field.isVisible = True
 
-
     def insert_dataframes(self, steps, inputs):
         inputs["protein_df"] = steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", inputs["protein_df_step_instance"]
+            Step,
+            "differentially_expressed_proteins_df",
+            inputs["protein_df_step_instance"],
         )
         inputs["gene_mapping_df"] = steps.get_step_output(
             Step, "gene_mapping_df", inputs["gene_mapping_step_instance"]
         )
-
 
 
 class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
@@ -779,36 +767,30 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
 
     def create_form(self):
         return Form(
-            label = "Gene mapping",
-            input_fields = [
+            label="Gene mapping",
+            input_fields=[
                 MultiSelectField(
-                    name = "database_names",
-                    label = "Uniprot databases (offline)",
+                    name="database_names",
+                    label="Uniprot databases (offline)",
                 ),
                 CheckboxField(
-                    name = "use_biomart",
-                    label = "Use Biomart after Uniprot databases (online)",
-                    value = False,
+                    name="use_biomart",
+                    label="Use Biomart after Uniprot databases (online)",
+                    value=False,
                 ),
                 DropdownField(
-                    name = "dataframe",
-                    label = "Step to use",
+                    name="dataframe",
+                    label="Step to use",
                 ),
-            ]
-        )
-        
-    def modify_form(self, form, run):
-        form["database_names"].set_options(
-            form_helper.to_choices(
-                uniprot_databases()
-            )
+            ],
         )
 
+    def modify_form(self, form, run):
+        form["database_names"].set_options(form_helper.to_choices(uniprot_databases()))
+
         form["dataframe"].set_options(
-            form_helper.get_choices(
-                run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF
-            )
-        ) # TODO this looks and sounds very generic, be more specific, maybe it needs diffexp step
+            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
+        )  # TODO this looks and sounds very generic, be more specific, maybe it needs diffexp step
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["dataframe"] = steps.get_step_output(
@@ -830,17 +812,17 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
     # TODO: Add dynamic fill for database name and fields
     def create_form(self):
         return Form(
-            label = "Uniprot",
-            input_fields = [
+            label="Uniprot",
+            input_fields=[
                 DropdownField(
-                    name = "database_name",
-                    label = "Uniprot databases (offline)",
+                    name="database_name",
+                    label="Uniprot databases (offline)",
                 ),
                 MultiSelectField(
-                    name = "fields",
-                    label = "Fields",
+                    name="fields",
+                    label="Fields",
                 ),
-            ]
+            ],
         )
 
 
@@ -853,71 +835,74 @@ class PlotGOEnrichmentBarPlot(PlotStep):
 
     def create_form(self):
         return Form(
-            label = "Bar plot for GO enrichment analysis",
-            input_fields = [
+            label="Bar plot for GO enrichment analysis",
+            input_fields=[
                 DropdownField(
-                    name = "input_df_step_instance",
-                    label = "Choose dataframe to be plotted",
+                    name="input_df_step_instance",
+                    label="Choose dataframe to be plotted",
                 ),
                 DropdownField(
-                    name = "value",
-                    label = "Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
-                    value = GOEnrichmentBarPlotValue.p_value.value,
-                    options = GOEnrichmentBarPlotValue,
+                    name="value",
+                    label="Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
+                    value=GOEnrichmentBarPlotValue.p_value.value,
+                    options=GOEnrichmentBarPlotValue,
                 ),
                 MultiSelectField(
-                    name = "gene_sets",
-                    label = "Knowledge bases for enrichment",
+                    name="gene_sets",
+                    label="Knowledge bases for enrichment",
                 ),
                 NumberField(
-                    name = "top_terms",
-                    label = "Number of top enriched terms per category",
-                    min = 1,
-                    step = 1,
-                    value = 10,
+                    name="top_terms",
+                    label="Number of top enriched terms per category",
+                    min=1,
+                    step=1,
+                    value=10,
                     hasStepButtons=True,
                 ),
                 FloatField(
-                    name = "cutoff",
-                    label = "Only terms with adjusted p-value (or FDR) < cutoff will be shown",
-                    min = 0,
-                    max = 1,
-                    step = 0.01,
-                    value = 0.05,
+                    name="cutoff",
+                    label="Only terms with adjusted p-value (or FDR) < cutoff will be shown",
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    value=0.05,
                 ),
                 TextField(
-                    name = "title",
-                    label = "Title of the plot (optional)",
+                    name="title",
+                    label="Title of the plot (optional)",
                 ),
-            ]
+            ],
         )
-    
+
     def modify_form(self, form, run):
         form["input_df_step_instance"].options = form_helper.get_choices(
             run, "enrichment_df"
         )
-        if(not form["input_df_step_instance"].value) and form["input_df_step_instance"].options:
-            form["input_df_step_instance"].value = form["input_df_step_instance"].options[0].label
+        if (not form["input_df_step_instance"].value) and form[
+            "input_df_step_instance"
+        ].options:
+            form["input_df_step_instance"].value = (
+                form["input_df_step_instance"].options[0].label
+            )
 
         if form["input_df_step_instance"].value:
             enrichment_df = run.steps.get_step_output(
-                    Step, "enrichment_df", form["input_df_step_instance"].value
-                )
+                Step, "enrichment_df", form["input_df_step_instance"].value
+            )
 
-            if (type(enrichment_df) == pd.DataFrame):
-                form["gene_sets"].set_options(form_helper.to_choices(
-                        enrichment_df["Gene_set"].unique()
-                    ))
+            if type(enrichment_df) == pd.DataFrame:
+                form["gene_sets"].set_options(
+                    form_helper.to_choices(enrichment_df["Gene_set"].unique())
+                )
             else:
                 form["gene_sets"].set_options([])
-
 
     plot_method = staticmethod(di_plots.GO_enrichment_bar_plot)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs[
-            "figsize"
-        ] = None  # TODO this should not have to be done manually if the parameter is optional
+        inputs["figsize"] = (
+            None  # TODO this should not have to be done manually if the parameter is optional
+        )
         inputs["input_df"] = steps.get_step_output(
             Step, "enrichment_df", inputs["input_df_step_instance"]
         )
@@ -935,66 +920,70 @@ class PlotGOEnrichmentDotPlot(PlotStep):
 
     def create_form(self):
         return Form(
-            label = "Dot plot for GO enrichment analysis",
-            input_fields = [
+            label="Dot plot for GO enrichment analysis",
+            input_fields=[
                 DropdownField(
                     # TODO: input_df fill dynamic with modify_form
-                    name = "input_df",
-                    label = "Choose Enrichment dataframe to be plotted",
+                    name="input_df",
+                    label="Choose Enrichment dataframe to be plotted",
                 ),
                 DropdownField(
-                    name = "x_axis_type",
-                    label = "Variable for x-axis: categorical scatter plot for one or multiple gene "
-                            "sets, or display combined score for one gene set",
-                    value = GOEnrichmentDotPlotXAxisType.gene_sets.value,
-                    options = GOEnrichmentDotPlotXAxisType,
+                    name="x_axis_type",
+                    label="Variable for x-axis: categorical scatter plot for one or multiple gene "
+                    "sets, or display combined score for one gene set",
+                    value=GOEnrichmentDotPlotXAxisType.gene_sets.value,
+                    options=GOEnrichmentDotPlotXAxisType,
                 ),
                 MultiSelectField(
-                    name = "gene_sets",
-                    label = "Sets to be plotted",
+                    name="gene_sets",
+                    label="Sets to be plotted",
                 ),
                 NumberField(
-                    name = "top_terms",
-                    label = "Number of top enriched terms per category",
-                    min = 1,
-                    max = 100,
-                    value = 5,
+                    name="top_terms",
+                    label="Number of top enriched terms per category",
+                    min=1,
+                    max=100,
+                    value=5,
                 ),
                 FloatField(
-                    name = "cutoff",
-                    label = "Only terms with adjusted p-value (or FDR) < cutoff will be shown",
-                    min = 0,
-                    max = 1,
-                    step = 0.01,
-                    value = 0.05,
+                    name="cutoff",
+                    label="Only terms with adjusted p-value (or FDR) < cutoff will be shown",
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    value=0.05,
                 ),
                 TextField(
-                    name = "title",
-                    label = "Title of the plot (optional)",
+                    name="title",
+                    label="Title of the plot (optional)",
                 ),
                 CheckboxField(
-                    name = "rotate_x_labels",
-                    label = "Rotate x-axis labels (if multiple categories are selected)",
-                    value = True,
+                    name="rotate_x_labels",
+                    label="Rotate x-axis labels (if multiple categories are selected)",
+                    value=True,
                 ),
                 CheckboxField(
-                    name = "show_ring",
-                    label = "Show ring around the dots",
-                    value = False,
+                    name="show_ring",
+                    label="Show ring around the dots",
+                    value=False,
                 ),
                 NumberField(
-                    name = "dot_size",
-                    label = "Scale the size of the dots",
-                    value = 5,
+                    name="dot_size",
+                    label="Scale the size of the dots",
+                    value=5,
                 ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        form["gene_sets"].set_options(
+            [
+                Option(el, el)
+                for el in run.steps.protein_df.get(
+                    "enrichment_categories", pd.Series()
+                ).unique()
             ]
         )
-    
-    def modify_form(self, form, run):
-        form["gene_sets"].set_options([
-            Option(el, el)
-            for el in run.steps.protein_df.get("enrichment_categories", pd.Series()).unique()
-        ])
 
 
 class PlotGSEADotPlot(PlotStep):
@@ -1008,66 +997,64 @@ class PlotGSEADotPlot(PlotStep):
 
     def create_form(self):
         return Form(
-            label = "Dot plot for (pre-ranked) GSEA",
-            input_fields = [
+            label="Dot plot for (pre-ranked) GSEA",
+            input_fields=[
                 DropdownField(
-                    name = "gsea_df_step_instance",
-                    label = "Choose enrichment dataframe to be plotted",
+                    name="gsea_df_step_instance",
+                    label="Choose enrichment dataframe to be plotted",
                 ),
                 MultiSelectField(
-                    name = "gene_sets",
-                    label = "Sets to be plotted",
+                    name="gene_sets",
+                    label="Sets to be plotted",
                 ),
                 DropdownField(
-                    name = "dot_color_value",
-                    label = "Color the dots by value",
-                    value = GSEADotPlotDotColorValue.fdr_q_val.value,
-                    options = GSEADotPlotDotColorValue,
+                    name="dot_color_value",
+                    label="Color the dots by value",
+                    value=GSEADotPlotDotColorValue.fdr_q_val.value,
+                    options=GSEADotPlotDotColorValue,
                 ),
                 DropdownField(
-                    name = "x_axis_value",
-                    label = "Value to display on x axis",
-                    value = GSEADotPlotXAxisValue.nes.value,
-                    options = GSEADotPlotXAxisValue,
+                    name="x_axis_value",
+                    label="Value to display on x axis",
+                    value=GSEADotPlotXAxisValue.nes.value,
+                    options=GSEADotPlotXAxisValue,
                 ),
                 FloatField(
-                    name = "cutoff",
-                    label = "Cutoff value for fdr q-value or nominal p-value",
-                    min = 0,
-                    max = 1,
-                    step = 0.01,
-                    value = 0.05,
+                    name="cutoff",
+                    label="Cutoff value for fdr q-value or nominal p-value",
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    value=0.05,
                 ),
                 TextField(
-                    name = "title",
-                    label = "Title of the plot (optional)",
+                    name="title",
+                    label="Title of the plot (optional)",
                 ),
                 NumberField(
-                    name = "dot_size",
-                    label = "Scale the size of the dots",
-                    value = 5,
+                    name="dot_size",
+                    label="Scale the size of the dots",
+                    value=5,
                 ),
                 CheckboxField(
-                    name = "show_ring",
-                    label = "Show ring around the dots",
-                    value = False,
+                    name="show_ring",
+                    label="Show ring around the dots",
+                    value=False,
                 ),
                 CheckboxField(
-                    name = "remove_library_names",
-                    label = "Remove library names from gene sets (e.g. 'KEGG_2013__')",
-                    value = False,
+                    name="remove_library_names",
+                    label="Remove library names from gene sets (e.g. 'KEGG_2013__')",
+                    value=False,
                 ),
-            ]
+            ],
         )
-    
+
     def modify_form(self, form, run):
         gsea_df_step_instance_field = form["gsea_df_step_instance"]
         gsea_df_step_instance_field.set_options(
-            form_helper.get_choices(
-                run, "enrichment_df"
-            )
+            form_helper.get_choices(run, "enrichment_df")
         )
-    
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["gsea_df"] = steps.get_step_output(
             Step, "enrichment_df", inputs["gsea_df_step_instance"]
@@ -1086,27 +1073,27 @@ class PlotGSEAEnrichmentPlot(PlotStep):
 
     def create_form(self):
         return Form(
-            label = "Enrichment plot for (pre-ranked) GSEA",
-            input_fields = [
+            label="Enrichment plot for (pre-ranked) GSEA",
+            input_fields=[
                 DropdownField(
-                    name = "term_dict",
-                    label = "Enrichment details gene set to be plotted",
+                    name="term_dict",
+                    label="Enrichment details gene set to be plotted",
                 ),
                 TextField(
-                    name = "term_name",
-                    label = "Name of the term_dict for title",
+                    name="term_name",
+                    label="Name of the term_dict for title",
                 ),
                 DropdownField(
-                    name = "ranking",
-                    label = "Ranking from GSEA",
+                    name="ranking",
+                    label="Ranking from GSEA",
                 ),
                 TextField(
-                    name = "pos_pheno_label",
-                    label = "Label for positively correlated phenotype",
+                    name="pos_pheno_label",
+                    label="Label for positively correlated phenotype",
                 ),
                 TextField(
-                    name = "neg_pheno_label",
-                    label = "Label for negatively correlated phenotype",
+                    name="neg_pheno_label",
+                    label="Label for negatively correlated phenotype",
                 ),
-            ]
-        )        
+            ],
+        )
