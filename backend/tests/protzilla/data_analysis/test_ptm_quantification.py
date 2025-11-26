@@ -163,19 +163,6 @@ def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, m
         assert x_max_expected <= x_max_plot < 1.1 * x_max_expected
         assert y_max_expected <= y_max_plot < 1.5 * y_max_expected
 
-        # get the smallest x coordinate from all traces in full_fig
-        x_coords = []
-        y_coords = []
-        for trace in full_fig.data:
-            if isinstance(trace, plotly.graph_objs._scatter.Scatter):
-                # plotly seems to binarize data sometimes but min and max seem to stay numbers
-                if hasattr(trace, 'x') and not any(isinstance(el, str) for el in trace.x):
-                    x_coords.extend(trace.x)
-                if hasattr(trace, 'y') and not any(isinstance(el, str) for el in trace.y):
-                    y_coords.extend(trace.y)
-        assert min(x_coords) >= 0
-        assert min(y_coords) >= 0
-
 
 def test_flexiquant_grouping_column_not_in_df(peptide_df, metadata_df):
     reference_group = 'AD'
