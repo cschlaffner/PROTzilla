@@ -849,7 +849,58 @@ class ProteinGraphVariationGraph(DataAnalysisStep):
         return inputs
 
 
-class FLEXIQuantLF(DataAnalysisStep):
+class BaseFLEXLF(DataAnalysisStep):
+    """
+    A base class for FLEXIQuantLF and MultiFLEXLF to reduce code duplication.
+    """
+    def modify_form(self, form, run):
+        grouping_field = form["grouping_column"]
+        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+
+        if grouping_field.options == []:
+            return
+        grouping = grouping_field.value
+
+        reference_group_field = form["reference_group"]
+        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(
+            step_type=Step,
+            output_key="peptide_df",
+        )
+        inputs["metadata_df"] = steps.metadata_df
+        return inputs
+
+    def get_base_form_fields(self) -> tuple:
+        return (
+            DropdownField(
+                name="grouping_column",
+                label="Grouping column in metadata",
+            ),
+            DropdownField(
+                name="reference_group",
+                label="Reference group",
+            ),
+            NumberField(
+                name="num_init",
+                label="Number of RANSAC initiations",
+                value=30,
+                min=1,
+                max=60,
+                step=1,
+            ),
+            FloatField(
+                name="mod_cutoff",
+                label="Modification cutoff",
+                value=0.5,
+                min=0,
+                max=1
+            ),
+        )
+
+
+class FLEXIQuantLF(BaseFLEXLF):
     display_name = "FLEXIQuant-LF"
     operation = "modification_quantification"
     method_description = ("FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
@@ -870,46 +921,15 @@ class FLEXIQuantLF(DataAnalysisStep):
             label="FLEXIQuant-LF",
             input_fields=[
                 DropdownField(
-                    name="grouping_column",
-                    label="Grouping column in metadata",
-                ),
-                DropdownField(
-                    name="reference_group",
-                    label="Reference group",
-                ),
-                DropdownField(
                     name="protein_group",
                     label="Protein Group",
                 ),
-                NumberField(
-                    name="num_init",
-                    label="Number of RANSAC initiations",
-                    value=30,
-                    min=1,
-                    max=60,
-                    step=1,
-                ),
-                FloatField(
-                    name="mod_cutoff",
-                    label="Modification cutoff",
-                    value=0.5,
-                    min=0,
-                    max=1
-                )
+                *self.get_base_form_fields()
             ],
         )
 
     def modify_form(self, form, run):
-        grouping_field = form["grouping_column"]
-        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
-
-        if grouping_field.options == []:
-            return
-        grouping = grouping_field.value
-
-        reference_group_field = form["reference_group"]
-        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-
+        super().modify_form(form, run)
         form["protein_group"].options = form_helper.to_choices(
             run.steps.get_step_output(
                 step_type=Step,
@@ -917,16 +937,8 @@ class FLEXIQuantLF(DataAnalysisStep):
             )["Protein ID"].unique()
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            step_type=Step,
-            output_key="peptide_df",
-        )
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
-
-class MultiFLEXLF(DataAnalysisStep):
+class MultiFLEXLF(BaseFLEXLF):
     display_name = "MultiFLEX-LF"
     operation = "modification_quantification"
     method_description = ("Quantifies the extent of protein modifications in proteomics data by using robust linear "
@@ -949,30 +961,7 @@ class MultiFLEXLF(DataAnalysisStep):
         return Form(
             label="multiFLEX-LF",
             input_fields=[
-                DropdownField(
-                    name="grouping_column",
-                    label="Grouping column in metadata",
-                ),
-                DropdownField(
-                    name="reference_group",
-                    label="Reference group",
-                ),
-                NumberField(
-                    name="num_init",
-                    label="Number of RANSAC initiations",
-                    value=30,
-                    min=1,
-                    max=60,
-                    step=1,
-                    hasStepButtons=True,
-                ),
-                FloatField(
-                    name="mod_cutoff",
-                    label="Modification cutoff",
-                    value=0.5,
-                    min=0,
-                    max=1
-                ),
+                *self.get_base_form_fields(),
                 FloatField(
                     name="imputation_cosine_similarity",
                     label="Cosine similarity for imputation",
@@ -993,25 +982,6 @@ class MultiFLEXLF(DataAnalysisStep):
             ],
         )
 
-    # TODO: merge mit flexiquant? - maybe also the form above
-    def modify_form(self, form, run):
-        grouping_field = form["grouping_column"]
-        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
-
-        if grouping_field.options == []:
-            return
-        grouping = grouping_field.value
-
-        reference_group_field = form["reference_group"]
-        reference_group_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            step_type=Step,
-            output_key="peptide_df",
-        )
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):

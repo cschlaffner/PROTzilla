@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.graph_objs
 import pytest
 from statsmodels.compat.pandas import assert_frame_equal
 
@@ -10,8 +11,6 @@ from protzilla.importing.peptide_import import peptide_import
 from tests.paths import TEST_DATA_PATH
 
 
-# TODO: using especially the Tau peptides from the Alzheimer's dataset is really not ideal and should be replaced by
-#  the original FlexiQuant dataset
 @pytest.fixture(scope='module')
 def peptide_df_AD_only() -> pd.DataFrame:
     df = peptide_import(
@@ -104,7 +103,7 @@ def test_flexiquant_calculation():
         ('AD', 'Group', 0.),
         ('AD', 'Group', 0.05),
         ('AD', 'Group', 0.95),
-        ('AD', 'Group', 1.),  # TODO: check this again -> still produces unmodified peptides
+        ('AD', 'Group', 1.),
     ],
 )
 def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, mod_cutoff):
@@ -139,6 +138,43 @@ def test_flexiquant(peptide_df, metadata_df, reference_group, grouping_column, m
             and result['messages'][0]['msg'] == f'All {num_samples} samples have been processed successfully. '
                                                 f'{len(removed_peptides)} peptides have been removed.'
     )
+
+    x_max_expected = (
+        peptide_df[peptide_df['Sample'].str.contains(reference_group)]
+        .groupby('Sequence')
+        .median(numeric_only=True)['Intensity']
+        .max()
+    )
+    y_axes_maxes = peptide_df.groupby('Sample')['Intensity'].max()
+
+    # Sanity checking that plot is not completely malformed
+    for i, plot in enumerate(result['plots']):
+        full_fig = plot.full_figure_for_development()
+        x_max_plot = full_fig.layout.xaxis.range[1]
+        y_max_plot = full_fig.layout.yaxis2.range[1]
+
+        sample = [idx for idx in y_axes_maxes.index if idx in full_fig.layout.title.text]
+        y_max_expected = y_axes_maxes[sample[0]]
+
+        # These magic numbers are just a heuristic and especially the y-values are also dependent on the calculated
+        # slope and confidence bands. Reimplementing the slope and confidence band calculation would be overkill, so I
+        # left this, but these heuristic should at least catch any major mishaps in the regression and subsequent
+        # plotting.
+        assert x_max_expected <= x_max_plot < 1.1 * x_max_expected
+        assert y_max_expected <= y_max_plot < 1.5 * y_max_expected
+
+        # get the smallest x coordinate from all traces in full_fig
+        x_coords = []
+        y_coords = []
+        for trace in full_fig.data:
+            if isinstance(trace, plotly.graph_objs._scatter.Scatter):
+                # plotly seems to binarize data sometimes but min and max seem to stay numbers
+                if hasattr(trace, 'x') and not any(isinstance(el, str) for el in trace.x):
+                    x_coords.extend(trace.x)
+                if hasattr(trace, 'y') and not any(isinstance(el, str) for el in trace.y):
+                    y_coords.extend(trace.y)
+        assert min(x_coords) >= 0
+        assert min(y_coords) >= 0
 
 
 def test_flexiquant_grouping_column_not_in_df(peptide_df, metadata_df):

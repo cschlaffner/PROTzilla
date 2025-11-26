@@ -120,9 +120,7 @@ def multiflex_lf(
 
     flexi_error_messages = []
 
-    # TODO
-    from tqdm import tqdm
-    for protein in tqdm(list_proteins):
+    for protein in list_proteins:
         flexi_result = flexiquant_lf(
             peptide_df=peptide_df,
             metadata_df=metadata_df,
