@@ -21,7 +21,6 @@ def rm_score_to_color(value: float, mod_cutoff: float, colors: list[str] = plotl
     :param colors: List of colors to use.
     :return: Color as a string.
     """
-    # TODO: use three-tiered color scheme? If yes, what about cutoff?
     if np.isnan(value):
         return colors[7]
     elif value < mod_cutoff:
@@ -473,12 +472,8 @@ def create_regression_plots(
     # draw regression line
     line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
     max_int = dataframe_train["Reference intensity"].max()
-    min_int = min(
-        dataframe_train["Reference intensity"].min(),
-        dataframe_train["Sample intensity"].min(),
-    )
-    X = [min_int - 2, max_int]
-    y = [min_int - 2, slope * max_int]
+    X = np.array([0.999 * dataframe_train["Reference intensity"].min(), max_int])
+    y = slope * X
     fig.add_trace(
         go.Scatter(x=X, y=y, mode="lines", line=dict(color="darkblue", dash="solid"), name=line_label),
         row=2,
