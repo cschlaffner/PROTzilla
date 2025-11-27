@@ -50,9 +50,7 @@ export class RESTAdapter<M> implements IStorageAdapter<M> {
   }
 
   public async delete<E extends keyof M>(entity: E, id: ID): Promise<void> {
-    await this.axiosInstance.delete(
-      `${this.baseUrl}/${this.mapEntityToRoute(entity)}/${id}`,
-    );
+    await this.axiosInstance.delete(`${this.baseUrl}/${this.mapEntityToRoute(entity)}/${id}`);
   }
 
   public dispatch<E extends keyof M>(
