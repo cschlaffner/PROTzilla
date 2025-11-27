@@ -27,15 +27,8 @@ def get_available_run_names() -> list[str]:
         if not directory.name.startswith(".")
     ]
 
-
-def get_available_run_info() -> (
-    str
-    | tuple[
-        list[dict[str, bool | list[Any] | str]],
-        list[dict[str, bool | list[Any] | str | Any]],
-        list[Any],
-    ]
-):
+def get_available_run_info() -> str | tuple[
+    list[dict[str, bool | list[Any] | str]], list[dict[str, bool | list[Any] | str | Any]], list[Any]]:
     """
     Get all available runs and their metadata.
     Each run is a dictionary with the following entries:
@@ -51,9 +44,7 @@ def get_available_run_info() -> (
 
     :return: a list of all runs, a list of favourited runs and a list of all tags.
     """
-    from backend.protzilla.disk_operator import (
-        YamlOperator,
-    )  # import here to avoid import error with runner
+    from backend.protzilla.disk_operator import YamlOperator # import here to avoid import error with runner
 
     if not paths.RUNS_PATH.exists():
         return f"No runs have been found in {paths.RUNS_PATH}."
@@ -66,9 +57,7 @@ def get_available_run_info() -> (
         run_dir = os.path.join(paths.RUNS_PATH, run_name)
         metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
         if not os.path.isfile(metadata_yaml_path):
-            Run(
-                run_name
-            )  # initialize run to create metadata.yaml (creation date set to now)
+            Run(run_name) # initialize run to create metadata.yaml (creation date set to now)
         yaml_operator = YamlOperator()
         metadata = yaml_operator.read(Path(metadata_yaml_path))
         if not metadata:
@@ -78,13 +67,11 @@ def get_available_run_info() -> (
         run_name = {
             "run_name": run_name,
             "creation_date": metadata.get("creation_date", "date not available"),
-            "modification_date": metadata.get(
-                "modification_date", "date not available"
-            ),
+            "modification_date": metadata.get("modification_date", "date not available"),
             "memory_mode": metadata.get("df_mode", "disk"),
             "run_steps": metadata.get("steps", []),
             "favourite_status": metadata.get("favourite", False),
-            "run_tags": list(tags),
+            "run_tags": list(tags)
         }
 
         if run_name["favourite_status"]:
@@ -105,7 +92,6 @@ def delete_run_folder(run_name) -> None:
 
     if os.path.isdir(path):
         shutil.rmtree(path)
-
 
 class Run:
     class ErrorHandlingContextManager:
@@ -178,12 +164,10 @@ class Run:
     def __init__(
         self, run_name: str, workflow_name: str | None = None, df_mode: str = "disk"
     ):
-        if getattr(self, "_initialized"):
+        if getattr(self, '_initialized'):
             return  # skip init if already initialized
 
-        from backend.protzilla.disk_operator import (
-            DiskOperator,
-        )  # to avoid a circular import
+        from backend.protzilla.disk_operator import DiskOperator  # to avoid a circular import
 
         self.run_name = run_name
         self.workflow_name = workflow_name
@@ -218,9 +202,7 @@ class Run:
 
     def delete_run(self) -> None:
         delete_run_folder(self.run_name)
-        self._instances.pop(
-            self.run_name, None
-        )  # remove instance from the class dictionary
+        self._instances.pop(self.run_name, None)  # remove instance from the class dictionary
 
     @property
     def run_path(self) -> str:
@@ -255,21 +237,17 @@ class Run:
         self._metadata.update(metadata)
 
     def update_modification_date(self) -> None:
-        self._metadata["modification_date"] = datetime.now().strftime(
-            metadata_date_format
-        )
+        self._metadata["modification_date"] = datetime.now().strftime(metadata_date_format)
 
     @error_handling
     @auto_save
     def _workflow_read(self) -> None:
         self.steps = self.disk_operator.read_workflow()
         self._metadata = self.metadata_read()
-        self.update_metadata(
-            {
-                "df_mode": self.steps.df_mode,
-                "steps": [step.display_name for step in self.steps.all_steps],
-            }
-        )
+        self.update_metadata({
+            "df_mode": self.steps.df_mode,
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     def _workflow_save(self, workflow_name: str | None = None) -> None:
@@ -281,11 +259,9 @@ class Run:
     @auto_save
     def step_add(self, step: Step, step_index: int | None = None) -> None:
         self.steps.add_step(step)
-        self.update_metadata(
-            {
-                "steps": [step.display_name for step in self.steps.all_steps],
-            }
-        )
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
@@ -296,11 +272,9 @@ class Run:
         section: str | None = None,
     ) -> None:
         self.steps.remove_step(step=step, step_index=step_index, section=section)
-        self.update_metadata(
-            {
-                "steps": [step.display_name for step in self.steps.all_steps],
-            }
-        )
+        self.update_metadata({
+            "steps": [step.display_name for step in self.steps.all_steps],
+        })
 
     @error_handling
     @auto_save
@@ -341,7 +315,7 @@ class Run:
         self.steps.current_step.upload_file(inputname, file)
 
     @auto_save
-    def current_form(self, new_form_values={}) -> Form:
+    def current_form(self, new_form_values = {}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
         self.steps.current_step.form.apply_modification(self)
         return self.steps.current_step.form
@@ -357,7 +331,7 @@ class Run:
     @property
     def current_outputs(self) -> Output:
         return self.steps.current_step.output
-
+    
     @property
     def current_filtered_data(self) -> dict:
         return self.steps.current_step.filtered_datatable
@@ -365,3 +339,4 @@ class Run:
     @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+    

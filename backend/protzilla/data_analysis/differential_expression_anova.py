@@ -9,8 +9,7 @@ from backend.protzilla.utilities import default_intensity_column, exists_message
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
     _map_log_base,
-    apply_multiple_testing_correction,
-    preprocess_grouping,
+    apply_multiple_testing_correction, preprocess_grouping,
 )
 
 
@@ -58,9 +57,7 @@ def anova(
             - a df filtered_proteins, containing the filtered out proteins (due to missing values or identical values),
     """
 
-    selected_groups, messages = preprocess_grouping(
-        metadata_df, grouping, selected_groups
-    )
+    selected_groups, messages = preprocess_grouping(metadata_df, grouping, selected_groups)
 
     # Merge the intensity and metadata dataframes in order to assign to each Sample
     # their corresponding group

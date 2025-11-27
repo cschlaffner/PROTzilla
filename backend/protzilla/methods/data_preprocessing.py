@@ -18,10 +18,8 @@ from backend.protzilla.utilities import format_trace
 from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.form import *
 
-
 class EmptyEnum(Enum):
     pass
-
 
 class LogTransformationBaseType(Enum):
     log2 = "log2"
@@ -134,7 +132,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separatePrefix="\u03c3",
+                    separatePrefix="\u03C3"
                 ),
                 DropdownField(
                     name="graph_type",
@@ -147,7 +145,6 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     calc_method = staticmethod(filter_samples.by_protein_count)
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
-
 
 class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
@@ -238,7 +235,7 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separatePrefix="\u03c3",
+                    separatePrefix="\u03C3",
                 ),
                 DropdownField(
                     name="graph_type",
@@ -345,7 +342,7 @@ class TransformationLog(DataPreprocessingStep):
     operation = "transformation"
     method_description = "Transform data by log"
 
-    input_keys = ["protein_df", "peptide_df", "log_base"]
+    input_keys = [ "protein_df", "peptide_df", "log_base"]
 
     def create_form(self):
         return Form(
@@ -499,13 +496,11 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
         return Form(
             label="Normalisation by reference protein",
             input_fields=[
-                FormDivider(
-                    """A function to perform protein-intensity normalisation in reference to
+                FormDivider("""A function to perform protein-intensity normalisation in reference to
                     a selected protein on your dataframe. Normalises the data on the level 
                     of each sample. Divides each intensity by the intensity of the chosen 
                     reference protein in each sample. Samples where this value is zero 
-                    will be removed and returned separately."""
-                ),
+                    will be removed and returned separately."""),
                 TextField(
                     name="reference_protein",
                     label="Reference protein",
@@ -528,7 +523,7 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(normalisation.by_reference_protein)
@@ -544,12 +539,10 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per dataset",
             input_fields=[
-                FormDivider(
-                    """A function to impute missing values for each protein by taking into account 
+                FormDivider("""A function to impute missing values for each protein by taking into account 
                     data from the entire dataframe. Sets missing value to the smallest measured 
                         value in the dataframe. The user can also assign a shrinking factor to take a 
-                        fraction of that minimum value for imputation."""
-                ),
+                        fraction of that minimum value for imputation."""),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -582,7 +575,7 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(imputation.by_min_per_dataset)
@@ -598,12 +591,10 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per protein",
             input_fields=[
-                FormDivider(
-                    """A function to impute missing values for each protein by taking into account data from each protein. 
+                FormDivider("""A function to impute missing values for each protein by taking into account data from each protein. 
                         Sets missing value to the smallest measured value for each protein column. The user can also assign a 
                         shrinking factor to take a fraction of that minimum value for imputation. CAVE: All proteins without 
-                        any values will be filtered out."""
-                ),
+                        any values will be filtered out."""),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -636,7 +627,7 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -652,9 +643,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
         return Form(
             label="Imputation by minimum per sample",
             input_fields=[
-                FormDivider(
-                    "Sets missing intensity values to the smallest measured value for each sample"
-                ),
+                FormDivider("Sets missing intensity values to the smallest measured value for each sample"),
                 FloatField(
                     name="shrinking_value",
                     label="Shrinking value",
@@ -687,7 +676,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -736,7 +725,7 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(imputation.by_simple_imputer)
@@ -785,6 +774,7 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
+
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
@@ -854,8 +844,10 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
+
+

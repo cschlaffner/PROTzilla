@@ -1,8 +1,6 @@
 from pathlib import Path
 
-PROJECT_PATH = (
-    Path(__file__).resolve().parent.parent.parent.parent
-)  # path to the root of the project
+PROJECT_PATH = Path(__file__).resolve().parent.parent.parent.parent # path to the root of the project
 BACKEND_PATH = Path(PROJECT_PATH, "backend")
 FRONTEND_PATH = Path(PROJECT_PATH, "frontend")
 USER_DATA_PATH = Path(BACKEND_PATH, "user_data")

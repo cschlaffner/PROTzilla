@@ -89,7 +89,7 @@ class Runner:
             log_messages(self.run.current_messages)
             self.run.current_messages.clear()
 
-            if step.calculation_status != "complete":
+            if step.calculation_status!="complete":
                 break
 
             self.run.step_next()
@@ -97,7 +97,7 @@ class Runner:
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
-    def _insert_commandline_inputs(self, step: Step):
+    def _insert_commandline_inputs(self, step : Step):
         if step.operation == "Protein Data Import":
             step.form["file_path"].value = self.ms_data_path
 

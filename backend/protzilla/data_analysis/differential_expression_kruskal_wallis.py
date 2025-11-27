@@ -4,24 +4,19 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from backend.protzilla.data_analysis.differential_expression_helper import (
-    _map_log_base,
-    apply_multiple_testing_correction,
-    merge_differential_expression_and_significant_df,
-    preprocess_grouping,
-    normalize_ptm_df,
-)
+from backend.protzilla.data_analysis.differential_expression_helper import _map_log_base, apply_multiple_testing_correction, \
+    merge_differential_expression_and_significant_df, preprocess_grouping, normalize_ptm_df
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
 def kruskal_wallis_test_on_intensity_data(
-    protein_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    grouping: str,
-    selected_groups: list = None,
-    log_base: str = None,
-    alpha=0.05,
-    multiple_testing_correction_method: str = "Benjamini-Hochberg",
+        protein_df: pd.DataFrame,
+        metadata_df: pd.DataFrame,
+        grouping: str,
+        selected_groups: list = None,
+        log_base: str = None,
+        alpha=0.05,
+        multiple_testing_correction_method: str = "Benjamini-Hochberg",
 ) -> dict:
     """
     Perform Kruskal Wallis test on all proteins in the given intensity data frame.
@@ -61,9 +56,8 @@ def kruskal_wallis_test_on_intensity_data(
         merge_differential_expression_and_significant_df(
             intensity_df=protein_df,
             diff_exp_df=outputs["differential_expressed_columns_df"],
-            sig_df=outputs["significant_columns_df"],
-        )
-    )
+            sig_df=outputs["significant_columns_df"]
+        ))
 
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
@@ -74,14 +68,13 @@ def kruskal_wallis_test_on_intensity_data(
         messages=outputs["messages"],
     )
 
-
 def kruskal_wallis_test_on_ptm_data(
-    ptm_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    grouping: str,
-    selected_groups: list = None,
-    alpha=0.05,
-    multiple_testing_correction_method: str = "Benjamini-Hochberg",
+        ptm_df: pd.DataFrame,
+        metadata_df: pd.DataFrame,
+        grouping: str,
+        selected_groups: list = None,
+        alpha=0.05,
+        multiple_testing_correction_method: str = "Benjamini-Hochberg",
 ) -> dict:
     """
     Perform Kruskal Wallis test on all PTMs in the given PTM data frame.
@@ -129,14 +122,14 @@ def kruskal_wallis_test_on_ptm_data(
 
 
 def kruskal_wallis_test_on_columns(
-    df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    grouping: str,
-    selected_groups: list = None,
-    log_base: str = None,
-    alpha=0.05,
-    multiple_testing_correction_method: str = "Benjamini-Hochberg",
-    columns_name: str = "Protein ID",
+        df: pd.DataFrame,
+        metadata_df: pd.DataFrame,
+        grouping: str,
+        selected_groups: list = None,
+        log_base: str = None,
+        alpha=0.05,
+        multiple_testing_correction_method: str = "Benjamini-Hochberg",
+        columns_name: str = "Protein ID",
 ) -> dict:
     """
     Perform Kruskal Wallis test on all columns of the data frame.
@@ -161,9 +154,7 @@ def kruskal_wallis_test_on_columns(
         - a float corrected_alpha, containing the alpha value after application of multiple testing correction (depending on the selected multiple testing correction method corrected_alpha may be equal to alpha),
         - a list messages, containing messages for the user
     """
-    selected_groups, messages = preprocess_grouping(
-        metadata_df, grouping, selected_groups
-    )
+    selected_groups, messages = preprocess_grouping(metadata_df, grouping, selected_groups)
 
     df_with_groups = pd.merge(
         left=df,
@@ -220,12 +211,10 @@ def kruskal_wallis_test_on_columns(
 
     significant_columns_df = combined_df[
         combined_df["corrected_p_value"] <= corrected_alpha
-    ]
+        ]
 
     if invalid_columns:
-        messages.append(
-            dict(level=logging.INFO, msg=f"Invalid columns: {invalid_columns}")
-        )
+        messages.append(dict(level=logging.INFO, msg=f"Invalid columns: {invalid_columns}"))
 
     return dict(
         differential_expressed_columns_df=combined_df,

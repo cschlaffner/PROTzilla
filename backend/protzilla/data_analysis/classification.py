@@ -30,7 +30,7 @@ def perform_classification(
     n_splits: int = 5,
     n_repeats: int = 10,
     random_state_cv: int = 42,
-    p_samples=None,
+    p_samples = None,
 ):
     if validation_strategy == "Manual" and grid_search_method == "Manual":
         X_train, X_val, y_train, y_val = perform_train_test_split(
@@ -57,13 +57,7 @@ def perform_classification(
         return "Please select a cross validation strategy"
     elif validation_strategy != "Manual" and grid_search_method == "Manual":
         model = clf.set_params(**clf_parameters)
-        cv = perform_cross_validation(
-            validation_strategy,
-            n_splits,
-            n_repeats,
-            random_state_cv=random_state_cv,
-            p_samples=p_samples,
-        )
+        cv = perform_cross_validation(validation_strategy, n_splits,n_repeats,random_state_cv=random_state_cv, p_samples=p_samples)
         scores = cross_validate(
             model, input_df, labels_df, scoring=scoring, cv=cv, return_train_score=True
         )
@@ -75,13 +69,7 @@ def perform_classification(
         return model, model_evaluation_df
     elif validation_strategy != "Manual" and grid_search_method != "Manual":
         clf_parameters = create_dict_with_lists_as_values(clf_parameters)
-        cv = perform_cross_validation(
-            validation_strategy,
-            n_splits,
-            n_repeats,
-            random_state_cv=random_state_cv,
-            p_samples=p_samples,
-        )
+        cv = perform_cross_validation(validation_strategy, n_splits, n_repeats, random_state_cv=random_state_cv, p_samples=p_samples)
         model = perform_grid_search_cv(
             grid_search_method,
             clf,
@@ -98,7 +86,6 @@ def perform_classification(
         )
         return model.best_estimator_, model_evaluation_df
 
-
 def random_forest(
     input_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -108,22 +95,25 @@ def random_forest(
     criterion: str = "gini",
     max_depth: int = None,
     bootstrap: bool = True,
-    # test_split_parameters
+
+    #test_split_parameters
     test_size: float = 0.2,
     split_stratify: str = "yes",
     shuffle: bool = True,
     random_state: int = 42,
-    # classification_parameters
+
+    #classification_parameters
     model_selection: str = "Grid search",
     scoring: list[str] = ["accuracy"],
     model_selection_scoring: str = "accuracy",
     train_val_split: float = 0.25,
     validation_strategy: str = "Cross Validation",
-    # cross_validation_parameters
+
+    #cross_validation_parameters
     n_splits: int = 5,
     n_repeats: int = 10,
     random_state_cv: int = 42,
-    p_samples=None,
+    p_samples = None,
 ):
     """
     Perform classification using a random forest classifier from sklearn.
@@ -261,21 +251,24 @@ def svm(
     class_weight=None,
     max_iter=-1,
     random_state=42,
-    # test_split_parameters
+
+    #test_split_parameters
     test_size: float = 0.2,
     split_stratify: str = "yes",
     shuffle: bool = True,
-    # classification_parameters
+
+    #classification_parameters
     model_selection: str = "Grid search",
     scoring: list[str] = ["accuracy"],
-    model_selection_scoring="accuracy",
+    model_selection_scoring = "accuracy",
     train_val_split: float | None = None,
     validation_strategy: str = "Cross Validation",
-    # cross_validation_parameters
+
+    #cross_validation_parameters
     n_splits: int = 5,
     n_repeats: int = 10,
     random_state_cv: int = 42,
-    p_samples=None,
+    p_samples = None,
 ):
     """
     Perform classification using the support vector machine classifier from sklearn.
@@ -316,7 +309,7 @@ def svm(
         the class labels.
     :type split_stratify: str, optional
     :param shuffle: Whether to shuffle the data before splitting.
-    :type shuffle: bool, optional
+    :type shuffle: bool, optional   
 
     :param model_selection: The model selection method for hyperparameter tuning.
     :type model_selection: str
@@ -362,7 +355,7 @@ def svm(
         labels_df["Encoded Label"],
         test_size,
         shuffle=shuffle,
-        split_stratify=split_stratify,
+        split_stratify=split_stratify
     )
 
     clf = SVC()
