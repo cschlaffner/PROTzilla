@@ -29,7 +29,7 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
         id_df = df[id_columns]
         intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
+            c[len(peptide_intensity_name) + 1:] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),

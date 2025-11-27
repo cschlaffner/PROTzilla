@@ -8,7 +8,7 @@ from statsmodels.stats.multitest import multipletests
 
 
 def apply_multiple_testing_correction(
-    p_values: list, method: str, alpha: float
+        p_values: list, method: str, alpha: float
 ) -> tuple:
     """
     Applies a multiple testing correction method to a list of p-values
@@ -50,7 +50,7 @@ def _map_log_base(log_base: str) -> int | None:
 
 
 def preprocess_grouping(
-    metadata_df: pd.DataFrame, grouping: str, selected_groups: list | str
+        metadata_df: pd.DataFrame, grouping: str, selected_groups: list | str
 ) -> tuple[list, list[dict]]:
     """
     Preprocesses the grouping column in the metadata_df and checks if the selected groups are present.
@@ -73,25 +73,19 @@ def preprocess_grouping(
             {
                 "level": logging.WARNING,
                 "msg": f"Group{'s' if len(removed_groups) > 1 else ''} "
-                f"{str(removed_groups)[1:-1]} were not found in metadata_df and thus removed.",
+                       f"{str(removed_groups)[1:-1]} were not found in metadata_df and thus removed.",
             }
         )
 
     # Select all groups if none or less than two were selected
-    if (
-        not selected_groups
-        or isinstance(selected_groups, str)
-        or len(selected_groups) < 2
-    ):
+    if not selected_groups or isinstance(selected_groups, str) or len(selected_groups) < 2:
         selected_groups = metadata_df[grouping].unique()
-        selected_groups_str = "".join(
-            ["'" + str(group) + "', " for group in selected_groups]
-        )[0:-2]
+        selected_groups_str = "".join(["\'" + str(group) + "\', " for group in selected_groups])[0:-2]
         messages.append(
             {
                 "level": logging.WARNING,
                 "msg": f"Auto-selected the groups {selected_groups_str} for comparison, "
-                f"because none or only one {'valid ' if removed_groups else ''}group was selected.",
+                       f"because none or only one {'valid ' if removed_groups else ''}group was selected.",
             }
         )
 
@@ -99,7 +93,7 @@ def preprocess_grouping(
 
 
 def calculate_log2_fold_change(
-    group1_data: pd.Series, group2_data: pd.Series, log_base: int
+        group1_data: pd.Series, group2_data: pd.Series, log_base: int
 ) -> float:
     return (
         np.log2(
@@ -112,19 +106,13 @@ def calculate_log2_fold_change(
 
 
 def merge_differential_expression_and_significant_df(
-    intensity_df: pd.DataFrame, diff_exp_df: pd.DataFrame, sig_df: pd.DataFrame
+        intensity_df: pd.DataFrame, diff_exp_df: pd.DataFrame, sig_df: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    differentially_expressed_proteins_df = pd.merge(
-        intensity_df, diff_exp_df, on="Protein ID", how="left"
-    )
+    differentially_expressed_proteins_df = pd.merge(intensity_df, diff_exp_df, on="Protein ID", how="left")
     differentially_expressed_proteins_df = differentially_expressed_proteins_df.loc[
-        differentially_expressed_proteins_df["Protein ID"].isin(
-            diff_exp_df["Protein ID"]
-        )
+        differentially_expressed_proteins_df["Protein ID"].isin(diff_exp_df["Protein ID"])
     ]
-    significant_proteins_df = pd.merge(
-        intensity_df, sig_df, on="Protein ID", how="left"
-    )
+    significant_proteins_df = pd.merge(intensity_df, sig_df, on="Protein ID", how="left")
     significant_proteins_df = significant_proteins_df.loc[
         significant_proteins_df["Protein ID"].isin(sig_df["Protein ID"])
     ]
@@ -140,9 +128,7 @@ def normalize_ptm_df(ptm_df: pd.DataFrame) -> pd.DataFrame:
     """
     ptm_df_without_sample = ptm_df.drop("Sample", axis=1)
 
-    normalized_ptm_df = ptm_df_without_sample.div(
-        ptm_df["Total Amount of Peptides"], axis=0
-    )
+    normalized_ptm_df = ptm_df_without_sample.div(ptm_df["Total Amount of Peptides"], axis=0)
 
     normalized_ptm_df = normalized_ptm_df.drop("Total Amount of Peptides", axis=1)
     normalized_ptm_df.insert(0, "Sample", ptm_df["Sample"])
@@ -153,6 +139,6 @@ def normalize_ptm_df(ptm_df: pd.DataFrame) -> pd.DataFrame:
 INVALID_PROTEINGROUP_DATA_MSG = {
     "level": logging.WARNING,
     "msg": "Due to missing or identical values, the p-values for some protein groups could not be calculated. "
-    "These groups were omitted from the analysis. "
-    "To prevent this, please add filtering and imputation steps to your workflow before running the analysis.",
+           "These groups were omitted from the analysis. "
+           "To prevent this, please add filtering and imputation steps to your workflow before running the analysis.",
 }
