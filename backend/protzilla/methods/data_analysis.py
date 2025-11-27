@@ -225,7 +225,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
                     separatePrefix="\u03B1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
-                DropdownField(
+                MultiSelectField(
                     name="selected_groups", label="Select groups to perform ANOVA on"
                 ),
             ],
@@ -249,7 +249,9 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.protein_df
+        inputs["intensity_df"] = steps.get_step_input(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         return inputs
 
@@ -355,7 +357,9 @@ class DifferentialExpressionTTest(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.protein_df
+        inputs["intensity_df"] = steps.get_step_input(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         return inputs
 
@@ -714,7 +718,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
                     separatePrefix="\u03B1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
-                DropdownField(
+                MultiSelectField(
                     name="selected_groups",
                     label="Select groups to perform Kruskal-Wallis Test on",
                 ),
@@ -738,8 +742,11 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
     calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["ptm_df"] = steps.get_step_output(Step, "ptm_df", inputs["ptm_df"])
+        inputs["protein_df"] = steps.get_step_output(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
+        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
         return inputs
 
 
@@ -779,7 +786,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
                     separatePrefix="\u03B1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
-                DropdownField(
+                MultiSelectField(
                     name="selected_groups",
                     label="Select groups to perform Kruskal-Wallis Test on",
                 ),
@@ -1996,6 +2003,7 @@ class FLEXIQuantLF(DataAnalysisStep):
         )
 
         inputs["metadata_df"] = steps.metadata_df
+        return inputs
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):
