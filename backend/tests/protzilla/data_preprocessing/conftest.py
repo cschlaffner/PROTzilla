@@ -24,7 +24,6 @@ def input_imputation_df():
 
     return input_imputation_df
 
-
 @pytest.fixture
 def assertion_df_knn():
     assertion_list = (
@@ -43,7 +42,6 @@ def assertion_df_knn():
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
     return assertion_df
-
 
 @pytest.fixture
 def assertion_df_min_value_per_df():

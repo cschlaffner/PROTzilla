@@ -14,12 +14,8 @@ from backend.protzilla.importing.ms_data_import import (
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
-from protzilla.importing.import_utils import (
-    IntensityType,
-    AggregationMethods,
-    IntensityNameType,
-    FeatureOrientationType,
-)
+from protzilla.importing.import_utils import IntensityType, AggregationMethods, IntensityNameType, \
+    FeatureOrientationType
 
 
 class ImportingStep(Step):
@@ -52,12 +48,12 @@ class MaxQuantImport(ImportingStep):
                     name="intensity_name",
                     label="Intensity parameter",
                     value=IntensityType.IBAQ.value,
-                    options=IntensityType,
+                    options=IntensityType
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False,
+                    value=False
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -90,7 +86,7 @@ class DiannImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False,
+                    value=False
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -98,7 +94,7 @@ class DiannImport(ImportingStep):
                     value=AggregationMethods.sum.value,
                     options=AggregationMethods,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(diann_import)
@@ -107,9 +103,7 @@ class DiannImport(ImportingStep):
 class MsFraggerImport(ImportingStep):
     display_name = "MS Fragger Combined Protein Import"
     operation = "Protein Data Import"
-    method_description = (
-        "Import the combined_protein.tsv file form output of MS Fragger"
-    )
+    method_description = "Import the combined_protein.tsv file form output of MS Fragger"
 
     output_keys = ["protein_df"]
 
@@ -130,7 +124,7 @@ class MsFraggerImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False,
+                    value=False
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -138,7 +132,7 @@ class MsFraggerImport(ImportingStep):
                     value=AggregationMethods.sum.value,
                     options=AggregationMethods,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(ms_fragger_import)
@@ -195,7 +189,7 @@ class MetadataImportMethodDiann(ImportingStep):
                     label="Group replicate runs by sample using median",
                     value=False,
                 ),
-            ],
+            ]
         )
 
     calc_method = staticmethod(metadata_import_method_diann)
@@ -225,7 +219,7 @@ class MetadataColumnAssignment(ImportingStep):
                 DropdownField(
                     name="metadata_unknown_column",
                     label="Existing, but unknown metadata columns",
-                ),
+                )
             ],
         )
 
@@ -238,13 +232,11 @@ class MetadataColumnAssignment(ImportingStep):
         )
 
         if metadata is not None:
-            metadata_required_column.set_options(
-                [
-                    Option(col, col)
-                    for col in ["Sample", "Group", "Batch"]
-                    if col not in metadata.columns
-                ]
-            )
+            metadata_required_column.set_options([
+                Option(col, col)
+                for col in ["Sample", "Group", "Batch"]
+                if col not in metadata.columns
+            ])
             if len(metadata_required_column.options) == 0:
                 metadata_required_column.set_options([])
 
@@ -254,9 +246,9 @@ class MetadataColumnAssignment(ImportingStep):
                 ].unique()
             )
 
-            metadata_unknown_column.set_options(
-                [Option(col, col) for col in unknown_columns]
-            )
+            metadata_unknown_column.set_options([
+                Option(col, col) for col in unknown_columns
+            ])
             if len(metadata_unknown_column.options) == 0:
                 metadata_unknown_column.set_options([])
 
@@ -288,9 +280,9 @@ class PeptideImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False,
+                    value=False
                 ),
-            ],
+            ]
         )
 
     def modify_form(self, form, run):
@@ -298,7 +290,7 @@ class PeptideImport(ImportingStep):
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport],
             "map_to_uniprot",
-            default=map_to_uniprot_field.value,
+            default=map_to_uniprot_field.value
         )
 
     calc_method = staticmethod(peptide_import)
@@ -322,9 +314,9 @@ class EvidenceImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False,
+                    value=False
                 ),
-            ],
+            ]
         )
 
     def modify_form(self, form, run):
@@ -341,17 +333,17 @@ class ExampleDatasetImport(ImportingStep):
     display_name = "Example Dataset Import"
     operation = "example_import"
     # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
-    method_description = (
-        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
-        "dataset]"
-    )
+    method_description = ("Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
+                          "dataset]")
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]
 
     def create_form(self):
         return Form(
             label="Example Dataset Import",
-            input_fields=[HeaderInfoField(label=self.method_description)],
+            input_fields=[
+                HeaderInfoField(label=self.method_description)
+            ]
         )
 
     calc_method = staticmethod(example_dataset_import)

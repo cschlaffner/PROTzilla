@@ -304,9 +304,7 @@ def test_normalisation_by_z_score(
 ):
     method_outputs = by_z_score(normalisation_df)
 
-    fig = by_z_score_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
-    )[0]
+    fig = by_z_score_plot(normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10")[0]
     if show_figures:
         fig.show()
 
@@ -323,9 +321,7 @@ def test_normalisation_by_median(
 ):
     method_outputs = by_median(normalisation_df)
 
-    fig = by_median_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
-    )[0]
+    fig = by_median_plot(normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10")[0]
     if show_figures:
         fig.show()
 
@@ -350,9 +346,7 @@ def test_totalsum_normalisation(
 ):
     method_outputs = by_totalsum(normalisation_df)
 
-    fig = by_totalsum_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
-    )[0]
+    fig = by_totalsum_plot(normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10")[0]
     if show_figures:
         fig.show()
 
@@ -379,13 +373,9 @@ def test_ref_protein_normalisation(
     }
     method_outputs = by_reference_protein(**method_input)
 
-    fig = by_reference_protein_plot(
-        normalisation_by_ref_protein_df,
-        method_outputs["protein_df"],
-        "Boxplot",
-        "Sample",
-        "log10",
-    )[0]
+    fig = by_reference_protein_plot(normalisation_by_ref_protein_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10")[
+        0
+    ]
     if show_figures:
         fig.show()
 
