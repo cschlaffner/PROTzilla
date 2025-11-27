@@ -5,9 +5,9 @@ from backend.protzilla.steps import Step
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
     return (
-        [Option(el, el) for el in choices] + [Option(None, "---------")]
+        [Option(str(el), str(el)) for el in choices] + [Option(None, "---------")]
         if not required
-        else [Option(el, el) for el in choices]
+        else [Option(str(el), str(el)) for el in choices]
     )
 
 
