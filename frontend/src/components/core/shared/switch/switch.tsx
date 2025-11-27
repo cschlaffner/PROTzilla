@@ -25,7 +25,7 @@ export const Switch: React.FC<SwitchProps> = ({
 }) => {
   const { length } = options;
   const actualValue =
-    value === undefined ? (defaultValue ?? (length ? options[0].value : "")) : value;
+    value === undefined ? defaultValue ?? (length ? options[0].value : "") : value;
 
   const activeIndex = Math.max(
     0,

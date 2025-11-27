@@ -144,7 +144,7 @@ def gsea_preranked(
     if not isinstance(protein_df, pd.DataFrame):
         msg = "Proteins must be a dataframe with Protein ID and numeric ranking column (e.g. p values)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-
+    
     if "Protein ID" not in protein_df.columns:
         msg = "Protein ID column not found in protein_df. The dataframe must contain a column with protein IDs called 'Protein ID'."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -153,7 +153,7 @@ def gsea_preranked(
         msg = f"Ranking column '{ranking_column}' not found in protein_df."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if not protein_df[ranking_column].dtype == np.number:
+    if (not protein_df[ranking_column].dtype == np.number):
         msg = f"Ranking column '{ranking_column}' must be numeric. Please check your input data or choose a different column."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -288,25 +288,24 @@ class GeneSetsType(Enum):
     upload_a_file = "Upload a file"
     choose_from_enrichr_options = "Choose from Enrichr options"
 
-
 def gsea(
     protein_df,
     metadata_df,
     grouping,
     gene_mapping_df,
-    group1=None,
-    group2=None,
-    gene_sets_type=GeneSetsType.upload_a_file.value,
-    gene_sets_path=None,
-    gene_sets_enrichr=None,
-    min_size=15,
-    max_size=500,
-    number_of_permutations=1000,
-    permutation_type="phenotype",
-    ranking_method="signal_to_noise",
-    weighted_score=1.0,
-    seed=123,
-    threads=4,
+    group1 = None,
+    group2 = None,
+    gene_sets_type = GeneSetsType.upload_a_file.value,
+    gene_sets_path = None,
+    gene_sets_enrichr = None,
+    min_size = 15,
+    max_size = 500,
+    number_of_permutations = 1000,
+    permutation_type = "phenotype",
+    ranking_method = "signal_to_noise",
+    weighted_score = 1.0,
+    seed = 123,
+    threads = 4,
 ):
     """
     Performs Gene Set Enrichment Analysis (GSEA) on a dataframe with protein IDs, samples and intensities.
@@ -407,7 +406,7 @@ def gsea(
         if not gene_sets_path:
             msg = "No gene sets file provided"
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-
+        
         gene_sets = read_protein_or_gene_sets_file(gene_sets_path)
         if isinstance(gene_sets, dict) and "messages" in gene_sets:  # an error occurred
             return gene_sets
@@ -415,7 +414,7 @@ def gsea(
         if not gene_sets_enrichr:
             msg = "No gene sets provided"
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-
+        
         if not isinstance(gene_sets_enrichr, list):
             gene_sets = [gene_sets_enrichr]
         else:

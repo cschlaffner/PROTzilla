@@ -1,3 +1,4 @@
+
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
@@ -71,7 +72,6 @@ _forward_mapping = [
     data_integration.PlotGSEADotPlot,
     data_integration.PlotGSEAEnrichmentPlot,
 ]
-
 
 def get_all_methods():
     return _forward_mapping

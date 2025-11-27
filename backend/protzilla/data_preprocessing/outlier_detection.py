@@ -51,8 +51,12 @@ def by_isolation_forest(
     df_isolation_forest_data["IF Outlier"] = clf.fit_predict(
         transformed_df.loc[:, transformed_df.columns != "Sample"]
     )
-    df_isolation_forest_data["Anomaly Score"] = clf.decision_function(transformed_df)
-    df_isolation_forest_data["Outlier"] = df_isolation_forest_data["IF Outlier"] == -1
+    df_isolation_forest_data["Anomaly Score"] = clf.decision_function(
+        transformed_df
+    )
+    df_isolation_forest_data["Outlier"] = (
+        df_isolation_forest_data["IF Outlier"] == -1
+    )
     outlier_list = df_isolation_forest_data[
         df_isolation_forest_data["Outlier"]
     ].index.tolist()
