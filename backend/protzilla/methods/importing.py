@@ -94,6 +94,10 @@ class MaxQuantImport(ImportingStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        if run.steps.current_step.calculation_status == "complete":
+            form.input_fields[0].value = None
+
     calc_method = staticmethod(max_quant_import)
 
 
