@@ -592,6 +592,9 @@ class StepManager:
                 and input_key in step.inputs
             ):
                 return step.inputs[input_key]
+        logging.warning(
+            f"No input {input_key} found for step type {step_type} and instance identifier {instance_identifier}"
+        )
         return default
 
     def all_steps_in_section(self, section: str) -> list[Step]:

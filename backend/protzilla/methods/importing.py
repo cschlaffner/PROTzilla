@@ -13,6 +13,7 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
+from protzilla.importing.fasta_import import fasta_import
 
 
 class IntensityType(Enum):
@@ -371,3 +372,20 @@ class EvidenceImport(ImportingStep):
         )
 
     calc_method = staticmethod(evidence_import)
+
+
+class FastaImport(ImportingStep):
+    # TODO: questionable if this should be an extra step
+    display_name = "Fasta Protein Sequence Import"
+    operation = "fasta_import"
+    method_description = "Import a fasta file containing protein sequences."
+
+    input_keys = ["file_path"]
+    output_keys = ["fasta_df"]
+
+    def method(self, inputs):
+        return fasta_import(**inputs)
+
+    # TODO: form
+    # class FastaImportForm(MethodForm):
+    #     file_path = CustomFileField(label="Fasta file")

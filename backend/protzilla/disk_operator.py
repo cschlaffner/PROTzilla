@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pickle
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,6 +39,27 @@ class ErrorHandler:
                 traceback.print_exception(exc_type, exc_val, exc_tb)
             return False
         return True
+
+
+class PickleOperator:
+    @staticmethod
+    def read(file_path: Path):
+        with ErrorHandler():
+            with open(file_path, "rb") as file:
+                logger.info(f"Reading pickle from {file_path}")
+                return pickle.load(file)
+
+    @staticmethod
+    def write(file_path: Path, data):
+        with ErrorHandler():
+            if not file_path.exists():
+                if not file_path.parent.exists():
+                    logger.info(
+                        f"Parent directory {file_path.parent} did not exist and was created"
+                    )
+                    file_path.parent.mkdir(parents=True)
+            with open(file_path, "wb") as file:
+                pickle.dump(data, file)
 
 
 class YamlOperator:
