@@ -28,6 +28,7 @@ const StyledSpan = styled.span`
 export const FileInputField: React.FC<FileInputFieldProps> = ({
   value = null,
   placeholder = "No file chosen",
+  accept = "*/*",
   onChange,
   ...props
 }) => {
@@ -92,7 +93,7 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     }
   };
 
-  const openFilePicker = useFilePicker(handleFileSelection, "*/*", false);
+  const openFilePicker = useFilePicker(handleFileSelection, accept, false);
 
   return (
     <InputContainer {...props}>
