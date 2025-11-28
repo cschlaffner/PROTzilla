@@ -17,9 +17,13 @@ from backend.protzilla.utilities import format_trace, name_to_title
 
 # to avoid circular imports
 from typing import TYPE_CHECKING
-if (TYPE_CHECKING):
+
+if TYPE_CHECKING:
     from backend.protzilla.run import Run
     from backend.protzilla.disk_operator import DiskOperator
+
+# To avoid race conditions when dumping to disk
+from threading import Lock
 
 
 class Section(Enum):
@@ -35,7 +39,9 @@ class Step:
     operation: str = None
     method_description: str = None
     output_keys: list[str] = []
-    calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = "incomplete"
+    calculation_status: Literal[
+        "complete", "outdated", "incomplete", "failed"
+    ] = "incomplete"
 
     def __init__(self, instance_identifier: str | None = None):
         self.inputs: dict = {}
@@ -44,9 +50,22 @@ class Step:
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
         self.instance_identifier = instance_identifier
-        
+        self.disk_write_mutex = Lock()
+
         self.form: Form = self.create_form()
         self.form.modify_form = MethodType(self.modify_form, self.form)
+
+        # Keeps track of calculations to avoid repetitive dumping
+        self.artifact_versions = {
+            "output": {
+                "generated": 0,
+                "dumped": 0,
+            },
+            "plots": {
+                "generated": 0,
+                "dumped": 0,
+            },
+        }
 
         if self.instance_identifier is None:
             logging.warning(
@@ -63,11 +82,11 @@ class Step:
             and self.instance_identifier == other.instance_identifier
             and self.output == other.output
         )
-  
+
     def updateInputs(self, inputs: dict) -> None:
         if inputs:
             self.inputs = inputs.copy()
-         
+
     def to_dict(self):
         """
         Returns a dictionary representation of the step object with some meta information about the step.
@@ -79,7 +98,7 @@ class Step:
             "display_name": self.display_name,
             "operation": name_to_title(self.operation),
             "method_description": self.method_description,
-            "calculation_status": self.calculation_status
+            "calculation_status": self.calculation_status,
         }
 
     def calculate(self, steps: StepManager) -> bool:
@@ -91,15 +110,14 @@ class Step:
         :return: bool: True if the calculation was successful, False otherwise
         """
         stepIndex = steps.all_steps.index(self)
-        previousStep = steps.all_steps[stepIndex-1]
-        
-        if (stepIndex != 0 and previousStep.calculation_status == "outdated" ):
+        previousStep = steps.all_steps[stepIndex - 1]
+
+        if stepIndex != 0 and previousStep.calculation_status == "outdated":
             if not previousStep.calculate(steps):
                 return False
 
         self.updateInputs(self.form_inputs)
         self.messages.clear()
-        
 
         try:
             self.insert_dataframes(steps, self.inputs)
@@ -107,19 +125,21 @@ class Step:
                 calc_output = self.calc_method(**self.calculation_input)
                 self.handle_calc_outputs(calc_output)
                 self.validate_outputs()
+                self.artifact_versions["output"]["generated"] += 1
 
             self.calculation_status = "complete"
-            if (steps.failed_step_index == stepIndex):
+            if steps.failed_step_index == stepIndex:
                 steps.failed_step_index = -1
-            
+
             if self.plot_method:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
+                self.artifact_versions["plots"]["generated"] += 1
 
             self.calculation_status = "complete"
 
             # delete tempfiles
-            for file in  settings.FILE_UPLOAD_TEMP_DIR.iterdir():
+            for file in settings.FILE_UPLOAD_TEMP_DIR.iterdir():
                 if file.is_file():
                     file.unlink()
 
@@ -158,7 +178,7 @@ class Step:
                     trace=format_trace(traceback.format_exception(e)),
                 )
             )
-        
+
         if self.calculation_status != "complete":
             self.calculation_status = "failed"
             steps.failed_step_index = stepIndex
@@ -185,7 +205,7 @@ class Step:
 
         self.handle_messages(outputs)
 
-    def handle_plot_outputs(self, outputs: dict|list) -> None:
+    def handle_plot_outputs(self, outputs: dict | list) -> None:
         """
         Handles the dictionary from the plot method and creates a Plots object from it.
         Responsible for clearing and setting the plots attribute of the class.
@@ -195,14 +215,14 @@ class Step:
 
         if not isinstance(outputs, dict) and not isinstance(outputs, list):
             raise TypeError("Output of plot method is not a dictionary or a list.")
-        
+
         if isinstance(outputs, dict):
             plots = outputs.pop("plots", [])
             self.output.output.update(outputs)
             self.handle_messages(outputs)
         else:
             plots = outputs
-        
+
         self.plots = Plots(plots)
 
     def handle_messages(self, outputs: dict) -> None:
@@ -216,7 +236,7 @@ class Step:
         self.messages.extend(messages)
 
     calc_method = None
-    plot_method = None # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
+    plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
 
     @property
     def calculation_input(self) -> dict:
@@ -277,19 +297,18 @@ class Step:
         for key in self.output_keys:
             if key not in self.output or self.output[key] is None:
                 if not soft_check:
-                    
                     raise ValueError(
                         f"Output validation failed: missing output {key} in outputs."
                     )
                 else:
                     return False
         return True
-    
+
     def create_form(self) -> Form:
         """
         This method must be overidden in Step classes to define a form for the step.
         exmaple:
-        
+
         return Form(
             label="Filter Proteins by Samples Missing",
             fields=[
@@ -312,7 +331,7 @@ class Step:
         """
         return Form("No form defined.", [])
 
-    def modify_form(self, form: Form, run:Run) -> None:
+    def modify_form(self, form: Form, run: Run) -> None:
         """
         This method can be overidden in Step classes to modify the form based on the current state of the run.
         examples:
@@ -322,7 +341,7 @@ class Step:
             form["field_name"].options = {"option1": "Option 1", "option2": "Option 2"}
         - change the value of a field based on the current state of the run
             form["field_name"].value = "new_value"
-        
+
         run can be used to access the current state of the run, e.g. the previous steps, the current section, etc.
         """
         pass
@@ -337,13 +356,13 @@ class Step:
         if len(self.output_keys) == 0:
             return not self.plots.empty
         return self.validate_outputs(soft_check=True)
-    
+
     @property
     def form_inputs(self) -> dict:
         return self.form.values
 
-class Output:
 
+class Output:
     def __init__(self, output: dict = {}):
         if output is None:
             output = {}
@@ -463,7 +482,8 @@ class StepManager:
         return self.current_step_index - sum(
             len(self.sections[section])
             for section in self.sections
-            if section != self.current_section and section not in [step.section for step in self.future_steps]
+            if section != self.current_section
+            and section not in [step.section for step in self.future_steps]
         )
 
     def get_instance_identifiers(
@@ -584,23 +604,27 @@ class StepManager:
             return self.sections[section]
         else:
             raise ValueError(f"Unknown section {section}")
-    
-    def set_steps_outdated(self, offset: int=0) -> None:
+
+    def set_steps_outdated(self, offset: int = 0) -> None:
         count = 0
         for step in self.following_steps[offset:]:
-            if (step.calculation_status == "complete"):
+            if step.calculation_status == "complete":
                 step.calculation_status = "outdated"
-                count+=1
+                count += 1
         return count
 
     @property
     def previous_steps(self) -> list[Step]:
         return self.all_steps[: self.current_step_index]
-    
+
     @property
     def previous_calculated_steps(self) -> list[Step]:
-        return list(filter(lambda step: step.calculation_status == "complete", self.previous_steps))
-    
+        return list(
+            filter(
+                lambda step: step.calculation_status == "complete", self.previous_steps
+            )
+        )
+
     @property
     def following_steps(self) -> list[Step]:
         return self.all_steps[self.current_step_index :]
@@ -646,7 +670,7 @@ class StepManager:
         if self.current_section == "data_preprocessing":
             return (
                 self.current_step.output
-                if self.current_step.calculation_status!="incomplete"
+                if self.current_step.calculation_status != "incomplete"
                 else self.previous_steps[-1].output
             )
         return self.data_preprocessing[-1].output
@@ -708,10 +732,7 @@ class StepManager:
                 # as it is preceeded by a calculation, after which everything is written to
                 # disk anyway. Better would be if it would just replace the dfs with their respective paths
                 self.current_step.output = Output(
-                    self.disk_operator._write_output(
-                        instance_identifier=self.current_step.instance_identifier,
-                        output=self.current_step.output,
-                    )
+                    self.disk_operator._write_output(self.current_step)
                 )
             self.current_step_index += 1
         else:
@@ -754,10 +775,8 @@ class StepManager:
             )
 
         if self.df_mode == "disk":
-            self.disk_operator._write_output(
-                instance_identifier=self.current_step.instance_identifier,
-                output=self.current_step.output,
-            )
+            self.disk_operator._write_output(self.current_step)
+
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index

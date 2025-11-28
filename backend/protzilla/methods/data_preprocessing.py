@@ -150,17 +150,18 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
-    output_keys = ["protein_df", "peptide_df", "filtered_peptides"]
+    output_keys = ["peptide_df", "filtered_peptides"]
 
     def create_form(self):
         return Form(
             label="Filter peptides by PEP threshold",
             input_fields=[
                 FloatField(
-                    name="treshold",
+                    name="threshold",
                     label="Threshold value for PEP",
                     value=0,
                     min=0,
+                    max=1,
                     step=0.1,
                     hasStepButtons=True,
                 ),

@@ -8,14 +8,22 @@ from backend.protzilla.data_analysis.clustering import (
     k_means,
 )
 from backend.protzilla.data_analysis.differential_expression_anova import anova
-from backend.protzilla.data_analysis.differential_expression_kruskal_wallis import kruskal_wallis_test_on_ptm_data, \
-    kruskal_wallis_test_on_intensity_data
-from backend.protzilla.data_analysis.differential_expression_linear_model import linear_model
+from backend.protzilla.data_analysis.differential_expression_kruskal_wallis import (
+    kruskal_wallis_test_on_ptm_data,
+    kruskal_wallis_test_on_intensity_data,
+)
+from backend.protzilla.data_analysis.differential_expression_linear_model import (
+    linear_model,
+)
 from backend.protzilla.data_analysis.differential_expression_mann_whitney import (
-    mann_whitney_test_on_intensity_data, mann_whitney_test_on_ptm_data)
+    mann_whitney_test_on_intensity_data,
+    mann_whitney_test_on_ptm_data,
+)
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
-from backend.protzilla.data_analysis.model_evaluation import evaluate_classification_model
+from backend.protzilla.data_analysis.model_evaluation import (
+    evaluate_classification_model,
+)
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
@@ -30,8 +38,10 @@ from backend.protzilla.data_analysis.ptm_analysis import (
 from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
 from backend.protzilla.data_analysis.ptm_visualization import create_bar_ptm_visualization
 from backend.protzilla.form import *
+from backend.protzilla.methods.data_preprocessing import (
+    DataPreprocessingStep,
+)
 from backend.protzilla.methods.data_preprocessing import TransformationLog
-from backend.protzilla.methods.importing import EvidenceImport
 from backend.protzilla.steps import Step, StepManager
 from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
     create_details_ptm_visualization
@@ -187,11 +197,56 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
         "filtered_proteins",
     ]
 
+    def create_form(self):
+        return Form(
+            label="ANOVA",
+            input_fields=[
+                DropdownField(
+                    name="protein_df", label="Step to use protein intensities from"
+                ),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    options=MultipleTestingCorrectionMethod,
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(name="grouping", label="Grouping from metadata"),
+                MultiSelectField(
+                    name="selected_groups", label="Select groups to perform ANOVA on"
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        protein_df_field = form["protein_df"]
+        grouping_field = form["grouping"]
+        selected_groups_field = form["selected_groups"]
+
+        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+        grouping = grouping_field.value
+        selected_groups_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
     calc_method = staticmethod(anova)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.protein_df
+        inputs["intensity_df"] = steps.get_step_input(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         return inputs
 
@@ -253,7 +308,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                 ),
             ],
         )
-    
+
     def modify_form(self, form, run):
         protein_field = form["protein_df"]
         grouping_field = form["grouping"]
@@ -261,33 +316,45 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         group2_field = form["group2"]
 
         protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-        grouping_field.set_options(form_helper.get_choices_for_metadata_non_sample_columns(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
 
-        if (grouping_field.options == []):
+        if grouping_field.options == []:
             return
-        
+
         grouping = grouping_field.value
 
         # Set choices for group1 field based on selected grouping
-        group1_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+        group1_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
 
-        #set choices for group2 field based on selected grouping and group1
-        if (group1_field.value in run.steps.metadata_df[grouping].unique()):
-            group2_field.set_options([
-                Option(el, el)
-                for el in run.steps.metadata_df[grouping].unique()
-                if el != group1_field.value
-            ])
+        # set choices for group2 field based on selected grouping and group1
+        if group1_field.value in run.steps.metadata_df[grouping].unique():
+            group2_field.set_options(
+                [
+                    Option(el, el)
+                    for el in run.steps.metadata_df[grouping].unique()
+                    if el != group1_field.value
+                ]
+            )
         else:
-            group2_field.set_options(list(reversed(
-                form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-            ))
+            group2_field.set_options(
+                list(
+                    reversed(
+                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                    )
+                )
+            )
 
     calc_method = staticmethod(t_test)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.protein_df
+        inputs["intensity_df"] = steps.get_step_input(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         return inputs
 
@@ -306,6 +373,77 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
         "filtered_proteins",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Linear Model",
+            input_fields=[
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    options=MultipleTestingCorrectionMethod,
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                ),
+                DropdownField(
+                    name="group1",
+                    label="Group 1",
+                ),
+                DropdownField(
+                    name="group2",
+                    label="Group 2",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        grouping_field = form["grouping"]
+        group1_field = form["group1"]
+        group2_field = form["group2"]
+
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        if grouping_field.options == []:
+            return
+
+        grouping = grouping_field.value
+
+        # Set choices for group1 field based on selected grouping
+        group1_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
+        # set choices for group2 field based on selected grouping and group1
+        if group1_field.value in run.steps.metadata_df[grouping].unique():
+            group2_field.set_options(
+                [
+                    Option(el, el)
+                    for el in run.steps.metadata_df[grouping].unique()
+                    if el != group1_field.value
+                ]
+            )
+        else:
+            group2_field.set_options(
+                list(
+                    reversed(
+                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                    )
+                )
+            )
+
     calc_method = staticmethod(linear_model)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -318,8 +456,10 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
 class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
     display_name = "Mann-Whitney Test"
     operation = "differential_expression"
-    method_description = ("A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -330,11 +470,96 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
         "corrected_alpha",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Mann-Whitney Test",
+            input_fields=[
+                DropdownField(
+                    name="protein_df",
+                    label="Step to use protein intensities from",
+                ),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                    options=MultipleTestingCorrectionMethod,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(
+                    name="p_value_calculation_method",
+                    label="P-value calculation method",
+                    options=PValueCalculationMethod,
+                    value=PValueCalculationMethod.auto,
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                ),
+                DropdownField(
+                    name="group1",
+                    label="Group 1",
+                ),
+                DropdownField(
+                    name="group2",
+                    label="Group 2",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        protein_field = form["protein_df"]
+        grouping_field = form["grouping"]
+        group1_field = form["group1"]
+        group2_field = form["group2"]
+
+        protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        if grouping_field.options == []:
+            return
+
+        grouping = grouping_field.value
+
+        # Set choices for group1 field based on selected grouping
+        group1_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
+        # set choices for group2 field based on selected grouping and group1
+        if group1_field.value in run.steps.metadata_df[grouping].unique():
+            group2_field.set_options(
+                [
+                    Option(el, el)
+                    for el in run.steps.metadata_df[grouping].unique()
+                    if el != group1_field.value
+                ]
+            )
+        else:
+            group2_field.set_options(
+                list(
+                    reversed(
+                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                    )
+                )
+            )
+
     calc_method = staticmethod(mann_whitney_test_on_intensity_data)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         if steps.get_step_output(Step, "protein_df", inputs["protein_df"]) is not None:
-            inputs["protein_df"] = steps.get_step_output(Step, "protein_df", inputs["protein_df"])
+            inputs["protein_df"] = steps.get_step_output(
+                Step, "protein_df", inputs["protein_df"]
+            )
         inputs["metadata_df"] = steps.metadata_df
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
         return inputs
@@ -343,8 +568,10 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
 class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
     display_name = "Mann-Whitney Test"
     operation = "Peptide analysis"
-    method_description = ("A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_ptm_df",
@@ -354,6 +581,93 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
         "log2_fold_change_df",
         "corrected_alpha",
     ]
+
+    def create_form(self):
+        return Form(
+            label="Mann-Whitney Test",
+            input_fields=[
+                DropdownField(
+                    name="ptm_df",
+                    label="Step to use ptm data from",
+                ),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                    options=MultipleTestingCorrectionMethod,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(
+                    name="p_value_calculation_method",
+                    label="P-value calculation method",
+                    options=PValueCalculationMethod,
+                    value=PValueCalculationMethod.auto,
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                ),
+                DropdownField(
+                    name="group1",
+                    label="Group 1",
+                ),
+                DropdownField(
+                    name="group2",
+                    label="Group 2",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        ptm_df_field = form["ptm_df"]
+        grouping_field = form["grouping"]
+        group1_field = form["group1"]
+        group2_field = form["group2"]
+
+        ptm_df_field.set_options(
+            form_helper.to_choices(
+                run.steps.get_instance_identifiers(PTMsPerSample, "ptm_df")
+            )
+        )
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        if grouping_field.options == []:
+            return
+
+        grouping = grouping_field.value
+
+        # Set choices for group1 field based on selected grouping
+        group1_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
+        # set choices for group2 field based on selected grouping and group1
+        if group1_field.value in run.steps.metadata_df[grouping].unique():
+            group2_field.set_options(
+                [
+                    Option(el, el)
+                    for el in run.steps.metadata_df[grouping].unique()
+                    if el != group1_field.value
+                ]
+            )
+        else:
+            group2_field.set_options(
+                list(
+                    reversed(
+                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                    )
+                )
+            )
 
     calc_method = staticmethod(mann_whitney_test_on_ptm_data)
 
@@ -366,8 +680,10 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
 class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
     display_name = "Kruskal-Wallis Test"
     operation = "differential_expression"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -376,31 +692,54 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
         "corrected_alpha",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Kruskal-Wallis Test",
+            input_fields=[
+                DropdownField(name="protein_df", label="Step to use protein data from"),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    options=MultipleTestingCorrectionMethod,
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(name="grouping", label="Grouping from metadata"),
+                MultiSelectField(
+                    name="selected_groups",
+                    label="Select groups to perform Kruskal-Wallis Test on",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        protein_df_field = form["protein_df"]
+        grouping_field = form["grouping"]
+        selected_groups_field = form["selected_groups"]
+
+        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+        grouping = grouping_field.value
+        selected_groups_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
     calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["ptm_df"] = steps.get_step_output(Step, "ptm_df", inputs["ptm_df"])
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
-
-
-class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
-    display_name = "Kruskal-Wallis Test"
-    operation = "differential_expression"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
-
-    output_keys = [
-        "differentially_expressed_proteins_df",
-        "significant_proteins_df",
-        "corrected_p_values_df",
-        "corrected_alpha",
-    ]
-
-    calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(Step, "protein_df", inputs["protein_df"])
+        inputs["protein_df"] = steps.get_step_output(
+            Step, "protein_df", inputs["protein_df"]
+        )
         inputs["metadata_df"] = steps.metadata_df
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
         return inputs
@@ -409,8 +748,10 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
 class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
     display_name = "Kruskal-Wallis Test"
     operation = "Peptide analysis"
-    method_description = ("A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
-                          "The p-values are corrected for multiple testing.")
+    method_description = (
+        "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
+        "The p-values are corrected for multiple testing."
+    )
 
     output_keys = [
         "differentially_expressed_ptm_df",
@@ -418,6 +759,52 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
         "corrected_p_values_df",
         "corrected_alpha",
     ]
+
+    def create_form(self):
+        return Form(
+            label="Kruskal-Wallis Test",
+            input_fields=[
+                DropdownField(name="ptm_df", label="Step to use ptm data from"),
+                DropdownField(
+                    name="multiple_testing_correction_method",
+                    label="Multiple testing correction",
+                    options=MultipleTestingCorrectionMethod,
+                    value=MultipleTestingCorrectionMethod.benjamini_hochberg,
+                ),
+                FloatField(
+                    name="alpha",
+                    label="Error rate (alpha)",
+                    value=0.05,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    separatePrefix="\u03B1",
+                ),
+                DropdownField(name="grouping", label="Grouping from metadata"),
+                MultiSelectField(
+                    name="selected_groups",
+                    label="Select groups to perform Kruskal-Wallis Test on",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        ptm_df_field = form["ptm_df"]
+        grouping_field = form["grouping"]
+        selected_groups_field = form["selected_groups"]
+
+        ptm_df_field.set_options(
+            form_helper.to_choices(
+                run.steps.get_instance_identifiers(PTMsPerSample, "ptm_df")
+            )
+        )
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+        grouping = grouping_field.value
+        selected_groups_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
 
     calc_method = staticmethod(kruskal_wallis_test_on_ptm_data)
 
@@ -430,9 +817,11 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
 class PlotVolcano(DataAnalysisStep):
     display_name = "Volcano Plot"
     operation = "plot"
-    method_description = ("Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
-                          "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
-                          "can define a fold change threshold and an alpha level to highlight significant items.")
+    method_description = (
+        "Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
+        "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
+        "can define a fold change threshold and an alpha level to highlight significant items."
+    )
 
     plot_method = staticmethod(create_volcano_plot)
     output_keys = []
@@ -458,7 +847,7 @@ class PlotVolcano(DataAnalysisStep):
                 )
             ],
         )
-    
+
     def modify_form(self, form, run):
         input_dict_field = form["input_dict"]
         items_of_interest_field = form["items_of_interest"]
@@ -466,12 +855,13 @@ class PlotVolcano(DataAnalysisStep):
         input_dict_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
-                    Step, ["corrected_p_values_df", "log2_fold_change_df"],
+                    Step,
+                    ["corrected_p_values_df", "log2_fold_change_df"],
                 )
             )
         )
 
-        if(input_dict_field.value == None):
+        if input_dict_field.value == None:
             return
 
         input_dict_instance_id = input_dict_field.value
@@ -488,7 +878,7 @@ class PlotVolcano(DataAnalysisStep):
         if step_output is not None:
             items_of_interest = step_output["PTM"].unique()
 
-        items_of_interest_field.options = (form_helper.to_choices(items_of_interest))
+        items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["p_values"] = steps.get_step_output(
@@ -515,10 +905,44 @@ class PlotVolcano(DataAnalysisStep):
 
 class PlotScatterPlot(DataAnalysisStep):
     display_name = "Scatter Plot"
-    operation = "plot" 
+    operation = "plot"
     method_description = "Creates a scatter plot from data. This requires a dimension reduction method to be run first, as the input dataframe should contain only 2 or 3 columns."
 
     plot_method = staticmethod(scatter_plot)
+
+    def create_form(self):
+        return Form(
+            label="Scatter Plot",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                ),
+                # TODO: handle isRequired
+                DropdownField(
+                    name="color_df",
+                    label="Choose dataframe to be used for coloring",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        input_df_field = form["input_df"]
+        color_field = form["color_df"]
+
+        input_df_field.set_options(
+            form_helper.to_choices(
+                run.steps.get_instance_identifiers(
+                    DimensionReductionUMAP, "embedded_data"
+                )
+            )
+        )
+
+        color_field.set_options(
+            form_helper.to_choices(
+                run.steps.get_instance_identifiers(Step, "color_df"), required=False
+            )
+        )
 
     # TODO: input
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -570,7 +994,7 @@ class PlotClustergram(DataAnalysisStep):
         form["metadata_df"].options = form_helper.get_choices(
             run,
             output_key='metadata_df',
-            required=False,
+            required=True,
         )
         if form.values['metadata_df'] is not None:
             form["metadata_column"].options = form_helper.get_choices_for_metadata_non_sample_columns(
@@ -629,20 +1053,20 @@ class PlotProtQuant(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(
-            run
-        )
+        form["input_df"].set_options(form_helper.get_choices_for_protein_df_steps(run))
 
         if form["input_df"].options:
             if not form["input_df"].value:
                 form["input_df"].value = form["input_df"].options[0].label
 
-            form["protein_group"].options = form_helper.to_choices(
-                run.steps.get_step_output(
-                    step_type=Step,
-                    output_key="protein_df",
-                    instance_identifier=form["input_df"].value,
-                )["Protein ID"].unique()
+            form["protein_group"].set_options(
+                form_helper.to_choices(
+                    run.steps.get_step_output(
+                        step_type=Step,
+                        output_key="protein_df",
+                        instance_identifier=form["input_df"].value,
+                    )["Protein ID"].unique()
+                )
             )
 
         if form["similarity_measure"].value == SimilarityMeasure.cosine_similarity:
@@ -663,7 +1087,6 @@ class PlotProtQuant(DataAnalysisStep):
                 max=999,
                 step=1,
             )
-        
 
     plot_method = staticmethod(prot_quant_plot)
 
@@ -716,9 +1139,88 @@ class ClusteringKMeans(DataAnalysisStep):
 
     calc_method = staticmethod(k_means)
 
+    def create_form(self):
+        return Form(
+            label="kMeans",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                ),
+                # TODO: Add dynamic fill for labels_column & positive_label
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    options=ModelSelection,
+                    value=ModelSelection.grid_search,
+                ),
+                # TODO: Add dynamic parameters for grid search & randomized search
+                # TODO Add dynamic parameter for model selection scoring
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for identifying the best estimator following a grid search",
+                    options=ClusteringScoring,
+                ),
+                DropdownField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClusteringScoring,
+                ),
+                NumberField(
+                    name="n_clusters",
+                    label="Number of clusters to find",
+                    min=1,
+                    step=1,
+                    value=8,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for centroid initialisation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=0,
+                ),
+                DropdownField(
+                    name="init_centroid_strategy",
+                    label="Method for initialisation of centroids",
+                    options=InitCentroidStrategy,
+                    value=InitCentroidStrategy.random,
+                ),
+                NumberField(
+                    name="n_init",
+                    label="Number of times the k-means algorithm is run with different centroid seeds",
+                    min=1,
+                    step=1,
+                    value=10,
+                ),
+                NumberField(
+                    name="max_iter",
+                    label="Maximum number of iterations of the k-means algorithm for a single run",
+                    min=1,
+                    step=1,
+                    value=30,
+                ),
+                NumberField(
+                    name="tolerance",
+                    label="Relative tolerance with regards to Frobenius norm",
+                    min=0,
+                    value=1e-4,
+                ),
+            ],
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -736,9 +1238,83 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
 
     calc_method = staticmethod(expectation_maximisation)
 
+    def create_form(self):
+        return Form(
+            label="Expectation-maximization (EM)",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                    options=AnalysisLevel,
+                ),
+                # TODO: Add dynamic fill for labels_column & positive_label
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    options=ModelSelection,
+                    value=ModelSelection.grid_search,
+                ),
+                # TODO: Add dynamic parameters for grid search & randomized search
+                # TODO Add dynamic parameter for model selection scoring
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for identifying the best estimator following a grid search",
+                    options=ClusteringScoring,
+                ),
+                DropdownField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClusteringScoring,
+                    value=ClusteringScoring.adjusted_rand_score,
+                ),
+                NumberField(
+                    name="n_components",
+                    label="The number of mixture components",
+                    value=1,
+                ),
+                NumberField(
+                    name="reg_covar",
+                    label="Non-negative regularization added to the diagonal of covariance",
+                    value=1e-6,
+                ),
+                MultiSelectField(
+                    name="covariance_type",
+                    label="Type of covariance",
+                    options=ClusteringCovarianceType,
+                    value=ClusteringCovarianceType.full,
+                ),
+                MultiSelectField(
+                    name="int_params",
+                    label="The method used to initialize the weights, the means and the precisions.",
+                    options=ClusteringInitParams,
+                ),
+                NumberField(
+                    name="max_iter",
+                    label="The number of EM iterations to perform",
+                    value=100,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=0,
+                ),
+            ],
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -755,11 +1331,70 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
         "cluster_labels_df",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Hierarchical Agglomerative Clustering",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                    options=AnalysisLevel,
+                ),
+                # TODO: Add dynamic fill for labels_column & positive_label
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    options=ModelSelection,
+                    value=ModelSelection.grid_search,
+                ),
+                # TODO: Add dynamic parameters for grid search & randomized search
+                # TODO Add dynamic parameter for model selection scoring
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for identifying the best estimator following a grid search",
+                    options=ClusteringScoring,
+                ),
+                DropdownField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClusteringScoring,
+                    value=ClusteringScoring.adjusted_rand_score,
+                ),
+                NumberField(
+                    name="n_clusters",
+                    label="The number of clusters to find",
+                    min=1,
+                    step=1,
+                    value=2,
+                ),
+                MultiSelectField(
+                    name="metric",
+                    label="Distance metric",
+                    options=ClusteringMetric,
+                    value=ClusteringMetric.euclidean,
+                ),
+                MultiSelectField(
+                    name="linkage",
+                    label="The linkage criterion to use in order to to determine the distance to use between sets of observation",
+                    options=ClusteringLinkage,
+                    value=ClusteringLinkage.ward,
+                ),
+            ],
+        )
+
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -777,11 +1412,133 @@ class ClassificationRandomForest(DataAnalysisStep):
         "y_test_df",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Random Forest",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                    options=AnalysisLevel,
+                ),
+                # TODO: Add dynamic fill for labels_column & positive_label
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                NumberField(
+                    name="test_size",
+                    label="Test size",
+                    min=0,
+                    value=0.20,
+                ),
+                DropdownField(
+                    name="split_stratisfy",
+                    label="Stratify the split",
+                    options=YesNo,
+                    value=YesNo.yes,
+                ),
+                # TODO: Validation strategy
+                DropdownField(
+                    name="validation_strategy",
+                    label="Validation strategy",
+                    options=ClassificationValidationStrategy,
+                    value=ClassificationValidationStrategy.k_fold,
+                ),
+                NumberField(
+                    name="train_val_split",
+                    label="Choose the size of the validation data set (you can either enter the absolute number of validation "
+                    "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    value=0.20,
+                ),
+                NumberField(
+                    name="n_splits",
+                    label="Number of folds",
+                    min=2,
+                    value=5,
+                ),
+                DropdownField(
+                    name="shuffle",
+                    label="Whether to shuffle the data before splitting into batches",
+                    options=YesNo,
+                    value=YesNo.yes,
+                ),
+                NumberField(
+                    name="n_repeats",
+                    label="Number of times cross-validator needs to be repeated",
+                    min=1,
+                    value=10,
+                ),
+                NumberField(
+                    name="random_state_cv",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+                NumberField(
+                    name="p_samples",
+                    label="Size of the test sets",
+                    value=1,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClassificationScoring,
+                    value=ClassificationScoring.accuracy,
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    options=ModelSelection,
+                    value=ModelSelection.grid_search,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for identifying the best estimator following a grid search",
+                    options=ClassificationScoring,
+                    value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="n_estimators",
+                    label="The number of trees in the forest",
+                    min=1,
+                    step=1,
+                    value=100,
+                ),
+                MultiSelectField(
+                    name="criterion",
+                    label="The function to measure the quality of a split",
+                    options=ClusteringCriterion,
+                    value=ClusteringCriterion.gini,
+                ),
+                NumberField(
+                    name="max_depth",
+                    label="The maximum depth of the tree",
+                    min=1,
+                    value=1,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=6,
+                ),
+            ],
+        )
+
     calc_method = staticmethod(random_forest)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -799,11 +1556,132 @@ class ClassificationSVM(DataAnalysisStep):
         "y_test_df",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Support Vector Machine",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Choose dataframe to be plotted",
+                    options=AnalysisLevel,
+                ),
+                # TODO: Add dynamic fill for labels_column & positive_label
+                DropdownField(
+                    name="labels_column",
+                    label="Choose labels column from metadata",
+                ),
+                DropdownField(
+                    name="positive_label",
+                    label="Choose positive class",
+                ),
+                NumberField(
+                    name="test_size",
+                    label="Test size",
+                    min=0,
+                    value=0.20,
+                ),
+                DropdownField(
+                    name="split_stratisfy",
+                    label="Stratify the split",
+                    options=YesNo,
+                    value=YesNo.yes,
+                ),
+                # TODO: Validation strategy
+                DropdownField(
+                    name="validation_strategy",
+                    label="Validation strategy",
+                    options=ClassificationValidationStrategy,
+                    value=ClassificationValidationStrategy.k_fold,
+                ),
+                NumberField(
+                    name="train_val_split",
+                    label="Choose the size of the validation data set (you can either enter the absolute number of validation "
+                    "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    value=0.20,
+                ),
+                NumberField(
+                    name="n_splits",
+                    label="Number of folds",
+                    min=2,
+                    value=5,
+                ),
+                DropdownField(
+                    name="shuffle",
+                    label="Whether to shuffle the data before splitting into batches",
+                    options=YesNo,
+                    value=YesNo.yes,
+                ),
+                NumberField(
+                    name="n_repeats",
+                    label="Number of times cross-validator needs to be repeated",
+                    min=1,
+                    value=10,
+                ),
+                NumberField(
+                    name="random_state_cv",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+                NumberField(
+                    name="p_samples",
+                    label="Size of the test sets",
+                    value=1,
+                ),
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClassificationScoring,
+                    value=ClassificationScoring.accuracy,
+                ),
+                DropdownField(
+                    name="model_selection",
+                    label="Choose strategy to perform parameter fine-tuning",
+                    options=ModelSelection,
+                    value=ModelSelection.grid_search,
+                ),
+                DropdownField(
+                    name="model_selection_scoring",
+                    label="Select a scoring for identifying the best estimator following a grid search",
+                    options=ClassificationScoring,
+                    value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="C",
+                    label="C: regularization parameter (the strength of the regularization is inversely proportional to C)",
+                    min=0.0,
+                    value=1.0,
+                ),
+                MultiSelectField(
+                    name="kernel",
+                    label="Specifies the kernel type to be used in the algorithm",
+                    options=ClassificationKernel,
+                    value=ClassificationKernel.linear,
+                ),
+                NumberField(
+                    name="tolerance",
+                    label="Tolerance for stopping criterion",
+                    min=0.0,
+                    value=1e-4,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0.0,
+                    max=4294967295,
+                    step=1,
+                    value=6,
+                ),
+            ],
+        )
+
     calc_method = staticmethod(svm)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -818,12 +1696,25 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
     ]
     output_keys = ["scores_df"]
 
+    def create_form(self):
+        return Form(
+            label="Evaluation of classification models",
+            input_fields=[
+                MultiSelectField(
+                    name="scoring",
+                    label="Scoring for the model",
+                    options=ClassificationScoring,
+                    value=ClassificationScoring.accuracy,
+                ),
+            ],
+        )
+
     def method(self, inputs: dict) -> dict:
         return evaluate_classification_model(**inputs)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -834,11 +1725,64 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
     output_keys = ["embedded_data"]
 
+    def create_form(self):
+        return Form(
+            label="t-SNE",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Dimension reduction of a dataframe using t-SNE",
+                    options=AnalysisLevel,
+                ),
+                NumberField(
+                    name="n_components",
+                    label="Dimension of the embedded space",
+                    min=1,
+                    step=1,
+                    value=2,
+                ),
+                NumberField(
+                    name="perplexity",
+                    label="Perplexity",
+                    min=5.0,
+                    max=50.0,
+                    value=30.0,
+                ),
+                MultiSelectField(
+                    name="metric",
+                    label="Metric",
+                    options=DimensionReductionMetric,
+                    value=DimensionReductionMetric.euclidean,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=6,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Maximum number of iterations for the optimization",
+                    min=250,
+                    value=1000,
+                ),
+                NumberField(
+                    name="n_iter_without_progress",
+                    label="Maximum number of iterations without progress before we abort the optimization",
+                    min=250,
+                    step=1,
+                    value=300,
+                ),
+            ],
+        )
+
     calc_method = staticmethod(t_sne)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
+        inputs["sample_group_df"] = steps.metadata_df
         return inputs
 
 
@@ -848,6 +1792,59 @@ class DimensionReductionUMAP(DataAnalysisStep):
     method_description = "Dimension reduction of a dataframe using UMAP"
 
     output_keys = ["embedded_data"]
+
+    def create_form(self):
+        return Form(
+            label="UMAP",
+            input_fields=[
+                DropdownField(
+                    name="input_df",
+                    label="Dimension reduction of a dataframe using UMAP",
+                    options=AnalysisLevel,
+                ),
+                NumberField(
+                    name="n_neighbors",
+                    label="The size of local neighborhood (in terms of number of neighboring sample points) used for manifold "
+                    "approximation",
+                    min=2,
+                    max=100,
+                    step=1,
+                    value=15,
+                ),
+                NumberField(
+                    name="n_components",
+                    label="Number of components",
+                    min=1,
+                    max=100,
+                    step=1,
+                    value=2,
+                ),
+                FloatField(
+                    name="min_dist",
+                    label="The effective minimum distance between embedded points",
+                    min=0.1,
+                    step=0.1,
+                    value=0.1,
+                ),
+                DropdownField(
+                    name="metric",
+                    label="Distance metric",
+                    options=DimensionReductionMetric,
+                ),
+                NumberField(
+                    name="random_state",
+                    label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        input_df_field = form["input_df"]
+        input_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
 
     calc_method = staticmethod(umap)
 
@@ -878,6 +1875,7 @@ class FLEXIQuantLF(DataAnalysisStep):
         )
 
         inputs["metadata_df"] = steps.metadata_df
+        return inputs
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):
@@ -889,6 +1887,92 @@ class SelectPeptidesForProtein(DataAnalysisStep):
         "peptide_df",
     ]
 
+    def create_form(self):
+        return Form(
+            label="Select Peptides of Protein",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Step to use peptide dataframe from",
+                ),
+                DropdownField(
+                    name="auto_select",
+                    label="Automatically select most significant Protein",
+                    options=YesNo,
+                    value=YesNo.no,
+                ),
+                DropdownField(
+                    name="protein_list",
+                    label="Select a list of Proteins from which you want to choose your Proteins of Interest",
+                ),
+                DropdownField(
+                    name="sort_proteins",
+                    label="Sort Proteins by p-value (requires a list of Proteins from a Differential Expression Analysis to be selected)",
+                    options=YesNo,
+                    value=YesNo.no,
+                ),
+                MultiSelectField(
+                    name="protein_ids",
+                    label="Protein IDs",
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        auto_select_field = form["auto_select"]
+        sort_proteins_field = form["sort_proteins"]
+        protein_list_field = form["protein_list"]
+        protein_ids_field = form["protein_ids"]
+
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df", Step))
+        peptide_df_field.value = run.steps.get_instance_identifiers(
+            DataPreprocessingStep, "peptide_df"
+        )[-1]
+
+        selected_auto_select = True if auto_select_field.value == YesNo.yes else False
+
+        protein_list_options = form_helper.to_choices(
+            [] if selected_auto_select else ["all proteins"]
+        )
+        protein_list_options.extend(
+            form_helper.get_choices(run, "significant_proteins_df", DataAnalysisStep)
+        )
+        protein_list_field.set_options(protein_list_options)
+
+        chosen_list = protein_list_field.value
+        if not selected_auto_select:
+            # TODO: Enable toggling
+            if chosen_list == "all_proteins":
+                protein_ids_field.set_options(
+                    form_helper.to_choices(
+                        run.steps.get_step_output(Step, "protein_df")[
+                            "Protein ID"
+                        ].unique()
+                    )
+                )
+            else:
+                if sort_proteins_field.value == YesNo.yes:
+                    protein_ids_field.set_options(
+                        form_helper.to_choices(
+                            run.steps.get_step_output(
+                                DataAnalysisStep, "significant_proteins_df", chosen_list
+                            )
+                            .sort_values(by="corrected_p_value")["Protein ID"]
+                            .unique()
+                        )
+                    )
+                else:
+                    significant_proteins = run.steps.get_step_output(
+                        DataAnalysisStep, "significant_proteins_df", chosen_list
+                    )
+                    if significant_proteins is not None:
+                        protein_ids_field.set_options(
+                            form_helper.to_choices(
+                                significant_proteins["Protein ID"].unique()
+                            )
+                        )
+
     calc_method = staticmethod(select_peptides_of_protein)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -899,17 +1983,23 @@ class SelectPeptidesForProtein(DataAnalysisStep):
         inputs["metadata_df"] = steps.metadata_df
 
         if inputs["auto_select"]:
-            significant_proteins = (
-                steps.get_step_output(DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]))
-            index_of_most_significant_protein = significant_proteins['corrected_p_value'].idxmin()
-            most_significant_protein = significant_proteins.loc[index_of_most_significant_protein]
+            significant_proteins = steps.get_step_output(
+                DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]
+            )
+            index_of_most_significant_protein = significant_proteins[
+                "corrected_p_value"
+            ].idxmin()
+            most_significant_protein = significant_proteins.loc[
+                index_of_most_significant_protein
+            ]
             inputs["protein_id"] = [most_significant_protein["Protein ID"]]
-            self.messages.append({
-                "level": logging.INFO,
-                "msg":
-                    f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {inputs['protein_list']}"
-            })
+            self.messages.append(
+                {
+                    "level": logging.INFO,
+                    "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
+                    f"from {inputs['protein_list']}",
+                }
+            )
 
         return inputs
 
@@ -917,12 +2007,37 @@ class SelectPeptidesForProtein(DataAnalysisStep):
 class PTMsPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of a single protein of interest. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of a single protein of interest. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
     output_keys = [
         "ptm_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="PTMs per Sample",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Peptide dataframe containing the peptides of a single protein",
+                )
+            ],
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
+
+        single_protein_peptides = run.steps.get_instance_identifiers(
+            SelectPeptidesForProtein, "peptide_df"
+        )
+
+        if single_protein_peptides:
+            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_sample)
 
@@ -936,12 +2051,37 @@ class PTMsPerSample(DataAnalysisStep):
 class PTMsProteinAndPerSample(DataAnalysisStep):
     display_name = "PTMs per Sample and Protein"
     operation = "Peptide analysis"
-    method_description = ("Analyze the post-translational modifications (PTMs) of all Proteins. "
-                          "This function requires a peptide dataframe with PTM information.")
+    method_description = (
+        "Analyze the post-translational modifications (PTMs) of all Proteins. "
+        "This function requires a peptide dataframe with PTM information."
+    )
 
     output_keys = [
         "ptm_df",
     ]
+
+    def create_form(self):
+        return Form(
+            label="PTMs per Sample and Protein",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Peptide dataframe containing the peptides of a single protein",
+                )
+            ],
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
+
+        single_protein_peptides = run.steps.get_instance_identifiers(
+            SelectPeptidesForProtein, "peptide_df"
+        )
+
+        if single_protein_peptides:
+            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_protein_and_sample)
 
