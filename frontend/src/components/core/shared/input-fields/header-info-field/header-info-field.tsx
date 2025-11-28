@@ -4,7 +4,6 @@ import { HeaderInfoFieldProps } from "./header-info-field.props.ts";
 import { HeaderInfoText } from "../../text";
 
 const DividerContainer = styled.div`
-  //display: inline-block;
   position: relative;
   width: 100%;
   margin: 8px 0;
