@@ -21,11 +21,6 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
 )
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
-from backend.protzilla.data_analysis.ptm_analysis import (
-    ptms_per_sample,
-    ptms_per_protein_and_sample,
-    select_peptides_of_protein,
-)
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
@@ -50,7 +45,9 @@ from backend.protzilla.methods.data_preprocessing import (
     TransformationLog,
     DataPreprocessingStep,
 )
-from backend.protzilla.steps import Plots, Step, StepManager
+from backend.protzilla.steps import Step, StepManager
+from protzilla.data_analysis.protein_coverage import AggregationMethod
+from protzilla.data_analysis.protein_coverage import plot_protein_coverage
 
 
 class TTestType(Enum):
@@ -906,6 +903,152 @@ class PlotVolcano(DataAnalysisStep):
         elif step.operation == "Peptide analysis":
             inputs["item_type"] = "PTM"
 
+        return inputs
+
+
+class PlotProteinCoverage(DataAnalysisStep):
+    # TODO: probs. needs a slight rework
+    display_name = "Protein Coverage Plot"
+    operation = "plot"
+    method_description = (
+        "Create a protein coverage plot from a protein graph and peptide data"
+    )
+
+    input_keys = [
+        "protein_id",
+        "fasta_df",
+        "metadata_df",
+        "peptide_df",
+        "grouping",
+        "selected_groups",
+        "aggregation_method",
+    ]
+    output_keys = []
+
+    def create_form(self):
+        return Form(
+            label="Volcano Plot",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Step to use peptide data from",
+                ),
+                # TODO: fix
+                # DropdownField(
+                #     name="fasta_df",
+                #     label="Step to use fasta protein data from",
+                # ),
+                DropdownField(
+                    name="protein_id",
+                    label="Protein ID",
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                ),
+                MultiSelectField(  # TODO: check if right type
+                    name="selected_groups",
+                    label="Select groups / samples to plot",  # TODO: general enough?
+                ),
+                # TODO: fix
+                # DropdownField(
+                #     name="aggregation_method",
+                #     choices=fill_helper.to_choices(AggregationMethod),
+                #     label="Aggregation method",
+                #     initial=AggregationMethod.median,
+                # ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
+
+        # TODO: also check Proteins from fasta and only include overlap
+        protein_id_field = form["protein_id"]
+        peptide_df_instance_id = peptide_df_field.value
+        protein_id_field.set_options(
+            form_helper.to_choices(
+                run.steps.get_step_output(Step, "peptide_df", peptide_df_instance_id)[
+                    "Protein ID"
+                ].unique()
+            )
+        )
+
+        ###
+        # protein_field = form["protein_df"]
+        # grouping_field = form["grouping"]
+        # group1_field = form["group1"]
+        # group2_field = form["group2"]
+        #
+        # protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        # grouping_field.set_options(
+        #     form_helper.get_choices_for_metadata_non_sample_columns(run)
+        # )
+        #
+        # peptide_df_instance_filed.set_options(
+        #     form_helper.to_choices(
+        #         run.steps.get_instance_identifiers(
+        #             Step,
+        #             ["corrected_p_values_df", "log2_fold_change_df"],
+        #         )
+        #     )
+        # )
+        # ###
+        #
+        # self.fields["peptide_df_instance"].choices = fill_helper.get_choices(
+        #     run, "peptide_df"
+        # )
+        # self.fields["fasta_df_instance"].choices = fill_helper.get_choices(
+        #     run, "fasta_df", Step
+        # )
+        # peptide_df_instance_id = self.data.get(
+        #     "peptide_df_instance", self.fields["peptide_df_instance"].choices[0][0]
+        # )
+        # fasta_df_instance_id = self.data.get(
+        #     "fasta_df_instance", self.fields["fasta_df_instance"].choices[0][0]
+        # )
+        # peptide_df = run.steps.get_step_output(
+        #     Step, "peptide_df", peptide_df_instance_id
+        # )
+        # fasta_protein_ids = run.steps.get_step_output(
+        #     Step, "fasta_df", fasta_df_instance_id
+        # )["Protein ID"].unique()
+        # peptide_df_protein_ids = peptide_df["Protein ID"].unique()
+        # common_protein_ids = sorted(
+        #     list(set(fasta_protein_ids) & set(peptide_df_protein_ids))
+        # )
+        # self.fields["protein_id"].choices = fill_helper.to_choices(common_protein_ids)
+        #
+        # # Grouping
+        # self.fields["grouping"].choices = (
+        #     fill_helper.get_choices_for_metadata_non_sample_columns(run)
+        #     + [("Sample", "Sample")]
+        # )
+        #
+        # grouping = self.data.get("grouping", self.fields["grouping"].choices[0][0])
+        # if grouping == "Sample":
+        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
+        #         peptide_df["Sample"].unique()
+        #     )
+        # else:
+        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
+        #         run.steps.metadata_df[grouping].unique()
+        #     )
+        # # if grouping is not Sample, show the aggregation method option
+        # self.toggle_visibility("aggregation_method", grouping != "Sample")
+
+    plot_method = staticmethod(plot_protein_coverage)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["fasta_df"] = steps.get_step_output(
+            Step, "fasta_df", inputs["fasta_df_instance"]
+        )
+        inputs["peptide_df"] = steps.get_step_output(
+            Step, "fasta_df", inputs["peptide_df"]
+        )
+        inputs["metadata_df"] = steps.metadata_df
+        # inputs["protein_id"] = [most_significant_protein["Protein ID"]]
         return inputs
 
 

@@ -1,3 +1,5 @@
+import logging
+
 from backend.protzilla.form import Option
 from backend.protzilla.run import Run
 from backend.protzilla.steps import Step
@@ -30,6 +32,10 @@ def get_choices(
 
 
 def get_choices_for_metadata_non_sample_columns(run: Run) -> list[Option]:
+    if run.steps.metadata_df is None:
+        # TODO: should this rather be an error and raise an exception?
+        logging.warning("No metadata_df found in run")
+        return []
     return to_choices(
         run.steps.metadata_df.columns[
             run.steps.metadata_df.columns != "Sample"
