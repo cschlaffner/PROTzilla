@@ -200,8 +200,8 @@ def clustergram_plot(
         sample in `input_df`. Each group will be assigned a color, which will be shown
         in the final plot as a colorbar next to the heatmap. This is an optional
         parameter
-    :param flip_axes: If "yes", the rows and columns of the clustergram will be
-        swapped. If "no", the default orientation is used.
+    :param flip_axes: If true, the rows and columns of the clustergram will be
+        swapped. If false, the default orientation is used.
     :param metadata_column: The name of the column in `metadata_df` that contains the
         group information for each sample. This parameter is required if `metadata_df`
         is provided.
