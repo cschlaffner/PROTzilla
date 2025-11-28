@@ -191,7 +191,7 @@ class Step:
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
         Handles the dictionary from the calculation method and creates an Output object from it.
-        Responsible for checking that the output is a dictonary and not empty, and setting the output attribute of the instance.
+        Responsible for checking that the output is a dictionary and not empty, and setting the output attribute of the instance.
 
         :param outputs: A dictionary received after the calculation
         :return: None
