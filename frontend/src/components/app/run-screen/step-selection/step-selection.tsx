@@ -222,9 +222,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           onMouseEnter={() => {
             setShowHandle(true);
           }}
-          onMouseLeave={() => {
-            setShowHandle(false);
-          }}
         />
       ) : (
         <GrayButton
