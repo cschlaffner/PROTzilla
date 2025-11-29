@@ -57,6 +57,18 @@ class ImportingStep(Step):
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         return inputs
 
+    def modify_form(self, form, run):
+        Step.modify_form(self, form, run)
+        if run.steps.current_step.calculation_status == "complete":
+            form.input_fields[self.index_of_file_input()].value = None
+
+    def index_of_file_input(self):
+        """
+        Returns the index of the FileInput that should be reset by modify_form. This method 
+        must be overriden if the FileInput is not index 0.    
+        """
+        return 0
+
 
 class MaxQuantImport(ImportingStep):
     display_name = "MaxQuant Protein Groups Import"
@@ -93,10 +105,6 @@ class MaxQuantImport(ImportingStep):
                 ),
             ],
         )
-
-    def modify_form(self, form, run):
-        if run.steps.current_step.calculation_status == "complete":
-            form.input_fields[0].value = None
 
     calc_method = staticmethod(max_quant_import)
 
@@ -326,6 +334,8 @@ class PeptideImport(ImportingStep):
         )
     
     def modify_form(self, form, run):
+        ImportingStep.modify_form(self, form, run)
+
         intensity_name_field = form["intensity_name"]
         map_to_uniprot_field = form["map_to_uniprot"]
 
@@ -368,6 +378,8 @@ class EvidenceImport(ImportingStep):
         )
     
     def modify_form(self, form, run):
+        ImportingStep.modify_form(self, form, run)
+
         map_to_uniprot_field = form["map_to_uniprot"]
 
         map_to_uniprot_field.value = run.steps.get_step_input(
