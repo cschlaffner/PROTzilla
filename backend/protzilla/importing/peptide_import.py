@@ -14,6 +14,8 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
         return dict(
             messages=[dict(level=logging.ERROR, msg=e)],
         )
+    # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
+    # "LFQ intensity" are only defined for proteins.
     peptide_intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
@@ -73,13 +75,18 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         "Raw file",
     ]
 
+    def select_column(column):
+        # Check for whitespace in the column name to not capitalize "PEP" which should stay all-caps.
+        capitalized_column = column.capitalize() if ' ' in column else column
+        return capitalized_column in id_columns
+
     df = pd.read_csv(
         file_path,
         sep="\t",
         low_memory=False,
         na_values=["", 0],
         keep_default_na=True,
-        usecols=lambda x: (x.capitalize() if ' ' in x else x) in id_columns,
+        usecols=select_column,
     )
 
     # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case

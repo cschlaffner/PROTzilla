@@ -988,18 +988,24 @@ class PlotClustergram(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        form["input_df"].options = form_helper.get_choices_for_protein_df_steps(
-            run,
+        form["input_df"].set_options(
+            form_helper.get_choices_for_protein_df_steps(
+                run,
+            )
         )
-        form["metadata_df"].options = form_helper.get_choices(
-            run,
-            output_key='metadata_df',
-            required=True,
+        form["metadata_df"].set_options(
+            form_helper.get_choices(
+                run,
+                output_key='metadata_df',
+                required=True,
+            )
         )
         if form.values['metadata_df'] is not None:
-            form["metadata_column"].options = form_helper.get_choices_for_metadata_non_sample_columns(
-                run,
-                instance_identifier=form.values['metadata_df']
+            form["metadata_column"].set_options(
+                form_helper.get_choices_for_metadata_non_sample_columns(
+                    run,
+                    instance_identifier=form.values['metadata_df']
+                )
             )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -2092,50 +2098,50 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
         return inputs
 
 
-class PTMVisualizationStep(DataAnalysisStep):
+class _PTMVisualizationStep(DataAnalysisStep):
     operation = "plot"
     output_keys = []
 
-    def create_form(self):
-        return Form(
-            label="PTM Visualization",
-            input_fields=[
-                DropdownField(
-                    name="evidence_df",
-                    label="Dataframe that contains the MaxQuant evidence data",
-                ),
-                FloatField(
-                    name="evidence_file_q_value_threshold",
-                    label="MaxQuant Evidence file q-value threshold",
-                    min=0.0,
-                    max=1.0,
-                    value=0.01,
-                    hasStepButtons=False
-                ),
-                FileInput(
-                    name="fasta_file_path",
-                    label="FASTA file",
-                ),
-                FileInput(
-                    name="regions_file_path",
-                    label="Metadata used to define regions",
-                ),
-                InfoField(
-                    label="The file for regions should be a CSV file with the following columns: name, region_end, "
-                          "group, short_name. These specify the name of the region, the end position of the region "
-                          "(the start is either 1 or the end of the previous region), the (color) group the "
-                          "region belongs to (which can be specified in the settings), and a short name for the "
-                          "region.",
-                ),
-            ]
-        )
+    @classmethod
+    def get_form_fields(cls) -> list:
+        return [
+            DropdownField(
+                name="evidence_df",
+                label="Dataframe that contains the MaxQuant evidence data",
+            ),
+            FloatField(
+                name="evidence_file_q_value_threshold",
+                label="MaxQuant Evidence file q-value threshold",
+                min=0.0,
+                max=1.0,
+                value=0.01,
+                hasStepButtons=False
+            ),
+            FileInput(
+                name="fasta_file_path",
+                label="FASTA file",
+            ),
+            FileInput(
+                name="regions_file_path",
+                label="Metadata used to define regions",
+            ),
+            InfoField(
+                label="The file for regions should be a CSV file with the following columns: name, region_end, "
+                      "group, short_name. These specify the name of the region, the end position of the region "
+                      "(the start is either 1 or the end of the previous region), the (colour) group the "
+                      "region belongs to (which can be specified in the settings), and a short name for the "
+                      "region.",
+            )
+        ]
 
     def modify_form(self, form, run):
-        form["evidence_df"].options = form_helper.get_choices(
-            run,
-            output_key='peptide_df',
-            step_type=Step,
-            required=True
+        form["evidence_df"].set_options(
+            form_helper.get_choices(
+                run,
+                output_key='peptide_df',
+                step_type=Step,
+                required=True
+            )
         )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -2145,20 +2151,24 @@ class PTMVisualizationStep(DataAnalysisStep):
         return inputs
 
 
-class PTMOverviewVisualization(PTMVisualizationStep):
+class PTMOverviewVisualization(_PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
     method_description = "Visualizes selected PTMs on a given protein sequence (including isoforms)"
 
     calc_method = staticmethod(get_detected_modifications)
     plot_method = staticmethod(create_overview_ptm_visualization)
 
-
-class _PTMVisualizationWithGroups(PTMVisualizationStep):
     def create_form(self):
-        base_form = super(_PTMVisualizationWithGroups, self).create_form()
-        form = Form(
-            label=base_form.label,
-            input_fields=base_form.input_fields + [
+        return Form(
+            label="PTM Overview Visualization",
+            input_fields=_PTMVisualizationStep.get_form_fields()
+        )
+
+
+class _PTMVisualizationWithGroups(_PTMVisualizationStep):
+    @classmethod
+    def get_form_fields(cls) -> list:
+        return _PTMVisualizationStep.get_form_fields() + [
                 FileInput(
                     name="groups_file_path",
                     label="Metadata used to define groups",
@@ -2170,8 +2180,6 @@ class _PTMVisualizationWithGroups(PTMVisualizationStep):
                           "optionally the replicate number (1, 2, ...).",
                 ),
             ]
-        )
-        return form
 
     calc_method = staticmethod(get_detected_modifications)
 
@@ -2183,6 +2191,12 @@ class PTMBarVisualization(_PTMVisualizationWithGroups):
 
     plot_method = staticmethod(create_bar_ptm_visualization)
 
+    def create_form(self):
+        return Form(
+            label="PTM Bar Visualization",
+            input_fields=_PTMVisualizationWithGroups.get_form_fields()
+        )
+
 
 class PTMDetailsVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Details Plot"
@@ -2190,3 +2204,9 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
                           "shows PTM and cleavage frequency across groups as heatmaps.")
 
     plot_method = staticmethod(create_details_ptm_visualization)
+
+    def create_form(self):
+        return Form(
+            label="PTM Details Visualization",
+            input_fields=_PTMVisualizationWithGroups.get_form_fields()
+        )
