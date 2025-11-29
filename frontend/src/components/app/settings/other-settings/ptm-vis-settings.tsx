@@ -122,11 +122,11 @@ const ColorSettings = ({
   return (
     <div>
       <div>
-        <Text text={"Cleavage label color: "} />
+        <Text text={"Cleavage label colour: "} />
         <ColorText text={cleavage_label_color} />
       </div>
       <div>
-        <Text text={"Cleavage scale colors: Low: "} />
+        <Text text={"Cleavage scale colours: Low: "} />
         <ColorText text={cleavage_scale_color_low} />
         <Text text={", Mid: "} />
         <ColorText text={cleavage_scale_color_mid} />
@@ -134,21 +134,21 @@ const ColorSettings = ({
         <ColorText text={cleavage_scale_color_high} />
       </div>
       <div>
-        <Text text={"PTM scale colors: Low: "} />
+        <Text text={"PTM scale colours: Low: "} />
         <ColorText text={ptm_scale_color_low} />
         <Text text={", Mid: "} />
         <ColorText text={ptm_scale_color_mid} />
         <Text text={", High: "} />
         <ColorText text={ptm_scale_color_high} />
       </div>
-      <Text text="Sequence Region Colors:" />
+      <Text text="Sequence Region Colours:" />
       {Object.entries(sequence_region_colors).map(([region, color], index) => (
         <div key={"sequence_region_" + index.toString()}>
           <Text text={region + ": "} style={{ paddingLeft: "12px" }} />
           <ColorText text={color} />
         </div>
       ))}
-      <Text text="Group Label Colors:" />
+      <Text text="Group Label Colours:" />
       {Object.entries(group_label_colors).map(([group, color], index) => (
         <div key={"group_label_" + index.toString()}>
           <Text text={group + ": "} style={{ paddingLeft: "12px" }} />
@@ -202,7 +202,7 @@ const PTMSettings = ({ modifications, color_settings, other_settings }: PTMSetti
           />
         </SettingsEntry>
       ))}
-      <SettingsSectionTitle baseComponent="h5" title="Custom Color Settings" />
+      <SettingsSectionTitle baseComponent="h5" title="Custom Colour Settings" />
       <ColorSettings
         sequence_region_colors={color_settings.sequence_region_colors}
         group_label_colors={color_settings.group_label_colors}

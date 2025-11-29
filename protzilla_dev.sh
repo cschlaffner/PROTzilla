@@ -40,7 +40,6 @@ trap cleanup EXIT INT TERM
 echo "Starting frontend server as developer..."
 cd frontend
 pnpm install
-#pnpm build
 pnpm dev &
 FRONTEND_PID=$!
 cd ..

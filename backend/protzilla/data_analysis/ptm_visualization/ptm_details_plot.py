@@ -36,8 +36,8 @@ def get_details_plot_config_module(groups_file_path: Path, out_dir: Path) -> typ
         details_groups = {**given_color_dict, **fallback_color_dict}
     except:
         raise ValueError(
-            "Not all groups in the provided groups file have a corresponding label color defined in the settings. "
-            "Couldn't use default color cycle as fallback. Please provide colors for all group labels in the "
+            "Not all groups in the provided groups file have a corresponding label colour defined in the settings. "
+            "Couldn't use default colour cycle as fallback. Please provide colors for all group labels in the "
             "'PTM Visualization' settings.."
         )
 
