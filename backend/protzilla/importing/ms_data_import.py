@@ -12,7 +12,10 @@ from backend.protzilla.utilities import format_trace
 
 
 def max_quant_import(
-    file_path: Path, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
+    file_path: Path,
+    intensity_name: str,
+    map_to_uniprot=False,
+    aggregation_method: str = "Sum",
 ) -> dict:
     assert intensity_name in ["Intensity", "iBAQ", "LFQ intensity"]
     try:
@@ -35,15 +38,28 @@ def max_quant_import(
             c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         intensity_df = intensity_df.assign(**{"Protein ID": protein_groups})
-        return transform_and_clean(intensity_df, intensity_name, map_to_uniprot, aggregation_method)
+        return transform_and_clean(
+            intensity_df, intensity_name, map_to_uniprot, aggregation_method
+        )
 
     except Exception as e:
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid Max Quant file."
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=format_trace(traceback.format_exception(e)))])
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
+            ]
+        )
 
 
 def ms_fragger_import(
-    file_path: Path, intensity_name: str, map_to_uniprot=False, aggregation_method: str ="Sum"
+    file_path: Path,
+    intensity_name: str,
+    map_to_uniprot=False,
+    aggregation_method: str = "Sum",
 ) -> dict:
     assert intensity_name in [
         "Intensity",
@@ -88,13 +104,25 @@ def ms_fragger_import(
         )
         intensity_df = intensity_df.assign(**{"Protein ID": protein_groups})
 
-        return transform_and_clean(intensity_df, intensity_name, map_to_uniprot, aggregation_method)
+        return transform_and_clean(
+            intensity_df, intensity_name, map_to_uniprot, aggregation_method
+        )
     except Exception as e:
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid MS Fragger file."
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=format_trace(traceback.format_exception(e)))])
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
+            ]
+        )
 
 
-def diann_import(file_path : Path, map_to_uniprot=False, aggregation_method: str ="Sum") -> dict:
+def diann_import(
+    file_path: Path, map_to_uniprot=False, aggregation_method: str = "Sum"
+) -> dict:
     try:
         df = pd.read_csv(
             file_path,
@@ -118,14 +146,27 @@ def diann_import(file_path : Path, map_to_uniprot=False, aggregation_method: str
 
         intensity_name = "Intensity"
 
-        return transform_and_clean(intensity_df, intensity_name, map_to_uniprot, aggregation_method)
+        return transform_and_clean(
+            intensity_df, intensity_name, map_to_uniprot, aggregation_method
+        )
     except Exception as e:
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid DIA-NN MS file."
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=format_trace(traceback.format_exception(e)))])
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
+            ]
+        )
 
 
 def transform_and_clean(
-    df: pd.DataFrame, intensity_name: str, map_to_uniprot: bool, aggregation_method: str ="Sum"
+    df: pd.DataFrame,
+    intensity_name: str,
+    map_to_uniprot: bool,
+    aggregation_method: str = "Sum",
 ) -> dict:
     """
     Transforms a dataframe that is read from a file in wide format into long format,
@@ -159,7 +200,9 @@ def transform_and_clean(
     # applies the selected aggregation to duplicate protein groups, NaN if all are NaN, aggregation of numbers otherwise
     aggregation_method = aggregation_method.lower()
     agg_kwargs = {"sum": {"min_count": 1}, "median": {}, "mean": {}}
-    df = df.groupby("Protein ID", as_index=False).agg(aggregation_method, **agg_kwargs[aggregation_method])
+    df = df.groupby("Protein ID", as_index=False).agg(
+        aggregation_method, **agg_kwargs[aggregation_method]
+    )
 
     df = df.assign(Gene=lambda _: np.nan)  # add deprecated genes column
 
@@ -231,7 +274,7 @@ def clean_protein_groups(protein_groups, map_to_uniprot=True):
                 all_ids_of_group.extend(new_ids)
             else:
                 all_ids_of_group.append(old_id)
-        new_groups.append(all_ids_of_group[0] if all_ids_of_group else '')
+        new_groups.append(all_ids_of_group[0] if all_ids_of_group else "")
     return new_groups, removed_protein_ids
 
 

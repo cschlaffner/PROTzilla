@@ -105,7 +105,7 @@ def k_means(
             clf,
             clf_parameters,
             scoring,
-            labels_df=labels_df["Encoded Label"]
+            labels_df=labels_df["Encoded Label"],
         )
 
         # create dataframes for ouput dict
@@ -234,7 +234,7 @@ def expectation_maximisation(
         clf_parameters,
         scoring,
         labels_df=labels_df["Encoded Label"],
-        model_selection_scoring = model_selection_scoring,
+        model_selection_scoring=model_selection_scoring,
     )
 
     cluster_labels_df = pd.DataFrame(
@@ -325,7 +325,7 @@ def hierarchical_agglomerative_clustering(
         clf_parameters,
         scoring,
         labels_df=labels_df["Encoded Label"],
-        model_selection_scoring = model_selection_scoring,
+        model_selection_scoring=model_selection_scoring,
     )
 
     cluster_labels_df = pd.DataFrame(

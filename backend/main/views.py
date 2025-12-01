@@ -467,7 +467,10 @@ def import_workflow(request):
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
 
         if new_name == "":
-            copy2(str(workflow_file), str((WORKFLOWS_PATH / workflow).with_suffix(".yaml")))
+            copy2(
+                str(workflow_file),
+                str((WORKFLOWS_PATH / workflow).with_suffix(".yaml")),
+            )
         else:
             try:
                 copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
@@ -554,7 +557,9 @@ def get_run_data(request):
             run_data["current_section"] = run.current_step.section
             run_data["current_step_index"] = run.steps.current_step_index
             run_data["memory_usage"] = get_memory_usage()
-            run_data["current_step_has_plot"] = True if run.current_step.plot_method is not None else False
+            run_data["current_step_has_plot"] = (
+                True if run.current_step.plot_method is not None else False
+            )
         else:
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
