@@ -32,8 +32,7 @@ const StyledHeader = styledDiv.div<{ hasPaddingBottom: boolean }>`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-bottom: ${({ hasPaddingBottom }) =>
-    hasPaddingBottom ? spacing("medium") : "0"}
+  padding-bottom: ${({ hasPaddingBottom }) => (hasPaddingBottom ? spacing("medium") : "0")}
 `;
 
 const StyledButtonDiv = styledDiv.div`
@@ -576,7 +575,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "Workflow:",
                     isVisible: true,
-                    accept: ".yaml, .yml"
+                    accept: ".yaml, .yml",
                   },
                   {
                     type: "text",
