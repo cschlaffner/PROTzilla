@@ -69,6 +69,7 @@ export interface RunData {
   current_step_index: number;
   displayed_steps: Section[];
   memory_usage: string;
+  current_step_has_plot: boolean;
 }
 
 export const emptyRunData: RunData = {
@@ -76,6 +77,7 @@ export const emptyRunData: RunData = {
   current_step_index: 0,
   displayed_steps: emptySections,
   memory_usage: "",
+  current_step_has_plot: false,
 };
 
 export interface Table {
