@@ -328,7 +328,7 @@ def import_workflow(request):
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
 
         if new_name == "":
-            copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+            copy2(str(workflow_file), str((WORKFLOWS_PATH / workflow).with_suffix(".yaml")))
         else:
             try:
                 copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))

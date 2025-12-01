@@ -7,7 +7,7 @@ def get_available_workflow_names() -> list[str]:
     return [
         file.stem
         for file in paths.WORKFLOWS_PATH.iterdir()
-        if not file.name.startswith(".") and not file.suffix == ".json"
+        if not file.name.startswith(".") and file.suffix == ".yaml"
     ]
 
 def delete_workflow_file(name: str) -> tuple[bool, str]:
