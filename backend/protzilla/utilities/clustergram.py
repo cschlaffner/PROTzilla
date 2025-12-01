@@ -494,7 +494,7 @@ class _Clustergram:
             showticklabels=True,
             side="bottom",
             showline=False,
-            range=[min(tickvals_col) - 5, max(tickvals_col) + 5]
+            range=[min(tickvals_col) - 5, max(tickvals_col) + 5],
             # workaround for autoscale issues above; otherwise
             # the graph cuts off and must be scaled manually
         )

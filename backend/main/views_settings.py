@@ -14,31 +14,44 @@ from django.http import JsonResponse, FileResponse
 from backend.main import settings
 from backend.main.views_helper import sanitize_name
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
-from backend.protzilla.data_integration.database_query import uniprot_columns, uniprot_databases
+from backend.protzilla.data_integration.database_query import (
+    uniprot_columns,
+    uniprot_databases,
+)
 from backend.protzilla.disk_operator import YamlOperator
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
 # <--- Plot Export --->
 
+
 def load_settings(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
         except:
-            return JsonResponse({"success": False, "message": "Invalid JSON response while loading the settings."}, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Invalid JSON response while loading the settings.",
+                },
+                status=400,
+            )
         templateName = data.get("templateName")
 
         op = YamlOperator()
         path = SETTINGS_PATH / (templateName + ".yaml")
         default_path = SETTINGS_PATH / ("plots_default.yaml")
 
-        if (templateName == "plots_default" or not path.exists()):
+        if templateName == "plots_default" or not path.exists():
             settings = op.read(default_path)
         else:
             settings = op.read(path)
         return JsonResponse(settings)
-    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+    return JsonResponse(
+        {"success": False, "message": "Only POST requests are allowed."}, status=405
+    )
+
 
 def save_settings(request):
     if request.method == "POST":
@@ -48,11 +61,18 @@ def save_settings(request):
         try:
             op.write(path, settings)
         except:
-            return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
-        
+            return JsonResponse(
+                {"success": False, "message": "Saving failed!"}, status=400
+            )
+
         # TODO Update Plotly template that is used in run screen
-        return JsonResponse({"success": True, "message": "Settings successfully saved."}, status=200)
-    return JsonResponse({"success": False, "message": "Only POST requests are allowed."}, status=405)
+        return JsonResponse(
+            {"success": True, "message": "Settings successfully saved."}, status=200
+        )
+    return JsonResponse(
+        {"success": False, "message": "Only POST requests are allowed."}, status=405
+    )
+
 
 def download_plot(request):
     if request.method == "POST":
@@ -60,6 +80,7 @@ def download_plot(request):
         fig = go.Figure(json.loads(params["plot"]))
         file = get_plot_file(fig, params)
     return FileResponse(file)
+
 
 def get_plot_file(fig: go.Figure, params: dict):
     file_format = params["fileFormat"]
@@ -77,7 +98,9 @@ def get_plot_file(fig: go.Figure, params: dict):
     binary.seek(0)
     return binary
 
+
 # <--- Databases --->
+
 
 def get_databases(request):
     databases = uniprot_databases()
@@ -161,9 +184,21 @@ def database_upload(request):
         with open(database_metadata_path, "w") as f:
             json.dump(database_metadata, f)
 
-        return JsonResponse({"success": True, "message": f"Database uploaded successfully. \n {message}" if len(message) > 0 else "Database uploaded successfully"}, status=200)
+        return JsonResponse(
+            {
+                "success": True,
+                "message": (
+                    f"Database uploaded successfully. \n {message}"
+                    if len(message) > 0
+                    else "Database uploaded successfully"
+                ),
+            },
+            status=200,
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def database_delete(request):
@@ -182,10 +217,14 @@ def database_delete(request):
                 with open(database_metadata_path, "w") as f:
                     json.dump(database_metadata, f)
 
-
-        return JsonResponse({"success": True, "message": "Database deleted successfully"}, status=200)
+        return JsonResponse(
+            {"success": True, "message": "Database deleted successfully"}, status=200
+        )
     else:
-        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
 
 def database_path(name):
     return EXTERNAL_DATA_PATH / "uniprot" / f"{name}.tsv"

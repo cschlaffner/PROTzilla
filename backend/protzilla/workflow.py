@@ -10,6 +10,7 @@ def get_available_workflow_names() -> list[str]:
         if not file.name.startswith(".") and file.suffix == ".yaml"
     ]
 
+
 def delete_workflow_file(name: str) -> tuple[bool, str]:
     workflow_path = paths.WORKFLOWS_PATH / f"{name}.yaml"
     if workflow_path.exists():

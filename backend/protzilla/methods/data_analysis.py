@@ -221,7 +221,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -394,7 +394,7 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="grouping",
@@ -495,7 +495,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -607,7 +607,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -714,7 +714,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -781,7 +781,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -881,7 +881,6 @@ class PlotVolcano(DataAnalysisStep):
             items_of_interest = step_output["PTM"].unique()
 
         items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
-
 
     plot_method = staticmethod(create_volcano_plot)
 

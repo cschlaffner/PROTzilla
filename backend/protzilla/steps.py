@@ -39,9 +39,9 @@ class Step:
     operation: str = None
     method_description: str = None
     output_keys: list[str] = []
-    calculation_status: Literal[
-        "complete", "outdated", "incomplete", "failed"
-    ] = "incomplete"
+    calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
+        "incomplete"
+    )
 
     def __init__(self, instance_identifier: str | None = None):
         self.inputs: dict = {}

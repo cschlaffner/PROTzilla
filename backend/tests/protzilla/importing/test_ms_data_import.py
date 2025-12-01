@@ -8,6 +8,7 @@ import pytest
 from backend.tests.paths import TEST_MSDATA_PATH
 from backend.protzilla.importing import ms_data_import
 
+
 def ms_fragger_import_intensity_df(intensity_name):
     ms_fragger_list = (
         ["DDM_0pt1_01", "A2A5R2", "Arfgef2"],
@@ -217,7 +218,9 @@ def test_max_quant_import_no_protein_ids_column():
     assert "protein_df" not in outputs
     assert "messages" in outputs
     assert any(message["level"] == logging.ERROR for message in outputs["messages"])
-    assert any("Majority protein IDs" in message["msg"] for message in outputs["messages"])
+    assert any(
+        "Majority protein IDs" in message["msg"] for message in outputs["messages"]
+    )
 
 
 def test_max_quant_import_invalid_data():
@@ -309,9 +312,7 @@ def test_transform_and_clean():
         ["C", "Q11111", np.nan],
     ]
     df = pd.DataFrame(data, columns=columns)
-    outputs = ms_data_import.transform_and_clean(
-        df, "intensity", map_to_uniprot=False
-    )
+    outputs = ms_data_import.transform_and_clean(df, "intensity", map_to_uniprot=False)
     expected_df = pd.DataFrame(expected_output, columns=out_col)
 
     # we do not care about the genes column, it is deprecated (and replaced by nan)
