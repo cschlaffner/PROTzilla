@@ -65,7 +65,7 @@ class ImportingStep(Step):
     def index_of_file_input(self):
         """
         Returns the index of the FileInput that should be reset by modify_form. This method 
-        must be overriden if the FileInput is not index 0.    
+        must be overridden if the FileInput is not index 0.    
         """
         return 0
 
