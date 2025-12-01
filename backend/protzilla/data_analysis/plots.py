@@ -8,7 +8,11 @@ import plotly.graph_objects as go
 from scipy import stats
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE, PLOT_PRIMARY_COLOR, PLOT_SECONDARY_COLOR
+from backend.protzilla.constants.colors import (
+    PLOT_COLOR_SEQUENCE,
+    PLOT_PRIMARY_COLOR,
+    PLOT_SECONDARY_COLOR,
+)
 from backend.protzilla.utilities.clustergram import Clustergram
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 
@@ -357,13 +361,13 @@ def prot_quant_plot(
         if group_to_compare != protein_group:
             if similarity_measure == "euclidean distance":
                 distance = euclidean_distances(
-                    stats.zscore(wide_df[protein_group]).values.reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).values.reshape(1, -1),
+                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             else:
                 distance = cosine_similarity(
-                    stats.zscore(wide_df[protein_group]).values.reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).values.reshape(1, -1),
+                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             if similarity_measure == "euclidean distance":
                 if distance <= similarity:

@@ -1,4 +1,3 @@
-
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
@@ -56,6 +55,7 @@ _forward_mapping = [
     data_analysis.ProteinGraphVariationGraph,
     data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
+    data_analysis.MultiFLEXLF,
     data_analysis.PTMsPerSample,
     data_analysis.PTMsProteinAndPerSample,
     data_preprocessing.ImputationByMinPerSample,
@@ -71,6 +71,7 @@ _forward_mapping = [
     data_integration.PlotGSEADotPlot,
     data_integration.PlotGSEAEnrichmentPlot,
 ]
+
 
 def get_all_methods():
     return _forward_mapping
