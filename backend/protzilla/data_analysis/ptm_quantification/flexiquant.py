@@ -1,26 +1,67 @@
 import logging
 
-import matplotlib
+import numpy as np
 import pandas as pd
+import plotly
+import plotly.graph_objects as go
 from numpy import array, nan, sqrt, square
+from plotly.subplots import make_subplots
 from scipy.stats import f, median_abs_deviation
 from sklearn import linear_model
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-from seaborn import distplot, diverging_palette, lineplot, scatterplot
-
-from backend.protzilla.utilities import fig_to_base64
-
 CONFIDENCE_BAND_ALPHA = 0.3
+
+
+def rm_score_to_color(
+    value: float, mod_cutoff: float, colors: list[str] = plotly.colors.qualitative.D3
+) -> str:
+    """
+    Maps RM score to a color.
+
+    :param value: RM score value.
+    :param mod_cutoff: Modification cutoff value.
+    :param colors: List of colors to use.
+    :return: Color as a string.
+    """
+    if np.isnan(value):
+        return colors[7]
+    elif value < mod_cutoff:
+        return colors[3]  # red
+    else:
+        return colors[2]  # green
+
+
+def postprocess_raw_scores(
+    df_raw_scores: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.Series]:
+    # Assume df_raw_scores is your input DataFrame
+    # calculate MAD per sample
+    df_raw_scores.drop("Slope", axis=1, inplace=True)
+    df_raw_scores_T = df_raw_scores.T
+    df_raw_scores_T = df_raw_scores_T.apply(pd.to_numeric, errors="coerce")
+    mad = (df_raw_scores_T - df_raw_scores_T.mean()).abs().mean()
+    median = df_raw_scores_T.median(axis=0)
+
+    # calculate cutoff value for each time point (> 3*MAD)
+    cutoff = median + 3 * mad
+
+    # remove peptides with raw scores > cutoff for each sample
+    df_raw_scores_T_cutoff = df_raw_scores_T[
+        round(df_raw_scores_T, 5) <= round(cutoff, 5)
+    ]
+    removed = pd.Series(
+        df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
+    )
+    df_raw_scores_T_cutoff.dropna(axis=0, how="all", inplace=True)
+    df_raw_scores_cutoff = df_raw_scores_T_cutoff.T
+    return df_raw_scores_cutoff, removed
 
 
 def flexiquant_lf(
     peptide_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     reference_group: str,
-    protein_id: str,
+    protein_group: str,
     grouping_column: str,
     num_init: int = 50,
     mod_cutoff: float = 0.5,
@@ -33,24 +74,18 @@ def flexiquant_lf(
     :param peptide_df: DataFrame containing peptide intensities.
     :param metadata_df: DataFrame containing metadata.
     :param reference_group: Name of the reference group.
-    :param protein_id: Protein ID that should be analysed.
+    :param protein_group: Protein ID that should be analysed.
+    :param grouping_column: Name of the grouping column in metadata_df.
     :param num_init: Number of initializations for RANSAC regression.
     :param mod_cutoff: RM score cutoff value for modified peptides.
     """
 
-    df = peptide_df[peptide_df["Protein ID"] == protein_id].pivot_table(
+    df = peptide_df[peptide_df["Protein ID"] == protein_group].pivot_table(
         index="Sample", columns="Sequence", values="Intensity", aggfunc="first"
     )
     df.reset_index(inplace=True)
 
-    df = pd.merge(
-        left=df,
-        right=metadata_df[["Sample", grouping_column]],
-        on="Sample",
-        copy=False,
-    )
-
-    if not grouping_column in df:
+    if grouping_column not in metadata_df.columns:
         return dict(
             messages=[
                 dict(
@@ -59,6 +94,13 @@ def flexiquant_lf(
                 )
             ]
         )
+
+    df = pd.merge(
+        left=df,
+        right=metadata_df[["Sample", grouping_column]],
+        on="Sample",
+        copy=False,
+    )
 
     # delete columns where all entries are nan
     df.dropna(how="all", axis=1, inplace=True)
@@ -94,7 +136,7 @@ def flexiquant_lf(
     sample_column = df["Sample"]
 
     # calculate median intensities for unmodified peptides of control
-    median_intensities = df_control.median(axis=0)
+    median_intensities = df_control.median(axis=0, numeric_only=True)
 
     # initiate empty lists to save results of linear regressions
     slope_list = []
@@ -103,6 +145,7 @@ def flexiquant_lf(
     reproducibility_list = []
 
     df_distance_RL = df.copy()
+    df_distance_RL.drop("Sample", axis=1, inplace=True)
 
     regression_plots = []
 
@@ -199,51 +242,29 @@ def flexiquant_lf(
         # calculate confidence band
         alpha = 0.3
         df_distance_RL, df_train = calculate_confidence_band(
-            slope,
-            median_intensities,
-            df_train,
-            X,
-            y,
-            row,
-            idx,
-            df_distance_RL,
-            CONFIDENCE_BAND_ALPHA,
+            slope=slope,
+            median_int=median_intensities,
+            dataframe_train=df_train,
+            X=df_train["Reference intensity"],
+            y=y,
+            row=row,
+            idx=idx,
+            matrix_distance_RL=df_distance_RL,
+            alpha=CONFIDENCE_BAND_ALPHA,
         )
 
-        # plot scatter plot with regression line
-
-        plot_dict[sample_column[idx]] = [
-            df_train,
-            idx,
-            r2_score_model,
-            r2_score_data,
-            slope,
-            alpha,
-        ]
+        plot_dict[sample_column[idx]] = dict(
+            dataframe_train=df_train,
+            idx=idx,
+            r2_score_model=r2_score_model,
+            r2_score_data=r2_score_data,
+            slope=slope,
+            alpha=alpha,
+        )
 
     df_distance_RL["Slope"] = slope_list
     df_raw_scores = calc_raw_scores(df_distance_RL, median_intensities)
-
-    # Assume df_raw_scores is your input DataFrame
-    # calculate MAD per sample
-    df_raw_scores.drop("Slope", axis=1, inplace=True)
-    df_raw_scores_T = df_raw_scores.T
-    df_raw_scores_T = df_raw_scores_T.apply(pd.to_numeric, errors="coerce")
-    mad = df_raw_scores_T.mad(axis=0)
-    median = df_raw_scores_T.median(axis=0)
-
-    # calculate cutoff value for each time point (> 3*MAD)
-    cutoff = median + 3 * mad
-
-    # remove peptides with raw scores > cutoff for each sample
-    df_raw_scores_T_cutoff = df_raw_scores_T[
-        round(df_raw_scores_T, 5) <= round(cutoff, 5)
-    ]
-    removed = pd.Series(
-        df_raw_scores_T_cutoff.index[df_raw_scores_T_cutoff.isna().all(axis=1)]
-    )
-    df_raw_scores_T_cutoff.dropna(axis=0, how="all", inplace=True)
-    df_raw_scores_cutoff = df_raw_scores_T_cutoff.T
+    df_raw_scores_cutoff, removed = postprocess_raw_scores(df_raw_scores)
 
     # apply t3median normalization to calculate RM scores
     df_RM = normalize_t3median(df_raw_scores_cutoff)
@@ -274,14 +295,12 @@ def flexiquant_lf(
     for sample in sample_column:
         if sample in plot_dict:
             regression_plots.append(
-                fig_to_base64(
-                    create_regression_plots(
-                        *plot_dict[sample],
-                        sample_column,
-                        df_RM[df_RM["Sample"] == sample].iloc[0],
-                        mod_cutoff=mod_cutoff,
-                        grouping_column=grouping_column,
-                    )
+                create_regression_plots(
+                    **plot_dict[sample],
+                    sample_column=sample_column,
+                    rm_scores=df_RM[df_RM["Sample"] == sample].iloc[0],
+                    mod_cutoff=mod_cutoff,
+                    grouping_column=grouping_column,
                 )
             )
 
@@ -290,7 +309,8 @@ def flexiquant_lf(
         messages.append(
             dict(
                 level=logging.WARNING,
-                msg="No samples were processed. This is probably due to the fact that there are not enough valid peptides in the samples.",
+                msg="No samples were processed. This is probably due to the fact that there are not enough valid "
+                "peptides in the samples.",
             )
         )
     else:
@@ -298,7 +318,8 @@ def flexiquant_lf(
             messages.append(
                 dict(
                     level=logging.INFO,
-                    msg=f"All {len(sample_column)} samples have been processed successfully. {len(removed)} peptides have been removed.",
+                    msg=f"All {len(sample_column)} samples have been processed successfully. {len(removed)} peptides "
+                    f"have been removed.",
                 )
             )
         else:
@@ -330,9 +351,9 @@ def calculate_confidence_band(
     idx: int,
     matrix_distance_RL: pd.DataFrame,
     alpha: float,
-):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Calculates confidence bands arround the regression line.
+    Calculates confidence bands around the regression line.
 
     :param slope: Slope of the regression line.
     :param median_int: Median intensity of the reference group.
@@ -369,9 +390,9 @@ def calculate_confidence_band(
     CB_high = []
 
     # iterate through median peptide intensities
-    for idx_2, elm in dataframe_train["Reference intensity"].items():
+    for idx_2, reference_intensity in dataframe_train["Reference intensity"].items():
         # calculate squared distance to mean X (numerator)
-        dist_X_bar = square(elm - X_bar)
+        dist_X_bar = square(reference_intensity - X_bar)
 
         # calculate sum of squared distances to mean X(denominator)
         sum_dist_X_bar = sum(square(X - X_bar))
@@ -380,7 +401,7 @@ def calculate_confidence_band(
         s = float(sqrt(MSE * ((1 / N) + (dist_X_bar / sum_dist_X_bar))))
 
         # calculate predicted intensity for given X
-        Y_hat = slope * elm
+        Y_hat = slope * reference_intensity
 
         # calculate high and low CB values and append to list
         cb_low = Y_hat - W * s
@@ -393,10 +414,10 @@ def calculate_confidence_band(
     pred_ints = median_int * slope
 
     # calculate distance to regression line
-    distance_RL = pred_ints - row
+    distances_to_regression_line = pred_ints - row
 
     # save distances in matrix_distance
-    matrix_distance_RL.loc[idx] = distance_RL
+    matrix_distance_RL.loc[idx] = distances_to_regression_line
 
     # add CBs as columns to dataframe_train
     dataframe_train["CB low"] = CB_low
@@ -431,37 +452,66 @@ def create_regression_plots(
     :param mod_cutoff: RM score cutoff value for modified peptides.
     :param grouping_column: Name of the grouping column.
     """
-
-    # create new figure with two subplots
-    fig = plt.figure(figsize=(16, 9))
-    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 6])
-    ax1 = plt.subplot(gs[1])
-    ax0 = plt.subplot(gs[0], sharex=ax1)
-
-    # set space between subplots
-    gs.update(hspace=0.05)
-
-    # plot histogram in upper subplot
-    plt.sca(ax0)
-
-    # add title
-    plt.title("RANSAC Linear Regression of Sample " + str(sample_column[idx]))
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        row_heights=[1 / 7, 6 / 7],
+        shared_xaxes=True,
+        vertical_spacing=0.02,
+    )
 
     # plot histogram
-    distplot(a=dataframe_train["Reference intensity"], bins=150, kde=False)
+    fig.add_trace(
+        go.Histogram(
+            x=dataframe_train["Reference intensity"], nbinsx=150, showlegend=False
+        ),
+        row=1,
+        col=1,
+    )
 
-    # remove axis and tick labels
-    plt.xlabel("")
-    plt.tick_params(
-        axis="x",  # changes apply to the x-axis
-        which="both",  # both major and minor ticks are affected
-        bottom=True,  # ticks along the bottom edge are off
-        top=False,  # ticks along the top edge are off
-        labelbottom=False,
-    )  # labels along the bottom edge are off
+    dataframe_train.sort_values("Reference intensity", inplace=True)
 
-    # plot scatter plot
-    plt.sca(ax1)
+    # draw regression line
+    line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
+    max_int = dataframe_train["Reference intensity"].max()
+    X = np.array([0.999 * dataframe_train["Reference intensity"].min(), max_int])
+    y = slope * X
+    fig.add_trace(
+        go.Scatter(
+            x=X,
+            y=y,
+            mode="lines",
+            line=dict(color="darkblue", dash="solid"),
+            name=line_label,
+        ),
+        row=2,
+        col=1,
+    )
+
+    # draw confidence band
+    fig.add_trace(
+        go.Scatter(
+            x=dataframe_train["Reference intensity"],
+            y=dataframe_train["CB low"],
+            mode="lines",
+            # TODO: all these colors are not controlled by the color scheme
+            line=dict(color="darkgreen", dash="dash"),
+            name="CB, alpha=" + str(alpha),
+        ),
+        row=2,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dataframe_train["Reference intensity"],
+            y=dataframe_train["CB high"],
+            mode="lines",
+            line=dict(color="darkgreen", dash="dash"),
+            name="CB, alpha=" + str(alpha),
+        ),
+        row=2,
+        col=1,
+    )
 
     rm_scores = rm_scores.drop(
         [
@@ -471,7 +521,8 @@ def create_regression_plots(
             "Reproducibility factor",
             grouping_column,
             "Sample",
-        ]
+        ],
+        errors="ignore",
     )
     # rm_scores.dropna(inplace=True)
     rm_scores.clip(0, 1, inplace=True)
@@ -481,68 +532,59 @@ def create_regression_plots(
     rm_scores = dataframe_train.merge(
         rm_scores, left_index=True, right_index=True, how="left"
     )
-    rm_scores.fillna(-1, inplace=True)
 
-    palette = diverging_palette(h_neg=0, h_pos=120, as_cmap=True, center="dark")
-
-    def cmap(values: list[float]):
-        nanIdx = set([i for i, x in enumerate(values) if x == -1])
-        return [
-            color if i not in nanIdx else [0.75, 0.75, 0.75, 1.0]
-            for i, color in enumerate(palette(values))
-        ]
-
-    scatterplot(
-        x="Reference intensity",
-        y="Sample intensity",
-        data=dataframe_train,
-        hue=list(rm_scores.index),
-        palette=cmap(scale_to_mod_cutoff(list(rm_scores["RM score"]), mod_cutoff)),
-    )
-
-    # draw regression line
-    line_label = "R2 model: " + str(r2_score_model) + "\nR2 data: " + str(r2_score_data)
-    max_int = dataframe_train["Reference intensity"].max()
-    min_int = min(
-        dataframe_train["Reference intensity"].min(),
-        dataframe_train["Sample intensity"].min(),
-    )
-    X = [min_int - 2, max_int]
-    y = [min_int - 2, slope * max_int]
-    plt.plot(X, y, color="darkblue", linestyle="-", label=line_label)
-
-    # draw confidence band
-    lineplot(
-        x="Reference intensity",
-        y="CB low",
-        data=dataframe_train,
-        color="darkgreen",
-        label="CB, alpha=" + str(alpha),
-    )
-    lineplot(
-        x="Reference intensity", y="CB high", data=dataframe_train, color="darkgreen"
-    )
-
-    # set line style of CB lines to dashed
-    for i in [len(ax1.lines) - 1, len(ax1.lines) - 2]:
-        ax1.lines[i].set_linestyle("--")
-
-    # create legend if sample has 20 peptides or less otherwise don't create a legend
+    # If we have less than 20 peptides, plot each point individually to get a legend
     if len(dataframe_train) <= 20:
-        # set right x axis limit
-        plt.gca().set_xlim(right=1.4 * max_int)
-        plt.legend()
+        for i, row in dataframe_train.iterrows():
+            fig.add_trace(
+                go.Scatter(
+                    x=[row["Reference intensity"]],
+                    y=[row["Sample intensity"]],
+                    mode="markers",
+                    name=row.name,
+                    marker=dict(
+                        color=rm_score_to_color(
+                            rm_scores.loc[i, "RM score"], mod_cutoff
+                        )
+                    ),
+                ),
+                row=2,
+                col=1,
+            )
     else:
-        plt.gca().get_legend().remove()
+        fig.add_trace(
+            go.Scatter(
+                x=dataframe_train["Reference intensity"],
+                y=dataframe_train["Sample intensity"],
+                mode="markers",
+                marker=dict(
+                    color=rm_scores["RM score"].apply(
+                        lambda v: rm_score_to_color(v, mod_cutoff)
+                    )
+                ),
+                showlegend=False,
+            ),
+            row=2,
+            col=1,
+        )
 
-    # set y axis label
-    plt.ylabel("Intensity sample " + str(sample_column[idx]))
-    plt.xlabel("Reference intensity")
+    fig.update_layout(
+        title_text="RANSAC Linear Regression of Sample " + str(sample_column[idx]),
+        xaxis1=dict(
+            showticklabels=False,
+        ),
+        xaxis2=dict(
+            title_text="Reference intensity",
+        ),
+        yaxis2=dict(
+            title_text="Intensity sample " + str(sample_column[idx]),
+        ),
+    )
 
     return fig
 
 
-def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series):
+def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series) -> pd.DataFrame:
     """
     Calculates raw scores for each sample based on the distance to the regression line.
 
@@ -572,7 +614,7 @@ def calc_raw_scores(df_distance: pd.DataFrame, median_int: pd.Series):
     return df_rs
 
 
-def normalize_t3median(dataframe: pd.DataFrame):
+def normalize_t3median(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Applies Top3 median normalization to dataframe.
     Determines the median of the three highest values in each row and divides every value in the row by it.
@@ -596,21 +638,3 @@ def normalize_t3median(dataframe: pd.DataFrame):
         dataframe_t3med.loc[idx] = row_norm
 
     return dataframe_t3med
-
-
-def scale_to_mod_cutoff(values: list[float], cutoff: float) -> list[float]:
-    """
-    Scales values to a cutoff value.
-
-    :param values: List of values to be scaled.
-    :param cutoff: Cutoff value.
-    """
-
-    return [
-        0.5 + (v - cutoff) * 0.5 / (1 - cutoff)
-        if v >= 0.5
-        else v * 0.5 / cutoff
-        if v >= 0
-        else v
-        for v in values
-    ]
