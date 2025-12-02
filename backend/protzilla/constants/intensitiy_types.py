@@ -5,7 +5,8 @@ class IntensityType(Enum):
     IBAQ = "iBAQ"
     INTENSITY = "Intensity"
     LFQ_INTENSITY = "LFQ intensity"
-    RATIO = "Ratio H/L"
+    RATIO_HL = "Ratio H/L"
+    RATIO_LH = "Ratio L/H"
 
 
 class IntensityNameType(Enum):
