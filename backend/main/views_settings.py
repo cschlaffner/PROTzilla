@@ -188,6 +188,29 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
         )
         if modification_settings is None:
             return JsonResponse({"success": False, "message": msg}, status=400)
+
+    for _, mod_settings in modification_settings["modifications"].items():
+        if not (
+            "above_below" in mod_settings
+            and isinstance(mod_settings["above_below"], str)
+            and "color" in mod_settings
+            and isinstance(mod_settings["color"], str)
+            and "name" in mod_settings
+            and isinstance(mod_settings["name"], str)
+            and "sites" in mod_settings
+            and isinstance(mod_settings["sites"], list)
+        ):
+
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Provided modifications need to specify 'above_below' ('A'/'B'), 'color' (as hex "
+                    "string), 'name' (string) and 'sites' (list of amino acids). Refer to the default "
+                    "settings for an example.",
+                },
+                status=400,
+            )
+
     try:
         op.write(ptm_settings_yaml_path, modification_settings)
     except:
@@ -287,9 +310,11 @@ def database_upload(request):
         return JsonResponse(
             {
                 "success": True,
-                "message": f"Database uploaded successfully. \n {message}"
-                if len(message) > 0
-                else "Database uploaded successfully",
+                "message": (
+                    f"Database uploaded successfully. \n {message}"
+                    if len(message) > 0
+                    else "Database uploaded successfully"
+                ),
             },
             status=200,
         )

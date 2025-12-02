@@ -225,6 +225,7 @@ class TestPTMVisualization:
         #  detected. However, I found no proper way of mocking the settings file (since it is include via a constant
         #  variable from a different file, which is hard to alter), and I didn't want to change the actual settings
         #  file. Maybe someone finds a smarter way. Otherwise, this can be removed.
+        #    - try `mock.patch.object(paths, "OLD_PATH", "NEW_PATH")` (using context manager)
         # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
         # result = create_overview_ptm_visualization(
         #     evidence_df=evidence_df,
