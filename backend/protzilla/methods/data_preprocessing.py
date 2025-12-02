@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
-import logging
-import traceback
-
 from backend.protzilla.data_preprocessing import (
     filter_proteins,
     filter_samples,
@@ -13,13 +9,13 @@ from backend.protzilla.data_preprocessing import (
     peptide_filter,
     transformation,
 )
-from backend.protzilla.steps import Plots, Step, StepManager
-from backend.protzilla.utilities import format_trace
-from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.form import *
+from backend.protzilla.steps import Step, StepManager
+
 
 class EmptyEnum(Enum):
     pass
+
 
 class LogTransformationBaseType(Enum):
     log2 = "log2"
@@ -132,7 +128,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separatePrefix="\u03C3"
+                    separatePrefix="\u03c3",
                 ),
                 DropdownField(
                     name="graph_type",
@@ -145,6 +141,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     calc_method = staticmethod(filter_samples.by_protein_count)
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
+
 
 class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
@@ -235,7 +232,7 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                     min=0,
                     step=0.5,
                     hasStepButtons=True,
-                    separatePrefix="\u03C3",
+                    separatePrefix="\u03c3",
                 ),
                 DropdownField(
                     name="graph_type",
@@ -524,7 +521,7 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(normalisation.by_reference_protein)
@@ -578,7 +575,7 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_dataset)
@@ -632,7 +629,7 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -681,7 +678,7 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_min_per_protein)
@@ -730,7 +727,7 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_simple_imputer)
@@ -779,7 +776,6 @@ class ImputationByKNN(DataPreprocessingStep):
                     value=VisualTrasformations.log10.value,
                     options=VisualTrasformations,
                 ),
-
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
@@ -849,10 +845,8 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     value=BarAndPieChart.pie_chart.value,
                     options=BarAndPieChart,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
-
-

@@ -467,7 +467,10 @@ def import_workflow(request):
         workflow_file = settings.FILE_UPLOAD_TEMP_DIR / workflow
 
         if new_name == "":
-            copy2(str(workflow_file), str(WORKFLOWS_PATH / workflow))
+            copy2(
+                str(workflow_file),
+                str((WORKFLOWS_PATH / workflow).with_suffix(".yaml")),
+            )
         else:
             try:
                 copy2(str(workflow_file), str(WORKFLOWS_PATH / f"{new_name}.yaml"))
@@ -554,11 +557,15 @@ def get_run_data(request):
             run_data["current_section"] = run.current_step.section
             run_data["current_step_index"] = run.steps.current_step_index
             run_data["memory_usage"] = get_memory_usage()
+            run_data["current_step_has_plot"] = (
+                True if run.current_step.plot_method is not None else False
+            )
         else:
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
             run_data["current_step"] = None
             run_data["memory_usage"] = get_memory_usage()
+            run_data["current_step_has_plot"] = False
 
         return JsonResponse(
             {"success": True, "message": "Got the data for the run", "data": run_data},
@@ -630,17 +637,17 @@ def get_step_table(request):
                     data = value
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
-                    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every
-                    #  get_step_table (can take a few seconds) - which also leads to the data table not being displayed
-                    #  on time and the frontend just showing: "No data table available for this step".
                     json_data.append(
                         {
                             "table": cleaned_data.to_dict(orient="records"),
                             "name": get_display_name(key),
                         }
-                    )
+                    )  # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
                 elif (
-                    ("_df" not in key) and (key != "messages") and (type(value) == list)
+                    ("_df" not in key)
+                    and (key != "messages")
+                    and (type(value) == list)
+                    and (len(value) > 0)
                 ):
                     data = value
                     data = pd.DataFrame({key: data})

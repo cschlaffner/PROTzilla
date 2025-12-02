@@ -1,5 +1,5 @@
-
 """This module contains the logging configuration for the protzilla app."""
+
 import logging
 
 

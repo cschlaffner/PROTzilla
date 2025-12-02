@@ -10,9 +10,11 @@ from backend.protzilla.utilities import random_string
 from backend.protzilla.runner import Runner
 from runner_cli import args_parser
 
+
 @pytest.fixture
 def metadata_file_path():
     return "metadata_cut_columns.csv"
+
 
 def test_parse_run_name(tests_folder_name):
     run_name = f"{tests_folder_name}/test_parse_run_name_{random_string()}"

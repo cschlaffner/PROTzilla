@@ -575,6 +575,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "Workflow:",
                     isVisible: true,
+                    accept: ".yaml, .yml",
                   },
                   {
                     type: "text",

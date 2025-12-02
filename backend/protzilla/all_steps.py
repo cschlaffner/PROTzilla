@@ -1,4 +1,3 @@
-
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
@@ -55,6 +54,7 @@ _forward_mapping = [
     data_analysis.DimensionReductionUMAP,
     data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
+    data_analysis.MultiFLEXLF,
     data_analysis.PTMsPerSample,
     data_analysis.PTMsProteinAndPerSample,
     data_analysis.PTMOverviewVisualization,

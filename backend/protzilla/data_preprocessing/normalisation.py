@@ -4,7 +4,10 @@ import traceback
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-from backend.protzilla.data_preprocessing.plots import create_box_plots, create_histograms
+from backend.protzilla.data_preprocessing.plots import (
+    create_box_plots,
+    create_histograms,
+)
 from backend.protzilla.utilities import default_intensity_column
 
 
@@ -201,7 +204,7 @@ def by_reference_protein(
     else:
         msg = "The protein was not found"
         return dict(
-            protein_df=scaled_df,
+            protein_df=None,
             dropped_samples=None,
             messages=[dict(level=logging.ERROR, msg=msg)],
         )

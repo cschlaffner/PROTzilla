@@ -9,6 +9,7 @@ from backend.protzilla.methods.importing import (
 )
 from backend.protzilla.steps import Step
 
+
 def test_metadata_import(run_imported):
     run_imported.step_add(MetadataImport())
     run_imported.step_next()
@@ -23,6 +24,7 @@ def test_metadata_import(run_imported):
     pd.testing.assert_frame_equal(
         test_metadata, run_imported.current_outputs["metadata_df"]
     )
+
 
 # TODO: This test is failing because there is no form for this import yet, uncomment as soon as the form is defined!!!
 
@@ -87,6 +89,7 @@ def test_metadata_orientation(run_empty):
     assert metadata_df_a.shape == metadata_df_b.shape
     assert metadata_df_a.columns.tolist() == metadata_df_b.columns.tolist()
     assert metadata_df_a.equals(metadata_df_b)
+
 
 # TODO: This test is failing because there is no form for this import yet, uncomment as soon as the form is defined!!!
 

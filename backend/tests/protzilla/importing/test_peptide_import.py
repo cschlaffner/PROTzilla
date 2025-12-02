@@ -28,16 +28,28 @@ def peptide_df(intensity_name):
     )
 
     intensity_name_to_intensities = {
+        "LFQ intensity": [
+            np.nan,
+            np.nan,
+            253840.0,
+            1371200.0,
+            3048300.0,
+            3957900.0,
+            np.nan,
+            8533900.0,
+            np.nan,
+            6923600.0,
+        ],
         "Intensity": [
             253840.0,
             1371200.0,
             3048300.0,
-            np.NAN,
-            np.NAN,
-            np.NAN,
-            np.NAN,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
             6923600.0,
-            np.NAN,
+            np.nan,
             37440000.0,
         ],
     }
