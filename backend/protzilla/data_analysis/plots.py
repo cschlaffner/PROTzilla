@@ -222,14 +222,16 @@ def clustergram_plot(
         if isinstance(metadata_df, pd.DataFrame):
             assert metadata_column in metadata_df.columns
             # TODO: debatable if this filtering should be done here or in the filtering steps
-            filtered_metadata_df = metadata_df[metadata_df['Sample'].isin(input_df_wide.index)]
+            filtered_metadata_df = metadata_df[
+                metadata_df["Sample"].isin(input_df_wide.index)
+            ]
 
             assert len(input_df_wide) == len(filtered_metadata_df)
             # In the clustergram each row represents a sample that can pertain to a
             # group. In the following code the necessary data structures are created
             # to assign each group to a unique color.
             sample_group_dict = dict(
-                zip(metadata_df['Sample'], metadata_df[metadata_column])
+                zip(metadata_df["Sample"], metadata_df[metadata_column])
             )
             n_groups = len(set(sample_group_dict.values()))
             group_colors = px.colors.sample_colorscale(
@@ -270,21 +272,22 @@ def clustergram_plot(
         return dict(plots=[clustergram])
     except AssertionError as e:
         if not isinstance(input_df, pd.DataFrame):
-            msg = (
-                'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
-            )
+            msg = 'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
         elif not isinstance(metadata_df, pd.DataFrame) and metadata_df is not None:
-            msg = (
-                'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
-            )
+            msg = 'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
         elif input_df_wide.isna().any(axis=None):
             msg = (
-                'The selected input dataframe contains missing values. These should be filtered out or imputed before '
-                'creating a clustergram plot.'
+                "The selected input dataframe contains missing values. These should be filtered out or imputed before "
+                "creating a clustergram plot."
             )
-        elif isinstance(metadata_df, pd.DataFrame) and metadata_column not in metadata_df.columns:
+        elif (
+            isinstance(metadata_df, pd.DataFrame)
+            and metadata_column not in metadata_df.columns
+        ):
             msg = "The column selected for annotation is not present in the corresponding metadata dataframe"
-        elif isinstance(metadata_df, pd.DataFrame) and len(input_df_wide) != len(filtered_metadata_df):
+        elif isinstance(metadata_df, pd.DataFrame) and len(input_df_wide) != len(
+            filtered_metadata_df
+        ):
             msg = "The input dataframe and the grouping contain different samples"
         else:
             msg = f"An unknown error occurred: {e}"

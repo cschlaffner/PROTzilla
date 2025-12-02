@@ -14,4 +14,6 @@ def test_example_dataset_import():
     assert "peptide_df" in outputs
     assert "messages" in outputs
     assert all(message["level"] == logging.INFO for message in outputs["messages"])
-    assert all("successfully" in message["msg"].lower() for message in outputs["messages"])
+    assert all(
+        "successfully" in message["msg"].lower() for message in outputs["messages"]
+    )

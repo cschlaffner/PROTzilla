@@ -149,6 +149,7 @@ class InfoField:
     """
     A field to show additional information for a specific field to the user.
     """
+
     label: str
     type: str = "info-field"
 
@@ -158,6 +159,7 @@ class HeaderInfoField:
     """
     A field to show additional information to the user at the top of the form.
     """
+
     label: str
     type: str = "header-info-field"
 
@@ -238,7 +240,11 @@ class Form:
 
         values = {}
         for field in self.input_fields:
-            if isinstance(field, FormDivider) or isinstance(field, InfoField) or isinstance(field, HeaderInfoField):
+            if (
+                isinstance(field, FormDivider)
+                or isinstance(field, InfoField)
+                or isinstance(field, HeaderInfoField)
+            ):
                 continue
             elif isinstance(field, FileInput):
                 values[field.name] = (
