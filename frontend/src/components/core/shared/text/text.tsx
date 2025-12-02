@@ -51,8 +51,8 @@ export const ContentText = styled(Text)`
   font-size: ${fontSize("h6")};
 `;
 
-export const Link = styled(({ ...rest }: LinkProps) => (
-  <Text as="a" target="_blank" rel="noreferrer" {...rest} />
+export const Link = styled(({ text, ...rest }: LinkProps) => (
+  <Text as="a" target="_blank" rel="noreferrer" text={text} {...rest} />
 ))`
   color: ${(props) => color(props.isDisabled ? "linkDisabled" : "link")};
   cursor: pointer;
@@ -121,6 +121,15 @@ export const InputLabel = styled(Text)`
   font-size: ${fontSize("h6")};
   color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
   margin: 4px 0;
+`;
+
+export const InfoText = styled(({ ...rest }: LinkProps) => <Text as="span" {...rest} />)`
+  color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
+`;
+
+export const HeaderInfoText = styled(Text)`
+  font-size: ${fontSize("h6")};
+  color: ${(props) => color(props.isDisabled ? "primaryDisabled" : "primary")};
 `;
 
 const CollapsibleContainer = styled(motion.div)`

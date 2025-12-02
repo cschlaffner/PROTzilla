@@ -1,5 +1,10 @@
 import re
-from backend.protzilla.all_steps import get_all_methods
+from pathlib import Path
+
+import numpy as np
+
+from backend.protzilla.constants.paths import SETTINGS_PATH
+from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
 
@@ -50,20 +55,6 @@ def convert_str_if_possible(s):
                 numbers.append(num)
             return numbers
         return s
-
-
-def get_all_possible_steps() -> list[dict]:
-    """
-    Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
-
-    :return: List of step dictionaries via the steps to_dict function.
-    :rtype: List[dict]
-    """
-    steps = get_all_methods()
-    step_list = []
-    for step in steps:
-        step_list.append(step.to_dict(step))
-    return step_list
 
 
 def get_step(step: Step) -> dict:
@@ -167,3 +158,29 @@ def set_filtered_data(run, index, key, filtered_data):
 def get_display_name(dataframe: str):
     name = dataframe.replace("_df", "")
     return name
+
+
+def load_settings_from_file(
+    file_stem: str,
+    default_file_stem: str | None = None,
+    settings_path: Path = SETTINGS_PATH,
+) -> dict:
+    op = YamlOperator()
+    path = settings_path / f"{file_stem}.yaml"
+
+    if not path.exists():
+        if default_file_stem is not None:
+            default_path = SETTINGS_PATH / f"{default_file_stem}.yaml"
+            plot_settings = op.read(default_path)
+        else:
+            raise FileNotFoundError(f"Settings file {path} does not exist.")
+    else:
+        plot_settings = op.read(path)
+    return plot_settings
+
+
+def load_yaml_from_file(path: Path) -> str:
+    if not path.exists():
+        raise FileNotFoundError(f"File {path} does not exist.")
+    with path.open("r") as f:
+        return f.read()

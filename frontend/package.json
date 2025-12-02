@@ -8,6 +8,7 @@
     "start": "vite",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "devbuild": "tsc -b && vite build --watch",
     "format": "prettier --write .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty -p ./tsconfig.app.json",

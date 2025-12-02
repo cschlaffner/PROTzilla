@@ -13,39 +13,13 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
-
-
-class IntensityType(Enum):
-    IBAQ = "iBAQ"
-    INTENSITY = "Intensity"
-    LFQ_INTENSITY = "LFQ intensity"
-
-
-class IntensityNameType(Enum):
-    INTENSITY = "Intensity"
-    MAXLFQ_TOTAL_iNTENSITY = "MaxLFQ Total Intensity"
-    MAXLFQ_INTENSITY = "MaxLFQ Intensity"
-    TOTAL_INTENSITY = "Total Intensity"
-    MAXLFQ_UNIQUE_INTENSITY = "MaxLFQ Unique Intensity"
-    UNIQUE_SPECTRAL_COUNT = "Unique Spectral Count"
-    UNIQUE_INTENSITY = "Unique Intensity"
-    SPECTRAL_COUNT = "Spectral Count"
-    TOTAL_SPECTRAL_COUNT = "Total Spectral Count"
-
-
-class FeatureOrientationType(Enum):
-    COLUMNS = "Columns (samples in rows, features in columns)"
-    ROWS = "Rows (features in rows, samples in columns)"
-
-
-class EmptyEnum(Enum):
-    pass
-
-
-class AggregationMethods(Enum):
-    sum = "Sum"
-    median = "Median"
-    mean = "Mean"
+from protzilla.importing.example_dataset_import import example_dataset_import
+from protzilla.importing.import_utils import (
+    IntensityType,
+    AggregationMethods,
+    IntensityNameType,
+    FeatureOrientationType,
+)
 
 
 class ImportingStep(Step):
@@ -323,12 +297,6 @@ class PeptideImport(ImportingStep):
                     name="file_path",
                     label="Peptide file",
                 ),
-                DropdownField(
-                    name="intensity_name",
-                    label="Intensity parameter",
-                    options=IntensityType,
-                    value=IntensityType.INTENSITY.value,
-                ),
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
@@ -340,15 +308,7 @@ class PeptideImport(ImportingStep):
     def modify_form(self, form, run):
         ImportingStep.modify_form(self, form, run)
 
-        intensity_name_field = form["intensity_name"]
         map_to_uniprot_field = form["map_to_uniprot"]
-
-        intensity_name_field.value = run.steps.get_step_input(
-            [MaxQuantImport, MsFraggerImport, DiannImport],
-            "intensity_name",
-            default=intensity_name_field.value,
-        )
-
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport],
             "map_to_uniprot",
@@ -391,3 +351,23 @@ class EvidenceImport(ImportingStep):
         )
 
     calc_method = staticmethod(evidence_import)
+
+
+class ExampleDatasetImport(ImportingStep):
+    display_name = "Example Dataset Import"
+    operation = "example_import"
+    # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
+    method_description = (
+        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
+        "dataset]"
+    )
+
+    output_keys = ["metadata_df", "peptide_df", "protein_df"]
+
+    def create_form(self):
+        return Form(
+            label="Example Dataset Import",
+            input_fields=[HeaderInfoField(label=self.method_description)],
+        )
+
+    calc_method = staticmethod(example_dataset_import)

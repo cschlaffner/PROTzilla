@@ -1,2 +1,2 @@
-export * from "./form-divider";
-export * from "./form-divider.props";
+export { FormDivider } from "./form-divider";
+export type { FormDividerProps } from "./form-divider.props";
