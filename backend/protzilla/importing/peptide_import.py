@@ -31,7 +31,7 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
         id_df = df[id_columns]
         intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1:] for c in intensity_df.columns
+            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),
@@ -77,7 +77,7 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
 
     def select_column(column):
         # Check for whitespace in the column name to not capitalize "PEP" which should stay all-caps.
-        capitalized_column = column.capitalize() if ' ' in column else column
+        capitalized_column = column.capitalize() if " " in column else column
         return capitalized_column in id_columns
 
     df = pd.read_csv(
@@ -92,7 +92,7 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
     # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case
     # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
     #  require bigger changes in the code
-    df = df.rename(columns={c: c.capitalize() if ' ' in c else c for c in df.columns})
+    df = df.rename(columns={c: c.capitalize() if " " in c else c for c in df.columns})
     df = df.rename(
         columns={"Leading razor protein": "Protein ID", "Experiment": "Sample"}
     )

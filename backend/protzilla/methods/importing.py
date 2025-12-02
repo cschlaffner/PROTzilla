@@ -14,8 +14,12 @@ from backend.protzilla.importing.ms_data_import import (
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
-from protzilla.importing.import_utils import IntensityType, AggregationMethods, IntensityNameType, \
-    FeatureOrientationType
+from protzilla.importing.import_utils import (
+    IntensityType,
+    AggregationMethods,
+    IntensityNameType,
+    FeatureOrientationType,
+)
 
 
 class ImportingStep(Step):
@@ -353,17 +357,17 @@ class ExampleDatasetImport(ImportingStep):
     display_name = "Example Dataset Import"
     operation = "example_import"
     # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
-    method_description = ("Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
-                          "dataset]")
+    method_description = (
+        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
+        "dataset]"
+    )
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]
 
     def create_form(self):
         return Form(
             label="Example Dataset Import",
-            input_fields=[
-                HeaderInfoField(label=self.method_description)
-            ]
+            input_fields=[HeaderInfoField(label=self.method_description)],
         )
 
     calc_method = staticmethod(example_dataset_import)

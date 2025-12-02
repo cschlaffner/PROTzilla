@@ -35,7 +35,7 @@ def max_quant_import(
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
         intensity_df.columns = [
-            c[len(intensity_name) + 1:] for c in intensity_df.columns
+            c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         intensity_df = intensity_df.assign(**{"Protein ID": protein_groups})
         return transform_and_clean(

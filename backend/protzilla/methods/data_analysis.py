@@ -35,7 +35,9 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
-from backend.protzilla.data_analysis.ptm_visualization import create_bar_ptm_visualization
+from backend.protzilla.data_analysis.ptm_visualization import (
+    create_bar_ptm_visualization,
+)
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import (
     DataPreprocessingStep,
@@ -47,9 +49,13 @@ from protzilla.data_analysis.ptm_quantification.multiflex import (
     multiflex_lf,
     MultiFlexColorMaps,
 )
-from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
-    create_details_ptm_visualization
-from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import get_detected_modifications
+from protzilla.data_analysis.ptm_visualization import (
+    create_overview_ptm_visualization,
+    create_details_ptm_visualization,
+)
+from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+    get_detected_modifications,
+)
 
 
 class TTestType(Enum):
@@ -959,8 +965,10 @@ class PlotScatterPlot(DataAnalysisStep):
 class PlotClustergram(DataAnalysisStep):
     display_name = "Clustergram"
     operation = "plot"
-    method_description = ("Creates a 2D clustergram from data using the samples on one axis and the proteins on the "
-                          "other axis. The data is clustered using euclidean distances for hierarchical clustering.")
+    method_description = (
+        "Creates a 2D clustergram from data using the samples on one axis and the proteins on the "
+        "other axis. The data is clustered using euclidean distances for hierarchical clustering."
+    )
 
     plot_method = staticmethod(clustergram_plot)
 
@@ -998,15 +1006,14 @@ class PlotClustergram(DataAnalysisStep):
         form["metadata_df"].set_options(
             form_helper.get_choices(
                 run,
-                output_key='metadata_df',
+                output_key="metadata_df",
                 required=True,
             )
         )
-        if form.values['metadata_df'] is not None:
+        if form.values["metadata_df"] is not None:
             form["metadata_column"].set_options(
                 form_helper.get_choices_for_metadata_non_sample_columns(
-                    run,
-                    instance_identifier=form.values['metadata_df']
+                    run, instance_identifier=form.values["metadata_df"]
                 )
             )
 
@@ -2233,7 +2240,7 @@ class _PTMVisualizationStep(DataAnalysisStep):
                 min=0.0,
                 max=1.0,
                 value=0.01,
-                hasStepButtons=False
+                hasStepButtons=False,
             ),
             FileInput(
                 name="fasta_file_path",
@@ -2245,20 +2252,17 @@ class _PTMVisualizationStep(DataAnalysisStep):
             ),
             InfoField(
                 label="The file for regions should be a CSV file with the following columns: name, region_end, "
-                      "group, short_name. These specify the name of the region, the end position of the region "
-                      "(the start is either 1 or the end of the previous region), the (colour) group the "
-                      "region belongs to (which can be specified in the settings), and a short name for the "
-                      "region.",
-            )
+                "group, short_name. These specify the name of the region, the end position of the region "
+                "(the start is either 1 or the end of the previous region), the (colour) group the "
+                "region belongs to (which can be specified in the settings), and a short name for the "
+                "region.",
+            ),
         ]
 
     def modify_form(self, form, run):
         form["evidence_df"].set_options(
             form_helper.get_choices(
-                run,
-                output_key='peptide_df',
-                step_type=Step,
-                required=True
+                run, output_key="peptide_df", step_type=Step, required=True
             )
         )
 
@@ -2271,7 +2275,9 @@ class _PTMVisualizationStep(DataAnalysisStep):
 
 class PTMOverviewVisualization(_PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
-    method_description = "Visualizes selected PTMs on a given protein sequence (including isoforms)"
+    method_description = (
+        "Visualizes selected PTMs on a given protein sequence (including isoforms)"
+    )
 
     calc_method = staticmethod(get_detected_modifications)
     plot_method = staticmethod(create_overview_ptm_visualization)
@@ -2279,7 +2285,7 @@ class PTMOverviewVisualization(_PTMVisualizationStep):
     def create_form(self):
         return Form(
             label="PTM Overview Visualization",
-            input_fields=_PTMVisualizationStep.get_form_fields()
+            input_fields=_PTMVisualizationStep.get_form_fields(),
         )
 
 
@@ -2287,44 +2293,48 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
     @classmethod
     def get_form_fields(cls) -> list:
         return _PTMVisualizationStep.get_form_fields() + [
-                FileInput(
-                    name="groups_file_path",
-                    label="Metadata used to define groups",
-                ),
-                InfoField(
-                    label="The groups file should be a CSV file with the following columns: file_name, group_name, "
-                          "replicate. These specify the name of the name of the experiment in the evidence file (not "
-                          "raw file name), the name that should be displayed when referencing the group, and "
-                          "optionally the replicate number (1, 2, ...).",
-                ),
-            ]
+            FileInput(
+                name="groups_file_path",
+                label="Metadata used to define groups",
+            ),
+            InfoField(
+                label="The groups file should be a CSV file with the following columns: file_name, group_name, "
+                "replicate. These specify the name of the name of the experiment in the evidence file (not "
+                "raw file name), the name that should be displayed when referencing the group, and "
+                "optionally the replicate number (1, 2, ...).",
+            ),
+        ]
 
     calc_method = staticmethod(get_detected_modifications)
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Bar Plot"
-    method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
-                          "shows PTM frequency across groups as a bar plot.")
+    method_description = (
+        "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
+        "shows PTM frequency across groups as a bar plot."
+    )
 
     plot_method = staticmethod(create_bar_ptm_visualization)
 
     def create_form(self):
         return Form(
             label="PTM Bar Visualization",
-            input_fields=_PTMVisualizationWithGroups.get_form_fields()
+            input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
 
 
 class PTMDetailsVisualization(_PTMVisualizationWithGroups):
     display_name = "PTM Visualization - Details Plot"
-    method_description = ("Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
-                          "shows PTM and cleavage frequency across groups as heatmaps.")
+    method_description = (
+        "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
+        "shows PTM and cleavage frequency across groups as heatmaps."
+    )
 
     plot_method = staticmethod(create_details_ptm_visualization)
 
     def create_form(self):
         return Form(
             label="PTM Details Visualization",
-            input_fields=_PTMVisualizationWithGroups.get_form_fields()
+            input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
