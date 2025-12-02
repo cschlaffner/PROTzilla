@@ -5,14 +5,16 @@ import pandas as pd
 
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
 
+from backend.protzilla.constants.intensitiy_types import (
+    IntensityType,
+    IntensityNameType,
+)
+
 
 def peptide_import(file_path: Path, intensity_name, map_to_uniprot) -> dict:
     try:
-        assert intensity_name in [
-            "Intensity",
-            "iBAQ",
-            "LFQ intensity",
-        ], f"Unknown intensity name: {intensity_name}"
+        allowed = {item.value for item in IntensityType}
+        assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(

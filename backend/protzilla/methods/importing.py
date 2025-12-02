@@ -13,24 +13,10 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
-
-
-class IntensityType(Enum):
-    IBAQ = "iBAQ"
-    INTENSITY = "Intensity"
-    LFQ_INTENSITY = "LFQ intensity"
-
-
-class IntensityNameType(Enum):
-    INTENSITY = "Intensity"
-    MAXLFQ_TOTAL_iNTENSITY = "MaxLFQ Total Intensity"
-    MAXLFQ_INTENSITY = "MaxLFQ Intensity"
-    TOTAL_INTENSITY = "Total Intensity"
-    MAXLFQ_UNIQUE_INTENSITY = "MaxLFQ Unique Intensity"
-    UNIQUE_SPECTRAL_COUNT = "Unique Spectral Count"
-    UNIQUE_INTENSITY = "Unique Intensity"
-    SPECTRAL_COUNT = "Spectral Count"
-    TOTAL_SPECTRAL_COUNT = "Total Spectral Count"
+from backend.protzilla.constants.intensitiy_types import (
+    IntensityType,
+    IntensityNameType,
+)
 
 
 class FeatureOrientationType(Enum):
