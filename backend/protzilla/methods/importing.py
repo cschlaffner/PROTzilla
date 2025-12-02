@@ -92,6 +92,19 @@ class MaxQuantImport(ImportingStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        intensity_field = form["intensity_name"]
+
+        if intensity_field.value == IntensityType.RATIO_HL or intensity_field.value == IntensityType.RATIO_LH:
+            form.input_fields.append(
+                CheckboxField(
+                    name="use_normalized",
+                    label="Should normalized ratios be used?",
+                )
+            )
+            form["aggregation_method"].label = "Test"
+
+
     calc_method = staticmethod(max_quant_import)
 
 
