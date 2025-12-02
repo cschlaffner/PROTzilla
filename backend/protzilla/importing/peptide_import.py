@@ -5,10 +5,7 @@ import pandas as pd
 
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
 
-from backend.protzilla.constants.intensitiy_types import (
-    IntensityType,
-    IntensityNameType,
-)
+from backend.protzilla.constants.intensitiy_types import IntensityType
 
 
 def peptide_import(file_path: Path, intensity_name, map_to_uniprot) -> dict:
