@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import os
+import shutil
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -242,8 +243,9 @@ class DiskOperator:
             return
         with ErrorHandler():
             upload_dir = paths.UPLOAD_PATH
-            for file in upload_dir.iterdir():
-                file.unlink()
+            for element in upload_dir.iterdir():
+                # using rmtree is more powerful than Path.unlink, as it can also delete non-empty directories
+                shutil.rmtree(element)
 
     def _read_step(self, step_data: dict, steps: StepManager) -> Step:
         from backend.protzilla.stepfactory import StepFactory

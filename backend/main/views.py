@@ -42,13 +42,13 @@ from backend.main.views_helper import (
     get_step,
     get_displayed_steps,
     parameters_from_post,
-    get_all_possible_steps,
     sanitize_name,
 )
+from protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
-dataframes = ["protein_df", "metadata_df", "peptide_df"]
+dataframes = ["protein_df", "metadata_df", "peptide_df", "modification_df"]
 
 
 @ensure_csrf_cookie

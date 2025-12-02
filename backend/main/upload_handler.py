@@ -1,5 +1,6 @@
 import os
 import tempfile
+from os.path import exists
 
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.uploadhandler import FileUploadHandler
@@ -49,6 +50,8 @@ class CustomUploadedFile(UploadedFile):
     def __init__(self, name, content_type, size, charset, content_type_extra=None):
         start, ext = os.path.splitext(name)
         # the NamedTemporaryFile arguments were actually changed
+        if not exists(settings.FILE_UPLOAD_TEMP_DIR):
+            settings.FILE_UPLOAD_TEMP_DIR.mkdir(parents=True, exist_ok=True)
         file_path = settings.FILE_UPLOAD_TEMP_DIR / name
         file = open(file_path, "wb")
         super().__init__(file, name, content_type, size, charset, content_type_extra)

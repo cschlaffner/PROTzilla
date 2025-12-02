@@ -97,6 +97,8 @@ class Runner:
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
+    # TODO: Ideally the example dataset could also be used when using the commandline to compute stuff (if this
+    #   feature is even working right now)
     def _insert_commandline_inputs(self, step: Step):
         if step.operation == "Protein Data Import":
             step.form["file_path"].value = self.ms_data_path

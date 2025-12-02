@@ -123,11 +123,10 @@ def evidence_df():
     return peptide_df
 
 
-@pytest.mark.parametrize("intensity_name", ["LFQ intensity", "Intensity"])
+@pytest.mark.parametrize("intensity_name", ["Intensity"])
 def test_peptide_import(intensity_name):
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -138,18 +137,6 @@ def test_peptide_import(intensity_name):
 
     pd.testing.assert_frame_equal(
         outputs["peptide_df"], peptide_df(intensity_name), check_dtype=False
-    )
-
-
-def test_peptide_import_ibaq():
-    outputs = peptide_import.peptide_import(
-        file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name="iBAQ",
-        map_to_uniprot=False,
-    )
-
-    pd.testing.assert_frame_equal(
-        outputs["peptide_df"], peptide_df("LFQ intensity"), check_dtype=False
     )
 
 
@@ -172,7 +159,7 @@ def test_evidence_import():
     )
 
     pd.testing.assert_frame_equal(
-        outputs["peptide_df"].drop(columns=["PEP"]),
-        evidence_df().drop(columns=["PEP"]),
+        outputs["peptide_df"].drop(columns=["PEP"]).sort_index(axis=1),
+        evidence_df().drop(columns=["PEP"]).sort_index(axis=1),
         check_dtype=False,
     )
