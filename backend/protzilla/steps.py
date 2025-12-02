@@ -39,9 +39,9 @@ class Step:
     operation: str = None
     method_description: str = None
     output_keys: list[str] = []
-    calculation_status: Literal[
-        "complete", "outdated", "incomplete", "failed"
-    ] = "incomplete"
+    calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
+        "incomplete"
+    )
 
     def __init__(self, instance_identifier: str | None = None):
         self.inputs: dict = {}
@@ -191,7 +191,7 @@ class Step:
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
         Handles the dictionary from the calculation method and creates an Output object from it.
-        Responsible for checking that the output is a dictonary and not empty, and setting the output attribute of the instance.
+        Responsible for checking that the output is a dictionary and not empty, and setting the output attribute of the instance.
 
         :param outputs: A dictionary received after the calculation
         :return: None

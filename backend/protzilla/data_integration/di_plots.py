@@ -74,7 +74,7 @@ def GO_enrichment_bar_plot(
     if value not in ["fdr", "p-value"]:
         msg = "Invalid value. Value must be either 'fdr' or 'p-value'."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-    
+
     if cutoff is None or cutoff == 0:
         msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -109,9 +109,7 @@ def GO_enrichment_bar_plot(
         column = "P-value" if restring_input else "Adjusted P-value"
 
     df_plot = (
-        df.sort_values(column, ascending=False)
-        .groupby("Gene_set")
-        .head(top_terms)
+        df.sort_values(column, ascending=False).groupby("Gene_set").head(top_terms)
     )
 
     fig = px.bar(
@@ -123,7 +121,7 @@ def GO_enrichment_bar_plot(
         title=title,
     )
     fig.update_layout(yaxis=dict(autorange="reversed"))
-    
+
     return [fig]
 
 
@@ -322,10 +320,10 @@ def gsea_dot_plot(
             show_ring=show_ring,
         )
         return dict(
-                plot_base64=fig_to_base64(ax.get_figure()),
-                key="gsea_dot_plot_img",
-            )
-        
+            plot_base64=fig_to_base64(ax.get_figure()),
+            key="gsea_dot_plot_img",
+        )
+
     except ValueError as e:
         msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
@@ -382,10 +380,10 @@ def gsea_enrichment_plot(
             figsize=figsize if figsize else (6, 5.5),
         )
         return dict(
-                plot_base64=fig_to_base64(enrichment_plot_axes[0].get_figure()),
-                key="gsea_enrichment_plot_img",
-            )
-        
+            plot_base64=fig_to_base64(enrichment_plot_axes[0].get_figure()),
+            key="gsea_enrichment_plot_img",
+        )
+
     except Exception as e:
         msg = f"Could not plot enrichment plot for term {term_name}."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])

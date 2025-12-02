@@ -27,6 +27,18 @@ class ImportingStep(Step):
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         return inputs
 
+    def modify_form(self, form, run):
+        Step.modify_form(self, form, run)
+        if run.steps.current_step.calculation_status == "complete":
+            form.input_fields[self.index_of_file_input()].value = None
+
+    def index_of_file_input(self):
+        """
+        Returns the index of the FileInput that should be reset by modify_form. This method
+        must be overridden if the FileInput is not index 0.
+        """
+        return 0
+
 
 class MaxQuantImport(ImportingStep):
     display_name = "MaxQuant Protein Groups Import"
@@ -48,12 +60,12 @@ class MaxQuantImport(ImportingStep):
                     name="intensity_name",
                     label="Intensity parameter",
                     value=IntensityType.IBAQ.value,
-                    options=IntensityType
+                    options=IntensityType,
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False
+                    value=False,
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -86,7 +98,7 @@ class DiannImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False
+                    value=False,
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -94,7 +106,7 @@ class DiannImport(ImportingStep):
                     value=AggregationMethods.sum.value,
                     options=AggregationMethods,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(diann_import)
@@ -103,7 +115,9 @@ class DiannImport(ImportingStep):
 class MsFraggerImport(ImportingStep):
     display_name = "MS Fragger Combined Protein Import"
     operation = "Protein Data Import"
-    method_description = "Import the combined_protein.tsv file form output of MS Fragger"
+    method_description = (
+        "Import the combined_protein.tsv file form output of MS Fragger"
+    )
 
     output_keys = ["protein_df"]
 
@@ -124,7 +138,7 @@ class MsFraggerImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False
+                    value=False,
                 ),
                 DropdownField(
                     name="aggregation_method",
@@ -132,7 +146,7 @@ class MsFraggerImport(ImportingStep):
                     value=AggregationMethods.sum.value,
                     options=AggregationMethods,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(ms_fragger_import)
@@ -189,7 +203,7 @@ class MetadataImportMethodDiann(ImportingStep):
                     label="Group replicate runs by sample using median",
                     value=False,
                 ),
-            ]
+            ],
         )
 
     calc_method = staticmethod(metadata_import_method_diann)
@@ -219,7 +233,7 @@ class MetadataColumnAssignment(ImportingStep):
                 DropdownField(
                     name="metadata_unknown_column",
                     label="Existing, but unknown metadata columns",
-                )
+                ),
             ],
         )
 
@@ -232,11 +246,13 @@ class MetadataColumnAssignment(ImportingStep):
         )
 
         if metadata is not None:
-            metadata_required_column.set_options([
-                Option(col, col)
-                for col in ["Sample", "Group", "Batch"]
-                if col not in metadata.columns
-            ])
+            metadata_required_column.set_options(
+                [
+                    Option(col, col)
+                    for col in ["Sample", "Group", "Batch"]
+                    if col not in metadata.columns
+                ]
+            )
             if len(metadata_required_column.options) == 0:
                 metadata_required_column.set_options([])
 
@@ -246,9 +262,9 @@ class MetadataColumnAssignment(ImportingStep):
                 ].unique()
             )
 
-            metadata_unknown_column.set_options([
-                Option(col, col) for col in unknown_columns
-            ])
+            metadata_unknown_column.set_options(
+                [Option(col, col) for col in unknown_columns]
+            )
             if len(metadata_unknown_column.options) == 0:
                 metadata_unknown_column.set_options([])
 
@@ -280,17 +296,19 @@ class PeptideImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False
+                    value=False,
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
+        ImportingStep.modify_form(self, form, run)
+
         map_to_uniprot_field = form["map_to_uniprot"]
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport],
             "map_to_uniprot",
-            default=map_to_uniprot_field.value
+            default=map_to_uniprot_field.value,
         )
 
     calc_method = staticmethod(peptide_import)
@@ -314,12 +332,14 @@ class EvidenceImport(ImportingStep):
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
-                    value=False
+                    value=False,
                 ),
-            ]
+            ],
         )
 
     def modify_form(self, form, run):
+        ImportingStep.modify_form(self, form, run)
+
         map_to_uniprot_field = form["map_to_uniprot"]
 
         map_to_uniprot_field.value = run.steps.get_step_input(

@@ -1,11 +1,12 @@
 import re
 from pathlib import Path
 
+import numpy as np
+
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
-from protzilla.constants.paths import DEFAULT_PLOT_SETTINGS_FILE_STEM
 
 
 def sanitize_name(name: str) -> [str, str]:

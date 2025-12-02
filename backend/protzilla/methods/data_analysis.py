@@ -35,7 +35,6 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
-from backend.protzilla.data_analysis.ptm_quantification import flexiquant_lf
 from backend.protzilla.data_analysis.ptm_visualization import create_bar_ptm_visualization
 from backend.protzilla.form import *
 from backend.protzilla.methods.data_preprocessing import (
@@ -43,6 +42,11 @@ from backend.protzilla.methods.data_preprocessing import (
 )
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, StepManager
+from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
+from protzilla.data_analysis.ptm_quantification.multiflex import (
+    multiflex_lf,
+    MultiFlexColorMaps,
+)
 from protzilla.data_analysis.ptm_visualization import create_overview_ptm_visualization, \
     create_details_ptm_visualization
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import get_detected_modifications
@@ -217,7 +221,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -292,7 +296,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="grouping",
@@ -390,7 +394,7 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="grouping",
@@ -491,7 +495,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -603,7 +607,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -710,7 +714,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -724,7 +728,6 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
         protein_df_field = form["protein_df"]
         grouping_field = form["grouping"]
         selected_groups_field = form["selected_groups"]
-
         protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
         grouping_field.set_options(
             form_helper.get_choices_for_metadata_non_sample_columns(run)
@@ -778,7 +781,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
                     min=0,
                     max=1,
                     step=0.01,
-                    separatePrefix="\u03B1",
+                    separatePrefix="\u03b1",
                 ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
@@ -844,7 +847,7 @@ class PlotVolcano(DataAnalysisStep):
                 MultiSelectField(
                     name="items_of_interest",
                     label="Items of interest (will be highlighted)",
-                )
+                ),
             ],
         )
 
@@ -961,6 +964,7 @@ class PlotClustergram(DataAnalysisStep):
 
     plot_method = staticmethod(clustergram_plot)
 
+    # TODO: handle isRequired with sample_group_df
     def create_form(self):
         return Form(
             label="Clustergram",
@@ -969,8 +973,6 @@ class PlotClustergram(DataAnalysisStep):
                     name="input_df",
                     label="Choose dataframe to be plotted",
                 ),
-                # TODO: might be overkill to add a field to let user select a metadata dataframe (since the convention
-                #  seems to be that there's only one metadata dataframe and that one is pre-selected)
                 DropdownField(
                     name="metadata_df",
                     label="Choose dataframe to be used for annotating sample metadata",
@@ -1861,10 +1863,66 @@ class DimensionReductionUMAP(DataAnalysisStep):
         return inputs
 
 
-class FLEXIQuantLF(DataAnalysisStep):
+class BaseFLEXLF(DataAnalysisStep):
+    """
+    A base class for FLEXIQuantLF and MultiFLEXLF to reduce code duplication.
+    """
+
+    def modify_form(self, form, run):
+        grouping_field = form["grouping_column"]
+        grouping_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        if grouping_field.options == []:
+            return
+        grouping = grouping_field.value
+
+        reference_group_field = form["reference_group"]
+        reference_group_field.set_options(
+            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+        )
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["peptide_df"] = steps.get_step_output(
+            step_type=Step,
+            output_key="peptide_df",
+        )
+        inputs["metadata_df"] = steps.metadata_df
+        return inputs
+
+    def get_base_form_fields(self) -> tuple:
+        return (
+            DropdownField(
+                name="grouping_column",
+                label="Grouping column in metadata",
+            ),
+            DropdownField(
+                name="reference_group",
+                label="Reference group",
+            ),
+            NumberField(
+                name="num_init",
+                label="Number of RANSAC initiations",
+                value=30,
+                min=1,
+                max=60,
+                step=1,
+            ),
+            FloatField(
+                name="mod_cutoff", label="Modification cutoff", value=0.5, min=0, max=1
+            ),
+        )
+
+
+class FLEXIQuantLF(BaseFLEXLF):
     display_name = "FLEXIQuant-LF"
     operation = "modification_quantification"
-    method_description = "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified peptides and to quantify the degree of modification based solely on the unmodified peptide species."
+    method_description = (
+        "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
+        "peptides and to quantify the degree of modification based solely on the unmodified peptide "
+        "species."
+    )
 
     output_keys = [
         "raw_scores",
@@ -1875,13 +1933,73 @@ class FLEXIQuantLF(DataAnalysisStep):
 
     plot_method = staticmethod(flexiquant_lf)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+    def create_form(self):
+        return Form(
+            label="FLEXIQuant-LF",
+            input_fields=[
+                DropdownField(
+                    name="protein_group",
+                    label="Protein Group",
+                ),
+                *self.get_base_form_fields(),
+            ],
         )
 
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
+    def modify_form(self, form, run):
+        super().modify_form(form, run)
+        form["protein_group"].options = form_helper.to_choices(
+            run.steps.get_step_output(
+                step_type=Step,
+                output_key="peptide_df",
+            )["Protein ID"].unique()
+        )
+
+
+class MultiFLEXLF(BaseFLEXLF):
+    display_name = "MultiFLEX-LF"
+    operation = "modification_quantification"
+    method_description = (
+        "Quantifies the extent of protein modifications in proteomics data by using robust linear "
+        "regression to compare modified and unmodified peptide precursors and facilitates the "
+        "analysis of modification dynamics and coregulated modifications across large datasets "
+        "without the need for preselecting specific proteins."
+    )
+
+    output_keys = [
+        "RM_scores_clustered",
+        "diff_modified",
+        "raw_scores",
+        "removed_peptides",
+        "RM_scores",
+        "skipped_proteins",
+    ]
+
+    plot_method = staticmethod(multiflex_lf)
+
+    def create_form(self):
+        return Form(
+            label="multiFLEX-LF",
+            input_fields=[
+                *self.get_base_form_fields(),
+                FloatField(
+                    name="imputation_cosine_similarity",
+                    label="Cosine similarity for imputation",
+                    value=0.98,
+                    min=0,
+                    max=1,
+                ),
+                CheckboxField(
+                    name="deseq2_normalization",
+                    label="DESeq2 normalization",
+                    text="Use DESeq2 normalization",
+                ),
+                DropdownField(
+                    name="colormap",
+                    label="Color Map for Heatmap",
+                    options=MultiFlexColorMaps,
+                ),
+            ],
+        )
 
 
 class SelectPeptidesForProtein(DataAnalysisStep):

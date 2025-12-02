@@ -457,14 +457,14 @@ def GO_analysis_with_Enrichr(
     organism,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold = 0,
-    direction = "both",
-    gene_sets_path = None,
-    gene_sets_enrichr = None,
-    background_type : GOAnalysisWithEnrichrBackgroundType = GOAnalysisWithEnrichrBackgroundType.all_genes.value,
-    background_path = None,
-    background_number = None,
-    background_biomart = None,
+    differential_expression_threshold=0,
+    direction="both",
+    gene_sets_path=None,
+    gene_sets_enrichr=None,
+    background_type: GOAnalysisWithEnrichrBackgroundType = GOAnalysisWithEnrichrBackgroundType.all_genes.value,
+    background_path=None,
+    background_number=None,
+    background_biomart=None,
 ):
     """
     A method that performs online over-representation analysis for a given set of proteins
@@ -574,19 +574,25 @@ def GO_analysis_with_Enrichr(
         if not background_path:
             msg = "No background file provided. Please upload a file with background proteins."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-        
+
         background = read_background_file(background_path)
         if (
             isinstance(background, dict) and "messages" in background
         ):  # an error occurred
             return background
-    elif background_type == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value:
+    elif (
+        background_type
+        == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
+    ):
         if not background_number:
             msg = "No background number provided. Please specify the number of expressed genes."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-        
+
         background = background_number
-    elif background_type == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value:
+    elif (
+        background_type
+        == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value
+    ):
         if not background_biomart:
             msg = "No background biomart dataset provided. Please specify the name of the biomart dataset."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -704,11 +710,11 @@ def GO_analysis_offline(
     gene_sets_path,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold = 0,
-    direction = "both",
-    backgorund_type : GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
-    background_path = None,
-    background_number = None,
+    differential_expression_threshold=0,
+    direction="both",
+    backgorund_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
+    background_path=None,
+    background_number=None,
 ):
     """
     A method that performs offline over-representation analysis for a given set of proteins
@@ -835,16 +841,19 @@ def GO_analysis_offline(
         if not background_path:
             msg = "No background file provided. Please provide a file with background proteins."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-        
+
         background = read_background_file(background_path)
         if isinstance(background, dict):  # an error occurred
             return background
-        
-    elif backgorund_type == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value:
+
+    elif (
+        backgorund_type
+        == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
+    ):
         if not background_number:
             msg = "No background number provided. Please provide a number of background genes."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-        
+
         background = background_number
     elif backgorund_type == GOAnalysisOflineBackgroundType.all_genes.value:
         background = None
