@@ -99,7 +99,7 @@ def test_save_ptm_settings(
         assert message == "Settings successfully saved."
 
         # read new settings from file (manually)
-        ptm_settings_path = SETTINGS_PATH / f"{CUSTOM_PTM_SETTINGS_FILE_STEM}.yaml"
+        ptm_settings_path = tmp_settings_dir / f"{CUSTOM_PTM_SETTINGS_FILE_STEM}.yaml"
         with ptm_settings_path.open() as file:
             saved_settings = yaml.safe_load(file)
         assert saved_settings == new_ptm_settings
