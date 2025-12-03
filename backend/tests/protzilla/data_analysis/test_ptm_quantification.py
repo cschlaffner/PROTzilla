@@ -19,7 +19,6 @@ from tests.paths import TEST_DATA_PATH
 def peptide_df_AD_only() -> pd.DataFrame:
     df = peptide_import(
         TEST_DATA_PATH / "peptides/peptides_tau_AD01.txt",
-        "Intensity",
         map_to_uniprot=False,
     )["peptide_df"]
     return df
@@ -45,7 +44,6 @@ def peptide_df_one_sample_with_few_peptides(peptide_df_AD_only):
 def peptide_df_AD_CTR() -> pd.DataFrame:
     df = peptide_import(
         TEST_DATA_PATH / "peptides/peptides_tau_AD01_CTR01.txt",
-        "Intensity",
         map_to_uniprot=False,
     )["peptide_df"]
     return df

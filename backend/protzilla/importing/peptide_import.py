@@ -4,39 +4,28 @@ from pathlib import Path
 import pandas as pd
 
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
+from protzilla.importing.import_utils import IntensityType
 
 
-def peptide_import(file_path: Path, intensity_name, map_to_uniprot) -> dict:
+def peptide_import(file_path: Path, map_to_uniprot) -> dict:
     try:
-        assert intensity_name in [
-            "Intensity",
-            "iBAQ",
-            "LFQ intensity",
-        ], f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(
             messages=[dict(level=logging.ERROR, msg=e)],
         )
-
-    # Intensity -> Intensity, iBAQ -> LFQ, LFQ -> LFQ
-    peptide_intensity_name = (
-        "LFQ intensity" if intensity_name == "iBAQ" else intensity_name
-    )
+    # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
+    # "LFQ intensity" are only defined for proteins.
+    peptide_intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
-    read = pd.read_csv(
+    df = pd.read_csv(
         file_path,
         sep="\t",
         low_memory=False,
         na_values=["", 0],
         keep_default_na=True,
     )
-
-    if peptide_intensity_name != "Intensity":
-        df = read.drop(columns=["Intensity"])
-    else:
-        df = read
 
     if "Sample" not in df.columns:
         id_df = df[id_columns]
@@ -75,29 +64,38 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         return dict(messages=[dict(level=logging.ERROR, msg=e)])
 
     id_columns = [
-        "Experiment",
         "Leading razor protein",
         "Sequence",
         "Intensity",
         "Modifications",
         "Modified sequence",
         "Missed cleavages",
+        "Experiment",
         "PEP",
         "Raw file",
     ]
 
-    read = pd.read_csv(
+    def select_column(column):
+        # Check for whitespace in the column name to not capitalize "PEP" which should stay all-caps.
+        capitalized_column = column.capitalize() if " " in column else column
+        return capitalized_column in id_columns
+
+    df = pd.read_csv(
         file_path,
         sep="\t",
         low_memory=False,
         na_values=["", 0],
         keep_default_na=True,
+        usecols=select_column,
     )
 
-    df = read[id_columns]
-
-    df = df.rename(columns={"Leading razor protein": "Protein ID"})
-    df = df.rename(columns={"Experiment": "Sample"})
+    # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case
+    # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
+    #  require bigger changes in the code
+    df = df.rename(columns={c: c.capitalize() if " " in c else c for c in df.columns})
+    df = df.rename(
+        columns={"Leading razor protein": "Protein ID", "Experiment": "Sample"}
+    )
 
     df.dropna(subset=["Protein ID"], inplace=True)
     df.sort_values(
