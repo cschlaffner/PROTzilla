@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "format": "prettier --write .",
+    "test-format": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty -p ./tsconfig.app.json",
     "test": "vitest run --passWithNoTests",
