@@ -53,6 +53,54 @@ def peptide_df(intensity_name):
             np.nan,
             37440000.0,
         ],
+        "Ratio H/L normalized": [
+            0.65486,
+            0.85897,
+            0.82652,
+            np.nan,
+            np.nan,
+            0.55418,
+            np.nan,
+            np.nan,
+            np.nan,
+            1.626,
+        ],
+        "Ratio L/H normalized": [
+            0.65486,
+            0.85897,
+            0.82652,
+            np.nan,
+            np.nan,
+            0.55418,
+            np.nan,
+            np.nan,
+            np.nan,
+            1.626,
+        ],
+        "Ratio L/H": [
+            0.65486,
+            0.85897,
+            0.82652,
+            np.nan,
+            np.nan,
+            0.55418,
+            np.nan,
+            np.nan,
+            np.nan,
+            1.626,
+        ],
+        "Ratio H/L": [
+            0.65486,
+            0.85897,
+            0.82652,
+            np.nan,
+            np.nan,
+            0.55418,
+            np.nan,
+            np.nan,
+            np.nan,
+            1.626,
+        ],
     }
 
     peptide_df["Intensity"] = intensity_name_to_intensities[intensity_name]
@@ -124,11 +172,18 @@ def evidence_df():
     return peptide_df
 
 
-@pytest.mark.parametrize("intensity_name", ["Intensity"])
+@pytest.mark.parametrize(
+    "intensity_name", [intensity.value for intensity in IntensityType]
+)
 def test_peptide_import(intensity_name):
+    if (
+        intensity_name == IntensityType.LFQ_INTENSITY.value
+        or intensity_name == IntensityType.IBAQ.value
+    ):
+        intensity_name = IntensityType.INTENSITY.value
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name=IntensityType.INTENSITY.value,
+        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -136,7 +191,6 @@ def test_peptide_import(intensity_name):
         for message in outputs["messages"]:
             if message["level"] == logging.ERROR:
                 assert False, message["msg"]
-
     pd.testing.assert_frame_equal(
         outputs["peptide_df"], peptide_df(intensity_name), check_dtype=False
     )
