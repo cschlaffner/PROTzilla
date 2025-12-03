@@ -19,12 +19,10 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
     # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
     # "LFQ intensity" are only defined for proteins. However, ratios can be used for peptides.
 
-    if intensity_name not in [
-        IntensityType.RATIO_HL.value,
-        IntensityType.RATIO_LH.value,
-        IntensityType.RATIO_HL_NORMALIZED.value,
-        IntensityType.RATIO_LH_NORMALIZED.value,
-    ]:
+    if (
+        intensity_name == IntensityType.LFQ_INTENSITY.value
+        or intensity_name == IntensityType.IBAQ.value
+    ):
         intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
@@ -38,7 +36,8 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 
     if "Sample" not in df.columns:
         id_df = df[id_columns]
-        intensity_df = df.filter(regex=f"^{intensity_name} ", axis=1)
+        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
+        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
         intensity_df.columns = [
             c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
