@@ -20,7 +20,12 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
     # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
     # "LFQ intensity" are only defined for proteins.
 
-    if intensity_name != IntensityType.RATIO_HL.value and intensity_name != IntensityType.RATIO_LH:
+    if intensity_name not in [
+        IntensityType.RATIO_HL.value,
+        IntensityType.RATIO_LH.value,
+        IntensityType.RATIO_HL_normalized.value,
+        IntensityType.RATIO_LH_normalized.value,
+    ]:
         intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
