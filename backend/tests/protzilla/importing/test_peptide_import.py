@@ -6,6 +6,8 @@ import pytest
 
 from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.importing import peptide_import
+from backend.protzilla.constants.intensity_type import IntensityType
+
 
 
 def peptide_df(intensity_name):
@@ -127,6 +129,7 @@ def evidence_df():
 def test_peptide_import(intensity_name):
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
+        intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
 
