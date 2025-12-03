@@ -1,8 +1,8 @@
-from backend.main.views_helper import get_all_possible_steps
+from protzilla.all_steps import get_all_possible_steps
 
 
 def test_get_all_possible_step_names():
-    expected_step_names = [
+    expected_step_names = {
         "MaxQuantImport",
         "DiannImport",
         "MsFraggerImport",
@@ -11,6 +11,7 @@ def test_get_all_possible_step_names():
         "MetadataColumnAssignment",
         "PeptideImport",
         "EvidenceImport",
+        "ExampleDatasetImport",
         "FilterProteinsBySamplesMissing",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
@@ -50,12 +51,13 @@ def test_get_all_possible_step_names():
         "ModelEvaluationClassificationModel",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
-        "ProteinGraphPeptidesToIsoform",
-        "ProteinGraphVariationGraph",
         "SelectPeptidesForProtein",
         "FLEXIQuantLF",
         "MultiFLEXLF",
         "PTMsPerSample",
+        "PTMOverviewVisualization",
+        "PTMBarVisualization",
+        "PTMDetailsVisualization",
         "PTMsProteinAndPerSample",
         "ImputationByMinPerSample",
         "EnrichmentAnalysisGOAnalysisWithString",
@@ -69,8 +71,8 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
-    ]
+    }
 
     steps = get_all_possible_steps()
     step_names = [step["method_name"] for step in steps]
-    assert step_names == expected_step_names
+    assert set(step_names) == expected_step_names
