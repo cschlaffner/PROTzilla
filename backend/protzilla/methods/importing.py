@@ -15,11 +15,11 @@ from backend.protzilla.importing.peptide_import import peptide_import, evidence_
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
 from protzilla.importing.import_utils import (
-    IntensityType,
     AggregationMethods,
     IntensityNameType,
     FeatureOrientationType,
 )
+from backend.protzilla.constants.intensitiy_types import IntensityType
 
 
 class ImportingStep(Step):
@@ -79,19 +79,6 @@ class MaxQuantImport(ImportingStep):
                 ),
             ],
         )
-
-    def modify_form(self, form, run):
-        intensity_field = form["intensity_name"]
-
-        if intensity_field.value == IntensityType.RATIO_HL or intensity_field.value == IntensityType.RATIO_LH:
-            form.input_fields.append(
-                CheckboxField(
-                    name="use_normalized",
-                    label="Should normalized ratios be used?",
-                )
-            )
-            form["aggregation_method"].label = "Test"
-
 
     calc_method = staticmethod(max_quant_import)
 
@@ -309,6 +296,12 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
+                ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    value=IntensityType.INTENSITY.value,
+                    options=IntensityType,
                 ),
                 CheckboxField(
                     name="map_to_uniprot",

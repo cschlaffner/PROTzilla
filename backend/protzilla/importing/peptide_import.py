@@ -7,16 +7,11 @@ from backend.protzilla.importing.ms_data_import import clean_protein_groups
 
 from backend.protzilla.constants.intensitiy_types import IntensityType
 
-from backend.protzilla.constants.intensitiy_types import IntensityType
 
-
-def peptide_import(file_path: Path, map_to_uniprot) -> dict:
+def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
     try:
-        assert intensity_name in [
-            "Intensity",
-            "iBAQ",
-            "LFQ intensity",
-        ], f"Unknown intensity name: {intensity_name}"
+        allowed = {item.value for item in IntensityType}
+        assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(
@@ -24,7 +19,9 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
         )
     # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
     # "LFQ intensity" are only defined for proteins.
-    peptide_intensity_name = IntensityType.INTENSITY.value
+
+    if intensity_name != IntensityType.RATIO_HL.value and intensity_name != IntensityType.RATIO_LH:
+        intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
     df = pd.read_csv(
@@ -37,9 +34,9 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
 
     if "Sample" not in df.columns:
         id_df = df[id_columns]
-        intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
+        intensity_df = df.filter(regex=f"^{intensity_name} ", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
+            c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),

@@ -1,12 +1,6 @@
 from enum import Enum
 
 
-class IntensityType(Enum):
-    IBAQ = "iBAQ"
-    INTENSITY = "Intensity"
-    LFQ_INTENSITY = "LFQ intensity"
-
-
 class IntensityNameType(Enum):
     INTENSITY = "Intensity"
     MAXLFQ_TOTAL_INTENSITY = "MaxLFQ Total Intensity"

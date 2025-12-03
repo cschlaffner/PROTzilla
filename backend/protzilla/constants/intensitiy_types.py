@@ -7,15 +7,5 @@ class IntensityType(Enum):
     LFQ_INTENSITY = "LFQ intensity"
     RATIO_HL = "Ratio H/L"
     RATIO_LH = "Ratio L/H"
-
-
-class IntensityNameType(Enum):
-    INTENSITY = "Intensity"
-    MAXLFQ_TOTAL_iNTENSITY = "MaxLFQ Total Intensity"
-    MAXLFQ_INTENSITY = "MaxLFQ Intensity"
-    TOTAL_INTENSITY = "Total Intensity"
-    MAXLFQ_UNIQUE_INTENSITY = "MaxLFQ Unique Intensity"
-    UNIQUE_SPECTRAL_COUNT = "Unique Spectral Count"
-    UNIQUE_INTENSITY = "Unique Intensity"
-    SPECTRAL_COUNT = "Spectral Count"
-    TOTAL_SPECTRAL_COUNT = "Total Spectral Count"
+    RATIO_HL_normalized = "Ratio H/L normalized"
+    RATIO_LH_normalized = "Ratio L/H normalized"

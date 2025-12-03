@@ -3,7 +3,8 @@ from protzilla.constants.paths import (
     EXAMPLE_DATASET_METADATA_FILE,
     EXAMPLE_DATASET_EVIDENCE_FILE,
 )
-from protzilla.importing.import_utils import IntensityType, FeatureOrientationType
+from protzilla.importing.import_utils import FeatureOrientationType
+from protzilla.constants.intensitiy_types import IntensityType
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.ms_data_import import max_quant_import
 from protzilla.importing.peptide_import import evidence_import
