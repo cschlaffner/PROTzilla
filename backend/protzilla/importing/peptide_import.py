@@ -22,8 +22,8 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
     if intensity_name not in [
         IntensityType.RATIO_HL.value,
         IntensityType.RATIO_LH.value,
-        IntensityType.RATIO_HL_normalized.value,
-        IntensityType.RATIO_LH_normalized.value,
+        IntensityType.RATIO_HL_NORMALIZED.value,
+        IntensityType.RATIO_LH_NORMALIZED.value,
     ]:
         intensity_name = IntensityType.INTENSITY.value
 
