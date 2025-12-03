@@ -9,5 +9,3 @@ class IntensityType(Enum):
     RATIO_LH = "Ratio L/H"
     RATIO_HL_NORMALIZED = "Ratio H/L normalized"
     RATIO_LH_NORMALIZED = "Ratio L/H normalized"
-
-

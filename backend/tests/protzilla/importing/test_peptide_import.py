@@ -9,7 +9,6 @@ from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_type import IntensityType
 
 
-
 def peptide_df(intensity_name):
     # sample, protein id, sequence, intensity, pep
     peptide_protein_list = (
