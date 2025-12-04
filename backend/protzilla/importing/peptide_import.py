@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from protzilla.importing.ms_data_import import clean_protein_groups
-from protzilla.constants.intensity_type import IntensityType
+from protzilla.constants.intensity_types import IntensityType
 
 
 def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
