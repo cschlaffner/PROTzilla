@@ -10,6 +10,7 @@
     "build": "tsc -b && vite build",
     "devbuild": "tsc -b && vite build --watch",
     "format": "prettier --write .",
+    "test-format": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty -p ./tsconfig.app.json",
     "test": "vitest run --passWithNoTests",

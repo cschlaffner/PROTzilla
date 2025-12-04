@@ -2,14 +2,9 @@ name: Frontend CI Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - dev
     paths:
       - frontend/**
   pull_request:
-    branches:
-      - '*'
     paths:
       - frontend/**
 
@@ -47,10 +42,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Format code
-        run: pnpm format
+      - name: Check format
+        run: pnpm test-format
 
-      - name: Run linter
+      - name: Run typecheck
+        run: pnpm typecheck
+
+      - name: Check linter
         run: pnpm lint
 
       - name: Run tests
