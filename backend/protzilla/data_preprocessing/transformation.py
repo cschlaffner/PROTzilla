@@ -8,6 +8,35 @@ from backend.protzilla.data_preprocessing.plots import (
 from backend.protzilla.utilities import default_intensity_column
 
 
+def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> dict:
+    """
+    This function inverts the intensity column of a dataframe (1/n).
+    Especially useful for H/L <-> L/H ratio transformations.
+
+    :param protein_df: a protein data frame in long format
+    :type protein_df: pd.DataFrame
+    :param peptide_df: a peptide data frame, that is to be transformed the same way as the protein data frame
+
+    :return: returns a pandas DataFrame in typical protzilla
+        long format with the transformed data and an empty dict.
+    :rtype: Tuple[pandas DataFrame, dict]
+    """
+    intensity_name = default_intensity_column(protein_df)
+
+    transformed_df = protein_df.copy()
+    transformed_df[intensity_name] = 1 / transformed_df[intensity_name]
+    if transformed_df[intensity_name].isin([float("inf")]).any():
+        raise ValueError("Division by zero when inverting values.")
+
+    transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
+    if transformed_peptide_df is not None:
+        transformed_peptide_df["Intensity"] = 1 / transformed_peptide_df["Intensity"]
+        if transformed_peptide_df["Intensity"].isin([float("inf")]).any():
+            raise ValueError("Division by zero when inverting values.")
+
+    return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
+
+
 def by_log(
     protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None, log_base="log10"
 ) -> dict:

@@ -21,6 +21,7 @@ _forward_mapping = [
     data_preprocessing.OutlierDetectionByLocalOutlierFactor,
     data_preprocessing.OutlierDetectionByIsolationForest,
     data_preprocessing.TransformationLog,
+    data_preprocessing.TransformationInversion,
     data_preprocessing.NormalisationByZScore,
     data_preprocessing.NormalisationByTotalSum,
     data_preprocessing.NormalisationByMedian,
