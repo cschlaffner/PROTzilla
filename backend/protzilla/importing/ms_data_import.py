@@ -9,8 +9,7 @@ import pandas as pd
 
 from backend.protzilla.data_integration.database_query import biomart_query
 from backend.protzilla.utilities import format_trace
-from backend.protzilla.constants.intensity_type import IntensityType
-from backend.protzilla.importing.import_utils import IntensityNameType
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
 def max_quant_import(

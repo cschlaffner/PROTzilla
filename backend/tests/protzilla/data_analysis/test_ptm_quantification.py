@@ -13,7 +13,7 @@ from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.peptide_import import peptide_import
 from tests.paths import TEST_DATA_PATH
-from protzilla.constants.intensity_type import IntensityType
+from protzilla.constants.intensity_types import IntensityType
 
 
 @pytest.fixture(scope="module")
