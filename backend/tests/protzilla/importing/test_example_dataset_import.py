@@ -6,7 +6,9 @@ from protzilla.importing.example_dataset_import import example_dataset_import
 
 
 # TODO: should be investigated why this doesn't work in CI
-@pytest.mark.skip(reason="Doesn't seem to work in a CI setting. Maybe sth. with git-lfs is fishy.")
+@pytest.mark.skip(
+    reason="Doesn't seem to work in a CI setting. Maybe sth. with git-lfs is fishy."
+)
 def test_example_dataset_import():
     outputs = example_dataset_import()
 
