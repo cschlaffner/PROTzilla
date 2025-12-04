@@ -16,10 +16,9 @@ from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
 from protzilla.importing.import_utils import (
     AggregationMethods,
-    IntensityNameType,
     FeatureOrientationType,
 )
-from backend.protzilla.constants.intensity_type import IntensityType
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
 class ImportingStep(Step):

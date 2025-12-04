@@ -6,7 +6,7 @@ from backend.protzilla.data_preprocessing.peptide_filter import (
     by_pep_value_plot,
 )
 from backend.protzilla.importing import peptide_import
-from backend.protzilla.constants.intensity_type import IntensityType
+from backend.protzilla.constants.intensity_types import IntensityType
 
 
 def assert_peptide_filtering_matches_protein_filtering(
