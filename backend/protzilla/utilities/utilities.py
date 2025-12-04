@@ -11,6 +11,8 @@ from string import ascii_letters
 import pandas as pd
 import psutil
 
+from protzilla.constants.intensity_types import IntensityType, IntensityNameType
+
 
 # recipie from https://docs.python.org/3/library/itertools.html
 def unique_justseen(iterable, key=None):
@@ -65,7 +67,10 @@ def default_intensity_column(
     :return: The default intensity column name
     """
 
-    possible_substring_identifiers = ["intensity", "ibaq", "lfq", "spectral count"]
+    possible_substring_identifiers = [
+        *[i.value.lower() for i in IntensityType],
+        *[i.value.lower() for i in IntensityNameType],
+    ]
 
     if intensity_column_name is not None:
         return intensity_column_name
