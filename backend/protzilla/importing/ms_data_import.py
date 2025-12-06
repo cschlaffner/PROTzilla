@@ -29,7 +29,8 @@ def max_quant_import(
             keep_default_na=True,
         )
         protein_groups = df["Majority protein IDs"]
-        intensity_df = df.filter(regex=f"^{intensity_name} ", axis=1)
+        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
+        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
         intensity_df = intensity_df.filter(regex=r"^(?!.*peptides).*$", axis=1)
 
         if intensity_df.empty:
