@@ -23,6 +23,20 @@ def inversion_transformation_df():
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
 
+@pytest.fixture
+def inversion_transformation_faulty_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 1.0],
+        ["Sample1", "Protein2", "Gene2", 0.0],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 1],
+        ["Sample2", "Protein1", "Gene1", np.nan],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
 
 @pytest.fixture
 def inversion_transformation_expected_df():
@@ -355,3 +369,16 @@ def test_log_by_0_transformation():
     )
 
     by_log(df, None, log_base="log2")
+
+def test_inversion_transformation_div0(
+        inversion_transformation_faulty_df
+):
+    method_inputs = {
+        "protein_df": inversion_transformation_faulty_df,
+        "peptide_df": None,
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        by_inversion(**method_inputs)
+
+    assert str(excinfo.value) == "Division by zero when inverting values."
