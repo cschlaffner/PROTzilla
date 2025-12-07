@@ -54,7 +54,7 @@ def by_log(
 
     :return: returns a pandas DataFrame in typical protzilla
         long format with the transformed data and an empty dict.
-    :rtype: Tuple[pandas DataFrame, dict]
+    :rtype: dict[str, pandas DataFrame]
     """
     intensity_name = default_intensity_column(protein_df)
     transformed_df = protein_df.copy()
