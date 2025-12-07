@@ -23,6 +23,7 @@ def inversion_transformation_df():
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
 
+
 @pytest.fixture
 def inversion_transformation_faulty_df():
     test_intensity_list = (
@@ -370,9 +371,8 @@ def test_log_by_0_transformation():
 
     by_log(df, None, log_base="log2")
 
-def test_inversion_transformation_div0(
-        inversion_transformation_faulty_df
-):
+
+def test_inversion_transformation_div0(inversion_transformation_faulty_df):
     method_inputs = {
         "protein_df": inversion_transformation_faulty_df,
         "peptide_df": None,
