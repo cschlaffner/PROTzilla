@@ -7,7 +7,7 @@ import pytest
 
 from backend.tests.paths import TEST_MSDATA_PATH
 from backend.protzilla.importing import ms_data_import
-from protzilla.constants.intensity_type import IntensityType
+from protzilla.constants.intensity_types import IntensityType
 
 
 def ms_fragger_import_intensity_df(intensity_name):

@@ -6,7 +6,7 @@ import pytest
 
 from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.importing import peptide_import
-from backend.protzilla.constants.intensity_type import IntensityType
+from backend.protzilla.constants.intensity_types import IntensityType
 
 
 def peptide_df(intensity_name):
