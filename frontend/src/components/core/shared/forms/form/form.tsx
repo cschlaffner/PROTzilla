@@ -8,6 +8,9 @@ import {
   CheckboxSelectInputField,
   DropdownInputField,
   FileInputField,
+  FormDivider,
+  HeaderInfoField,
+  InfoField,
   MultiSelectInputField,
   NumberInputField,
   RadioSelectInputField,
@@ -144,6 +147,12 @@ const InputField: React.FC<InputFieldProps> = memo(function InputField({
       );
     case "file":
       return <FileInputField onChange={handleInputChange} {...props} />;
+    case "form-divider":
+      return <FormDivider {...props} />;
+    case "info-field":
+      return <InfoField {...props} />;
+    case "header-info-field":
+      return <HeaderInfoField {...props} />;
     default:
       return null;
   }

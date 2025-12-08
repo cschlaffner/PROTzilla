@@ -494,7 +494,7 @@ class _Clustergram:
             showticklabels=True,
             side="bottom",
             showline=False,
-            range=[min(tickvals_col) - 5, max(tickvals_col) + 5]
+            range=[min(tickvals_col) - 5, max(tickvals_col) + 5],
             # workaround for autoscale issues above; otherwise
             # the graph cuts off and must be scaled manually
         )
@@ -811,6 +811,9 @@ class _Clustergram:
         the ordering of the column dendrogram leaves.
         """
 
+        # 8 is the arbitrary number of colors that is used by the dendrograms (last one is ignored)
+        dendro_colorscale = ["rgb(133,133,133)" for _ in range(8)]
+
         # initialize return dict
         trace_list = {"col": [], "row": []}
 
@@ -827,8 +830,7 @@ class _Clustergram:
                 np.transpose(self._data),
                 orientation="bottom",
                 labels=self._column_ids,
-                # TODO: How does colormap work?
-                # colorscale=self._color_map["cols"],
+                colorscale=dendro_colorscale,
                 distfun=lambda X: self._dist_fun(X, metric=self._col_dist),
                 linkagefun=lambda d: self._link_fun(
                     d, optimal_ordering=self._optimal_leaf_order
@@ -844,8 +846,7 @@ class _Clustergram:
                 self._data,
                 orientation="right",
                 labels=self._row_ids,
-                # TODO: How does colormap work?
-                # colorscale=self._color_map,
+                colorscale=dendro_colorscale,
                 distfun=lambda X: self._dist_fun(X, metric=self._row_dist),
                 linkagefun=lambda d: self._link_fun(
                     d, optimal_ordering=self._optimal_leaf_order

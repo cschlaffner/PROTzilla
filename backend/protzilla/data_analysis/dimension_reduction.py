@@ -12,7 +12,7 @@ def t_sne(
     perplexity: float = 30.0,
     metric: str = "euclidean",
     random_state: int = 42,
-    n_iter: int = 1000,
+    max_iter: int = 1000,
     n_iter_without_progress: int = 300,
     method: str = "barnes_hut",
 ):
@@ -35,8 +35,8 @@ def t_sne(
     :type metric: str
     :param random_state: determines the random number generator.
     :type random_state: int
-    :param n_iter: maximum number of iterations for the optimization
-    :type n_iter: int
+    :param max_iter: maximum number of iterations for the optimization
+    :type max_iter: int
     :param n_iter_without_progress: Maximum number of iterations without progress
         before we abort the optimization, used after 250 initial iterations with early
         exaggeration. Note that progress is only checked every 50 iterations so this
@@ -58,7 +58,7 @@ def t_sne(
             n_components=n_components,
             perplexity=perplexity,
             random_state=random_state,
-            n_iter=n_iter,
+            max_iter=max_iter,
             n_iter_without_progress=n_iter_without_progress,
             method=method,
             metric=metric,

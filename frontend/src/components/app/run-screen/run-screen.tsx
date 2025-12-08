@@ -168,6 +168,13 @@ export const RunScreen: React.FC = () => {
     openDownloadModal();
   };
 
+  let plotPlaceholderMessage;
+  if (runData.current_step_has_plot) {
+    plotPlaceholderMessage = "Run calculation to generate plot.";
+  } else {
+    plotPlaceholderMessage = "No plot available for this step.";
+  }
+
   const plotComponent = (
     <StyledContentContainer>
       {plots && plots.length > 0 ? (
@@ -192,7 +199,7 @@ export const RunScreen: React.FC = () => {
           />
         </>
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"No plot available for this step."} />
+        <SectionTitle baseComponent={"h4"} description={plotPlaceholderMessage} />
       )}
     </StyledContentContainer>
   );
@@ -215,7 +222,12 @@ export const RunScreen: React.FC = () => {
           }))}
         />
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"No data table available for this step."} />
+        <SectionTitle
+          baseComponent={"h4"}
+          description={
+            "No data table available for this step (yet). With large datasets it may take a while for tables to be displayed."
+          }
+        />
       )}
     </StyledContentContainer>
   );

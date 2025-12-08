@@ -1,4 +1,3 @@
-
 import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
@@ -13,6 +12,7 @@ _forward_mapping = [
     importing.MetadataColumnAssignment,
     importing.PeptideImport,
     importing.EvidenceImport,
+    importing.ExampleDatasetImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
@@ -53,12 +53,14 @@ _forward_mapping = [
     data_analysis.ModelEvaluationClassificationModel,
     data_analysis.DimensionReductionTSNE,
     data_analysis.DimensionReductionUMAP,
-    data_analysis.ProteinGraphPeptidesToIsoform,
-    data_analysis.ProteinGraphVariationGraph,
     data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
+    data_analysis.MultiFLEXLF,
     data_analysis.PTMsPerSample,
     data_analysis.PTMsProteinAndPerSample,
+    data_analysis.PTMOverviewVisualization,
+    data_analysis.PTMBarVisualization,
+    data_analysis.PTMDetailsVisualization,
     data_preprocessing.ImputationByMinPerSample,
     data_integration.EnrichmentAnalysisGOAnalysisWithString,
     data_integration.EnrichmentAnalysisGOAnalysisWithEnrichr,
@@ -73,5 +75,20 @@ _forward_mapping = [
     data_integration.PlotGSEAEnrichmentPlot,
 ]
 
+
 def get_all_methods():
     return _forward_mapping
+
+
+def get_all_possible_steps() -> list[dict]:
+    """
+    Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
+
+    :return: List of step dictionaries via the steps to_dict function.
+    :rtype: List[dict]
+    """
+    steps = get_all_methods()
+    step_list = []
+    for step in steps:
+        step_list.append(step.to_dict(step))
+    return step_list

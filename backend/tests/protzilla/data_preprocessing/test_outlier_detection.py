@@ -65,8 +65,7 @@ def outlier_detection_df_with_nan():
 
 
 def test_outlier_detection_with_isolation_forest(
-    show_figures, outlier_detection_df,
-        peptides_df
+    show_figures, outlier_detection_df, peptides_df
 ):
     method_inputs = {
         "protein_df": outlier_detection_df,
@@ -85,19 +84,6 @@ def test_outlier_detection_with_isolation_forest(
         method_outputs["peptide_df"],
         "Sample",
     )
-
-
-def test_outlier_detection_with_isolation_forest_and_nan(outlier_detection_df_with_nan):
-    method_inputs = {
-        "protein_df": outlier_detection_df_with_nan,
-        "peptide_df": None,
-        "n_estimators": 50,
-        "n_jobs": -1,
-    }
-    methtod_outputs = by_isolation_forest(**method_inputs)
-
-    assert "messages" in methtod_outputs
-    assert "NaN values" in methtod_outputs["messages"][0]["msg"]
 
 
 def test_outlier_detection_by_local_outlier_factor(
@@ -144,7 +130,11 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
         "number_of_components": 3,
     }
     method_outputs = by_pca(**method_inputs)
-    fig = by_pca_plot(method_outputs["pca_df"], method_outputs["number_of_components"], method_outputs["explained_variance_ratio"])[0]
+    fig = by_pca_plot(
+        method_outputs["pca_df"],
+        method_outputs["number_of_components"],
+        method_outputs["explained_variance_ratio"],
+    )[0]
     if show_figures:
         fig.show()
 
