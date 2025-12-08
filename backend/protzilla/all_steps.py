@@ -25,6 +25,7 @@ _forward_mapping = [
     data_preprocessing.NormalisationByZScore,
     data_preprocessing.NormalisationByTotalSum,
     data_preprocessing.NormalisationByMedian,
+    data_preprocessing.NormalisationByWidthAdjustment,
     data_preprocessing.NormalisationByReferenceProtein,
     data_preprocessing.ImputationByMinPerDataset,
     data_preprocessing.ImputationByMinPerProtein,
