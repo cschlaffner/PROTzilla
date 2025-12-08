@@ -14,6 +14,7 @@ _forward_mapping = [
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
+    data_preprocessing.FilterProteinsBySilacRatios,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
     data_preprocessing.FilterSamplesByProteinIntensitiesSum,
