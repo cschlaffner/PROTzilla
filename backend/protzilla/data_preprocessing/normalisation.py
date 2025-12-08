@@ -172,6 +172,62 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
     return dict(protein_df=scaled_df, zeroed_samples=zeroed_samples_list)
 
 
+def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
+    """
+    The first, second and third quartiles (q_1, q_2, q_3) are 
+    calculated from the distribution of all values. The second 
+    quartile (which is the median) is subtracted from each value 
+    to center the distribution. Then we divide by the width in an 
+    asymmetric way. All values that are positive after subtraction 
+    of the median are divided by (q_3 - q_2) while all negative 
+    values are divided by (q2 - q1).
+
+    :param protein_df: the dataframe that should be normalised in 
+        long format
+    :type protein_df: pandas DataFrame
+
+    :return: returns a scaled dataframe in typical protzilla long format;
+        on failure (zero quartile width) returns None and an error message
+    :rtype: dict with protein_df (pd.DataFrame | None) and optional messages
+    """
+    
+    # Suppress SettingWithCopyWarning:
+    # It gets raised because of reassignment of values to a subset of a df
+    # The alternative - making an explicit copy - could use more memory
+    # https://realpython.com/pandas-settingwithcopywarning/
+    pd.set_option("mode.chained_assignment", None)
+
+    intensity_name = default_intensity_column(protein_df)
+    q1 = protein_df[intensity_name].quantile(0.25)
+    q2 = protein_df[intensity_name].quantile(0.5)
+    q3 = protein_df[intensity_name].quantile(0.75)
+
+    upper_width = q3 - q2
+    lower_width = q2 - q1
+
+    if upper_width == 0 or lower_width == 0:
+        msg = (
+            "Width adjustment normalisation failed because one of the quartile widths is zero."
+        )
+        return dict(
+            protein_df=None,
+            messages=[dict(level=logging.ERROR, msg=msg)],
+        )
+
+    centered = protein_df[intensity_name] - q2
+    scaled = centered.copy()
+    scaled[centered > 0] = centered[centered > 0] / upper_width
+    scaled[centered <= 0] = centered[centered <= 0] / lower_width
+
+    result_df = protein_df.copy()
+    result_df[f"Normalised {intensity_name}"] = scaled
+    result_df.drop(axis=1, labels=[intensity_name], inplace=True)
+    result_df.sort_values(by=["Sample", "Protein ID"], inplace=True, ignore_index=True)
+
+    pd.reset_option("mode.chained_assignment")
+    return dict(protein_df=result_df)
+
+
 def by_reference_protein(
     protein_df: pd.DataFrame,
     reference_protein: str,
@@ -256,6 +312,14 @@ def by_totalsum_plot(
 
 
 def by_reference_protein_plot(
+    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+):
+    return _build_box_hist_plot(
+        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    )
+
+
+def by_width_adjustment_plot(
     protein_df, output_protein_df, graph_type, group_by, visual_transformation
 ):
     return _build_box_hist_plot(
