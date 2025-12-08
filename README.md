@@ -58,15 +58,15 @@
 | backend/protzilla/form.py                                                                  |      154 |       20 |     87% |102, 112-116, 214, 221-222, 227, 230, 266-280 |
 | backend/protzilla/form\_helper.py                                                          |       18 |       11 |     39% |7, 15-16, 31-34, 40-48 |
 | backend/protzilla/importing/\_\_init\_\_.py                                                |        0 |        0 |    100% |           |
-| backend/protzilla/importing/example\_dataset\_import.py                                    |       15 |        9 |     40% |     13-45 |
-| backend/protzilla/importing/import\_utils.py                                               |       24 |        0 |    100% |           |
+| backend/protzilla/importing/example\_dataset\_import.py                                    |       16 |        9 |     44% |     14-46 |
+| backend/protzilla/importing/import\_utils.py                                               |       10 |        0 |    100% |           |
 | backend/protzilla/importing/metadata\_import.py                                            |       72 |       38 |     47% |28, 30, 32, 34, 48, 52-53, 74, 85-95, 100, 106-113, 128-153, 179-204 |
-| backend/protzilla/importing/ms\_data\_import.py                                            |      121 |       22 |     82% |34-35, 110-112, 152-154, 282-300 |
-| backend/protzilla/importing/peptide\_import.py                                             |       44 |        6 |     86% |13-14, 44-45, 63-64 |
+| backend/protzilla/importing/ms\_data\_import.py                                            |      124 |       22 |     82% |37-38, 104-106, 146-148, 276-294 |
+| backend/protzilla/importing/peptide\_import.py                                             |       47 |        7 |     85% |15-16, 26, 52-53, 71-72 |
 | backend/protzilla/methods/data\_analysis.py                                                |      624 |      255 |     59% |193, 211, 240-249, 256-261, 323-353, 387, 421-449, 460-463, 484, 528-558, 569-575, 596, 640-674, 685-687, 706, 734-742, 749-754, 773, 801-814, 821-823, 861-890, 893-912, 923, 939-950, 958-962, 977, 1001-1014, 1021-1027, 1071-1097, 1126, 1140, 1158, 1237-1239, 1257, 1331-1333, 1350, 1411-1413, 1431, 1555-1557, 1575, 1698-1700, 1715, 1728, 1731-1733, 1744, 1799-1801, 1812, 1861-1862, 1867-1870, 1879-1889, 1894-1899, 1902, 1944, 1956-1957, 1987, 2022, 2053-2101, 2110-2135, 2151, 2162-2171, 2176-2179, 2195, 2206-2215, 2220-2223, 2232, 2263, 2270-2273, 2286, 2295, 2321, 2337 |
 | backend/protzilla/methods/data\_integration.py                                             |      295 |      139 |     53% |95, 102-104, 154-161, 168-180, 192, 267-326, 329-345, 359, 416-441, 444-460, 473, 552-600, 609-615, 630, 708-745, 748-753, 768, 788-790, 795-798, 813, 877-897, 902-908, 921, 978, 998, 1052-1053, 1058-1061, 1074 |
 | backend/protzilla/methods/data\_preprocessing.py                                           |      207 |       11 |     95% |121, 153, 258, 319, 380, 414, 493, 537, 645, 699, 800 |
-| backend/protzilla/methods/importing.py                                                     |      122 |       29 |     76% |29, 129, 198, 216-217, 230, 245-273, 278-282, 293, 309-312, 329, 345-349, 368 |
+| backend/protzilla/methods/importing.py                                                     |      123 |       29 |     76% |28, 128, 197, 215-216, 229, 244-272, 277-281, 292, 314-317, 334, 350-354, 373 |
 | backend/protzilla/run.py                                                                   |      208 |       46 |     78% |54-100, 194, 199, 206, 210-213, 220-221, 232-237, 276-278, 314, 341, 355, 363 |
 | backend/protzilla/run\_helper.py                                                           |       12 |        1 |     92% |        26 |
 | backend/protzilla/runner.py                                                                |       79 |        7 |     91% |113-121, 145-146 |
@@ -76,7 +76,7 @@
 | backend/protzilla/utilities/clustergram.py                                                 |      376 |       83 |     78% |97, 99, 106, 150-151, 153, 155, 190, 205, 209, 213, 217, 227, 231-236, 244, 246, 248, 259-270, 273, 275, 315-318, 383-384, 386-387, 402-403, 405-406, 486, 503, 696, 698, 728-735, 744-757, 930-942, 945-957, 983-999, 1013-1029 |
 | backend/protzilla/utilities/dunn\_score.py                                                 |       10 |        6 |     40% | 25, 41-48 |
 | backend/protzilla/utilities/transform\_dfs.py                                              |       25 |        0 |    100% |           |
-| backend/protzilla/utilities/utilities.py                                                   |       56 |        9 |     84% |29-30, 71, 82, 100, 135-138 |
+| backend/protzilla/utilities/utilities.py                                                   |       57 |        9 |     84% |31-32, 75, 86, 104, 139-142 |
 | backend/protzilla/workflow.py                                                              |       11 |        6 |     45% |  6, 15-20 |
 | frontend/\_\_init\_\_.py                                                                   |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                             |       24 |        5 |     79% | 60-63, 67 |
@@ -89,7 +89,7 @@
 | src/protein-sequencing/protein\_sequencing/overview\_plot.py                               |      281 |       48 |     83% |34, 36, 68, 71, 73, 126-153, 303, 348-365, 409-410, 412-413 |
 | src/protein-sequencing/protein\_sequencing/plotter.py                                      |      317 |       82 |     74% |52, 58, 72-73, 99-103, 116-119, 121, 131, 144, 146-149, 205, 212-218, 220, 238-242, 265, 272-273, 295, 363-378, 382, 394, 424, 427-433, 442-443, 463-464, 466-471, 477-492, 516-517, 533-534 |
 | src/protein-sequencing/protein\_sequencing/uniprot\_align.py                               |       40 |        9 |     78% |12, 14, 28, 32-39, 52 |
-|                                                                                  **TOTAL** | **8463** | **2240** | **74%** |           |
+|                                                                                  **TOTAL** | **8458** | **2241** | **74%** |           |
 
 
 ## Setup coverage badge
