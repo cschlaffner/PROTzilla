@@ -68,8 +68,7 @@ def default_intensity_column(
     """
 
     possible_substring_identifiers = [
-        *[i.value.lower() for i in IntensityType],
-        *[i.value.lower() for i in IntensityNameType],
+        i.value.lower() for enum in (IntensityType, IntensityNameType) for i in enum
     ]
 
     if intensity_column_name is not None:
