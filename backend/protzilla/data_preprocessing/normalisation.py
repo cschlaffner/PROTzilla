@@ -174,15 +174,15 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
 
 def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     """
-    The first, second and third quartiles (q_1, q_2, q_3) are 
-    calculated from the distribution of all values. The second 
-    quartile (which is the median) is subtracted from each value 
-    to center the distribution. Then we divide by the width in an 
-    asymmetric way. All values that are positive after subtraction 
-    of the median are divided by (q_3 - q_2) while all negative 
+    The first, second and third quartiles (q_1, q_2, q_3) are
+    calculated from the distribution of all values. The second
+    quartile (which is the median) is subtracted from each value
+    to center the distribution. Then we divide by the width in an
+    asymmetric way. All values that are positive after subtraction
+    of the median are divided by (q_3 - q_2) while all negative
     values are divided by (q2 - q1).
 
-    :param protein_df: the dataframe that should be normalised in 
+    :param protein_df: the dataframe that should be normalised in
         long format
     :type protein_df: pandas DataFrame
 
@@ -190,7 +190,7 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
         on failure (zero quartile width) returns None and an error message
     :rtype: dict with protein_df (pd.DataFrame | None) and optional messages
     """
-    
+
     # Suppress SettingWithCopyWarning:
     # It gets raised because of reassignment of values to a subset of a df
     # The alternative - making an explicit copy - could use more memory
@@ -215,9 +215,7 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     lower_width = q2 - q1
 
     if upper_width == 0 or lower_width == 0:
-        msg = (
-            "Width adjustment normalisation failed because one of the quartile widths is zero."
-        )
+        msg = "Width adjustment normalisation failed because one of the quartile widths is zero."
         return dict(
             protein_df=None,
             messages=[dict(level=logging.ERROR, msg=msg)],
