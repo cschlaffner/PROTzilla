@@ -289,23 +289,23 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             "background_number",
             "background_biomart",
         ]:
-            form[field_name].isVisible = False
+            form[field_name].is_visible = False
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
-            gene_sets_enricher_field.isVisible = True
+            gene_sets_enricher_field.is_visible = True
             gene_sets_enricher_field.set_options(
                 form_helper.to_choices(
                     gseapy.get_library_name()
                 )  # TODO check whether we need to pass the organism name here
             )
         else:
-            gene_sets_path_field.isVisible = True
+            gene_sets_path_field.is_visible = True
 
         if (
             background_type_field.value
             == GOAnalysisWithEnrichrBackgroundType.choose_biomart_dataset.value
         ):
-            background_biomart_field.isVisible = True
+            background_biomart_field.is_visible = True
             database = biomart_database("ENSEMBL_MART_ENSEMBL")
             background_biomart_field.set_options(
                 form_helper.to_choices(
@@ -319,12 +319,12 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
             background_type_field.value
             == GOAnalysisWithEnrichrBackgroundType.upload_a_file.value
         ):
-            background_path_field.isVisible = True
+            background_path_field.is_visible = True
         elif (
             background_type_field.value
             == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
         ):
-            background_number_field.isVisible = True
+            background_number_field.is_visible = True
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
@@ -427,19 +427,19 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
             form_helper.get_choices(run, "gene_mapping_df")
         )
 
-        background_path_field.isVisible = False
-        background_number_field.isVisible = False
+        background_path_field.is_visible = False
+        background_number_field.is_visible = False
         print("Background type field value: ", background_type_field.value)
         if (
             background_type_field.value
             == GOAnalysisOflineBackgroundType.upload_a_file.value
         ):
-            background_path_field.isVisible = True
+            background_path_field.is_visible = True
         elif (
             background_type_field.value
             == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
         ):
-            background_number_field.isVisible = True
+            background_number_field.is_visible = True
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["proteins_df"] = steps.get_step_output(
@@ -566,18 +566,18 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
             form_helper.get_choices(run, "gene_mapping_df")
         )
 
-        gene_sets_enrichr_field.isVisible = False
-        gene_sets_path_field.isVisible = False
+        gene_sets_enrichr_field.is_visible = False
+        gene_sets_path_field.is_visible = False
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
-            gene_sets_enrichr_field.isVisible = True
+            gene_sets_enrichr_field.is_visible = True
             gene_sets_enrichr_field.set_options(
                 form_helper.to_choices(
                     gseapy.get_library_name()
                 )  # TODO check whether we need to pass the organism name here
             )
         else:
-            gene_sets_path_field.isVisible = True
+            gene_sets_path_field.is_visible = True
 
         grouping_field.set_options(
             form_helper.get_choices_for_metadata_non_sample_columns(run)
@@ -734,16 +734,16 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
         gene_sets_enrichr_field = form["gene_sets_enrichr"]
         gene_sets_path_field = form["gene_sets_path"]
 
-        gene_sets_enrichr_field.isVisible = False
-        gene_sets_path_field.isVisible = False
+        gene_sets_enrichr_field.is_visible = False
+        gene_sets_path_field.is_visible = False
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
-            gene_sets_enrichr_field.isVisible = True
+            gene_sets_enrichr_field.is_visible = True
             gene_sets_enrichr_field.set_options(
                 form_helper.to_choices(gseapy.get_library_name())
             )
         else:
-            gene_sets_path_field.isVisible = True
+            gene_sets_path_field.is_visible = True
 
     def insert_dataframes(self, steps, inputs):
         inputs["protein_df"] = steps.get_step_output(

@@ -4,8 +4,8 @@ import backend.protzilla.methods.data_preprocessing as data_preprocessing
 import backend.protzilla.methods.importing as importing
 
 _forward_mapping = [
-    importing.MaxQuantImport,
     importing.DiannImport,
+    importing.MaxQuantImport,
     importing.MsFraggerImport,
     importing.MetadataImport,
     importing.MetadataImportMethodDiann,
@@ -13,6 +13,7 @@ _forward_mapping = [
     importing.PeptideImport,
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
+    importing.FastaImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
