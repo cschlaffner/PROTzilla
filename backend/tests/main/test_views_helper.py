@@ -23,6 +23,7 @@ def test_get_all_possible_step_names():
         "NormalisationByZScore",
         "NormalisationByTotalSum",
         "NormalisationByMedian",
+        "NormalisationByWidthAdjustment",
         "NormalisationByReferenceProtein",
         "ImputationByMinPerDataset",
         "ImputationByMinPerProtein",
