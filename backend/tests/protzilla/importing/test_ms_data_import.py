@@ -7,6 +7,7 @@ import pytest
 
 from backend.tests.paths import TEST_MSDATA_PATH
 from backend.protzilla.importing import ms_data_import
+from protzilla.constants.intensity_types import IntensityType
 
 
 def ms_fragger_import_intensity_df(intensity_name):
@@ -188,15 +189,17 @@ def diann_import_intensity_df():
     return pd.DataFrame(data=diann_intensity_df)
 
 
-def test_max_quant_import_different_intensity_names():
-    for intensity_name in ["Intensity", "iBAQ", "LFQ intensity"]:
-        outputs = ms_data_import.max_quant_import(
-            file_path=f"{TEST_MSDATA_PATH}/MaxQuant/small.tsv",
-            intensity_name=intensity_name,
-        )
-        assert "protein_df" in outputs
-        assert outputs["protein_df"] is not None
-        assert intensity_name in outputs["protein_df"].columns
+@pytest.mark.parametrize(
+    "intensity_name", [intensity.value for intensity in IntensityType]
+)
+def test_max_quant_import_different_intensity_names(intensity_name):
+    outputs = ms_data_import.max_quant_import(
+        file_path=f"{TEST_MSDATA_PATH}/MaxQuant/small.tsv",
+        intensity_name=intensity_name,
+    )
+    assert "protein_df" in outputs
+    assert outputs["protein_df"] is not None
+    assert intensity_name in outputs["protein_df"].columns
 
 
 def test_max_quant_import_file_not_exist():

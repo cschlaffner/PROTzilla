@@ -6,6 +6,7 @@ from backend.protzilla.data_preprocessing.peptide_filter import (
     by_pep_value_plot,
 )
 from backend.protzilla.importing import peptide_import
+from backend.protzilla.constants.intensity_types import IntensityType
 
 
 def assert_peptide_filtering_matches_protein_filtering(
@@ -43,6 +44,7 @@ def assert_peptide_filtering_matches_protein_filtering(
 def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
     import_outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
+        intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
 

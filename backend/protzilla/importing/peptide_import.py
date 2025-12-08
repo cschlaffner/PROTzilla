@@ -3,20 +3,27 @@ from pathlib import Path
 
 import pandas as pd
 
-from backend.protzilla.importing.ms_data_import import clean_protein_groups
-from protzilla.importing.import_utils import IntensityType
+from protzilla.importing.ms_data_import import clean_protein_groups
+from protzilla.constants.intensity_types import IntensityType
 
 
-def peptide_import(file_path: Path, map_to_uniprot) -> dict:
+def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
     try:
+        allowed = {item.value for item in IntensityType}
+        assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
     except AssertionError as e:
         return dict(
             messages=[dict(level=logging.ERROR, msg=e)],
         )
     # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
-    # "LFQ intensity" are only defined for proteins.
-    peptide_intensity_name = IntensityType.INTENSITY.value
+    # "LFQ intensity" are only defined for proteins. However, ratios can be used for peptides.
+
+    if (
+        intensity_name == IntensityType.LFQ_INTENSITY.value
+        or intensity_name == IntensityType.IBAQ.value
+    ):
+        intensity_name = IntensityType.INTENSITY.value
 
     id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
     df = pd.read_csv(
@@ -29,9 +36,10 @@ def peptide_import(file_path: Path, map_to_uniprot) -> dict:
 
     if "Sample" not in df.columns:
         id_df = df[id_columns]
-        intensity_df = df.filter(regex=f"^{peptide_intensity_name} ", axis=1)
+        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
+        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
         intensity_df.columns = [
-            c[len(peptide_intensity_name) + 1 :] for c in intensity_df.columns
+            c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         molten = pd.melt(
             pd.concat([id_df, intensity_df], axis=1),

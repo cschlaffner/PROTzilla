@@ -15,11 +15,10 @@ from backend.protzilla.importing.peptide_import import peptide_import, evidence_
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
 from protzilla.importing.import_utils import (
-    IntensityType,
     AggregationMethods,
-    IntensityNameType,
     FeatureOrientationType,
 )
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
 class ImportingStep(Step):
@@ -296,6 +295,12 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
+                ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    value=IntensityType.INTENSITY.value,
+                    options=IntensityType,
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
