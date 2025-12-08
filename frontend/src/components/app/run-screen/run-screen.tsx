@@ -35,6 +35,7 @@ const StyledCardRow = styled(FlexRow)`
   gap: ${spacing("small")};
   flex: 1;
   height: 100%;
+  min-height: 0;
 `;
 
 const StyledFlexColumn = styled(FlexColumn)`
@@ -246,7 +247,7 @@ export const RunScreen: React.FC = () => {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <StyledNavbar
         showRunInformation={true}
         title={runName}
