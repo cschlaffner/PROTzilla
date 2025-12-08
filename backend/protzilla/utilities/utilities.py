@@ -65,7 +65,13 @@ def default_intensity_column(
     :return: The default intensity column name
     """
 
-    possible_substring_identifiers = ["intensity", "ibaq", "lfq", "spectral count"]
+    possible_substring_identifiers = [
+        "intensity",
+        "ibaq",
+        "lfq",
+        "spectral count",
+        "ratio",
+    ]
 
     if intensity_column_name is not None:
         return intensity_column_name
