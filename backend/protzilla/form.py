@@ -22,6 +22,14 @@ class Option:
     value: str
     label: str
 
+    def __lt__(self, other):
+        return self.label < other.label
+
+    def __eq__(self, other):
+        if isinstance(other, Option):
+            return self.value == other.value and self.label == other.label
+        return False
+
 
 @dataclass
 class _baseField:
@@ -29,7 +37,8 @@ class _baseField:
     label: str
     value: object
     type: str
-    isVisible: bool = True
+    # TODO: is this even used?
+    is_visible: bool = True
 
 
 @dataclass
@@ -98,8 +107,12 @@ class MultiSelectField(_baseField):
     options: List[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
+    # TODO: seems to keep selected values even if the Filed is dynamically updated
     def set_options(self, options: list[Option] | Enum) -> None:
-        self.options = options
+        if sorted(options) != sorted(self.options):
+            # TODO: why is it still there? Is value not correct? Is it just not rendered?
+            self.options = options
+            self.value = []
 
 
 @dataclass

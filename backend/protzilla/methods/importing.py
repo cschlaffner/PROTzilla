@@ -355,7 +355,10 @@ class EvidenceImport(ImportingStep):
 
 
 class FastaImport(ImportingStep):
-    # TODO: questionable if this should be an extra step
+    # TODO: questionable if this should be an extra step - yes and it should probably also be used for the PTM
+    #  visualization
+    #   - cross-ref with ptm vis to see if this handles some edge cases differently
+    #   - maybe extra PR?
     display_name = "Fasta Protein Sequence Import"
     operation = "fasta_import"
     method_description = "Import a fasta file containing protein sequences."
@@ -363,12 +366,18 @@ class FastaImport(ImportingStep):
     input_keys = ["file_path"]
     output_keys = ["fasta_df"]
 
-    def method(self, inputs):
-        return fasta_import(**inputs)
+    calc_method = staticmethod(fasta_import)
 
-    # TODO: form
-    # class FastaImportForm(MethodForm):
-    #     file_path = CustomFileField(label="Fasta file")
+    def create_form(self):
+        return Form(
+            label="Fasta Protein Sequence Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="Fasta file",
+                ),
+            ],
+        )
 
 
 class ExampleDatasetImport(ImportingStep):
