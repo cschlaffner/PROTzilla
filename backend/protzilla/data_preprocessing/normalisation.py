@@ -198,9 +198,18 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     pd.set_option("mode.chained_assignment", None)
 
     intensity_name = default_intensity_column(protein_df)
-    q1 = protein_df[intensity_name].quantile(0.25)
-    q2 = protein_df[intensity_name].quantile(0.5)
-    q3 = protein_df[intensity_name].quantile(0.75)
+    intensity_series = pd.to_numeric(protein_df[intensity_name], errors="coerce")
+
+    if intensity_series.isna().all():
+        msg = "Width adjustment normalisation failed because all intensity values are non-numeric."
+        return dict(
+            protein_df=None,
+            messages=[dict(level=logging.ERROR, msg=msg)],
+        )
+
+    q1 = intensity_series.quantile(0.25)
+    q2 = intensity_series.quantile(0.5)
+    q3 = intensity_series.quantile(0.75)
 
     upper_width = q3 - q2
     lower_width = q2 - q1
@@ -214,7 +223,7 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
 
-    centered = protein_df[intensity_name] - q2
+    centered = intensity_series - q2
     scaled = centered.copy()
     scaled[centered > 0] = centered[centered > 0] / upper_width
     scaled[centered <= 0] = centered[centered <= 0] / lower_width
