@@ -38,53 +38,38 @@ def by_isolation_forest(
         dict with list of outlier sample names
     :rtype: Tuple[pandas DataFrame, dict]
     """
-    try:
-        transformed_df = long_to_wide(protein_df)
+    transformed_df = long_to_wide(protein_df)
 
-        clf = IsolationForest(
-            random_state=0,
-            max_samples=(len(transformed_df) // 2),
-            n_jobs=n_jobs,
-            n_estimators=n_estimators,
-        )
+    clf = IsolationForest(
+        random_state=0,
+        max_samples=(len(transformed_df) // 2),
+        n_jobs=n_jobs,
+        n_estimators=n_estimators,
+    )
 
-        df_isolation_forest_data = pd.DataFrame(index=transformed_df.index)
-        df_isolation_forest_data["IF Outlier"] = clf.fit_predict(
-            transformed_df.loc[:, transformed_df.columns != "Sample"]
-        )
-        df_isolation_forest_data["Anomaly Score"] = clf.decision_function(
-            transformed_df
-        )
-        df_isolation_forest_data["Outlier"] = (
-            df_isolation_forest_data["IF Outlier"] == -1
-        )
-        outlier_list = df_isolation_forest_data[
-            df_isolation_forest_data["Outlier"]
-        ].index.tolist()
+    df_isolation_forest_data = pd.DataFrame(index=transformed_df.index)
+    df_isolation_forest_data["IF Outlier"] = clf.fit_predict(
+        transformed_df.loc[:, transformed_df.columns != "Sample"]
+    )
+    df_isolation_forest_data["Anomaly Score"] = clf.decision_function(transformed_df)
+    df_isolation_forest_data["Outlier"] = df_isolation_forest_data["IF Outlier"] == -1
+    outlier_list = df_isolation_forest_data[
+        df_isolation_forest_data["Outlier"]
+    ].index.tolist()
 
-        protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-        peptide_df = (
-            None
-            if peptide_df is None
-            else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-        )
+    protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
+    peptide_df = (
+        None
+        if peptide_df is None
+        else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
+    )
 
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=outlier_list,
-            anomaly_df=df_isolation_forest_data[["Anomaly Score", "Outlier"]],
-        )
-    except ValueError as e:
-        msg = "Outlier Detection by IsolationForest does not accept missing values \
-            encoded as NaN. Consider preprocessing your data to remove NaN values."
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=None,
-            anomaly_df=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
-        )
+    return dict(
+        protein_df=protein_df,
+        peptide_df=peptide_df,
+        outlier_list=outlier_list,
+        anomaly_df=df_isolation_forest_data[["Anomaly Score", "Outlier"]],
+    )
 
 
 def by_local_outlier_factor(

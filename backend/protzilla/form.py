@@ -1,8 +1,8 @@
 from __future__ import annotations
-from enum import Enum
+
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
-from pathlib import Path
+from enum import Enum
 from typing import Any, List, Dict, Union, TYPE_CHECKING
 
 from backend.main import settings
@@ -11,14 +11,17 @@ from backend.main import settings
 if TYPE_CHECKING:
     from backend.protzilla.run import Run
 
+
 @dataclass
 class Option:
     """
     Options for the dropdown and multi-select fields.
     `value` is the value of the option, `label` is the label shown to the user.
     """
+
     value: str
     label: str
+
 
 @dataclass
 class _baseField:
@@ -38,27 +41,27 @@ class TextField(_baseField):
 @dataclass
 class NumberField(_baseField):
     type: str = "number"
-    min: int|None = None
-    max: int|None = None
+    min: int | None = None
+    max: int | None = None
     step: float = 1
     value: int = 0
     isInteger: bool = True
     hasStepButtons: bool = False
-    separatePrefix: str|None = None
-    separateSuffix: str|None = None
+    separatePrefix: str | None = None
+    separateSuffix: str | None = None
 
 
-@dataclass         
+@dataclass
 class FloatField(_baseField):
     type: str = "number"
-    min: float|None = None
-    max: float|None = None
+    min: float | None = None
+    max: float | None = None
     step: float = 1
     value: float = 0.0
     isInteger: bool = False
     hasStepButtons: bool = True
-    separatePrefix: str|None = None
-    separateSuffix: str|None = None
+    separatePrefix: str | None = None
+    separateSuffix: str | None = None
 
 
 @dataclass
@@ -71,7 +74,7 @@ class SearchField(_baseField):
 @dataclass
 class CheckboxField(_baseField):
     type: str = "single-checkbox"
-    text: str = "" # text shown next to the checkbox
+    text: str = ""  # text shown next to the checkbox
     value: bool = False
 
 
@@ -79,7 +82,8 @@ class CheckboxField(_baseField):
 class RadioSelectField(_baseField):
     type: str = "radio-select"
     options: list[Option] | Enum = field(default_factory=list)
-    value: str|None = None
+    value: str | None = None
+
 
 @dataclass
 class CheckboxMultiSelectField(_baseField):
@@ -97,18 +101,21 @@ class MultiSelectField(_baseField):
     def set_options(self, options: list[Option] | Enum) -> None:
         self.options = options
 
+
 @dataclass
 class DropdownField(_baseField):
     type: str = "dropdown"
     options: list[Option] | Enum = field(default_factory=list)
-    value: str|None = None
-    
+    value: str | None = None
+
     def set_options(self, options: list[Option] | Enum) -> None:
         self.options = options
-        if (options == []):
+        if options == []:
             self.value = None
-        elif (options and self.value not in map(lambda o: o.value, options)):
-            self.value = options[0].label #TODO should be value not label -> see frontend
+        elif options and self.value not in map(lambda o: o.value, options):
+            self.value = options[
+                0
+            ].label  # TODO should be value not label -> see frontend
 
 
 @dataclass
@@ -121,40 +128,75 @@ class MultiSelectWithDropdownsField(_baseField):
 
 @dataclass
 class FileInput(_baseField):
-    value: str|None = None
+    value: str | None = None
     type: str = "file"
     filedata: str = ""
 
 
 @dataclass
-class FormDivider():
+class FormDivider:
     """
     To separate the form into sections.
     `label` is the shown title of the section.
     """
+
     label: str
     type: str = "form-divider"
 
-InputField = Union[TextField, NumberField, SearchField, RadioSelectField, CheckboxField, MultiSelectField, DropdownField, FileInput]
-StructualField = Union[FormDivider]
+
+@dataclass
+class InfoField:
+    """
+    A field to show additional information for a specific field to the user.
+    """
+
+    label: str
+    type: str = "info-field"
+
+
+@dataclass
+class HeaderInfoField:
+    """
+    A field to show additional information to the user at the top of the form.
+    """
+
+    label: str
+    type: str = "header-info-field"
+
+
+InputField = Union[
+    TextField,
+    NumberField,
+    SearchField,
+    RadioSelectField,
+    CheckboxField,
+    MultiSelectField,
+    DropdownField,
+    FileInput,
+]
+StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
 
 
 @dataclass
 class Form:
     label: str
-    input_fields: List[InputField|StructualField]
+    input_fields: List[InputField | StructuralField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
         "create a field map for easy access by fieldname"
 
-        self._field_map = {field.name: field for field in self.input_fields if isinstance(field, _baseField)}
+        self._field_map = {
+            field.name: field
+            for field in self.input_fields
+            if isinstance(field, _baseField)
+        }
 
-    def modify_form(self, run:Run) -> None:
+    def modify_form(self, run: Run) -> None:
         """
         This method should be defined in Step classes to modify the form based on the current state of the run.
         """
-        
+
         pass
 
     def update_values(self, values: Dict[str, Any]) -> None:
@@ -162,29 +204,29 @@ class Form:
         if values:
             for fieldname, value in values.items():
                 self[fieldname].value = value
-        
-    def apply_modification(self, run:Run) -> None:
+
+    def apply_modification(self, run: Run) -> None:
         self.modify_form(run)
-    
+
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
 
         if fieldname not in self._field_map:
             raise KeyError(f"Field '{fieldname}' not found in form.")
-        
+
         return self._field_map[fieldname]
-    
+
     def __setitem__(self, fieldname: str, field: Any) -> None:
         "to do form[fieldname] = field to set the field object"
-        
+
         if fieldname in self._field_map:
             self._field_map[fieldname] = field
-    
+
     def __contains__(self, fieldname: str) -> bool:
         "to do fieldname in form to check if the field exists"
-        
+
         return fieldname in self._field_map
-    
+
     def __iter__(self):
         return self.input_fields
 
@@ -198,10 +240,18 @@ class Form:
 
         values = {}
         for field in self.input_fields:
-            if isinstance(field, FormDivider):
+            if (
+                isinstance(field, FormDivider)
+                or isinstance(field, InfoField)
+                or isinstance(field, HeaderInfoField)
+            ):
                 continue
             elif isinstance(field, FileInput):
-                values[field.name] = (settings.FILE_UPLOAD_TEMP_DIR / field.value) if field.value else None
+                values[field.name] = (
+                    (settings.FILE_UPLOAD_TEMP_DIR / field.value)
+                    if field.value
+                    else None
+                )
             elif isinstance(field.value, Enum):
                 values[field.name] = field.value.value
             else:
@@ -213,19 +263,19 @@ class Form:
         "Custom JSON encoder that handles Enum classes and functions"
 
         def default(self, obj):
-            #serialize functions
+            # serialize functions
             if callable(obj) and type(obj) != type(Enum):
                 return obj()
-            
+
             if is_dataclass(obj):
                 return asdict(obj)
-            
+
             # Serialize Enums as their values
             if isinstance(obj, Enum):
                 return obj.value
-            
+
             # Serialize Enum class as dict
             if type(obj) == type(Enum):
                 return [Option(item.name, item.value) for item in obj]
-            
+
             return super().default(obj)

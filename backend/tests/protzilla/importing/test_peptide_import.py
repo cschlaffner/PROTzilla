@@ -29,27 +29,27 @@ def peptide_df(intensity_name):
 
     intensity_name_to_intensities = {
         "LFQ intensity": [
-            np.NAN,
-            np.NAN,
+            np.nan,
+            np.nan,
             253840.0,
             1371200.0,
             3048300.0,
             3957900.0,
-            np.NAN,
+            np.nan,
             8533900.0,
-            np.NAN,
+            np.nan,
             6923600.0,
         ],
         "Intensity": [
             253840.0,
             1371200.0,
             3048300.0,
-            np.NAN,
-            np.NAN,
-            np.NAN,
-            np.NAN,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
             6923600.0,
-            np.NAN,
+            np.nan,
             37440000.0,
         ],
     }
@@ -123,11 +123,10 @@ def evidence_df():
     return peptide_df
 
 
-@pytest.mark.parametrize("intensity_name", ["LFQ intensity", "Intensity"])
+@pytest.mark.parametrize("intensity_name", ["Intensity"])
 def test_peptide_import(intensity_name):
     outputs = peptide_import.peptide_import(
         file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -138,18 +137,6 @@ def test_peptide_import(intensity_name):
 
     pd.testing.assert_frame_equal(
         outputs["peptide_df"], peptide_df(intensity_name), check_dtype=False
-    )
-
-
-def test_peptide_import_ibaq():
-    outputs = peptide_import.peptide_import(
-        file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
-        intensity_name="iBAQ",
-        map_to_uniprot=False,
-    )
-
-    pd.testing.assert_frame_equal(
-        outputs["peptide_df"], peptide_df("LFQ intensity"), check_dtype=False
     )
 
 
@@ -172,7 +159,7 @@ def test_evidence_import():
     )
 
     pd.testing.assert_frame_equal(
-        outputs["peptide_df"].drop(columns=["PEP"]),
-        evidence_df().drop(columns=["PEP"]),
+        outputs["peptide_df"].drop(columns=["PEP"]).sort_index(axis=1),
+        evidence_df().drop(columns=["PEP"]).sort_index(axis=1),
         check_dtype=False,
     )

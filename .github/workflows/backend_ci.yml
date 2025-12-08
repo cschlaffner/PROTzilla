@@ -2,14 +2,9 @@ name: Backend CI Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - dev
     paths:
       - backend/**
   pull_request:
-    branches:
-      - '*'
     paths:
       - backend/**
 
@@ -47,6 +42,9 @@ jobs:
           pip install flake8 pytest pytest-cov
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Check formatting with black
+        run: python -m black --check .
+
       - name: Analyse the code with autoflake
         run: python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables --expand-star-imports --ignore-init-module-imports $(git ls-files '*.py')
 
@@ -54,9 +52,6 @@ jobs:
         run: |
           export PYTHONPATH=. pytest 
           pytest --cache-clear --cov=. --cov-report term-missing backend/tests/
-
-      - name: Format with black
-        run: python -m black .
 
       - name: Coverage comment
         id: coverage_comment

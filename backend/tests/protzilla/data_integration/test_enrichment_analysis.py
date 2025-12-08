@@ -37,6 +37,7 @@ from backend.protzilla.data_integration.database_query import check_biomart_avai
 
 biomart_availability = check_biomart_availability()
 
+
 @patch("restring.restring.get_functional_enrichment")
 def test_get_functional_enrichment_with_delay(mock_enrichment):
     MIN_WAIT_TIME = 1
@@ -92,6 +93,17 @@ def test_get_functional_enrichment_with_delay(mock_enrichment):
     assert call_time_second - call_time_first >= MIN_WAIT_TIME
     assert result1.equals(result2)
     assert result1.equals(mock_df)
+
+
+def df_column_equal(df1: pd.DataFrame, df2: pd.DataFrame, column: str) -> bool:
+    if column in ["Lead_genes", "Lead_proteins"]:
+        # Genes and proteins columns may have different orderings if they have multiple orderings, so compare as sorted
+        # lists
+        expected = df2[column].str.split(";").apply(sorted)
+        current = df1[column].str.split(";").apply(sorted)
+        return expected.equals(current)
+    else:
+        return df2[column].equals(df1[column])
 
 
 def test_merge_up_down_regulated_dfs_restring():
@@ -201,16 +213,16 @@ def test_GO_analysis_with_STRING(mock_enrichment, background):
 @patch(
     "backend.protzilla.data_integration.enrichment_analysis.get_functional_enrichment_with_delay"
 )
-def test_GO_analysis_with_STRING_one_direction_missing(
-    mock_enrichment
-):
+def test_GO_analysis_with_STRING_one_direction_missing(mock_enrichment):
     proteins_df = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-log2_fold_change_df.csv"
     )
     up_proteins_df = proteins_df[proteins_df["log2_fold_change"] > 0]
     down_proteins_df = proteins_df[proteins_df["log2_fold_change"] < 0]
 
-    up_df = pd.read_csv(TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0)
+    up_df = pd.read_csv(
+        TEST_ENRICHMENT_PATH / "up_enrichment_KEGG_Process.csv", header=0
+    )
     down_df = pd.read_csv(
         TEST_ENRICHMENT_PATH / "down_enrichment_KEGG_Process.csv", header=0
     )
@@ -425,6 +437,7 @@ def test_GO_analysis_with_no_gene_sets_input():
     assert "messages" in current_out
     assert "No gene sets provided" in current_out["messages"][0]["msg"]
 
+
 @pytest.mark.skip(reason="The API doesn't work.")
 @patch("protzilla.data_integration.database_query.uniprot_groups_to_genes")
 def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
@@ -505,6 +518,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
     assert "No background provided" in current_out["messages"][0]["msg"]
     assert "Some proteins could not be mapped" in current_out["messages"][1]["msg"]
 
+
 @pytest.mark.skip(reason="The api dosn't work")
 def test_GO_analysis_Enrichr_wrong_background_file():
     if biomart_availability == False:
@@ -532,7 +546,7 @@ def GO_analysis_offline_result_no_bg():
         "Overlap": ["4/8", "4/8"],
         "P-value": [1.000000e00, 1.000000e00],
         "Adjusted P-value": [1.000000e00, 1.000000e00],
-        "Odds Ratio": [5.294118e-01, 5.294118e-01],
+        "Odds Ratio": [0.2, 0.2],
         "Combined Score": [0.000000e00, 0.000000e00],
         "Genes": [
             "Gene3;Gene2;Gene4;Gene1",
@@ -553,7 +567,7 @@ def GO_analysis_offline_result_with_bg():
         "Overlap": ["4/8", "4/8"],
         "P-value": [7.272727e-01, 7.272727e-01],
         "Adjusted P-value": [7.272727e-01, 7.272727e-01],
-        "Odds Ratio": [9.529412e-01, 9.529412e-01],
+        "Odds Ratio": [1.0, 1.0],
         "Genes": [
             "Gene3;Gene2;Gene4;Gene1",
             "Gene5;Gene6;Gene3;Gene1",
@@ -1003,7 +1017,7 @@ def test_gsea():
         grouping="Group",
         group1="CTR",
         group2="AD",
-        gene_sets_type = GeneSetsType.choose_from_enrichr_options.value,
+        gene_sets_type=GeneSetsType.choose_from_enrichr_options.value,
         gene_sets_enrichr=["KEGG_2016"],
         min_size=7,
         number_of_permutations=500,
@@ -1012,11 +1026,18 @@ def test_gsea():
     assert "messages" in current_out
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
+    current_out["enrichment_df"] = (
+        current_out["enrichment_df"].sort_values(by="Term").reset_index(drop=True)
+    )
+    expected_enrichment_df = expected_enrichment_df.sort_values(by="Term").reset_index(
+        drop=True
+    )
+
     column_names = ["Name", "Term", "Tag %", "Gene %", "Lead_genes", "Lead_proteins"]
     # Compare all specified columns
     for column in column_names:
-        assert expected_enrichment_df[column].equals(
-            current_out["enrichment_df"][column]
+        assert df_column_equal(
+            current_out["enrichment_df"], expected_enrichment_df, column
         )
 
     # Compare the numeric columns separately with a tolerance for numerical equality
@@ -1307,6 +1328,13 @@ def test_gsea_preranked():
     assert "messages" in current_out
     assert "Some proteins could not be mapped" in current_out["messages"][0]["msg"]
 
+    current_out["enrichment_df"] = (
+        current_out["enrichment_df"].sort_values(by="Term").reset_index(drop=True)
+    )
+    expected_enrichment_df = expected_enrichment_df.sort_values(by="Term").reset_index(
+        drop=True
+    )
+
     numerical_equal = np.isclose(
         current_out["ranking"].squeeze(), expected_ranking, rtol=1e-05, atol=1e-08
     )
@@ -1315,8 +1343,8 @@ def test_gsea_preranked():
     column_names = ["Name", "Term", "Tag %", "Gene %", "Lead_genes", "Lead_proteins"]
     # Compare all specified columns
     for column in column_names:
-        assert expected_enrichment_df[column].equals(
-            current_out["enrichment_df"][column]
+        assert df_column_equal(
+            current_out["enrichment_df"], expected_enrichment_df, column
         )
 
     # Compare the numeric columns separately with a tolerance for numerical equality

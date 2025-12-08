@@ -32,8 +32,7 @@ const StyledHeader = styledDiv.div<{ hasPaddingBottom: boolean }>`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-bottom: ${({ hasPaddingBottom }) =>
-    hasPaddingBottom ? spacing("medium") : "0"}
+  padding-bottom: ${({ hasPaddingBottom }) => (hasPaddingBottom ? spacing("medium") : "0")}
 `;
 
 const StyledButtonDiv = styledDiv.div`
@@ -510,8 +509,8 @@ export const IndexScreen: React.FC = () => {
                     name: "df_mode",
                     label: "With memory mode:",
                     options: [
-                      { label: "disk", value: "disk" }, // TODO change label to "Standard" after backend refactor
-                      { label: "disk_memory", value: "disk_memory" }, // TODO change label to "Low Memory" after backend refactor
+                      { label: "Standard", value: "disk" },
+                      { label: "Low Memory", value: "disk_memory" },
                     ],
                     isVisible: true,
                   },
@@ -576,6 +575,7 @@ export const IndexScreen: React.FC = () => {
                     name: "workflow",
                     label: "Workflow:",
                     isVisible: true,
+                    accept: ".yaml, .yml",
                   },
                   {
                     type: "text",

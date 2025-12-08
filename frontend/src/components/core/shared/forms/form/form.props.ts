@@ -2,6 +2,8 @@ import {
   CheckboxSelectInputFieldProps,
   DropdownInputFieldProps,
   FileInputFieldProps,
+  HeaderInfoFieldProps,
+  InfoFieldProps,
   MultiSelectInputFieldProps,
   NumberInputFieldProps,
   RadioSelectInputFieldProps,
@@ -69,7 +71,17 @@ export type InputField =
       type: "file";
       name: string;
       isVisible: boolean;
-    } & Omit<FileInputFieldProps, "onChange">);
+    } & Omit<FileInputFieldProps, "onChange">)
+  | ({
+      type: "info-field";
+      name: string;
+      isVisible: boolean;
+    } & Omit<InfoFieldProps, "onChange">)
+  | ({
+      type: "header-info-field";
+      name: string;
+      isVisible: boolean;
+    } & Omit<HeaderInfoFieldProps, "onChange">);
 
 type InputFields =
   | TextInputFieldProps
@@ -80,7 +92,9 @@ type InputFields =
   | SingleCheckboxInputFieldProps
   | MultiSelectInputFieldProps
   | DropdownInputFieldProps
-  | FileInputFieldProps;
+  | FileInputFieldProps
+  | InfoFieldProps
+  | HeaderInfoFieldProps;
 
 type ExtractValueType<T> = T extends { value?: infer U } ? U : never;
 

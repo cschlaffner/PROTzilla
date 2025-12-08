@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import datetime
 import os
 import pickle
+import shutil
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 import yaml
-from django.utils.datetime_safe import datetime
 from plotly.io import read_json, write_json
 
 import backend.protzilla.utilities as utilities
@@ -187,14 +188,14 @@ class DiskOperator:
             logger.info(
                 f"Metadata file {self.metadata_path} did not exist and was created"
             )
-            date = datetime.now().strftime(metadata_date_format)
+            date = datetime.datetime.now().strftime(metadata_date_format)
             metadata = {"creation_date": date, "modification_date": date}
             self.yaml_operator.write(self.metadata_path, metadata)
 
     def update_modification_date(self):
         with ErrorHandler():
             metadata = self.read_metadata()
-            metadata["modification_date"] = datetime.now().strftime(
+            metadata["modification_date"] = datetime.datetime.now().strftime(
                 metadata_date_format
             )
             self.write_metadata(metadata)
@@ -264,8 +265,9 @@ class DiskOperator:
             return
         with ErrorHandler():
             upload_dir = paths.UPLOAD_PATH
-            for file in upload_dir.iterdir():
-                file.unlink()
+            for element in upload_dir.iterdir():
+                # using rmtree is more powerful than Path.unlink, as it can also delete non-empty directories
+                shutil.rmtree(element)
 
     def _read_step(self, step_data: dict, steps: StepManager) -> Step:
         from backend.protzilla.stepfactory import StepFactory

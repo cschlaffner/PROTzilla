@@ -15,10 +15,17 @@ import sys
 from pathlib import Path
 import tzlocal
 
-PROJECT_PATH = Path(__file__).resolve().parent.parent.parent # path to the root of the project
+PROJECT_PATH = (
+    Path(__file__).resolve().parent.parent.parent
+)  # path to the root of the project
 sys.path.append(f"{PROJECT_PATH}")
 
-from backend.protzilla.constants.paths import UPLOAD_PATH, PROJECT_PATH, BACKEND_PATH, FRONTEND_PATH
+from backend.protzilla.constants.paths import (
+    UPLOAD_PATH,
+    PROJECT_PATH,
+    BACKEND_PATH,
+    FRONTEND_PATH,
+)
 
 FILE_UPLOAD_HANDLERS = ["main.upload_handler.CustomFileUploadHandler"]
 
@@ -57,7 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    #"django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -87,19 +94,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "main.wsgi.application"
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:6006',
-    'http://127.0.0.1:6006',
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:6006",
+    "http://127.0.0.1:6006",
 ]
 
 # Cross-Orgin Resource Sharing
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", # pnpm start
-    "http://127.0.0.1:5173", # pnpm start
-    "http://localhost:6006", # Storybook
-    "http://127.0.0.1:6006", # Storybook
-    ]
+    "http://localhost:5173",  # pnpm start
+    "http://127.0.0.1:5173",  # pnpm start
+    "http://localhost:6006",  # Storybook
+    "http://127.0.0.1:6006",  # Storybook
+]
 
 CORS_ALLOW_METHODS = [
     "GET",
@@ -119,9 +126,11 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_NAME = "csrftoken"  # The name of the CSRF cookie
 CSRF_COOKIE_DOMAIN = None  # Allow any domain
-CSRF_COOKIE_HTTPONLY = False  # Set to True if you want the cookie to be inaccessible to JavaScript
+CSRF_COOKIE_HTTPONLY = (
+    False  # Set to True if you want the cookie to be inaccessible to JavaScript
+)
 CSRF_COOKIE_SECURE = False  # Set to True if you are using HTTPS
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = "Lax"
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -129,7 +138,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BACKEND_PATH/ "db.sqlite3",
+        "NAME": BACKEND_PATH / "db.sqlite3",
     }
 }
 

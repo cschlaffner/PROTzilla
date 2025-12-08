@@ -1,6 +1,7 @@
 /// <reference types="vite-plugin-svgr/client" />
 export { default as add } from "./add.svg?react";
 export { default as arrowRight } from "./arrow-right.svg?react";
+export { default as barChartSteps } from "./bar-chart-steps.svg?react";
 export { default as burgerMenu } from "./burger-menu.svg?react";
 export { default as checkmark } from "./checkmark.svg?react";
 export { default as chevronDoubleLeft } from "./chevron-double-left.svg?react";
