@@ -300,15 +300,14 @@ def test_inversion_transformation(
     method_outputs = by_inversion(**method_inputs)
 
     result_df = method_outputs["protein_df"]
-    result_peptide_intensities = (method_outputs["peptide_df"]["Intensity"],)
 
     assert result_df.equals(
         inversion_transformation_expected_df
     ), f"The results of the transformation: {result_df} \
-            are not equal to the expected result: {log2_transformation_expected_df}"
+            are not equal to the expected result: {inversion_transformation_expected_df}"
 
     assert np.allclose(
-        result_peptide_intensities,
+        method_outputs["peptide_df"]["Intensity"],
         inversion_transformation_expected_peptide_intensities,
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
