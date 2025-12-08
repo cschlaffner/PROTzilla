@@ -17,9 +17,8 @@ def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> d
     :type protein_df: pd.DataFrame
     :param peptide_df: a peptide data frame, that is to be transformed the same way as the protein data frame
 
-    :return: returns a pandas DataFrame in typical protzilla
-        long format with the transformed data and an empty dict.
-    :rtype: dict[str, pandas DataFrame]
+    :return: returns a dict containing the transformed dataframes for "protein_df" and "peptide_df" respectively
+    :rtype: dict[str, pd.DataFrame | None]
     """
     intensity_name = default_intensity_column(protein_df)
 
@@ -31,7 +30,7 @@ def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> d
     transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
     if transformed_peptide_df is not None:
         transformed_peptide_df["Intensity"] = 1 / transformed_peptide_df["Intensity"]
-        if np.isinf(transformed_df["Intensity"]).any():
+        if np.isinf(transformed_peptide_df["Intensity"]).any():
             raise ValueError("Division by zero when inverting values.")
 
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
@@ -52,9 +51,8 @@ def by_log(
         or "log2" (base 2). Default: "log10"
     :type log_base: str
 
-    :return: returns a pandas DataFrame in typical protzilla
-        long format with the transformed data and an empty dict.
-    :rtype: dict[str, pandas DataFrame]
+    :return: returns a dict containing the transformed dataframes for "protein_df" and "peptide_df" respectively
+    :rtype: dict[str, pd.DataFrame | None]
     """
     intensity_name = default_intensity_column(protein_df)
     transformed_df = protein_df.copy()
