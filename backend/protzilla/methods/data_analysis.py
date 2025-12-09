@@ -985,11 +985,10 @@ class PlotProteinCoverage(DataAnalysisStep):
         peptide_df = run.steps.get_step_output(Step, "peptide_df", peptide_df_instance_id)
         proteins_from_peptide_df = set(peptide_df["Protein ID"].dropna().unique()) if peptide_df is not None else {}
         # Make sure that we have a unified representation of the canonical protein, which is sometimes given without
-        # the -1 suffix
-        # TODO: doesn't fix the underlying problem - maybe modify peptide_df when loading?
+        # the -1 suffix. Only important for getting the correct sequence from the fasta file, so we don't need to
+        # change it in the peptide_df
         proteins_from_peptide_df = {p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df}
 
-        # TODO: double check if we could also get non -1 proteins from fasta
         fasta_df_instance_id = fasta_df_field.value
         fasta_df = run.steps.get_step_output(Step, "fasta_df", fasta_df_instance_id)
         proteins_from_fasta_df = set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
@@ -997,81 +996,14 @@ class PlotProteinCoverage(DataAnalysisStep):
         common_proteins = list(proteins_from_peptide_df & proteins_from_fasta_df)
         protein_id_field.set_options(form_helper.to_choices(common_proteins))
 
-        # TODO: def test all the grouping options
         # We specifically want to allow grouping by Sample here
         grouping_field.set_options(form_helper.get_choices_for_metadata(run))
         grouping = grouping_field.value
-        # TODO: again, Sample feels like a magic string
         if grouping == "Sample":
-            # TODO: test these options
             selected_groups_field.set_options(form_helper.to_choices(peptide_df["Sample"].unique()))
         else:
-            # TODO: test these options
-            # TODO: why the hell is this column called sample?
             selected_groups_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
-        # TODO: fix this
-        form["aggregation_method"].is_visible = grouping != "Sample"
-        print('Breakpoint print')  # TODO: remove
-
-        # self.fields["grouping"].choices = (
-        #     fill_helper.get_choices_for_metadata_non_sample_columns(run)
-        #     + [("Sample", "Sample")]
-        # )
-        #
-        # grouping = self.data.get("grouping", self.fields["grouping"].choices[0][0])
-        # if grouping == "Sample":
-        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
-        #         peptide_df["Sample"].unique()
-        #     )
-        # else:
-        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
-        #         run.steps.metadata_df[grouping].unique()
-        #     )
-        # # if grouping is not Sample, show the aggregation method option
-        # self.toggle_visibility("aggregation_method", grouping != "Sample")
-
-        ###
-        # self.fields["peptide_df_instance"].choices = fill_helper.get_choices(
-        #     run, "peptide_df"
-        # )
-        # self.fields["fasta_df_instance"].choices = fill_helper.get_choices(
-        #     run, "fasta_df", Step
-        # )
-        # peptide_df_instance_id = self.data.get(
-        #     "peptide_df_instance", self.fields["peptide_df_instance"].choices[0][0]
-        # )
-        # fasta_df_instance_id = self.data.get(
-        #     "fasta_df_instance", self.fields["fasta_df_instance"].choices[0][0]
-        # )
-        # peptide_df = run.steps.get_step_output(
-        #     Step, "peptide_df", peptide_df_instance_id
-        # )
-        # fasta_protein_ids = run.steps.get_step_output(
-        #     Step, "fasta_df", fasta_df_instance_id
-        # )["Protein ID"].unique()
-        # peptide_df_protein_ids = peptide_df["Protein ID"].unique()
-        # common_protein_ids = sorted(
-        #     list(set(fasta_protein_ids) & set(peptide_df_protein_ids))
-        # )
-        # self.fields["protein_id"].choices = fill_helper.to_choices(common_protein_ids)
-        #
-        # # Grouping
-        # self.fields["grouping"].choices = (
-        #     fill_helper.get_choices_for_metadata_non_sample_columns(run)
-        #     + [("Sample", "Sample")]
-        # )
-        #
-        # grouping = self.data.get("grouping", self.fields["grouping"].choices[0][0])
-        # if grouping == "Sample":
-        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
-        #         peptide_df["Sample"].unique()
-        #     )
-        # else:
-        #     self.fields["selected_groups"].choices = fill_helper.to_choices(
-        #         run.steps.metadata_df[grouping].unique()
-        #     )
-        # # if grouping is not Sample, show the aggregation method option
-        # self.toggle_visibility("aggregation_method", grouping != "Sample")
+        form["aggregation_method"].isVisible = grouping != "Sample"
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["fasta_df"] = steps.get_step_output(

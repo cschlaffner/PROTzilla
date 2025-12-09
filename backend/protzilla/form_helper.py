@@ -54,5 +54,4 @@ def get_choices_for_metadata_non_sample_columns(
         instance_identifier: str | None = None
 ) -> list[Option]:
     metadata_choices = get_choices_for_metadata(run, instance_identifier)
-    # TODO: this "Sample" is a bit of a magic string
     return [c for c in metadata_choices if c.label != "Sample"]

@@ -1,25 +1,24 @@
-import pytest
-from protzilla.data_analysis.protein_coverage import (
-    distribute_to_rows,
-    get_max_coverage,
-    PeptideMatch,
-)
-
-import pytest
 import pandas as pd
+import pytest
+
+from protzilla.data_analysis.protein_coverage import distribute_to_rows, PeptideMatch
 from protzilla.data_analysis.protein_coverage import (
     extract_peptide_from_slice,
     AggregationMethod,
 )
-
-import pytest
-from protzilla.data_analysis.protein_coverage import increment_coverage, ProteinHit
-
-import pytest
+from protzilla.data_analysis.protein_coverage import (
+    get_max_coverage,
+)
+from protzilla.data_analysis.protein_coverage import increment_coverage_inplace
 from protzilla.data_analysis.protein_coverage import (
     match_peptide_to_protein_ids,
     ProteinHit,
 )
+from protzilla.data_analysis.protein_coverage import plot_protein_coverage
+from protzilla.importing.fasta_import import fasta_import
+from tests.paths import TEST_PTM_VISUALIZATION_PATH
+
+from protzilla.importing.peptide_import import evidence_import
 
 
 def test_match_peptide_to_protein_ids_empty_peptide():
@@ -61,23 +60,19 @@ def test_match_peptide_to_protein_ids_multiple_matches():
     result = match_peptide_to_protein_ids(
         peptide_sequence, protein_kmer_dictionary, protein_dictionary
     )
-    expected = list(
-        set(
-            [
-                ProteinHit(
-                    protein_id="protein1",
-                    start_location_on_protein=0,
-                    end_location_on_protein=5,
-                ),
-                ProteinHit(
-                    protein_id="protein2",
-                    start_location_on_protein=0,
-                    end_location_on_protein=5,
-                ),
-            ]
-        )
-    )
-    assert result == expected
+    expected = {
+        ProteinHit(
+            protein_id="protein1",
+            start_location_on_protein=0,
+            end_location_on_protein=5,
+        ),
+        ProteinHit(
+            protein_id="protein2",
+            start_location_on_protein=0,
+            end_location_on_protein=5,
+        ),
+    }
+    assert expected == set(result)
 
 
 def test_match_peptide_to_protein_ids_partial_match():
@@ -102,7 +97,7 @@ def test_increment_coverage():
     protein_hit = ProteinHit(
         protein_id="P12345", start_location_on_protein=1, end_location_on_protein=4
     )
-    increment_coverage(coverage, protein_hit)
+    increment_coverage_inplace(coverage, protein_hit)
     assert coverage == [0, 1, 1, 1, 0]
 
 
@@ -114,8 +109,8 @@ def test_increment_coverage_multiple_hits():
     protein_hit2 = ProteinHit(
         protein_id="P12345", start_location_on_protein=2, end_location_on_protein=4
     )
-    increment_coverage(coverage, protein_hit1)
-    increment_coverage(coverage, protein_hit2)
+    increment_coverage_inplace(coverage, protein_hit1)
+    increment_coverage_inplace(coverage, protein_hit2)
     assert coverage == [0, 1, 2, 1, 0]
 
 
@@ -127,8 +122,8 @@ def test_increment_coverage_no_overlap():
     protein_hit2 = ProteinHit(
         protein_id="P12345", start_location_on_protein=3, end_location_on_protein=5
     )
-    increment_coverage(coverage, protein_hit1)
-    increment_coverage(coverage, protein_hit2)
+    increment_coverage_inplace(coverage, protein_hit1)
+    increment_coverage_inplace(coverage, protein_hit2)
     assert coverage == [1, 1, 0, 1, 1]
 
 
@@ -171,10 +166,6 @@ def test_extract_peptide_from_slice_unknown_strategy():
     df = pd.DataFrame(data)
     with pytest.raises(ValueError, match="Unknown strategy: unknown"):
         extract_peptide_from_slice(df, "unknown")
-
-
-import pytest
-from protzilla.data_analysis.protein_coverage import distribute_to_rows, PeptideMatch
 
 
 def test_distribute_to_rows_empty():
@@ -283,3 +274,229 @@ def test_get_max_coverage_empty():
         match="Cannot calculate maximum coverage value: No coverage data provided.",
     ):
         get_max_coverage({})
+
+
+# TODO: do a bit of re-orga of the test files?
+@pytest.fixture
+def fasta_df():
+    fasta_path = TEST_PTM_VISUALIZATION_PATH / "P10636/uniprotkb_P10636_short.fasta"
+    return fasta_import(fasta_path)["fasta_df"]
+
+
+@pytest.fixture
+def peptide_df():
+    # TODO
+    # fp = "/home/hendraet/stud_sync/Studium/phd/teaching/2023_bp/data/PROTZilla_data/MaxQuant_BA39_INSOLUBLE/txt/evidence_tau.txt"
+    outputs = evidence_import(
+        file_path=TEST_PTM_VISUALIZATION_PATH / "P10636/evidence.txt",
+        # file_path=fp,
+        map_to_uniprot=False,
+    )
+    evidence_df = outputs["peptide_df"]
+    return evidence_df
+
+
+@pytest.fixture
+def metadata_df(peptide_df):
+    samples = peptide_df["Sample"].drop_duplicates()
+    filtered_samples = samples[samples.str.contains("AD|CTR")]
+    groups = filtered_samples.apply(lambda s: "AD" if "AD" in s else "CTR")
+
+    return pd.DataFrame(
+        list(zip(filtered_samples, groups)),
+        columns=["Sample", "Group"],
+    )
+
+
+@pytest.mark.parametrize(
+    "protein_id,grouping,selected_groups,aggregation_method",
+    [
+        ("P10636-1", "Group", ["AD", "CTR"], AggregationMethod.mean),
+        ("P10636-1", "Group", ["AD"], AggregationMethod.median),
+        ("P10636-1", "Group", ["CTR"], AggregationMethod.mean),
+        ("P10636-1", "Group", ["AD", "CTR"], AggregationMethod.median),
+        ("P10636-6", "Group", ["AD", "CTR"], AggregationMethod.median),
+        (
+            "P10636-1",
+            "Sample",
+            ["AD01_C1_INSOLUBLE_01", "CTR01_C1_INSOLUBLE_01"],
+            # None,  # TODO: shouldn't matter for sample, but fails anyways...
+            AggregationMethod.mean,
+        ),
+    ],
+)
+def test_plot_protein_coverage(
+    fasta_df,
+    peptide_df,
+    metadata_df,
+    protein_id,
+    grouping,
+    selected_groups,
+    aggregation_method,
+):
+    result = plot_protein_coverage(
+        fasta_df,
+        peptide_df,
+        metadata_df,
+        protein_id,
+        grouping,
+        selected_groups,
+        aggregation_method,
+    )
+    assert len(result["plots"]) == 1
+    assert 'messages' not in result
+    titles = [t.text for t in result["plots"][0].layout.annotations]
+    # Check that each group appears in one title
+    assert all(any(group in title for group in selected_groups) for title in titles)
+
+
+def test_plot_protein_coverage_protein_id_not_in_fasta(
+    fasta_df, peptide_df, metadata_df
+):
+    protein_id = "NON_EXISTENT_PROTEIN"
+    with pytest.raises(
+        ValueError, match=f"Protein ID {protein_id} not found in protein dictionary."
+    ):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            metadata_df,
+            protein_id=protein_id,
+            grouping="Group",
+            selected_groups=["AD", "CTR"],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_selected_groups_not_in_grouping_column(
+    fasta_df, peptide_df, metadata_df
+):
+    with pytest.raises(ValueError, match="No peptides found for the samples provided"):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            metadata_df,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=["NON_EXISTENT_GROUP"],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_selected_groups_empty(fasta_df, peptide_df, metadata_df):
+    with pytest.raises(ValueError, match="No samples provided"):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            metadata_df,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=[],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_selected_groups_none(fasta_df, peptide_df, metadata_df):
+    # TODO: maybe merge with aboive
+    with pytest.raises(ValueError, match="No samples provided"):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            metadata_df,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=None,
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_metadata_not_matching_peptide_samples(
+    fasta_df, peptide_df
+):
+    mismatched_metadata = pd.DataFrame(
+        {
+            "Sample": ["FAKE_SAMPLE_1", "FAKE_SAMPLE_2"],
+            "Group": ["Group1", "Group2"],
+        }
+    )
+    with pytest.raises(ValueError, match="No peptides found for the samples provided"):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            mismatched_metadata,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=["Group1"],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_empty_peptide_df_after_filtering(fasta_df, metadata_df):
+    empty_peptide_df = pd.DataFrame(columns=["Sample", "Sequence", "Intensity"])
+    with pytest.raises(ValueError, match="No peptides found for the samples provided"):
+        plot_protein_coverage(
+            fasta_df,
+            empty_peptide_df,
+            metadata_df,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=["AD"],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+
+def test_plot_protein_coverage_invalid_aggregation_method(
+    fasta_df, peptide_df, metadata_df
+):
+    with pytest.raises(ValueError, match="Unknown strategy"):
+        plot_protein_coverage(
+            fasta_df,
+            peptide_df,
+            metadata_df,
+            protein_id="P10636-1",
+            grouping="Group",
+            selected_groups=["AD"],
+            aggregation_method="invalid_method",
+        )
+
+
+def test_plot_protein_coverage_malformed_fasta_sequence(peptide_df, metadata_df):
+    # Create a fasta_df with a protein that won't match any peptides
+    protein_id = "P10636-1"
+    fasta_with_unmatched_protein = pd.DataFrame(
+        {
+            "Protein ID": [protein_id],
+            "Protein Sequence": ["Z" * 100],
+        }
+    )
+    with pytest.raises(
+        ValueError, match=f"No peptides matched for protein {protein_id}"
+    ):
+        plot_protein_coverage(
+            fasta_with_unmatched_protein,
+            peptide_df,
+            metadata_df,
+            protein_id=protein_id,
+            grouping="Group",
+            selected_groups=["AD"],
+            aggregation_method=AggregationMethod.mean,
+        )
+
+    fasta_with_empty_sequence = pd.DataFrame(
+        {
+            "Protein ID": [protein_id],
+            "Protein Sequence": [""],
+        }
+    )
+    with pytest.raises(
+        ValueError, match=f"No peptides matched for protein {protein_id}"
+    ):
+        plot_protein_coverage(
+            fasta_with_empty_sequence,
+            peptide_df,
+            metadata_df,
+            protein_id=protein_id,
+            grouping="Group",
+            selected_groups=["AD"],
+            aggregation_method=AggregationMethod.mean,
+        )
