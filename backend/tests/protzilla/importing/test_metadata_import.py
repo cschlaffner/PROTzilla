@@ -26,6 +26,24 @@ def test_metadata_import(run_imported):
     )
 
 
+def test_metadata_import_faulty_file(run_imported):
+    run_imported.step_add(MetadataImport())
+    run_imported.step_next()
+    run_imported.current_form(
+        {
+            "file_path": TEST_METADATA_PATH / "metadata_sample_column_missing.csv",
+            "feature_orientation": "Columns (samples in rows, features in columns)",
+        }
+    )
+    run_imported.step_calculate()
+    assert "messages" in run_imported.current_outputs.output
+    messages = run_imported.current_outputs.output['messages'][0]
+    assert (
+        messages["level"] == 40
+        and "The metadata file must contain a column named 'Sample'" in messages["msg"]
+    )
+
+
 # TODO: This test is failing because there is no form for this import yet, uncomment as soon as the form is defined!!!
 
 # def test_metadata_import_diann(run_empty):

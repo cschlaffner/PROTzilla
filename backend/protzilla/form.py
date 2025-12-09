@@ -37,8 +37,8 @@ class _baseField:
     label: str
     value: object
     type: str
-    # TODO: is this even used?
-    is_visible: bool = True
+    # Camel case for frontend compatibility
+    isVisible: bool = True
 
 
 @dataclass
@@ -107,10 +107,8 @@ class MultiSelectField(_baseField):
     options: List[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
-    # TODO: seems to keep selected values even if the Filed is dynamically updated
     def set_options(self, options: list[Option] | Enum) -> None:
         if sorted(options) != sorted(self.options):
-            # TODO: why is it still there? Is value not correct? Is it just not rendered?
             self.options = options
             self.value = []
 
