@@ -20,6 +20,7 @@ def test_get_all_possible_step_names():
         "OutlierDetectionByLocalOutlierFactor",
         "OutlierDetectionByIsolationForest",
         "TransformationLog",
+        "TransformationInversion",
         "NormalisationByZScore",
         "NormalisationByTotalSum",
         "NormalisationByMedian",
