@@ -371,6 +371,22 @@ class TransformationLog(DataPreprocessingStep):
     plot_method = staticmethod(transformation.by_log_plot)
 
 
+class TransformationInversion(DataPreprocessingStep):
+    display_name = "Inversion"
+    operation = "transformation"
+    method_description = "Transform data by inversion"
+
+    input_keys = ["protein_df", "peptide_df"]
+
+    def create_form(self):
+        return Form(
+            label="Data Inversion Transformation",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(transformation.by_inversion)
+
+
 class NormalisationByZScore(DataPreprocessingStep):
     display_name = "Z-Score"
     operation = "normalisation"
