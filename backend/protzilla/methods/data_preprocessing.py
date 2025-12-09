@@ -18,45 +18,40 @@ class EmptyEnum(Enum):
 
 
 class LogTransformationBaseType(Enum):
-    log2 = "log2"
-    log10 = "log10"
+    LOG2 = "log2"
+    LOG10 = "log10"
 
 
 class SimpleImputerStrategyType(Enum):
-    mean = "mean"
-    median = "median"
-    most_frequent = "most_frequent"
+    MEAN = "mean"
+    MEDIAN = "median"
+    MOST_FREQUENT = "most_frequent"
 
 
 class ImputationByNormalDistributionSamplingStrategyType(Enum):
-    per_protein = "perProtein"
-    per_dataset = "perDataset"
+    PER_PROTEIN = "perProtein"
+    PER_DATASET = "perDataset"
 
 
 class BarAndPieChart(Enum):
-    bar_plot = "Bar chart"
-    pie_chart = "Pie chart"
+    BAR_PLOT = "Bar chart"
+    PIE_CHART = "Pie chart"
 
 
 class BoxAndHistogramGraph(Enum):
-    boxplot = "Boxplot"
-    histogram = "Histogram"
+    BOXPLOT = "Boxplot"
+    HISTOGRAM = "Histogram"
 
 
 class GroupBy(Enum):
-    no_grouping = "None"
-    sample = "Sample"
-    protein_id = "Protein ID"
+    NO_GROUPING = "None"
+    SAMPLE = "Sample"
+    PROTEIN_ID = "Protein ID"
 
 
-class VisualTrasformations(Enum):
-    log10 = "log10"
-    linear = "linear"
-
-
-class VisulaTransformations(Enum):
-    linear = "linear"
-    log10 = "log10"
+class VisualTransformations(Enum):
+    LOG10 = "log10"
+    LINEAR = "linear"
 
 
 class DataPreprocessingStep(Step):
@@ -100,7 +95,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -133,7 +128,7 @@ class FilterByProteinsCount(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -170,7 +165,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -204,7 +199,7 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -237,7 +232,7 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -348,20 +343,20 @@ class TransformationLog(DataPreprocessingStep):
                 DropdownField(
                     name="log_base",
                     label="Log transformation base",
-                    value=LogTransformationBaseType.log2.value,
+                    value=LogTransformationBaseType.LOG2.value,
                     options=LogTransformationBaseType,
                 ),
                 FormDivider("Plot settings"),
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
             ],
@@ -399,20 +394,20 @@ class NormalisationByZScore(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
             ],
         )
@@ -433,20 +428,20 @@ class NormalisationByTotalSum(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
             ],
         )
@@ -478,20 +473,20 @@ class NormalisationByMedian(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
             ],
         )
@@ -522,20 +517,20 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
             ],
         )
@@ -570,25 +565,25 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -624,25 +619,25 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -675,25 +670,25 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -718,31 +713,31 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                 DropdownField(
                     name="strategy",
                     label="Strategy",
-                    value=SimpleImputerStrategyType.mean.value,
+                    value=SimpleImputerStrategyType.MEAN.value,
                     options=SimpleImputerStrategyType,
                 ),
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -779,25 +774,25 @@ class ImputationByKNN(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
@@ -819,7 +814,7 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                 DropdownField(
                     name="strategy",
                     label="Strategy",
-                    value=ImputationByNormalDistributionSamplingStrategyType.per_protein.value,
+                    value=ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value,
                     options=ImputationByNormalDistributionSamplingStrategyType,
                 ),
                 NumberField(
@@ -842,25 +837,25 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
                 DropdownField(
                     name="graph_type_quantities",
                     label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
