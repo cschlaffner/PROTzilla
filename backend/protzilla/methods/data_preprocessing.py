@@ -139,8 +139,8 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(filter_proteins.by_samples_missing)
-    plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
+    calc_method = staticmethod(filter_proteins.by_silac_ratios)
+    plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
 
 
 class FilterByProteinsCount(DataPreprocessingStep):

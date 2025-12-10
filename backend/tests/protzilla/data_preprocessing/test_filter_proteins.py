@@ -6,6 +6,7 @@ from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
     by_silac_ratios,
+    by_silac_ratios_plot,
 )
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
@@ -128,7 +129,7 @@ def test_filter_proteins_by_silac_ratios(filter_proteins_df, peptides_df, show_f
 
     method_output = by_silac_ratios(filter_proteins_df, peptide_df=None, min_amount=2)
 
-    fig = by_samples_missing_plot(
+    fig = by_silac_ratios_plot(
         method_output["remaining_proteins"],
         method_output["filtered_proteins"],
         "Pie chart",
