@@ -36,7 +36,9 @@ def max_quant_import(
         ):
             base_pattern = rf"^{re.escape(intensity_name)}\s(?!normalized\b)(?!.*\b{disallowed_suffixes}\b).*$"
         else:
-            base_pattern = rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+            base_pattern = (
+                rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+            )
 
         intensity_df = df.filter(regex=base_pattern, axis=1)
 
