@@ -222,7 +222,7 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
         )
 
     centered = intensity_series - q2
-    scaled = centered.copy()
+    scaled = centered
     scaled[centered > 0] = centered[centered > 0] / upper_width
     scaled[centered <= 0] = centered[centered <= 0] / lower_width
 
