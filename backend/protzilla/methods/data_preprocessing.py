@@ -500,6 +500,40 @@ class NormalisationByMedian(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_median_plot)
 
 
+class NormalisationByWidthAdjustment(DataPreprocessingStep):
+    display_name = "Width adjustment"
+    operation = "normalisation"
+    method_description = "Normalise data by asymmetric quartile width adjustment"
+
+    def create_form(self):
+        return Form(
+            label="Normalisation by width adjustment",
+            input_fields=[
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot.value,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping.value,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10.value,
+                    options=VisualTrasformations,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(normalisation.by_width_adjustment)
+    plot_method = staticmethod(normalisation.by_width_adjustment_plot)
+
+
 class NormalisationByReferenceProtein(DataPreprocessingStep):
     display_name = "Reference protein"
     operation = "normalisation"
