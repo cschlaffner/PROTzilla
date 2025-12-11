@@ -13,6 +13,7 @@ from backend.protzilla.data_preprocessing.plots import (
 )
 from backend.protzilla.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 
 
 def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
@@ -121,7 +122,7 @@ def by_simple_imputer(
     :return: returns an imputed dataframe in typical protzilla long format
         a list of messages
     """
-    assert strategy in ["mean", "median", "most_frequent"]
+    assert strategy in {item.value for item in SimpleImputerStrategyType}
     transformed_df = long_to_wide(protein_df)
     transformed_df.dropna(axis=1, how="all", inplace=True)
 
@@ -279,9 +280,9 @@ def by_normal_distribution_sampling(
     :return: returns an imputed dataframe in typical protzilla long format\
     a list of messages
     """
-    assert strategy in ["perProtein", "perDataset"]
+    assert strategy in {item.value for value in ImputationByNormalDistributionSamplingStrategyType}
 
-    if strategy == "perProtein":
+    if strategy == ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value:
         transformed_df = long_to_wide(protein_df)
         # iterate over all protein groups
         for protein_grp in transformed_df.columns:
