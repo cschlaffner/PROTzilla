@@ -12,17 +12,21 @@ from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
 from protzilla.importing import peptide_import
-from tests.paths import TEST_PTM_VISUALIZATION_PATH
+from tests.paths import TEST_PTM_VISUALIZATION_PATH, TEST_FASTA_PATH, TEST_PEPTIDES_PATH
 
-FASTA_FILE_PATH = TEST_PTM_VISUALIZATION_PATH / "uniprotkb.fasta"
-REGIONS_FILE_PATH = TEST_PTM_VISUALIZATION_PATH / "regions.csv"
-GROUP_FILE_PATH = TEST_PTM_VISUALIZATION_PATH / "groups_max_quant.csv"
-Q_VALUE_THRESHOLD = 0.01
+GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
+GFAP_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P14136.txt"
+GFAP_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P14136.fasta"
+GFAP_REGIONS_FILE_PATH = GFAP_PATH / "regions.csv"
+GFAP_GROUP_FILE_PATH = GFAP_PATH / "groups_max_quant.csv"
 
 TAU_PATH = TEST_PTM_VISUALIZATION_PATH / "P10636"
-TAU_FASTA_FILE_PATH = TAU_PATH / "uniprotkb_P10636_short.fasta"
+TAU_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P10636.txt"
+TAU_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
 TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
 TAU_GROUP_FILE_PATH = TAU_PATH / "groups_max_quant_AD.csv"
+
+Q_VALUE_THRESHOLD = 0.01
 
 
 def get_evidence_df(path: Path):
@@ -36,12 +40,12 @@ def pytest_generate_tests(metafunc):
     # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not wort the effort
     if "plot_func" in metafunc.fixturenames:
         basic_kwargs = dict(
-            evidence_df=get_evidence_df(TEST_PTM_VISUALIZATION_PATH / "evidence.txt"),
+            evidence_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
-            fasta_file_path=FASTA_FILE_PATH,
-            regions_file_path=REGIONS_FILE_PATH,
+            fasta_file_path=GFAP_FASTA_FILE_PATH,
+            regions_file_path=GFAP_REGIONS_FILE_PATH,
         )
-        kwargs_with_groups = dict(**basic_kwargs, groups_file_path=GROUP_FILE_PATH)
+        kwargs_with_groups = dict(**basic_kwargs, groups_file_path=GFAP_GROUP_FILE_PATH)
         plot_funcs_to_kwargs = [
             (create_bar_ptm_visualization, kwargs_with_groups),
             (create_details_ptm_visualization, kwargs_with_groups),
@@ -50,7 +54,7 @@ def pytest_generate_tests(metafunc):
         if metafunc.definition.name == "test_plotting_functions":
             # Additional files, but for the happy path only
             tau_kwargs = dict(
-                evidence_df=get_evidence_df(TAU_PATH / "evidence.txt"),
+                evidence_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
                 evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
                 fasta_file_path=TAU_FASTA_FILE_PATH,
                 regions_file_path=TAU_REGIONS_FILE_PATH,
@@ -79,7 +83,7 @@ def pytest_generate_tests(metafunc):
 class TestPTMVisualization:
     @pytest.fixture
     def evidence_df(self):
-        return get_evidence_df(TEST_PTM_VISUALIZATION_PATH / "evidence.txt")
+        return get_evidence_df(GFAP_EVIDENCE_FILE_PATH)
 
     @pytest.fixture
     def q_value_threshold(self):
@@ -87,19 +91,19 @@ class TestPTMVisualization:
 
     @pytest.fixture
     def fasta_file_path(self):
-        return FASTA_FILE_PATH
+        return GFAP_FASTA_FILE_PATH
 
     @pytest.fixture
     def regions_file_path(self):
-        return REGIONS_FILE_PATH
+        return GFAP_REGIONS_FILE_PATH
 
     @pytest.fixture
     def group_file_path(self):
-        return GROUP_FILE_PATH
+        return GFAP_GROUP_FILE_PATH
 
     @pytest.fixture
     def expected_modifications_path(self):
-        return TEST_PTM_VISUALIZATION_PATH / "expected_modifications.csv"
+        return GFAP_PATH / "expected_modifications.csv"
 
     @staticmethod
     def test_plotting_functions(plot_func, kwargs):
@@ -108,9 +112,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_fasta_non_matching_isoform_ids(plot_func, kwargs):
-        kwargs["fasta_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/non_matching.fasta"
-        )
+        kwargs["fasta_file_path"] = TEST_FASTA_PATH / "non_matching_P14136.fasta"
         with pytest.raises(
             ValueError,
             match=r"There seem to be isoforms of different proteins in the fasta file.*",
@@ -119,7 +121,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_fasta_proteins_not_in_evidence_df(plot_func, kwargs):
-        kwargs["fasta_file_path"] = Path(f"{TEST_PTM_VISUALIZATION_PATH}/wrong.fasta")
+        kwargs["fasta_file_path"] = TEST_FASTA_PATH / "wrong_P14136.fasta"
         with pytest.raises(
             ValueError,
             match="No matching isoform IDs found between the uploaded evidence file and the "
@@ -129,9 +131,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_malformed_fasta(plot_func, kwargs):
-        kwargs["fasta_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/malformed.fasta"
-        )
+        kwargs["fasta_file_path"] = TEST_FASTA_PATH / "malformed.fasta"
         with pytest.raises(
             ValueError,
             match=r"Error parsing fasta file. Please check the format of the fasta file. "
@@ -141,7 +141,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_fasta_shortened_sequence(plot_func, kwargs):
-        kwargs["fasta_file_path"] = Path(f"{TEST_PTM_VISUALIZATION_PATH}/short.fasta")
+        kwargs["fasta_file_path"] = TEST_FASTA_PATH / "short_P14136.fasta"
         with pytest.raises(
             ValueError,
             match=r"The longest original sequence has a length of [0-9]+, but the regions file only "
@@ -152,9 +152,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_regions_not_matching_protein(plot_func, kwargs):
-        kwargs["regions_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/regions_missing.csv"
-        )
+        kwargs["regions_file_path"] = GFAP_PATH / "regions_missing.csv"
         with pytest.raises(
             ValueError,
             match=r"Exon start .* does not match any region end, please check your supplied "
@@ -162,9 +160,7 @@ class TestPTMVisualization:
         ):
             plot_func(**kwargs)
 
-        kwargs["regions_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/regions_shortened.csv"
-        )
+        kwargs["regions_file_path"] = GFAP_PATH / "regions_shortened.csv"
         with pytest.raises(
             ValueError,
             match=r"The longest original sequence has a length of .*, but the regions file only "
@@ -173,9 +169,7 @@ class TestPTMVisualization:
         ):
             plot_func(**kwargs)
 
-        kwargs["regions_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/regions_one_exon_missing.csv"
-        )
+        kwargs["regions_file_path"] = GFAP_PATH / "regions_one_exon_missing.csv"
         with pytest.raises(
             ValueError,
             match=r"The longest original sequence has a length of .*, but the regions file only "
@@ -186,9 +180,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_malformed_regions_file(plot_func, kwargs):
-        kwargs["regions_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/regions_missing_columns.csv"
-        )
+        kwargs["regions_file_path"] = GFAP_PATH / "regions_missing_columns.csv"
         with pytest.raises(
             AssertionError,
             match=r"Regions file must contain at least the columns 'name', 'region_end', "
@@ -196,9 +188,7 @@ class TestPTMVisualization:
         ):
             plot_func(**kwargs)
 
-        kwargs["regions_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/regions_renamed.csv"
-        )
+        kwargs["regions_file_path"] = GFAP_PATH / "regions_renamed.csv"
         with pytest.raises(
             AssertionError,
             match=r"Regions file must contain at least the columns 'name', 'region_end', "
@@ -209,7 +199,7 @@ class TestPTMVisualization:
     @staticmethod
     def test_regions_file_too_short_but_matching_region_end(plot_func, kwargs):
         new_kwargs = dict(
-            evidence_df=get_evidence_df(TAU_PATH / "evidence.txt"),
+            evidence_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=TAU_FASTA_FILE_PATH,
             regions_file_path=TAU_PATH
@@ -228,9 +218,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_groups_differing(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/groups_differing.csv"
-        )
+        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_differing.csv"
         with pytest.raises(
             ValueError, match=r"Group .* not found in provided groups file"
         ):
@@ -238,9 +226,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_groups_no_groups_provided(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/groups_empty.csv"
-        )
+        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_empty.csv"
         with pytest.raises(
             ValueError,
             match=r"No groups found in the provided groups file for (bar|details) plot visualization.",
@@ -249,9 +235,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_malformed_groups_file(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = Path(
-            f"{TEST_PTM_VISUALIZATION_PATH}/groups_renamed.csv"
-        )
+        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_renamed.csv"
         with pytest.raises(
             AssertionError, match=r"Groups file must contain the columns: :*"
         ):

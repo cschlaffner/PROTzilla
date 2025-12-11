@@ -16,9 +16,8 @@ from protzilla.data_analysis.protein_coverage import (
 )
 from protzilla.data_analysis.protein_coverage import plot_protein_coverage
 from protzilla.importing.fasta_import import fasta_import
-from tests.paths import TEST_PTM_VISUALIZATION_PATH
-
 from protzilla.importing.peptide_import import evidence_import
+from tests.paths import TEST_FASTA_PATH, TEST_PEPTIDES_PATH
 
 
 def test_match_peptide_to_protein_ids_empty_peptide():
@@ -276,10 +275,9 @@ def test_get_max_coverage_empty():
         get_max_coverage({})
 
 
-# TODO: do a bit of re-orga of the test files?
 @pytest.fixture
 def fasta_df():
-    fasta_path = TEST_PTM_VISUALIZATION_PATH / "P10636/uniprotkb_P10636_short.fasta"
+    fasta_path = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
     return fasta_import(fasta_path)["fasta_df"]
 
 
@@ -288,8 +286,7 @@ def peptide_df():
     # TODO
     # fp = "/home/hendraet/stud_sync/Studium/phd/teaching/2023_bp/data/PROTZilla_data/MaxQuant_BA39_INSOLUBLE/txt/evidence_tau.txt"
     outputs = evidence_import(
-        file_path=TEST_PTM_VISUALIZATION_PATH / "P10636/evidence.txt",
-        # file_path=fp,
+        file_path=TEST_PEPTIDES_PATH / "evidence_P10636.txt",
         map_to_uniprot=False,
     )
     evidence_df = outputs["peptide_df"]

@@ -1,7 +1,7 @@
 import pytest
 
 from protzilla.importing.fasta_import import parse_fasta_id, fasta_import
-from tests.paths import TEST_PTM_VISUALIZATION_PATH
+from tests.paths import TEST_FASTA_PATH
 
 
 def test_parse_fasta_id():
@@ -21,12 +21,12 @@ def test_parse_fasta_id():
 @pytest.mark.parametrize(
     "fasta_file,protein_id",
     [
-        (TEST_PTM_VISUALIZATION_PATH / "uniprotkb.fasta", ["P14136-1", "P14136-3"]),
+        (TEST_FASTA_PATH / "uniprotkb_P14136.fasta", ["P14136-1", "P14136-3"]),
         (
-            TEST_PTM_VISUALIZATION_PATH / "P10636/uniprotkb_P10636_short.fasta",
+            TEST_FASTA_PATH / "uniprotkb_P10636.fasta",
             ["P10636-1", "P10636-6"],
         ),
-        (TEST_PTM_VISUALIZATION_PATH / "malformed.fasta", ["P14136-1", "P14136-3"]),
+        (TEST_FASTA_PATH / "malformed.fasta", ["P14136-1", "P14136-3"]),
     ],
 )
 def test_fasta_import(fasta_file, protein_id):
@@ -36,7 +36,7 @@ def test_fasta_import(fasta_file, protein_id):
 
 
 def test_import_of_malformed_fasta():
-    malformed_fasta_file = TEST_PTM_VISUALIZATION_PATH / "even_more_malformed.fasta"
+    malformed_fasta_file = TEST_FASTA_PATH / "even_more_malformed.fasta"
     output = fasta_import(malformed_fasta_file)
     assert "messages" in output and "fasta_df" not in output
     message = output["messages"][0]
@@ -47,7 +47,7 @@ def test_import_of_malformed_fasta():
 
 
 def test_import_empty_fasta():
-    empty_fasta_file = TEST_PTM_VISUALIZATION_PATH / "empty.fasta"
+    empty_fasta_file = TEST_FASTA_PATH / "empty.fasta"
     output = fasta_import(empty_fasta_file)
     assert "messages" in output and "fasta_df" not in output
     message = output["messages"][0]
@@ -57,7 +57,7 @@ def test_import_empty_fasta():
 
 
 def test_import_fasta_with_no_sequences():
-    no_sequences_fasta_file = TEST_PTM_VISUALIZATION_PATH / "no_sequences.fasta"
+    no_sequences_fasta_file = TEST_FASTA_PATH / "no_sequences.fasta"
     output = fasta_import(no_sequences_fasta_file)
     assert "messages" in output and "fasta_df" not in output
     message = output["messages"][0]
