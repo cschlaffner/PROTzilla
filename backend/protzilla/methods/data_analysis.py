@@ -981,16 +981,26 @@ class PlotProteinCoverage(DataAnalysisStep):
         fasta_df_field.set_options(form_helper.get_choices(run, "fasta_df"))
 
         peptide_df_instance_id = peptide_df_field.value
-        peptide_df = run.steps.get_step_output(Step, "peptide_df", peptide_df_instance_id)
-        proteins_from_peptide_df = set(peptide_df["Protein ID"].dropna().unique()) if peptide_df is not None else {}
+        peptide_df = run.steps.get_step_output(
+            Step, "peptide_df", peptide_df_instance_id
+        )
+        proteins_from_peptide_df = (
+            set(peptide_df["Protein ID"].dropna().unique())
+            if peptide_df is not None
+            else {}
+        )
         # Make sure that we have a unified representation of the canonical protein, which is sometimes given without
         # the -1 suffix. Only important for getting the correct sequence from the fasta file, so we don't need to
         # change it in the peptide_df
-        proteins_from_peptide_df = {p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df}
+        proteins_from_peptide_df = {
+            p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
+        }
 
         fasta_df_instance_id = fasta_df_field.value
         fasta_df = run.steps.get_step_output(Step, "fasta_df", fasta_df_instance_id)
-        proteins_from_fasta_df = set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
+        proteins_from_fasta_df = (
+            set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
+        )
 
         common_proteins = list(proteins_from_peptide_df & proteins_from_fasta_df)
         protein_id_field.set_options(form_helper.to_choices(common_proteins))
@@ -999,15 +1009,17 @@ class PlotProteinCoverage(DataAnalysisStep):
         grouping_field.set_options(form_helper.get_choices_for_metadata(run))
         grouping = grouping_field.value
         if grouping == "Sample":
-            selected_groups_field.set_options(form_helper.to_choices(peptide_df["Sample"].unique()))
+            selected_groups_field.set_options(
+                form_helper.to_choices(peptide_df["Sample"].unique())
+            )
         else:
-            selected_groups_field.set_options(form_helper.to_choices(run.steps.metadata_df[grouping].unique()))
+            selected_groups_field.set_options(
+                form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+            )
         form["aggregation_method"].isVisible = grouping != "Sample"
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["fasta_df"] = steps.get_step_output(
-            Step, "fasta_df", inputs["fasta_df"]
-        )
+        inputs["fasta_df"] = steps.get_step_output(Step, "fasta_df", inputs["fasta_df"])
         inputs["peptide_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["peptide_df"]
         )

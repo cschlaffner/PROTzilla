@@ -14,18 +14,18 @@ PLOT_PRIMARY_COLOR = PLOT_COLOR_SEQUENCE[0]
 PLOT_SECONDARY_COLOR = PLOT_COLOR_SEQUENCE[1]
 """Second color in list."""
 
+
 def interpolate_color(color_a, color_b, t):
-    # TODO: maybe migrate somewhere else?
     """
     Interpolate between two RGB color strings based on a float t between 0 and 1.
-    Args:
-        color_a (str): RGB color string in the format "#RRGGBB".
-        color_b (str): RGB color string in the format "#RRGGBB".
-        t (float): A float between 0 and 1 representing the interpolation factor.
-    Returns:
-        str: Interpolated color as an RGB string in the format "#RRGGBB".
+
+    :param color_a: RGB color string in the format "#RRGGBB".
+    :param color_b: RGB color string in the format "#RRGGBB".
+    :param t: A float between 0 and 1 representing the interpolation factor.
+
+    :return: Interpolated color as an RGB string in the format "#RRGGBB".
     """
-    if not (0 <= t <= 1):
+    if not 0 <= t <= 1:
         raise ValueError("Interpolation factor t must be between 0 and 1")
 
     # Convert hex color strings to RGB tuples

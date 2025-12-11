@@ -35,8 +35,7 @@ def get_choices(
 
 
 def get_choices_for_metadata(
-        run: Run,
-        instance_identifier: str | None = None
+    run: Run, instance_identifier: str | None = None
 ) -> list[Option]:
     if instance_identifier is None:
         metadata_df = run.steps.metadata_df
@@ -50,8 +49,7 @@ def get_choices_for_metadata(
 
 
 def get_choices_for_metadata_non_sample_columns(
-        run: Run,
-        instance_identifier: str | None = None
+    run: Run, instance_identifier: str | None = None
 ) -> list[Option]:
     metadata_choices = get_choices_for_metadata(run, instance_identifier)
     return [c for c in metadata_choices if c.label != "Sample"]

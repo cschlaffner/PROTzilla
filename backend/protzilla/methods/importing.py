@@ -355,11 +355,6 @@ class EvidenceImport(ImportingStep):
 
 
 class FastaImport(ImportingStep):
-    # TODO: questionable if this should be an extra step - yes and it should probably also be used for the PTM
-    #  visualization
-    #   - cross-ref with ptm vis to see if this handles some edge cases differently
-    #   - maybe extra PR?
-    # TODO: test
     display_name = "Fasta Protein Sequence Import"
     operation = "fasta_import"
     method_description = "Import a fasta file containing protein sequences."

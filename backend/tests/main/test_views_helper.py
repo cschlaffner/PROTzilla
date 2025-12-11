@@ -12,6 +12,7 @@ def test_get_all_possible_step_names():
         "PeptideImport",
         "EvidenceImport",
         "ExampleDatasetImport",
+        "FastaImport",
         "FilterProteinsBySamplesMissing",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",

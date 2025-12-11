@@ -72,13 +72,15 @@ def metadata_import_method(
     # checked here.
 
     if "Sample" not in meta_df.columns:
-        return dict(messages=[
-                dict(
-                    level=logging.ERROR,
-                    msg="The metadata file must contain a column named 'Sample' that matches the sample names in the "
-                        "intensity dataframe.",
-                )
-            ])
+        return {
+            "messages": [
+                {
+                    "level": logging.ERROR,
+                    "msg": "The metadata file must contain a column named 'Sample' that matches the sample names in "
+                    "the intensity dataframe.",
+                }
+            ]
+        }
 
     messages.append({"level": logging.INFO, "msg": msg})
     if meta_df.shape[1] > meta_df.shape[0]:
