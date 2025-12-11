@@ -293,8 +293,8 @@ class DiskOperator:
         with ErrorHandler():
             step_output = {}
             for key, value in output.items():
-                if isinstance(value, str) and Path(value).exists():
-                    step_output[key] = self.dataframe_operator.read(value)
+                if isinstance(value, str) and (paths.RUNS_PATH / Path(value)).exists():
+                    step_output[key] = self.dataframe_operator.read(paths.RUNS_PATH / Path(value))
                 else:
                     step_output[key] = value
             return Output(step_output)
@@ -310,7 +310,7 @@ class DiskOperator:
                     # Only dump if outdated version
                     if self._dump_is_outdated(step, "output"):
                         self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path)
+                    output_data[key] = str(file_path.relative_to(paths.RUNS_PATH))
                 else:
                     output_data[key] = value
 
@@ -321,7 +321,7 @@ class DiskOperator:
         if plots:
             figures = []
             for plot in plots.values():
-                figures.append(read_json(plot))
+                figures.append(read_json(paths.RUNS_PATH / Path(plot)))
             return Plots(figures)
         return Plots([])
 
@@ -333,7 +333,7 @@ class DiskOperator:
 
             plots_data = {}
             for i, plot in enumerate(step.plots):
-                file_path = self.plot_dir / f"{step.instance_identifier}_plot{i}.json"
+                file_path = (self.plot_dir / f"{step.instance_identifier}_plot{i}.json")
 
                 self.plot_dir.mkdir(parents=True, exist_ok=True)
                 if not isinstance(
@@ -341,7 +341,7 @@ class DiskOperator:
                 ):  # TODO the data integration plots are of type byte, and therefore cannot be written using this methodology
                     write_json(plot, file_path)
                     plot.write_image(str(file_path).replace(".json", ".png"))
-                    plots_data[i] = str(file_path)
+                    plots_data[i] = str(file_path.relative_to(paths.RUNS_PATH))
 
             self._update_dump_state(step, "plots")
 
