@@ -327,10 +327,6 @@ class DiskOperator:
 
     def _write_plots(self, step: Step) -> dict:
         with ErrorHandler(), step.disk_write_mutex:
-            # Skip dumping if version matches
-            if not self._dump_is_outdated(step, "plots"):
-                return
-
             plots_data = {}
             for i, plot in enumerate(step.plots):
                 file_path = (self.plot_dir / f"{step.instance_identifier}_plot{i}.json")
@@ -339,8 +335,12 @@ class DiskOperator:
                 if not isinstance(
                     plot, bytes
                 ):  # TODO the data integration plots are of type byte, and therefore cannot be written using this methodology
-                    write_json(plot, file_path)
-                    plot.write_image(str(file_path).replace(".json", ".png"))
+
+                    # Only dump if disk state is outdated
+                    if self._dump_is_outdated(step, "plots"):
+                        write_json(plot, file_path)
+                        plot.write_image(str(file_path).replace(".json", ".png"))
+
                     plots_data[i] = str(file_path.relative_to(paths.RUNS_PATH))
 
             self._update_dump_state(step, "plots")
