@@ -11,7 +11,7 @@ from backend.protzilla.data_preprocessing.plots import (
     create_pca_3d_scatter_plot,
 )
 
-from ..utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
 def by_isolation_forest(
