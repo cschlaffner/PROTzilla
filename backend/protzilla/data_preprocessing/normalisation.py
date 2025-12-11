@@ -94,26 +94,21 @@ def by_median(
                 quantile
             )
         else:
-            # TODO 428
-            try:
-                raise ValueError(
-                    "\nCareful, your median is zero - we recommend\
-                    \nadapting your filtering strategy or using a higher\
-                    \nquantile for normalisation."
-                )
-            except ValueError:
-                traceback.print_exc()
-                df_sample[f"Normalised {intensity_name}"] = 0
-                zeroed_samples.append(sample)
+            df_sample[f"Normalised {intensity_name}"] = 0
+            zeroed_samples.append(sample)
         df_sample.drop(axis=1, labels=[intensity_name], inplace=True)
         scaled_df = pd.concat([scaled_df, df_sample], ignore_index=True)
 
     pd.reset_option("mode.chained_assignment")
 
-    return dict(
-        protein_df=scaled_df,
-        zeroed_samples=zeroed_samples,
-    )
+    output = dict(protein_df=scaled_df, zeroed_samples=zeroed_samples)
+
+    if zeroed_samples != []:
+        output["messages"] = dict(
+            level=logging.WARNING,
+            msg=f"Samples {zeroed_samples} have median zero - we recommend adapting your filtering strategy or using a higher quantile for normalisation",
+        )
+    return output
 
 
 def by_totalsum(protein_df: pd.DataFrame) -> dict:
@@ -141,7 +136,7 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
     intensity_name = default_intensity_column(protein_df)
     scaled_df = pd.DataFrame()
     samples = protein_df["Sample"].unique().tolist()
-    zeroed_samples_list = []
+    zeroed_samples = []
 
     for sample in samples:
         df_sample = protein_df.loc[protein_df["Sample"] == sample,]
@@ -152,24 +147,21 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
                 totalsum
             )
         else:
-            # TODO 428
-            try:
-                raise ValueError(
-                    "\nCareful, your total sum is zero. Try using other\
-                    \nfiltering strategies such as filtering non- or low\
-                    \nintensity samples."
-                )
-            except ValueError:
-                traceback.print_exc()
-                df_sample[f"Normalised {intensity_name}"] = 0
-                zeroed_samples_list.append(sample)
+            df_sample[f"Normalised {intensity_name}"] = 0
+            zeroed_samples.append(sample)
 
         df_sample.drop(axis=1, labels=[intensity_name], inplace=True)
 
         scaled_df = pd.concat([scaled_df, df_sample], ignore_index=True)
 
     pd.reset_option("mode.chained_assignment")
-    return dict(protein_df=scaled_df, zeroed_samples=zeroed_samples_list)
+    output = dict(protein_df=scaled_df, zeroed_samples=zeroed_samples)
+    if zeroed_samples != []:
+        output["messages"] = dict(
+            level=logging.WARNING,
+            msg=f"Samples {zeroed_samples} have a sum of zero - try using other filtering strategies such as filtering non- or low intensity samples."
+        )
+    return output
 
 
 def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
