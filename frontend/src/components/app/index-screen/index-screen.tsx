@@ -639,7 +639,7 @@ export const IndexScreen: React.FC = () => {
               closeExportRunModal();
             }}
           >
-            {runs.length > 1 ? (
+            {runs.length > 0 ? (
               <Form
                 formData={{
                   label: "",
