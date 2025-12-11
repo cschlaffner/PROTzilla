@@ -24,12 +24,30 @@ const StyledDivider = styled.div`
 const StyledFormColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing("large")};
   width: 20vw;
   min-width: 250px;
   max-width: 500px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+  gap: ${spacing("large")};
   padding-top: ${spacing("small")};
+  padding-bottom: ${spacing("medium")};
+  padding-right: ${spacing("medium")};
   margin: 0 ${spacing("small")};
+`;
+
+const StyledSidebarContainer = styled.div`
+  min-width: 0px;
+  max-width: 500px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  padding-right: ${spacing("medium")};
 `;
 
 export const ListEditor: React.FC<ListEditorProps> = ({
@@ -104,13 +122,15 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
   return (
     <StyledRow>
-      <Sidebar
-        runName={runName}
-        runData={runData}
-        sections={sections}
-        stepSectionIndex={stepSectionIndex}
-        navigateOrRefreshSteps={navigateOrRefreshSteps}
-      />
+      <StyledSidebarContainer>
+        <Sidebar
+          runName={runName}
+          runData={runData}
+          sections={sections}
+          stepSectionIndex={stepSectionIndex}
+          navigateOrRefreshSteps={navigateOrRefreshSteps}
+        />
+      </StyledSidebarContainer>
 
       <StyledDivider />
 

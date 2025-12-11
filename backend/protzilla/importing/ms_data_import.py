@@ -9,6 +9,7 @@ import pandas as pd
 
 from backend.protzilla.data_integration.database_query import biomart_query
 from backend.protzilla.utilities import format_trace
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
 def max_quant_import(
@@ -17,8 +18,9 @@ def max_quant_import(
     map_to_uniprot=False,
     aggregation_method: str = "Sum",
 ) -> dict:
-    assert intensity_name in ["Intensity", "iBAQ", "LFQ intensity"]
     try:
+        allowed = {item.value for item in IntensityType}
+        assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         df = pd.read_csv(
             file_path,
             sep="\t",
@@ -27,7 +29,8 @@ def max_quant_import(
             keep_default_na=True,
         )
         protein_groups = df["Majority protein IDs"]
-        intensity_df = df.filter(regex=f"^{intensity_name} ", axis=1)
+        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
+        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
         intensity_df = intensity_df.filter(regex=r"^(?!.*peptides).*$", axis=1)
 
         if intensity_df.empty:
@@ -61,18 +64,9 @@ def ms_fragger_import(
     map_to_uniprot=False,
     aggregation_method: str = "Sum",
 ) -> dict:
-    assert intensity_name in [
-        "Intensity",
-        "MaxLFQ Total Intensity",
-        "MaxLFQ Intensity",
-        "Total Intensity",
-        "MaxLFQ Unique Intensity",
-        "Unique Spectral Count",
-        "Unique Intensity",
-        "Spectral Count",
-        "Total Spectral Count",
-    ]
     try:
+        allowed = {item.value for item in IntensityNameType}
+        assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         df = pd.read_csv(
             file_path,
             sep="\t",

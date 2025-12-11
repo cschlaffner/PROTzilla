@@ -2,7 +2,57 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.protzilla.data_preprocessing.transformation import by_log, by_log_plot
+from backend.protzilla.data_preprocessing.transformation import (
+    by_inversion,
+    by_log,
+    by_log_plot,
+)
+
+
+@pytest.fixture
+def inversion_transformation_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 1.0],
+        ["Sample1", "Protein2", "Gene2", 0.5],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 16],
+        ["Sample2", "Protein1", "Gene1", 0.1],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+
+@pytest.fixture
+def inversion_transformation_faulty_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 1.0],
+        ["Sample1", "Protein2", "Gene2", 0.0],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 1],
+        ["Sample2", "Protein1", "Gene1", np.nan],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+
+@pytest.fixture
+def inversion_transformation_expected_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 1.0],
+        ["Sample1", "Protein2", "Gene2", 2.0],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 0.0625],
+        ["Sample2", "Protein1", "Gene1", 10.0],
+    )
+
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
 
 
 @pytest.fixture
@@ -171,6 +221,37 @@ def log10_transformation_expected_peptide_intensities():
     )
 
 
+@pytest.fixture
+def inversion_transformation_expected_peptide_intensities():
+    return pd.Series(
+        [
+            1.000000e-06,
+            5.000000e-07,
+            3.333333e-07,
+            2.500000e-07,
+            2.000000e-07,
+            1.666667e-07,
+            1.428571e-07,
+            1.250000e-07,
+            1.111111e-07,
+            1.000000e-07,
+            9.090909e-08,
+            8.333333e-08,
+            7.692308e-08,
+            7.142857e-08,
+            6.666667e-08,
+            6.250000e-08,
+            5.882353e-08,
+            5.555556e-08,
+            5.263158e-08,
+            5.000000e-08,
+            4.761905e-08,
+            4.545455e-08,
+            4.347826e-08,
+        ]
+    )
+
+
 def test_log2_transformation(
     show_figures,
     log2_transformation_df,
@@ -203,6 +284,35 @@ def test_log2_transformation(
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
     )
+
+
+def test_inversion_transformation(
+    show_figures,
+    inversion_transformation_df,
+    inversion_transformation_expected_df,
+    peptides_df,
+    inversion_transformation_expected_peptide_intensities,
+):
+    method_inputs = {
+        "protein_df": inversion_transformation_df,
+        "peptide_df": peptides_df,
+    }
+    method_outputs = by_inversion(**method_inputs)
+
+    result_df = method_outputs["protein_df"]
+
+    assert result_df.equals(
+        inversion_transformation_expected_df
+    ), f"The results of the transformation: {result_df} \
+            are not equal to the expected result: {inversion_transformation_expected_df}"
+
+    assert np.allclose(
+        method_outputs["peptide_df"]["Intensity"],
+        inversion_transformation_expected_peptide_intensities,
+        rtol=1e-02,  # Relative tolerance
+        atol=1e-04,  # Absolute tolerance
+    ), f"The results of the transformation: {result_peptide_intensities} \
+            are not equal to the expected result: {inversion_transformation_expected_peptide_intensities}"
 
 
 def test_log10_transformation(
@@ -259,3 +369,15 @@ def test_log_by_0_transformation():
     )
 
     by_log(df, None, log_base="log2")
+
+
+def test_inversion_transformation_div0(inversion_transformation_faulty_df):
+    method_inputs = {
+        "protein_df": inversion_transformation_faulty_df,
+        "peptide_df": None,
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        by_inversion(**method_inputs)
+
+    assert str(excinfo.value) == "Division by zero when inverting values."

@@ -371,6 +371,22 @@ class TransformationLog(DataPreprocessingStep):
     plot_method = staticmethod(transformation.by_log_plot)
 
 
+class TransformationInversion(DataPreprocessingStep):
+    display_name = "Inversion"
+    operation = "transformation"
+    method_description = "Transform data by inversion"
+
+    input_keys = ["protein_df", "peptide_df"]
+
+    def create_form(self):
+        return Form(
+            label="Data Inversion Transformation",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(transformation.by_inversion)
+
+
 class NormalisationByZScore(DataPreprocessingStep):
     display_name = "Z-Score"
     operation = "normalisation"
@@ -482,6 +498,40 @@ class NormalisationByMedian(DataPreprocessingStep):
 
     calc_method = staticmethod(normalisation.by_median)
     plot_method = staticmethod(normalisation.by_median_plot)
+
+
+class NormalisationByWidthAdjustment(DataPreprocessingStep):
+    display_name = "Width adjustment"
+    operation = "normalisation"
+    method_description = "Normalise data by asymmetric quartile width adjustment"
+
+    def create_form(self):
+        return Form(
+            label="Normalisation by width adjustment",
+            input_fields=[
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.boxplot.value,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.no_grouping.value,
+                    options=GroupBy,
+                ),
+                DropdownField(
+                    name="visual_transformation",
+                    label="Visual transformation",
+                    value=VisualTrasformations.log10.value,
+                    options=VisualTrasformations,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(normalisation.by_width_adjustment)
+    plot_method = staticmethod(normalisation.by_width_adjustment_plot)
 
 
 class NormalisationByReferenceProtein(DataPreprocessingStep):

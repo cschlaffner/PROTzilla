@@ -9,6 +9,8 @@ from backend.protzilla.data_preprocessing.normalisation import (
     by_reference_protein_plot,
     by_totalsum,
     by_totalsum_plot,
+    by_width_adjustment,
+    by_width_adjustment_plot,
     by_z_score,
     by_z_score_plot,
 )
@@ -273,6 +275,80 @@ def expected_df_by_totalsum_normalisation():
 
 
 @pytest.fixture
+def expected_df_by_width_adjustment_normalisation():
+    expected_df = pd.DataFrame(
+        data=(
+            ["Sample_1", "Gene_1", -1, -1, -1, -1, -1, -1, -1, -1, -1],
+            [
+                "Sample_2",
+                "Gene_2",
+                -0.333,
+                0.045,
+                0.136,
+                0.227,
+                0.318,
+                0.409,
+                0.5,
+                0.591,
+                0.682,
+            ],
+            [
+                "Sample_3",
+                "Gene_3",
+                2.591,
+                2.591,
+                3.5,
+                1.682,
+                -1,
+                5.318,
+                3.5,
+                1.682,
+                -1,
+            ],
+            [
+                "Sample_4",
+                "Gene_4",
+                -1,
+                -1,
+                -1,
+                -0.333,
+                1.682,
+                0.773,
+                -1,
+                1.682,
+                -1,
+            ],
+        ),
+        columns=[
+            "Sample",
+            "Gene",
+            "Protein_1",
+            "Protein_2",
+            "Protein_3",
+            "Protein_4",
+            "Protein_5",
+            "Protein_6",
+            "Protein_7",
+            "Protein_8",
+            "Protein_9",
+        ],
+    )
+
+    return pd.melt(
+        expected_df,
+        id_vars=["Sample", "Gene"],
+        var_name="Protein ID",
+        value_name="Normalised Intensity",
+    ).sort_values(by=["Sample", "Protein ID"], ignore_index=True)
+
+
+@pytest.fixture
+def normalisation_ratio_df(normalisation_df):
+    ratio_df = normalisation_df.rename(columns={"Intensity": "Ratio H/L normalized"})
+    return ratio_df
+
+
+@pytest.fixture
 def expected_df_by_ref_protein_normalisation():
     expected_df = pd.DataFrame(
         data=(
@@ -408,3 +484,34 @@ def test_ref_protein_missing(capsys, normalisation_by_ref_protein_df):
 
     assert "messages" in method_outpus
     assert "The protein was not found" in method_outpus["messages"][0]["msg"]
+
+
+def test_width_adjustment_normalisation(
+    normalisation_df, expected_df_by_width_adjustment_normalisation, show_figures
+):
+    method_outputs = by_width_adjustment(normalisation_df)
+
+    fig = by_width_adjustment_plot(
+        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
+    )[0]
+    if show_figures:
+        fig.show()
+
+    result_df = method_outputs["protein_df"]
+    assert result_df.round(3).equals(
+        expected_df_by_width_adjustment_normalisation
+    ), "Width adjustment normalisation does not match expected result"
+
+
+def test_width_adjustment_normalisation_for_ratio_columns(
+    normalisation_ratio_df, expected_df_by_width_adjustment_normalisation
+):
+    method_outputs = by_width_adjustment(normalisation_ratio_df)
+    result_df = method_outputs["protein_df"]
+
+    expected_df = expected_df_by_width_adjustment_normalisation.rename(
+        columns={"Normalised Intensity": "Normalised Ratio H/L normalized"}
+    )
+    assert result_df.round(3).equals(
+        expected_df
+    ), "Width adjustment normalisation failed for SILAC ratio intensities"
