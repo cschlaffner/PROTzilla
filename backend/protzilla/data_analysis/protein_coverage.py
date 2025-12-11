@@ -1,25 +1,17 @@
-from colour import color_scale
-from docutils.nodes import title
+from dataclasses import dataclass
+from enum import StrEnum
+
+import pandas as pd
+import plotly.graph_objects as go
+from numpy import log2
+from plotly.subplots import make_subplots
 from tqdm import tqdm
-from protzilla.constants.paths import EXTERNAL_DATA_PATH
-from protzilla.data_analysis.differential_expression_mann_whitney import (
-    mann_whitney_test_on_intensity_data,
-)
-from protzilla.disk_operator import PickleOperator
+
 from protzilla.constants.colors import (
     PLOT_PRIMARY_COLOR,
     PLOT_COLOR_SEQUENCE,
     interpolate_color,
 )
-from dataclasses import dataclass
-import pandas as pd
-from numpy import log2
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from protzilla.constants.protzilla_logging import logger
-
-# import StrEnum
-from enum import StrEnum
 
 INTENSITY_COLORS = ["#FFFFFF", PLOT_COLOR_SEQUENCE[3]]
 SEQUENCE_DEPTH_PEPTIDE_SPACING = 1
@@ -71,13 +63,6 @@ def build_kmer_dictionary(
     protein sequence.
     """
     # if the dictionary already exists, load it from disk
-    ####
-    # TODO: this has to be handled completely differently
-    #####
-    kmer_dict_path = EXTERNAL_DATA_PATH / f"kmer_dict_{k}.pkl"
-    if kmer_dict_path.exists():
-        kmer_dict = PickleOperator.read(kmer_dict_path)
-        return kmer_dict
     kmer_dict = {}
     for protein_id, protein_sequence in tqdm(
         protein_dictionary.items(),
@@ -91,7 +76,6 @@ def build_kmer_dictionary(
                 kmer_dict[kmer].append((protein_id, i))
             else:
                 kmer_dict[kmer] = [(protein_id, i)]
-    PickleOperator.write(kmer_dict_path, kmer_dict)
     return kmer_dict
 
 
@@ -124,21 +108,19 @@ def match_peptide_to_protein_ids(
     if first_kmer_matches == [] or last_kmer_matches == []:
         return []
 
-    # TODO: ok wtf?
-    hits = [
-        ProteinHit(
-            protein_id, start_first_kmer, start_first_kmer + len(peptide_sequence)
-        )
-        for protein_id, start_first_kmer in first_kmer_matches
-        for _, start_last_kmer in last_kmer_matches
-        if protein_id == _
-        and start_last_kmer == start_first_kmer + len(peptide_sequence) - k
-        and protein_dictionary[protein_id][
-            start_first_kmer : start_first_kmer + len(peptide_sequence)
-        ]
-        == peptide_sequence
-    ]
-    hits = list(set(hits))  # remove duplicates
+    hits = []
+    for protein_id_a, start_first_kmer in first_kmer_matches:
+        for protein_id_b, start_last_kmer in last_kmer_matches:
+            if protein_id_a != protein_id_b:
+                continue
+            expected_last_start = start_first_kmer + len(peptide_sequence) - k
+            if start_last_kmer != expected_last_start:
+                continue
+            start = start_first_kmer
+            end = start_first_kmer + len(peptide_sequence)
+            if protein_dictionary[protein_id_a][start:end] == peptide_sequence:
+                hits.append(ProteinHit(protein_id_a, start, end))
+    hits = list(set(hits))
 
     # Just sanity checks
     for hit in hits:
@@ -166,7 +148,7 @@ def plot_protein_coverage(
     selected_groups: list[str] = None,
     aggregation_method: AggregationMethod = AggregationMethod.median,
 ) -> dict[str, list[go.Figure]]:
-    # TODO: have a look at the code
+    # TODO: have a look at the code - in general
     """
     Plots the coverage of a protein sequence by peptides. The resulting plot is divided into subplots for each group
     specified in the metadata dataframe. Each subplot shows the coverage of the protein sequence by peptides for

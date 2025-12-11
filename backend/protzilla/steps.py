@@ -282,7 +282,8 @@ class Step:
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
-        Validates the outputs of the step. Uses the output_keys attribute to check if all required keys are present in the output dictionary.
+        Validates the outputs of the step. Uses the output_keys attribute to check if all required keys are present in
+        the output dictionary.
         :param soft_check: Whether to raise errors or just return False if the output is invalid
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
