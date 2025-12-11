@@ -35,7 +35,7 @@ def fasta_import(
 
     :return: A dictionary with a DataFrame containing the protein sequences and their protein ids
     """
-    with open(file_path, encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         fasta_iterator = SeqIO.parse(f, "fasta")
         protein_ids = []
         protein_sequences = []
