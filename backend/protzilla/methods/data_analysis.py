@@ -959,8 +959,7 @@ class PlotProteinCoverage(DataAnalysisStep):
                 ),
                 MultiSelectField(
                     name="selected_groups",
-                    # TODO: probably rename
-                    label="Select the options from the grouping column which should be included in the plot",
+                    label="Select which options from the grouping column should be included in the plot",
                 ),
                 DropdownField(
                     name="aggregation_method",
