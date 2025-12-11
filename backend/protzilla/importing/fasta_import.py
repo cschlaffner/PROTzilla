@@ -3,13 +3,10 @@ This module contains the code to parse a fasta file containing protein sequences
 """
 
 import logging
-import traceback
 
 import pandas as pd
 from Bio import SeqIO
 from pandas import DataFrame
-
-from protzilla.utilities import format_trace
 
 
 def parse_fasta_id(fasta_id: str) -> str:
@@ -38,26 +35,27 @@ def fasta_import(
 
     :return: A dictionary with a DataFrame containing the protein sequences and their protein ids
     """
-    fasta_iterator = SeqIO.parse(open(file_path), "fasta")
-    protein_ids = []
-    protein_sequences = []
-    for fasta_sequence in fasta_iterator:
-        try:
-            protein_id, sequence = parse_fasta_id(fasta_sequence.id), str(
-                fasta_sequence.seq
-            )
-        except ValueError as e:
-            msg = (
-                f"An error occurred while reading the fasta file: {e.__class__.__name__} {e}. Please provide a valid "
-                "fasta file."
-            )
-            return {"messages": [{"level": logging.ERROR, "msg": msg}]}
+    with open(file_path, encoding='utf-8') as f:
+        fasta_iterator = SeqIO.parse(f, "fasta")
+        protein_ids = []
+        protein_sequences = []
+        for fasta_sequence in fasta_iterator:
+            try:
+                protein_id, sequence = parse_fasta_id(fasta_sequence.id), str(
+                    fasta_sequence.seq
+                )
+            except ValueError as e:
+                msg = (
+                    f"An error occurred while reading the fasta file: {e.__class__.__name__} {e}. Please provide a valid "
+                    "fasta file."
+                )
+                return {"messages": [{"level": logging.ERROR, "msg": msg}]}
 
-        # Make sure that the protein id has an isoform suffix even if it's the canonical isoform
-        if "-" not in protein_id:
-            protein_id = f"{protein_id}-1"
-        protein_ids.append(protein_id)
-        protein_sequences.append(sequence)
+            # Make sure that the protein id has an isoform suffix even if it's the canonical isoform
+            if "-" not in protein_id:
+                protein_id = f"{protein_id}-1"
+            protein_ids.append(protein_id)
+            protein_sequences.append(sequence)
 
     if not protein_ids:
         msg = "The provided fasta file is empty."

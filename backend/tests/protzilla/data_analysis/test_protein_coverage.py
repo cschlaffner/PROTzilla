@@ -283,8 +283,6 @@ def fasta_df():
 
 @pytest.fixture
 def peptide_df():
-    # TODO
-    # fp = "/home/hendraet/stud_sync/Studium/phd/teaching/2023_bp/data/PROTZilla_data/MaxQuant_BA39_INSOLUBLE/txt/evidence_tau.txt"
     outputs = evidence_import(
         file_path=TEST_PEPTIDES_PATH / "evidence_P10636.txt",
         map_to_uniprot=False,
@@ -317,7 +315,12 @@ def metadata_df(peptide_df):
             "P10636-1",
             "Sample",
             ["AD01_C1_INSOLUBLE_01", "CTR01_C1_INSOLUBLE_01"],
-            # None,  # TODO: shouldn't matter for sample, but fails anyways...
+            AggregationMethod.mean,
+        ),
+        (
+            "P10636-6",
+            "Sample",
+            ["AD01_C1_INSOLUBLE_01", "CTR01_C1_INSOLUBLE_01"],
             AggregationMethod.mean,
         ),
     ],
@@ -340,9 +343,9 @@ def test_plot_protein_coverage(
         selected_groups,
         aggregation_method,
     )
-    assert len(result["plots"]) == 1
-    assert 'messages' not in result
-    titles = [t.text for t in result["plots"][0].layout.annotations]
+    assert len(result["plots"]) == len(selected_groups)
+    assert "messages" not in result
+    titles = [plot.layout.title.text for plot in result["plots"]]
     # Check that each group appears in one title
     assert all(any(group in title for group in selected_groups) for title in titles)
 
@@ -394,7 +397,6 @@ def test_plot_protein_coverage_selected_groups_empty(fasta_df, peptide_df, metad
 
 
 def test_plot_protein_coverage_selected_groups_none(fasta_df, peptide_df, metadata_df):
-    # TODO: maybe merge with aboive
     with pytest.raises(ValueError, match="No samples provided"):
         plot_protein_coverage(
             fasta_df,

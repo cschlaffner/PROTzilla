@@ -6,7 +6,10 @@ from tests.paths import TEST_FASTA_PATH
 
 def test_parse_fasta_id():
     protein_id = "P14136-1"
-    valid_fasta_id = f">sp|{protein_id}|GFAP_HUMAN Isoform 1 of Glial fibrillary acidic protein OS=Homo sapiens OX=9606 GN=GFAP; "
+    valid_fasta_id = (
+        f">sp|{protein_id}|GFAP_HUMAN Isoform 1 of Glial fibrillary acidic protein OS=Homo sapiens "
+        "OX=9606 GN=GFAP; "
+    )
     metadata = parse_fasta_id(valid_fasta_id)
     assert metadata == protein_id
 
@@ -42,7 +45,8 @@ def test_import_of_malformed_fasta():
     message = output["messages"][0]
     assert (
         message["level"] == 40
-        and "Fasta file metadata is invalid. It has to include a protein id" in message["msg"]
+        and "Fasta file metadata is invalid. It has to include a protein id"
+        in message["msg"]
     )
 
 

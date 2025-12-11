@@ -37,7 +37,7 @@ def test_metadata_import_faulty_file(run_imported):
     )
     run_imported.step_calculate()
     assert "messages" in run_imported.current_outputs.output
-    messages = run_imported.current_outputs.output['messages'][0]
+    messages = run_imported.current_outputs.output["messages"][0]
     assert (
         messages["level"] == 40
         and "The metadata file must contain a column named 'Sample'" in messages["msg"]
