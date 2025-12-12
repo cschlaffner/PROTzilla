@@ -315,6 +315,7 @@ export const IndexScreen: React.FC = () => {
         type: "success",
       });
       void getRuns();
+      closeImportRunModal();
     } else {
       notify({
         title: "Something went wrong",
