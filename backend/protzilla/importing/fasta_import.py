@@ -40,17 +40,9 @@ def fasta_import(
         protein_ids = []
         protein_sequences = []
         for fasta_sequence in fasta_iterator:
-            try:
-                protein_id, sequence = parse_fasta_id(fasta_sequence.id), str(
-                    fasta_sequence.seq
-                )
-            except ValueError as e:
-                msg = (
-                    f"An error occurred while reading the fasta file: {e.__class__.__name__} {e}. Please provide a valid "
-                    "fasta file."
-                )
-                return {"messages": [{"level": logging.ERROR, "msg": msg}]}
-
+            protein_id, sequence = parse_fasta_id(fasta_sequence.id), str(
+                fasta_sequence.seq
+            )
             # Make sure that the protein id has an isoform suffix even if it's the canonical isoform
             if "-" not in protein_id:
                 protein_id = f"{protein_id}-1"
@@ -58,11 +50,10 @@ def fasta_import(
             protein_sequences.append(sequence)
 
     if not protein_ids:
-        msg = "The provided fasta file is empty."
-        return {"messages": [{"level": logging.ERROR, "msg": msg}]}
+        raise ValueError("The provided fasta file is empty.")
+
     if not all(protein_sequences):
-        msg = "The provided fasta file does not contain protein sequences for all of the protein ids."
-        return {"messages": [{"level": logging.ERROR, "msg": msg}]}
+        raise ValueError("The provided fasta file does not contain protein sequences for all of the protein ids.")
 
     fasta_sequences = pd.DataFrame(
         {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
