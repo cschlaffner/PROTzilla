@@ -40,33 +40,23 @@ def test_fasta_import(fasta_file, protein_id):
 
 def test_import_of_malformed_fasta():
     malformed_fasta_file = TEST_FASTA_PATH / "even_more_malformed.fasta"
-    output = fasta_import(malformed_fasta_file)
-    assert "messages" in output and "fasta_df" not in output
-    message = output["messages"][0]
-    assert (
-        message["level"] == 40
-        and "Fasta file metadata is invalid. It has to include a protein id"
-        in message["msg"]
-    )
+    with pytest.raises(
+        ValueError,
+        match="Fasta file metadata is invalid. It has to include a protein id",
+    ):
+        fasta_import(malformed_fasta_file)
 
 
 def test_import_empty_fasta():
     empty_fasta_file = TEST_FASTA_PATH / "empty.fasta"
-    output = fasta_import(empty_fasta_file)
-    assert "messages" in output and "fasta_df" not in output
-    message = output["messages"][0]
-    assert (
-        message["level"] == 40 and message["msg"] == "The provided fasta file is empty."
-    )
+    with pytest.raises(ValueError, match="The provided fasta file is empty."):
+        fasta_import(empty_fasta_file)
 
 
 def test_import_fasta_with_no_sequences():
     no_sequences_fasta_file = TEST_FASTA_PATH / "no_sequences.fasta"
-    output = fasta_import(no_sequences_fasta_file)
-    assert "messages" in output and "fasta_df" not in output
-    message = output["messages"][0]
-    assert (
-        message["level"] == 40
-        and message["msg"]
-        == "The provided fasta file does not contain protein sequences for all of the protein ids."
-    )
+    with pytest.raises(
+        ValueError,
+        match="The provided fasta file does not contain protein sequences for all of the protein ids.",
+    ):
+        fasta_import(no_sequences_fasta_file)
