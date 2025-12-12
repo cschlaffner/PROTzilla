@@ -53,7 +53,9 @@ def fasta_import(
         raise ValueError("The provided fasta file is empty.")
 
     if not all(protein_sequences):
-        raise ValueError("The provided fasta file does not contain protein sequences for all of the protein ids.")
+        raise ValueError(
+            "The provided fasta file does not contain protein sequences for all of the protein ids."
+        )
 
     fasta_sequences = pd.DataFrame(
         {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
