@@ -293,9 +293,9 @@ class DiskOperator:
         with ErrorHandler():
             step_output = {}
             for key, value in output.items():
-                if isinstance(value, str) and (paths.RUNS_PATH / Path(value)).exists():
+                if isinstance(value, str) and (self.run_dir / Path(value)).exists():
                     step_output[key] = self.dataframe_operator.read(
-                        paths.RUNS_PATH / Path(value)
+                        self.run_dir / Path(value)
                     )
                 else:
                     step_output[key] = value
@@ -312,7 +312,7 @@ class DiskOperator:
                     # Only dump if outdated version
                     if self._dump_is_outdated(step, "output"):
                         self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path.relative_to(paths.RUNS_PATH))
+                    output_data[key] = str(file_path.relative_to(self.run_dir))
                 else:
                     output_data[key] = value
 
@@ -323,7 +323,7 @@ class DiskOperator:
         if plots:
             figures = []
             for plot in plots.values():
-                figures.append(read_json(paths.RUNS_PATH / Path(plot)))
+                figures.append(read_json(self.run_dir / Path(plot)))
             return Plots(figures)
         return Plots([])
 
@@ -343,7 +343,7 @@ class DiskOperator:
                         write_json(plot, file_path)
                         plot.write_image(str(file_path).replace(".json", ".png"))
 
-                    plots_data[i] = str(file_path.relative_to(paths.RUNS_PATH))
+                    plots_data[i] = str(file_path.relative_to(self.run_dir))
 
             self._update_dump_state(step, "plots")
 
