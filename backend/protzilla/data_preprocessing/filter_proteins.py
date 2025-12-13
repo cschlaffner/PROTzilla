@@ -52,19 +52,19 @@ def by_silac_ratios(
     min_amount: int,
 ) -> dict:
     """
-    This function filters proteins based on the amount of samples with different SILAC ratios.
+    This function filters proteins based on the amount of samples with unique SILAC ratios.
 
     :param protein_df: the protein dataframe that should be filtered
     :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
-    :param min_amount: defines the minimum amount of samples the protein has to have an intensity in (inclusive)
+    :param min_amount: defines the minimum amount of samples the protein has to have a unique intensity in (inclusive)
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
         and a list of Protein IDs that were kept
     """
 
     intensity_name = default_intensity_column(protein_df)
-    ratio_count = protein_df.groupby("Protein ID")[intensity_name].count()
-    remaining_proteins_list = ratio_count[ratio_count >= min_amount].index.tolist()
-    filtered_proteins_list = ratio_count.drop(remaining_proteins_list).index.tolist()
+    unique_ratio_count = protein_df.groupby("Protein ID")[intensity_name].unique()
+    remaining_proteins_list = unique_ratio_count[unique_ratio_count >= min_amount].index.tolist()
+    filtered_proteins_list = unique_ratio_count.drop(remaining_proteins_list).index.tolist()
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
     filtered_peptide_df = None
     if peptide_df is not None:
