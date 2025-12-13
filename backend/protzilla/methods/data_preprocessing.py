@@ -109,7 +109,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
     display_name = "By SILAC ratios"
     operation = "filter_proteins"
     method_description = (
-        "Filter proteins based on the amount of samples with SILAC ratios"
+        "Filter proteins based on the amount of samples with SILAC different ratios"
     )
 
     input_keys = ["protein_df", "peptide_df", "min_amount"]
@@ -120,7 +120,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples with SILAC ratios",
+                    label="Amount of minimum present samples with different SILAC ratios",
                     value=1,
                     min=0,
                     step=1,
