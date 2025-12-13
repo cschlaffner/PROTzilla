@@ -63,8 +63,12 @@ def by_silac_ratios(
 
     intensity_name = default_intensity_column(protein_df)
     unique_ratio_count = protein_df.groupby("Protein ID")[intensity_name].unique()
-    remaining_proteins_list = unique_ratio_count[unique_ratio_count >= min_amount].index.tolist()
-    filtered_proteins_list = unique_ratio_count.drop(remaining_proteins_list).index.tolist()
+    remaining_proteins_list = unique_ratio_count[
+        unique_ratio_count >= min_amount
+    ].index.tolist()
+    filtered_proteins_list = unique_ratio_count.drop(
+        remaining_proteins_list
+    ).index.tolist()
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
     filtered_peptide_df = None
     if peptide_df is not None:
