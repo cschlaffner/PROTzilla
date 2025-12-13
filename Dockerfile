@@ -1,35 +1,39 @@
-FROM ubuntu:24.04
-RUN apt-get update && apt-get install -y \
-	python3 \
-	python3-pip \
-	curl \
-	g++ \
-	git \
-	unzip
+# taken from https://pnpm.io/docker#example-1-build-a-bundle-in-a-docker-container
+FROM node:22-alpine AS frontend-base
 
-RUN useradd -ms /bin/bash prot
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+#RUN pnpm install corepack@latest
+RUN corepack enable
 
-USER prot
-WORKDIR /home/prot/zilla/
-SHELL ["/bin/bash", "-c"]
+COPY frontend/ /prot/zilla/
+WORKDIR /prot/zilla/frontend
 
-# Copy required build scripts
-COPY --chown=prot install_scripts/* /home/prot/zilla/install_scripts/
 
-# Copy other dependencies for build scripts
-COPY --chown=prot requirements.txt /home/prot/zilla
-COPY --chown=prot frontend/package.json frontend/pnpm-lock.yaml /home/prot/zilla/frontend/
-COPY --chown=prot backend/protzilla/constants/* /home/prot/zilla/backend/protzilla/constants/
+FROM frontend-base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build
 
-# Install main dependencies
-RUN ./install_scripts/install_dependencies.sh
 
-# Copy everything else
-COPY --chown=prot --exclude=install_scripts/* --exclude=requirements.txt . /home/prot/zilla/
+FROM python:3.11-slim
 
-# Compile frontend
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-RUN /bin/bash -c "./install_scripts/build_frontend.sh"
+WORKDIR /prot/zilla
 
-# Launch
-ENTRYPOINT ["bash", "run_protzilla.sh"]
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt update && apt-get --no-install-recommends install -y git tk
+
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=cache,target=/root/.cache \
+    pip install -U pip && pip install -r requirements.txt
+
+RUN --mount=type=bind,source=install_scripts/database_download.py,target=install_scripts/database_download.py \
+    --mount=type=bind,source=backend/protzilla/constants/paths.py,target=backend/protzilla/constants/paths.py \
+    --mount=type=cache,target=backend/user_data/external_data/ \
+    python install_scripts/database_download.py
+
+COPY backend backend
+
+COPY --from=build /prot/zilla/frontend/dist frontend/dist
+
+ENTRYPOINT python backend/manage.py runserver 0.0.0.0:8000
