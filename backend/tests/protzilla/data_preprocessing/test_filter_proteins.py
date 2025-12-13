@@ -160,7 +160,9 @@ def test_filter_proteins_by_silac_ratios(
     filter_proteins_by_silac_ratios_df, peptides_df, show_figures
 ):
 
-    method_output = by_silac_ratios(filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=2)
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=2
+    )
 
     fig = by_silac_ratios_plot(
         method_output["remaining_proteins"],
@@ -173,7 +175,9 @@ def test_filter_proteins_by_silac_ratios(
     assert method_output["remaining_proteins"] == ["Protein3", "Protein4"]
     assert method_output["filtered_proteins"] == ["Protein1", "Protein2"]
 
-    method_output = by_silac_ratios(filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=4)
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=4
+    )
 
     assert method_output["remaining_proteins"] == ["Protein3"]
     assert method_output["filtered_proteins"] == ["Protein1", "Protein2", "Protein4"]
