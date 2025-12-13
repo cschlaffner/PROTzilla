@@ -118,7 +118,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
         return Form(
             label="Filter Proteins by SILAC ratios",
             input_fields=[
-                FloatField(
+                NumberField(
                     name="min_amount",
                     label="Amount of minimum present samples with SILAC ratios",
                     value=1,
