@@ -62,7 +62,7 @@ def by_silac_ratios(
     """
 
     intensity_name = default_intensity_column(protein_df)
-    unique_ratio_count = protein_df.groupby("Protein ID")[intensity_name].unique()
+    unique_ratio_count = protein_df.groupby("Protein ID")[intensity_name].nunique()
     remaining_proteins_list = unique_ratio_count[
         unique_ratio_count >= min_amount
     ].index.tolist()
