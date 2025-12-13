@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import re
 
 import pandas as pd
 
@@ -36,8 +37,18 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 
     if "Sample" not in df.columns:
         id_df = df[id_columns]
-        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
-        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
+        disallowed_suffixes = r"(variability|count|type|peptides)"
+        if intensity_name in (
+            IntensityType.RATIO_HL.value,
+            IntensityType.RATIO_LH.value,
+        ):
+            base_pattern = rf"^{re.escape(intensity_name)}\s(?!normalized\b)(?!.*\b{disallowed_suffixes}\b).*$"
+        else:
+            base_pattern = (
+                rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+            )
+
+        intensity_df = df.filter(regex=base_pattern, axis=1)
         intensity_df.columns = [
             c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
