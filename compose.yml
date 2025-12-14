@@ -1,5 +1,6 @@
 services:
   prod:
+    image: protzilla
     build: .
     ports:
       - "8000:8000"
@@ -20,6 +21,8 @@ services:
       - "DEBUG=True"
     volumes:
       - "./backend:/home/prot/zilla/backend"
+    ports:
+      - "5678:5678"
     networks:
       - "dev-network"
 
