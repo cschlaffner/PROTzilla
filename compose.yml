@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "8000:8000"
+    environment:
+      - "DEBUG=False"
 
     # volumes:
     # Use this if you want to persistently store user data
@@ -29,18 +31,31 @@ services:
       - VITE_API_URL=http://django
     volumes:
       - "./frontend/src:/prot/zilla/frontend/src"
-      - "dist:/home/prot/zilla/frontend/dist"
-      - "node_modules:/home/prot/zilla/frontend/node_modules"
-      - ".pnpm-store:/home/prot/zilla/frontend/.pnpm-store"
+      - "node_modules:/prot/zilla/frontend/node_modules"
+      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
     networks:
       - "dev-network"
     ports:
       - "5173:5173"
     depends_on:
       - "django"
+  
+  storybook:
+    build:
+      context: .
+      dockerfile: "frontend/Dockerfile.dev"
+    environment:
+      - "BROWSER=none"
+    volumes:
+      - "./frontend/src:/prot/zilla/frontend/src"
+      - "./frontend/.storybook:/prot/zilla/frontend/.storybook"
+      - "node_modules:/prot/zilla/frontend/node_modules"
+      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
+    entrypoint: ["pnpm", "run", "storybook", "--no-open"]
+    ports:
+      - "6006:6006"
 
 volumes:
-  dist:
   node_modules:
   .pnpm-store:
 
