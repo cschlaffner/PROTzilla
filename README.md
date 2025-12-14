@@ -15,7 +15,7 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 
 ### :whale: Using Docker (recommended)
 
-First, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed
+First, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
 
 #### Development
 
@@ -23,6 +23,8 @@ First, make sure you have [Docker](https://www.docker.com/) and Docker Compose i
 2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
 3. Go to [the web UI](http://localhost:5173)
 4. Hack away and see the changes reflected instantly!
+5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debuggin in your IDE!
+    For other setups, `debugpy` is listening on its default port 5678
 
 
 #### Production
