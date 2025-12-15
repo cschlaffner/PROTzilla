@@ -13,7 +13,10 @@ from backend.protzilla.data_preprocessing.plots import (
 )
 from backend.protzilla.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType, ImputationByNormalDistributionSamplingStrategyType
+from backend.protzilla.constants.option_types import (
+    SimpleImputerStrategyType,
+    ImputationByNormalDistributionSamplingStrategyType,
+)
 
 
 def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
