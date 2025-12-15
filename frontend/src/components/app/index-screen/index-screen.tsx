@@ -315,6 +315,7 @@ export const IndexScreen: React.FC = () => {
         type: "success",
       });
       void getRuns();
+      closeImportRunModal();
     } else {
       notify({
         title: "Something went wrong",
@@ -426,7 +427,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     openExportModal();
                   }}
-                  icon="download"
+                  icon="upload"
                   tooltip="Export a workflow"
                   tooltipPosition={"left"}
                 ></StyledLeftButton>
@@ -434,7 +435,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     openImportModal();
                   }}
-                  icon="upload"
+                  icon="download"
                   tooltip="Import a workflow"
                   tooltipPosition={"left"}
                 ></StyledRightButton>
@@ -602,7 +603,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     openExportRunModal();
                   }}
-                  icon="download"
+                  icon="upload"
                   tooltip="Export a run"
                   tooltipPosition={"bottom"}
                 ></StyledLeftButton>
@@ -610,7 +611,7 @@ export const IndexScreen: React.FC = () => {
                   onClick={() => {
                     openImportRunModal();
                   }}
-                  icon="upload"
+                  icon="download"
                   tooltip="Import a run"
                   tooltipPosition={"bottom"}
                 ></StyledRightButton>
@@ -639,7 +640,7 @@ export const IndexScreen: React.FC = () => {
               closeExportRunModal();
             }}
           >
-            {runs.length > 1 ? (
+            {runs.length > 0 ? (
               <Form
                 formData={{
                   label: "",

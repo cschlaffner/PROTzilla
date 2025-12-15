@@ -293,8 +293,22 @@ class DiskOperator:
         with ErrorHandler():
             step_output = {}
             for key, value in output.items():
-                if isinstance(value, str) and Path(value).exists():
-                    step_output[key] = self.dataframe_operator.read(value)
+                # Non-string values get used directly as output
+                if not isinstance(value, str):
+                    step_output[key] = value
+                    continue
+
+                # Make sure this works for old run saves which use absolute directories
+                base_path = self.run_dir
+                if Path(value).is_absolute():
+                    base_path = Path()
+
+                if (base_path / Path(value)).exists():
+                    step_output[key] = self.dataframe_operator.read(
+                        base_path / Path(value)
+                    )
+
+                # Path does not exist, just use raw string provided.
                 else:
                     step_output[key] = value
             return Output(step_output)
@@ -310,7 +324,7 @@ class DiskOperator:
                     # Only dump if outdated version
                     if self._dump_is_outdated(step, "output"):
                         self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path)
+                    output_data[key] = str(file_path.relative_to(self.run_dir))
                 else:
                     output_data[key] = value
 
@@ -321,16 +335,16 @@ class DiskOperator:
         if plots:
             figures = []
             for plot in plots.values():
-                figures.append(read_json(plot))
+                # Make sure this works for old run saves which use absolute directories
+                base_path = self.run_dir
+                if Path(plot).is_absolute():
+                    base_path = Path()
+                figures.append(read_json(base_path / Path(plot)))
             return Plots(figures)
         return Plots([])
 
     def _write_plots(self, step: Step) -> dict:
         with ErrorHandler(), step.disk_write_mutex:
-            # Skip dumping if version matches
-            if not self._dump_is_outdated(step, "plots"):
-                return
-
             plots_data = {}
             for i, plot in enumerate(step.plots):
                 file_path = self.plot_dir / f"{step.instance_identifier}_plot{i}.json"
@@ -339,9 +353,13 @@ class DiskOperator:
                 if not isinstance(
                     plot, bytes
                 ):  # TODO the data integration plots are of type byte, and therefore cannot be written using this methodology
-                    write_json(plot, file_path)
-                    plot.write_image(str(file_path).replace(".json", ".png"))
-                    plots_data[i] = str(file_path)
+
+                    # Only dump if disk state is outdated
+                    if self._dump_is_outdated(step, "plots"):
+                        write_json(plot, file_path)
+                        plot.write_image(str(file_path).replace(".json", ".png"))
+
+                    plots_data[i] = str(file_path.relative_to(self.run_dir))
 
             self._update_dump_state(step, "plots")
 
