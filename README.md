@@ -45,15 +45,15 @@
 | backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py                          |      147 |       17 |     88% |145-146, 149-150, 157-158, 161-163, 166, 216-218, 408-409, 413, 420 |
 | backend/protzilla/data\_integration/enrichment\_analysis\_helper.py                        |       73 |        6 |     92% |137-139, 145, 150-151 |
 | backend/protzilla/data\_preprocessing/\_\_init\_\_.py                                      |        0 |        0 |    100% |           |
-| backend/protzilla/data\_preprocessing/filter\_proteins.py                                  |       19 |        2 |     89% |     59-60 |
+| backend/protzilla/data\_preprocessing/filter\_proteins.py                                  |       34 |        2 |     94% |   114-115 |
 | backend/protzilla/data\_preprocessing/filter\_samples.py                                   |       47 |        0 |    100% |           |
-| backend/protzilla/data\_preprocessing/imputation.py                                        |      131 |        3 |     98% |47-53, 175 |
-| backend/protzilla/data\_preprocessing/normalisation.py                                     |      125 |        5 |     96% |204-205, 218-219, 351 |
+| backend/protzilla/data\_preprocessing/imputation.py                                        |      132 |        3 |     98% |51-57, 179 |
+| backend/protzilla/data\_preprocessing/normalisation.py                                     |      122 |        5 |     96% |195-196, 209-210, 342 |
 | backend/protzilla/data\_preprocessing/outlier\_detection.py                                |       63 |        3 |     95% |185, 202, 265 |
 | backend/protzilla/data\_preprocessing/peptide\_filter.py                                   |       16 |        2 |     88% |     48-49 |
 | backend/protzilla/data\_preprocessing/plots.py                                             |      102 |       10 |     90% |207-208, 241, 252, 328-347 |
 | backend/protzilla/data\_preprocessing/plots\_helper.py                                     |       17 |       13 |     24% |15-24, 38-47 |
-| backend/protzilla/data\_preprocessing/transformation.py                                    |       36 |        3 |     92% |34, 75, 91 |
+| backend/protzilla/data\_preprocessing/transformation.py                                    |       38 |        3 |     92% |39, 83, 99 |
 | backend/protzilla/disk\_operator.py                                                        |      267 |       47 |     82% |24-25, 36-37, 39, 57-60, 113-115, 130, 152, 157, 174-179, 182-190, 196-214, 243, 296-299, 322-325 |
 | backend/protzilla/form.py                                                                  |      154 |       20 |     87% |102, 112-116, 214, 221-222, 227, 230, 266-280 |
 | backend/protzilla/form\_helper.py                                                          |       18 |       11 |     39% |7, 15-16, 31-34, 40-48 |
@@ -61,11 +61,11 @@
 | backend/protzilla/importing/example\_dataset\_import.py                                    |       16 |        9 |     44% |     14-46 |
 | backend/protzilla/importing/import\_utils.py                                               |       10 |        0 |    100% |           |
 | backend/protzilla/importing/metadata\_import.py                                            |       72 |       38 |     47% |28, 30, 32, 34, 48, 52-53, 74, 85-95, 100, 106-113, 128-153, 179-204 |
-| backend/protzilla/importing/ms\_data\_import.py                                            |      124 |       22 |     82% |37-38, 104-106, 146-148, 276-294 |
-| backend/protzilla/importing/peptide\_import.py                                             |       47 |        7 |     85% |15-16, 26, 52-53, 71-72 |
+| backend/protzilla/importing/ms\_data\_import.py                                            |      127 |       22 |     83% |46-47, 113-115, 155-157, 285-303 |
+| backend/protzilla/importing/peptide\_import.py                                             |       52 |        7 |     87% |16-17, 27, 63-64, 82-83 |
 | backend/protzilla/methods/data\_analysis.py                                                |      624 |      255 |     59% |193, 211, 240-249, 256-261, 323-353, 387, 421-449, 460-463, 484, 528-558, 569-575, 596, 640-674, 685-687, 706, 734-742, 749-754, 773, 801-814, 821-823, 861-890, 893-912, 923, 939-950, 958-962, 977, 1001-1014, 1021-1027, 1071-1097, 1126, 1140, 1158, 1237-1239, 1257, 1331-1333, 1350, 1411-1413, 1431, 1555-1557, 1575, 1698-1700, 1715, 1728, 1731-1733, 1744, 1799-1801, 1812, 1861-1862, 1867-1870, 1879-1889, 1894-1899, 1902, 1944, 1956-1957, 1987, 2022, 2053-2101, 2110-2135, 2151, 2162-2171, 2176-2179, 2195, 2206-2215, 2220-2223, 2232, 2263, 2270-2273, 2286, 2295, 2321, 2337 |
 | backend/protzilla/methods/data\_integration.py                                             |      295 |      139 |     53% |95, 102-104, 154-161, 168-180, 192, 267-326, 329-345, 359, 416-441, 444-460, 473, 552-600, 609-615, 630, 708-745, 748-753, 768, 788-790, 795-798, 813, 877-897, 902-908, 921, 978, 998, 1052-1053, 1058-1061, 1074 |
-| backend/protzilla/methods/data\_preprocessing.py                                           |      223 |       13 |     94% |121, 153, 258, 319, 382, 396, 430, 509, 543, 587, 695, 749, 850 |
+| backend/protzilla/methods/data\_preprocessing.py                                           |      205 |       14 |     93% |78, 109, 141, 246, 307, 370, 384, 418, 497, 531, 575, 683, 737, 838 |
 | backend/protzilla/methods/importing.py                                                     |      123 |       29 |     76% |28, 128, 197, 215-216, 229, 244-272, 277-281, 292, 314-317, 334, 350-354, 373 |
 | backend/protzilla/run.py                                                                   |      208 |       46 |     78% |54-100, 194, 199, 206, 210-213, 220-221, 232-237, 276-278, 314, 341, 355, 363 |
 | backend/protzilla/run\_helper.py                                                           |       12 |        1 |     92% |        26 |
@@ -89,7 +89,7 @@
 | src/protein-sequencing/protein\_sequencing/overview\_plot.py                               |      281 |       48 |     83% |34, 36, 68, 71, 73, 126-153, 303, 348-365, 409-410, 412-413 |
 | src/protein-sequencing/protein\_sequencing/plotter.py                                      |      317 |       82 |     74% |52, 58, 72-73, 99-103, 116-119, 121, 131, 144, 146-149, 205, 212-218, 220, 238-242, 265, 272-273, 295, 363-378, 382, 394, 424, 427-433, 442-443, 463-464, 466-471, 477-492, 516-517, 533-534 |
 | src/protein-sequencing/protein\_sequencing/uniprot\_align.py                               |       40 |        9 |     78% |12, 14, 28, 32-39, 52 |
-|                                                                                  **TOTAL** | **8513** | **2248** | **74%** |           |
+| **TOTAL**                                                                                  | **8518** | **2249** | **74%** |           |
 
 
 ## Setup coverage badge
