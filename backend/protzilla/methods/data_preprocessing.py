@@ -105,6 +105,39 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
+class FilterProteinsBySilacRatios(DataPreprocessingStep):
+    display_name = "By SILAC ratios"
+    operation = "filter_proteins"
+    method_description = (
+        "Filter proteins based on the amount of samples with SILAC different ratios"
+    )
+
+    input_keys = ["protein_df", "peptide_df", "min_amount"]
+
+    def create_form(self):
+        return Form(
+            label="Filter Proteins by SILAC ratios",
+            input_fields=[
+                NumberField(
+                    name="min_amount",
+                    label="Amount of minimum present samples with different SILAC ratios",
+                    value=1,
+                    min=0,
+                    step=1,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.pie_chart.value,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(filter_proteins.by_silac_ratios)
+    plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
+
+
 class FilterByProteinsCount(DataPreprocessingStep):
     display_name = "Protein Count"
     operation = "filter_samples"

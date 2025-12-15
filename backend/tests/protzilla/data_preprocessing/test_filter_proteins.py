@@ -5,6 +5,8 @@ import pytest
 from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
+    by_silac_ratios,
+    by_silac_ratios_plot,
 )
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
@@ -73,6 +75,37 @@ def filter_proteins_by_samples_missing_df():
     return df
 
 
+@pytest.fixture
+def filter_proteins_by_silac_ratios_df():
+    filter_proteins_df = pd.DataFrame(
+        (
+            ["Sample2", "Protein2", "Gene2", 0.5],
+            ["Sample4", "Protein4", "Gene4", 0.7],
+            ["Sample1", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein3", "Gene3", 0.8],
+            ["Sample1", "Protein2", "Gene2", 0.5],
+            ["Sample1", "Protein3", "Gene3", 1.2],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample2", "Protein3", "Gene3", 0.35],
+            ["Sample3", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein2", "Gene2", np.nan],
+            ["Sample4", "Protein2", "Gene2", np.nan],
+            ["Sample4", "Protein3", "Gene3", 0.85],
+            ["Sample1", "Protein4", "Gene4", np.nan],
+            ["Sample2", "Protein4", "Gene4", 0.51],
+            ["Sample3", "Protein4", "Gene4", np.nan],
+            ["Sample4", "Protein1", "Gene1", 0.25],
+        ),
+        columns=["Sample", "Protein ID", "Gene", "Ratio H/L"],
+    )
+
+    filter_proteins_df.sort_values(
+        by=["Sample", "Protein ID"], ignore_index=True, inplace=True
+    )
+
+    return filter_proteins_df
+
+
 def test_filter_proteins_by_missing_samples(
     filter_proteins_by_samples_missing_df, peptides_df, show_figures
 ):
@@ -114,6 +147,44 @@ def test_filter_proteins_by_missing_samples(
     method_output["filtered_proteins"]
 
     assert method_output["filtered_proteins"] == []
+
+    assert_peptide_filtering_matches_protein_filtering(
+        method_output["protein_df"],
+        peptides_df,
+        method_output["peptide_df"],
+        "Protein ID",
+    )
+
+
+def test_filter_proteins_by_silac_ratios(
+    filter_proteins_by_silac_ratios_df, peptides_df, show_figures
+):
+
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=2
+    )
+
+    fig = by_silac_ratios_plot(
+        method_output["remaining_proteins"],
+        method_output["filtered_proteins"],
+        "Pie chart",
+    )[0]
+    if show_figures:
+        fig.show()
+
+    assert method_output["remaining_proteins"] == ["Protein3", "Protein4"]
+    assert method_output["filtered_proteins"] == ["Protein1", "Protein2"]
+
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=4
+    )
+
+    assert method_output["remaining_proteins"] == ["Protein3"]
+    assert method_output["filtered_proteins"] == ["Protein1", "Protein2", "Protein4"]
+
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df, peptide_df=peptides_df, min_amount=4
+    )
 
     assert_peptide_filtering_matches_protein_filtering(
         method_output["protein_df"],
