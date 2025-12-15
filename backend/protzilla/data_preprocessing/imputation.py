@@ -13,7 +13,7 @@ from backend.protzilla.data_preprocessing.plots import (
 )
 from backend.protzilla.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType, ImputationByNormalDistributionSamplingStrategyType
 
 
 def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
@@ -281,7 +281,7 @@ def by_normal_distribution_sampling(
     a list of messages
     """
     assert strategy in {
-        item.value for value in ImputationByNormalDistributionSamplingStrategyType
+        item.value for item in ImputationByNormalDistributionSamplingStrategyType
     }
 
     if strategy == ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value:
