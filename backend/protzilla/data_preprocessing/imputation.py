@@ -280,7 +280,9 @@ def by_normal_distribution_sampling(
     :return: returns an imputed dataframe in typical protzilla long format\
     a list of messages
     """
-    assert strategy in {item.value for value in ImputationByNormalDistributionSamplingStrategyType}
+    assert strategy in {
+        item.value for value in ImputationByNormalDistributionSamplingStrategyType
+    }
 
     if strategy == ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value:
         transformed_df = long_to_wide(protein_df)
