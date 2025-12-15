@@ -20,17 +20,22 @@ def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> d
     :return: returns a dict containing the transformed dataframes for "protein_df" and "peptide_df" respectively
     :rtype: dict[str, pd.DataFrame | None]
     """
-    intensity_name = default_intensity_column(protein_df)
+    protein_intensity_name = default_intensity_column(protein_df)
+    peptide_intensity_name = (
+        default_intensity_column(peptide_df) if peptide_df is not None else None
+    )
 
     transformed_df = protein_df.copy()
-    transformed_df[intensity_name] = 1 / transformed_df[intensity_name]
-    if np.isinf(transformed_df[intensity_name]).any():
+    transformed_df[protein_intensity_name] = 1 / transformed_df[protein_intensity_name]
+    if np.isinf(transformed_df[protein_intensity_name]).any():
         raise ValueError("Division by zero when inverting values.")
 
     transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
     if transformed_peptide_df is not None:
-        transformed_peptide_df["Intensity"] = 1 / transformed_peptide_df["Intensity"]
-        if np.isinf(transformed_peptide_df["Intensity"]).any():
+        transformed_peptide_df[peptide_intensity_name] = (
+            1 / transformed_peptide_df[peptide_intensity_name]
+        )
+        if np.isinf(transformed_peptide_df[peptide_intensity_name]).any():
             raise ValueError("Division by zero when inverting values.")
 
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
@@ -55,6 +60,9 @@ def by_log(
     :rtype: dict[str, pd.DataFrame | None]
     """
     intensity_name = default_intensity_column(protein_df)
+    peptide_intensity_name = (
+        default_intensity_column(peptide_df) if peptide_df is not None else None
+    )
     transformed_df = protein_df.copy()
     transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
 
@@ -62,14 +70,14 @@ def by_log(
     if log_base == "log2":
         transformed_df[intensity_name] = np.log2(transformed_df[intensity_name])
         if transformed_peptide_df is not None:
-            transformed_peptide_df["Intensity"] = np.log2(
-                transformed_peptide_df["Intensity"]
+            transformed_peptide_df[peptide_intensity_name] = np.log2(
+                transformed_peptide_df[peptide_intensity_name]
             )
     elif log_base == "log10":
         transformed_df[intensity_name] = np.log10(transformed_df[intensity_name])
         if transformed_peptide_df is not None:
-            transformed_peptide_df["Intensity"] = np.log10(
-                transformed_peptide_df["Intensity"]
+            transformed_peptide_df[peptide_intensity_name] = np.log10(
+                transformed_peptide_df[peptide_intensity_name]
             )
     else:
         raise ValueError("Unknown log_base. Known log methods are 'log2' and 'log10'.")
