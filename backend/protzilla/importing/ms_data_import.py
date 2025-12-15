@@ -29,9 +29,18 @@ def max_quant_import(
             keep_default_na=True,
         )
         protein_groups = df["Majority protein IDs"]
-        # filter out normalized so "Ratio H/L normalized" is not filtered for "Ratio H/L" - same for L/H
-        intensity_df = df.filter(regex=f"^{intensity_name} (?!normalized)", axis=1)
-        intensity_df = intensity_df.filter(regex=r"^(?!.*peptides).*$", axis=1)
+        disallowed_suffixes = r"(variability|count|type|peptides)"
+        if intensity_name in (
+            IntensityType.RATIO_HL.value,
+            IntensityType.RATIO_LH.value,
+        ):
+            base_pattern = rf"^{re.escape(intensity_name)}\s(?!normalized\b)(?!.*\b{disallowed_suffixes}\b).*$"
+        else:
+            base_pattern = (
+                rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+            )
+
+        intensity_df = df.filter(regex=base_pattern, axis=1)
 
         if intensity_df.empty:
             msg = f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file."
