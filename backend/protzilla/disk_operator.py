@@ -293,10 +293,22 @@ class DiskOperator:
         with ErrorHandler():
             step_output = {}
             for key, value in output.items():
-                if isinstance(value, str) and (self.run_dir / Path(value)).exists():
+                # Non-string values get used directly as output
+                if not isinstance(value, str):
+                    step_output[key] = value
+                    continue
+
+                # Make sure this works for old run saves which use absolute directories
+                base_path = self.run_dir
+                if Path(value).is_absolute():
+                    base_path = Path()
+
+                if (base_path / Path(value)).exists():
                     step_output[key] = self.dataframe_operator.read(
-                        self.run_dir / Path(value)
+                        base_path / Path(value)
                     )
+
+                # Path does not exist, just use raw string provided.
                 else:
                     step_output[key] = value
             return Output(step_output)
@@ -323,7 +335,11 @@ class DiskOperator:
         if plots:
             figures = []
             for plot in plots.values():
-                figures.append(read_json(self.run_dir / Path(plot)))
+                # Make sure this works for old run saves which use absolute directories
+                base_path = self.run_dir
+                if Path(plot).is_absolute():
+                    base_path = Path()
+                figures.append(read_json(base_path / Path(plot)))
             return Plots(figures)
         return Plots([])
 
