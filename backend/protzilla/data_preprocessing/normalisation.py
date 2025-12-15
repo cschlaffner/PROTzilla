@@ -159,7 +159,7 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
     if zeroed_samples != []:
         output["messages"] = dict(
             level=logging.WARNING,
-            msg=f"Samples {zeroed_samples} have a sum of zero - try using other filtering strategies such as filtering non- or low intensity samples."
+            msg=f"Samples {zeroed_samples} have a sum of zero - try using other filtering strategies such as filtering non- or low intensity samples.",
         )
     return output
 
