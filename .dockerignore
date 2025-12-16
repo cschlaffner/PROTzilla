@@ -16,3 +16,7 @@ Dockerfile*
 
 # VS Code
 .vscode/
+
+# Node modules
+frontend/node_modules
+.pnpm-store
