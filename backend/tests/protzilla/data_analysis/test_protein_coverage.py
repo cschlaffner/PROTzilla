@@ -488,7 +488,7 @@ def test_plot_protein_coverage_malformed_fasta_sequence(peptide_df, metadata_df)
         }
     )
     with pytest.raises(
-        ValueError, match=f"No peptides matched for protein {protein_id}"
+        ValueError, match="K-mer dictionary is empty. Is the FASTA file valid?"
     ):
         plot_protein_coverage(
             fasta_with_empty_sequence,
