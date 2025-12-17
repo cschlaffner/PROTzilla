@@ -17,9 +17,6 @@ RUN pnpm run build
 # requires git and g++ which aren't available in the slim image
 FROM python:3.11 AS backend-base
 
-# hack so that hendrik's editable package also gets installed here
-WORKDIR /usr/local/lib/python3.11/site-packages
-
 RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
     --mount=type=cache,target=/root/.cache/pip \
     pip install -U pip && pip install -r requirements.txt
