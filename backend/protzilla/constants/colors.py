@@ -15,6 +15,11 @@ PLOT_SECONDARY_COLOR = PLOT_COLOR_SEQUENCE[1]
 """Second color in list."""
 
 
+def rgb_to_hex(rgb):
+    # Convert RGB tuples back to hex color strings
+    return f"#{''.join(f'{c:02x}' for c in rgb)}"
+
+
 def interpolate_color(color_a, color_b, t):
     """
     Interpolate between two RGB color strings based on a float t between 0 and 1.
@@ -32,10 +37,6 @@ def interpolate_color(color_a, color_b, t):
     def hex_to_rgb(hex_color):
         hex_color = hex_color.lstrip("#")
         return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
-
-    # Convert RGB tuples back to hex color strings
-    def rgb_to_hex(rgb):
-        return f"#{''.join(f'{c:02x}' for c in rgb)}"
 
     rgb_a = hex_to_rgb(color_a)
     rgb_b = hex_to_rgb(color_b)
