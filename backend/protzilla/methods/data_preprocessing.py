@@ -42,7 +42,6 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter Proteins by Samples Missing",
             input_fields=[
                 FloatField(
                     name="percentage",
@@ -76,7 +75,6 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter Proteins by SILAC ratios",
             input_fields=[
                 NumberField(
                     name="min_amount",
@@ -107,7 +105,6 @@ class FilterByProteinsCount(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Protein Count",
             input_fields=[
                 FloatField(
                     name="deviation_threshold",
@@ -139,7 +136,6 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter peptides by PEP threshold",
             input_fields=[
                 FloatField(
                     name="threshold",
@@ -179,7 +175,6 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Proteins Missing",
             input_fields=[
                 FloatField(
                     name="percentage",
@@ -211,7 +206,6 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Protein Intensity Sum",
             input_fields=[
                 FloatField(
                     name="deviation_threshold",
@@ -244,7 +238,6 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Outlier Detection by PCA",
             input_fields=[
                 FloatField(
                     name="threshold",
@@ -279,7 +272,6 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Outlier Detection by Local Outlier Factor",
             input_fields=[
                 NumberField(
                     name="number_of_neighbors",
@@ -305,7 +297,6 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Outlier Detection by Isolation Forest",
             input_fields=[
                 NumberField(
                     name="n_estimators",
@@ -331,7 +322,6 @@ class TransformationLog(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Log Transformation",
             input_fields=[
                 DropdownField(
                     name="log_base",
@@ -368,7 +358,6 @@ class TransformationInversion(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Data Inversion Transformation",
             input_fields=[],
         )
 
@@ -382,7 +371,6 @@ class NormalisationByZScore(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation by Z-Score",
             input_fields=[
                 DropdownField(
                     name="graph_type",
@@ -416,7 +404,6 @@ class NormalisationByTotalSum(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation by total sum",
             input_fields=[
                 DropdownField(
                     name="graph_type",
@@ -452,7 +439,6 @@ class NormalisationByMedian(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation by Median",
             input_fields=[
                 FloatField(
                     name="percentile",
@@ -495,7 +481,6 @@ class NormalisationByWidthAdjustment(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation by width adjustment",
             input_fields=[
                 DropdownField(
                     name="graph_type",
@@ -529,7 +514,6 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Normalisation by reference protein",
             input_fields=[
                 InfoField(
                     label="A function to perform protein-intensity normalisation in reference to a selected protein "
@@ -573,7 +557,6 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation by minimum per dataset",
             input_fields=[
                 InfoField(
                     label="A function to impute missing values for each protein by taking into account data from the "
@@ -627,7 +610,6 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation by minimum per protein",
             input_fields=[
                 InfoField(
                     label="A function to impute missing values for each protein by taking into account data from each "
@@ -681,7 +663,6 @@ class ImputationByMinPerSample(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation by minimum per sample",
             input_fields=[
                 InfoField(
                     label="Sets missing intensity values to the smallest measured value for each sample"
@@ -735,7 +716,6 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation per Protein",
             input_fields=[
                 DropdownField(
                     name="strategy",
@@ -787,7 +767,6 @@ class ImputationByKNN(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation by KNN",
             input_fields=[
                 NumberField(
                     name="number_of_neighbours",
@@ -836,7 +815,6 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
 
     def create_form(self):
         return Form(
-            label="Imputation by normal distribution sampling",
             input_fields=[
                 DropdownField(
                     name="strategy",
