@@ -50,15 +50,20 @@ def _map_log_base(log_base: str) -> int | None:
 
 
 def preprocess_grouping(
-    metadata_df: pd.DataFrame, grouping: str, selected_groups: list | str
-) -> tuple[list, list[dict]]:
+    df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    grouping: str,
+    selected_groups: list | str,
+) -> tuple[pd.DataFrame, list, list[dict]]:
     """
     Preprocesses the grouping column in the metadata_df and checks if the selected groups are present.
+    :param df: the data frame containing the data to be analyzed
     :param metadata_df: the metadata dataframe
     :param grouping: the column name in the metadata_df that contains the grouping information
     :param selected_groups: the groups that should be compared
     :return: a tuple containing the selected groups and a list of messages
     """
+
     assert grouping in metadata_df.columns, f"{grouping} not found in metadata_df"
     messages = []
 
@@ -77,15 +82,39 @@ def preprocess_grouping(
             }
         )
 
+    # Check that groups are also present in the data frame
+    df_with_groups = pd.merge(
+        left=df,
+        right=metadata_df[["Sample", grouping]],
+        on="Sample",
+        copy=False,
+    )
+    present_groups = set(df_with_groups[grouping].unique())
+    if len(present_groups) < 2:
+        raise ValueError(
+            "At least two groups from the metadata must also be present in the data for differential expression analysis."
+        )
+    overlapping_groups = present_groups.intersection(set(selected_groups))
+    if len(overlapping_groups) < len(selected_groups):
+        removed_groups = list(set(selected_groups) - overlapping_groups)
+        selected_groups = list(overlapping_groups)
+        messages.append(
+            {
+                "level": logging.WARNING,
+                "msg": f"Group{'s' if len(removed_groups) > 1 else ''} "
+                f"{str(removed_groups)[1:-1]} were not found in the data and thus removed.",
+            }
+        )
+
     # Select all groups if none or less than two were selected
     if (
         not selected_groups
         or isinstance(selected_groups, str)
         or len(selected_groups) < 2
     ):
-        selected_groups = metadata_df[grouping].unique()
+        selected_groups = present_groups
         selected_groups_str = "".join(
-            ["'" + str(group) + "', " for group in selected_groups]
+            ["'" + str(group) + "', " for group in sorted(selected_groups)]
         )[0:-2]
         messages.append(
             {
@@ -95,7 +124,7 @@ def preprocess_grouping(
             }
         )
 
-    return selected_groups, messages
+    return df_with_groups, selected_groups, messages
 
 
 def calculate_log2_fold_change(
