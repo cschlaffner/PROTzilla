@@ -58,17 +58,8 @@ def anova(
             - a df filtered_proteins, containing the filtered out proteins (due to missing values or identical values),
     """
 
-    selected_groups, messages = preprocess_grouping(
-        metadata_df, grouping, selected_groups
-    )
-
-    # Merge the intensity and metadata dataframes in order to assign to each Sample
-    # their corresponding group
-    intensity_df = pd.merge(
-        left=intensity_df,
-        right=metadata_df[["Sample", grouping]],
-        on="Sample",
-        copy=False,
+    intensity_df, selected_groups, messages = preprocess_grouping(
+        intensity_df, metadata_df, grouping, selected_groups
     )
     intensity_name = default_intensity_column(intensity_df, intensity_name)
 

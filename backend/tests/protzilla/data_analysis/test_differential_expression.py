@@ -540,6 +540,94 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
     assert p_values_rounded == expected_corrected_p_values
 
 
+def test_kruskal_wallis_too_few_groups(diff_expr_test_data):
+    test_intensity_df, _ = diff_expr_test_data
+    test_metadata_df = pd.DataFrame(
+        data=(
+            ["Sample7", "Group3"],
+            ["Sample8", "Group4"],
+            ["Sample9", "Group5"],
+        ),
+        columns=["Sample", "Group"],
+    )
+
+    test_alpha = 0.05
+
+    current_input = dict(
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["wrong_group1", "wrong_group2"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=test_alpha,
+        log_base="log2",
+    )
+    with pytest.raises(
+        ValueError,
+        match="At least two groups from the metadata must also be present in the data for differential expression analysis.",
+    ):
+        _ = kruskal_wallis_test_on_intensity_data(**current_input)
+
+
+def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
+    test_intensity_df, test_metadata_df = diff_expr_test_data
+    additional_metadata = pd.DataFrame(
+        data=(
+            ["Sample8", "Group4"],
+            ["Sample9", "Group5"],
+        ),
+        columns=["Sample", "Group"],
+    )
+    test_metadata_df = pd.concat(
+        [test_metadata_df, additional_metadata], ignore_index=True
+    )
+
+    test_alpha = 0.05
+
+    current_input = dict(
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["Group1", "Group2", "Group4", "Group5"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=test_alpha,
+        log_base="log2",
+    )
+    current_out = kruskal_wallis_test_on_intensity_data(**current_input)
+
+    assert "messages" in current_out and len(current_out["messages"]) == 1
+    assert any(
+        message["level"] == logging.WARNING
+        and "Groups 'Group4', 'Group5' were not found in the data and thus removed."
+        in message["msg"]
+        for message in current_out["messages"]
+    )
+
+    current_input = dict(
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["Group4", "Group5"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=test_alpha,
+        log_base="log2",
+    )
+    current_out = kruskal_wallis_test_on_intensity_data(**current_input)
+
+    assert "messages" in current_out and len(current_out["messages"]) == 2
+    assert any(
+        message["level"] == logging.WARNING
+        and "Groups 'Group4', 'Group5' were not found in the data and thus removed."
+        in message["msg"]
+        for message in current_out["messages"]
+    )
+    assert any(
+        message["level"] == logging.WARNING
+        and "Auto-selected the groups 'Group1', 'Group2', 'Group3'" in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
 @pytest.fixture
 def ptm_test_data():
     test_amount_list = (
