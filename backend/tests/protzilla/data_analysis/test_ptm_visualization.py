@@ -6,10 +6,11 @@ import pandas as pd
 import pytest
 
 import main
+from protzilla.constants.paths import SETTINGS_PATH
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
-    create_details_ptm_visualization,
+    create_details_ptm_visualization, ptm_vis_utils,
 )
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
@@ -296,12 +297,24 @@ class TestPTMVisualization:
         )
 
         # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
+        shutil.copytree(
+            main.views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
+        )
         settings_reduced_ptms_file = Path(
-            TEST_PTM_VISUALIZATION_PATH / "ptm_settings_fewer_ptms.yaml"
+            TEST_PTM_VISUALIZATION_PATH / f"ptm_settings_fewer_ptms.yaml"
         )
         shutil.copy(settings_reduced_ptms_file, tmp_ptm_settings_dir)
-        with mock.patch.object(
-            main.views_helper, "SETTINGS_PATH", tmp_ptm_settings_dir.resolve()
+        with (
+            mock.patch.object(
+                main.views_helper,
+                "SETTINGS_PATH",
+                tmp_ptm_settings_dir.resolve(),
+            ),
+            mock.patch.object(
+                ptm_vis_utils,
+                "CUSTOM_PTM_SETTINGS_FILE_STEM",
+                tmp_ptm_settings_dir.resolve() / settings_reduced_ptms_file.stem
+            ),
         ):
             result = create_overview_ptm_visualization(
                 evidence_df=evidence_df,
