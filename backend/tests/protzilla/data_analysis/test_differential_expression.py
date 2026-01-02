@@ -596,11 +596,11 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
     assert "messages" in current_out and len(current_out["messages"]) == 1
-    assert any(
+    message = current_out["messages"][0]
+    assert (
         message["level"] == logging.WARNING
-        and "Groups 'Group4', 'Group5' were not found in the data and thus removed."
-        in message["msg"]
-        for message in current_out["messages"]
+        and message["msg"]
+        == "Groups 'Group4', 'Group5' were not found in the data and thus removed."
     )
 
     current_input = dict(
