@@ -102,7 +102,7 @@ def preprocess_grouping(
             {
                 "level": logging.WARNING,
                 "msg": f"Group{'s' if len(removed_groups) > 1 else ''} "
-                f"{str(removed_groups)[1:-1]} were not found in the data and thus removed.",
+                f"{str(sorted(removed_groups))[1:-1]} were not found in the data and thus removed.",
             }
         )
 
