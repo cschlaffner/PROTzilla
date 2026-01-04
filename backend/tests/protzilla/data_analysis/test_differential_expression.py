@@ -335,6 +335,49 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     assert log2fc_rounded == log2_fc
 
 
+def test_differential_expression_t_test_with_silac_ratios():
+    silac_ratio_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", 1.2],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", 1.1],
+            ["Sample4", "Protein1", "Gene1", 0.8],
+            ["Sample5", "Protein1", "Gene1", 0.9],
+            ["Sample6", "Protein1", "Gene1", np.nan],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Ratio H/L"],
+    )
+
+    metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group1"],
+            ["Sample4", "Group2"],
+            ["Sample5", "Group2"],
+            ["Sample6", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    out = t_test(
+        silac_ratio_df,
+        metadata_df,
+        ttest_type="Welch's t-Test",
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        log_base="None",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+    )
+
+    assert not out["corrected_p_values_df"].empty
+    assert out["corrected_p_values_df"]["Protein ID"].tolist() == ["Protein1"]
+    assert round(out["corrected_p_values_df"]["corrected_p_value"].iloc[0], 4) == 0.0513
+    assert round(out["log2_fold_change_df"]["log2_fold_change"].iloc[0], 2) == -0.44
+
+
 def test_differential_expression_anova(show_figures):
     test_intensity_list = (
         ["Sample1", "Protein1", "Gene1", 18],

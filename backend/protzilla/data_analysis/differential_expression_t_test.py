@@ -101,6 +101,14 @@ def t_test(
         protein_df = intensity_df[intensity_df["Protein ID"] == protein]
         group1_intensities = protein_df[protein_df[grouping] == group1][intensity_name]
         group2_intensities = protein_df[protein_df[grouping] == group2][intensity_name]
+
+        group1_intensities = group1_intensities.dropna()
+        group2_intensities = group2_intensities.dropna()
+        if len(group1_intensities) < 2 or len(group2_intensities) < 2:
+            if not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
+                messages.append(INVALID_PROTEINGROUP_DATA_MSG)
+            continue
+
         t, p = stats.ttest_ind(
             group1_intensities,
             group2_intensities,
