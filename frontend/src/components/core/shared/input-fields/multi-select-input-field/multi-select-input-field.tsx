@@ -1,5 +1,5 @@
 import { border, borderColors, color, size, spacing } from "@protzilla/theme";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { MultiSelectInputFieldProps } from "./multi-select-input-field.props";
@@ -98,10 +98,15 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
 
   const [selectedOptions, setSelectedOptions] = useState(() => {
     const initialSelected = options.filter((opt) => value.includes(opt.value));
-    const sortedSelection = sortOptions(initialSelected);
-    onChange(sortedSelection.map((opt) => opt.value));
-    return sortedSelection;
+    return sortOptions(initialSelected);
   });
+
+  // Sync selectedOptions with value prop when it changes externally
+  useEffect(() => {
+    const newSelected = options.filter((opt) => value.includes(opt.value));
+    const sortedSelection = sortOptions(newSelected);
+    setSelectedOptions(sortedSelection);
+  }, [value, options]);
 
   const unselectedOptions = sortOptions(
     options.filter(
@@ -111,16 +116,13 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleItemClick = (option: { label: string; value: string }) => {
-    setSelectedOptions((prev) => {
-      const newSelection = prev.some((selected) => selected.value === option.value)
-        ? prev.filter((item) => item.value !== option.value)
-        : [...prev, option];
+    const newSelection = selectedOptions.some((selected) => selected.value === option.value)
+      ? selectedOptions.filter((item) => item.value !== option.value)
+      : [...selectedOptions, option];
 
-      const sortedSelection = sortOptions(newSelection);
-      setSelectedOptions(sortedSelection);
-      onChange(sortedSelection.map((opt) => opt.value));
-      return sortedSelection;
-    });
+    const sortedSelection = sortOptions(newSelection);
+    setSelectedOptions(sortedSelection);
+    onChange(sortedSelection.map((opt) => opt.value));
   };
 
   return (
