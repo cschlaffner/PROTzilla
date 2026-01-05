@@ -34,7 +34,7 @@ def get_choices(
     return list(reversed(choices))
 
 
-def get_choices_for_metadata_non_sample_columns(
+def get_choices_for_metadata(
     run: Run, instance_identifier: str | None = None
 ) -> list[Option]:
     if instance_identifier is None:
@@ -43,6 +43,13 @@ def get_choices_for_metadata_non_sample_columns(
         metadata_df = run.steps.get_step_output(
             Step, output_key="metadata_df", instance_identifier=instance_identifier
         )
-        if metadata_df is None:
-            return []
-    return to_choices(metadata_df.columns[metadata_df.columns != "Sample"].unique())
+    if metadata_df is None:
+        return to_choices([])
+    return to_choices(metadata_df.columns.unique())
+
+
+def get_choices_for_metadata_non_sample_columns(
+    run: Run, instance_identifier: str | None = None
+) -> list[Option]:
+    metadata_choices = get_choices_for_metadata(run, instance_identifier)
+    return [c for c in metadata_choices if c.label != "Sample"]
