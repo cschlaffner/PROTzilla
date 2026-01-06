@@ -1,0 +1,22 @@
+# VCS
+.git
+.gitignore
+.github
+
+# Docker
+docker-compose.yml
+Dockerfile*
+.docker
+.dockerignore
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+**/*.py[cod]
+
+
+# VS Code
+.vscode/
+
+# Node modules
+frontend/node_modules
+.pnpm-store
