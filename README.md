@@ -23,7 +23,7 @@
 | backend/protzilla/data\_analysis/differential\_expression\_kruskal\_wallis.py |       46 |        1 |     98% |       199 |
 | backend/protzilla/data\_analysis/differential\_expression\_linear\_model.py   |       56 |        9 |     84% |52-53, 60-61, 116-122 |
 | backend/protzilla/data\_analysis/differential\_expression\_mann\_whitney.py   |       46 |        1 |     98% |       236 |
-| backend/protzilla/data\_analysis/differential\_expression\_t\_test.py         |       53 |       11 |     79% |17, 63-64, 73-77, 124-128 |
+| backend/protzilla/data\_analysis/differential\_expression\_t\_test.py         |       59 |       14 |     76% |17, 63-64, 73-77, 108-110, 132-136 |
 | backend/protzilla/data\_analysis/dimension\_reduction.py                      |       33 |        6 |     82% |67-72, 100, 165-170, 179 |
 | backend/protzilla/data\_analysis/model\_evaluation.py                         |       10 |        0 |    100% |           |
 | backend/protzilla/data\_analysis/model\_evaluation\_plots.py                  |       19 |        0 |    100% |           |
@@ -82,7 +82,7 @@
 | backend/protzilla/workflow.py                                                 |       11 |        6 |     45% |  6, 15-20 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-| **TOTAL**                                                                     | **6875** | **1894** | **72%** |           |
+| **TOTAL**                                                                     | **6881** | **1897** | **72%** |           |
 
 
 ## Setup coverage badge
