@@ -14,9 +14,23 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 2. Enter repository folder <br> `cd PROTzilla`
 
 ### :whale: Using Docker (recommended)
-1. Make sure you have [Docker](https://www.docker.com/) and Docker Compose installed
-2. Run `docker compose up --build` (or `docker-compose up --build` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell (useful for production environments)
-3. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
+
+First, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
+
+#### Development
+
+1. Run `docker compose up --build vite` (or `docker-compose up --build vite` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell
+2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
+3. Go to [the web UI](http://localhost:5173)
+4. Hack away and see the changes reflected instantly!
+5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debuggin in your IDE!
+    For other setups, `debugpy` is listening on its default port 5678
+
+
+#### Production
+
+1. Run `docker compose up --build prod` (again, if this fails but Compose is installed, use `docker-compose`)
+2. The server listens on [localhost](http://localhost:8000)
 
 ### Windows native 
 > [!NOTE]
@@ -26,7 +40,7 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 
 ### Linux/macOS native
 > [!NOTE]
-> This deployment script is kept for legacy reasons and might not work well on every kind of system.
+> This deployment script is kept for legacy reasons and might not work well on every kind of system. We strongly encourage you to use docker instead.
 
 1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes. 
 2. Execute `./run_protzilla.sh` to run PROTzilla. <br>
@@ -51,9 +65,6 @@ A guide on how to use the Runner is available in our [wiki](https://github.com/c
 
 ## :mag: Further information: Development
 The PROTzilla backend is built with Python/Django and Node.js (managed via pnpm) is used for the frontend. <br>
-To open PROTzilla in development mode, run the `protzilla_dev` script for your OS. (In this mode, the frontend and backend servers are started, but code changes are dynamically included.)
+To open PROTzilla in development mode, see [the docker steps](#development)
 
-- `http://localhost:5174/` is a dynamic version of the frontend.
-- `http://127.0.0.1:8000/` is static and does not change without running `pnpm build` - as seen by a user.
-
-Additionally, you can launch the storybook by `pnpm storybook` to inspect UI components independently.
+Additionally, you can launch the storybook by `docker compose up --build storybook` to inspect UI components independently.
