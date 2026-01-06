@@ -633,8 +633,8 @@ def get_step_table(request):
 
         if run.current_step is not None:
             for key, value in run.current_outputs:
-                if key in dataframes:
-                    data = value
+                if isinstance(value, pd.DataFrame):
+                    data = value.copy()
                     data["id"] = data.index
                     cleaned_data = data.replace(np.nan, None)
                     json_data.append(
