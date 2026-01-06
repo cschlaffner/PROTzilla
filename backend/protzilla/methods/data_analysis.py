@@ -1243,7 +1243,8 @@ class ClusteringKMeans(DataAnalysisStep):
 
         positive_label_field.set_options(
             form_helper.to_choices(
-                run.steps.metadata_df[labels_field.value].dropna().unique(), required=False
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
             )
         )
 
@@ -1351,7 +1352,8 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
 
         positive_label_field.set_options(
             form_helper.to_choices(
-                run.steps.metadata_df[labels_field.value].dropna().unique(), required=False
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
             )
         )
 
@@ -1445,7 +1447,8 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
         positive_label_field.set_options(
             form_helper.to_choices(
-                run.steps.metadata_df[labels_field.value].dropna().unique(), required=False
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
             )
         )
 
