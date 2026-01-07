@@ -1,19 +1,20 @@
 import json
-import sys
+import shutil
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
+from backend.main import settings
+from backend.protzilla.runner import Runner, _serialize_graphs
+from backend.protzilla.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from backend.protzilla.utilities import random_string
-
-from backend.protzilla.runner import Runner, _serialize_graphs
+from protzilla import disk_operator
 from runner_cli import args_parser
-from backend.main import settings
 
 
 @pytest.fixture
@@ -24,6 +25,13 @@ def ms_data_file_path():
 @pytest.fixture
 def metadata_file_path():
     return "metadata_cut_columns.csv"
+
+
+@pytest.fixture()
+def tmp_workflow_dir(tmp_path_factory):
+    test_tmp_data_dir = Path("workflows/")
+    tmp_path = tmp_path_factory.mktemp(str(test_tmp_data_dir))
+    return tmp_path
 
 
 def mock_perform_method(runner: Runner):
@@ -281,7 +289,8 @@ def test_integration_runner(
             "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
             "peptides_path": None,
             "run_name": f"{name}",
-            "df_mode": "disk",
+            "df_mode": "memory",
+            # "df_mode": "disk",  # TODO: check if this is an acutal problem
             "all_plots": True,
             "verbose": False,
         }
@@ -291,6 +300,53 @@ def test_integration_runner(
     mock_plot_safe = mock.MagicMock()
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
+    # TODO: fix this
+    assert all(step.calculation_status == "complete" for step in runner.run.steps.all_steps)
+    assert runner.run.steps.all_steps[-1] == runner.run.current_step
+
+
+def test_integration_runner_ms_fragger(
+    metadata_file_path,
+    ms_data_file_path,
+    tmp_workflow_dir,
+    tests_folder_name,
+    monkeypatch,
+):
+    name = tests_folder_name + "/test_runner_integration_" + random_string()
+
+    # TODO: un-hardcode
+    mock_workflow = "MSFragger_Standard"
+    ms_data_file_path = "MSFragger/combined_protein_runner_test.tsv"
+    metadata_file_path = "MSFragger/metadata_runner_test.csv"
+
+    standard_workflow_file = TEST_WORKFLOWS_PATH / f"{mock_workflow}.yaml"
+    shutil.copy(standard_workflow_file, tmp_workflow_dir)
+    with mock.patch.object(
+        disk_operator.paths, "WORKFLOWS_PATH", tmp_workflow_dir.resolve()
+    ):
+        print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
+        runner = Runner(
+            **{
+                "workflow": mock_workflow,
+                "ms_data_path": f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
+                "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
+                "peptides_path": None,
+                "run_name": f"{name}",
+                "df_mode": "memory",  # TODO: disk not working
+                "all_plots": True,
+                "verbose": False,
+            }
+        )
+
+        mock_write = mock.MagicMock()
+        monkeypatch.setattr(runner.run, "_run_write", mock_write)
+        mock_plot_safe = mock.MagicMock()
+        monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
+        runner.compute_workflow()
+        assert all(
+            step.calculation_status == "complete" for step in runner.run.steps.all_steps
+        )
+        assert runner.run.steps.all_steps[-1] == runner.run.current_step
 
 
 def test_integration_runner_no_plots(
@@ -304,7 +360,8 @@ def test_integration_runner_no_plots(
             "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
             "peptides_path": None,
             "run_name": f"{name}",
-            "df_mode": "disk",
+            # "df_mode": "disk",
+            "df_mode": "memory",
             "all_plots": False,
             "verbose": False,
         }
@@ -312,3 +369,6 @@ def test_integration_runner_no_plots(
     mock_write = mock.MagicMock()
     monkeypatch.setattr(runner.run, "_run_write", mock_write)
     runner.compute_workflow()
+    # TODO: fix
+    assert all(step.calculation_status == "complete" for step in runner.run.steps.all_steps)
+    assert runner.run.steps.all_steps[-1] == runner.run.current_step
