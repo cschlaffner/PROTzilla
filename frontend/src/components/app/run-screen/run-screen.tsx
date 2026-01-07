@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
+import { ListEditor, NodeEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -237,6 +237,15 @@ export const RunScreen: React.FC = () => {
     <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
   );
 
+  const nodeEditorComponent = (
+    <NodeEditor
+      onFormSubmit={onFormSubmit}
+      runName={runName}
+      navigateOrRefreshSteps={navigateOrRefreshSteps}
+      runData={runData}
+    />
+  );
+
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}
@@ -262,7 +271,7 @@ export const RunScreen: React.FC = () => {
           <StyledListSwitchCard
             components={[
               { name: "List", value: listEditorComponent },
-              { name: "Node", value: dummyTextComponent1 },
+              { name: "Node", value: nodeEditorComponent },
             ]}
             hasCardTitle={false}
             styleProps={{
