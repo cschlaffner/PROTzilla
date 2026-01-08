@@ -135,6 +135,33 @@ def t_test(
             # if the protein has a NaN value in a sample, we just skip it
             pass
 
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for t-test analysis.",
+            }
+        )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=["Protein ID", "corrected_p_value"]
+            ),
+            t_statistic_df=pd.DataFrame(columns=["Protein ID", "t_statistic"]),
+            log2_fold_change_df=pd.DataFrame(
+                columns=["Protein ID", "log2_fold_change"]
+            ),
+            corrected_alpha=alpha,
+            messages=messages,
+        )
+
     (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,
@@ -171,8 +198,6 @@ def t_test(
         differentially_expressed_proteins_df["corrected_p_value"] <= corrected_alpha
     ]
 
-    # filtered_proteins = list(set(proteins) - set(valid_protein_groups))
-
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
@@ -180,6 +205,5 @@ def t_test(
         t_statistic_df=t_statistic_df,
         log2_fold_change_df=log2_fold_change_df,
         corrected_alpha=corrected_alpha,
-        # filtered_proteins=filtered_proteins,
         messages=messages,
     )

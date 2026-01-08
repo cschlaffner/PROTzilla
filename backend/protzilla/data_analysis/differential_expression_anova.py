@@ -92,6 +92,29 @@ def anova(
         elif not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
             messages.append(INVALID_PROTEINGROUP_DATA_MSG)
 
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for ANOVA analysis.",
+            }
+        )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist() + ["corrected_p_values"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist() + ["corrected_p_values"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=["Protein ID", "corrected_p_values"]
+            ),
+            sample_group_df=pd.DataFrame(columns=["Sample", grouping]),
+            corrected_alpha=alpha,
+            filtered_proteins=[],
+            messages=messages,
+        )
+
     # Apply multiple testing correction and create a dataframe with corrected p-values
     corrected_p_values, corrected_alpha = apply_multiple_testing_correction(
         p_values, multiple_testing_correction_method, alpha
