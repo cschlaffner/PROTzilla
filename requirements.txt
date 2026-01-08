@@ -6,6 +6,7 @@ black==25.11.0
 coverage==7.11.3
 dash==3.3.0
 dash-bio==1.0.2
+debugpy==1.8.18
 Django==5.2.8
 django-cors-headers==4.9.0
 gseapy==1.1.10
@@ -21,8 +22,7 @@ pandas==2.3.3
 pillow==12.0.0
 plotly==6.4.0
 pre-commit==4.4.0
-# Has to be installed editable because otherwise it is not possible to invoke the needed clustal binary
--e git+https://git@github.com/hendraet/ptm-visualization.git@main#egg=protein_sequencing
+git+https://git@github.com/hendraet/ptm-visualization.git@main#egg=protein_sequencing
 psutil==7.1.3
 pydeseq2==0.5.3
 pytest==9.0.1

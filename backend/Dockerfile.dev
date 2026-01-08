@@ -1,0 +1,17 @@
+FROM python:3.11 AS backend-base
+
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=cache,target=/root/.cache/pip \
+    pip install -U pip && pip install -r requirements.txt
+
+RUN useradd -ms /bin/bash prot
+USER prot
+WORKDIR /home/prot/zilla
+
+RUN mkdir -p backend/user_data
+
+RUN --mount=type=bind,source=install_scripts/database_download.py,target=install_scripts/database_download.py \
+    --mount=type=bind,source=backend/protzilla/constants/paths.py,target=backend/protzilla/constants/paths.py \
+    python install_scripts/database_download.py
+
+ENTRYPOINT ["bash", "-c", "python -m debugpy --listen 0.0.0.0:5678 backend/manage.py runserver 0.0.0.0:8000 --nothreading"]

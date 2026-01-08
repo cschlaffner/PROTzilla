@@ -44,6 +44,10 @@ from backend.protzilla.methods.data_preprocessing import (
 )
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, StepManager
+from protzilla.data_analysis.protein_coverage import (
+    plot_protein_coverage,
+    AggregationMethod as ProteinCoverageAggregationMethod,
+)
 from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 from protzilla.data_analysis.ptm_quantification.multiflex import (
     multiflex_lf,
@@ -909,6 +913,117 @@ class PlotVolcano(DataAnalysisStep):
         elif step.operation == "Peptide analysis":
             inputs["item_type"] = "PTM"
 
+        return inputs
+
+
+class PlotProteinCoverage(DataAnalysisStep):
+    display_name = "Protein Coverage Plot"
+    operation = "plot"
+    method_description = (
+        "Create a protein coverage plot from a protein graph and peptide data"
+    )
+
+    input_keys = [
+        "protein_id",
+        "fasta_df",
+        "metadata_df",
+        "peptide_df",
+        "grouping",
+        "selected_groups",
+        "aggregation_method",
+    ]
+    output_keys = []
+
+    plot_method = staticmethod(plot_protein_coverage)
+
+    def create_form(self):
+        # noinspection SqlNoDataSourceInspection
+        return Form(
+            label="Protein Coverage Plot",
+            input_fields=[
+                DropdownField(
+                    name="peptide_df",
+                    label="Step to use peptide data from",
+                ),
+                DropdownField(
+                    name="fasta_df",
+                    label="Step to use fasta protein data from",
+                ),
+                DropdownField(
+                    name="protein_id",
+                    label="Protein ID",
+                ),
+                DropdownField(
+                    name="grouping",
+                    label="Grouping from metadata",
+                ),
+                MultiSelectField(
+                    name="selected_groups",
+                    label="Select which options from the grouping column should be included in the plot",
+                ),
+                DropdownField(
+                    name="aggregation_method",
+                    label="Aggregation method",
+                    value=ProteinCoverageAggregationMethod.median.value,
+                    options=ProteinCoverageAggregationMethod,
+                ),
+            ],
+        )
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        fasta_df_field = form["fasta_df"]
+        protein_id_field = form["protein_id"]
+        grouping_field = form["grouping"]
+        selected_groups_field = form["selected_groups"]
+
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
+        fasta_df_field.set_options(form_helper.get_choices(run, "fasta_df"))
+
+        peptide_df_instance_id = peptide_df_field.value
+        peptide_df = run.steps.get_step_output(
+            Step, "peptide_df", peptide_df_instance_id
+        )
+        proteins_from_peptide_df = (
+            set(peptide_df["Protein ID"].dropna().unique())
+            if peptide_df is not None
+            else {}
+        )
+        # Make sure that we have a unified representation of the canonical protein, which is sometimes given without
+        # the -1 suffix. Only important for getting the correct sequence from the fasta file, so we don't need to
+        # change it in the peptide_df
+        proteins_from_peptide_df = {
+            p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
+        }
+
+        fasta_df_instance_id = fasta_df_field.value
+        fasta_df = run.steps.get_step_output(Step, "fasta_df", fasta_df_instance_id)
+        proteins_from_fasta_df = (
+            set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
+        )
+
+        common_proteins = list(proteins_from_peptide_df & proteins_from_fasta_df)
+        protein_id_field.set_options(form_helper.to_choices(common_proteins))
+
+        # We specifically want to allow grouping by Sample here
+        grouping_field.set_options(form_helper.get_choices_for_metadata(run))
+        grouping = grouping_field.value
+        if grouping == "Sample":
+            selected_groups_field.set_options(
+                form_helper.to_choices(peptide_df["Sample"].unique())
+            )
+        else:
+            selected_groups_field.set_options(
+                form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+            )
+        form["aggregation_method"].isVisible = grouping != "Sample"
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["fasta_df"] = steps.get_step_output(Step, "fasta_df", inputs["fasta_df"])
+        inputs["peptide_df"] = steps.get_step_output(
+            Step, "peptide_df", inputs["peptide_df"]
+        )
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 

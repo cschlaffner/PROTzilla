@@ -6,6 +6,7 @@ import { defineConfig as defineVitestConfig } from "vitest/config";
 
 const isProduction = process.env.NODE_ENV === "production";
 const basePath = isProduction ? "/static/" : "/";
+const apiUrl = process.env.VITE_API_URL ?? "http://localhost";
 
 // https://vite.dev/config/
 const viteConfig = defineViteConfig({
@@ -22,7 +23,7 @@ const viteConfig = defineViteConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8000", // Backend Django server
+        target: `${apiUrl}:8000`, // Backend Django server
         changeOrigin: true,
         secure: false, // Needed if backend runs on HTTP
         cookieDomainRewrite: "localhost", // Ensures CSRF cookies work correctly

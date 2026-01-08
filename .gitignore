@@ -3,7 +3,9 @@
 
 # IDE / Editor
 .idea/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
 
 # Linter
 .flake8

@@ -1,35 +1,48 @@
-FROM ubuntu:24.04
-RUN apt-get update && apt-get install -y \
-	python3 \
-	python3-pip \
-	curl \
-	g++ \
-	git \
-	unzip
+# taken from https://pnpm.io/docker#example-1-build-a-bundle-in-a-docker-container
+# install frontend dependencies and build the frontend
+FROM node:22-alpine AS frontend-base
+
+ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH" COREPACK_ENABLE_DOWNLOAD_PROMPT="0"
+
+WORKDIR /prot/zilla/frontend
+RUN --mount=type=cache,target=/root/.npm npm install corepack@latest
+RUN corepack enable
+
+COPY frontend /prot/zilla/frontend
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build
+
+# install backend dependencies and download the database
+# requires git and g++ which aren't available in the slim image
+FROM python:3.11 AS backend-base
+
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=cache,target=/root/.cache/pip \
+    pip install -U pip && pip install -r requirements.txt
+
+WORKDIR /prot/zilla
+
+RUN --mount=type=bind,source=install_scripts/database_download.py,target=install_scripts/database_download.py \
+    --mount=type=bind,source=backend/protzilla/constants/paths.py,target=backend/protzilla/constants/paths.py \
+    python install_scripts/database_download.py
+
+# production image
+FROM python:3.11-slim AS runtime
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt update && apt-get --no-install-recommends install -y tk
 
 RUN useradd -ms /bin/bash prot
-
 USER prot
-WORKDIR /home/prot/zilla/
-SHELL ["/bin/bash", "-c"]
+WORKDIR /home/prot/zilla
 
-# Copy required build scripts
-COPY --chown=prot install_scripts/* /home/prot/zilla/install_scripts/
+COPY --chown=prot --from=backend-base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages 
 
-# Copy other dependencies for build scripts
-COPY --chown=prot requirements.txt /home/prot/zilla
-COPY --chown=prot frontend/package.json frontend/pnpm-lock.yaml /home/prot/zilla/frontend/
-COPY --chown=prot backend/protzilla/constants/* /home/prot/zilla/backend/protzilla/constants/
+COPY --chown=prot --from=backend-base /prot/zilla/backend/user_data/external_data backend/user_data/external_data
+COPY --chown=prot --from=frontend-base /prot/zilla/frontend/dist frontend/dist
 
-# Install main dependencies
-RUN ./install_scripts/install_dependencies.sh
+COPY --chown=prot backend backend
 
-# Copy everything else
-COPY --chown=prot --exclude=install_scripts/* --exclude=requirements.txt . /home/prot/zilla/
-
-# Compile frontend
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-RUN /bin/bash -c "./install_scripts/build_frontend.sh"
-
-# Launch
-ENTRYPOINT ["bash", "run_protzilla.sh"]
+ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
