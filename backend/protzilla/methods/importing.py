@@ -401,12 +401,13 @@ class ExampleDatasetImport(ImportingStep):
 
     calc_method = staticmethod(example_dataset_import)
 
+
 class CrossLinkingImport(ImportingStep):
     display_name = "Cross Linking Data Import"
     operation = "Cross Linking Data Import"
     method_description = "Import a file containing cross linking data"
 
-    output_keys = ["crossLinking_df"]
+    output_keys = ["crosslinking_df"]
 
     def create_form(self):
         return Form(
@@ -420,8 +421,8 @@ class CrossLinkingImport(ImportingStep):
                 DropdownField(
                     name="",
                     label="",
-                    #value=IntensityType.IBAQ.value,
-                    #options=IntensityType,
+                    # value=IntensityType.IBAQ.value,
+                    # options=IntensityType,
                 ),
                 CheckboxField(
                     name="",
@@ -431,4 +432,4 @@ class CrossLinkingImport(ImportingStep):
             ],
         )
 
-    calc_method = staticmethod(cross_linking_import)    
+    calc_method = staticmethod(cross_linking_import)
