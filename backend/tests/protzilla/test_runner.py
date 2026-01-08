@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 
 from backend.main import settings
-from backend.protzilla.runner import Runner, _serialize_graphs
+from backend.protzilla.runner import _serialize_graphs
 from backend.protzilla.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
@@ -14,17 +14,18 @@ from backend.tests.paths import (
     TEST_WORKFLOWS_PATH,
 )
 from protzilla import disk_operator
+from protzilla.runner import Runner
 from runner_cli import args_parser
 
 
 @pytest.fixture
 def ms_data_file_path():
-    return "MaxQuant/proteinGroups_small_cut.txt"
+    return "MaxQuant/proteinGroups_medium_cut.txt"
 
 
 @pytest.fixture
 def metadata_file_path():
-    return "metadata_cut_columns.csv"
+    return "metadata_full.csv"
 
 
 @pytest.fixture()
@@ -62,6 +63,72 @@ def mock_perform_plot(runner: Runner):
     mock_plot.side_effect = mock_current_parameters
 
     return mock_plot
+
+
+def find_step_by_class_name(runner: Runner, class_name: str):
+    return next(
+        i
+        for i, step in enumerate(runner.run.steps.all_steps)
+        if step.__class__.__name__ == class_name
+    )
+
+
+def set_step_field_value(runner: Runner, step_idx: int, field_name: str, value):
+    field = next(
+        f
+        for f in runner.run.steps.all_steps[step_idx].form.input_fields
+        if f.name == field_name
+    )
+    field.value = value
+
+
+def configure_step_fields(runner: Runner, class_name: str, field_values: dict):
+    """Find a step by class name and set multiple field values."""
+    step_idx = find_step_by_class_name(runner, class_name)
+    for field_name, value in field_values.items():
+        set_step_field_value(runner, step_idx, field_name, value)
+    return step_idx
+
+
+def prepare_standard_workflow_runner(runner: Runner):
+    """
+    The standard worfklow misses leaves some of the configurable fields blank because it is a general purpose workflow
+    that does not know the specifics of the data, e.g. group names for differential expression. In an interactive
+    setting, these fields would be initialized automatically, but in this test setting we need to set them manually.
+    One could argue that it would be better to have a mock workflow for MaxQuant data (just like for the other data
+    types), but I kept it this way to also have a way to somewhat test the actual standard workflow that is used by
+    the frontend.
+    """
+    ttest_idx = configure_step_fields(
+        runner,
+        "DifferentialExpressionTTest",
+        {"grouping": "Group", "group1": "AD", "group2": "CTR"},
+    )
+
+    # Configure volcano plot to use t-test results
+    configure_step_fields(
+        runner,
+        "PlotVolcano",
+        {"input_dict": runner.run.steps.all_steps[ttest_idx].instance_identifier},
+    )
+
+    # Configure GO enrichment analysis to use t-test results
+    go_idx = configure_step_fields(
+        runner,
+        "EnrichmentAnalysisGOAnalysisWithString",
+        {"proteins_df": runner.run.steps.all_steps[ttest_idx].instance_identifier},
+    )
+
+    # Configure GO enrichment bar plot to use GO analysis results
+    configure_step_fields(
+        runner,
+        "PlotGOEnrichmentBarPlot",
+        {
+            "input_df_step_instance": runner.run.steps.all_steps[
+                go_idx
+            ].instance_identifier
+        },
+    )
 
 
 def test_runner_imports(
@@ -295,17 +362,32 @@ def test_integration_runner(
             "verbose": False,
         }
     )
+    prepare_standard_workflow_runner(runner)
+
     mock_write = mock.MagicMock()
     monkeypatch.setattr(runner.run, "_run_write", mock_write)
     mock_plot_safe = mock.MagicMock()
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
-    # TODO: fix this
-    assert all(step.calculation_status == "complete" for step in runner.run.steps.all_steps)
+    assert all(
+        step.calculation_status == "complete" for step in runner.run.steps.all_steps
+    )
     assert runner.run.steps.all_steps[-1] == runner.run.current_step
 
 
-def test_integration_runner_ms_fragger(
+@pytest.mark.parametrize(
+    "mock_workflow,ms_data_file_path,metadata_file_path",
+    [
+        (
+            "MSFragger_Standard",
+            "MSFragger/combined_protein_runner_test.tsv",
+            "MSFragger/metadata_runner_test.csv",
+        ),
+        # TODO: also add an entry for DIA-NN data
+    ],
+)
+def test_integration_runner_non_maxquant(
+    mock_workflow,
     metadata_file_path,
     ms_data_file_path,
     tmp_workflow_dir,
@@ -313,11 +395,6 @@ def test_integration_runner_ms_fragger(
     monkeypatch,
 ):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
-
-    # TODO: un-hardcode
-    mock_workflow = "MSFragger_Standard"
-    ms_data_file_path = "MSFragger/combined_protein_runner_test.tsv"
-    metadata_file_path = "MSFragger/metadata_runner_test.csv"
 
     standard_workflow_file = TEST_WORKFLOWS_PATH / f"{mock_workflow}.yaml"
     shutil.copy(standard_workflow_file, tmp_workflow_dir)
@@ -366,9 +443,12 @@ def test_integration_runner_no_plots(
             "verbose": False,
         }
     )
+    prepare_standard_workflow_runner(runner)
+
     mock_write = mock.MagicMock()
     monkeypatch.setattr(runner.run, "_run_write", mock_write)
     runner.compute_workflow()
-    # TODO: fix
-    assert all(step.calculation_status == "complete" for step in runner.run.steps.all_steps)
+    assert all(
+        step.calculation_status == "complete" for step in runner.run.steps.all_steps
+    )
     assert runner.run.steps.all_steps[-1] == runner.run.current_step
