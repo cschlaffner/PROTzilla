@@ -12,14 +12,14 @@ from protzilla.data_analysis.ptm_quantification.flexiquant import (
 from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.peptide_import import peptide_import
-from tests.paths import TEST_DATA_PATH
+from tests.paths import TEST_DATA_PATH, TEST_PEPTIDES_PATH
 from protzilla.constants.intensity_types import IntensityType
 
 
 @pytest.fixture(scope="module")
 def peptide_df_AD_only() -> pd.DataFrame:
     df = peptide_import(
-        file_path=TEST_DATA_PATH / "peptides/peptides_tau_AD01.txt",
+        file_path=TEST_PEPTIDES_PATH / "peptides_P10636_AD01.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )["peptide_df"]
@@ -45,7 +45,7 @@ def peptide_df_one_sample_with_few_peptides(peptide_df_AD_only):
 @pytest.fixture(scope="module")
 def peptide_df_AD_CTR() -> pd.DataFrame:
     df = peptide_import(
-        file_path=TEST_DATA_PATH / "peptides/peptides_tau_AD01_CTR01.txt",
+        file_path=TEST_PEPTIDES_PATH / "peptides_P10636_AD01_CTR01.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )["peptide_df"]

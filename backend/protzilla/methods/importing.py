@@ -14,6 +14,7 @@ from backend.protzilla.importing.ms_data_import import (
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
+from protzilla.importing.fasta_import import fasta_import
 from protzilla.importing.import_utils import (
     AggregationMethods,
     FeatureOrientationType,
@@ -356,6 +357,28 @@ class EvidenceImport(ImportingStep):
         )
 
     calc_method = staticmethod(evidence_import)
+
+
+class FastaImport(ImportingStep):
+    display_name = "Fasta Protein Sequence Import"
+    operation = "fasta_import"
+    method_description = "Import a fasta file containing protein sequences."
+
+    input_keys = ["file_path"]
+    output_keys = ["fasta_df"]
+
+    calc_method = staticmethod(fasta_import)
+
+    def create_form(self):
+        return Form(
+            label="Fasta Protein Sequence Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="Fasta file",
+                ),
+            ],
+        )
 
 
 class ExampleDatasetImport(ImportingStep):

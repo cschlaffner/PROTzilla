@@ -4,9 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from backend.tests.paths import TEST_DATA_PATH
 from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_types import IntensityType
+from backend.tests.paths import TEST_DATA_PATH
+from tests.paths import TEST_PEPTIDES_PATH
 
 
 def peptide_df(intensity_name):
@@ -182,7 +183,7 @@ def test_peptide_import(intensity_name):
     ):
         intensity_name = IntensityType.INTENSITY.value
     outputs = peptide_import.peptide_import(
-        file_path=f"{TEST_DATA_PATH}/peptides/peptides-vsmall.txt",
+        file_path=TEST_PEPTIDES_PATH / "peptides-vsmall.txt",
         intensity_name=intensity_name,
         map_to_uniprot=False,
     )
@@ -198,7 +199,7 @@ def test_peptide_import(intensity_name):
 
 def test_evidence_import():
     outputs = peptide_import.evidence_import(
-        file_path=f"{TEST_DATA_PATH}/peptides/evidence-vsmall.txt",
+        file_path=TEST_PEPTIDES_PATH / "evidence-vsmall.txt",
         map_to_uniprot=False,
     )
 

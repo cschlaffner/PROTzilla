@@ -1,0 +1,15 @@
+# taken from https://pnpm.io/docker#example-1-build-a-bundle-in-a-docker-container
+# install frontend dependencies and build the frontend
+FROM node:22-slim AS frontend-base
+
+ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH" COREPACK_ENABLE_DOWNLOAD_PROMPT="0"
+
+WORKDIR /prot/zilla/frontend
+RUN --mount=type=cache,target=/root/.npm npm install corepack@latest
+RUN corepack enable
+
+COPY frontend/*.* /prot/zilla/frontend
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
+ENTRYPOINT ["pnpm", "run", "dev", "--host"]
