@@ -357,7 +357,6 @@ def test_integration_runner(
             "peptides_path": None,
             "run_name": f"{name}",
             "df_mode": "memory",
-            # "df_mode": "disk",  # TODO: check if this is an acutal problem
             "all_plots": True,
             "verbose": False,
         }
@@ -409,7 +408,7 @@ def test_integration_runner_non_maxquant(
                 "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
                 "peptides_path": None,
                 "run_name": f"{name}",
-                "df_mode": "memory",  # TODO: disk not working
+                "df_mode": "memory",
                 "all_plots": True,
                 "verbose": False,
             }
@@ -437,7 +436,6 @@ def test_integration_runner_no_plots(
             "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
             "peptides_path": None,
             "run_name": f"{name}",
-            # "df_mode": "disk",
             "df_mode": "memory",
             "all_plots": False,
             "verbose": False,
