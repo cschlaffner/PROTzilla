@@ -596,10 +596,10 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
     assert "messages" in current_out and len(current_out["messages"]) == 1
-    message = current_out["messages"][0]
+    first_message = current_out["messages"][0]
     assert (
-        message["level"] == logging.WARNING
-        and message["msg"]
+        first_message["level"] == logging.WARNING
+        and first_message["msg"]
         == "Groups 'Group4', 'Group5' were not found in the data and thus removed."
     )
 
@@ -615,16 +615,16 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
     assert "messages" in current_out and len(current_out["messages"]) == 2
-    assert any(
-        message["level"] == logging.WARNING
-        and "Groups 'Group4', 'Group5' were not found in the data and thus removed."
-        in message["msg"]
-        for message in current_out["messages"]
+    sorted_messages = sorted(current_out["messages"], key=lambda x: x["msg"])
+    assert (
+        sorted_messages[0]["level"] == logging.WARNING
+        and "Auto-selected the groups 'Group1', 'Group2', 'Group3'"
+        in sorted_messages[0]["msg"]
     )
-    assert any(
-        message["level"] == logging.WARNING
-        and "Auto-selected the groups 'Group1', 'Group2', 'Group3'" in message["msg"]
-        for message in current_out["messages"]
+    assert (
+        sorted_messages[1]["level"] == logging.WARNING
+        and "Groups 'Group4', 'Group5' were not found in the data and thus removed."
+        in sorted_messages[1]["msg"]
     )
 
 
