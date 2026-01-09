@@ -163,7 +163,7 @@ class Step:
             self.messages.append(
                 dict(
                     level=logging.ERROR,
-                    msg=f"Please check the implementation of this steps method class (especially the input_keys): {e}.",
+                    msg=f"Please check the implementation of this step's method class (especially the input_keys): {e}.",
                     trace=format_trace(traceback.format_exception(e)),
                 )
             )
@@ -249,7 +249,7 @@ class Step:
         for key in required_keys:
             if key not in self.inputs:
                 raise ValueError(
-                    f"Missing required input '{key}' for the calulation method"
+                    f"Missing required input '{key}' for the calculation method"
                 )
 
         return {
@@ -307,8 +307,8 @@ class Step:
 
     def create_form(self) -> Form:
         """
-        This method must be overidden in Step classes to define a form for the step.
-        exmaple:
+        This method must be overridden in Step classes to define a form for the step.
+        example:
 
         return Form(
             label="Filter Proteins by Samples Missing",
@@ -334,7 +334,7 @@ class Step:
 
     def modify_form(self, form: Form, run: Run) -> None:
         """
-        This method can be overidden in Step classes to modify the form based on the current state of the run.
+        This method can be overridden in Step classes to modify the form based on the current state of the run.
         examples:
         - disable a field based on the current state of the run
             form["field_name"].disabled = True
