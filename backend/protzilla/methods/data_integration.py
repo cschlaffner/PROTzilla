@@ -831,7 +831,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a bar plot from GO enrichment data"
 
-    output_keys = ["plots"]
+    output_keys = []
 
     def create_form(self):
         return Form(
@@ -914,7 +914,7 @@ class PlotGOEnrichmentDotPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a categorical scatter plot from GO enrichment data"
 
-    output_keys = ["plots"]
+    output_keys = []
 
     calc_method = staticmethod(di_plots.GO_enrichment_dot_plot)
 
@@ -991,7 +991,7 @@ class PlotGSEADotPlot(PlotStep):
     operation = "plot"
     method_description = "Creates a categorical scatter plot from GSEA data"
 
-    output_keys = ["plots"]
+    output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
@@ -1067,7 +1067,7 @@ class PlotGSEAEnrichmentPlot(PlotStep):
     operation = "plot"
     method_description = "Creates an enrichment plot from (pre-ranked) GSEA data with the enrichment score, ranked_metric, gene rank and hits"
 
-    output_keys = ["plots"]
+    output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_enrichment_plot)
 

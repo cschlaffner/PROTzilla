@@ -99,6 +99,18 @@ def prepare_standard_workflow_runner(runner: Runner):
     types), but I kept it this way to also have a way to somewhat test the actual standard workflow that is used by
     the frontend.
     """
+    prot_quant_idx = find_step_by_class_name(runner, "PlotProtQuant")
+    configure_step_fields(
+        runner,
+        "PlotProtQuant",
+        {
+            "input_df": runner.run.steps.all_steps[
+                prot_quant_idx - 1
+            ].instance_identifier,
+            "protein_group": "P10636",
+        },
+    )
+
     ttest_idx = configure_step_fields(
         runner,
         "DifferentialExpressionTTest",
@@ -116,7 +128,9 @@ def prepare_standard_workflow_runner(runner: Runner):
     go_idx = configure_step_fields(
         runner,
         "EnrichmentAnalysisGOAnalysisWithString",
-        {"proteins_df": runner.run.steps.all_steps[ttest_idx].instance_identifier},
+        {
+            "proteins_df": runner.run.steps.all_steps[ttest_idx].instance_identifier,
+        },
     )
 
     # Configure GO enrichment bar plot to use GO analysis results
@@ -372,6 +386,11 @@ def test_integration_runner(
         step.calculation_status == "complete" for step in runner.run.steps.all_steps
     )
     assert runner.run.steps.all_steps[-1] == runner.run.current_step
+    assert (
+        all(step.finished for step in runner.run.steps.all_steps)
+        and not runner.run.current_step.messages
+        and "messages" not in runner.run.current_step.output
+    )
 
 
 @pytest.mark.parametrize(
@@ -382,7 +401,11 @@ def test_integration_runner(
             "MSFragger/combined_protein_runner_test.tsv",
             "MSFragger/metadata_runner_test.csv",
         ),
-        # TODO: also add an entry for DIA-NN data
+        (
+            "DIA-NN_Standard",
+            "DIANN/20230605_24h_prodi_DMSO_report.pg_matrix.tsv",
+            "DIANN/meta.csv",
+        ),
     ],
 )
 def test_integration_runner_non_maxquant(
@@ -423,6 +446,11 @@ def test_integration_runner_non_maxquant(
             step.calculation_status == "complete" for step in runner.run.steps.all_steps
         )
         assert runner.run.steps.all_steps[-1] == runner.run.current_step
+        assert (
+            all(step.finished for step in runner.run.steps.all_steps)
+            and not runner.run.current_step.messages
+            and "messages" not in runner.run.current_step.output
+        )
 
 
 def test_integration_runner_no_plots(
@@ -450,3 +478,8 @@ def test_integration_runner_no_plots(
         step.calculation_status == "complete" for step in runner.run.steps.all_steps
     )
     assert runner.run.steps.all_steps[-1] == runner.run.current_step
+    assert (
+        all(step.finished for step in runner.run.steps.all_steps)
+        and not runner.run.current_step.messages
+        and "messages" not in runner.run.current_step.output
+    )

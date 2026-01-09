@@ -11,5 +11,6 @@ def test_get_available_workflow_names():
             "example_workflow_short",
             "example_workflow",
             "MSFragger_Standard",
+            "DIA-NN_Standard"
         ]
         assert sorted(get_available_workflow_names()) == sorted(expected_files)
