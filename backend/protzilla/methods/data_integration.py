@@ -114,6 +114,7 @@ class EnrichmentAnalysisGOAnalysisWithString(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="GO analysis with STRING",
             input_fields=[
                 DropdownField(
                     name="proteins_df",
@@ -190,6 +191,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="GO analysis with Enrichr",
             input_fields=[
                 DropdownField(
                     name="protein_df_step_instance",
@@ -356,6 +358,7 @@ class EnrichmentAnalysisGOAnalysisOffline(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="GO analysis offline",
             input_fields=[
                 DropdownField(
                     name="protein_df_step_instance",
@@ -469,6 +472,7 @@ class EnrichmentAnalysisWithGSEA(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="GSEA",
             input_fields=[
                 DropdownField(
                     name="protein_df_step_instance",
@@ -625,6 +629,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="GSEA preranked",
             input_fields=[
                 DropdownField(
                     name="protein_df_step_instance",
@@ -762,6 +767,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
 
     def create_form(self):
         return Form(
+            label="Gene mapping",
             input_fields=[
                 MultiSelectField(
                     name="database_names",
@@ -806,6 +812,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
     # TODO: Add dynamic fill for database name and fields
     def create_form(self):
         return Form(
+            label="Uniprot",
             input_fields=[
                 DropdownField(
                     name="database_name",
@@ -828,6 +835,7 @@ class PlotGOEnrichmentBarPlot(PlotStep):
 
     def create_form(self):
         return Form(
+            label="Bar plot for GO enrichment analysis",
             input_fields=[
                 DropdownField(
                     name="input_df_step_instance",
@@ -912,6 +920,7 @@ class PlotGOEnrichmentDotPlot(PlotStep):
 
     def create_form(self):
         return Form(
+            label="Dot plot for GO enrichment analysis",
             input_fields=[
                 DropdownField(
                     # TODO: input_df fill dynamic with modify_form
@@ -988,6 +997,7 @@ class PlotGSEADotPlot(PlotStep):
 
     def create_form(self):
         return Form(
+            label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
                 DropdownField(
                     name="gsea_df_step_instance",
@@ -1063,6 +1073,7 @@ class PlotGSEAEnrichmentPlot(PlotStep):
 
     def create_form(self):
         return Form(
+            label="Enrichment plot for (pre-ranked) GSEA",
             input_fields=[
                 DropdownField(
                     name="term_dict",

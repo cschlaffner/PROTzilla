@@ -52,6 +52,7 @@ class MaxQuantImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="MaxQuant Protein Groups Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -90,6 +91,7 @@ class DiannImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="DIA-NN Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -124,6 +126,7 @@ class MsFraggerImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="MS Fragger Combined Protein Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -161,6 +164,7 @@ class MetadataImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="Metadata Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -191,6 +195,7 @@ class MetadataImportMethodDiann(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="DIA-NN Metadata Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -222,6 +227,7 @@ class MetadataColumnAssignment(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="Metadata column assignment",
             input_fields=[
                 DropdownField(
                     name="metadata_required_column",
@@ -284,6 +290,7 @@ class PeptideImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="MaxQuant Peptide Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -325,6 +332,7 @@ class EvidenceImport(ImportingStep):
 
     def create_form(self):
         return Form(
+            label="MaxQuant Evidence Import",
             input_fields=[
                 FileInput(
                     name="file_path",
@@ -353,19 +361,17 @@ class EvidenceImport(ImportingStep):
 class ExampleDatasetImport(ImportingStep):
     display_name = "Example Dataset Import"
     operation = "example_import"
+    # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
     method_description = (
-        "Import the proteins, peptides, and metadata of the PRIDE repository PXD014997, which belongs to the following "
-        "paper:\n\n"
-        "Aasebø, E.; Berven, F.S.; Bartaula-Brevik, S.; Stokowy, T.; Hovland, R.; Vaudel, M.; Døskeland, S.O.; "
-        "McCormack, E.; Batth, T.S.; Olsen, J.V.; et al. Proteome and Phosphoproteome Changes Associated with "
-        "Prognosis in Acute Myeloid Leukemia. Cancers 2020, 12, 709.\n"
-        "https://doi.org/10.3390/cancers12030709 "
+        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
+        "dataset]"
     )
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]
 
     def create_form(self):
         return Form(
+            label="Example Dataset Import",
             input_fields=[HeaderInfoField(label=self.method_description)],
         )
 
