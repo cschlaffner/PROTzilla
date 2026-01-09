@@ -361,10 +361,13 @@ class EvidenceImport(ImportingStep):
 class ExampleDatasetImport(ImportingStep):
     display_name = "Example Dataset Import"
     operation = "example_import"
-    # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
     method_description = (
-        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
-        "dataset]"
+        "Import the proteins, peptides, and metadata of the PRIDE repository PXD014997, which belongs to the following "
+        "paper:\n\n"
+        "Aasebø, E.; Berven, F.S.; Bartaula-Brevik, S.; Stokowy, T.; Hovland, R.; Vaudel, M.; Døskeland, S.O.; "
+        "McCormack, E.; Batth, T.S.; Olsen, J.V.; et al. Proteome and Phosphoproteome Changes Associated with "
+        "Prognosis in Acute Myeloid Leukemia. Cancers 2020, 12, 709.\n"
+        "https://doi.org/10.3390/cancers12030709 "
     )
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]
