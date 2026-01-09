@@ -209,6 +209,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="ANOVA",
             input_fields=[
                 DropdownField(
                     name="protein_df", label="Step to use protein intensities from"
@@ -276,6 +277,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="t-Test",
             input_fields=[
                 DropdownField(
                     name="ttest_type",
@@ -383,6 +385,7 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Linear Model",
             input_fields=[
                 DropdownField(
                     name="multiple_testing_correction_method",
@@ -479,6 +482,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Mann-Whitney Test",
             input_fields=[
                 DropdownField(
                     name="protein_df",
@@ -590,6 +594,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Mann-Whitney Test",
             input_fields=[
                 DropdownField(
                     name="ptm_df",
@@ -699,6 +704,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Kruskal-Wallis Test",
             input_fields=[
                 DropdownField(name="protein_df", label="Step to use protein data from"),
                 DropdownField(
@@ -765,6 +771,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Kruskal-Wallis Test",
             input_fields=[
                 DropdownField(name="ptm_df", label="Step to use ptm data from"),
                 DropdownField(
@@ -830,6 +837,7 @@ class PlotVolcano(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Volcano Plot",
             input_fields=[
                 DropdownField(
                     name="input_dict",
@@ -913,6 +921,7 @@ class PlotScatterPlot(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Scatter Plot",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -966,6 +975,7 @@ class PlotClustergram(DataAnalysisStep):
     # TODO: handle isRequired with sample_group_df
     def create_form(self):
         return Form(
+            label="Clustergram",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1029,6 +1039,7 @@ class PlotProtQuant(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Protein Quantification Plot",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1145,6 +1156,7 @@ class ClusteringKMeans(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="kMeans",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1243,6 +1255,7 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Expectation-maximization (EM)",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1335,6 +1348,7 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Hierarchical Agglomerative Clustering",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1415,6 +1429,7 @@ class ClassificationRandomForest(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Random Forest",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1558,6 +1573,7 @@ class ClassificationSVM(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Support Vector Machine",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1697,6 +1713,7 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Evaluation of classification models",
             input_fields=[
                 MultiSelectField(
                     name="scoring",
@@ -1725,6 +1742,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="t-SNE",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1792,6 +1810,7 @@ class DimensionReductionUMAP(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="UMAP",
             input_fields=[
                 DropdownField(
                     name="input_df",
@@ -1923,6 +1942,7 @@ class FLEXIQuantLF(BaseFLEXLF):
 
     def create_form(self):
         return Form(
+            label="FLEXIQuant-LF",
             input_fields=[
                 DropdownField(
                     name="protein_group",
@@ -1965,6 +1985,7 @@ class MultiFLEXLF(BaseFLEXLF):
 
     def create_form(self):
         return Form(
+            label="multiFLEX-LF",
             input_fields=[
                 *self.get_base_form_fields(),
                 FloatField(
@@ -1999,6 +2020,7 @@ class SelectPeptidesForProtein(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="Select Peptides of Protein",
             input_fields=[
                 DropdownField(
                     name="peptide_df",
@@ -2127,6 +2149,7 @@ class PTMsPerSample(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="PTMs per Sample",
             input_fields=[
                 DropdownField(
                     name="peptide_df",
@@ -2170,6 +2193,7 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
 
     def create_form(self):
         return Form(
+            label="PTMs per Sample and Protein",
             input_fields=[
                 DropdownField(
                     name="peptide_df",
@@ -2260,6 +2284,7 @@ class PTMOverviewVisualization(_PTMVisualizationStep):
 
     def create_form(self):
         return Form(
+            label="PTM Overview Visualization",
             input_fields=_PTMVisualizationStep.get_form_fields(),
         )
 
@@ -2294,6 +2319,7 @@ class PTMBarVisualization(_PTMVisualizationWithGroups):
 
     def create_form(self):
         return Form(
+            label="PTM Bar Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
 
@@ -2309,5 +2335,6 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
 
     def create_form(self):
         return Form(
+            label="PTM Details Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )

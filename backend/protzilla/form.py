@@ -179,6 +179,7 @@ StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
 
 @dataclass
 class Form:
+    label: str
     input_fields: List[InputField | StructuralField]
     isAutoSubmit: bool = True
 
