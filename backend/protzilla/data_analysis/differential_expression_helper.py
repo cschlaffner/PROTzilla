@@ -57,11 +57,12 @@ def preprocess_grouping(
 ) -> tuple[pd.DataFrame, list, list[dict]]:
     """
     Preprocesses the grouping column in the metadata_df and checks if the selected groups are present.
-    :param df: the data frame containing the data to be analyzed
+    :param df: the dataframe containing the data to be analyzed
     :param metadata_df: the metadata dataframe
     :param grouping: the column name in the metadata_df that contains the grouping information
     :param selected_groups: the groups that should be compared
-    :return: a tuple containing the selected groups and a list of messages
+    :return: a tuple containing the dataframe with groups, the (possibly updated) selected groups list,
+    and a list of message dicts
     """
 
     assert grouping in metadata_df.columns, f"{grouping} not found in metadata_df"
@@ -82,7 +83,7 @@ def preprocess_grouping(
             }
         )
 
-    # Check that groups are also present in the data frame
+    # Check that groups are also present in the dataframe
     df_with_groups = pd.merge(
         left=df,
         right=metadata_df[["Sample", grouping]],
@@ -112,7 +113,7 @@ def preprocess_grouping(
         or isinstance(selected_groups, str)
         or len(selected_groups) < 2
     ):
-        selected_groups = present_groups
+        selected_groups = list(present_groups)
         selected_groups_str = "".join(
             ["'" + str(group) + "', " for group in sorted(selected_groups)]
         )[0:-2]
@@ -163,9 +164,9 @@ def merge_differential_expression_and_significant_df(
 
 def normalize_ptm_df(ptm_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Normalizes the PTM data frame by dividing the PTM values by the amount of peptides.
-    :param ptm_df: the PTM data frame
-    :return: the normalized PTM data frame
+    Normalizes the PTM dataframe by dividing the PTM values by the amount of peptides.
+    :param ptm_df: the PTM dataframe
+    :return: the normalized PTM dataframe
     """
     ptm_df_without_sample = ptm_df.drop("Sample", axis=1)
 
