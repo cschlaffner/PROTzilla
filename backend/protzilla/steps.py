@@ -450,10 +450,10 @@ class StepManager:
         self.data_analysis = []
         self.data_integration = []
         self.sections = {
-            "importing": self.importing,
-            "data_preprocessing": self.data_preprocessing,
-            "data_analysis": self.data_analysis,
-            "data_integration": self.data_integration,
+            Section.IMPORTING.value: self.importing,
+            Section.DATA_PREPROCESSING.value: self.data_preprocessing,
+            Section.DATA_ANALYSIS.value: self.data_analysis,
+            Section.DATA_INTEGRATION.value: self.data_integration,
         }
 
         if steps is not None:
@@ -466,12 +466,7 @@ class StepManager:
         This is read-only, meaning the changes made to this list will not persist.
         :return: a list of all the steps in the current StepManager
         """
-        return (
-            self.importing
-            + self.data_preprocessing
-            + self.data_analysis
-            + self.data_integration
-        )
+        return sum(self.sections.values(), [])
 
     @property
     def current_step_index_in_section(self) -> int:
@@ -681,14 +676,8 @@ class StepManager:
         return self.current_step_index == len(self.all_steps) - 1
 
     def add_step(self, step) -> None:
-        if step.section == "importing":
-            self.importing.append(step)
-        elif step.section == "data_preprocessing":
-            self.data_preprocessing.append(step)
-        elif step.section == "data_analysis":
-            self.data_analysis.append(step)
-        elif step.section == "data_integration":
-            self.data_integration.append(step)
+        if step.section in self.sections:
+            self.sections[step.section].append(step)
         else:
             raise ValueError(f"Unknown section {step.section}")
 
