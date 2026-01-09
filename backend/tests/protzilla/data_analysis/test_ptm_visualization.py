@@ -6,7 +6,6 @@ import pandas as pd
 import pytest
 
 import main
-from protzilla.constants.paths import SETTINGS_PATH
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
@@ -314,7 +313,7 @@ class TestPTMVisualization:
             mock.patch.object(
                 ptm_vis_utils,
                 "CUSTOM_PTM_SETTINGS_FILE_STEM",
-                tmp_ptm_settings_dir.resolve() / settings_reduced_ptms_file.stem,
+                settings_reduced_ptms_file.stem,
             ),
         ):
             result = create_overview_ptm_visualization(
