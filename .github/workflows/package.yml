@@ -1,5 +1,5 @@
 # taken from https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images#publishing-images-to-github-packages
-name: Create and publish a Docker image
+name: Create and publish Docker images
 
 # Configures this workflow to run every time a change is pushed to the branch called `dev` (and, for testing purposes also the feature branch).
 on:
@@ -49,13 +49,13 @@ jobs:
         id: cache
         with:
           path: cache-mount
-          key: cache-mount-${{ hashFiles('Dockerfile') }}
+          key: cache-mount-${{ hashFiles(matrix.dockerfile) }}
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
           cache-dir: cache-mount
-          dockerfile: Dockerfile
+          dockerfile: ${{ matrix.dockerfile }}
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
       - name: Build and push Docker image
         id: push
