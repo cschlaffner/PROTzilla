@@ -2,7 +2,6 @@ import pandas as pd
 
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
 from backend.protzilla.utilities.utilities import default_intensity_column
-from backend.protzilla.data_analysis.classification_helper import encode_labels
 
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
