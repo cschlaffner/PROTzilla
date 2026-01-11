@@ -1,4 +1,4 @@
-import {useCallback} from "react";
+import {useCallback, useState} from "react";
 import { Node, NodeProps, Handle, Position} from '@xyflow/react';
 import styled from 'styled-components'; 
 import { Icon } from "@protzilla/core";
@@ -65,6 +65,21 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
   const icon = data.step.status;
   const node_bg_color = (data.isSelected ? defaultPalette["protzillaLightGray"] : "");
 
+  // TODO: Integrate API. This is just a dummy in/out setup rn
+  const step_inputs = ["peptide_df", "protein_df", "meta_df"];
+  const step_outputs = ["peptide_df", "protein_df"];
+
+  // TODO: Display tooltip for each handle (can't hurt)
+  // I advocate for something in a fixed corner to avoid mess
+  const handleMouseEnter = (text, event) => {
+    console.log(text);
+  };
+  const handleMouseLeave = () => {
+  };
+
+
+  // TODO: The icons are quite messed up (especially the hitboxes and alignment)
+  // Might want to fix that
   return(
     <StyledNode 
       className={`step-node`}
@@ -80,8 +95,60 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
       <TextContainer style={{marginLeft: "5px"}}>
           <ContentText text={data.step.name} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
       </TextContainer>
-      <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
-      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
+
+      {/*Target (input) handles*/}
+      {step_inputs.map((input, index) => (
+        <Handle
+          key={index}
+          type="target"
+          position="top"
+          id={`input-${input}-${index}`}
+          style={{
+            background: 'none',
+            border: 'none',
+            width: '1em',
+            height: '1em',
+            left: `${(100 / (step_inputs.length + 1)) * (index + 1)}%`,
+            transform: 'translateX(-50%)',
+          }}
+          onMouseEnter={(e) => handleMouseEnter(`input ${input} from ${data.step.name}`, e)}
+          onMouseLeave={handleMouseLeave}
+        >
+        <Icon icon="help"
+          style = {{
+            pointerEvents: 'none',
+            fontSize: '1em',
+            position: 'absolute',
+          }} /> 
+        </Handle>
+      ))}
+
+      {/*Source (ouput) handles*/}
+      {step_outputs.map((output, index) => (
+        <Handle
+          key={index}
+          type="source"
+          position="bottom"
+          id={`output-${output}-${index}`}
+          style={{
+            background: 'none',
+            border: 'none',
+            width: '1em',
+            height: '1em',
+            left: `${(100 / (step_outputs.length + 1)) * (index + 1)}%`,
+            transform: 'translateX(-50%)',
+          }}
+        onMouseEnter={(e) => handleMouseEnter(`output ${output} from ${data.step.name}`, e)}
+        onMouseLeave={handleMouseLeave}
+        >
+        <Icon icon="help"
+          style = {{
+            pointerEvents: 'none',
+            fontSize: '1em',
+            position: 'absolute',
+          }} /> 
+        </Handle>
+      ))}
     </StyledNode>
   );
 }

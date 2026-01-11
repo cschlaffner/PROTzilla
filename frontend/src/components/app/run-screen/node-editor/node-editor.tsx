@@ -45,7 +45,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     runData.displayed_steps.forEach(section => {
       section.steps.forEach((step, index) => {
           
-        // Current step is selected iff current_section and current_step_index matches
         const isSelected = 
           (runData.current_section === section.id) && 
           (runData.current_step_index === index);
