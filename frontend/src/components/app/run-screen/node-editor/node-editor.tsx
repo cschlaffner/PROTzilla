@@ -35,6 +35,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [],
   );
 
+
+
   useEffect(() => {
     console.log(runData);
     let new_nodes = [];
@@ -42,6 +44,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
     runData.displayed_steps.forEach(section => {
       section.steps.forEach((step, index) => {
+          
+        // Current step is selected iff current_section and current_step_index matches
+        const isSelected = 
+          (runData.current_section === section.id) && 
+          (runData.current_step_index === index);
+       
         new_nodes.push({
           id: step.id, 
           type: "step", 
@@ -50,11 +58,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             step: step, 
             step_index_within_section: index,
             section: section.id,
+            isSelected: isSelected,
             navigateOrRefreshSteps: navigateOrRefreshSteps,
           }
         });
 
-        y_offset += 40;
+        y_offset += 60;
       });
     });
     setNodes(new_nodes);
