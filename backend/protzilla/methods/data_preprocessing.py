@@ -70,7 +70,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
     operation = "filter_proteins"
     method_description = "Filter proteins based on the minumum amount of samples with different SILAC different ratios in each group"
 
-    # input_keys = ["protein_df", "peptide_df", "min_amount"]
+    input_keys = ["protein_df", "peptide_df", "min_amount"]
 
     def create_form(self):
         return Form(
