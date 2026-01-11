@@ -9,13 +9,18 @@ on:
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: protzilla
 
 jobs:
   build-and-push-image:
     strategy:
       matrix:
-        dockerfile: ["Dockerfile", "frontend/Dockerfile.dev", "backend/Dockerfile.dev"]
+        include:
+          - dockerfile: Dockerfile
+            image: cschlaffner/protzilla
+          - dockerfile: backend/Dockerfile.dev
+            image: cschlaffner/protzilla-django
+          - dockerfile: frontend/Dockerfile.dev
+            image: cschlaffner/protzilla-vite
     runs-on: ubuntu-latest
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -42,7 +47,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ matrix.image }}
       # Next two steps are necessary for using cache mounts in GHA
       - name: Cache
         uses: actions/cache@v4
@@ -72,7 +77,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-name: ${{ env.REGISTRY }}/${{ matrix.image}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
       

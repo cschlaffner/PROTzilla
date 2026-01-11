@@ -14,6 +14,7 @@ services:
     # - "./backend:/home/prot/zilla/backend"
 
   django:
+    image: ghcr.io/cschlaffner/protzilla-django
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
@@ -27,6 +28,7 @@ services:
       - "dev-network"
 
   vite:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"
@@ -44,6 +46,7 @@ services:
       - "django"
   
   storybook:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"
