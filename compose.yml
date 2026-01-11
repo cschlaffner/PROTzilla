@@ -1,6 +1,6 @@
 services:
   prod:
-    image: protzilla
+    image: ghcr.io/cschlaffner/protzilla
     build: .
     ports:
       - "8000:8000"
