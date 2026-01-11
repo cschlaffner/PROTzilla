@@ -1,6 +1,8 @@
 import {useCallback} from "react";
 import { Node, NodeProps, Handle, Position} from '@xyflow/react';
 import styled from 'styled-components'; 
+import { Icon } from "@protzilla/core";
+import { defaultPalette } from "@protzilla/theme";
 
 import {
   DefaultColoredIcon,
@@ -13,21 +15,25 @@ type StepNode = Node<{
   step: object,
   step_index_within_section: number,
   section: string,
+  isSelected: boolean,
   navigateOrRefreshSteps,
 }, 'step'>;
 
+// TODO: remove?
 const colorForSection = {
-  "importing": "#8078bf",
-  "data_preprocessing": "#78bf81",
-  "data_analysis": "#bf9b78",
-  "data_integration": "#bcbf78"
+  "importing": "#aeacbf",
+  "data_preprocessing": "#acbfae",
+  "data_analysis": "#bfb5ac",
+  "data_integration": "#bebfac"
 }
 
-const defaultNodeBgColor = "#808080"; 
-
 const StyledNode = styled.div`
-  background-color: ${defaultNodeBgColor};
   padding: 10px;
+  display: flex;
+  align-itmes: center;
+  position: relative;
+  border: 2px solid black;
+  border-radius: 5px;
 `;
 
 
@@ -38,7 +44,6 @@ const TextContainer = styled.div`
   max-width: 225px;
   whitespace: normal;
   line-height: 150%;
-
   max-height: 4.5em;
 `;
 
@@ -58,18 +63,21 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
   }
 
   const icon = data.step.status;
+  const node_bg_color = (data.isSelected ? defaultPalette["protzillaLightGray"] : "");
 
   return(
     <StyledNode 
       className={`step-node`}
-      style={{backgroundColor: `${colorForSection[data.section]}`}}
+      style={{backgroundColor: node_bg_color}}
       onClick={onElementClick}
+      isSelected={data.isSelected}
     >
+      <Icon icon={data.section} style={{ flexShrink: 0, marginRight: "10px" }} />
       <DefaultColoredIcon 
         icon={icon as DefaultColoredIconType} 
         style={{ flexShrink: 0 }} 
       />
-      <TextContainer>
+      <TextContainer style={{marginLeft: "5px"}}>
           <ContentText text={data.step.name} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
       </TextContainer>
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
