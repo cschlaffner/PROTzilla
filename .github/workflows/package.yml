@@ -66,6 +66,7 @@ jobs:
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
+          file: ${{ matrix.dockerfile }}
           context: .
           cache-from: type=gha
           cache-to: type=gha,mode=max
