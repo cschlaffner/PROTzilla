@@ -2,6 +2,13 @@ import {useCallback} from "react";
 import { Node, NodeProps, Handle, Position} from '@xyflow/react';
 import styled from 'styled-components'; 
 
+import {
+  DefaultColoredIcon,
+  ContentText,
+  CollapsibleLabel,
+  DefaultColoredIconType,
+} from "@protzilla/core";
+
 type StepNode = Node<{ 
   step: object,
   step_index_within_section: number,
@@ -23,6 +30,18 @@ const StyledNode = styled.div`
   padding: 10px;
 `;
 
+
+const TextContainer = styled.div`
+  display: flex;
+  gap: 5px;
+  marginleft: "auto";
+  max-width: 225px;
+  whitespace: normal;
+  line-height: 150%;
+
+  max-height: 4.5em;
+`;
+
 export default function StepNode({ data }: NodeProps<StepNode>) {
   const onClick = useCallback((evt) => {
     console.log(evt.target.value);
@@ -38,13 +57,21 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
     })
   }
 
+  const icon = data.step.status;
+
   return(
     <StyledNode 
       className={`step-node`}
       style={{backgroundColor: `${colorForSection[data.section]}`}}
       onClick={onElementClick}
     >
-      <p>{data.step.name}</p>
+      <DefaultColoredIcon 
+        icon={icon as DefaultColoredIconType} 
+        style={{ flexShrink: 0 }} 
+      />
+      <TextContainer>
+          <ContentText text={data.step.name} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
+      </TextContainer>
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
     </StyledNode>
