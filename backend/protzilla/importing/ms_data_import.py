@@ -17,6 +17,7 @@ def max_quant_import(
     intensity_name: str,
     map_to_uniprot=False,
     aggregation_method: str = "Sum",
+    ignore_only_identified_by_site: bool = False,
 ) -> dict:
     try:
         allowed = {item.value for item in IntensityType}
@@ -50,8 +51,13 @@ def max_quant_import(
             c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         intensity_df = intensity_df.assign(**{"Protein ID": protein_groups})
+        intensity_df = intensity_df.assign(**{"Only identified by site": df["Only identified by site"]})
         return transform_and_clean(
-            intensity_df, intensity_name, map_to_uniprot, aggregation_method
+            intensity_df,
+            intensity_name,
+            map_to_uniprot,
+            aggregation_method,
+            ignore_only_identified_by_site,
         )
 
     except Exception as e:
@@ -170,6 +176,7 @@ def transform_and_clean(
     intensity_name: str,
     map_to_uniprot: bool,
     aggregation_method: str = "Sum",
+    ignore_only_identified_by_site: bool = False,
 ) -> dict:
     """
     Transforms a dataframe that is read from a file in wide format into long format,
@@ -185,6 +192,15 @@ def transform_and_clean(
         intensity columns; contaminants and rejected proteins
     """
     assert "Protein ID" in df.columns
+    dropped_only_identified_by_site = []
+    if ignore_only_identified_by_site and "Only identified by site" in df.columns:
+        site_flag = df["Only identified by site"].fillna("").astype(str).str.strip()
+        only_site_mask = site_flag.isin({"+", "1", "True", "TRUE", "true"})
+        dropped_only_identified_by_site = df.loc[only_site_mask, "Protein ID"].tolist()
+        df = df.loc[~only_site_mask]
+    if "Only identified by site" in df.columns:
+        df = df.drop(columns=["Only identified by site"])
+
     contaminant_groups_mask = df["Protein ID"].map(
         lambda group: any(id_.startswith("CON__") for id_ in group.split(";"))
     )
