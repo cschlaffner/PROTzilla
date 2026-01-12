@@ -11,6 +11,9 @@ from backend.protzilla.importing.ms_data_import import (
     max_quant_import,
     ms_fragger_import,
 )
+from backend.protzilla.importing.alphafold_protein_structure_load import (
+    fetch_alphafold_protein_structure,
+)
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
@@ -399,3 +402,28 @@ class ExampleDatasetImport(ImportingStep):
         )
 
     calc_method = staticmethod(example_dataset_import)
+
+
+class AlphaFoldPredictionLoad(ImportingStep):
+    display_name = "AlphaFold DB Prediction Load"
+    operation = "Protein Structure Import"
+    method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
+
+    output_keys = [
+        "alphafold_df",
+    ]
+
+    plot_method = None
+
+    def create_form(self):
+        return Form(
+            label="AlphaFold DB Prediction Load",
+            input_fields=[
+                TextField(
+                    name="uniprot",
+                    label="Protein ID",
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(fetch_alphafold_protein_structure)
