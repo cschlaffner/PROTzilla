@@ -777,7 +777,10 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
         return Form(
             label="Kruskal-Wallis Test",
             input_fields=[
-                DropdownField(name="ptm_df", label="Step to use ptm data from"),
+                DropdownField(
+                    name="ptm_df",
+                    label="Step to use ptm data from. ('PTMs per Sample' step needed for preproceesing)",
+                ),
                 DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
@@ -2268,7 +2271,8 @@ class PTMsPerSample(DataAnalysisStep):
             input_fields=[
                 DropdownField(
                     name="peptide_df",
-                    label="Peptide dataframe containing the peptides of a single protein",
+                    label="Peptide dataframe containing the peptides of a single protein including their modifications "
+                    "(e.g. from evidence.txt)",
                 )
             ],
         )
