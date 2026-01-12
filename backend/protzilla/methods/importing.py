@@ -427,6 +427,3 @@ class AlphaFoldPredictionLoad(ImportingStep):
         )
 
     calc_method = staticmethod(fetch_alphafold_protein_structure)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        return inputs
