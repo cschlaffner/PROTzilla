@@ -68,7 +68,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
 class FilterProteinsBySilacRatios(DataPreprocessingStep):
     display_name = "By SILAC ratios"
     operation = "filter_proteins"
-    method_description = "Filter proteins based on the minumum amount of samples with different SILAC different ratios in each group"
+    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
 
     input_keys = ["protein_df", "peptide_df", "min_amount"]
 
