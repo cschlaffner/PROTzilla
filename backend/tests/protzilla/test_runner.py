@@ -97,6 +97,7 @@ def test_runner_imports(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path),
             "intensity_name": "iBAQ",
+            "ignore_only_identified_by_site": False,
             "map_to_uniprot": False,
             "aggregation_method": "Sum",
         },
@@ -208,6 +209,7 @@ def test_runner_calculates(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / ms_data_file_path),
             "intensity_name": "iBAQ",
+            "ignore_only_identified_by_site": False,
             "map_to_uniprot": False,
             "aggregation_method": "Sum",
         },
