@@ -46,7 +46,7 @@
 | backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py             |      147 |       17 |     88% |145-146, 149-150, 157-158, 161-163, 166, 216-218, 408-409, 413, 420 |
 | backend/protzilla/data\_integration/enrichment\_analysis\_helper.py           |       73 |        6 |     92% |137-139, 145, 150-151 |
 | backend/protzilla/data\_preprocessing/\_\_init\_\_.py                         |        0 |        0 |    100% |           |
-| backend/protzilla/data\_preprocessing/filter\_proteins.py                     |       34 |        2 |     94% |   114-115 |
+| backend/protzilla/data\_preprocessing/filter\_proteins.py                     |       35 |        2 |     94% |   122-123 |
 | backend/protzilla/data\_preprocessing/filter\_samples.py                      |       47 |        0 |    100% |           |
 | backend/protzilla/data\_preprocessing/imputation.py                           |      132 |        3 |     98% |51-57, 179 |
 | backend/protzilla/data\_preprocessing/normalisation.py                        |      122 |        5 |     96% |195-196, 209-210, 342 |
@@ -67,7 +67,7 @@
 | backend/protzilla/importing/peptide\_import.py                                |       52 |        7 |     87% |16-17, 27, 63-64, 82-83 |
 | backend/protzilla/methods/data\_analysis.py                                   |      662 |      288 |     56% |197, 215, 244-253, 260-265, 327-357, 368-373, 391, 425-453, 464-467, 488, 532-562, 573-579, 600, 644-678, 689-691, 710, 738-746, 753-758, 777, 808-821, 828-830, 868-897, 900-919, 944, 977-1022, 1025-1030, 1041, 1057-1068, 1076-1080, 1095, 1119-1132, 1139-1145, 1189-1215, 1227-1230, 1244, 1258, 1276, 1355-1357, 1375, 1449-1451, 1468, 1529-1531, 1549, 1673-1675, 1693, 1816-1818, 1833, 1846, 1849-1851, 1862, 1917-1919, 1930, 1979-1980, 1985-1988, 1997-2007, 2012-2017, 2020, 2062, 2074-2075, 2105, 2140, 2171-2219, 2228-2253, 2269, 2281-2290, 2295-2298, 2314, 2325-2334, 2339-2342, 2351, 2382, 2389-2392, 2405, 2414, 2440, 2456 |
 | backend/protzilla/methods/data\_integration.py                                |      295 |      139 |     53% |95, 102-104, 154-161, 168-180, 192, 267-326, 329-345, 359, 416-441, 444-460, 473, 552-600, 609-615, 630, 708-745, 748-753, 768, 788-790, 795-798, 813, 877-897, 902-908, 921, 978, 998, 1052-1053, 1058-1061, 1074 |
-| backend/protzilla/methods/data\_preprocessing.py                              |      205 |       14 |     93% |78, 109, 141, 246, 307, 370, 384, 418, 497, 531, 575, 683, 737, 838 |
+| backend/protzilla/methods/data\_preprocessing.py                              |      210 |       18 |     91% |76, 96-99, 113, 145, 250, 311, 374, 388, 422, 501, 535, 579, 687, 741, 842 |
 | backend/protzilla/methods/importing.py                                        |      133 |       30 |     77% |29, 129, 198, 216-217, 230, 245-273, 278-282, 293, 315-318, 335, 351-355, 373, 399 |
 | backend/protzilla/run.py                                                      |      208 |       46 |     78% |54-100, 194, 199, 206, 210-213, 220-221, 232-237, 276-278, 314, 341, 355, 363 |
 | backend/protzilla/run\_helper.py                                              |       12 |        1 |     92% |        26 |
@@ -82,7 +82,7 @@
 | backend/protzilla/workflow.py                                                 |       11 |        6 |     45% |  6, 15-20 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-| **TOTAL**                                                                     | **6887** | **1897** | **72%** |           |
+| **TOTAL**                                                                     | **6893** | **1901** | **72%** |           |
 
 
 ## Setup coverage badge
