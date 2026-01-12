@@ -51,7 +51,9 @@ def max_quant_import(
             c[len(intensity_name) + 1 :] for c in intensity_df.columns
         ]
         intensity_df = intensity_df.assign(**{"Protein ID": protein_groups})
-        intensity_df = intensity_df.assign(**{"Only identified by site": df["Only identified by site"]})
+        intensity_df = intensity_df.assign(
+            **{"Only identified by site": df["Only identified by site"]}
+        )
         return transform_and_clean(
             intensity_df,
             intensity_name,
