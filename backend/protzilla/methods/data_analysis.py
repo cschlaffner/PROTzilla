@@ -7,9 +7,6 @@ from backend.protzilla.data_analysis.clustering import (
     hierarchical_agglomerative_clustering,
     k_means,
 )
-from backend.protzilla.data_analysis.alphafold_protein_structure_load import (
-    fetch_af_protein_structure,
-)
 from backend.protzilla.data_analysis.differential_expression_anova import anova
 from backend.protzilla.data_analysis.differential_expression_kruskal_wallis import (
     kruskal_wallis_test_on_ptm_data,
@@ -2456,31 +2453,3 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
             label="PTM Details Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
-
-
-class AlphaFoldPredictionLoad(DataAnalysisStep):
-    display_name = "AlphaFold DB Prediction Load"
-    operation = "Protein Structure Analysis"
-    method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
-
-    output_keys = [
-        "af_structure_df",
-    ]
-
-    plot_method = None
-
-    def create_form(self):
-        return Form(
-            label="AlphaFold DB Prediction Load",
-            input_fields=[
-                TextField(
-                    name="uniprot",
-                    label="Protein ID",
-                ),
-            ],
-        )
-
-    calc_method = staticmethod(fetch_af_protein_structure)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        return inputs

@@ -29,9 +29,7 @@ def _download_file(session: requests.Session, url: str, dest: Path) -> Path | No
         return None
 
 
-def fetch_af_protein_structure(
-    uniprot: str, download_files: bool = True
-) -> dict[str, Any]:
+def fetch_alphafold_protein_structure(uniprot: str) -> dict[str, Any]:
     url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot}"
 
     with requests.Session() as session:
@@ -86,27 +84,27 @@ def fetch_af_protein_structure(
 
             combined.to_csv(metadata_csv, index=False)
             logger.info("Wrote AlphaFold metadata to %s", metadata_csv)
-            af_structure_df = combined
+            alphafold_df = combined
         except Exception:
             logger.exception(
                 "Failed to write AlphaFold metadata CSV to %s", metadata_csv
             )
-            af_structure_df = new_row
+            alphafold_df = new_row
 
         downloaded: dict[str, str] = {}
-        if download_files:
-            target_dir = meta_dir / (data.get("uniprotAccession") or uniprot)
-            for key in ("cifUrl", "pdbUrl", "paeDocUrl", "plddtDocUrl"):
-                urlval = data.get(key)
-                if isinstance(urlval, str) and urlval:
-                    fname = urlval.split("?")[0].rstrip("/").split("/")[-1]
-                    dest = target_dir / fname
-                    saved = _download_file(session, urlval, dest)
-                    if saved:
-                        downloaded[key] = str(saved)
+
+        target_dir = meta_dir / (data.get("uniprotAccession") or uniprot)
+        for key in ("cifUrl", "pdbUrl", "paeDocUrl", "plddtDocUrl"):
+            urlval = data.get(key)
+            if isinstance(urlval, str) and urlval:
+                fname = urlval.split("?")[0].rstrip("/").split("/")[-1]
+                dest = target_dir / fname
+                saved = _download_file(session, urlval, dest)
+                if saved:
+                    downloaded[key] = str(saved)
 
         return {
-            "af_structure_df": af_structure_df,
+            "alphafold_df": alphafold_df,
             "metadata_csv": str(metadata_csv),
             "downloaded_files": downloaded,
         }
