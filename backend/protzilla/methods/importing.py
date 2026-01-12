@@ -415,19 +415,8 @@ class CrossLinkingImport(ImportingStep):
             input_fields=[
                 FileInput(
                     name="file_path",
-                    label="Cross Linking Data file (.xlsx oder .csv)",
+                    label="Cross Linking Data file (.xlsx or .csv)",
                     value=None,
-                ),
-                DropdownField(
-                    name="",
-                    label="",
-                    # value=IntensityType.IBAQ.value,
-                    # options=IntensityType,
-                ),
-                CheckboxField(
-                    name="",
-                    label="",
-                    value=False,
                 ),
             ],
         )

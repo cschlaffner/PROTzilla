@@ -9,6 +9,11 @@ import traceback
 import requests
 
 from backend.protzilla.utilities import format_trace
+from backend.protzilla.importing.import_utils import (
+    columns_in_cross_linking_df,
+    rename_columns_csm_format,
+    rename_columns_proteomediscoverer_xlinkx_format,
+)
 
 
 def get_gene_name_from_protein_id(protein_id):
@@ -51,46 +56,7 @@ def remove_brackets_from_peptide(peptide: str) -> str:
 def get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format(
     peptide: str,
 ) -> int:
-    return peptide.find("[")
-
-
-rename_columns_csm_format = {
-    "Crosslink Type": "Is_intra_crosslink",
-    "PepSeq1": "Peptide1",
-    "PepSeq2": "Peptide2",
-    "PepPos1": "Peptide_position1",
-    "PepPos2": "Peptide_position2",
-    "LinkPos1": "CL_position1",
-    "LinkPos2": "CL_position2",
-    "PEP": "Q_value",
-}
-
-rename_columns_proteomediscoverer_xlinkx_format = {
-    "Accession A": "Protein_id1",
-    "Accession B": "Protein_id2",
-    "Crosslink Type": "Is_intra_crosslink",
-    "Sequence A": "Peptide1",
-    "Sequence B": "Peptide2",
-    "Position A": "Peptide_position1",
-    "Position B": "Peptide_position2",
-    "Q-value": "Q_value",
-}
-
-columns_in_cross_linking_df = [
-    "Protein1",
-    "Protein2",
-    "Protein_id1",
-    "Protein_id2",
-    "Is_intra_crosslink",
-    "Crosslinker",
-    "Peptide1",
-    "Peptide2",
-    "Peptide_position1",  # ToDo: check, dass wirklich immer 0-basiert
-    "Peptide_position2",
-    "CL_position1",  # ToDo: check, dass wirklich immer 0-basiert
-    "CL_position2",
-    "Q_value",
-]
+    return peptide.find("[") + 1  # 1-based index
 
 
 def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> pd.DataFrame:
@@ -150,7 +116,8 @@ def cross_linking_import(file_path: Path) -> dict:
             df = read_csm_file(file_path)
         elif file_path.suffix == ".xlsx":
             df = read_ProteomeDiscoverer_XlinkX_file(file_path)
-        return dict(crosslinking_df=df)  # kann sein, dass df nicht existiert
+        else:
+            raise ValueError(f"Unsupported file type: {file_path.suffix}")
     except Exception as e:
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid cross linking file."
         return dict(
@@ -162,3 +129,8 @@ def cross_linking_import(file_path: Path) -> dict:
                 )
             ]
         )
+    msg = f"Successfully imported data of {len(df)} cross-links."
+    return dict(
+        crosslinking_df=df,
+        messages=[dict(level=logging.INFO, msg=msg)],
+    )
