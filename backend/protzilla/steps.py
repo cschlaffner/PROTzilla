@@ -323,7 +323,7 @@ class Step:
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
+                    value=BarAndPieChart.PIE_CHART,
                     label="Graph type",
                     options=BarAndPieChart,
                 ),
