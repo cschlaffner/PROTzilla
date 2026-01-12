@@ -1,12 +1,16 @@
+import shutil
 from pathlib import Path
+from unittest import mock
 
 import pandas as pd
 import pytest
 
+import main
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
     create_details_ptm_visualization,
+    ptm_vis_utils,
 )
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
@@ -27,6 +31,13 @@ TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
 TAU_GROUP_FILE_PATH = TAU_PATH / "groups_max_quant_AD.csv"
 
 Q_VALUE_THRESHOLD = 0.01
+
+
+@pytest.fixture()
+def tmp_ptm_settings_dir(tmp_path_factory):
+    test_tmp_data_dir = Path("ptm_settings/")
+    tmp_path = tmp_path_factory.mktemp(str(test_tmp_data_dir))
+    return tmp_path
 
 
 def get_evidence_df(path: Path):
@@ -249,6 +260,7 @@ class TestPTMVisualization:
         regions_file_path,
         group_file_path,
         expected_modifications_path,
+        tmp_ptm_settings_dir,
     ):
         expected_modification_df = pd.read_csv(expected_modifications_path)
         result = get_detected_modifications(
@@ -268,44 +280,64 @@ class TestPTMVisualization:
             ).reset_index(drop=True),
         )
 
-        # TODO: Would have loved to test that the warning is thrown if more PTMs than specified in the settings are
-        #  detected. However, I found no proper way of mocking the settings file (since it is include via a constant
-        #  variable from a different file, which is hard to alter), and I didn't want to change the actual settings
-        #  file. Maybe someone finds a smarter way. Otherwise, this can be removed.
-        #    - try `mock.patch.object(paths, "OLD_PATH", "NEW_PATH")` (using context manager)
         # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
-        # result = create_overview_ptm_visualization(
-        #     evidence_df=evidence_df,
-        #     evidence_file_q_value_threshold=q_value_threshold,
-        #     fasta_file_path=fasta_file_path,
-        #     regions_file_path=regions_file_path,
-        # )
-        # assert (
-        #         len(result['plots']) == 1
-        #         and len(result['messages']) == 1
-        #         and "More modifications were detected than are present in the settings" in result['messages'][0]
-        # )
-        # result = create_bar_ptm_visualization(
-        #     evidence_df=evidence_df,
-        #     evidence_file_q_value_threshold=q_value_threshold,
-        #     fasta_file_path=fasta_file_path,
-        #     regions_file_path=regions_file_path,
-        #     groups_file_path=group_file_path
-        # )
-        # assert (
-        #         len(result['plots']) == 1
-        #         and len(result['messages']) == 1
-        #         and "More modifications were detected than are present in the settings" in result['messages'][0]
-        # )
-        # result = create_details_ptm_visualization(
-        #     evidence_df=evidence_df,
-        #     evidence_file_q_value_threshold=q_value_threshold,
-        #     fasta_file_path=fasta_file_path,
-        #     regions_file_path=regions_file_path,
-        #     groups_file_path=group_file_path
-        # )
-        # assert (
-        #         len(result['plots']) == 1
-        #         and len(result['messages']) == 1
-        #         and "More modifications were detected than are present in the settings" in result['messages'][0]
-        # )
+        shutil.copytree(
+            main.views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
+        )
+        settings_reduced_ptms_file = Path(
+            TEST_PTM_VISUALIZATION_PATH / f"ptm_settings_fewer_ptms.yaml"
+        )
+        shutil.copy(settings_reduced_ptms_file, tmp_ptm_settings_dir)
+        with (
+            mock.patch.object(
+                main.views_helper,
+                "SETTINGS_PATH",
+                tmp_ptm_settings_dir.resolve(),
+            ),
+            mock.patch.object(
+                ptm_vis_utils,
+                "CUSTOM_PTM_SETTINGS_FILE_STEM",
+                settings_reduced_ptms_file.stem,
+            ),
+        ):
+            result = create_overview_ptm_visualization(
+                evidence_df=evidence_df,
+                evidence_file_q_value_threshold=q_value_threshold,
+                fasta_file_path=fasta_file_path,
+                regions_file_path=regions_file_path,
+            )
+            assert (
+                len(result["plots"]) == 1
+                and len(result["messages"]) == 1
+                and result["messages"][0]["level"] == 30
+                and "More modifications were detected than are present in the settings"
+                in result["messages"][0]["msg"]
+            )
+            result = create_bar_ptm_visualization(
+                evidence_df=evidence_df,
+                evidence_file_q_value_threshold=q_value_threshold,
+                fasta_file_path=fasta_file_path,
+                regions_file_path=regions_file_path,
+                groups_file_path=group_file_path,
+            )
+            assert (
+                len(result["plots"]) == 1
+                and len(result["messages"]) == 1
+                and result["messages"][0]["level"] == 30
+                and "More modifications were detected than are present in the settings"
+                in result["messages"][0]["msg"]
+            )
+            result = create_details_ptm_visualization(
+                evidence_df=evidence_df,
+                evidence_file_q_value_threshold=q_value_threshold,
+                fasta_file_path=fasta_file_path,
+                regions_file_path=regions_file_path,
+                groups_file_path=group_file_path,
+            )
+            assert (
+                len(result["plots"]) == 1
+                and len(result["messages"]) == 1
+                and result["messages"][0]["level"] == 30
+                and "More modifications were detected than are present in the settings"
+                in result["messages"][0]["msg"]
+            )
