@@ -57,9 +57,11 @@ def fetch_alphafold_protein_structure(uniprot: str) -> dict[str, Any]:
             "latestVersion": r.get("latestVersion"),
             "uniprotStart": r.get("uniprotStart"),
             "uniprotEnd": r.get("uniprotEnd"),
-            "sequenceLength": len(r["uniprotSequence"])
-            if isinstance(r.get("uniprotSequence"), str)
-            else None,
+            "sequenceLength": (
+                len(r["uniprotSequence"])
+                if isinstance(r.get("uniprotSequence"), str)
+                else None
+            ),
         }
 
         for key in ("pdbUrl", "cifUrl", "paeDocUrl", "plddtDocUrl"):
