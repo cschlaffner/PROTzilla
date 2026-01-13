@@ -200,9 +200,7 @@ def transform_and_clean(
     dropped_only_identified_by_site = []
     if ignore_only_identified_by_site and "Only identified by site" in df.columns:
         only_site_mask = df["Only identified by site"] == "+"
-        dropped_only_identified_by_site = df.loc[
-            only_site_mask, "Protein ID"
-        ].tolist()
+        dropped_only_identified_by_site = df.loc[only_site_mask, "Protein ID"].tolist()
         df = df.loc[~only_site_mask]
     # Remove flag column
     if "Only identified by site" in df.columns:
