@@ -190,16 +190,21 @@ def transform_and_clean(
     :type intensity_name: str
     :param map_to_uniprot: decides if protein ids will be mapped to uniprot ids
     :type map_to_uniprot: bool
+    :param ignore_only_identified_by_site: if True, drop rows flagged by MaxQuant as "Only identified by site"
+    :type ignore_only_identified_by_site: bool
     :return: a dict of a protzilla dataframe in long format with sample, protein, gene and
         intensity columns; contaminants and rejected proteins
     """
     assert "Protein ID" in df.columns
+    # Drop MaxQuant rows flagged "Only identified by site"
     dropped_only_identified_by_site = []
     if ignore_only_identified_by_site and "Only identified by site" in df.columns:
-        site_flag = df["Only identified by site"].fillna("").astype(str).str.strip()
-        only_site_mask = site_flag.isin({"+", "1", "True", "TRUE", "true"})
-        dropped_only_identified_by_site = df.loc[only_site_mask, "Protein ID"].tolist()
+        only_site_mask = df["Only identified by site"] == "+"
+        dropped_only_identified_by_site = df.loc[
+            only_site_mask, "Protein ID"
+        ].tolist()
         df = df.loc[~only_site_mask]
+    # Remove flag column
     if "Only identified by site" in df.columns:
         df = df.drop(columns=["Only identified by site"])
 
