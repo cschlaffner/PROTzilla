@@ -93,7 +93,7 @@ def filter_proteins_by_silac_ratios_df():
             ["Sample4", "Protein3", "Gene3", 0.85],
             ["Sample1", "Protein4", "Gene4", np.nan],
             ["Sample2", "Protein4", "Gene4", 0.51],
-            ["Sample3", "Protein4", "Gene4", np.nan],
+            ["Sample3", "Protein4", "Gene4", 0.9],
             ["Sample4", "Protein1", "Gene1", 0.25],
         ),
         columns=["Sample", "Protein ID", "Gene", "Ratio H/L"],
@@ -104,6 +104,16 @@ def filter_proteins_by_silac_ratios_df():
     )
 
     return filter_proteins_df
+
+
+@pytest.fixture
+def filter_proteins_by_silac_ratios_metadata_df():
+    return pd.DataFrame(
+        {
+            "Group": ["POS", "NEG", "NEG", "POS"],
+            "Sample": ["Sample1", "Sample2", "Sample3", "Sample4"],
+        }
+    )
 
 
 def test_filter_proteins_by_missing_samples(
@@ -157,11 +167,17 @@ def test_filter_proteins_by_missing_samples(
 
 
 def test_filter_proteins_by_silac_ratios(
-    filter_proteins_by_silac_ratios_df, peptides_df, show_figures
+    filter_proteins_by_silac_ratios_df,
+    filter_proteins_by_silac_ratios_metadata_df,
+    peptides_df,
+    show_figures,
 ):
 
     method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=2
+        filter_proteins_by_silac_ratios_df,
+        filter_proteins_by_silac_ratios_metadata_df,
+        peptide_df=None,
+        min_amount=2,
     )
 
     fig = by_silac_ratios_plot(
@@ -172,18 +188,29 @@ def test_filter_proteins_by_silac_ratios(
     if show_figures:
         fig.show()
 
-    assert method_output["remaining_proteins"] == ["Protein3", "Protein4"]
-    assert method_output["filtered_proteins"] == ["Protein1", "Protein2"]
-
-    method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df, peptide_df=None, min_amount=4
-    )
-
     assert method_output["remaining_proteins"] == ["Protein3"]
     assert method_output["filtered_proteins"] == ["Protein1", "Protein2", "Protein4"]
 
     method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df, peptide_df=peptides_df, min_amount=4
+        filter_proteins_by_silac_ratios_df,
+        filter_proteins_by_silac_ratios_metadata_df,
+        peptide_df=None,
+        min_amount=4,
+    )
+
+    assert method_output["remaining_proteins"] == []
+    assert method_output["filtered_proteins"] == [
+        "Protein1",
+        "Protein2",
+        "Protein3",
+        "Protein4",
+    ]
+
+    method_output = by_silac_ratios(
+        filter_proteins_by_silac_ratios_df,
+        filter_proteins_by_silac_ratios_metadata_df,
+        peptide_df=peptides_df,
+        min_amount=4,
     )
 
     assert_peptide_filtering_matches_protein_filtering(

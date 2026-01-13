@@ -161,17 +161,9 @@ def kruskal_wallis_test_on_columns(
         - a float corrected_alpha, containing the alpha value after application of multiple testing correction (depending on the selected multiple testing correction method corrected_alpha may be equal to alpha),
         - a list messages, containing messages for the user
     """
-    selected_groups, messages = preprocess_grouping(
-        metadata_df, grouping, selected_groups
+    df_with_groups, selected_groups, messages = preprocess_grouping(
+        df, metadata_df, grouping, selected_groups
     )
-
-    df_with_groups = pd.merge(
-        left=df,
-        right=metadata_df[["Sample", grouping]],
-        on="Sample",
-        copy=False,
-    )
-    log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
     valid_columns = []
     p_values = []
