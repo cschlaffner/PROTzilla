@@ -64,40 +64,37 @@ def fetch_alphafold_protein_structure(uniprot: str) -> dict[str, Any]:
             ),
         }
 
+        files_urls: dict[str, Any] = {}
+
         for key in ("pdbUrl", "cifUrl", "paeDocUrl", "plddtDocUrl"):
             if isinstance(r.get(key), str) and r.get(key):
-                data[key] = r[key]
+                files_urls[key] = r[key]
 
         # prefer reading the existing AlphaFold metadata CSV into the dataframe
         meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
         meta_dir.mkdir(parents=True, exist_ok=True)
         metadata_csv = meta_dir / "alphafold_metadata.csv"
 
-        new_row = pd.DataFrame([data])
+        alphafold_df = pd.DataFrame([data])
         try:
             if metadata_csv.exists():
                 existing = pd.read_csv(metadata_csv, dtype=str)
                 acc = data.get("uniprotAccession")
                 if acc and "uniprotAccession" in existing.columns:
                     existing = existing[existing["uniprotAccession"] != acc]
-                combined = pd.concat([existing, new_row], ignore_index=True)
-            else:
-                combined = new_row
+                combined = pd.concat([existing, alphafold_df], ignore_index=True)
 
             combined.to_csv(metadata_csv, index=False)
             logger.info("Wrote AlphaFold metadata to %s", metadata_csv)
-            alphafold_df = combined
         except Exception:
             logger.exception(
                 "Failed to write AlphaFold metadata CSV to %s", metadata_csv
             )
-            alphafold_df = new_row
-
         downloaded: dict[str, str] = {}
 
         target_dir = meta_dir / (data.get("uniprotAccession") or uniprot)
         for key in ("cifUrl", "pdbUrl", "paeDocUrl", "plddtDocUrl"):
-            urlval = data.get(key)
+            urlval = files_urls.get(key)
             if isinstance(urlval, str) and urlval:
                 fname = urlval.split("?")[0].rstrip("/").split("/")[-1]
                 dest = target_dir / fname
