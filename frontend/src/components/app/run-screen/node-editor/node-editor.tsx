@@ -2,10 +2,10 @@ import * as go from 'gojs';
 import { ReactDiagram } from 'gojs-react';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react';
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Panel } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import StepNode from "./StepNode.tsx";
-import { BackendForm, FlexRow } from "@protzilla/core";
+import { BackendForm, FlexRow, SecondaryButton, RedButton} from "@protzilla/core";
 import { styled } from "styled-components";
 import { color, spacing } from "@protzilla/theme";
  
@@ -81,6 +81,11 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         ? "Import"
         : "Calculate";
 
+  const [hoveredHandleMeta, setHoveredHandleMeta] = useState({
+    "isActive": false,
+    "direction": "Input", 
+    "type": "protein_df"
+  });
 
   useEffect(() => {
     console.log(runData);
@@ -111,6 +116,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             section: section.id,
             isSelected: isSelected,
             navigateOrRefreshSteps: navigateOrRefreshSteps,
+            setHoveredHandleMeta: setHoveredHandleMeta
           }
         });
 
@@ -132,7 +138,26 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         fitView
-      />
+      >
+      
+      <Panel position="top-left">
+        <SecondaryButton onClick={undefined}>
+          Add step
+        </SecondaryButton>
+        <RedButton onClick={undefined}>
+          Remove current step
+        </RedButton>
+      </Panel>
+
+      <Panel position="top-right">
+      { hoveredHandleMeta["isActive"] && (
+        <div style={{textAlign: "right"}}>
+          <p>{hoveredHandleMeta["direction"]}</p>
+          <p>{hoveredHandleMeta["type"]}</p>
+        </div>
+      )}
+      </Panel>
+      </ReactFlow>
     </div>
 
     <StyledDivider />

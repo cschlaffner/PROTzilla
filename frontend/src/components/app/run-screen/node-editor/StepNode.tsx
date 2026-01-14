@@ -17,6 +17,7 @@ type StepNode = Node<{
   section: string,
   isSelected: boolean,
   navigateOrRefreshSteps,
+  setHoveredHandleMeta
 }, 'step'>;
 
 // TODO: remove?
@@ -28,7 +29,10 @@ const colorForSection = {
 }
 
 const StyledNode = styled.div`
-  padding: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 15px;
+  padding-bottom: 15px;
   display: flex;
   align-itmes: center;
   position: relative;
@@ -114,15 +118,18 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
             left: `${(100 / (step_inputs.length + 1)) * (index + 1)}%`,
             transform: 'translateX(-50%)',
           }}
-          onMouseEnter={(e) => handleMouseEnter(`input ${input} from ${data.step.name}`, e)}
-          onMouseLeave={handleMouseLeave}
+          onMouseEnter={(e) => data.setHoveredHandleMeta(
+            {"isActive": true, "direction": "Input", "type": input})}
+          onMouseLeave={(e) => data.setHoveredHandleMeta(
+            {"isActive": false, "direction": "None", "type": "None"})}
         >
-        <Icon icon="help"
-          style = {{
-            pointerEvents: 'none',
-            fontSize: '1em',
-            position: 'absolute',
-          }} /> 
+        <div style={{
+          width: '15px',
+          height: '15px',
+          clipPath: 'polygon(50% 100%,100% 0,0 0)',
+          backgroundColor: 'red',
+        }}>
+        </div>
         </Handle>
       ))}
 
@@ -136,20 +143,24 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
           style={{
             background: 'none',
             border: 'none',
-            width: '1em',
-            height: '1em',
+            width: '15px',
+            height: '15px',
+            marginBottom: '1px',
             left: `${(100 / (step_outputs.length + 1)) * (index + 1)}%`,
             transform: 'translateX(-50%)',
           }}
-        onMouseEnter={(e) => handleMouseEnter(`output ${output} from ${data.step.name}`, e)}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={(e) => data.setHoveredHandleMeta(
+          {"isActive": true, "direction": "Output", "type": output})}
+        onMouseLeave={(e) => data.setHoveredHandleMeta(
+          {"isActive": false, "direction": "None", "type": "None"})}
         >
-        <Icon icon="help"
-          style = {{
-            pointerEvents: 'none',
-            fontSize: '1em',
-            position: 'absolute',
-          }} /> 
+        <div style={{
+          width: '15px',
+          height: '15px',
+          clipPath: 'polygon(50% 100%,100% 0,0 0)',
+          backgroundColor: 'red',
+        }}>
+        </div>
         </Handle>
       ))}
     </StyledNode>
