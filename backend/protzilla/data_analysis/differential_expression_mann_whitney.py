@@ -243,23 +243,15 @@ def mann_whitney_test_on_columns(
                 "msg": f"No valid {columns_name.lower()}s found for Mann-Whitney U test analysis.",
             }
         ]
+        columns = [
+            columns_name,
+            "corrected_p_value",
+            "log2_fold_change",
+            "u_statistic",
+        ]
         return dict(
-            differential_expressed_columns_df=pd.DataFrame(
-                columns=[
-                    columns_name,
-                    "corrected_p_value",
-                    "log2_fold_change",
-                    "u_statistic",
-                ]
-            ),
-            significant_columns_df=pd.DataFrame(
-                columns=[
-                    columns_name,
-                    "corrected_p_value",
-                    "log2_fold_change",
-                    "u_statistic",
-                ]
-            ),
+            differential_expressed_columns_df=pd.DataFrame(columns=columns),
+            significant_columns_df=pd.DataFrame(columns=columns),
             corrected_p_values_df=pd.DataFrame(
                 columns=[columns_name, "corrected_p_value"]
             ),

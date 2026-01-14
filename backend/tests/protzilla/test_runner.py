@@ -92,7 +92,7 @@ def configure_step_fields(runner: Runner, class_name: str, field_values: dict):
 
 def prepare_standard_workflow_runner(runner: Runner):
     """
-    The standard worfklow misses leaves some of the configurable fields blank because it is a general purpose workflow
+    The standard workflow does not specify out some of the configurable fields because it is a general purpose workflow
     that does not know the specifics of the data, e.g. group names for differential expression. In an interactive
     setting, these fields would be initialized automatically, but in this test setting we need to set them manually.
     One could argue that it would be better to have a mock workflow for MaxQuant data (just like for the other data
@@ -142,6 +142,18 @@ def prepare_standard_workflow_runner(runner: Runner):
                 go_idx
             ].instance_identifier
         },
+    )
+
+
+def assert_runner_finished_successfully(runner: Runner):
+    assert all(
+        step.calculation_status == "complete" for step in runner.run.steps.all_steps
+    )
+    assert runner.run.steps.all_steps[-1] == runner.run.current_step
+    assert (
+        all(step.finished for step in runner.run.steps.all_steps)
+        and not runner.run.current_step.messages
+        and "messages" not in runner.run.current_step.output
     )
 
 
@@ -382,15 +394,7 @@ def test_integration_runner(
     mock_plot_safe = mock.MagicMock()
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
-    assert all(
-        step.calculation_status == "complete" for step in runner.run.steps.all_steps
-    )
-    assert runner.run.steps.all_steps[-1] == runner.run.current_step
-    assert (
-        all(step.finished for step in runner.run.steps.all_steps)
-        and not runner.run.current_step.messages
-        and "messages" not in runner.run.current_step.output
-    )
+    assert_runner_finished_successfully(runner)
 
 
 @pytest.mark.parametrize(
@@ -423,18 +427,15 @@ def test_integration_runner_non_maxquant(
     with mock.patch.object(
         disk_operator.paths, "WORKFLOWS_PATH", tmp_workflow_dir.resolve()
     ):
-        print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
         runner = Runner(
-            **{
-                "workflow": mock_workflow,
-                "ms_data_path": f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
-                "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
-                "peptides_path": None,
-                "run_name": f"{name}",
-                "df_mode": "memory",
-                "all_plots": True,
-                "verbose": False,
-            }
+            workflow=mock_workflow,
+            ms_data_path=f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
+            meta_data_path=f"{TEST_METADATA_PATH}/{metadata_file_path}",
+            peptides_path=None,
+            run_name=f"{name}",
+            df_mode="memory",
+            all_plots=True,
+            verbose=False,
         )
 
         mock_write = mock.MagicMock()
@@ -442,15 +443,7 @@ def test_integration_runner_non_maxquant(
         mock_plot_safe = mock.MagicMock()
         monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
         runner.compute_workflow()
-        assert all(
-            step.calculation_status == "complete" for step in runner.run.steps.all_steps
-        )
-        assert runner.run.steps.all_steps[-1] == runner.run.current_step
-        assert (
-            all(step.finished for step in runner.run.steps.all_steps)
-            and not runner.run.current_step.messages
-            and "messages" not in runner.run.current_step.output
-        )
+        assert_runner_finished_successfully(runner)
 
 
 def test_integration_runner_no_plots(
@@ -458,28 +451,18 @@ def test_integration_runner_no_plots(
 ):
     name = tests_folder_name + "/test_runner_integration" + random_string()
     runner = Runner(
-        **{
-            "workflow": "standard",
-            "ms_data_path": f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
-            "meta_data_path": f"{TEST_METADATA_PATH}/{metadata_file_path}",
-            "peptides_path": None,
-            "run_name": f"{name}",
-            "df_mode": "memory",
-            "all_plots": False,
-            "verbose": False,
-        }
+        workflow="standard",
+        ms_data_path=f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
+        meta_data_path=f"{TEST_METADATA_PATH}/{metadata_file_path}",
+        peptides_path=None,
+        run_name=f"{name}",
+        df_mode="memory",
+        all_plots=False,
+        verbose=False,
     )
     prepare_standard_workflow_runner(runner)
 
     mock_write = mock.MagicMock()
     monkeypatch.setattr(runner.run, "_run_write", mock_write)
     runner.compute_workflow()
-    assert all(
-        step.calculation_status == "complete" for step in runner.run.steps.all_steps
-    )
-    assert runner.run.steps.all_steps[-1] == runner.run.current_step
-    assert (
-        all(step.finished for step in runner.run.steps.all_steps)
-        and not runner.run.current_step.messages
-        and "messages" not in runner.run.current_step.output
-    )
+    assert_runner_finished_successfully(runner)
