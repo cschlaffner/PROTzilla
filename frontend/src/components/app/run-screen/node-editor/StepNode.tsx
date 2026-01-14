@@ -93,7 +93,10 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
         style={{ flexShrink: 0 }} 
       />
       <TextContainer style={{marginLeft: "5px"}}>
-          <ContentText text={data.step.name} style={{ userSelect: "none", whiteSpace: "nowrap" }} />
+          <ContentText 
+            text={`${data.step.method_name} : ${data.step.name}`} 
+            style={{ userSelect: "none", }} 
+          />
       </TextContainer>
 
       {/*Target (input) handles*/}

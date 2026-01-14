@@ -255,6 +255,20 @@ export const RunScreen: React.FC = () => {
     />
   );
 
+  const editor_modes = [
+              { name: "List", value: listEditorComponent },
+              { name: "Node", value: nodeEditorComponent },
+            ];
+
+  // TODO: Replace this with appropriate data from runData
+  // Else it resets whenever the run data is reset
+  const selected_editor_mode = "Node";
+
+  // TODO: Replace this with API call
+  const select_editor_mode = (mode) => {
+    console.log("Changed to", mode.name);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <StyledNavbar
@@ -269,10 +283,9 @@ export const RunScreen: React.FC = () => {
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            components={[
-              { name: "List", value: listEditorComponent },
-              { name: "Node", value: nodeEditorComponent },
-            ]}
+            components={editor_modes}
+            selection={selected_editor_mode}
+            callback={select_editor_mode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
