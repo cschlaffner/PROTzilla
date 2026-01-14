@@ -86,18 +86,25 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     console.log(runData);
     let new_nodes = [];
     let y_offset = 0;
+    let flat_step_index = 0;
 
     runData.displayed_steps.forEach(section => {
       section.steps.forEach((step, index) => {
           
         const isSelected = 
           (runData.current_section === section.id) && 
-          (runData.current_step_index === index);
+          (runData.current_step_index === flat_step_index);
+
+        // Retain positions on redraw
+        const old_matching_node = nodes.find((node) => node.id == step.id);
+        const position = old_matching_node
+          ? old_matching_node.position
+          : {x: 0, y: y_offset}
        
         new_nodes.push({
           id: step.id, 
           type: "step", 
-          position: {x: 0, y: y_offset}, 
+          position: position,
           data: {
             step: step, 
             step_index_within_section: index,
@@ -107,6 +114,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           }
         });
 
+        flat_step_index += 1;
         y_offset += 60;
       });
     });

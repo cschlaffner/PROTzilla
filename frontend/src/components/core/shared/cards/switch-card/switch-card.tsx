@@ -24,12 +24,22 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   hasCardTitle = true,
   hasShadow = true,
   styleProps,
+  selection = undefined,
+  callback = undefined,
 }) => {
   const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
 
+
   useEffect(() => {
-    setSwitchState(components[0]);
+  selection
+    ? setSwitchState(components.find((c) => c.name == selection))
+    : setSwitchState(components[0]);
   }, [components]);
+
+  const setSwitchStateWrapper = (newSelection) => {
+    if (callback) callback(newSelection);
+    setSwitchState(newSelection);
+  }
 
   return (
     <div
@@ -44,7 +54,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
         <Switch
           options={components.map((component) => ({ value: component, label: component.name }))}
           value={switchState}
-          onChange={setSwitchState}
+          onChange={setSwitchStateWrapper}
         />
       </SwitchDiv>
       <StyledCard
