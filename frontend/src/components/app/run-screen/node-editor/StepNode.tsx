@@ -20,12 +20,13 @@ type StepNode = Node<{
   setHoveredHandleMeta
 }, 'step'>;
 
-// TODO: remove?
-const colorForSection = {
-  "importing": "#aeacbf",
-  "data_preprocessing": "#acbfae",
-  "data_analysis": "#bfb5ac",
-  "data_integration": "#bebfac"
+// TODO: I don't like this method of indication,
+// not very inclusive (color blindness).
+// It should work for the initial draft though.
+const data_type_color_indicators = {
+  "peptide_df": "#BF1E74",
+  "protein_df": "#BF1E2E",
+  "meta_df": "#2E1EBF",
 }
 
 const StyledNode = styled.div`
@@ -127,7 +128,7 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
           width: '15px',
           height: '15px',
           clipPath: 'polygon(50% 100%,100% 0,0 0)',
-          backgroundColor: 'red',
+          backgroundColor: data_type_color_indicators[input] || 'red',
         }}>
         </div>
         </Handle>
@@ -158,7 +159,7 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
           width: '15px',
           height: '15px',
           clipPath: 'polygon(50% 100%,100% 0,0 0)',
-          backgroundColor: 'red',
+          backgroundColor: data_type_color_indicators[output] || 'red',
         }}>
         </div>
         </Handle>

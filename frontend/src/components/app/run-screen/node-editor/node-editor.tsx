@@ -64,8 +64,32 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     (changes) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
     [],
   );
+
+  const getEdgesFromRunData = () => {
+    // TODO: This needs to be implemented when the API provides sufficient data.
+    return initialEdges;
+  }
+
+  // TODO: Implement this in API
+  const connectSteps = async (params) => {
+    await callApiWithParameters("connect_steps/", {
+      run_name: runName,
+      connection: params
+    }).then((response) => {
+      notify({
+        type: response.success ? "success" : "error",
+        title: response.message,
+      });
+    });
+    navigateOrRefreshSteps();
+  };
+
   const onConnect = useCallback(
-    (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+    (params) => {
+      // connectSteps(params);
+      // setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+      setEdges(getEdgesFromRunData());
+    },
     [],
   );
 
@@ -91,7 +115,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const notify = useNotification();
   const deleteCurrentStep = async () => {
-    console.log(runData.current_section, runData.current_step_index);
     await callApiWithParameters("delete_step/", {
       run_name: runName,
       section: runData.current_section,
