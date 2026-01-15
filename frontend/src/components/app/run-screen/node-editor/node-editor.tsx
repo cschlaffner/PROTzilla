@@ -8,6 +8,8 @@ import StepNode from "./StepNode.tsx";
 import { BackendForm, FlexRow, SecondaryButton, RedButton} from "@protzilla/core";
 import { styled } from "styled-components";
 import { color, spacing } from "@protzilla/theme";
+import { useNotification } from "@protzilla/app";
+import { callApiWithParameters, translateGlobalToSectionIndex } from "@protzilla/utils";
  
 const initialNodes = [];
 
@@ -87,6 +89,22 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     "type": "protein_df"
   });
 
+  const notify = useNotification();
+  const deleteCurrentStep = async () => {
+    console.log(runData.current_section, runData.current_step_index);
+    await callApiWithParameters("delete_step/", {
+      run_name: runName,
+      section: runData.current_section,
+      index: translateGlobalToSectionIndex(runData.current_step_index, sections).index,
+    }).then((response) => {
+      notify({
+        type: response.success ? "success" : "error",
+        title: response.message,
+      });
+    });
+    navigateOrRefreshSteps();
+  };
+
   useEffect(() => {
     console.log(runData);
     let new_nodes = [];
@@ -144,7 +162,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         <SecondaryButton onClick={undefined}>
           Add step
         </SecondaryButton>
-        <RedButton onClick={undefined}>
+        <RedButton onClick={deleteCurrentStep}>
           Remove current step
         </RedButton>
       </Panel>
