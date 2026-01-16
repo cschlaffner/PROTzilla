@@ -64,6 +64,7 @@ from protzilla.data_analysis.cross_linking_validation import (
     validate_cross_linking_with_angstrom_deviation,
 )
 from backend.protzilla.run import Run
+from backend.protzilla.form_helper import get_crosslinker_names_from_crosslinker_df
 
 
 class TTestType(Enum):
@@ -2478,7 +2479,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        cross_linker = ["cross_linker1", "cross_linker2"]
+        cross_linker = get_crosslinker_names_from_crosslinker_df(run)
         for cl in cross_linker:
             field_name = f"length_of_{cl}"
             if field_name not in form:
@@ -2491,3 +2492,12 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
                 form.add_field(field)
 
     calc_method = staticmethod(validate_cross_linking_with_angstrom_deviation)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["crosslinking_df"] = steps.get_step_output(
+            Step,
+            "crosslinking_df",
+        )
+        if inputs.get("crosslinking_df") is None:
+            raise ValueError("No cross linking data found.")
+        return inputs

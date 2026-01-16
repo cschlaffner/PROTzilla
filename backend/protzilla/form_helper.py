@@ -53,3 +53,13 @@ def get_choices_for_metadata_non_sample_columns(
 ) -> list[Option]:
     metadata_choices = get_choices_for_metadata(run, instance_identifier)
     return [c for c in metadata_choices if c.label != "Sample"]
+
+
+def get_crosslinker_names_from_crosslinker_df(run: Run) -> list[str]:
+    df = run.steps.get_step_output(
+        Step, output_key="crosslinking_df"
+    )  # first step that returns a crosslinking_df
+    if df is None or "Crosslinker" not in df.columns:
+        return []
+    crosslinkers = df["Crosslinker"].dropna().unique()
+    return crosslinkers
