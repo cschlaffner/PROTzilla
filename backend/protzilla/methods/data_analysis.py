@@ -60,6 +60,10 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.data_analysis.cross_linking_validation import (
+    validate_cross_linking_with_angstrom_deviation,
+)
+from backend.protzilla.run import Run
 
 
 class TTestType(Enum):
@@ -2453,3 +2457,37 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
             label="PTM Details Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
+
+
+class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
+    display_name = "Ångström Deviation"
+    operation = "Cross Linking Validation"
+    method_description = "Validates cross links based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+
+    def create_form(self):
+        return Form(
+            label="Ångström Deviation",
+            input_fields=[
+                FloatField(
+                    name="accepted_deviation",
+                    label="Accepted deviation in Ångström",
+                    min=0,
+                    value=0.20,
+                ),
+            ],
+        )
+
+    def modify_form(self, form: Form, run: Run) -> None:
+        cross_linker = ["cross_linker1", "cross_linker2"]
+        for cl in cross_linker:
+            field_name = f"length_of_{cl}"
+            if field_name not in form:
+                field = FloatField(
+                    name=field_name,
+                    label=f"Length of {cl} in Ångström",
+                    min=0,
+                    value=1.0,
+                )
+                form.add_field(field)
+
+    calc_method = staticmethod(validate_cross_linking_with_angstrom_deviation)
