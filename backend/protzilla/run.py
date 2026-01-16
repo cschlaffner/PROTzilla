@@ -13,7 +13,7 @@ from typing import Any
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
-from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
+from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager, Section
 from backend.protzilla.utilities import format_trace
 
 
@@ -293,7 +293,7 @@ class Run:
         self,
         step: Step | None = None,
         step_index: int | None = None,
-        section: str | None = None,
+        section: Section | None = None,
     ) -> None:
         self.steps.remove_step(step=step, step_index=step_index, section=section)
         self.update_metadata(
@@ -324,7 +324,7 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_goto(self, step_index: int, section: str) -> None:
+    def step_goto(self, step_index: int, section: Section) -> None:
         self.steps.goto_step(step_index, section)
 
     @error_handling

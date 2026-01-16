@@ -12,7 +12,7 @@ from backend.protzilla.importing.ms_data_import import (
     ms_fragger_import,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
-from backend.protzilla.steps import Step, StepManager
+from backend.protzilla.steps import Step, StepManager, Section
 from protzilla.importing.example_dataset_import import example_dataset_import
 from protzilla.importing.fasta_import import fasta_import
 from protzilla.importing.import_utils import (
@@ -23,7 +23,7 @@ from backend.protzilla.constants.intensity_types import IntensityType, Intensity
 
 
 class ImportingStep(Step):
-    section = "importing"
+    section = Section.IMPORTING
 
     def calc_method(self):
         raise NotImplementedError("This method must be implemented in a subclass.")
@@ -183,7 +183,7 @@ class MetadataImport(ImportingStep):
     calc_method = staticmethod(metadata_import_method)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(ImportingStep, "protein_df")
+        inputs["protein_df"] = steps.get_step_output(output_key="protein_df")
         return inputs
 
 

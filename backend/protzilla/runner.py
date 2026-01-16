@@ -5,7 +5,7 @@ from pathlib import Path
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.run import Run, delete_run_folder
 from backend.protzilla.run_helper import log_messages
-from backend.protzilla.steps import Step
+from backend.protzilla.steps import Step, Section
 from backend.protzilla.utilities import random_string
 
 
@@ -79,7 +79,7 @@ class Runner:
         logging.info("------ computing workflow\n")
         for step in self.run.steps.all_steps:
             logging.info(f"performing step: {*self.run.steps.current_location,}")
-            if step.section == "importing":
+            if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
             self._perform_current_step()
 

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 from threading import Lock
 
 
-class Section(Enum):
+class Section(str, Enum):
     IMPORTING = "importing"
     DATA_PREPROCESSING = "data_preprocessing"
     DATA_ANALYSIS = "data_analysis"
@@ -34,7 +34,7 @@ class Section(Enum):
 
 
 class Step:
-    section: str = None
+    section: Section = None
     display_name: str = None
     operation: str = None
     method_description: str = None
@@ -49,7 +49,6 @@ class Step:
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
-        self.instance_identifier = instance_identifier
         self.disk_write_mutex = Lock()
 
         self.form: Form = self.create_form()
@@ -67,11 +66,12 @@ class Step:
             },
         }
 
-        if self.instance_identifier is None:
+        if instance_identifier is None:
             logging.warning(
                 f"No instance identifier provided for step {self.__class__.__name__}, defaulting to class name."
             )
-            self.instance_identifier = self.__class__.__name__
+            instance_identifier = self.__class__.__name__
+        self.instance_identifier = instance_identifier
 
     def __repr__(self):
         return self.__class__.__name__
@@ -433,28 +433,19 @@ class Plots:
 
 class StepManager:
     def __repr__(self):
-        return f"IMP: {self.importing} PRE: {self.data_preprocessing} ANA: {self.data_analysis} INT: {self.data_integration}"
+        return f"IMP: {self.sections[Section.IMPORTING]} PRE: {self.sections[Section.DATA_PREPROCESSING]} ANA: {self.sections[Section.DATA_PREPROCESSING]} INT: {self.sections[Section.DATA_INTEGRATION]}"
 
     def __init__(
         self,
-        steps: list[Step] = None,
+        steps: list[Step] | None = None,
         df_mode: str = "disk",
-        disk_operator: DiskOperator = None,
+        disk_operator: DiskOperator | None = None,
     ):
         self.df_mode = df_mode
         self.disk_operator = disk_operator
         self.current_step_index = 0
         self.failed_step_index = -1
-        self.importing = []
-        self.data_preprocessing = []
-        self.data_analysis = []
-        self.data_integration = []
-        self.sections = {
-            Section.IMPORTING.value: self.importing,
-            Section.DATA_PREPROCESSING.value: self.data_preprocessing,
-            Section.DATA_ANALYSIS.value: self.data_analysis,
-            Section.DATA_INTEGRATION.value: self.data_integration,
-        }
+        self.sections: dict[Section, list[Step]] = {section: [] for section in Section}
 
         if steps is not None:
             for step in steps:
@@ -483,7 +474,7 @@ class StepManager:
         )
 
     def get_instance_identifiers(
-        self, step_type: type[Step], output_key: str | list[str] = None
+        self, step_type: type[Step], output_key: str | list[str] | None = None
     ) -> list[str]:
         if isinstance(output_key, str):
             output_key = [output_key]
@@ -544,7 +535,7 @@ class StepManager:
                         from backend.protzilla.disk_operator import DataFrameOperator
 
                         df_operator = DataFrameOperator()
-                        df = df_operator.read(val)
+                        df = df_operator.read(Path(val))
                         if df.empty:
                             logging.warning(
                                 f"Could not read DataFrame from {val}, continuing"
@@ -590,7 +581,7 @@ class StepManager:
                 return step.inputs[input_key]
         return default
 
-    def all_steps_in_section(self, section: str) -> list[Step]:
+    def all_steps_in_section(self, section: Section) -> list[Step]:
         """
         Get all steps in a specific section via the section name
         :param section: The section name
@@ -636,7 +627,7 @@ class StepManager:
         return self.current_step.operation
 
     @property
-    def current_section(self) -> str:
+    def current_section(self) -> Section:
         return self.current_step.section
 
     @property
@@ -660,29 +651,29 @@ class StepManager:
         return self.get_step_output(ImportingStep, "metadata_df")
 
     @property
-    def preprocessed_output(self) -> Output:
-        if self.current_section == "importing":
+    def preprocessed_output(self) -> Output | None:
+        if self.current_section == Section.IMPORTING:
             return None
-        if self.current_section == "data_preprocessing":
+        if self.current_section == Section.DATA_PREPROCESSING:
             return (
                 self.current_step.output
                 if self.current_step.calculation_status != "incomplete"
                 else self.previous_steps[-1].output
             )
-        return self.data_preprocessing[-1].output
+        return self.sections[Section.DATA_PREPROCESSING][-1].output
 
     @property
     def is_at_last_step(self) -> bool:
         return self.current_step_index == len(self.all_steps) - 1
 
-    def add_step(self, step) -> None:
+    def add_step(self, step: Step) -> None:
         if step.section in self.sections:
             self.sections[step.section].append(step)
         else:
             raise ValueError(f"Unknown section {step.section}")
 
     def remove_step(
-        self, step: Step, step_index: int = None, section: str = None
+        self, step: Step | None, step_index: int | None = None, section: Section | None = None
     ) -> None:
         """
         Removes a step. Either the step must be passed or both section and step_index in the specific section.
@@ -693,9 +684,9 @@ class StepManager:
         if step is None and (step_index is None or section is None):
             raise ValueError("Either step or step_index and section must be provided")
         if step is None:
-            if section not in self.sections:
+            if section is None or section not in self.sections:
                 raise ValueError(f"Unknown section {section}")
-            if step_index >= len(self.sections[section]):
+            if step_index is None or step_index >= len(self.sections[section]):
                 raise ValueError(
                     f"Step index {step_index} out of bounds for section {section}"
                 )
@@ -750,7 +741,7 @@ class StepManager:
             return []
         return self.all_steps[self.current_step_index + 1 :]
 
-    def goto_step(self, step_index: int, section: str) -> None:
+    def goto_step(self, step_index: int, section: Section) -> None:
         """
         Go to a specific step in the workflow.
         :param step_index: The index of the step in the respective section
