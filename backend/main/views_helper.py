@@ -74,7 +74,7 @@ def get_displayed_steps(
     displayed_steps = []
     index_global = 0
 
-    sections = ["importing", "data_preprocessing", "data_analysis", "data_integration"]
+    sections = steps.sections.keys()
 
     for section in sections:
         workflow_steps = []

@@ -10,12 +10,12 @@ from backend.protzilla.data_preprocessing import (
     transformation,
 )
 from backend.protzilla.form import *
-from backend.protzilla.steps import Step, StepManager
+from backend.protzilla.steps import Step, StepManager, Section
 from backend.protzilla.constants.option_types import *
 
 
 class DataPreprocessingStep(Step):
-    section = "data_preprocessing"
+    section = Section.DATA_PREPROCESSING
     output_keys = ["protein_df"]
 
     plot_input_names = ["protein_df"]

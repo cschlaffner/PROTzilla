@@ -43,7 +43,7 @@ from backend.protzilla.methods.data_preprocessing import (
     DataPreprocessingStep,
 )
 from backend.protzilla.methods.data_preprocessing import TransformationLog
-from backend.protzilla.steps import Step, StepManager
+from backend.protzilla.steps import Step, StepManager, Section
 from protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
     AggregationMethod as ProteinCoverageAggregationMethod,
@@ -191,7 +191,7 @@ class DimensionReductionMetric(Enum):
 
 
 class DataAnalysisStep(Step):
-    section = "data_analysis"
+    section = Section.DATA_ANALYSIS
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         return inputs

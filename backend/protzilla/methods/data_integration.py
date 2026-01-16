@@ -16,7 +16,7 @@ from backend.protzilla.data_integration.database_query import (
 )
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
 from backend.protzilla.form import *
-from backend.protzilla.steps import Plots, Step, StepManager
+from backend.protzilla.steps import Plots, Step, StepManager, Section
 from backend.protzilla.data_integration.enrichment_analysis import (
     GOAnalysisOflineBackgroundType,
     GOAnalysisWithEnrichrBackgroundType,
@@ -90,7 +90,7 @@ class EmptyEnum(Enum):
 
 
 class DataIntegrationStep(Step):
-    section = "data_integration"
+    section = Section.DATA_INTEGRATION
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         return inputs
