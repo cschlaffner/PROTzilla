@@ -111,6 +111,82 @@ def execute_uniprot_request(url, params, valid_data, results):
     return None
 
 
+def fallback_single_lookup(query: str, query_type: str):
+    try:
+        if query_type == "genes":
+            url = f"https://rest.uniprot.org/uniprotkb/{query}"
+            params = {
+                "fields": "gene_primary",
+                "format": "json"
+            }
+        elif query_type == "results":
+            url = "https://rest.uniprot.org/uniprotkb/search"
+            params = {
+                "query": f"gene_exact:{query}",
+                "format": "json",
+                "fields": "accession,gene_primary",
+                "size": 500
+            }
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        output = data.get(query_type, [])
+        return output if output else None
+
+    except requests.exceptions.RequestException:
+        return None
+    except (KeyError, TypeError):
+        return None
+
+
+"""
+def fallback(protein_id: str):
+    url = f"https://rest.uniprot.org/uniprotkb/{protein_id}"
+    params = {
+        "fields": "gene_primary",
+        "format": "json"
+    }
+
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()
+
+    data = response.json()
+
+    genes = data.get("genes", [])
+    if not genes:
+        return None
+
+    return genes[0].get("geneName", {}).get("value")
+"""
+"""
+def fallback_gene(gene_name):
+    url = "https://rest.uniprot.org/uniprotkb/search"
+    params = {
+        "query": f"gene_exact:{gene_name}",
+        "format": "json",
+        "fields": "accession,gene_primary"
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+    ids = data.get("results", [])
+    if not ids:
+        return None
+
+    inner_dict = {
+        "protein_ids": [],
+        "list_of_protein_isoforms": []
+    }
+
+    for entry in ids:
+        accession = entry.get("primaryAccession")
+        if accession:
+            inner_dict["protein_ids"].append(accession)
+
+    return inner_dict if inner_dict["protein_ids"] else None
+"""
+
+
 def get_gene_name_from_protein_ids(protein_ids: set):
     """
     Retrieves the gene names for a given set of Protein IDs in a batch from UniProt.
@@ -171,7 +247,13 @@ def get_gene_name_from_protein_ids(protein_ids: set):
             
     for pid in valid_ids: 
         if pid not in results: 
-            results[pid] = (False, None, "PROTEIN_ID_NOT_FOUND")
+            output = fallback_single_lookup(pid, "genes")
+            gene_name = output[0].get("geneName", {}).get("value")
+            #gene_name = fallback(pid)
+            if gene_name:
+                results[pid] = (True, gene_name, None)
+            else:
+                results[pid] = (False, None, "PROTEIN_ID_NOT_FOUND")
 
     return results
 
@@ -195,7 +277,7 @@ def get_protein_ids_from_gene_name(gene_names: set):
     # Filter decoy Proteins, because we cannot process them decently? 
     valid_gene_names, results = validate_data_before_lookup(
         gene_names,
-        is_valid_function=lambda name: not name.startswith("decoy:"),
+        is_valid_function=lambda name: not name.startswith("DECOY:"),
         error_code="IS_DECOY_PROTEIN"
     )
 
@@ -204,7 +286,7 @@ def get_protein_ids_from_gene_name(gene_names: set):
     
     url, params = build_uniprot_search_params(
         valid_gene_names,
-        field_of_existing_data="gene",
+        field_of_existing_data="gene_exact",
         extra_query="organism_id:9606 AND reviewed:true",
         response_format="tsv",
         fields="accession,gene_primary",
@@ -241,7 +323,24 @@ def get_protein_ids_from_gene_name(gene_names: set):
         data = output.get(gn) 
 
         if not data or not data["protein_ids"]: 
-            results[gn] = (False, None, "NO_PROTEIN_ID_FOUND")
+            output = fallback_single_lookup(gn, "results")
+            inner_dict = {
+                "protein_ids": [],
+                "list_of_protein_isoforms": []
+            }
+            if output and isinstance(output, list): 
+                for entry in output:
+                    if not isinstance(entry, dict):
+                        continue
+                    pid = entry.get("primaryAccession")
+                    if pid:
+                        inner_dict["protein_ids"].append(pid)
+            protein_id = inner_dict if inner_dict["protein_ids"] else None
+            #protein_id = fallback_gene(gn)
+            if protein_id:
+                results[gn] = (True, protein_id, None)
+            else:
+                results[gn] = (False, None, "NO_PROTEIN_ID_FOUND")
         else:
             results[gn] = (True, data, None)
 
@@ -324,6 +423,15 @@ def get_missing_protein_designation(
     return good_df, failed_df 
 
 
+def normalize_gene_name_column(df, columns: list[str]):
+    for col in columns:
+        df[col] = df[col].astype("string").str.upper()
+    return df 
+
+def remove_isoform_from_protein_id(protein_id: str) -> str:
+    return protein_id.split('-', 1)[0]
+
+
 def remove_brackets_from_peptide(peptide: str) -> str:
     return peptide.replace("[", "").replace("]", "")
 
@@ -351,6 +459,13 @@ def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> pd.DataFrame:
 
     df["Is_intra_crosslink"] = df["Is_intra_crosslink"].eq("Intra")
 
+    # Right now we remove the isoform ending from every protein_id (if necessary), 
+    # because we cannot process isoforms properly. 
+    # If we ever wanted to add an "Isoforms" column, we need to store the original value from 
+    # the "Protein_id1/2" column in the "Isoforms" column first, before removing the isoform ending. 
+    df["Protein_id1"] = df["Protein_id1"].apply(remove_isoform_from_protein_id).astype("string")
+    df["Protein_id2"] = df["Protein_id2"].apply(remove_isoform_from_protein_id).astype("string")
+
     good_df, failed_df = get_missing_protein_designation(
         df=df, 
         existing_column="Protein_id", 
@@ -373,6 +488,8 @@ def read_csm_file(file_path: Path) -> pd.DataFrame:
     )
 
     df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
+
+    df = normalize_gene_name_column(df, ["Protein1", "Protein2"])
 
     # In our UniProt lookup we already get all isoforms of the respective gene name. 
     # Right now we only store the protein id without any isoform information in our dataframe to keep it consistent. 
@@ -431,6 +548,10 @@ def cross_linking_import(file_path: Path) -> dict:
             dict(level=logging.WARNING, msg=msg),
             dict(level=logging.WARNING, msg=f"Failed rows:\n{failed_df}")
         ]
+        pd.set_option("display.max_columns", None)
+        failed_df.to_csv("failed_rows.csv", index=False)
+        print("Failed rows saved to failed_rows.csv")
+        #print(f"Failed rows:\n{failed_df}")
     
     return dict(
         crosslinking_df=good_df, 
