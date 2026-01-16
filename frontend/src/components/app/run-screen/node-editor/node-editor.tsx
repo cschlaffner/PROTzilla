@@ -10,6 +10,8 @@ import { styled } from "styled-components";
 import { color, spacing } from "@protzilla/theme";
 import { useNotification } from "@protzilla/app";
 import { callApiWithParameters, translateGlobalToSectionIndex } from "@protzilla/utils";
+import { StepSelection } from "../step-selection";
+import { Icon } from "@protzilla/core";
  
 const initialNodes = [];
 
@@ -129,7 +131,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   useEffect(() => {
-    console.log(runData);
+    console.log("Run Data", runData);
     let new_nodes = [];
     let y_offset = 0;
     let flat_step_index = 0;
@@ -167,11 +169,38 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     });
     setNodes(new_nodes);
   }, [runData])
+
+  const onAddStep = () => {
+    notify({"type": "success", "message": "haha yes."});
+    navigateOrRefreshSteps();
+  }
+
+  const step_selection_props = {
+    runName: runName,
+    index: 0, 
+    onAddStep: onAddStep,
+  }
  
   return (
     <StyledRow>
     <div style={{ width: '25vw', height: '100vh' }}>
-      <ReactFlow
+        {
+          sections.map((section) => 
+        <StepSelection
+          section={section.id}
+          ModalTrigger={(openModal) => (
+            <>
+            <SecondaryButton onClick={openModal}>
+            <Icon icon={section.id} style={{ flexShrink: 0, marginRight: "10px" }} /> Add
+            </SecondaryButton>
+            </>
+          )}
+          {... step_selection_props}
+        />
+                      )
+        }
+
+        <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -179,15 +208,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         fitView
-      >
+        >
       
       <Panel position="top-left">
-        <SecondaryButton onClick={undefined}>
-          Add step
-        </SecondaryButton>
         <RedButton onClick={deleteCurrentStep}>
           Remove current step
         </RedButton>
+
       </Panel>
 
       <Panel position="top-right">
