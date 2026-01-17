@@ -111,80 +111,65 @@ def execute_uniprot_request(url, params, valid_data, results):
     return None
 
 
-def fallback_single_lookup(query: str, query_type: str):
-    try:
-        if query_type == "genes":
-            url = f"https://rest.uniprot.org/uniprotkb/{query}"
-            params = {
-                "fields": "gene_primary",
-                "format": "json"
-            }
-        elif query_type == "results":
-            url = "https://rest.uniprot.org/uniprotkb/search"
-            params = {
-                "query": f"gene_exact:{query}",
-                "format": "json",
-                "fields": "accession,gene_primary",
-                "size": 500
-            }
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        output = data.get(query_type, [])
-        return output if output else None
-
-    except requests.exceptions.RequestException:
-        return None
-    except (KeyError, TypeError):
-        return None
-
-
-"""
-def fallback(protein_id: str):
-    url = f"https://rest.uniprot.org/uniprotkb/{protein_id}"
-    params = {
-        "fields": "gene_primary",
-        "format": "json"
-    }
-
-    response = requests.get(url, params=params, timeout=10)
-    response.raise_for_status()
-
+def process_uniprot_response_containing_gene_names(response, results): 
     data = response.json()
 
-    genes = data.get("genes", [])
-    if not genes:
-        return None
+    for entry in data.get("results", []):
+        protein_id = entry.get("primaryAccession")
+        output = entry.get("genes", [{}])
+        gene_name = output[0].get("geneName", {}).get("value") if output else None
 
-    return genes[0].get("geneName", {}).get("value")
-"""
-"""
-def fallback_gene(gene_name):
-    url = "https://rest.uniprot.org/uniprotkb/search"
-    params = {
-        "query": f"gene_exact:{gene_name}",
-        "format": "json",
-        "fields": "accession,gene_primary"
-    }
-    response = requests.get(url, params=params)
-    response.raise_for_status()
-    data = response.json()
-    ids = data.get("results", [])
-    if not ids:
-        return None
+        if gene_name: 
+            results[protein_id] = (True, gene_name, None)
+        else:
+            results[protein_id] = (False, None, "NO_GENE_NAME_FOUND")
 
-    inner_dict = {
+
+def process_uniprot_response_containing_protein_ids(response, valid_input, isFallback: bool):
+    output = defaultdict(lambda: {
         "protein_ids": [],
         "list_of_protein_isoforms": []
-    }
+    }) 
 
-    for entry in ids:
-        accession = entry.get("primaryAccession")
-        if accession:
-            inner_dict["protein_ids"].append(accession)
+    lines = response.text.strip().split("\n")
+    header = lines[0].split("\t") 
+    protein_id_idx = header.index("Entry")
+    gene_name_idx = header.index("Gene Names (primary)")
 
-    return inner_dict if inner_dict["protein_ids"] else None
-"""
+    for line in lines[1:]:
+        parts = line.split("\t")
+        protein_id = parts[protein_id_idx]
+        output_gene_names = parts[gene_name_idx].split()
+
+        for g in output_gene_names:
+            if g in valid_input:
+                if "-" in protein_id:
+                    output[g]["list_of_protein_isoforms"].append(protein_id)
+                else:
+                    output[g]["protein_ids"].append(protein_id)
+            elif isFallback:
+                if "-" in protein_id:
+                    output[valid_input]["list_of_protein_isoforms"].append(protein_id)
+                else:
+                    output[valid_input]["protein_ids"].append(protein_id)
+    return output 
+
+
+def fallback_single_lookup(query: str, query_type: str, results):
+    if query_type == "get_gene_name":
+        url = f"https://rest.uniprot.org/uniprotkb/{query}"
+        params = {
+            "fields": "gene_primary",
+            "format": "json"
+        }
+    elif query_type == "get_protein_ids":
+        url = "https://rest.uniprot.org/uniprotkb/search"
+        params = {
+            "query": f"gene_exact:{query}",
+            "format": "tsv",
+            "fields": "accession,gene_primary"
+        }
+    return execute_uniprot_request(url, params, query, results)
 
 
 def get_gene_name_from_protein_ids(protein_ids: set):
@@ -231,30 +216,21 @@ def get_gene_name_from_protein_ids(protein_ids: set):
     if response is None:
         return results
 
-    data = response.json()
-
-    for entry in data.get("results", []):
-        protein_id = entry.get("primaryAccession")
-        output = entry.get("genes", [{}])
-        gene_name = output[0].get("geneName", {}).get("value") if output else None
-
-        # If there is more than one protein id for a gene name, 
-        # we only store the last one that was found. 
-        if gene_name: 
-            results[protein_id] = (True, gene_name, None)
-        else:
-            results[protein_id] = (False, None, "NO_GENE_NAME_FOUND")
-            
+    process_uniprot_response_containing_gene_names(response, results)
+      
     for pid in valid_ids: 
         if pid not in results: 
-            output = fallback_single_lookup(pid, "genes")
-            gene_name = output[0].get("geneName", {}).get("value")
-            #gene_name = fallback(pid)
+
+            response = fallback_single_lookup(pid, "get_gene_name", results)
+            data = response.json()
+            processed_data = data.get("genes", [])
+            gene_name = (processed_data[0].get("geneName", {}).get("value") if processed_data else None) 
+
             if gene_name:
                 results[pid] = (True, gene_name, None)
             else:
                 results[pid] = (False, None, "PROTEIN_ID_NOT_FOUND")
-
+    
     return results
 
 
@@ -296,51 +272,24 @@ def get_protein_ids_from_gene_name(gene_names: set):
     response = execute_uniprot_request(url, params, valid_gene_names, results)
     if response is None:
         return results
-
-    output = defaultdict(lambda: {
-        "protein_ids": [],
-        "list_of_protein_isoforms": []
-    }) 
-
-    lines = response.text.strip().split("\n")
-    header = lines[0].split("\t") 
-    protein_id_idx = header.index("Entry")
-    gene_name_idx = header.index("Gene Names (primary)")
-
-    for line in lines[1:]:
-        parts = line.split("\t")
-        protein_id = parts[protein_id_idx]
-        output_gene_names = parts[gene_name_idx].split()
-
-        for g in output_gene_names:
-            if g in valid_gene_names:
-                if "-" in protein_id:
-                    output[g]["list_of_protein_isoforms"].append(protein_id)
-                else:
-                    output[g]["protein_ids"].append(protein_id)
+    
+    output = process_uniprot_response_containing_protein_ids(response, valid_gene_names, False)
 
     for gn in valid_gene_names:
         data = output.get(gn) 
-
         if not data or not data["protein_ids"]: 
-            output = fallback_single_lookup(gn, "results")
-            inner_dict = {
-                "protein_ids": [],
-                "list_of_protein_isoforms": []
-            }
-            if output and isinstance(output, list): 
-                for entry in output:
-                    if not isinstance(entry, dict):
-                        continue
-                    pid = entry.get("primaryAccession")
-                    if pid:
-                        inner_dict["protein_ids"].append(pid)
-            protein_id = inner_dict if inner_dict["protein_ids"] else None
-            #protein_id = fallback_gene(gn)
-            if protein_id:
+            
+            response = fallback_single_lookup(gn, "get_protein_ids", results)
+            if response is not None: 
+                new_output = process_uniprot_response_containing_protein_ids(response, gn, True)
+                protein_id = new_output.get(gn)
+            else: 
+                protein_id = None
+            if protein_id: 
                 results[gn] = (True, protein_id, None)
             else:
                 results[gn] = (False, None, "NO_PROTEIN_ID_FOUND")
+
         else:
             results[gn] = (True, data, None)
 
@@ -548,10 +497,10 @@ def cross_linking_import(file_path: Path) -> dict:
             dict(level=logging.WARNING, msg=msg),
             dict(level=logging.WARNING, msg=f"Failed rows:\n{failed_df}")
         ]
+        # TODO: Implement display of failed rows (Issue #194)
         pd.set_option("display.max_columns", None)
         failed_df.to_csv("failed_rows.csv", index=False)
         print("Failed rows saved to failed_rows.csv")
-        #print(f"Failed rows:\n{failed_df}")
     
     return dict(
         crosslinking_df=good_df, 
