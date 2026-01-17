@@ -431,7 +431,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
                     label="Protein ID",
                 ),
                 CheckboxField(
-                    name="persistUploads",
+                    name="persist_uploads",
                     label="Upload should be saved persistently across runs",
                     value=True,
                 ),

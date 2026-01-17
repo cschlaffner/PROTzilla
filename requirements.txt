@@ -9,6 +9,7 @@ dash-bio==1.0.2
 debugpy==1.8.18
 Django==5.2.8
 django-cors-headers==4.9.0
+gemmi==0.6.6
 gseapy==1.1.10
 isort==7.0.0
 joblib==1.5.2
@@ -24,7 +25,6 @@ plotly==6.4.0
 pre-commit==4.4.0
 git+https://git@github.com/hendraet/ptm-visualization.git@main#egg=protein_sequencing
 psutil==7.1.3
-PyCifRW==5.0.1
 pydeseq2==0.5.3
 pytest==9.0.1
 pytest-cov==7.0.0
