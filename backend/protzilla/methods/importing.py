@@ -427,7 +427,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
             label="AlphaFold DB Prediction Load",
             input_fields=[
                 TextField(
-                    name="uniprot",
+                    name="uniprot_id",
                     label="Protein ID",
                 ),
                 CheckboxField(

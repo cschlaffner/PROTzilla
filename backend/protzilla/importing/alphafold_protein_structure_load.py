@@ -188,7 +188,7 @@ def handle_alphafold_files(
 
 
 def fetch_alphafold_protein_structure(
-    uniprot: str, persist_uploads: bool
+    uniprot_id: str, persist_uploads: bool
 ) -> dict[str, Any]:
     """
     Fetch AlphaFold protein structure data from the AlphaFold Database API.
