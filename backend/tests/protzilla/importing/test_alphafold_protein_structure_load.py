@@ -94,7 +94,7 @@ CA C 2.0
 
 def test_fetch_alphafold_protein_structure_wrong_uniprot_id():
     with pytest.raises(RuntimeError, match="AlphaFold request failed for NOPROTEIN"):
-        fetch_alphafold_protein_structure(uniprot="NOPROTEIN", persist_uploads=True)
+        fetch_alphafold_protein_structure(uniprot_id="NOPROTEIN", persist_uploads=True)
 
 
 def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
