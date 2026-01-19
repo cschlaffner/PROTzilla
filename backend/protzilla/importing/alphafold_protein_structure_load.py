@@ -211,7 +211,9 @@ def fetch_alphafold_protein_structure(
         except requests.RequestException as e:
             raise RuntimeError(f"AlphaFold request failed for {uniprot_id}: {e}") from e
         except ValueError as e:
-            raise RuntimeError(f"AlphaFold returned non-JSON for {uniprot_id}: {e}") from e
+            raise RuntimeError(
+                f"AlphaFold returned non-JSON for {uniprot_id}: {e}"
+            ) from e
 
         if not isinstance(records, list) or not records:
             raise ValueError(f"No AlphaFold DB predictions for {uniprot_id}")
