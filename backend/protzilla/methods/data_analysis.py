@@ -74,6 +74,7 @@ class AnalysisLevel(Enum):
 class MultipleTestingCorrectionMethod(Enum):
     benjamini_hochberg = "Benjamini-Hochberg"
     bonferroni = "Bonferroni"
+    none = "None"
 
 
 class PValueCalculationMethod(Enum):
@@ -277,6 +278,9 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         "t_statistic_df",
         "log2_fold_change_df",
         "corrected_alpha",
+        "fc_significance_df",
+        "fc_zscore_alpha",
+        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -319,6 +323,20 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                 DropdownField(
                     name="group2",
                     label="Group 2",
+                ),
+                CheckboxField(
+                    name="fc_zscore_filter",
+                    label="Fold-change Z-score significance",
+                    value=False,
+                ),
+                FloatField(
+                    name="fc_zscore_alpha",
+                    label="Z-score tail cutoff",
+                    value=0.05,
+                    min=0,
+                    max=0.5,
+                    step=0.01,
+                    separatePrefix="p",
                 ),
             ],
         )

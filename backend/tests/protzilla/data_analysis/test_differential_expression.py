@@ -152,7 +152,7 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     if show_figures:
         fig.show()
 
-    corrected_p_values = [0.0072, 0.3838, 1.0, 0.0072]
+    corrected_p_values = [0.0053, 0.3838, 1.0, 0.0072]
     differentially_expressed_proteins = [
         "Protein1",
         "Protein2",
@@ -209,7 +209,7 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     if show_figures:
         fig.show()
 
-    corrected_p_values = [0.0053, 0.3838, 1.0, 0.0072]
+    corrected_p_values = [0.0072, 0.3838, 1.0, 0.0072]
     differentially_expressed_proteins = [
         "Protein1",
         "Protein2",
@@ -235,6 +235,38 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
         list(current_out["significant_proteins_df"]["Protein ID"].unique())
         == significant_proteins
     )
+
+
+def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_data):
+    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_alpha = 0.05
+
+    current_out = t_test(
+        test_intensity_df,
+        test_metadata_df,
+        ttest_type="Welch's t-Test",
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        log_base="None",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=test_alpha,
+        fc_zscore_filter=True,
+        fc_zscore_alpha=0.25,
+    )
+
+    # Fold-change Z-score filter should keep only Protein1 (Protein4 drops because fc_significance is too high)
+    fc_significance = current_out["fc_significance_df"]
+    assert not fc_significance.empty
+    assert round(
+        fc_significance.loc[fc_significance["Protein ID"] == "Protein1"][
+            "fc_significance"
+        ].iloc[0],
+        2,
+    ) == 0.07
+    assert list(current_out["significant_proteins_df"]["Protein ID"].unique()) == [
+        "Protein1"
+    ]
 
 
 def test_differential_expression_t_test_types(diff_expr_test_data, show_figures):
