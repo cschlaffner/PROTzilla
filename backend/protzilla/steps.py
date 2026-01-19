@@ -267,18 +267,32 @@ class Step:
         plot_input = self.inputs | prefixed_output
 
         input_parameters = inspect.signature(self.plot_method).parameters
+
+        has_kwargs = any(
+            param.kind == inspect.Parameter.VAR_KEYWORD
+            for param in input_parameters.values()
+        )
+
         required_keys = [
             key
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
+            and param.kind
+            in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
         ]
         for key in required_keys:
             if key not in plot_input:
                 raise ValueError(f"Missing required input '{key}' for the plot method")
 
-        return {
+        output_dict = {
             key: plot_input[key] for key in input_parameters.keys() if key in plot_input
         }
+
+        if has_kwargs:
+            kwargs_dict = {k: v for k, v in plot_input.items() if k not in output_dict}
+            output_dict.update(kwargs_dict)
+
+        return output_dict
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """

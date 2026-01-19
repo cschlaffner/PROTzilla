@@ -61,7 +61,8 @@ from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
 from protzilla.data_analysis.cross_linking_validation import (
-    validate_cross_linking_with_angstrom_deviation,
+    validate_with_angstrom_deviation,
+    bar_plot_of_valid_crosslinks,
 )
 from backend.protzilla.run import Run
 from backend.protzilla.form_helper import get_crosslinker_names_from_crosslinker_df
@@ -2469,15 +2470,15 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     operation = "Cross Linking Validation"
     method_description = "Validates cross links based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
 
+    output_keys = ["crosslinking_df_result"]
+
     def create_form(self):
         return Form(
             label="Ångström Deviation",
             input_fields=[
-                FloatField(
-                    name="accepted_deviation",
-                    label="Accepted deviation in Ångström",
-                    min=0,
-                    value=0.20,
+                TextField(
+                    name="protein_to_validate",
+                    label="Protein prediction that should be validated",
                 ),
             ],
         )
@@ -2487,15 +2488,20 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         for cl in cross_linker:
             field_name = f"length_of_{cl}"
             if field_name not in form:
-                field = FloatField(
+                crosslinker_length_field = FloatField(
                     name=field_name,
                     label=f"Length of {cl} in Ångström",
                     min=0,
-                    value=1.0,
                 )
-                form.add_field(field)
+                allowed_length_deviation_field = FloatField(
+                    name=f"accepted_deviation_for_{cl}",
+                    label=f"Accepted deviation for {cl} Cross-Links in Ångström",
+                    min=0,
+                )
+                form.add_field(crosslinker_length_field)
+                form.add_field(allowed_length_deviation_field)
 
-    calc_method = staticmethod(validate_cross_linking_with_angstrom_deviation)
+    plot_method = staticmethod(bar_plot_of_valid_crosslinks)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["crosslinking_df"] = steps.get_step_output(
