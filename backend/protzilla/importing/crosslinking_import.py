@@ -12,7 +12,7 @@ import re
 
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
-    columns_in_cross_linking_df,
+    columns_in_crosslinking_df,
     rename_columns_csm_format,
     rename_columns_proteomediscoverer_xlinkx_format,
 )
@@ -35,7 +35,7 @@ def aggregate_data(df: pd.DataFrame, column: str) -> set:
 
 
 def validate_data_before_lookup(
-    data_for_lookup: set, is_valid_function, error_code: str
+    data_for_lookup: set, validator_function, error_code: str
 ):
     """
     Splits input values into valid and invalid ones.
@@ -53,7 +53,7 @@ def validate_data_before_lookup(
         return valid_data, results
 
     for data in data_for_lookup:
-        if is_valid_function(data):
+        if validator_function(data):
             valid_data.add(data)
         else:
             results[data] = (False, None, error_code)
@@ -127,7 +127,7 @@ def process_uniprot_response_containing_gene_names(response, results):
 
 
 def process_uniprot_response_containing_protein_ids(
-    response, valid_input, isFallback: bool
+    response, valid_input, is_fallback: bool
 ):
     output = defaultdict(lambda: {"protein_ids": [], "list_of_protein_isoforms": []})
 
@@ -141,13 +141,13 @@ def process_uniprot_response_containing_protein_ids(
         protein_id = parts[protein_id_idx]
         output_gene_names = parts[gene_name_idx].split()
 
-        for g in output_gene_names:
-            if g in valid_input:
+        for gene_name in output_gene_names:
+            if gene_name in valid_input:
                 if "-" in protein_id:
-                    output[g]["list_of_protein_isoforms"].append(protein_id)
+                    output[gene_name]["list_of_protein_isoforms"].append(protein_id)
                 else:
-                    output[g]["protein_ids"].append(protein_id)
-            elif isFallback:
+                    output[gene_name]["protein_ids"].append(protein_id)
+            elif is_fallback:
                 if "-" in protein_id:
                     output[valid_input]["list_of_protein_isoforms"].append(protein_id)
                 else:
@@ -195,7 +195,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
 
     valid_ids, results = validate_data_before_lookup(
         protein_ids,
-        is_valid_function=lambda pid: bool(valid_id_pattern.match(pid)),
+        validator_function=lambda pid: bool(valid_id_pattern.match(pid)),
         error_code="NOT_A_VALID_PROTEIN_ID",
     )
 
@@ -251,10 +251,10 @@ def get_protein_ids_from_gene_name(gene_names: set):
                 } if success else None
             error (str or None): error code/message if failed, else None
     """
-    # Filter decoy Proteins, because we cannot process them decently?
+    # Filter decoy Proteins, because we cannot process them decently
     valid_gene_names, results = validate_data_before_lookup(
         gene_names,
-        is_valid_function=lambda name: not name.startswith("DECOY:"),
+        validator_function=lambda name: not name.startswith("DECOY:"),
         error_code="IS_DECOY_PROTEIN",
     )
 
@@ -278,25 +278,25 @@ def get_protein_ids_from_gene_name(gene_names: set):
         response, valid_gene_names, False
     )
 
-    for gn in valid_gene_names:
-        data = output.get(gn)
+    for gene_name in valid_gene_names:
+        data = output.get(gene_name)
         if not data or not data["protein_ids"]:
 
-            response = fallback_single_lookup(gn, "get_protein_ids", results)
+            response = fallback_single_lookup(gene_name, "get_protein_ids", results)
             if response is not None:
                 new_output = process_uniprot_response_containing_protein_ids(
-                    response, gn, True
+                    response, gene_name, True
                 )
-                protein_id = new_output.get(gn)
+                protein_id = new_output.get(gene_name)
             else:
                 protein_id = None
             if protein_id:
-                results[gn] = (True, protein_id, None)
+                results[gene_name] = (True, protein_id, None)
             else:
-                results[gn] = (False, None, "NO_PROTEIN_ID_FOUND")
+                results[gene_name] = (False, None, "NO_PROTEIN_ID_FOUND")
 
         else:
-            results[gn] = (True, data, None)
+            results[gene_name] = (True, data, None)
 
     return results
 
@@ -473,10 +473,10 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
             "Q_value": "Float64",
         }
     )
-    return df.loc[:, columns_in_cross_linking_df]
+    return df.loc[:, columns_in_crosslinking_df]
 
 
-def cross_linking_import(file_path: Path) -> dict:
+def crosslinking_import(file_path: Path) -> dict:
     try:
         if file_path.suffix == ".csv":
             good_df, failed_df = read_csm_file(file_path)
