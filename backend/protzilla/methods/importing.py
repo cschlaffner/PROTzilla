@@ -413,7 +413,11 @@ class AlphaFoldPredictionLoad(ImportingStep):
     method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
 
     output_keys = [
-        "alphafold_df",
+        "metadata_df",
+        "cif_df",
+        "pae_df",
+        "plddt_df",
+        "sequence_df",
     ]
 
     plot_method = None
@@ -423,8 +427,13 @@ class AlphaFoldPredictionLoad(ImportingStep):
             label="AlphaFold DB Prediction Load",
             input_fields=[
                 TextField(
-                    name="uniprot",
+                    name="uniprot_id",
                     label="Protein ID",
+                ),
+                CheckboxField(
+                    name="persist_uploads",
+                    label="Upload should be saved persistently across runs",
+                    value=True,
                 ),
             ],
         )
