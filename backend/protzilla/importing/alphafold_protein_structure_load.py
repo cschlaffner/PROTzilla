@@ -89,7 +89,7 @@ def handle_alphafold_files(
     seq: str,
     metadata_df: pd.DataFrame,
     acc: str,
-    persist_upload: bool = False,
+    persist_uploads: bool = False,
 ) -> dict[str, pd.DataFrame | None]:
     """
     Download AlphaFold structure files and convert them to DataFrames.
@@ -103,7 +103,7 @@ def handle_alphafold_files(
     :param seq: The protein sequence
     :param metadata_df: DataFrame containing AlphaFold metadata
     :param acc: The accession number (used for directory naming)
-    :param persist_upload: If True, files are saved persistently; if False, only loaded into memory
+    :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
     :return: Tuple of (cif_df, pae_df, plddt_df, sequence_df) or None values for failed loads
     """
     cif_df = None
@@ -117,7 +117,7 @@ def handle_alphafold_files(
 
     temp_dir = None
 
-    if persist_upload:
+    if persist_uploads:
         target_dir.mkdir(parents=True, exist_ok=True)
         work_dir = target_dir
     else:
@@ -125,7 +125,7 @@ def handle_alphafold_files(
         work_dir = temp_dir
 
     try:
-        if persist_upload and metadata_df is not None:
+        if persist_uploads and metadata_df is not None:
             meta_dir.mkdir(parents=True, exist_ok=True)
             metadata_csv = meta_dir / "alphafold_metadata.csv"
             try:
@@ -179,10 +179,12 @@ def handle_alphafold_files(
         if temp_dir is not None:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    return {"cif_df":cif_df, 
-            "pae_df": pae_df,
-            "plddt_df": plddt_df, 
-            "sequence_df": sequence_df}
+    return {
+        "cif_df": cif_df,
+        "pae_df": pae_df,
+        "plddt_df": plddt_df,
+        "sequence_df": sequence_df,
+    }
 
 
 def fetch_alphafold_protein_structure(
@@ -243,7 +245,7 @@ def fetch_alphafold_protein_structure(
             seq=seq_tmp,
             metadata_df=metadata_df,
             acc=acc,
-            persist_upload=persist_uploads,
+            persist_uploads=persist_uploads,
         )
 
         return {
