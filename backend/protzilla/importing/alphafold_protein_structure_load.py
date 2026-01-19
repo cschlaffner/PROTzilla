@@ -26,11 +26,11 @@ def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str
     :return: The sequence in FASTA format
     :raises ValueError: If the sequence contains invalid characters or whitespace
     """
-    VALID_AMINO_ACID = set("ACDEFGHIKLMNPQRSTVWYBXZJUO*-")
+    VALID_AMINO_ACIDS = set("ACDEFGHIKLMNPQRSTVWYBXZJUO*-")
     if not seq or any(c.isspace() for c in seq):
         raise ValueError("Sequence must be a single, whitespace-free string.")
     seq = seq.upper()
-    bad = set(seq) - VALID_AMINO_ACID
+    bad = set(seq) - VALID_AMINO_ACIDS
     if bad:
         raise ValueError(f"Invalid characters in sequence: {''.join(sorted(bad))}")
     joined = "\n".join(wrap(seq, width))
@@ -104,7 +104,7 @@ def handle_alphafold_files(
     :param metadata_df: DataFrame containing AlphaFold metadata
     :param acc: The accession number (used for directory naming)
     :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
-    :return: Tuple of (cif_df, pae_df, plddt_df, sequence_df) or None values for failed loads
+    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data or None values for failed loads
     """
     cif_df = None
     pae_df = None
