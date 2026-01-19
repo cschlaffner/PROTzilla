@@ -258,12 +258,15 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
     # Fold-change Z-score filter should keep only Protein1 (Protein4 drops because fc_significance is too high)
     fc_significance = current_out["fc_significance_df"]
     assert not fc_significance.empty
-    assert round(
-        fc_significance.loc[fc_significance["Protein ID"] == "Protein1"][
-            "fc_significance"
-        ].iloc[0],
-        2,
-    ) == 0.07
+    assert (
+        round(
+            fc_significance.loc[fc_significance["Protein ID"] == "Protein1"][
+                "fc_significance"
+            ].iloc[0],
+            2,
+        )
+        == 0.07
+    )
     assert list(current_out["significant_proteins_df"]["Protein ID"].unique()) == [
         "Protein1"
     ]
