@@ -4,8 +4,6 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - "DEBUG=False"
 
     # volumes:
     # Use this if you want to persistently store user data
@@ -17,8 +15,6 @@ services:
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
-    environment:
-      - "DEBUG=True"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
     ports:
