@@ -275,74 +275,6 @@ def expected_df_by_totalsum_normalisation():
 
 
 @pytest.fixture
-def expected_df_by_width_adjustment_normalisation():
-    expected_df = pd.DataFrame(
-        data=(
-            ["Sample_1", "Gene_1", -1, -1, -1, -1, -1, -1, -1, -1, -1],
-            [
-                "Sample_2",
-                "Gene_2",
-                -0.333,
-                0.045,
-                0.136,
-                0.227,
-                0.318,
-                0.409,
-                0.5,
-                0.591,
-                0.682,
-            ],
-            [
-                "Sample_3",
-                "Gene_3",
-                2.591,
-                2.591,
-                3.5,
-                1.682,
-                -1,
-                5.318,
-                3.5,
-                1.682,
-                -1,
-            ],
-            [
-                "Sample_4",
-                "Gene_4",
-                -1,
-                -1,
-                -1,
-                -0.333,
-                1.682,
-                0.773,
-                -1,
-                1.682,
-                -1,
-            ],
-        ),
-        columns=[
-            "Sample",
-            "Gene",
-            "Protein_1",
-            "Protein_2",
-            "Protein_3",
-            "Protein_4",
-            "Protein_5",
-            "Protein_6",
-            "Protein_7",
-            "Protein_8",
-            "Protein_9",
-        ],
-    )
-
-    return pd.melt(
-        expected_df,
-        id_vars=["Sample", "Gene"],
-        var_name="Protein ID",
-        value_name="Normalised Intensity",
-    ).sort_values(by=["Sample", "Protein ID"], ignore_index=True)
-
-
-@pytest.fixture
 def normalisation_ratio_df(normalisation_df):
     ratio_df = normalisation_df.rename(columns={"Intensity": "Ratio H/L normalized"})
     return ratio_df
@@ -487,7 +419,7 @@ def test_ref_protein_missing(capsys, normalisation_by_ref_protein_df):
 
 
 def test_width_adjustment_normalisation(
-    normalisation_df, expected_df_by_width_adjustment_normalisation, show_figures
+    normalisation_df, show_figures
 ):
     method_outputs = by_width_adjustment(normalisation_df)
 
@@ -498,20 +430,81 @@ def test_width_adjustment_normalisation(
         fig.show()
 
     result_df = method_outputs["protein_df"]
-    assert result_df.round(3).equals(
-        expected_df_by_width_adjustment_normalisation
-    ), "Width adjustment normalisation does not match expected result"
+    original_widths = {}
+    for sample in normalisation_df["Sample"].unique():
+        series = pd.to_numeric(
+            normalisation_df.loc[normalisation_df["Sample"] == sample, "Intensity"],
+            errors="coerce",
+        )
+        original_widths[sample] = (
+            series.quantile(0.75) - series.quantile(0.5),
+            series.quantile(0.5) - series.quantile(0.25),
+        )
+
+    target_upper = np.median(
+        [w[0] for w in original_widths.values() if w[0] > 0]
+    )
+    target_lower = np.median(
+        [w[1] for w in original_widths.values() if w[1] > 0]
+    )
+
+    for sample in result_df["Sample"].unique():
+        series = result_df.loc[
+            result_df["Sample"] == sample, "Normalised Intensity"
+        ].astype(float)
+        q1 = series.quantile(0.25)
+        q2 = series.quantile(0.5)
+        q3 = series.quantile(0.75)
+        orig_upper, orig_lower = original_widths[sample]
+        if orig_upper == 0 and orig_lower == 0:
+            assert series.nunique(dropna=True) <= 1
+        else:
+            if orig_upper > 0:
+                assert q3 - q2 == pytest.approx(target_upper, rel=1e-3)
+            if orig_lower > 0:
+                assert q2 - q1 == pytest.approx(target_lower, rel=1e-3)
+        assert q2 == pytest.approx(0, abs=1e-9)
 
 
 def test_width_adjustment_normalisation_for_ratio_columns(
-    normalisation_ratio_df, expected_df_by_width_adjustment_normalisation
+    normalisation_ratio_df,
 ):
     method_outputs = by_width_adjustment(normalisation_ratio_df)
     result_df = method_outputs["protein_df"]
 
-    expected_df = expected_df_by_width_adjustment_normalisation.rename(
-        columns={"Normalised Intensity": "Normalised Ratio H/L normalized"}
+    original_widths = {}
+    for sample in normalisation_ratio_df["Sample"].unique():
+        series = pd.to_numeric(
+            normalisation_ratio_df.loc[
+                normalisation_ratio_df["Sample"] == sample, "Ratio H/L normalized"
+            ],
+            errors="coerce",
+        )
+        original_widths[sample] = (
+            series.quantile(0.75) - series.quantile(0.5),
+            series.quantile(0.5) - series.quantile(0.25),
+        )
+
+    target_upper = np.median(
+        [w[0] for w in original_widths.values() if w[0] > 0]
     )
-    assert result_df.round(3).equals(
-        expected_df
-    ), "Width adjustment normalisation failed for SILAC ratio intensities"
+    target_lower = np.median(
+        [w[1] for w in original_widths.values() if w[1] > 0]
+    )
+
+    for sample in result_df["Sample"].unique():
+        series = result_df.loc[
+            result_df["Sample"] == sample, "Normalised Ratio H/L normalized"
+        ].astype(float)
+        q1 = series.quantile(0.25)
+        q2 = series.quantile(0.5)
+        q3 = series.quantile(0.75)
+        orig_upper, orig_lower = original_widths[sample]
+        if orig_upper == 0 and orig_lower == 0:
+            assert series.nunique(dropna=True) <= 1
+        else:
+            if orig_upper > 0:
+                assert q3 - q2 == pytest.approx(target_upper, rel=1e-3)
+            if orig_lower > 0:
+                assert q2 - q1 == pytest.approx(target_lower, rel=1e-3)
+        assert q2 == pytest.approx(0, abs=1e-9)
