@@ -2,6 +2,9 @@
 
 ## :whale: Docker
 
+> [!NOTE]
+> Note: If you have WSL (Windows Subsystem for Linux) installed and prefer using that you can follow the [Linux guide](./Linux.md)
+
 You need to have Docker installed in order to execute PROTzilla. On Windows, this means downloading [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) and running it before executing the next steps.
 
 ## Download PROTzilla
@@ -12,11 +15,11 @@ You can either use `git` (if available) to clone the repository (this makes retr
 
 #### Prerequisite: Installing `git`
 
-If you don't have `git` installed, you can download it from [here](https://git-scm.com/install/windows). Just follow the instructions of the setup wizard.
+If you don't have `git` installed, you can download it from [here](https://git-scm.com/install/windows). Just follow the instructions of the setup wizard.  
 
 #### Cloning the repository
 
-1. navigate to the directory you would like to download PROTzilla to in the file explorer
+1. Navigate to the directory you would like to download PROTzilla to in the file explorer
 2. Open a new command line by right-clicking into blank space while holding down shift and selecting "Open command window here"
 3. Enter `git clone https://github.com/cschlaffner/PROTzilla.git`
 
@@ -29,7 +32,7 @@ If you only wish to download the current state of the repository, you don't need
 ## Configuring PROTzilla (optional)
 
 If you'd like to tweak some settings, you can edit the [compose file](compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
-They can be persisted by editing this section (find the `prod` section of `services`, should be the first):
+They can be made persistent by editing this section (find the `prod` section of `services`, should be the first):
 
 ```yaml
     # volumes:

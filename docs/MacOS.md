@@ -16,7 +16,7 @@ If you don't have `git` installed, you can find the instructions [here](https://
 
 #### Cloning the repository
 
-1. navigate to the directory you would like to download PROTzilla to in the Finder
+1. Navigate to the directory you would like to download PROTzilla to in the Finder
 2. Open a terminal by right-clicking the directory name while holding down control (compare [here](https://discussions.apple.com/thread/256112405?sortBy=rank)) and selecting "Open in Terminal here"
 3. Enter `git clone https://github.com/cschlaffner/PROTzilla.git`
 
@@ -29,7 +29,7 @@ If you only wish to download the current state of the repository, you don't need
 ## Configuring PROTzilla (optional)
 
 If you'd like to tweak some settings, you can edit the [compose file](compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
-They can be persisted by editing this section (find the `prod` section of `services`, should be the first):
+They can be made persistent by editing this section (find the `prod` section of `services`, should be the first):
 
 ```yaml
     # volumes:
