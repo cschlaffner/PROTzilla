@@ -196,29 +196,29 @@ def fetch_alphafold_protein_structure(
     Retrieves metadata and structure files (CIF, PAE, pLDDT) from the AlphaFold Database
     for the given UniProt ID. Optionally persists the downloaded files to disk.
 
-    :param uniprot: The UniProt ID of the protein
+    :param uniprot_id: The UniProt ID of the protein
     :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
     :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
     :raises RuntimeError: If the API request fails or returns invalid data
     :raises ValueError: If no predictions are found for the given UniProt ID
     """
-    url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot}"
+    url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot_id}"
     with requests.Session() as session:
         try:
             resp = session.get(url, timeout=30)
             resp.raise_for_status()
             records = resp.json()
         except requests.RequestException as e:
-            raise RuntimeError(f"AlphaFold request failed for {uniprot}: {e}") from e
+            raise RuntimeError(f"AlphaFold request failed for {uniprot_id}: {e}") from e
         except ValueError as e:
-            raise RuntimeError(f"AlphaFold returned non-JSON for {uniprot}: {e}") from e
+            raise RuntimeError(f"AlphaFold returned non-JSON for {uniprot_id}: {e}") from e
 
         if not isinstance(records, list) or not records:
-            raise ValueError(f"No AlphaFold DB predictions for {uniprot}")
+            raise ValueError(f"No AlphaFold DB predictions for {uniprot_id}")
 
         r = records[0]
         if not isinstance(r, dict):
-            raise RuntimeError(f"Unexpected AlphaFold payload for {uniprot}")
+            raise RuntimeError(f"Unexpected AlphaFold payload for {uniprot_id}")
 
         data: dict[str, Any] = {
             "entryID": r.get("uniprotAccession"),
@@ -241,7 +241,7 @@ def fetch_alphafold_protein_structure(
 
         alpha_dfs = handle_alphafold_files(
             files_urls=files_urls,
-            uniprot=uniprot,
+            uniprot=uniprot_id,
             seq=seq_tmp,
             metadata_df=metadata_df,
             acc=acc,
