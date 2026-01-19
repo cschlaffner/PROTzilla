@@ -806,3 +806,342 @@ def test_differential_expression_kruskal_wallis_on_ptm(
         == expected_significant_ptms
     )
     assert current_out["corrected_alpha"] == test_alpha
+
+
+def test_differential_expression_t_test_empty_p_values():
+    """Test that t-test handles empty p-values correctly when all proteins are invalid."""
+    test_intensity_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", np.nan],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", np.nan],
+            ["Sample4", "Protein1", "Gene1", np.nan],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = t_test(
+        intensity_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        ttest_type="Welch's t-Test",
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        log_base="None",
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out["significant_proteins_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["t_statistic_df"].empty
+    assert current_out["log2_fold_change_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid protein groups found for t-test analysis" in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_anova_empty_p_values():
+    """Test that ANOVA handles empty p-values correctly when all proteins are invalid."""
+    test_intensity_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", 10],
+            ["Sample2", "Protein1", "Gene1", 10],
+            ["Sample3", "Protein1", "Gene1", 10],
+            ["Sample4", "Protein1", "Gene1", 10],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = anova(
+        intensity_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["Group1", "Group2"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        log_base="None",
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out["significant_proteins_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["sample_group_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+    assert current_out["filtered_proteins"] == []
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid protein groups found for ANOVA analysis" in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_linear_model_empty_p_values():
+    """Test that linear model handles empty p-values correctly when all proteins are invalid."""
+    test_intensity_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", np.nan],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", np.nan],
+            ["Sample4", "Protein1", "Gene1", np.nan],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = linear_model(
+        intensity_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        log_base="None",
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out["significant_proteins_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["log2_fold_change_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+    assert current_out["filtered_proteins"] == ["Protein1"]
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid protein groups found for linear model analysis" in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_mann_whitney_empty_p_values():
+    """Test that Mann-Whitney U test handles empty p-values correctly when all proteins are invalid."""
+    test_intensity_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", np.nan],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", np.nan],
+            ["Sample4", "Protein1", "Gene1", np.nan],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = mann_whitney_test_on_intensity_data(
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        log_base="None",
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out["significant_proteins_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["u_statistic_df"].empty
+    assert current_out["log2_fold_change_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid protein ids found for Mann-Whitney U test analysis"
+        in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_mann_whitney_on_ptm_empty_p_values():
+    """Test that Mann-Whitney U test on PTM data handles empty p-values correctly."""
+    test_ptm_df = pd.DataFrame(
+        data=[
+            ["Sample1", np.nan, 100],
+            ["Sample2", np.nan, 100],
+            ["Sample3", np.nan, 100],
+            ["Sample4", np.nan, 100],
+        ],
+        columns=["Sample", "Phospho", "Total Amount of Peptides"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = mann_whitney_test_on_ptm_data(
+        ptm_df=test_ptm_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_ptm_df"].empty
+    assert current_out["significant_ptm_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["u_statistic_df"].empty
+    assert current_out["log2_fold_change_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid ptms found for Mann-Whitney U test analysis" in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_kruskal_wallis_empty_p_values():
+    """Test that Kruskal-Wallis test handles empty p-values correctly when all proteins are invalid."""
+    test_intensity_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", 10],
+            ["Sample2", "Protein1", "Gene1", 10],
+            ["Sample3", "Protein1", "Gene1", 10],
+            ["Sample4", "Protein1", "Gene1", 10],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = kruskal_wallis_test_on_intensity_data(
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["Group1", "Group2"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        log_base="None",
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out["significant_proteins_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["h_statistic_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid protein ids found for Kruskal-Wallis test analysis"
+        in message["msg"]
+        for message in current_out["messages"]
+    )
+
+
+def test_differential_expression_kruskal_wallis_on_ptm_empty_p_values():
+    """Test that Kruskal-Wallis test on PTM data handles empty p-values correctly."""
+    test_ptm_df = pd.DataFrame(
+        data=[
+            ["Sample1", 10, 100],
+            ["Sample2", 10, 100],
+            ["Sample3", 10, 100],
+            ["Sample4", 10, 100],
+        ],
+        columns=["Sample", "Phospho", "Total Amount of Peptides"],
+    )
+
+    test_metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+
+    current_out = kruskal_wallis_test_on_ptm_data(
+        ptm_df=test_ptm_df,
+        metadata_df=test_metadata_df,
+        grouping="Group",
+        selected_groups=["Group1", "Group2"],
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+    )
+
+    # Check that all dataframes are empty but with correct columns
+    assert current_out["differentially_expressed_ptm_df"].empty
+    assert current_out["significant_ptm_df"].empty
+    assert current_out["corrected_p_values_df"].empty
+    assert current_out["h_statistic_df"].empty
+    assert current_out["corrected_alpha"] == 0.05
+
+    # Check that an error message was generated
+    assert any(
+        message["level"] == logging.ERROR
+        and "No valid ptms found for Kruskal-Wallis test analysis" in message["msg"]
+        for message in current_out["messages"]
+    )
