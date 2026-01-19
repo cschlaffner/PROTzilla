@@ -49,7 +49,7 @@ This specifies that the local directory `./backend/user_data` should be mounted 
 
 ## Running PROTzilla
 
-Before executing Docker commands on Mac, you need to start Docker Desktop (otherwise, Docker commands will fail) (@mac users, is this true?).
+Before executing Docker commands on Mac, you need to start Docker Desktop (otherwise, Docker commands will fail).
 Afterwards, you can open the Terminal app in the PROTzilla directory (or use the one from the cloning step if you didn't close it) and run `docker compose up -d prod`. This will prepare everything and start the service. Once the command has finished, you can navigate to [localhost:8000](http://localhost:8000) and use PROTzilla!
 You should also see the container in Docker Desktop, where you can access logs or attach to a shell inside the container.
 
