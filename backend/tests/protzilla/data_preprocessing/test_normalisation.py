@@ -418,9 +418,7 @@ def test_ref_protein_missing(capsys, normalisation_by_ref_protein_df):
     assert "The protein was not found" in method_outpus["messages"][0]["msg"]
 
 
-def test_width_adjustment_normalisation(
-    normalisation_df, show_figures
-):
+def test_width_adjustment_normalisation(normalisation_df, show_figures):
     method_outputs = by_width_adjustment(normalisation_df)
 
     fig = by_width_adjustment_plot(
@@ -441,12 +439,8 @@ def test_width_adjustment_normalisation(
             series.quantile(0.5) - series.quantile(0.25),
         )
 
-    target_upper = np.median(
-        [w[0] for w in original_widths.values() if w[0] > 0]
-    )
-    target_lower = np.median(
-        [w[1] for w in original_widths.values() if w[1] > 0]
-    )
+    target_upper = np.median([w[0] for w in original_widths.values() if w[0] > 0])
+    target_lower = np.median([w[1] for w in original_widths.values() if w[1] > 0])
 
     for sample in result_df["Sample"].unique():
         series = result_df.loc[
@@ -485,12 +479,8 @@ def test_width_adjustment_normalisation_for_ratio_columns(
             series.quantile(0.5) - series.quantile(0.25),
         )
 
-    target_upper = np.median(
-        [w[0] for w in original_widths.values() if w[0] > 0]
-    )
-    target_lower = np.median(
-        [w[1] for w in original_widths.values() if w[1] > 0]
-    )
+    target_upper = np.median([w[0] for w in original_widths.values() if w[0] > 0])
+    target_lower = np.median([w[1] for w in original_widths.values() if w[1] > 0])
 
     for sample in result_df["Sample"].unique():
         series = result_df.loc[
