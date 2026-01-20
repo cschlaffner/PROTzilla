@@ -1,7 +1,10 @@
+import numpy as np
 import pandas as pd
 import pytest
 
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
+from protzilla.data_analysis.plots import scatter_plot
+from tests.protzilla.data_analysis.test_scatter_plot import check_figure_output
 
 
 @pytest.fixture
@@ -84,6 +87,24 @@ def dimension_reduction_four_proteins_df():
     )
 
     return dimension_reduction_df
+
+
+@pytest.fixture
+def metadata_df():
+    return pd.DataFrame(
+        np.array(
+            [
+                ["Sample1", "Group1", "Batch1"],
+                ["Sample2", "Group2", "Batch2"],
+                ["Sample3", "Group1", "Batch3"],
+                ["Sample4", "Group1", "Batch10000230234456"],
+                ["Sample5", "Group2", "Batch2"],
+                ["Sample6", "Group1", "Batch2"],
+                ["Sample7", "1puorG", "Batch3"],
+            ]
+        ),
+        columns=["Sample", "Group", "Batch"],
+    )
 
 
 @pytest.fixture
@@ -202,6 +223,38 @@ def test_tsne_n_components_barnes_hut(dimension_reduction_four_proteins_df):
 
 
 @pytest.mark.parametrize(
+    "df_name,n_components,metadata_column",
+    [
+        ("dimension_reduction_df", 2, "Group"),
+        ("dimension_reduction_four_proteins_df", 3, "Group"),
+        ("dimension_reduction_df", 2, "Batch"),
+        ("dimension_reduction_four_proteins_df", 3, "Batch"),
+    ],
+)
+def test_tsne_scatter_plot_integration(
+    df_name, n_components, metadata_column, metadata_df, request
+):
+    df = request.getfixturevalue(df_name)
+    tsne_out = t_sne(
+        df,
+        n_components=n_components,
+        perplexity=4,
+        random_state=42,
+    )
+    outputs = scatter_plot(
+        tsne_out["embedded_data"],
+        metadata_df,
+        metadata_column,
+    )
+    check_figure_output(
+        outputs["plots"][0],
+        expected_num_data_points=df["Sample"].nunique(),
+        expected_dims=n_components,
+        expected_nans_per_dim=tuple(0 for _ in range(n_components)),
+    )
+
+
+@pytest.mark.parametrize(
     "n_components",
     [2, 3],
 )
@@ -237,3 +290,36 @@ def test_umap_nan_handling(df_with_nan):
         _ = umap(
             df_with_nan,
         )
+
+
+@pytest.mark.parametrize(
+    "df_name,n_components,metadata_column",
+    [
+        ("dimension_reduction_df", 2, "Batch"),
+        ("dimension_reduction_four_proteins_df", 3, "Batch"),
+        ("dimension_reduction_df", 2, "Group"),
+        ("dimension_reduction_four_proteins_df", 3, "Group"),
+    ],
+)
+def test_umap_scatter_plot_integration(
+    df_name, n_components, metadata_column, metadata_df, request
+):
+    df = request.getfixturevalue(df_name)
+    umap_out = umap(
+        df,
+        n_components=n_components,
+        n_neighbors=3,
+        random_state=42,
+        transform_seed=42,
+    )
+    outputs = scatter_plot(
+        umap_out["embedded_data"],
+        metadata_df,
+        metadata_column,
+    )
+    check_figure_output(
+        outputs["plots"][0],
+        expected_num_data_points=df["Sample"].nunique(),
+        expected_dims=n_components,
+        expected_nans_per_dim=tuple(0 for _ in range(n_components)),
+    )
