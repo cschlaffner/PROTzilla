@@ -87,148 +87,153 @@ def dimension_reduction_four_proteins_df():
 
 
 @pytest.fixture
-def tsne_assertion_df():
+def tsne_assertion_df_2d():
     assertion_tsne_list = (
-        [815.3974, 669.66266],
-        [-183.04214, -1213.9768],
-        [1293.7623, -86.70343],
-        [-1140.1017, 220.61826],
-        [-470.62607, 681.9605],
-        [-78.51375, -112.844124],
-        [-78.51375, -112.844124],
+        ["Sample1", -664.979919, 230.476990],
+        ["Sample2", -331.823853, 792.581787],
+        ["Sample3", -945.627319, 948.698303],
+        ["Sample4", 1057.182739, -454.083984],
+        ["Sample5", 506.428101, -61.508503],
+        ["Sample6", 201.733047, -738.819336],
+        ["Sample7", 201.733047, -738.819336],
     )
     tsne_assertion_df = pd.DataFrame(
         data=assertion_tsne_list,
-        index=[
-            "Sample1",
-            "Sample2",
-            "Sample3",
-            "Sample4",
-            "Sample5",
-            "Sample6",
-            "Sample7",
-        ],
+        columns=["Sample", "Component1", "Component2"],
     )
-    tsne_assertion_df.index.name = "Sample"
 
     return tsne_assertion_df
 
 
 @pytest.fixture
-def umap_assertion_df():
-    assertion_umap_list = (
-        [22.050823, 5.450951],
-        [22.405716, 5.8017206],
-        [21.766651, 5.1627417],
-        [4.2950587, 3.7172985],
-        [4.787037, 3.20218],
-        [5.1595345, 4.0933995],
-        [5.458093, 3.3993974],
+def tsne_assertion_df_3d():
+    assertion_tsne_list = (
+        ["Sample1", -185.471146, 40.492714, 61.039135],
+        ["Sample2", -109.450661, -86.972496, -115.099686],
+        ["Sample3", 129.066925, 148.503708, 58.841263],
+        ["Sample4", 111.788994, -110.931160, -13.378016],
+        ["Sample5", -1.360091, -72.723167, 67.371521],
+        ["Sample6", 49.287201, 15.484677, -90.011147],
+        ["Sample7", -32.561390, 66.274124, 57.044739],
+    )
+    tsne_assertion_df = pd.DataFrame(
+        data=assertion_tsne_list,
+        columns=["Sample", "Component1", "Component2", "Component3"],
     )
 
-    umap_assertion_df = pd.DataFrame(
-        data=assertion_umap_list,
-        index=[
-            "Sample1",
-            "Sample2",
-            "Sample3",
-            "Sample4",
-            "Sample5",
-            "Sample6",
-            "Sample7",
-        ],
+    return tsne_assertion_df
+
+
+@pytest.mark.parametrize(
+    "df,n_components,assertion_df",
+    [
+        ("dimension_reduction_df", 2, "tsne_assertion_df_2d"),
+        ("dimension_reduction_four_proteins_df", 3, "tsne_assertion_df_3d"),
+    ],
+)
+def test_tsne_reproducibility(df, n_components, assertion_df, request):
+    current_out = t_sne(
+        request.getfixturevalue(df),
+        n_components=n_components,
+        perplexity=4,
+        random_state=42,
     )
-    umap_assertion_df.index.name = "Sample"
 
-    return umap_assertion_df
-
-
-# TODO: find out why tsne is not reproducible even-though random_state is set
-# def test_tsne_reproducibility(dimension_reduction_df, tsne_assertion_df):
-#     _, current_out = t_sne(
-#         pd.DataFrame(),  # Remove when intensity_df is removed
-#         dimension_reduction_df,
-#         n_components=2,
-#         perplexity=4,
-#         random_state=42,
-#     )
-#
-#     pd.testing.assert_frame_equal(
-#         current_out["embedded_data_df"], tsne_assertion_df, check_dtype=False
-#     )
+    pd.testing.assert_frame_equal(
+        current_out["embedded_data"],
+        request.getfixturevalue(assertion_df),
+        check_dtype=False,
+    )
 
 
 def test_tsne_nan_handling(df_with_nan):
-    current_out = t_sne(
-        df_with_nan,
-        n_components=2,
-        perplexity=4,
-    )
-
-    assert "messages" in current_out
-    assert "NaN values" in current_out["messages"][0]["msg"]
+    with pytest.raises(
+        ValueError,
+        match="T-SNE does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+        "values.",
+    ):
+        _ = t_sne(
+            df_with_nan,
+            n_components=2,
+            perplexity=4,
+        )
 
 
 def test_tsne_perplexity(dimension_reduction_df):
-    current_out = t_sne(
-        dimension_reduction_df,
-        n_components=2,
-        perplexity=30,
-    )
-    assert "messages" in current_out
-    assert (
-        "Perplexity must be less than the number of samples"
-        in current_out["messages"][0]["msg"]
-    )
+    with pytest.raises(
+        ValueError,
+        match="Perplexity must be less than the number of samples. In the selected dataframe there "
+        f"is {dimension_reduction_df['Sample'].nunique()} samples",
+    ):
+        _ = t_sne(
+            dimension_reduction_df,
+            n_components=2,
+            perplexity=30,
+        )
 
 
 def test_tsne_n_components(dimension_reduction_df):
-    current_out = t_sne(
-        dimension_reduction_df,
-        n_components=8,
-        perplexity=4,
-        random_state=42,
-        method="exact",
-    )
-    assert "messages" in current_out
-    assert (
-        "n_components=8 must be between 1 and min(n_samples, n_features)"
-        in current_out["messages"][0]["msg"]
-    )
+    with pytest.raises(
+        ValueError,
+        match="The number of dimensions of the embedded space must be between 1 and "
+        f"{min(dimension_reduction_df['Sample'].nunique(), dimension_reduction_df['Protein ID'].nunique())}",
+    ):
+        _ = t_sne(
+            dimension_reduction_df,
+            n_components=8,
+            perplexity=4,
+            random_state=42,
+            method="exact",
+        )
 
 
 def test_tsne_n_components_barnes_hut(dimension_reduction_four_proteins_df):
-    current_out = t_sne(
-        dimension_reduction_four_proteins_df,
-        n_components=4,
-        perplexity=4,
+    with pytest.raises(
+        ValueError,
+        match="The number of dimensions should be smaller than 4 because the underlying algorithm does not"
+        " support a higher number of dimensions.",
+    ):
+        _ = t_sne(
+            dimension_reduction_four_proteins_df,
+            n_components=4,
+            perplexity=4,
+            random_state=42,
+        )
+
+
+@pytest.mark.parametrize(
+    "n_components",
+    [2, 3],
+)
+def test_umap_reproducibility(dimension_reduction_df, n_components):
+    current_out = umap(
+        dimension_reduction_df,
+        n_components=n_components,
+        n_neighbors=3,
         random_state=42,
+        transform_seed=42,
     )
-    assert "messages" in current_out
+    # Unfortunately, UMAP results vary slightly between runs even with the same random seed, which makes exact
+    # comparison impossible. Therefore, we only check the shape and types here.
     assert (
-        "'n_components' should be inferior to 4 for the barnes_hut algorithm "
-        "as it relies on quad-tree or oct-tree." in current_out["messages"][0]["msg"]
+        current_out["embedded_data"].shape
+        == (dimension_reduction_df["Sample"].nunique(), n_components + 1)
+        and current_out["embedded_data"]["Sample"].sort_values().tolist()
+        == sorted(dimension_reduction_df["Sample"].unique())
+        and pd.api.types.is_numeric_dtype(current_out["embedded_data"]["Component1"])
+        and pd.api.types.is_numeric_dtype(current_out["embedded_data"]["Component2"])
+        and not current_out["embedded_data"][["Component1", "Component2"]]
+        .isnull()
+        .values.any()
     )
-
-
-# TODO: find out why umap is not reproducible eventhough random_state is set
-# def test_umap_reproducibility(dimension_reduction_df, umap_assertion_df):
-#     _, current_out = umap(
-#         pd.DataFrame(),  # Remove when intensity_df is removed
-#         dimension_reduction_df,
-#         n_components=2,
-#         n_neighbors=3,
-#         random_state=42,
-#         transform_seed=42,
-#     )
-#     pd.testing.assert_frame_equal(
-#         current_out["embedded_data_df"], umap_assertion_df, check_dtype=False
-#     )
 
 
 def test_umap_nan_handling(df_with_nan):
-    current_out = umap(
-        df_with_nan,
-    )
-    assert "messages" in current_out
-    assert "NaN values" in current_out["messages"][0]["msg"]
+    with pytest.raises(
+        ValueError,
+        match="UMAP does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+        "values.",
+    ):
+        _ = umap(
+            df_with_nan,
+        )

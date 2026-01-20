@@ -1,5 +1,3 @@
-import logging
-
 import pandas as pd
 from sklearn.manifold import TSNE
 
@@ -52,56 +50,50 @@ def t_sne(
         corresponding Sample.
     :rtype: dict
     """
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    try:
-        embedded_data_model = TSNE(
-            n_components=n_components,
-            perplexity=perplexity,
-            random_state=random_state,
-            max_iter=max_iter,
-            n_iter_without_progress=n_iter_without_progress,
-            method=method,
-            metric=metric,
-        ).fit_transform(intensity_df_wide)
-
-        embedded_data = pd.DataFrame(
-            embedded_data_model,
-            index=intensity_df_wide.index,
-            columns=["Component1", "Component2"],  # TODO: what if there are more?
-        ).reset_index()
-        return dict(embedded_data=embedded_data)
-
-    except ValueError as e:
-        if intensity_df_wide.isnull().sum().any():
-            msg = (
-                "T-SNE does not accept missing values encoded as NaN. Consider"
-                "preprocessing your data to remove NaN values."
-            )
-        elif perplexity >= intensity_df_wide.shape[0]:
-            msg = (
-                "Perplexity must be less than the number of samples. In the selected "
-                f"dataframe there is {intensity_df_wide.shape[0]} samples"
-            )
-        elif (
-            min(intensity_df_wide.shape[0], intensity_df_wide.shape[1]) <= n_components
-            or n_components <= 1
-        ):
-            msg = (
-                f"n_components={n_components} must be between 1 and "
-                f"min(n_samples, n_features)"
-                f"={min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])}"
-            )
-        elif n_components > 3 and method == "barnes_hut":
-            msg = (
-                "'n_components' should be inferior to 4 for the barnes_hut algorithm "
-                "as it relies on quad-tree or oct-tree."
-            )
-        else:
-            msg = ""
-        return dict(
-            embedded_data=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
+    intensity_df_wide = (
+        long_to_wide(input_df) if is_long_format(input_df) else input_df.copy()
+    )
+    if intensity_df_wide.isnull().sum().any():
+        raise ValueError(
+            "T-SNE does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+            "values."
         )
+    if perplexity >= intensity_df_wide.shape[0]:
+        raise ValueError(
+            "Perplexity must be less than the number of samples. In the selected dataframe there "
+            f"is {intensity_df_wide.shape[0]} samples"
+        )
+    if (
+        min(intensity_df_wide.shape[0], intensity_df_wide.shape[1]) <= n_components
+        or n_components <= 1
+    ):
+        raise ValueError(
+            "The number of dimensions of the embedded space must be between 1 and "
+            f"{min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])} (the smaller one of number of "
+            "samples/features). "
+        )
+    if n_components > 3 and method == "barnes_hut":
+        raise ValueError(
+            "The number of dimensions should be smaller than 4 because the underlying algorithm does not"
+            " support a higher number of dimensions."
+        )
+
+    embedded_data_model = TSNE(
+        n_components=n_components,
+        perplexity=perplexity,
+        random_state=random_state,
+        max_iter=max_iter,
+        n_iter_without_progress=n_iter_without_progress,
+        method=method,
+        metric=metric,
+    ).fit_transform(intensity_df_wide)
+
+    embedded_data = pd.DataFrame(
+        embedded_data_model,
+        index=intensity_df_wide.index,
+        columns=[f"Component{i+1}" for i in range(n_components)],
+    ).reset_index()
+    return dict(embedded_data=embedded_data)
 
 
 def umap(
@@ -152,32 +144,23 @@ def umap(
     from umap import UMAP
 
     intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    try:
-        embedded_data_model = UMAP(
-            n_neighbors=n_neighbors,
-            n_components=n_components,
-            min_dist=min_dist,
-            metric=metric,
-            random_state=random_state,
-            transform_seed=transform_seed,
-        ).fit_transform(intensity_df_wide)
-
-        embedded_data = pd.DataFrame(
-            embedded_data_model,
-            index=intensity_df_wide.index,
-            columns=["Component1", "Component2"],
-        ).reset_index()
-        return dict(embedded_data=embedded_data)
-
-    except ValueError as e:
-        if intensity_df_wide.isnull().sum().any():
-            msg = (
-                "UMAP does not accept missing values encoded as NaN. Consider "
-                "preprocessing your data to remove NaN values."
-            )
-        else:
-            msg = ""
-        return dict(
-            embedded_data=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
+    if intensity_df_wide.isnull().sum().any():
+        raise ValueError(
+            "UMAP does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+            "values."
         )
+    embedded_data_model = UMAP(
+        n_neighbors=n_neighbors,
+        n_components=n_components,
+        min_dist=min_dist,
+        metric=metric,
+        random_state=random_state,
+        transform_seed=transform_seed,
+    ).fit_transform(intensity_df_wide)
+
+    embedded_data = pd.DataFrame(
+        embedded_data_model,
+        index=intensity_df_wide.index,
+        columns=[f"Component{i+1}" for i in range(n_components)],
+    ).reset_index()
+    return dict(embedded_data=embedded_data)

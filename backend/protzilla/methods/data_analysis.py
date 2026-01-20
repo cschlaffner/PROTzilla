@@ -1934,6 +1934,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     name="n_components",
                     label="Dimension of the embedded space",
                     min=1,
+                    max=3,
                     step=1,
                     value=2,
                 ),
