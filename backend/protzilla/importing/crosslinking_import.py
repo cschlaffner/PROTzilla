@@ -208,7 +208,7 @@ def process_uniprot_response_containing_protein_ids(
     :param valid_input: Set of gene names to extract protein IDs for
     :type valid_input: set[str]
     :param is_fallback: True if the response comes from a fallback individual UniProt request
-                        instead of the standard UniProt batch request 
+                        instead of the standard UniProt batch request
     :type is_fallback: bool
 
     :return: Dictionary mapping gene_name -> protein information
@@ -336,7 +336,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
 
     for pid in valid_ids:
         if pid not in results:
-            
+
             response = fallback_single_lookup(pid, "get_gene_name", results)
             data = response.json()
             processed_data = data.get("genes", [])
@@ -350,7 +350,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
                 results[pid] = (True, gene_name, None)
             else:
                 results[pid] = (False, None, "PROTEIN_ID_NOT_FOUND")
-            
+
     return results
 
 
@@ -371,7 +371,7 @@ def get_protein_ids_from_gene_name(gene_names: set):
                     - "list_of_protein_isoforms" (list of str): All isoform IDs
     :returns error: Error code or message if the lookup failed, else None
     """
-    # Filter decoy Proteins, because we cannot process them decently 
+    # Filter decoy Proteins, because we cannot process them decently
     valid_gene_names, results = validate_data_before_lookup(
         gene_names,
         validator_function=lambda name: not name.startswith("decoy:"),

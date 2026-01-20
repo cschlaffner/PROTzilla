@@ -17,10 +17,7 @@ from protzilla.importing.crosslinking_import import (
 
 
 def test_aggregate_data():
-    df = pd.DataFrame({
-        "Protein1": ["A", "B", None],
-        "Protein2": ["C", "B", "D"]
-    })
+    df = pd.DataFrame({"Protein1": ["A", "B", None], "Protein2": ["C", "B", "D"]})
     result = aggregate_data(df, "Protein")
     assert result == {"A", "B", "C", "D"}
 
@@ -35,14 +32,26 @@ def test_remove_brackets_from_peptide():
 
 
 def test_get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format():
-    assert get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format("[ACD]EF") == 1
-    assert get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format("ACDEF") == 0
+    assert (
+        get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format(
+            "[ACD]EF"
+        )
+        == 1
+    )
+    assert (
+        get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format(
+            "ACDEF"
+        )
+        == 0
+    )
 
 
 def test_validate_data_before_lookup():
     data = {"A", "B", "C"}
+
     def validator(x):
         return x != "B"
+
     valid, results = validate_data_before_lookup(data, validator, "ERROR")
     assert valid == {"A", "C"}
     assert results == {"B": (False, None, "ERROR")}
@@ -59,8 +68,13 @@ def test_execute_uniprot_request_success():
     mock_response.raise_for_status.return_value = None
     results = {}
     valid_data = {"P12345"}
-    with patch("protzilla.importing.crosslinking_import.requests.get", return_value=mock_response):
-        response = execute_uniprot_request("url", {"param": "value"}, valid_data, results)
+    with patch(
+        "protzilla.importing.crosslinking_import.requests.get",
+        return_value=mock_response,
+    ):
+        response = execute_uniprot_request(
+            "url", {"param": "value"}, valid_data, results
+        )
         assert response == mock_response
         assert results == {}
 
@@ -72,7 +86,9 @@ def test_execute_uniprot_request_timeout():
         "protzilla.importing.crosslinking_import.requests.get",
         side_effect=Timeout(),
     ):
-        response = execute_uniprot_request("url", {"param": "value"}, valid_data, results)
+        response = execute_uniprot_request(
+            "url", {"param": "value"}, valid_data, results
+        )
         assert response is None
         assert results["P12345"][2] == "TIMEOUT"
 
@@ -83,7 +99,7 @@ def test_process_uniprot_response_containing_gene_names():
     mock_response.json.return_value = {
         "results": [
             {"primaryAccession": "P1", "genes": [{"geneName": {"value": "GENE1"}}]},
-            {"primaryAccession": "P2", "genes": []}
+            {"primaryAccession": "P2", "genes": []},
         ]
     }
     process_uniprot_response_containing_gene_names(mock_response, results)
@@ -92,21 +108,23 @@ def test_process_uniprot_response_containing_gene_names():
 
 
 def _minimal_valid_crosslinking_df():
-    return pd.DataFrame({
-        "Protein_id1": ["P1"],
-        "Protein_id2": ["P2"],
-        "Protein1": ["GENE1"],
-        "Protein2": ["GENE2"],
-        "Is_intra_crosslink": [False],
-        "Crosslinker": ["DSS"],
-        "Peptide1": ["AAA"],
-        "Peptide2": ["BBB"],
-        "Peptide_position1": [1],
-        "Peptide_position2": [2],
-        "CL_position1": [3],
-        "CL_position2": [4],
-        "Q_value": [0.01],
-    })
+    return pd.DataFrame(
+        {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P2"],
+            "Protein1": ["GENE1"],
+            "Protein2": ["GENE2"],
+            "Is_intra_crosslink": [False],
+            "Crosslinker": ["DSS"],
+            "Peptide1": ["AAA"],
+            "Peptide2": ["BBB"],
+            "Peptide_position1": [1],
+            "Peptide_position2": [2],
+            "CL_position1": [3],
+            "CL_position2": [4],
+            "Q_value": [0.01],
+        }
+    )
 
 
 def test_iterate_for_protein_designation():
@@ -128,8 +146,10 @@ def test_iterate_for_protein_designation():
 
 def test_get_missing_protein_designation():
     df = _minimal_valid_crosslinking_df()
+
     def mock_lookup(ids):
         return {pid: (True, f"Gene_{pid}", None) for pid in ids}
+
     good_df, failed_df = get_missing_protein_designation(
         df,
         "Protein_id",
@@ -162,7 +182,6 @@ def test_crosslinking_import_csv(tmp_path):
 
     assert "crosslinking_df" in result
     assert not result["crosslinking_df"].empty
-
 
 
 def test_crosslinking_import_invalid_file(tmp_path):
