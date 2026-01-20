@@ -58,8 +58,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
  
+  // TODO: When do we want to propagate positions to the backend?
+  // This function gets called wayy to frequently to use for that.
+  // Maybe on every new step selection?
   const onNodesChange = useCallback(
-    (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
+    (changes) => {
+      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
+    },
     [],
   );
   const onEdgesChange = useCallback(
@@ -191,7 +196,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           ModalTrigger={(openModal) => (
             <>
             <SecondaryButton onClick={openModal}>
-            <Icon icon={section.id} style={{ flexShrink: 0, marginRight: "10px" }} /> Add
+            <Icon icon={section.id} style={{ flexShrink: 0, marginRight: "10px" }} /> Add {section.name}
             </SecondaryButton>
             </>
           )}
