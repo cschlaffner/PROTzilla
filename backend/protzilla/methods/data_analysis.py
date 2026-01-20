@@ -188,7 +188,9 @@ class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
     cosine = "cosine"
-    havensine = "havensine"
+    # TODO: do we actually need this - if not might remove to have consistency between UMAP and t-SNE. Otherwise we
+    #  need a different enum. Also, I think it should be "haversine" instead of "havensine"
+    # havensine = "havensine"
 
 
 class DataAnalysisStep(Step):
@@ -1945,11 +1947,10 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     max=50.0,
                     value=30.0,
                 ),
-                MultiSelectField(
+                DropdownField(
                     name="metric",
-                    label="Metric",
+                    label="Distance metric",
                     options=DimensionReductionMetric,
-                    value=DimensionReductionMetric.euclidean,
                 ),
                 NumberField(
                     name="random_state",

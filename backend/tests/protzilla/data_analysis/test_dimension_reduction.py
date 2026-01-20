@@ -4,6 +4,7 @@ import pytest
 
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
 from protzilla.data_analysis.plots import scatter_plot
+from protzilla.methods.data_analysis import DimensionReductionMetric
 from tests.protzilla.data_analysis.test_scatter_plot import check_figure_output
 
 
@@ -145,16 +146,35 @@ def tsne_assertion_df_3d():
     return tsne_assertion_df
 
 
+def check_dimensionality_reduction_output(
+    out_df: pd.DataFrame, orig_df: pd.DataFrame, n_components: int
+):
+    assert (
+        out_df.shape == (orig_df["Sample"].nunique(), n_components + 1)
+        and out_df["Sample"].sort_values().tolist()
+        == sorted(orig_df["Sample"].unique())
+        and all(
+            (
+                pd.api.types.is_numeric_dtype(out_df[f"Component{i + 1}"])
+                for i in range(n_components)
+            )
+        )
+        and not out_df[[f"Component{i + 1}" for i in range(n_components)]]
+        .isnull()
+        .values.any()
+    )
+
+
 @pytest.mark.parametrize(
-    "df,n_components,assertion_df",
+    "df_name,n_components,assertion_df",
     [
         ("dimension_reduction_df", 2, "tsne_assertion_df_2d"),
         ("dimension_reduction_four_proteins_df", 3, "tsne_assertion_df_3d"),
     ],
 )
-def test_tsne_reproducibility(df, n_components, assertion_df, request):
+def test_tsne_reproducibility(df_name, n_components, assertion_df, request):
     current_out = t_sne(
-        request.getfixturevalue(df),
+        request.getfixturevalue(df_name),
         n_components=n_components,
         perplexity=4,
         random_state=42,
@@ -165,6 +185,25 @@ def test_tsne_reproducibility(df, n_components, assertion_df, request):
         request.getfixturevalue(assertion_df),
         check_dtype=False,
     )
+
+
+@pytest.mark.parametrize(
+    "df_name,n_components",
+    [("dimension_reduction_df", 2), ("dimension_reduction_four_proteins_df", 3)],
+)
+def test_tsne_metrics(df_name, n_components, request):
+    for metric in DimensionReductionMetric:
+        df = request.getfixturevalue(df_name)
+        current_out = t_sne(
+            df,
+            n_components=n_components,
+            metric=metric.value,
+            perplexity=4,
+            random_state=42,
+        )
+        check_dimensionality_reduction_output(
+            current_out["embedded_data"], df, n_components
+        )
 
 
 def test_tsne_nan_handling(df_with_nan):
@@ -258,27 +297,21 @@ def test_tsne_scatter_plot_integration(
     "n_components",
     [2, 3],
 )
-def test_umap_reproducibility(dimension_reduction_df, n_components):
-    current_out = umap(
-        dimension_reduction_df,
-        n_components=n_components,
-        n_neighbors=3,
-        random_state=42,
-        transform_seed=42,
-    )
+def test_umap(dimension_reduction_df, n_components):
     # Unfortunately, UMAP results vary slightly between runs even with the same random seed, which makes exact
     # comparison impossible. Therefore, we only check the shape and types here.
-    assert (
-        current_out["embedded_data"].shape
-        == (dimension_reduction_df["Sample"].nunique(), n_components + 1)
-        and current_out["embedded_data"]["Sample"].sort_values().tolist()
-        == sorted(dimension_reduction_df["Sample"].unique())
-        and pd.api.types.is_numeric_dtype(current_out["embedded_data"]["Component1"])
-        and pd.api.types.is_numeric_dtype(current_out["embedded_data"]["Component2"])
-        and not current_out["embedded_data"][["Component1", "Component2"]]
-        .isnull()
-        .values.any()
-    )
+    for metric in DimensionReductionMetric:
+        current_out = umap(
+            dimension_reduction_df,
+            n_components=n_components,
+            metric=metric.value,
+            n_neighbors=3,
+            random_state=42,
+            transform_seed=42,
+        )
+        check_dimensionality_reduction_output(
+            current_out["embedded_data"], dimension_reduction_df, n_components
+        )
 
 
 def test_umap_nan_handling(df_with_nan):
