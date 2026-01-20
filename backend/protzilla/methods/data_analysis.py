@@ -115,14 +115,14 @@ class ClusteringCriterion(Enum):
 
 
 class ClusteringScoring(Enum):
-    adjusted_rand_score = "Adjusted Rand Score"
-    completeness_score = "Completeness Score"
-    fowlkes_mallows_score = "Fowlkes Mallows Score"
-    homogeneity_score = "Homogeneity Score"
-    mutual_info_score = "Mutual Info Score"
-    normalized_mutual_info_score = "Normalized Mutual Info Score"
-    rand_score = "Rand Score"
-    v_measure_score = "V Measure Score"
+    adjusted_rand_score = "adjusted_rand_score"
+    completeness_score = "completeness_score"
+    fowlkes_mallows_score = "fowlkes_mallows_score"
+    homogeneity_score = "homogeneity_score"
+    mutual_info_score = "mutual_info_score"
+    normalized_mutual_info_score = "normalized_mutual_info_score"
+    rand_score = "rand_score"
+    v_measure_score = "v_measure_score"
 
 
 class InitCentroidStrategy(Enum):
@@ -777,7 +777,10 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
         return Form(
             label="Kruskal-Wallis Test",
             input_fields=[
-                DropdownField(name="ptm_df", label="Step to use ptm data from"),
+                DropdownField(
+                    name="ptm_df",
+                    label="Step to use ptm data from. ('PTMs per Sample' step needed for preproceesing)",
+                ),
                 DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
@@ -1348,9 +1351,24 @@ class ClusteringKMeans(DataAnalysisStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1442,9 +1460,24 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1522,9 +1555,24 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1668,7 +1716,7 @@ class ClassificationRandomForest(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1811,7 +1859,7 @@ class ClassificationSVM(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -2268,7 +2316,8 @@ class PTMsPerSample(DataAnalysisStep):
             input_fields=[
                 DropdownField(
                     name="peptide_df",
-                    label="Peptide dataframe containing the peptides of a single protein",
+                    label="Peptide dataframe containing the peptides of a single protein including their modifications "
+                    "(e.g. from evidence.txt)",
                 )
             ],
         )
