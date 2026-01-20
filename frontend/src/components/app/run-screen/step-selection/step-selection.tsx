@@ -210,8 +210,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - Render - - -
   return (
     <div style={{ display: "flex", flexDirection: "column", margin: "0 5px" }}>
-      {ModalTrigger ? ModalTrigger(handleOpenModal) : 
-      isSmallButton ? (
+      {ModalTrigger ? (
+        ModalTrigger(handleOpenModal)
+      ) : isSmallButton ? (
         <IconButton
           icon={"add"}
           onPointerDown={isModalOpen ? undefined : handleOpenModal}
