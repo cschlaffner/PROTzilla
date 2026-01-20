@@ -48,8 +48,8 @@ def t_sne(
     :type method: str
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the t-SNE embedded data
-        with two columns, "Component1" and "Component2", and shares the same index as
-        the input_df.
+        with two columns, "Component1" and "Component2" and assigns these to the
+        corresponding Sample.
     :rtype: dict
     """
     intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
@@ -67,8 +67,8 @@ def t_sne(
         embedded_data = pd.DataFrame(
             embedded_data_model,
             index=intensity_df_wide.index,
-            columns=["Component1", "Component2"],
-        )
+            columns=["Component1", "Component2"],  # TODO: what if there are more?
+        ).reset_index()
         return dict(embedded_data=embedded_data)
 
     except ValueError as e:
@@ -143,8 +143,8 @@ def umap(
     :type transform_seed: int
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the UMAP embedded data
-        with two columns, "Component1" and "Component2", and shares the same index as
-        the input_df.
+        with two columns, "Component1" and "Component2", and assigns these to the
+        corresponding Sample.
     :rtype: dict
     """
 
@@ -166,7 +166,7 @@ def umap(
             embedded_data_model,
             index=intensity_df_wide.index,
             columns=["Component1", "Component2"],
-        )
+        ).reset_index()
         return dict(embedded_data=embedded_data)
 
     except ValueError as e:

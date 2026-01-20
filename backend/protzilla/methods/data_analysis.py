@@ -60,6 +60,7 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -1047,36 +1048,53 @@ class PlotScatterPlot(DataAnalysisStep):
                 ),
                 # TODO: handle isRequired
                 DropdownField(
-                    name="color_df",
+                    name="metadata_df",
                     label="Choose dataframe to be used for coloring",
+                ),
+                DropdownField(
+                    name="metadata_column",
+                    label="Choose the column of the metadata dataframe that should be used for coloring",
                 ),
             ],
         )
 
     def modify_form(self, form, run):
         input_df_field = form["input_df"]
-        color_field = form["color_df"]
+        metadata_field = form["metadata_df"]
 
         input_df_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
                     DimensionReductionUMAP, "embedded_data"
                 )
+                + run.steps.get_instance_identifiers(
+                    DimensionReductionTSNE, "embedded_data"
+                )
             )
         )
 
-        color_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(Step, "color_df"), required=False
+        metadata_field.set_options(
+            form_helper.get_choices(
+                run,
+                output_key="metadata_df",
+                required=False,
             )
         )
+        if form.values["metadata_df"] is not None:
+            form["metadata_column"].set_options(
+                form_helper.get_choices_for_metadata_non_sample_columns(
+                    run, instance_identifier=form.values["metadata_df"]
+                )
+            )
 
     # TODO: input
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.get_step_output(
             Step, "embedded_data", inputs["input_df"]
         )
-        inputs["color_df"] = steps.get_step_output(Step, "color_df", inputs["color_df"])
+        inputs["metadata_df"] = steps.get_step_output(
+            Step, "metadata_df", inputs["metadata_df"]
+        )
         return inputs
 
 
