@@ -275,6 +275,7 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
+              styleProps={{ height: "calc(100% - 3em)" }}
               components={[
                 { name: "Plots", value: plotComponent },
                 { name: "Tables", value: tableComponent },
