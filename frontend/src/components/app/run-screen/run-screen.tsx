@@ -263,10 +263,19 @@ export const RunScreen: React.FC = () => {
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
   const selected_editor_mode = "Node";
+  // const selected_editor_mode = runData.editor_mode;
 
-  // TODO: Replace this with API call
   const select_editor_mode = (mode) => {
     console.log("Changed to", mode.name);
+    // TODO: This API call has not been implemented yet
+    // void callApiWithParameters("set_editor_mode/", {
+    //   run_name: runName,
+    //   mode: mode.name
+    // }).then(() => {
+    //   void getRunData();
+    //   void getStepPlots();
+    //   void getStepTable();
+    // });
   }
 
   return (
