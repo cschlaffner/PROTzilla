@@ -77,7 +77,7 @@ class Runner:
 
     def compute_workflow(self):
         logging.info("------ computing workflow\n")
-        for step in self.run.steps.all_steps:
+        for i, step in enumerate(self.run.steps.all_steps):
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == "importing":
                 self._insert_commandline_inputs(step)
@@ -92,13 +92,13 @@ class Runner:
             if step.calculation_status != "complete":
                 break
 
-            self.run.step_next()
+            # Make sure to not call step_next() on the last step
+            if i + 1 < len(self.run.steps.all_steps):
+                self.run.step_next()
         logging.info("\n Saving run...\n")
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
-    # TODO: Ideally the example dataset could also be used when using the commandline to compute stuff (if this
-    #   feature is even working right now)
     def _insert_commandline_inputs(self, step: Step):
         if step.operation == "Protein Data Import":
             step.form["file_path"].value = self.ms_data_path
