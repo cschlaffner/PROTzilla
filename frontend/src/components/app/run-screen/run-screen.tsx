@@ -256,9 +256,9 @@ export const RunScreen: React.FC = () => {
   );
 
   const editor_modes = [
-              { name: "List", value: listEditorComponent },
-              { name: "Node", value: nodeEditorComponent },
-            ];
+    { name: "List", value: listEditorComponent },
+    { name: "Node", value: nodeEditorComponent },
+  ];
 
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
@@ -276,7 +276,7 @@ export const RunScreen: React.FC = () => {
     //   void getStepPlots();
     //   void getStepTable();
     // });
-  }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
