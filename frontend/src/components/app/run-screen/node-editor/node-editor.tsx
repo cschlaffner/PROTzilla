@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Panel } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { styled } from "styled-components";
-
-import { BackendForm, FlexRow, SecondaryButton, RedButton, Icon } from "@protzilla/core";
-import { color, spacing } from "@protzilla/theme";
 import { useNotification } from "@protzilla/app";
+import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
+import { color, spacing } from "@protzilla/theme";
 import { callApiWithParameters, translateGlobalToSectionIndex } from "@protzilla/utils";
+import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
+import { useCallback, useEffect, useState } from "react";
+import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
 import StepNode from "./StepNode.tsx";
@@ -70,35 +69,33 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const onNodesChange = useCallback((changes) => {
     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
   }, []);
-  const onEdgesChange = useCallback(
-    (changes) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [],
-  );
+  const onEdgesChange = useCallback((changes) => {
+    setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+  }, []);
 
   const getEdgesFromRunData = () => {
     // TODO: This needs to be implemented when the API provides sufficient data.
     return [];
   };
 
-  // TODO: Implement this in API
-  const connectSteps = async (params) => {
-    return; // TODO
-    await callApiWithParameters("connect_steps/", {
-      run_name: runName,
-      connection: params,
-    }).then((response) => {
-      notify({
-        type: response.success ? "success" : "error",
-        title: response.message,
-      });
-    });
-    navigateOrRefreshSteps();
-  };
-
-  const onConnect = useCallback((params) => {
-    connectSteps(params);
-    setEdges(getEdgesFromRunData());
-  }, []);
+  const onConnect = useCallback(
+    (params) => {
+      console.log(params);
+      // TODO: Implement this in API
+      // await callApiWithParameters("connect_steps/", {
+      //   run_name: runName,
+      //   connection: params,
+      // }).then((response) => {
+      //   notify({
+      //     type: response.success ? "success" : "error",
+      //     title: response.message,
+      //   });
+      // });
+      navigateOrRefreshSteps();
+      setEdges(getEdgesFromRunData());
+    },
+    [edges, navigateOrRefreshSteps],
+  );
 
   // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState({
@@ -140,20 +137,20 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   useEffect(() => {
     console.log("Run Data", runData);
-    let new_nodes = [];
-    let y_offset = 0;
-    let flat_step_index = 0;
+    const newNodes = [];
+    let yOffset = 0;
+    let flatStepIndex = 0;
 
     sections.forEach((section) => {
       section.steps.forEach((step, index) => {
         const isSelected =
-          runData.current_section === section.id && runData.current_step_index === flat_step_index;
+          runData.current_section === section.id && runData.current_step_index === flatStepIndex;
 
         // Retain positions on redraw
-        const old_matching_node = nodes.find((node) => node.id == step.id);
-        const position = old_matching_node ? old_matching_node.position : { x: 0, y: y_offset };
+        const oldMatchingNode = nodes.find((node) => node.id == step.id);
+        const position = oldMatchingNode ? oldMatchingNode.position : { x: 0, y: yOffset };
 
-        new_nodes.push({
+        newNodes.push({
           id: step.id,
           type: "step",
           position: position,
@@ -167,14 +164,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           },
         });
 
-        flat_step_index += 1;
-        y_offset += 60;
+        flatStepIndex += 1;
+        yOffset += 60;
       });
     });
-    setNodes(new_nodes);
-  }, [runData]);
+    setNodes(newNodes);
+  }, [runData]); // TODO: eslint does not like this, but idk how to handle this properly
 
-  const step_selection_props = {
+  const stepSelectionProps = {
     runName: runName,
     index: 0,
     onAddStep: onAddStep,
@@ -183,9 +180,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   return (
     <StyledRow>
       <div style={{ width: "25vw", height: "100vh" }}>
-      {/* Buttons for adding steps. TODO: Put these side-by-side*/}
+        {/* Buttons for adding steps. TODO: Put these side-by-side*/}
         {sections.map((section) => (
           <StepSelection
+            key={`add-button-for-section-${section.id as string}`}
             section={section.id}
             ModalTrigger={(openModal) => (
               <>
@@ -195,7 +193,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
                 </SecondaryButton>
               </>
             )}
-            {...step_selection_props}
+            {...stepSelectionProps}
           />
         ))}
 
@@ -213,10 +211,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           </Panel>
 
           <Panel position="top-right">
-            {hoveredHandleMeta["isActive"] && (
+            {hoveredHandleMeta.isActive && (
               <div style={{ textAlign: "right" }}>
-                <p>{hoveredHandleMeta["direction"]}</p>
-                <p>{hoveredHandleMeta["type"]}</p>
+                <p>{hoveredHandleMeta.direction}</p>
+                <p>{hoveredHandleMeta.type}</p>
               </div>
             )}
           </Panel>
@@ -240,15 +238,18 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           current_step_index={runData.current_step_index}
           isLastStep={
             runData.current_step_index >=
-            sections.map((section) => section.steps.length).reduce((acc, val) => acc + val, 0) - 1
+            sections
+              .map((section) => section.steps.length)
+              .reduce((acc: number, val: number) => acc + val, 0) -
+              1
           }
-          onNext={() =>
-            console.log("TODO: A vulture ate this callback! Come up with something better.")
-          }
+          onNext={() => {
+            console.log("TODO: A vulture ate this callback! Come up with something better.");
+          }}
           onSubmit={onFormSubmit}
-          onChange={() =>
-            console.log("TODO: A vulture ate this callback! Come up with something better.")
-          }
+          onChange={() => {
+            console.log("TODO: A vulture ate this callback! Come up with something better.");
+          }}
         />
       </StyledFormColumn>
     </StyledRow>

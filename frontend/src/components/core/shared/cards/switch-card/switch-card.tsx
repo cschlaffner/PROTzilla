@@ -33,7 +33,7 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
     selection
       ? setSwitchState(components.find((c) => c.name == selection))
       : setSwitchState(components[0]);
-  }, [components]);
+  }, [components, selection]);
 
   const setSwitchStateWrapper = (newSelection) => {
     if (callback) callback(newSelection);

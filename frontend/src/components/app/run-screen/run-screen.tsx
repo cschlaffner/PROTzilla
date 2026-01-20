@@ -1,4 +1,4 @@
-import { ListEditor, NodeEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
+import { ListEditor, Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -255,17 +255,17 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  const editor_modes = [
+  const editorModes = [
     { name: "List", value: listEditorComponent },
     { name: "Node", value: nodeEditorComponent },
   ];
 
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
-  const selected_editor_mode = "Node";
-  // const selected_editor_mode = runData.editor_mode;
+  const selectedEditorMode = "Node";
+  // const selectedEditorMode = runData.editor_mode;
 
-  const select_editor_mode = (mode) => {
+  const selectEditorMode = (mode) => {
     console.log("Changed to", mode.name);
     // TODO: This API call has not been implemented yet
     // void callApiWithParameters("set_editor_mode/", {
@@ -292,9 +292,9 @@ export const RunScreen: React.FC = () => {
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            components={editor_modes}
-            selection={selected_editor_mode}
-            callback={select_editor_mode}
+            components={editorModes}
+            selection={selectedEditorMode}
+            callback={selectEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",

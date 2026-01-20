@@ -9,5 +9,6 @@ export interface StepSelectionProps extends Omit<React.HTMLAttributes<HTMLElemen
   handlePosition: { top: number; left: number }; // Position of the handle
   onAddStep: () => void; // Function to add a step to the run
   setShowHandle: React.Dispatch<React.SetStateAction<boolean>>;
-  ModalTrigger?: (openModal: () => void) => React.ReactNode; // optional render prop for custom button
+  // optional render prop for custom button
+  ModalTrigger?: (openModal: () => void) => React.ReactNode;
 }

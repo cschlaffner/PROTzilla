@@ -31,7 +31,7 @@ services:
     volumes:
       - "./frontend/src:/prot/zilla/frontend/src:Z" # :Z is required for SELinux and should be ignored everywhere else
       - "node_modules:/prot/zilla/frontend/node_modules"
-      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
+      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store:Z"
     networks:
       - "dev-network"
     ports:
