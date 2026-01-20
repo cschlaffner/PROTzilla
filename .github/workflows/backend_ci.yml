@@ -2,11 +2,11 @@ name: Backend CI Pipeline
 
 on:
   push:
-    # paths:
-    #   - backend/**
+    paths:
+      - backend/**
   pull_request:
-    # paths:
-    #   - backend/**
+    paths:
+      - backend/**
 
 permissions:
   actions: read
