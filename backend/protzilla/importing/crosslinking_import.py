@@ -336,7 +336,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
 
     for pid in valid_ids:
         if pid not in results:
-
+            
             response = fallback_single_lookup(pid, "get_gene_name", results)
             data = response.json()
             processed_data = data.get("genes", [])
@@ -350,7 +350,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
                 results[pid] = (True, gene_name, None)
             else:
                 results[pid] = (False, None, "PROTEIN_ID_NOT_FOUND")
-
+            
     return results
 
 
@@ -374,7 +374,7 @@ def get_protein_ids_from_gene_name(gene_names: set):
     # Filter decoy Proteins, because we cannot process them decently 
     valid_gene_names, results = validate_data_before_lookup(
         gene_names,
-        validator_function=lambda name: not name.startswith("DECOY:"),
+        validator_function=lambda name: not name.startswith("decoy:"),
         error_code="IS_DECOY_PROTEIN",
     )
 
@@ -530,12 +530,6 @@ def get_missing_protein_designation(
     return good_df, failed_df
 
 
-def normalize_gene_name_column(df, columns: list[str]):
-    for col in columns:
-        df[col] = df[col].astype("string").str.upper()
-    return df
-
-
 def remove_isoform_from_protein_id(protein_id: str) -> str:
     return protein_id.split("-", 1)[0]
 
@@ -633,8 +627,6 @@ def read_csm_file(file_path: Path) -> pd.DataFrame:
     )
 
     df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
-
-    df = normalize_gene_name_column(df, ["Protein1", "Protein2"])
 
     # In our UniProt lookup we already get all isoforms of the respective gene name.
     # Right now we only store the protein id without any isoform information in our dataframe to keep it consistent.
