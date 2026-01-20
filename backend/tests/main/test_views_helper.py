@@ -13,7 +13,7 @@ def test_get_all_possible_step_names():
         "EvidenceImport",
         "ExampleDatasetImport",
         "FastaImport",
-        "CrossLinkingImport",
+        "CrosslinkingImport",
         "FilterProteinsBySamplesMissing",
         "FilterProteinsBySilacRatios",
         "FilterByProteinsCount",
