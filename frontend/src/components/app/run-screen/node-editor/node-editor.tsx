@@ -1,21 +1,16 @@
-import * as go from "gojs";
-import { ReactDiagram } from "gojs-react";
-
 import { useState, useEffect, useCallback } from "react";
 import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Panel } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import StepNode from "./StepNode.tsx";
-import { BackendForm, FlexRow, SecondaryButton, RedButton } from "@protzilla/core";
 import { styled } from "styled-components";
+
+import { BackendForm, FlexRow, SecondaryButton, RedButton, Icon } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import { useNotification } from "@protzilla/app";
 import { callApiWithParameters, translateGlobalToSectionIndex } from "@protzilla/utils";
+
 import { StepSelection } from "../step-selection";
-import { Icon } from "@protzilla/core";
+import StepNode from "./StepNode.tsx";
 
-const initialNodes = [];
-
-const initialEdges = [{ id: "n1-n1", source: "n1", target: "n1" }];
 const nodeTypes = { step: StepNode };
 
 const StyledRow = styled(FlexRow)`
@@ -23,6 +18,7 @@ const StyledRow = styled(FlexRow)`
   align-items: flex-start;
   height: 100%;
 `;
+
 const StyledDivider = styled.div`
   width: 1px;
   background-color: ${color("secondary")};
@@ -54,8 +50,19 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   navigateOrRefreshSteps,
   runData,
 }) => {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const notify = useNotification();
+
+  const onAddStep = () => {
+    notify({ type: "success", message: "Successfully added step" });
+    navigateOrRefreshSteps();
+  };
+
+  //
+  // ReactFlow initialisation
+  //
+
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
 
   // TODO: When do we want to propagate positions to the backend?
   // This function gets called wayy to frequently to use for that.
@@ -70,11 +77,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const getEdgesFromRunData = () => {
     // TODO: This needs to be implemented when the API provides sufficient data.
-    return initialEdges;
+    return [];
   };
 
   // TODO: Implement this in API
   const connectSteps = async (params) => {
+    return; // TODO
     await callApiWithParameters("connect_steps/", {
       run_name: runName,
       connection: params,
@@ -88,32 +96,21 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   const onConnect = useCallback((params) => {
-    // connectSteps(params);
-    // setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+    connectSteps(params);
     setEdges(getEdgesFromRunData());
   }, []);
 
-  const sections = runData.displayed_steps;
-
-  const currentSection = sections.find(
-    (section) => (section.id as string) === runData.current_section,
-  );
-
-  const currentStepCalculationStatus = currentSection?.steps[runData.current_step_index]?.status;
-  const buttonText =
-    currentStepCalculationStatus === "complete"
-      ? "Next"
-      : runData.current_section === "importing"
-        ? "Import"
-        : "Calculate";
-
+  // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState({
     isActive: false,
     direction: "Input",
     type: "protein_df",
   });
 
-  const notify = useNotification();
+  //
+  // Run data
+  //
+
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
       run_name: runName,
@@ -128,13 +125,26 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     navigateOrRefreshSteps();
   };
 
+  const sections = runData.displayed_steps;
+  const currentSection = sections.find(
+    (section) => (section.id as string) === runData.current_section,
+  );
+
+  const currentStepCalculationStatus = currentSection?.steps[runData.current_step_index]?.status;
+  const buttonText =
+    currentStepCalculationStatus === "complete"
+      ? "Next"
+      : runData.current_section === "importing"
+        ? "Import"
+        : "Calculate";
+
   useEffect(() => {
     console.log("Run Data", runData);
     let new_nodes = [];
     let y_offset = 0;
     let flat_step_index = 0;
 
-    runData.displayed_steps.forEach((section) => {
+    sections.forEach((section) => {
       section.steps.forEach((step, index) => {
         const isSelected =
           runData.current_section === section.id && runData.current_step_index === flat_step_index;
@@ -164,11 +174,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     setNodes(new_nodes);
   }, [runData]);
 
-  const onAddStep = () => {
-    notify({ type: "success", message: "haha yes." });
-    navigateOrRefreshSteps();
-  };
-
   const step_selection_props = {
     runName: runName,
     index: 0,
@@ -178,6 +183,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   return (
     <StyledRow>
       <div style={{ width: "25vw", height: "100vh" }}>
+      {/* Buttons for adding steps. TODO: Put these side-by-side*/}
         {sections.map((section) => (
           <StepSelection
             section={section.id}
@@ -234,10 +240,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           current_step_index={runData.current_step_index}
           isLastStep={
             runData.current_step_index >=
-            runData.displayed_steps
-              .map((section) => section.steps.length)
-              .reduce((acc, val) => acc + val, 0) -
-              1
+            sections.map((section) => section.steps.length).reduce((acc, val) => acc + val, 0) - 1
           }
           onNext={() =>
             console.log("TODO: A vulture ate this callback! Come up with something better.")
