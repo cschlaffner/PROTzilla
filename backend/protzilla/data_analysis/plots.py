@@ -49,15 +49,10 @@ def scatter_plot(
                 "The column selected for annotation is not present in the corresponding metadata dataframe.",
             )
 
-    # TODO: currently not a valid use case as form only accepts output from dimension reduction - talk to Chris
-    # intensity_df_wide = (
-    #     long_to_wide(input_df) if is_long_format(input_df) else input_df.copy()
-    # )
-    intensity_df_wide = input_df.copy()
-
+    intensity_df = input_df.copy()
     if isinstance(metadata_df, pd.DataFrame):
-        intensity_df_wide = pd.merge(
-            intensity_df_wide,
+        intensity_df = pd.merge(
+            intensity_df,
             metadata_df[["Sample", metadata_column]],
             on="Sample",
             how="left",
@@ -65,40 +60,36 @@ def scatter_plot(
     else:
         # Mock a metadata column here so that we can treat dfs with and without metadata the same way
         metadata_column = "mock_metadata_column"
-        intensity_df_wide[metadata_column] = None
-    intensity_df_wide = intensity_df_wide.drop(columns="Sample")
+        intensity_df[metadata_column] = None
+    intensity_df = intensity_df.drop(columns="Sample")
 
     color_col = (
-        metadata_column if intensity_df_wide[metadata_column].notnull().any() else None
+        metadata_column if intensity_df[metadata_column].notnull().any() else None
     )
-    if intensity_df_wide.shape[1] - 1 == 2:
-        x_name, y_name = intensity_df_wide.drop(columns=metadata_column).columns[:2]
+    if intensity_df.shape[1] - 1 == 2:
+        x_name, y_name = intensity_df.drop(columns=metadata_column).columns[:2]
         if not (
-            pd.api.types.is_numeric_dtype(intensity_df_wide[x_name])
-            and pd.api.types.is_numeric_dtype(intensity_df_wide[y_name])
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
         ):
             raise ValueError(
                 "All columns used for the 2D scatter plot must be numeric."
             )
-        fig = px.scatter(intensity_df_wide, x=x_name, y=y_name, color=color_col)
-    elif intensity_df_wide.shape[1] - 1 == 3:
-        x_name, y_name, z_name = intensity_df_wide.drop(
-            columns=metadata_column
-        ).columns[:3]
+        fig = px.scatter(intensity_df, x=x_name, y=y_name, color=color_col)
+    elif intensity_df.shape[1] - 1 == 3:
+        x_name, y_name, z_name = intensity_df.drop(columns=metadata_column).columns[:3]
         if not (
-            pd.api.types.is_numeric_dtype(intensity_df_wide[x_name])
-            and pd.api.types.is_numeric_dtype(intensity_df_wide[y_name])
-            and pd.api.types.is_numeric_dtype(intensity_df_wide[z_name])
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[z_name])
         ):
             raise ValueError(
                 "All columns used for the 3D scatter plot must be numeric."
             )
-        fig = px.scatter_3d(
-            intensity_df_wide, x=x_name, y=y_name, z=z_name, color=color_col
-        )
+        fig = px.scatter_3d(intensity_df, x=x_name, y=y_name, z=z_name, color=color_col)
     else:
         raise ValueError(
-            f"The provided DataFrame has {intensity_df_wide.shape[1] - 1} dimensions, but only 2D or 3D data can "
+            f"The provided DataFrame has {intensity_df.shape[1] - 1} dimensions, but only 2D or 3D data can "
             "be plotted."
         )
     fig.update_layout(plot_bgcolor=colors["plot_bgcolor"])

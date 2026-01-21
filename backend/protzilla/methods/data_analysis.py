@@ -188,9 +188,6 @@ class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
     cosine = "cosine"
-    # TODO: do we actually need this - if not might remove to have consistency between UMAP and t-SNE. Otherwise we
-    #  need a different enum. Also, I think it should be "haversine" instead of "havensine"
-    # havensine = "havensine"
 
 
 class DataAnalysisStep(Step):
@@ -1927,6 +1924,10 @@ class DimensionReductionTSNE(DataAnalysisStep):
         return Form(
             label="t-SNE",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using t-SNE. To "
+                    "visualize the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 DropdownField(
                     name="input_df",
                     label="Dimension reduction of a dataframe using t-SNE",
@@ -1995,6 +1996,10 @@ class DimensionReductionUMAP(DataAnalysisStep):
         return Form(
             label="UMAP",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using UMAP. To "
+                    "visualize the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 DropdownField(
                     name="input_df",
                     label="Dimension reduction of a dataframe using UMAP",

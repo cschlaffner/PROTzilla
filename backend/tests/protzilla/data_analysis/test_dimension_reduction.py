@@ -108,44 +108,6 @@ def metadata_df():
     )
 
 
-@pytest.fixture
-def tsne_assertion_df_2d():
-    assertion_tsne_list = (
-        ["Sample1", -664.979919, 230.476990],
-        ["Sample2", -331.823853, 792.581787],
-        ["Sample3", -945.627319, 948.698303],
-        ["Sample4", 1057.182739, -454.083984],
-        ["Sample5", 506.428101, -61.508503],
-        ["Sample6", 201.733047, -738.819336],
-        ["Sample7", 201.733047, -738.819336],
-    )
-    tsne_assertion_df = pd.DataFrame(
-        data=assertion_tsne_list,
-        columns=["Sample", "Component1", "Component2"],
-    )
-
-    return tsne_assertion_df
-
-
-@pytest.fixture
-def tsne_assertion_df_3d():
-    assertion_tsne_list = (
-        ["Sample1", -185.471146, 40.492714, 61.039135],
-        ["Sample2", -109.450661, -86.972496, -115.099686],
-        ["Sample3", 129.066925, 148.503708, 58.841263],
-        ["Sample4", 111.788994, -110.931160, -13.378016],
-        ["Sample5", -1.360091, -72.723167, 67.371521],
-        ["Sample6", 49.287201, 15.484677, -90.011147],
-        ["Sample7", -32.561390, 66.274124, 57.044739],
-    )
-    tsne_assertion_df = pd.DataFrame(
-        data=assertion_tsne_list,
-        columns=["Sample", "Component1", "Component2", "Component3"],
-    )
-
-    return tsne_assertion_df
-
-
 def check_dimensionality_reduction_output(
     out_df: pd.DataFrame, orig_df: pd.DataFrame, n_components: int
 ):
@@ -163,30 +125,6 @@ def check_dimensionality_reduction_output(
         .isnull()
         .values.any()
     )
-
-
-# TODO: worked on my machine but fails in CI, probably not possible to reproduce reliably across different
-#  environments even when setting random seed
-# @pytest.mark.parametrize(
-#     "df_name,n_components,assertion_df",
-#     [
-#         ("dimension_reduction_df", 2, "tsne_assertion_df_2d"),
-#         ("dimension_reduction_four_proteins_df", 3, "tsne_assertion_df_3d"),
-#     ],
-# )
-# def test_tsne_reproducibility(df_name, n_components, assertion_df, request):
-#     current_out = t_sne(
-#         request.getfixturevalue(df_name),
-#         n_components=n_components,
-#         perplexity=4,
-#         random_state=42,
-#     )
-#
-#     pd.testing.assert_frame_equal(
-#         current_out["embedded_data"],
-#         request.getfixturevalue(assertion_df),
-#         check_dtype=False,
-#     )
 
 
 @pytest.mark.parametrize(
