@@ -395,7 +395,8 @@ class ExampleDatasetImport(ImportingStep):
         "Aasebø, E.; Berven, F.S.; Bartaula-Brevik, S.; Stokowy, T.; Hovland, R.; Vaudel, M.; Døskeland, S.O.; "
         "McCormack, E.; Batth, T.S.; Olsen, J.V.; et al. Proteome and Phosphoproteome Changes Associated with "
         "Prognosis in Acute Myeloid Leukemia. Cancers 2020, 12, 709.\n"
-        "https://doi.org/10.3390/cancers12030709 "
+        "https://doi.org/10.3390/cancers12030709\n\n"
+        "If you run this step for the first time, the data will be downloaded from PRIDE, which may take a few minutes."
     )
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]

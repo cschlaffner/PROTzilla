@@ -1,6 +1,4 @@
-import logging
-from pathlib import Path
-
+import py7zr
 from pridepy import pridepy
 
 from protzilla.constants.intensity_types import IntensityType
@@ -10,54 +8,62 @@ from protzilla.constants.paths import (
     EXAMPLE_DATASET_EVIDENCE_FILE,
     EXAMPLE_DATASET_DIR,
 )
+from protzilla.constants.protzilla_logging import logger
 from protzilla.importing.import_utils import FeatureOrientationType
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.ms_data_import import max_quant_import
 from protzilla.importing.peptide_import import evidence_import
 
 
-# TODO: maybe update dependencies if we need pridepy
-
-
 def example_dataset_import():
-    # TODO: remove - only testing
-    # accession = "PXD020517"
-    # filename = "AD02_BA39-Cohort1_INSOLUBLE_03.wiff"
-    accession = "PXD014997"
-    filename = "SEARCH-IDENTIFICATION_REL-FREEvsRELAPSE_Label-free.7z"
+    ACCESSION = "PXD014997"
+    FILENAME = "SEARCH-IDENTIFICATION_REL-FREEvsRELAPSE_Label-free.7z"
+    archive_file_path = EXAMPLE_DATASET_DIR / FILENAME
     if (
         not EXAMPLE_DATASET_PROTEIN_FILE.exists()
-        or not EXAMPLE_DATASET_METADATA_FILE.exists()
         or not EXAMPLE_DATASET_EVIDENCE_FILE.exists()
-        or not Path(EXAMPLE_DATASET_DIR, filename).exists()
     ):
+        if not archive_file_path.exists():
+            logger.info(
+                f"Downloading file %s from PRIDE project %s", FILENAME, ACCESSION
+            )
+            try:
+                raw_files = pridepy.Files()
+                raw_files.download_file_by_name(
+                    accession=ACCESSION,
+                    file_name=FILENAME,
+                    output_folder=str(EXAMPLE_DATASET_DIR),
+                    skip_if_downloaded_already=True,
+                    protocol="ftp",
+                    username=None,
+                    password=None,
+                    aspera_maximum_bandwidth=None,
+                    checksum_check=False,
+                )
+            except Exception as e:
+                raise RuntimeError(
+                    f"Error downloading file {FILENAME} from PRIDE project {ACCESSION}. "
+                    f"This is likely and issue with PRIDE.\nOriginal error: {e}\n"
+                )
+            logger.info(f"Completed download of file %s", FILENAME)
 
-        # TODO: remove
-        # use normal logger for now
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        required_file_names = [
+            f.name
+            for f in (EXAMPLE_DATASET_EVIDENCE_FILE, EXAMPLE_DATASET_PROTEIN_FILE)
+            if not f.exists()
+        ]
 
-        logger.info(f"Downloading file {filename} from PRIDE project {accession}")
+        with py7zr.SevenZipFile(EXAMPLE_DATASET_DIR / FILENAME, mode="r") as archive:
+            all_files = archive.getnames()
+            selected_files = []
+            for req_filename in required_file_names:
+                for f in all_files:
+                    if req_filename in f:
+                        selected_files.append(f)
+            logger.info("Extracting files %s from archive", selected_files)
+            archive.extract(targets=selected_files, path=EXAMPLE_DATASET_DIR)
 
-        raw_files = pridepy.Files()
-        raw_files.download_file_by_name(
-            accession=accession,
-            file_name=filename,
-            output_folder=str(EXAMPLE_DATASET_DIR),
-            skip_if_downloaded_already=True,
-            protocol="ftp",
-            username=None,
-            password=None,
-            aspera_maximum_bandwidth=None,
-            checksum_check=False,
-        )
-        print("Download completed")  # TODO: remove
-        return
-
-    # import py7zr  # TODO: install
-    #
-    # with py7zr.SevenZipFile('sample.7z', mode='r') as z:
-    #     z.extractall()
+        archive_file_path.unlink()
 
     intensity_name = IntensityType.LFQ_INTENSITY.value
     protein_import_dict = max_quant_import(
@@ -92,12 +98,3 @@ def example_dataset_import():
     }
 
     return combined_dict
-
-
-# TODO: remove
-def main():
-    result = example_dataset_import()
-
-
-if __name__ == "__main__":
-    main()
