@@ -14,6 +14,7 @@ _forward_mapping = [
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
     importing.FastaImport,
+    importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterProteinsBySilacRatios,

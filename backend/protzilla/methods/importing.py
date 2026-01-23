@@ -11,6 +11,9 @@ from backend.protzilla.importing.ms_data_import import (
     max_quant_import,
     ms_fragger_import,
 )
+from backend.protzilla.importing.alphafold_protein_structure_load import (
+    fetch_alphafold_protein_structure,
+)
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
@@ -385,10 +388,13 @@ class FastaImport(ImportingStep):
 class ExampleDatasetImport(ImportingStep):
     display_name = "Example Dataset Import"
     operation = "example_import"
-    # TODO: Add information about the dataset from https://www.mdpi.com/2072-6694/12/3/709
     method_description = (
-        "Import the proteins, peptides, and metadata of an [Example Dataset]. [Additional Info about "
-        "dataset]"
+        "Import the proteins, peptides, and metadata of the PRIDE repository PXD014997, which belongs to the following "
+        "paper:\n\n"
+        "Aasebø, E.; Berven, F.S.; Bartaula-Brevik, S.; Stokowy, T.; Hovland, R.; Vaudel, M.; Døskeland, S.O.; "
+        "McCormack, E.; Batth, T.S.; Olsen, J.V.; et al. Proteome and Phosphoproteome Changes Associated with "
+        "Prognosis in Acute Myeloid Leukemia. Cancers 2020, 12, 709.\n"
+        "https://doi.org/10.3390/cancers12030709 "
     )
 
     output_keys = ["metadata_df", "peptide_df", "protein_df"]
@@ -400,6 +406,40 @@ class ExampleDatasetImport(ImportingStep):
         )
 
     calc_method = staticmethod(example_dataset_import)
+
+
+class AlphaFoldPredictionLoad(ImportingStep):
+    display_name = "AlphaFold DB Prediction Load"
+    operation = "Protein Structure Import"
+    method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
+
+    output_keys = [
+        "metadata_df",
+        "cif_df",
+        "pae_df",
+        "plddt_df",
+        "sequence_df",
+    ]
+
+    plot_method = None
+
+    def create_form(self):
+        return Form(
+            label="AlphaFold DB Prediction Load",
+            input_fields=[
+                TextField(
+                    name="uniprot_id",
+                    label="Protein ID",
+                ),
+                CheckboxField(
+                    name="persist_uploads",
+                    label="Upload should be saved persistently across runs",
+                    value=True,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(fetch_alphafold_protein_structure)
 
 
 class CrosslinkingImport(ImportingStep):
