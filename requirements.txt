@@ -22,7 +22,7 @@ pandas==2.3.3
 pillow==12.0.0
 plotly==6.4.0
 pre-commit==4.4.0
-pridepy==0.0.11
+pridepy==0.0.12
 git+https://git@github.com/hendraet/ptm-visualization.git@main#egg=protein_sequencing
 psutil==7.1.3
 pydeseq2==0.5.3
