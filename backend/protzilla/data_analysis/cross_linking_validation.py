@@ -73,14 +73,14 @@ def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
 ) -> float:
     amino_acid_crosslinker1_is_bound_to = (
         get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=fasta_df.iloc[0]["sequence"],
+            protein_sequence=fasta_df.at[0, "Protein Sequence"],
             peptide_sequence=crosslink.Peptide1,
             crosslinker_position_within_peptide=crosslink.CL_position1,
         )
     )
     amino_acid_crosslinker2_is_bound_to = (
         get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=fasta_df.iloc[0]["sequence"],
+            protein_sequence=fasta_df.at[0, "Protein Sequence"],
             peptide_sequence=crosslink.Peptide2,
             crosslinker_position_within_peptide=crosslink.CL_position2,
         )
@@ -115,7 +115,7 @@ def validate_with_angstrom_deviation(
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
     alphafold_data = fetch_alphafold_protein_structure(
-        uniprot=protein_to_validate, persist_uploads=False
+        uniprot_id=protein_to_validate, persist_uploads=False
     )
     cif_df = alphafold_data["cif_df"]
     fasta_df = alphafold_data["sequence_df"]
