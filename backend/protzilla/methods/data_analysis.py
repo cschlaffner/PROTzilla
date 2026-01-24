@@ -65,7 +65,6 @@ from protzilla.data_analysis.cross_linking_validation import (
     bar_plot_of_valid_crosslinks,
 )
 from backend.protzilla.run import Run
-from backend.protzilla.form_helper import get_crosslinker_names_from_crosslinker_df
 
 
 class TTestType(Enum):
@@ -2472,6 +2471,14 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
 
     output_keys = ["crosslinking_df_result"]
 
+    @staticmethod
+    def _get_crosslinker_names_from_crosslinker_df(steps: StepManager) -> list[str]:
+        df = steps.get_step_output(Step, output_key="crosslinking_df")
+        if df is None or "Crosslinker" not in df.columns:
+            return []
+        crosslinkers = df["Crosslinker"].dropna().unique()
+        return list(crosslinkers)
+
     def create_form(self):
         return Form(
             label="Ångström Deviation",
@@ -2484,7 +2491,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        cross_linker = get_crosslinker_names_from_crosslinker_df(run)
+        cross_linker = self._get_crosslinker_names_from_crosslinker_df(run.steps)
         for cl in cross_linker:
             field_name = f"length_of_{cl}"
             if field_name not in form:
@@ -2504,10 +2511,19 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        crosslinker_to_length_and_deviation = {}
+        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
+            crosslinker_to_length_and_deviation[crosslinker] = [
+                inputs.get(f"length_of_{crosslinker}"),
+                inputs.get(f"accepted_deviation_for_{crosslinker}"),
+            ]
+        inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
+
         inputs["crosslinking_df"] = steps.get_step_output(
             Step,
             "crosslinking_df",
         )
         if inputs.get("crosslinking_df") is None:
             raise ValueError("No cross linking data found.")
+
         return inputs

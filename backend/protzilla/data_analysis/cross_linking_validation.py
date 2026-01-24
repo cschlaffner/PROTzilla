@@ -94,7 +94,9 @@ def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
 
 
 def validate_with_angstrom_deviation(
-    crosslinking_df: pd.DataFrame, protein_to_validate: str, **kwargs
+    crosslinking_df: pd.DataFrame,
+    protein_to_validate: str,
+    crosslinker_information: dict[str, list[float]],
 ) -> tuple[int, int]:
     """
     Validates cross-links by comparing the cross-linker
@@ -104,13 +106,12 @@ def validate_with_angstrom_deviation(
 
     :param crosslinking_df: DataFrame containing cross-linking data.
     :param protein_to_validate: UniProt ID of the protein to validate.
-    :param kwargs: Dynamically generated keyword arguments containing:
-                   - length_of_<Crosslinker>: float, the length of the crosslinker in Ångström
-                   - accepted_deviation_for_<Crosslinker>: float, accepted deviation in Ångström
-                     for the respective crosslinker
+    :param crosslinker_information: Contains for each Crosslinker:
+                   - length_of_<Crosslinker>: float
+                   - accepted_deviation_for_<Crosslinker>: float
     :return: Tuple (valid_cross_links, invalid_cross_links), counts of cross-links that
              pass or fail the distance validation.
-    :raises KeyError: If a required crosslinker field is missing in kwargs.
+    :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
     alphafold_data = fetch_alphafold_protein_structure(
@@ -134,10 +135,8 @@ def validate_with_angstrom_deviation(
         )
 
         try:
-            crosslinker_length = kwargs[f"length_of_{crosslink.Crosslinker}"]
-            accepted_deviation = kwargs[
-                f"accepted_deviation_for_{crosslink.Crosslinker}"
-            ]
+            crosslinker_length = crosslinker_information[crosslink.Crosslinker][0]
+            accepted_deviation = crosslinker_information[crosslink.Crosslinker][1]
         except KeyError as e:
             missing_key = e.args[0]
             raise KeyError(
@@ -155,7 +154,9 @@ def validate_with_angstrom_deviation(
 
 
 def bar_plot_of_valid_crosslinks(
-    crosslinking_df: pd.DataFrame, protein_to_validate: str, **kwargs
+    crosslinking_df: pd.DataFrame,
+    protein_to_validate: str,
+    crosslinker_information: dict[str, list[float]],
 ) -> list[Figure]:
     """
     Creates a bar plot summarizing the number of valid and invalid cross-links
@@ -164,17 +165,15 @@ def bar_plot_of_valid_crosslinks(
 
     :param crosslinking_df: DataFrame containing cross-linking data.
     :param protein_to_validate: UniProt ID of the protein to validate.
-    :param kwargs: Dynamically generated keyword arguments containing crosslinker
-                   lengths and accepted deviations, passed to
-                   validate_with_angstrom_deviation:
+    :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - accepted_deviation_for_<Crosslinker>: float
     :return: List containing a single bar plot object representing counts of
              valid and invalid cross-links.
-    :raises KeyError: If a required crosslinker field is missing in kwargs.
+    :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     """
     valid_crosslinks, invalid_crosslinks = validate_with_angstrom_deviation(
-        crosslinking_df, protein_to_validate, **kwargs
+        crosslinking_df, protein_to_validate, crosslinker_information
     )
     return [
         create_bar_plot(
