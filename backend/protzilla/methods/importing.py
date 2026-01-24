@@ -18,7 +18,7 @@ from backend.protzilla.importing.peptide_import import peptide_import, evidence_
 from backend.protzilla.steps import Step, StepManager
 from protzilla.importing.example_dataset_import import example_dataset_import
 from protzilla.importing.fasta_import import fasta_import
-from protzilla.importing.cross_linking_import import cross_linking_import
+from protzilla.importing.crosslinking_import import crosslinking_import
 from protzilla.importing.import_utils import (
     AggregationMethods,
     FeatureOrientationType,
@@ -428,7 +428,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
             label="AlphaFold DB Prediction Load",
             input_fields=[
                 TextField(
-                    name="uniprot",
+                    name="uniprot_id",
                     label="Protein ID",
                 ),
                 CheckboxField(
@@ -442,23 +442,23 @@ class AlphaFoldPredictionLoad(ImportingStep):
     calc_method = staticmethod(fetch_alphafold_protein_structure)
 
 
-class CrossLinkingImport(ImportingStep):
-    display_name = "Cross Linking Data Import"
-    operation = "Cross Linking Data Import"
-    method_description = "Import a file containing cross linking data"
+class CrosslinkingImport(ImportingStep):
+    display_name = "Cross-Linking Data Import"
+    operation = "Cross-Linking Data Import"
+    method_description = "Import a file containing cross-linking data"
 
     output_keys = ["crosslinking_df"]
 
     def create_form(self):
         return Form(
-            label="Cross Linking Data Import",
+            label="Cross-Linking Data Import",
             input_fields=[
                 FileInput(
                     name="file_path",
-                    label="Cross Linking Data file (.xlsx or .csv)",
+                    label="Cross-Linking Data file (.xlsx or .csv)",
                     value=None,
                 ),
             ],
         )
 
-    calc_method = staticmethod(cross_linking_import)
+    calc_method = staticmethod(crosslinking_import)

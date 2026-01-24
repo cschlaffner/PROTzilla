@@ -38,7 +38,7 @@ rename_columns_proteomediscoverer_xlinkx_format = {
     "Q-value": "Q_value",
 }
 
-columns_in_cross_linking_df = [
+columns_in_crosslinking_df = [
     "Protein1",
     "Protein2",
     "Protein_id1",

@@ -53,7 +53,6 @@ dataframes = [
     "metadata_df",
     "peptide_df",
     "modification_df",
-    "crosslinking_df",
 ]
 
 

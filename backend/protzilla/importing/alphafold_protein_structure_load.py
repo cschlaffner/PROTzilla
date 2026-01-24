@@ -12,33 +12,8 @@ import requests
 
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.protzilla_logging import logger
-
-
-def _download_file(session: requests.Session, url: str, dest: Path) -> Path | None:
-    """
-    Download a file from a URL and save it to the specified destination path.
-
-    :param session: The requests session to use for the download
-    :param url: The URL of the file to download
-    :param dest: The destination path where the file should be saved
-    :return: The destination path if successful, None otherwise
-    """
-    try:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        with session.get(url, stream=True, timeout=60) as r:
-            r.raise_for_status()
-            with open(dest, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-        logger.info("Downloaded %s -> %s", url, dest)
-        return dest
-    except requests.RequestException:
-        logger.exception("Failed to download %s", url)
-        return None
-    except OSError:
-        logger.exception("Failed to write file %s", dest)
-        return None
+from backend.protzilla.importing.fasta_import import fasta_import
+from backend.protzilla.networking import download_file_from_url
 
 
 def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str:
@@ -51,58 +26,15 @@ def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str
     :return: The sequence in FASTA format
     :raises ValueError: If the sequence contains invalid characters or whitespace
     """
-    VALID_AA = set("ACDEFGHIKLMNPQRSTVWYBXZJUO*-")
+    VALID_AMINO_ACIDS = set("ACDEFGHIKLMNPQRSTVWYBXZJUO*-")
     if not seq or any(c.isspace() for c in seq):
         raise ValueError("Sequence must be a single, whitespace-free string.")
     seq = seq.upper()
-    bad = set(seq) - VALID_AA
+    bad = set(seq) - VALID_AMINO_ACIDS
     if bad:
         raise ValueError(f"Invalid characters in sequence: {''.join(sorted(bad))}")
-    return ">" + header + "\n" + "\n".join(wrap(seq, width)) + "\n"
-
-
-def fasta_to_dataframe(fasta_path: str) -> pd.DataFrame:
-    """
-    Parse a FASTA file and convert it to a DataFrame.
-
-    :param fasta_path: The path to the FASTA file
-    :return: A DataFrame with columns 'id', 'sequence', and 'length'
-    """
-    records = []
-    seq_id = None
-    seq = []
-
-    with open(fasta_path, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith(">"):
-                if seq_id is not None:
-                    sequence = "".join(seq)
-                    records.append(
-                        {
-                            "id": seq_id,
-                            "sequence": sequence,
-                            "length": len(sequence),
-                        }
-                    )
-                seq_id = line[1:].split()[0]
-                seq = []
-            else:
-                seq.append(line)
-
-        if seq_id is not None:
-            sequence = "".join(seq)
-            records.append(
-                {
-                    "id": seq_id,
-                    "sequence": sequence,
-                    "length": len(sequence),
-                }
-            )
-
-    return pd.DataFrame(records)
+    joined = "\n".join(wrap(seq, width))
+    return f">alpha|{header}\n{joined}\n"
 
 
 def read_alphafold_mmcif(path: str) -> pd.DataFrame:
@@ -151,20 +83,14 @@ def read_alphafold_mmcif(path: str) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def _handle_alphafold_files(
-    session: requests.Session,
+def handle_alphafold_files(
     files_urls: dict[str, Any],
     uniprot: str,
     seq: str,
     metadata_df: pd.DataFrame,
     acc: str,
-    persist_upload: bool = False,
-) -> tuple[
-    pd.DataFrame | None,
-    pd.DataFrame | None,
-    pd.DataFrame | None,
-    pd.DataFrame | None,
-]:
+    persist_uploads: bool = False,
+) -> dict[str, pd.DataFrame | None]:
     """
     Download AlphaFold structure files and convert them to DataFrames.
 
@@ -172,14 +98,13 @@ def _handle_alphafold_files(
     The function downloads CIF, PAE, and pLDDT files, converts them to DataFrames, and optionally
     saves metadata to a CSV file.
 
-    :param session: The requests session to use for downloading files
     :param files_urls: Dictionary containing URLs for CIF, PAE, and pLDDT files
     :param uniprot: The UniProt ID of the protein
     :param seq: The protein sequence
     :param metadata_df: DataFrame containing AlphaFold metadata
     :param acc: The accession number (used for directory naming)
-    :param persist_upload: If True, files are saved persistently; if False, only loaded into memory
-    :return: Tuple of (cif_df, pae_df, plddt_df, sequence_df) or None values for failed loads
+    :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
+    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data or None values for failed loads
     """
     cif_df = None
     pae_df = None
@@ -187,20 +112,20 @@ def _handle_alphafold_files(
     sequence_df = None
 
     meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
-    target_dir = meta_dir / (acc or uniprot)
+    target_dir = meta_dir / uniprot
     downloaded: dict[str, str] = {}
 
     temp_dir = None
-    work_dir = target_dir
 
-    if persist_upload:
+    if persist_uploads:
         target_dir.mkdir(parents=True, exist_ok=True)
+        work_dir = target_dir
     else:
         temp_dir = Path(tempfile.mkdtemp())
         work_dir = temp_dir
 
     try:
-        if persist_upload and metadata_df is not None:
+        if persist_uploads and metadata_df is not None:
             meta_dir.mkdir(parents=True, exist_ok=True)
             metadata_csv = meta_dir / "alphafold_metadata.csv"
             try:
@@ -223,19 +148,12 @@ def _handle_alphafold_files(
             if isinstance(urlval, str) and urlval:
                 fname = urlval.split("?")[0].rstrip("/").split("/")[-1]
                 dest = work_dir / fname
-                saved = _download_file(session, urlval, dest)
+                saved = download_file_from_url(urlval, dest)
                 if saved:
                     downloaded[key] = str(saved)
                     try:
                         if key == "cifUrl":
-                            try:
-                                cif_df = read_alphafold_mmcif(str(saved))
-                            except Exception:
-                                logger.exception(
-                                    "Failed to load CIF into dataframe. Path=%s",
-                                    str(saved),
-                                )
-                                raise
+                            cif_df = read_alphafold_mmcif(saved)
                         elif key == "paeDocUrl":
                             pae_df = pd.read_json(saved)
                         elif key == "plddtDocUrl":
@@ -250,7 +168,8 @@ def _handle_alphafold_files(
             with open(fasta_dest, "w") as f:
                 f.write(sequence)
             logger.info("Wrote FASTA sequence to %s", fasta_dest)
-            sequence_df = fasta_to_dataframe(str(fasta_dest))
+            fasta_dict = fasta_import(str(fasta_dest))
+            sequence_df = fasta_dict["fasta_df"]
         except OSError:
             logger.exception("Failed to write FASTA file %s", fasta_dest)
         except Exception:
@@ -260,11 +179,16 @@ def _handle_alphafold_files(
         if temp_dir is not None:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    return cif_df, pae_df, plddt_df, sequence_df
+    return {
+        "cif_df": cif_df,
+        "pae_df": pae_df,
+        "plddt_df": plddt_df,
+        "sequence_df": sequence_df,
+    }
 
 
 def fetch_alphafold_protein_structure(
-    uniprot: str, persist_uploads: bool
+    uniprot_id: str, persist_uploads: bool
 ) -> dict[str, Any]:
     """
     Fetch AlphaFold protein structure data from the AlphaFold Database API.
@@ -272,29 +196,31 @@ def fetch_alphafold_protein_structure(
     Retrieves metadata and structure files (CIF, PAE, pLDDT) from the AlphaFold Database
     for the given UniProt ID. Optionally persists the downloaded files to disk.
 
-    :param uniprot: The UniProt ID of the protein
+    :param uniprot_id: The UniProt ID of the protein
     :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
     :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
     :raises RuntimeError: If the API request fails or returns invalid data
     :raises ValueError: If no predictions are found for the given UniProt ID
     """
-    url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot}"
+    url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot_id}"
     with requests.Session() as session:
         try:
             resp = session.get(url, timeout=30)
             resp.raise_for_status()
             records = resp.json()
         except requests.RequestException as e:
-            raise RuntimeError(f"AlphaFold request failed for {uniprot}: {e}") from e
+            raise RuntimeError(f"AlphaFold request failed for {uniprot_id}: {e}") from e
         except ValueError as e:
-            raise RuntimeError(f"AlphaFold returned non-JSON for {uniprot}: {e}") from e
+            raise RuntimeError(
+                f"AlphaFold returned non-JSON for {uniprot_id}: {e}"
+            ) from e
 
         if not isinstance(records, list) or not records:
-            raise ValueError(f"No AlphaFold DB predictions for {uniprot}")
+            raise ValueError(f"No AlphaFold DB predictions for {uniprot_id}")
 
         r = records[0]
         if not isinstance(r, dict):
-            raise RuntimeError(f"Unexpected AlphaFold payload for {uniprot}")
+            raise RuntimeError(f"Unexpected AlphaFold payload for {uniprot_id}")
 
         data: dict[str, Any] = {
             "entryID": r.get("uniprotAccession"),
@@ -315,20 +241,19 @@ def fetch_alphafold_protein_structure(
         metadata_df = pd.DataFrame([data])
         acc = data.get("uniprotAccession")
 
-        cif_df, pae_df, plddt_df, sequence_df = _handle_alphafold_files(
-            session=session,
+        alpha_dfs = handle_alphafold_files(
             files_urls=files_urls,
-            uniprot=uniprot,
+            uniprot=uniprot_id,
             seq=seq_tmp,
             metadata_df=metadata_df,
             acc=acc,
-            persist_upload=persist_uploads,
+            persist_uploads=persist_uploads,
         )
 
         return {
             "metadata_df": metadata_df,
-            "cif_df": cif_df,
-            "pae_df": pae_df,
-            "plddt_df": plddt_df,
-            "sequence_df": sequence_df,
+            "cif_df": alpha_dfs["cif_df"],
+            "pae_df": alpha_dfs["pae_df"],
+            "plddt_df": alpha_dfs["plddt_df"],
+            "sequence_df": alpha_dfs["sequence_df"],
         }
