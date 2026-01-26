@@ -2509,6 +2509,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
                 form.add_field(allowed_length_deviation_field)
 
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
+    calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         crosslinker_to_length_and_deviation = {}

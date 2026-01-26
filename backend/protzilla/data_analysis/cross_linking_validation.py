@@ -97,7 +97,7 @@ def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     protein_to_validate: str,
     crosslinker_information: dict[str, list[float]],
-) -> tuple[int, int]:
+) -> dict:
     """
     Validates cross-links by comparing the cross-linker
     lengths with the distances between the linked amino acids in the AlphaFold
@@ -119,38 +119,33 @@ def validate_with_angstrom_deviation(
     )
     cif_df = alphafold_data["cif_df"]
     fasta_df = alphafold_data["sequence_df"]
-    valid_cross_links = 0
-    invalid_cross_links = 0
-    for crosslink in crosslinking_df.itertuples(index=False):
-        if (
-            crosslink.Protein_id1 != protein_to_validate
-            or crosslink.Protein_id2 != protein_to_validate
-        ):
-            continue
+    df = crosslinking_df.copy()  # TODO: really necessary?
 
-        distance_in_alphafold = (
-            get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
-                fasta_df, cif_df, crosslink
-            )
+    mask = (df.Protein_id1 == protein_to_validate) & (
+        df.Protein_id2 == protein_to_validate
+    )
+    relevant_crosslinks_df = df[mask]
+
+    def check_crosslink(crosslink):
+        distance = get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
+            fasta_df, cif_df, crosslink
         )
-
         try:
-            crosslinker_length = crosslinker_information[crosslink.Crosslinker][0]
-            accepted_deviation = crosslinker_information[crosslink.Crosslinker][1]
+            crosslinker_length, accepted_deviation = crosslinker_information[
+                crosslink.Crosslinker
+            ]
         except KeyError as e:
             missing_key = e.args[0]
             raise KeyError(
-                f"Missing required field '{missing_key}' for crosslinker '{crosslink.Crosslinker}'. "
-                "Please check that your form includes the correct fields."
+                f"Missing required field '{missing_key}' for crosslinker '{crosslink.Crosslinker}'."
             )
-        upper_limit_on_allowed_distance = crosslinker_length + accepted_deviation
+        return distance <= (crosslinker_length + accepted_deviation)
 
-        if distance_in_alphafold <= upper_limit_on_allowed_distance:
-            valid_cross_links += 1
-        else:
-            invalid_cross_links += 1
+    df.loc[mask, "valid_crosslink"] = relevant_crosslinks_df.apply(
+        check_crosslink, axis=1
+    )
 
-    return valid_cross_links, invalid_cross_links
+    return dict(crosslinking_df_result=df, messages={})
 
 
 def bar_plot_of_valid_crosslinks(
@@ -172,9 +167,15 @@ def bar_plot_of_valid_crosslinks(
              valid and invalid cross-links.
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     """
-    valid_crosslinks, invalid_crosslinks = validate_with_angstrom_deviation(
+    validated_df = validate_with_angstrom_deviation(
         crosslinking_df, protein_to_validate, crosslinker_information
-    )
+    )["crosslinking_df_result"]
+
+    evaluated = validated_df["valid_crosslink"].dropna()
+
+    valid_crosslinks = (evaluated == True).sum()
+    invalid_crosslinks = (evaluated == False).sum()
+
     return [
         create_bar_plot(
             values_of_sectors=[
