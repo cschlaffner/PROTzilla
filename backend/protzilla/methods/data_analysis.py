@@ -2500,31 +2500,39 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
                     label=f"Length of {cl} in Ångström",
                     min=0,
                 )
-                allowed_length_deviation_field = FloatField(
-                    name=f"accepted_deviation_for_{cl}",
-                    label=f"Accepted deviation for {cl} Cross-Links in Ångström",
+                upper_bound_length_deviation_field = FloatField(
+                    name=f"upper_accepted_deviation_for_{cl}",
+                    label=f"Upper Bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
+                    min=0,
+                )
+                lower_bound_length_deviation_field = FloatField(
+                    name=f"lower_accepted_deviation_for_{cl}",
+                    label=f"Lower Bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
                     min=0,
                 )
                 form.add_field(crosslinker_length_field)
-                form.add_field(allowed_length_deviation_field)
+                form.add_field(upper_bound_length_deviation_field)
+                form.add_field(lower_bound_length_deviation_field)
 
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        crosslinker_to_length_and_deviation = {}
-        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
-            crosslinker_to_length_and_deviation[crosslinker] = [
-                inputs.get(f"length_of_{crosslinker}"),
-                inputs.get(f"accepted_deviation_for_{crosslinker}"),
-            ]
-        inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
-
         inputs["crosslinking_df"] = steps.get_step_output(
             Step,
             "crosslinking_df",
         )
         if inputs.get("crosslinking_df") is None:
             raise ValueError("No cross linking data found.")
+
+        # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
+        crosslinker_to_length_and_deviation = {}
+        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
+            crosslinker_to_length_and_deviation[crosslinker] = [
+                inputs.get(f"length_of_{crosslinker}"),
+                inputs.get(f"upper_accepted_deviation_for_{crosslinker}"),
+                inputs.get(f"lower_accepted_deviation_for_{crosslinker}"),
+            ]
+        inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
 
         return inputs

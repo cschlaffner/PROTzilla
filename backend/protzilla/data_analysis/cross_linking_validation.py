@@ -126,23 +126,37 @@ def validate_with_angstrom_deviation(
     )
     relevant_crosslinks_df = df[mask]
 
-    def check_crosslink(crosslink):
+    def check_crosslink(crosslink: pd.Series) -> pd.Series:
         distance = get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
             fasta_df, cif_df, crosslink
         )
         try:
-            crosslinker_length, accepted_deviation = crosslinker_information[
-                crosslink.Crosslinker
-            ]
+            (
+                crosslinker_length,
+                accepted_deviation_upper_bound,
+                accepted_deviation_lower_bound,
+            ) = crosslinker_information[crosslink.Crosslinker]
         except KeyError as e:
             missing_key = e.args[0]
             raise KeyError(
                 f"Missing required field '{missing_key}' for crosslinker '{crosslink.Crosslinker}'."
             )
-        return distance <= (crosslinker_length + accepted_deviation)
+        # Fallback to default deviation bounds when not explicitly provided
+        accepted_distance_lower_bound = crosslinker_length - (
+            accepted_deviation_lower_bound or crosslinker_length
+        )
+        accepted_distance_upper_bound = (
+            accepted_deviation_upper_bound or 1e9
+        ) + crosslinker_length
 
-    df.loc[mask, "valid_crosslink"] = relevant_crosslinks_df.apply(
-        check_crosslink, axis=1
+        valid = (
+            accepted_distance_lower_bound <= distance <= accepted_distance_upper_bound
+        )
+
+        return pd.Series({"alphafold_distance": distance, "valid_crosslink": valid})
+
+    df.loc[mask, ["alphafold_distance", "valid_crosslink"]] = (
+        relevant_crosslinks_df.apply(check_crosslink, axis=1)
     )
 
     return dict(crosslinking_df_result=df, messages={})
