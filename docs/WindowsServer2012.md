@@ -18,7 +18,7 @@
 > You can skip this step if git is already installed and configured correctly.
 > You can verify this by running `git --version` in `cmd.exe` or PowerShell.
 
-Git is required for `pip` to download some packages and **must** be installed. It also required to download the repository itself.
+Git is required for `pip` to download some packages and **must** be installed. It's also required to download the repository itself.
 Mainline current `git` is not compatible with outdated systems such as Windows Server 2012.
 You can download the latest compatible version of `git-for-windows` [here](https://github.com/git-for-windows/git/releases/download/v2.46.2.windows.1/Git-2.46.2-64-bit.exe). Leave all settings at their defaults when installing. Under "Adjusting your PATH environment", make especially sure "Git from the command line and also from 3rd-party software" (default) is selected.
 
