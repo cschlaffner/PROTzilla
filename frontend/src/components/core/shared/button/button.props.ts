@@ -11,7 +11,9 @@ export interface ButtonRef extends HTMLButtonElement {
 }
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, TooltippedProps, UIStateProps {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    TooltippedProps,
+    UIStateProps {
   /** The key of the button's icon (if any). */
   icon?: IconType;
   color?: Color;

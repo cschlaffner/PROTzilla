@@ -71,10 +71,8 @@ export interface ILocalStorageAdapter<M> extends IStorageAdapter<M> {
   clear(): Promise<void>;
 }
 
-export interface IStorageCache<M> extends Omit<
-  ILocalStorageAdapter<M>,
-  "read" | "readAll" | "get" | "getAll"
-> {
+export interface IStorageCache<M>
+  extends Omit<ILocalStorageAdapter<M>, "read" | "readAll" | "get" | "getAll"> {
   read<E extends keyof M>(entity: E, id: ID): Promise<M[E] | undefined>;
   readAll<E extends keyof M>(entity: E, query?: unknown): Promise<M[E][]>;
 
@@ -90,10 +88,8 @@ export interface IStorageHistory<M> extends IStorageAdapter<M> {
   redo(): Promise<void>;
 }
 
-export interface IStorageController<E extends keyof M, M> extends Omit<
-  ILocalStorageAdapter<M>,
-  "read" | "readAll" | "write" | "writeAll"
-> {
+export interface IStorageController<E extends keyof M, M>
+  extends Omit<ILocalStorageAdapter<M>, "read" | "readAll" | "write" | "writeAll"> {
   entity: E;
 
   create(value: Partial<M[E]>): Promise<M[E]>;

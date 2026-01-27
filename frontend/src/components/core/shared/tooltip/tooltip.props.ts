@@ -3,8 +3,7 @@ import type React from "react";
 import type { TooltipPosition, TooltipPositionConfig } from "./utils";
 
 export interface TooltipProps
-  extends
-    React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLDivElement>,
     Pick<TooltipPositionConfig, "anchor" | "position" | "distance"> {
   /** The z-index of the surface below. */
   baseZIndex?: number;

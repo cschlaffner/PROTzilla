@@ -16,7 +16,8 @@ export interface ISwitchOption<T = any> extends UIStateProps {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SwitchProps<T = any>
-  extends UIStateProps, Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
+  extends UIStateProps,
+    Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
   label?: string;
   /** The options from which to select in the drop down. */
   options: ISwitchOption<T>[];
