@@ -36,8 +36,10 @@ export interface RelativePositionConfig<P = void> {
   style?: React.CSSProperties;
 }
 
-export interface RelativePositionStyleConfig<P = void>
-  extends Pick<RelativePositionConfig<P>, "distance" | "position"> {
+export interface RelativePositionStyleConfig<P = void> extends Pick<
+  RelativePositionConfig<P>,
+  "distance" | "position"
+> {
   /** The parent element's bounding client rect. */
   rect: DOMRect;
 
