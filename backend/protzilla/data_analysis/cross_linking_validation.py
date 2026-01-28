@@ -172,6 +172,8 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df.apply(check_crosslink, axis=1)
     )
 
+    df = df[df["valid_crosslink"].notna()]
+
     return dict(crosslinking_df_result=df, messages={})
 
 
