@@ -2502,12 +2502,12 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
                 )
                 upper_bound_length_deviation_field = FloatField(
                     name=f"upper_accepted_deviation_for_{cl}",
-                    label=f"Upper Bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
+                    label=f"Upper bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
                     min=0,
                 )
                 lower_bound_length_deviation_field = FloatField(
                     name=f"lower_accepted_deviation_for_{cl}",
-                    label=f"Lower Bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
+                    label=f"Lower bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
                     min=0,
                 )
                 form.add_field(crosslinker_length_field)
