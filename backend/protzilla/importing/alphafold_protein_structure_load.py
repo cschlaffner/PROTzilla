@@ -88,7 +88,7 @@ def handle_alphafold_files(
     uniprot: str,
     seq: str,
     metadata_df: pd.DataFrame,
-    acc: str,
+    entry_id: str,
     persist_uploads: bool = False,
 ) -> dict[str, pd.DataFrame | None]:
     """
@@ -102,7 +102,7 @@ def handle_alphafold_files(
     :param uniprot: The UniProt ID of the protein
     :param seq: The protein sequence
     :param metadata_df: DataFrame containing AlphaFold metadata
-    :param acc: The accession number (used for directory naming)
+    :param entry_id: The entry_id (in the case of fetching from AF DB the same as uniprot id) (used for directory naming)
     :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
     :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data or None values for failed loads
     """
@@ -131,8 +131,8 @@ def handle_alphafold_files(
             try:
                 if metadata_csv.exists():
                     existing = pd.read_csv(metadata_csv, dtype=str)
-                    if acc and "uniprotAccession" in existing.columns:
-                        existing = existing[existing["uniprotAccession"] != acc]
+                    if entry_id and "entry_id" in existing.columns:
+                        existing = existing[existing["entry_id"] != entry_id]
                     combined = pd.concat([existing, metadata_df], ignore_index=True)
                     combined.to_csv(metadata_csv, index=False)
                 else:
@@ -239,14 +239,13 @@ def fetch_alphafold_protein_structure(
                 files_urls[key] = r[key]
 
         metadata_df = pd.DataFrame([data])
-        acc = data.get("uniprotAccession")
 
         alpha_dfs = handle_alphafold_files(
             files_urls=files_urls,
             uniprot=uniprot_id,
             seq=seq_tmp,
             metadata_df=metadata_df,
-            acc=acc,
+            entry_id=uniprot_id,
             persist_uploads=persist_uploads,
         )
 

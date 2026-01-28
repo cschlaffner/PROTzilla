@@ -1,8 +1,10 @@
 import json
 import os
 import shutil
-from datetime import date
+from datetime import date, datetime, timezone
 from io import BytesIO
+from pathlib import Path
+
 
 import pandas
 import plotly.graph_objects as go
@@ -12,7 +14,7 @@ from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
-from backend.main.views_helper import sanitize_name, load_settings_from_file
+from backend.main.views_helper import sanitize_name, load_settings_from_file, validate_uploaded_files, copy_file_to_directory
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import (
     uniprot_columns,
@@ -220,6 +222,156 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
         {"success": True, "message": "Settings successfully saved."}, status=200
     )
 
+
+# <--- Protein Structure Predictions --->
+
+AF_DICT_PATH = EXTERNAL_DATA_PATH / "alphafold"
+
+def get_prot_structure(request):
+    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+    df = pandas.read_csv(metadata_csv)
+
+    df_infos = df.rename(
+        columns={
+            "entryID": "entry_id",
+            "uniprotAccession": "uniprot_id",
+            "modelCreatedDate": "date_modified",
+            "gene": "gene",
+            "alphafold_version": "af_version",
+        }
+    ).to_dict(orient="records")
+
+    return JsonResponse(df_infos, safe=False)
+
+
+def upload_prot_structure(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        uniprot_id = data.get("uniprot_id")
+        entry_id = data.get("entry_id")
+        af_version = data.get("af_version")
+        gene = data.get("gene")
+        cif_file = data.get("cif_file")
+        confidence = data.get("confidence")
+        pae = data.get("pae")
+        fasta_file = data.get("fasta_file")
+
+        # Validate uploaded files and copy them to source directory out of temp directory
+        file_mapping = {
+            cif_file: [".cif"],
+            confidence: [".json"],
+            pae: [".json"],
+            fasta_file: [".fasta", ".fa"],
+        }
+        
+        is_valid, validation_message = validate_uploaded_files(
+            settings.FILE_UPLOAD_TEMP_DIR, file_mapping
+        )
+        if not is_valid:
+            messages.add_message(request, messages.ERROR, validation_message, "alert-danger")
+            return JsonResponse({"success": False, "message": validation_message}, status=400)
+
+        af_path = AF_DICT_PATH / entry_id.upper()
+        if af_path.exists():
+            return JsonResponse(
+            {"success": False, "message": "Entry ID is not unique."}, status=405
+        )
+        else:
+            af_path.mkdir(parents=True, exist_ok=True)
+
+        for file_name in [cif_file, confidence, pae, fasta_file]:
+            source_dir = settings.FILE_UPLOAD_TEMP_DIR / file_name
+            success, message = copy_file_to_directory(
+                source_dir,
+                af_path
+            )
+        
+        # add row to metadata csv
+        AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
+        metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+        df = pandas.read_csv(metadata_csv)
+
+        now_utc = datetime.now(timezone.utc)
+        formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        new_row = {
+            "entryID": entry_id,
+            "uniprotAccession": uniprot_id,
+            "modelCreatedDate": formatted,
+            "gene": gene,
+            "alphafold_version": af_version
+        }
+
+        df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
+        df.to_csv(metadata_csv, index=False)       
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": (
+                    f"Predicted Protein Structure uploaded successfully. \n {message}"
+                    if len(message) > 0
+                    else "Predicted Protein Structure uploaded successfully."
+                ),
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def prot_structure_delete(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+    
+    data = json.loads(request.body)
+    entry_id = (data.get("entry_id") or "").strip()
+    if not entry_id:
+        return JsonResponse(
+            {"success": False, "message": "Missing entry_id"}, status=400
+        )
+
+    # delete folder with files for the protein structure
+    target_dir = AF_DICT_PATH / entry_id.upper()
+    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+
+    if not target_dir.exists() or not target_dir.is_dir():
+        return JsonResponse(
+            {"success": False, "message": f"Entry folder not found: {target_dir.name}"},
+            status=404,
+        )
+
+    try:
+        shutil.rmtree(target_dir)
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "message": f"Failed to delete folder: {str(e)}"},
+            status=500,
+        )
+
+    # remove entry out of metadata csv
+    if metadata_csv.exists() and metadata_csv.is_file() and metadata_csv.stat().st_size > 0:
+        try:
+            df = pandas.read_csv(metadata_csv, dtype=str)
+            df = df[df["entryID"].fillna("").str.strip().str.upper() != entry_id.upper()]
+            df.to_csv(metadata_csv, index=False)         
+
+        except Exception as e:
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": f"Folder deleted. Failed to update CSV: {str(e)}",
+                },
+                status=200,
+            )
+
+    return JsonResponse(
+        {"success": True, "message": "Entry deleted successfully"}, status=200
+    )
 
 # <--- Databases --->
 

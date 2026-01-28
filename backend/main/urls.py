@@ -61,6 +61,9 @@ urlpatterns = [
     path("api/get_databases", views_settings.get_databases, name="get_databases"),
     path("api/upload_database", views_settings.database_upload, name="database_upload"),
     path("api/delete_database", views_settings.database_delete, name="database_delete"),
+    path("api/get_prot_structure", views_settings.get_prot_structure, name="get_prot_structure"),
+    path("api/upload_prot_structure", views_settings.upload_prot_structure, name="upload_prot_structure"),
+    path("api/prot_structure_delete", views_settings.prot_structure_delete, name="prot_structure_delete"),
     path(
         "api/load_ptm_settings",
         views_settings.load_ptm_settings,
