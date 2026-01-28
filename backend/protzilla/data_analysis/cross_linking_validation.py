@@ -11,6 +11,7 @@ from protzilla.data_preprocessing.plots import create_bar_plot
 def get_reactive_atom_of_amino_acid_residue(amino_acid_kind: str) -> str:
     # right now we always return the central C atom
     # later we might want to return the reactive atom of the amino acid residue of the specific amino acid kind
+    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation
     return "CA"
 
 
@@ -99,8 +100,8 @@ def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
     distance_in_alphafold = get_distance_between_two_amino_acids_in_angstrom(
         amino_acid_position_crosslinker1_is_bound_to,
         amino_acid_position_crosslinker2_is_bound_to,
-        protein_sequence[amino_acid_position_crosslinker1_is_bound_to],
-        protein_sequence[amino_acid_position_crosslinker2_is_bound_to],
+        protein_sequence[amino_acid_position_crosslinker1_is_bound_to - 1],
+        protein_sequence[amino_acid_position_crosslinker2_is_bound_to - 1],
         cif_df,
     )
     return distance_in_alphafold

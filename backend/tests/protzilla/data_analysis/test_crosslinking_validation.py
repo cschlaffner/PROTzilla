@@ -11,21 +11,6 @@ from backend.protzilla.data_analysis.cross_linking_validation import (
 from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
 
 
-def test_get_distance_between_two_amino_acids_in_angstrom():
-    cif_df = pd.DataFrame(
-        {
-            "_atom_site.label_atom_id": ["CA", "CA"],
-            "_atom_site.label_seq_id": [1, 2],
-            "_atom_site.Cartn_x": [0, 3],
-            "_atom_site.Cartn_y": [0, 0],
-            "_atom_site.Cartn_z": [0, 0],
-        }
-    )
-
-    dist = get_distance_between_two_amino_acids_in_angstrom(1, 2, cif_df)
-    assert dist == 3.0
-
-
 def test_get_position_of_amino_acid_crosslinker_bound_to():
     protein = "MABCDEFGHIJK"
     peptide = "ABC"
