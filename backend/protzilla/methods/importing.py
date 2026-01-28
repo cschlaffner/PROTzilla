@@ -447,7 +447,7 @@ class CrosslinkingImport(ImportingStep):
     operation = "Cross-Linking Data Import"
     method_description = "Import a file containing cross-linking data"
 
-    output_keys = ["crosslinking_df"]
+    output_keys = ["crosslinking_df", "imported_rows_with_errors_df"]
 
     def create_form(self):
         return Form(

@@ -657,6 +657,24 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[:, columns_in_crosslinking_df]
 
 
+def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str: 
+    protein_with_error_set = set()  
+
+    if "Protein1" in failed_df.columns and "Protein2" in failed_df.columns:
+        protein_cols = ["Protein1", "Protein2"]
+    elif "Protein_id1" in failed_df.columns and "Protein_id2" in failed_df.columns:
+        protein_cols = ["Protein_id1", "Protein_id2"]
+
+    error_cols = ["Protein1_error", "Protein2_error"]
+
+    for prot_col, err_col in zip(protein_cols, error_cols):
+        for protein_val, error_val in zip(failed_df[prot_col], failed_df[err_col]):
+            if pd.notna(error_val):
+                protein_with_error_set.add(f"{protein_val} -> {error_val}")
+
+    return "\n".join(sorted(protein_with_error_set))
+
+
 def crosslinking_import(file_path: Path) -> dict:
     try:
         if file_path.suffix == ".csv":
@@ -683,11 +701,7 @@ def crosslinking_import(file_path: Path) -> dict:
         msg = f"Warning: {len(failed_df)} rows failed to import, however {len(good_df)} cross-links were successfully imported."
         messages = [
             dict(level=logging.WARNING, msg=msg),
-            dict(level=logging.WARNING, msg=f"Failed rows:\n{failed_df}"),
+            dict(level=logging.WARNING, msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}"),
         ]
-        # TODO: Implement display of failed rows (Issue #194)
-        pd.set_option("display.max_columns", None)
-        failed_df.to_csv("failed_rows.csv", index=False)
-        print("Failed rows saved to failed_rows.csv")
 
-    return dict(crosslinking_df=good_df, messages=messages)
+    return dict(crosslinking_df=good_df, imported_rows_with_errors_df=failed_df, messages=messages)
