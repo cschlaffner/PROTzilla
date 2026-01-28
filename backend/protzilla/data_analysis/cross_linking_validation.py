@@ -8,30 +8,32 @@ from protzilla.importing.alphafold_protein_structure_load import (
 from protzilla.data_preprocessing.plots import create_bar_plot
 
 
-def get_coordinates_of_ca_atom_from_cif_df(
-    cif_df: pd.DataFrame, amino_acid_position: int
+def get_reactive_atom_of_amino_acid_residue(amino_acid_kind: str) -> str:
+    # right now we always return the central C atom
+    # later we might want to return the reactive atom of the amino acid residue of the specific amino acid kind
+    return "CA"
+
+
+def get_coordinates_of_atom_crosslinker_bound_to(
+    amino_acid_position_where_crosslinker_bound: int,
+    amino_acid_kind: str,
+    cif_df: pd.DataFrame,
 ) -> tuple[float, float, float]:
-    """
-    Extract the 3D coordinates of the C-alpha (CA) atom for a given amino acid
-    position from CIF-derived DataFrame.
+    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_kind)
 
-    :param cif_df: DataFrame containing atomic data parsed from a CIF file. Must include the columns
-           "_atom_site.label_atom_id", "_atom_site.label_seq_id",
-           "_atom_site.Cartn_x", "_atom_site.Cartn_y", and "_atom_site.Cartn_z".
-    :param amino_acid_position: The sequence position of the amino acid whose C-alpha (CA) atom
-                                coordinates should be extracted.
-    :return: A tuple (x, y, z) of floats representing the Cartesian coordinates of the C-alpha atom.
-    :raises ValueError: If no C-alpha atom is found for the given amino acid position.
-    """
-    cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
-
+    # Filter to the exact reactive atom of the amino acid residue
+    # where the crosslinker is bound (e.g. CA at position 45)
     cif_df = cif_df[
-        cif_df["_atom_site.label_seq_id"].astype(int) == amino_acid_position
+        (cif_df["_atom_site.label_atom_id"] == relevant_atom)
+        & (
+            cif_df["_atom_site.label_seq_id"].astype(int)
+            == amino_acid_position_where_crosslinker_bound
+        )
     ]
 
     if cif_df.empty:
         raise ValueError(
-            f"No central Ca atom found for amino acid at position {amino_acid_position}."
+            f"No {relevant_atom} atom found for amino acid at position {amino_acid_position_where_crosslinker_bound}."
         )
 
     row = cif_df.iloc[0]
@@ -44,10 +46,18 @@ def get_coordinates_of_ca_atom_from_cif_df(
 
 
 def get_distance_between_two_amino_acids_in_angstrom(
-    position1: int, position2: int, cif_df: pd.DataFrame
+    amino_acid_position1: int,
+    amino_acid_position2: int,
+    amino_acid_kind1: str,
+    amino_acid_kind2: str,
+    cif_df: pd.DataFrame,
 ) -> float:
-    x1, y1, z1 = get_coordinates_of_ca_atom_from_cif_df(cif_df, position1)
-    x2, y2, z2 = get_coordinates_of_ca_atom_from_cif_df(cif_df, position2)
+    x1, y1, z1 = get_coordinates_of_atom_crosslinker_bound_to(
+        amino_acid_position1, amino_acid_kind1, cif_df
+    )
+    x2, y2, z2 = get_coordinates_of_atom_crosslinker_bound_to(
+        amino_acid_position2, amino_acid_kind2, cif_df
+    )
 
     distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
 
@@ -71,23 +81,26 @@ def get_position_of_amino_acid_crosslinker_bound_to(
 def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
     fasta_df: pd.DataFrame, cif_df: pd.DataFrame, crosslink
 ) -> float:
-    amino_acid_crosslinker1_is_bound_to = (
+    protein_sequence = fasta_df.at[0, "Protein Sequence"]
+    amino_acid_position_crosslinker1_is_bound_to = (
         get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=fasta_df.at[0, "Protein Sequence"],
+            protein_sequence=protein_sequence,
             peptide_sequence=crosslink.Peptide1,
             crosslinker_position_within_peptide=crosslink.CL_position1,
         )
     )
-    amino_acid_crosslinker2_is_bound_to = (
+    amino_acid_position_crosslinker2_is_bound_to = (
         get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=fasta_df.at[0, "Protein Sequence"],
+            protein_sequence=protein_sequence,
             peptide_sequence=crosslink.Peptide2,
             crosslinker_position_within_peptide=crosslink.CL_position2,
         )
     )
     distance_in_alphafold = get_distance_between_two_amino_acids_in_angstrom(
-        amino_acid_crosslinker1_is_bound_to,
-        amino_acid_crosslinker2_is_bound_to,
+        amino_acid_position_crosslinker1_is_bound_to,
+        amino_acid_position_crosslinker2_is_bound_to,
+        protein_sequence[amino_acid_position_crosslinker1_is_bound_to],
+        protein_sequence[amino_acid_position_crosslinker2_is_bound_to],
         cif_df,
     )
     return distance_in_alphafold
@@ -119,7 +132,7 @@ def validate_with_angstrom_deviation(
     )
     cif_df = alphafold_data["cif_df"]
     fasta_df = alphafold_data["sequence_df"]
-    df = crosslinking_df.copy()  # TODO: really necessary?
+    df = crosslinking_df.copy()
 
     mask = (df.Protein_id1 == protein_to_validate) & (
         df.Protein_id2 == protein_to_validate
