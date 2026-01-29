@@ -38,10 +38,10 @@ def aggregate_data(df: pd.DataFrame, column: str) -> set:
 
 
 def validate_data_before_lookup(
-    data_for_lookup: set[str], 
-    validator_function: Callable[[str], bool], 
-    error_code: str
-)-> tuple[set[str], dict[str, tuple[bool, None, str]]]:
+    data_for_lookup: set[str],
+    validator_function: Callable[[str], bool],
+    error_code: str,
+) -> tuple[set[str], dict[str, tuple[bool, None, str]]]:
     """
     Split input values into valid and invalid ones.
     Invalid values are directly written to the results with the given error code.
@@ -103,7 +103,7 @@ def build_uniprot_search_params(
     field_of_existing_data: str,
     extra_query: str | None = None,
     extra_fields: str | None = None,
-)-> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str]]:
     """
     Build the UniProt search URL and query parameters for a batch of identifiers.
 
@@ -131,7 +131,7 @@ def build_uniprot_search_params(
         base_query = f"({base_query}) AND {extra_query}"
 
     fields = "accession,gene_primary"
-    if extra_fields: 
+    if extra_fields:
         fields = fields + "," + extra_fields
 
     params = {
@@ -147,7 +147,7 @@ def execute_uniprot_request(
     url: str,
     params: dict[str, str],
     valid_data: set[str],
-    results: dict[str, tuple[bool, None, str]]
+    results: dict[str, tuple[bool, None, str]],
 ) -> Optional[requests.Response]:
     """
     Execute a UniProt HTTP request with error handling and update the results for failed queries.
@@ -196,7 +196,7 @@ def process_uniprot_response(
     response: requests.Response,
     results: dict[str, tuple[bool, str | None, None | str]],
     input_data: set[str],
-    mode: Literal["id_to_gene_name", "gene_name_to_id"]
+    mode: Literal["id_to_gene_name", "gene_name_to_id"],
 ) -> None:
     """
     Process a UniProt API response and update the results dictionary.
@@ -232,7 +232,7 @@ def process_uniprot_response(
             requested_data = protein_id
 
         if pd.notna(requested_data) and requested_data != "":
-            if existing_data in input_data: 
+            if existing_data in input_data:
                 results[existing_data] = (True, requested_data, None)
             elif mode == "gene_name_to_id":
                 alternative_gene_names = str(row.get("Gene Names", "")).split()
@@ -246,7 +246,7 @@ def uniprot_lookup(
     input_data: set[str],
     mode: Literal["id_to_gene_name", "gene_name_to_id"],
     results: dict[str, tuple[bool, Optional[str], Optional[str]]],
-    organism_id: Optional[str] = None
+    organism_id: Optional[str] = None,
 ) -> None:
     """
     Perform a UniProt lookup for a batch of input data, updating the results dictionary.
@@ -270,49 +270,43 @@ def uniprot_lookup(
     :rtype: None
     """
     if mode == "id_to_gene_name":
-            error = "NO_GENE_NAME_FOUND"
-            field_of_existing_data="accession"
-            extra_query=None
-            extra_fields=None 
+        error = "NO_GENE_NAME_FOUND"
+        field_of_existing_data = "accession"
+        extra_query = None
+        extra_fields = None
     elif mode == "gene_name_to_id":
-            error = "NO_PROTEIN_ID_FOUND"
-            field_of_existing_data="gene_exact"
-            extra_query=f"organism_id:{organism_id} AND reviewed:true"
-            extra_fields="gene_names"
-        
+        error = "NO_PROTEIN_ID_FOUND"
+        field_of_existing_data = "gene_exact"
+        extra_query = f"organism_id:{organism_id} AND reviewed:true"
+        extra_fields = "gene_names"
+
     for batch in split_data_in_batches(data=input_data):
 
         url, params = build_uniprot_search_params(
             data_for_lookup=batch,
             field_of_existing_data=field_of_existing_data,
             extra_query=extra_query,
-            extra_fields=extra_fields, 
+            extra_fields=extra_fields,
         )
 
         response = execute_uniprot_request(
-            url=url, 
-            params=params, 
-            valid_data=batch, 
-            results=results
+            url=url, params=params, valid_data=batch, results=results
         )
         if response is None:
             continue
 
         process_uniprot_response(
-            response=response, 
-            results=results, 
-            input_data=batch, 
-            mode=mode
+            response=response, results=results, input_data=batch, mode=mode
         )
 
     for data in input_data:
-        if data not in results: 
+        if data not in results:
             results[data] = (False, None, error)
 
 
 def get_gene_name_from_protein_ids(
-    protein_ids: set[str]
-)-> dict[str, tuple[bool, Optional[str], Optional[str]]]:
+    protein_ids: set[str],
+) -> dict[str, tuple[bool, Optional[str], Optional[str]]]:
     """
     Retrieve the gene names for a given set of Protein IDs in a batch from UniProt.
 
@@ -326,7 +320,7 @@ def get_gene_name_from_protein_ids(
     :returns gene_name: Official gene name if successful, else None
     :returns error: Error code or message if the lookup failed, else None
     """
-    # Regex for valid accession input directly from UniProt 
+    # Regex for valid accession input directly from UniProt
     # (extended to include isoforms)
     # A batch request containing an id that doesn't match this regex,
     # leads to an http 400 for the whole request.
@@ -347,23 +341,22 @@ def get_gene_name_from_protein_ids(
 
     if not valid_ids:
         return results
-    
+
     valid_ids_without_isoform = {x.split("-", 1)[0] for x in valid_ids}
 
     uniprot_lookup(
-        input_data=valid_ids_without_isoform, 
-        mode="id_to_gene_name", 
-        results=results, 
-        organism_id=None
+        input_data=valid_ids_without_isoform,
+        mode="id_to_gene_name",
+        results=results,
+        organism_id=None,
     )
 
     return results
 
 
 def get_protein_ids_from_gene_name(
-    gene_names: set[str], 
-    organism_id: str
-)-> dict[str, tuple[bool, Optional[str], Optional[str]]]:
+    gene_names: set[str], organism_id: str
+) -> dict[str, tuple[bool, Optional[str], Optional[str]]]:
     """
     Retrieve UniProt protein IDs for a given set of human gene names as a batch query.
 
@@ -388,12 +381,12 @@ def get_protein_ids_from_gene_name(
 
     if not valid_gene_names:
         return results
-    
+
     uniprot_lookup(
-        input_data=valid_gene_names, 
-        mode="gene_name_to_id", 
-        results=results, 
-        organism_id=organism_id
+        input_data=valid_gene_names,
+        mode="gene_name_to_id",
+        results=results,
+        organism_id=organism_id,
     )
 
     return results
@@ -403,7 +396,7 @@ def iterate_for_protein_designation(
     df: pd.DataFrame,
     existing_designation: str,
     new_designation: str,
-    uniprot_lookup_results: dict[str, tuple[bool, Optional[str], Optional[str]]]
+    uniprot_lookup_results: dict[str, tuple[bool, Optional[str], Optional[str]]],
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Iterate over a DataFrame and add missing protein designations using precomputed lookup results.
@@ -468,7 +461,9 @@ def get_missing_protein_designation(
     df: pd.DataFrame,
     existing_column: str,
     missing_column: str,
-    uniprot_lookup_function: Callable[[set[str]], dict[str, tuple[bool, str | None, str | None]]],
+    uniprot_lookup_function: Callable[
+        [set[str]], dict[str, tuple[bool, str | None, str | None]]
+    ],
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Fill missing protein designations in a DataFrame using a UniProt lookup function.
@@ -497,10 +492,10 @@ def get_missing_protein_designation(
     unique_existing_designations = aggregate_data(df=df, column=existing_column)
     uniprot_lookup_results = uniprot_lookup_function(unique_existing_designations)
     good_df, failed_df = iterate_for_protein_designation(
-        df=df, 
-        existing_designation=existing_column, 
-        new_designation=missing_column, 
-        uniprot_lookup_results=uniprot_lookup_results
+        df=df,
+        existing_designation=existing_column,
+        new_designation=missing_column,
+        uniprot_lookup_results=uniprot_lookup_results,
     )
     return good_df, failed_df
 
@@ -515,7 +510,9 @@ def get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
     return peptide.find("[") + 1  # 1-based index
 
 
-def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+def read_ProteomeDiscoverer_XlinkX_file(
+    file_path: Path,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read and process a ProteomeDiscoverer XlinkX Excel file:
     1. Reads the Excel file and renames columns to a standard format.
@@ -561,7 +558,9 @@ def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> tuple[pd.DataFrame, 
     return good_df, failed_df
 
 
-def read_csm_file(file_path: Path, organism_id: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def read_csm_file(
+    file_path: Path, organism_id: str
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read and process a CSM CSV file:
     1. Reads the CSV file and renames columns to a standard format.
@@ -589,7 +588,9 @@ def read_csm_file(file_path: Path, organism_id: str) -> tuple[pd.DataFrame, pd.D
 
     df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
 
-    uniprot_lookup_function_with_organism_id = partial(get_protein_ids_from_gene_name, organism_id=organism_id)
+    uniprot_lookup_function_with_organism_id = partial(
+        get_protein_ids_from_gene_name, organism_id=organism_id
+    )
     good_df, failed_df = get_missing_protein_designation(
         df=df,
         existing_column="Protein",
@@ -615,7 +616,7 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[:, columns_in_crosslinking_df]
 
 
-def process_organism_id_from_text_field(organism_id: str)-> tuple[bool, Optional[str]]:
+def process_organism_id_from_text_field(organism_id: str) -> tuple[bool, Optional[str]]:
     """
     Retrieve the scientific name of an organism from its NCBI Taxonomy ID.
 
@@ -632,7 +633,7 @@ def process_organism_id_from_text_field(organism_id: str)-> tuple[bool, Optional
 
     :returns success: True if the organism ID was found and the scientific name retrieved
     :returns name: Scientific name of the organism if found, else None
-    """ 
+    """
     cleaned_organism_id = organism_id.strip().replace(" ", "")
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={cleaned_organism_id}&retmode=json"
     response = requests.get(url)
@@ -663,8 +664,8 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
     :return: String summarizing all failed protein lookups in the format
              "Protein_value -> ERROR_CODE", sorted alphabetically and separated by newlines
     :rtype: str
-    """ 
-    protein_with_error_set = set()  
+    """
+    protein_with_error_set = set()
 
     if "Protein1" in failed_df.columns and "Protein2" in failed_df.columns:
         protein_columns = ["Protein1", "Protein2"]
@@ -683,7 +684,7 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
 
 def crosslinking_import(file_path: Path, organism_id: str) -> dict:
     success, scientific_organism_name = process_organism_id_from_text_field(organism_id)
-    if not success: 
+    if not success:
         msg = f"Unsupported organism id: {organism_id}. Please provide a valid taxonomy id."
         return dict(
             messages=[
@@ -718,7 +719,14 @@ def crosslinking_import(file_path: Path, organism_id: str) -> dict:
         msg = f"Warning: {len(failed_df)} rows failed to import, however {len(good_df)} cross-links for the {scientific_organism_name} organism were successfully imported."
         messages = [
             dict(level=logging.WARNING, msg=msg),
-            dict(level=logging.WARNING, msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}"),
+            dict(
+                level=logging.WARNING,
+                msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}",
+            ),
         ]
 
-    return dict(crosslinking_df=good_df, imported_rows_with_errors_df=failed_df, messages=messages)
+    return dict(
+        crosslinking_df=good_df,
+        imported_rows_with_errors_df=failed_df,
+        messages=messages,
+    )
