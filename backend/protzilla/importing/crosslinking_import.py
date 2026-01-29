@@ -9,6 +9,9 @@ import pandas as pd
 import traceback
 import requests
 import re
+import zipfile
+import io
+import json
 
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
@@ -657,6 +660,20 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[:, columns_in_crosslinking_df]
 
 
+def process_organism_id_from_text_field(organism_id: str): 
+    cleaned_organism_id = organism_id.strip().replace(" ", "")
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={cleaned_organism_id}&retmode=json"
+    response = requests.get(url)
+    if response.status_code != 200:
+        return False, None
+    data = response.json()
+    output_ids = data.get("result", {})
+    if cleaned_organism_id not in output_ids:
+        return False, None
+    name = output_ids[cleaned_organism_id].get("scientificname")
+    return True, name
+
+
 def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str: 
     protein_with_error_set = set()  
 
@@ -675,7 +692,18 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
     return "\n".join(sorted(protein_with_error_set))
 
 
-def crosslinking_import(file_path: Path) -> dict:
+def crosslinking_import(file_path: Path, organism_id: str) -> dict:
+    success, scientific_organism_name = process_organism_id_from_text_field(organism_id)
+    if not success: 
+        msg = f"Unsupported organism id: {organism_id}. Please provide a valid taxonomy id."
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                )
+            ]
+        )
     try:
         if file_path.suffix == ".csv":
             good_df, failed_df = read_csm_file(file_path)
@@ -695,10 +723,10 @@ def crosslinking_import(file_path: Path) -> dict:
             ]
         )
     if failed_df.empty:
-        msg = f"Successfully imported data of {len(good_df)} cross-links."
+        msg = f"Successfully imported data of {len(good_df)} cross-links for the {scientific_organism_name} organism."
         messages = [dict(level=logging.INFO, msg=msg)]
     else:
-        msg = f"Warning: {len(failed_df)} rows failed to import, however {len(good_df)} cross-links were successfully imported."
+        msg = f"Warning: {len(failed_df)} rows failed to import, however {len(good_df)} cross-links for the {scientific_organism_name} organism were successfully imported."
         messages = [
             dict(level=logging.WARNING, msg=msg),
             dict(level=logging.WARNING, msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}"),

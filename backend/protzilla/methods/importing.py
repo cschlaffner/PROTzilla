@@ -458,6 +458,10 @@ class CrosslinkingImport(ImportingStep):
                     label="Cross-Linking Data file (.xlsx or .csv)",
                     value=None,
                 ),
+                TextField(
+                    name="organism_id",
+                    label="Organism ID",
+                ),
             ],
         )
 
