@@ -15,7 +15,7 @@ def apply_multiple_testing_correction(
     using a given alpha.
     :param p_values: list of p-values to be corrected
     :param method: the multiple testing correction method to be used.\
-        Can be either "Bonferroni" or "Benjamini-Hochberg"
+        Can be either "Bonferroni", "Benjamini-Hochberg", or "None"
     :param alpha: the alpha value to be used for the correction
     :return: a tuple containing the corrected p-values and (depending on the correction method)\
           either the input alpha value or the corrected alpha value
@@ -23,12 +23,16 @@ def apply_multiple_testing_correction(
     assert method in [
         "Bonferroni",
         "Benjamini-Hochberg",
+        "None",
     ], "Invalid multiple testing correction method"
     assert all(
         isinstance(i, (int, float)) and not math.isnan(i) and i is not None
         for i in p_values
     ), "List contains non-number or NaN values"
     assert 0 <= alpha <= 1, "Alpha value must be between 0 and 1"
+
+    if method == "None":
+        return p_values, alpha
 
     to_param = {"Bonferroni": "bonferroni", "Benjamini-Hochberg": "fdr_bh"}
     correction = multipletests(pvals=p_values, alpha=alpha, method=to_param[method])
