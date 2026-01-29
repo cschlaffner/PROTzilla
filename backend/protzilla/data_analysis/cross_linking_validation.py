@@ -113,18 +113,20 @@ def validate_with_angstrom_deviation(
     crosslinker_information: dict[str, list[float]],
 ) -> dict:
     """
-    Validates cross-links by comparing the cross-linker
-    lengths with the distances between the linked amino acids in the AlphaFold
-    protein structure. A cross-link is regarded as valid if the distance between the connected amino acids in AlphaFold
-    is less than the cross-linker length + the allowed deviation.
+    Validates cross-links by comparing the cross-linker lengths with the distances between the linked
+    amino acids in the AlphaFold protein structure. A cross-link is regarded as valid if it matches the AlphaFold data,
+    so if the distance between the connected amino acids in AlphaFold is less than (cross-linker length + the upper allowed deviation)
+    and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
     :param crosslinking_df: DataFrame containing cross-linking data.
     :param protein_to_validate: UniProt ID of the protein to validate.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
-                   - accepted_deviation_for_<Crosslinker>: float
-    :return: Tuple (valid_cross_links, invalid_cross_links), counts of cross-links that
-             pass or fail the distance validation.
+                   - lower_accepted_deviation_for_<Crosslinker>: float
+                   - upper_accepted_deviation_for_<Crosslinker>: float
+    :return: dict (crosslinking_df_result, messages), crosslinking_df_result contains the relevant rows (rows of intra-crosslinks within the
+    protein to validate) of crosslinking_df and two more colums containing the distances in AlphaFold and wheter the crosslink matches the
+    AlphaFold data or not
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
@@ -192,7 +194,8 @@ def bar_plot_of_valid_crosslinks(
     :param protein_to_validate: UniProt ID of the protein to validate.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
-                   - accepted_deviation_for_<Crosslinker>: float
+                   - lower_accepted_deviation_for_<Crosslinker>: float
+                   - upper_accepted_deviation_for_<Crosslinker>: float
     :return: List containing a single bar plot object representing counts of
              valid and invalid cross-links.
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
