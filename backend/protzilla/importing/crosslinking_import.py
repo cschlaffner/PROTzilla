@@ -4,7 +4,6 @@ This module contains the code to parse a file containing crosslinking data.
 
 import logging
 from pathlib import Path
-from collections import defaultdict
 import pandas as pd
 import traceback
 import requests
@@ -12,6 +11,7 @@ import re
 from io import StringIO
 from itertools import islice
 from functools import partial
+from typing import Callable, Optional, Literal
 
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
@@ -38,8 +38,10 @@ def aggregate_data(df: pd.DataFrame, column: str) -> set:
 
 
 def validate_data_before_lookup(
-    data_for_lookup: set, validator_function, error_code: str
-):
+    data_for_lookup: set[str], 
+    validator_function: Callable[[str], bool], 
+    error_code: str
+)-> tuple[set[str], dict[str, tuple[bool, None, str]]]:
     """
     Split input values into valid and invalid ones.
     Invalid values are directly written to the results with the given error code.
@@ -74,7 +76,22 @@ def validate_data_before_lookup(
     return valid_data, results
 
 
-def split_data_in_batches(data): 
+def split_data_in_batches(data: "iterable") -> "iterable":
+    """
+    Split an iterable into consecutive batches of fixed maximum size.
+
+    The function yields lists containing up to 25 elements from the input iterable.
+    The final batch may contain fewer elements.
+
+    :param data: Iterable containing input elements to be batched
+    :type data: iterable
+
+    :return: Iterator yielding batches of input elements as lists
+    :rtype: iterable
+
+    :yields: Lists of at most 25 elements
+    :yield type: list
+    """
     max_allowed_uniprot_batch_size = 25
     iterable = iter(data)
     while batch := list(islice(iterable, max_allowed_uniprot_batch_size)):
@@ -82,11 +99,11 @@ def split_data_in_batches(data):
 
 
 def build_uniprot_search_params(
-    data_for_lookup: set,
+    data_for_lookup: set[str],
     field_of_existing_data: str,
     extra_query: str | None = None,
     extra_fields: str | None = None,
-):
+)-> tuple[str, dict[str, str]]:
     """
     Build the UniProt search URL and query parameters for a batch of identifiers.
 
@@ -96,12 +113,8 @@ def build_uniprot_search_params(
     :type field_of_existing_data: str
     :param extra_query: Optional additional query string to filter results
     :type extra_query: str or None
-    :param response_format: Desired response format (e.g., "json", "tsv")
-    :type response_format: str
-    :param fields: Comma-separated list of fields to return (e.g., "accession,id,protein_name")
-    :type fields: str
-    :param include_isoforms: Whether to include isoform entries in the results
-    :type include_isoforms: bool
+    :param extra_fields: Comma-separated list of additional fields to return (e.g., "id,protein_name")
+    :type extra_fields: str or None
 
     :return: Tuple containing the UniProt search URL and the query parameters dictionary
     :rtype: tuple[str, dict[str, str]]
@@ -130,7 +143,12 @@ def build_uniprot_search_params(
     return uniprot_search_url, params
 
 
-def execute_uniprot_request(url, params, valid_data, results):
+def execute_uniprot_request(
+    url: str,
+    params: dict[str, str],
+    valid_data: set[str],
+    results: dict[str, tuple[bool, None, str]]
+) -> Optional[requests.Response]:
     """
     Execute a UniProt HTTP request with error handling and update the results for failed queries.
 
@@ -174,7 +192,32 @@ def execute_uniprot_request(url, params, valid_data, results):
     return None
 
 
-def process_uniprot_response(response, results, input_data, mode):
+def process_uniprot_response(
+    response: requests.Response,
+    results: dict[str, tuple[bool, str | None, None | str]],
+    input_data: set[str],
+    mode: Literal["id_to_gene_name", "gene_name_to_id"]
+) -> None:
+    """
+    Process a UniProt API response and update the results dictionary.
+
+    The function reads a TSV response from UniProt, extracts the requested data
+    (gene name or protein ID depending on mode), and updates the results dictionary
+    with valid lookups. In `gene_name_to_id` mode, it also checks alternative gene names.
+
+    :param response: The HTTP response object returned from a UniProt request
+    :type response: requests.Response
+    :param results: Dictionary to store lookup results; updated in place
+                    as ``existing_data -> (True, requested_data, None)``
+    :type results: dict[str, tuple[bool, str | None, str | None]]
+    :param input_data: Set of input values that were originally queried
+    :type input_data: set[str]
+    :param mode: Lookup mode, either mapping IDs to gene names or gene names to IDs
+    :type mode: Literal["id_to_gene_name", "gene_name_to_id"]
+
+    :return: None (results dictionary is updated in place)
+    :rtype: None
+    """
     df = pd.read_csv(StringIO(response.text), sep="\t")
 
     for _, row in df.iterrows():
@@ -199,7 +242,33 @@ def process_uniprot_response(response, results, input_data, mode):
                         break
 
 
-def uniprot_lookup(input_data, mode, results, organism_id):
+def uniprot_lookup(
+    input_data: set[str],
+    mode: Literal["id_to_gene_name", "gene_name_to_id"],
+    results: dict[str, tuple[bool, Optional[str], Optional[str]]],
+    organism_id: Optional[str] = None
+) -> None:
+    """
+    Perform a UniProt lookup for a batch of input data, updating the results dictionary.
+
+    Depending on the mode, the function either maps protein IDs to gene names
+    or gene names to protein IDs. The function handles batching, requests, and
+    response processing. Any input values that do not return results are marked
+    as failed in the results dictionary with an appropriate error code.
+
+    :param input_data: Set of input values to look up (protein IDs or gene names)
+    :type input_data: set[str]
+    :param mode: Lookup mode, either "id_to_gene_name" or "gene_name_to_id"
+    :type mode: Literal["id_to_gene_name", "gene_name_to_id"]
+    :param results: Dictionary to store lookup results; updated in place
+                    with ``existing_data -> (success, value, error_code)``
+    :type results: dict[str, tuple[bool, str | None, str | None]]
+    :param organism_id: Required only for 'gene_name_to_id' mode to filter queries
+    :type organism_id: str, optional
+
+    :return: None (results dictionary is updated in place)
+    :rtype: None
+    """
     if mode == "id_to_gene_name":
             error = "NO_GENE_NAME_FOUND"
             field_of_existing_data="accession"
@@ -211,27 +280,39 @@ def uniprot_lookup(input_data, mode, results, organism_id):
             extra_query=f"organism_id:{organism_id} AND reviewed:true"
             extra_fields="gene_names"
         
-    for batch in split_data_in_batches(input_data):
+    for batch in split_data_in_batches(data=input_data):
 
         url, params = build_uniprot_search_params(
-            batch,
-            field_of_existing_data,
-            extra_query,
-            extra_fields, 
+            data_for_lookup=batch,
+            field_of_existing_data=field_of_existing_data,
+            extra_query=extra_query,
+            extra_fields=extra_fields, 
         )
 
-        response = execute_uniprot_request(url, params, batch, results)
+        response = execute_uniprot_request(
+            url=url, 
+            params=params, 
+            valid_data=batch, 
+            results=results
+        )
         if response is None:
             continue
 
-        process_uniprot_response(response, results, batch, mode)
+        process_uniprot_response(
+            response=response, 
+            results=results, 
+            input_data=batch, 
+            mode=mode
+        )
 
     for data in input_data:
         if data not in results: 
             results[data] = (False, None, error)
 
 
-def get_gene_name_from_protein_ids(protein_ids: set):
+def get_gene_name_from_protein_ids(
+    protein_ids: set[str]
+)-> dict[str, tuple[bool, Optional[str], Optional[str]]]:
     """
     Retrieve the gene names for a given set of Protein IDs in a batch from UniProt.
 
@@ -259,7 +340,7 @@ def get_gene_name_from_protein_ids(protein_ids: set):
     )
 
     valid_ids, results = validate_data_before_lookup(
-        protein_ids,
+        data_for_lookup=protein_ids,
         validator_function=lambda pid: bool(valid_id_pattern.match(pid)),
         error_code="NOT_A_VALID_PROTEIN_ID",
     )
@@ -269,31 +350,38 @@ def get_gene_name_from_protein_ids(protein_ids: set):
     
     valid_ids_without_isoform = {x.split("-", 1)[0] for x in valid_ids}
 
-    uniprot_lookup(input_data=valid_ids_without_isoform, mode="id_to_gene_name", results=results, organism_id=None)
+    uniprot_lookup(
+        input_data=valid_ids_without_isoform, 
+        mode="id_to_gene_name", 
+        results=results, 
+        organism_id=None
+    )
 
     return results
 
 
-def get_protein_ids_from_gene_name(gene_names: set, organism_id):
+def get_protein_ids_from_gene_name(
+    gene_names: set[str], 
+    organism_id: str
+)-> dict[str, tuple[bool, Optional[str], Optional[str]]]:
     """
     Retrieve UniProt protein IDs for a given set of human gene names as a batch query.
 
     :param gene_names: Set of gene symbols to look up (e.g., {"RAD50", "MRE11"})
     :type gene_names: set[str]
+    :param organism_id: Organism identifier for filtering UniProt queries (e.g., "9606" for human)
+    :type organism_id: str
 
-    :return: Mapping of gene_name to a tuple containing lookup result, data, and error
-    :rtype: dict[str, tuple[bool, dict[str, list[str]] | None, str | None]]
+    :return: Dictionary mapping each gene name to a tuple of (success, protein_id, error)
+    :rtype: dict[str, tuple[bool, str | None, str | None]]
 
-    :returns success: True if the lookup for this gene_name succeeded, False otherwise
-    :returns data: Dictionary with protein information if successful, else None.
-                Contains:
-                    - "protein_ids" (list of str): All protein IDs without any isoform information
-                    - "list_of_protein_isoforms" (list of str): All isoform IDs
+    :returns success: True if the lookup for this gene name succeeded, False otherwise
+    :returns protein_id: The first valid protein ID found for the gene, or None if lookup failed
     :returns error: Error code or message if the lookup failed, else None
     """
     # Filter decoy Proteins, because we cannot process them decently
     valid_gene_names, results = validate_data_before_lookup(
-        gene_names,
+        data_for_lookup=gene_names,
         validator_function=lambda name: not name.startswith("decoy:"),
         error_code="IS_DECOY_PROTEIN",
     )
@@ -301,17 +389,22 @@ def get_protein_ids_from_gene_name(gene_names: set, organism_id):
     if not valid_gene_names:
         return results
     
-    uniprot_lookup(input_data=valid_gene_names, mode="gene_name_to_id", results=results, organism_id=organism_id)
+    uniprot_lookup(
+        input_data=valid_gene_names, 
+        mode="gene_name_to_id", 
+        results=results, 
+        organism_id=organism_id
+    )
 
     return results
 
 
 def iterate_for_protein_designation(
-    df,
-    existing_designation,
-    new_designation,
-    uniprot_lookup_results,
-):
+    df: pd.DataFrame,
+    existing_designation: str,
+    new_designation: str,
+    uniprot_lookup_results: dict[str, tuple[bool, Optional[str], Optional[str]]]
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Iterate over a DataFrame and add missing protein designations using precomputed lookup results.
     Either protein IDs or gene names are included in the DataFrame, and the other is added
@@ -327,10 +420,6 @@ def iterate_for_protein_designation(
     :param uniprot_lookup_results: Mapping of key -> (success, data, error)
                                    Contains precomputed lookup results
     :type uniprot_lookup_results: dict
-    :param value_extractor: Function that extracts the value to store in the DataFrame cell
-                            from `data`. Default is identity function.
-                            Signature: ``value_extractor(data) -> Any``
-    :type value_extractor: Callable[[Any], Any]
 
     :return: Tuple containing rows with successful lookups and rows with lookup errors
     :rtype: tuple[pandas.DataFrame, pandas.DataFrame]
@@ -379,8 +468,8 @@ def get_missing_protein_designation(
     df: pd.DataFrame,
     existing_column: str,
     missing_column: str,
-    uniprot_lookup_function,
-):
+    uniprot_lookup_function: Callable[[set[str]], dict[str, tuple[bool, str | None, str | None]]],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Fill missing protein designations in a DataFrame using a UniProt lookup function.
 
@@ -398,9 +487,6 @@ def get_missing_protein_designation(
                                     Should accept a set of values and return results
                                     as a dictionary ``key -> (success, data, error_code)``
     :type uniprot_lookup_function: Callable[[set[str]], dict[str, tuple[bool, Any, str | None]]]
-    :param value_extractor: Function to extract the value to store in the missing column
-                            from the lookup data. Default is the identity function.
-    :type value_extractor: Callable[[Any], Any]
 
     :return: Tuple of DataFrames containing rows with successful lookups and rows with errors
     :rtype: tuple[pandas.DataFrame, pandas.DataFrame]
@@ -408,10 +494,13 @@ def get_missing_protein_designation(
     :returns good_df: Rows where missing protein designations were successfully populated
     :returns failed_df: Rows where the lookup failed
     """
-    unique_existing_designations = aggregate_data(df, existing_column)
+    unique_existing_designations = aggregate_data(df=df, column=existing_column)
     uniprot_lookup_results = uniprot_lookup_function(unique_existing_designations)
     good_df, failed_df = iterate_for_protein_designation(
-        df, existing_column, missing_column, uniprot_lookup_results
+        df=df, 
+        existing_designation=existing_column, 
+        new_designation=missing_column, 
+        uniprot_lookup_results=uniprot_lookup_results
     )
     return good_df, failed_df
 
@@ -426,7 +515,7 @@ def get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
     return peptide.find("[") + 1  # 1-based index
 
 
-def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> pd.DataFrame:
+def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read and process a ProteomeDiscoverer XlinkX Excel file:
     1. Reads the Excel file and renames columns to a standard format.
@@ -472,7 +561,7 @@ def read_ProteomeDiscoverer_XlinkX_file(file_path: Path) -> pd.DataFrame:
     return good_df, failed_df
 
 
-def read_csm_file(file_path: Path, organism_id) -> pd.DataFrame:
+def read_csm_file(file_path: Path, organism_id: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read and process a CSM CSV file:
     1. Reads the CSV file and renames columns to a standard format.
@@ -484,6 +573,8 @@ def read_csm_file(file_path: Path, organism_id) -> pd.DataFrame:
 
     :param file_path: Path to the CSM CSV file
     :type file_path: pathlib.Path
+    :param organism_id: Organism identifier used for UniProt lookups (e.g., "9606" for human)
+    :type organism_id: str
 
     :return: Tuple of DataFrames containing rows with successfully mapped protein IDs
              and rows where lookup failed
@@ -524,7 +615,24 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[:, columns_in_crosslinking_df]
 
 
-def process_organism_id_from_text_field(organism_id: str): 
+def process_organism_id_from_text_field(organism_id: str)-> tuple[bool, Optional[str]]:
+    """
+    Retrieve the scientific name of an organism from its NCBI Taxonomy ID.
+
+    The function:
+    1. Cleans the input organism ID (removes spaces).
+    2. Queries the NCBI Entrez E-utilities esummary endpoint.
+    3. Returns a tuple indicating whether the lookup succeeded and the scientific name.
+
+    :param organism_id: NCBI Taxonomy ID as a string (may contain spaces)
+    :type organism_id: str
+
+    :return: Tuple indicating success and the scientific name
+    :rtype: tuple[bool, str | None]
+
+    :returns success: True if the organism ID was found and the scientific name retrieved
+    :returns name: Scientific name of the organism if found, else None
+    """ 
     cleaned_organism_id = organism_id.strip().replace(" ", "")
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={cleaned_organism_id}&retmode=json"
     response = requests.get(url)
@@ -538,18 +646,35 @@ def process_organism_id_from_text_field(organism_id: str):
     return True, name
 
 
-def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str: 
+def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
+    """
+    Aggregate failed protein lookups into a human-readable string.
+
+    For each row in `failed_df`, this function pairs protein values with their
+    corresponding error codes and returns a sorted, newline-separated string.
+
+    The function checks for the presence of either "Protein1"/"Protein2" columns
+    or "Protein_id1"/"Protein_id2" columns to determine which values to process.
+
+    :param failed_df: DataFrame containing rows with failed protein lookups
+                      Must include columns for proteins and their error codes
+    :type failed_df: pandas.DataFrame
+
+    :return: String summarizing all failed protein lookups in the format
+             "Protein_value -> ERROR_CODE", sorted alphabetically and separated by newlines
+    :rtype: str
+    """ 
     protein_with_error_set = set()  
 
     if "Protein1" in failed_df.columns and "Protein2" in failed_df.columns:
-        protein_cols = ["Protein1", "Protein2"]
+        protein_columns = ["Protein1", "Protein2"]
     elif "Protein_id1" in failed_df.columns and "Protein_id2" in failed_df.columns:
-        protein_cols = ["Protein_id1", "Protein_id2"]
+        protein_columns = ["Protein_id1", "Protein_id2"]
 
-    error_cols = ["Protein1_error", "Protein2_error"]
+    error_columns = ["Protein1_error", "Protein2_error"]
 
-    for prot_col, err_col in zip(protein_cols, error_cols):
-        for protein_val, error_val in zip(failed_df[prot_col], failed_df[err_col]):
+    for protein_col, error_col in zip(protein_columns, error_columns):
+        for protein_val, error_val in zip(failed_df[protein_col], failed_df[error_col]):
             if pd.notna(error_val):
                 protein_with_error_set.add(f"{protein_val} -> {error_val}")
 
