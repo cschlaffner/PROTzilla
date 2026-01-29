@@ -268,16 +268,18 @@ class Step:
 
         input_parameters = inspect.signature(self.plot_method).parameters
 
-        required_keys = [key for key, param in input_parameters.items()]
+        required_keys = [
+            key
+            for key, param in input_parameters.items()
+            if param.default == inspect.Parameter.empty
+        ]
         for key in required_keys:
             if key not in plot_input:
                 raise ValueError(f"Missing required input '{key}' for the plot method")
 
-        output_dict = {
+        return {
             key: plot_input[key] for key in input_parameters.keys() if key in plot_input
         }
-
-        return output_dict
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
