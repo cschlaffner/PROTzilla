@@ -12,12 +12,13 @@ from protzilla.constants.protzilla_logging import logger
 from protzilla.importing.import_utils import FeatureOrientationType
 from protzilla.importing.metadata_import import metadata_import_method
 from protzilla.importing.ms_data_import import max_quant_import
-from protzilla.importing.peptide_import import evidence_import
+from protzilla.importing.peptide_import import evidence_import, peptide_import
 
 
 def example_dataset_import():
+    # TODO: clean archive and peptides
     ACCESSION = "PXD014997"
-    FILENAME = "SEARCH-IDENTIFICATION_REL-FREEvsRELAPSE_Label-free.7z"
+    FILENAME = "SEARCH-IDENTIFICATIONS_REL_FREE-RELAPSE.7z"
     archive_file_path = EXAMPLE_DATASET_DIR / FILENAME
     if (
         not EXAMPLE_DATASET_PROTEIN_FILE.exists()
@@ -63,15 +64,18 @@ def example_dataset_import():
             logger.info("Extracting files %s from archive", selected_files)
             archive.extract(targets=selected_files, path=EXAMPLE_DATASET_DIR)
 
+        assert (
+            EXAMPLE_DATASET_PROTEIN_FILE.exists()
+            and EXAMPLE_DATASET_EVIDENCE_FILE.exists()
+        ), "Required files were not properly extracted from the archive."
         archive_file_path.unlink()
 
-    intensity_name = IntensityType.LFQ_INTENSITY.value
+    intensity_name = IntensityType.RATIO_HL.value
     protein_import_dict = max_quant_import(
         file_path=EXAMPLE_DATASET_PROTEIN_FILE,
         intensity_name=intensity_name,
         aggregation_method="Sum",
     )
-    # Return messages
     if "protein_df" not in protein_import_dict:
         return protein_import_dict
 
@@ -80,10 +84,16 @@ def example_dataset_import():
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )
+    if "metadata_df" not in metadata_import_dict:
+        return metadata_import_dict
 
     peptide_import_dict = evidence_import(
-        file_path=EXAMPLE_DATASET_EVIDENCE_FILE, map_to_uniprot=False
+        file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
+        intensity_name=IntensityType.RATIO_HL.value,
+        map_to_uniprot=False,
     )
+    if "peptide_df" not in peptide_import_dict:
+        return peptide_import_dict
 
     combined_messages = (
         protein_import_dict.pop("messages", [])

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import main
+from protzilla.constants.intensity_types import IntensityType
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
@@ -41,7 +42,11 @@ def tmp_ptm_settings_dir(tmp_path_factory):
 
 
 def get_evidence_df(path: Path):
-    outputs = peptide_import.evidence_import(file_path=path, map_to_uniprot=False)
+    outputs = peptide_import.evidence_import(
+        file_path=path,
+        intensity_name=IntensityType.INTENSITY.value,
+        map_to_uniprot=False,
+    )
     evidence_df = outputs["peptide_df"]
     return evidence_df
 

@@ -17,9 +17,9 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
         return dict(
             messages=[dict(level=logging.ERROR, msg=e)],
         )
+
     # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
     # "LFQ intensity" are only defined for proteins. However, ratios can be used for peptides.
-
     if (
         intensity_name == IntensityType.LFQ_INTENSITY.value
         or intensity_name == IntensityType.IBAQ.value
@@ -76,16 +76,15 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
     return dict(peptide_df=cleaned)
 
 
-def evidence_import(file_path: Path, map_to_uniprot) -> dict:
-    try:
-        assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
-    except AssertionError as e:
-        return dict(messages=[dict(level=logging.ERROR, msg=e)])
+def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
+    # TODO: add test that checks if Ratio H/L works?
+    if not Path(file_path).is_file():
+        raise FileNotFoundError(f"Cannot find Peptide File at {file_path}")
 
     id_columns = [
         "Leading razor protein",
         "Sequence",
-        "Intensity",
+        intensity_name,
         "Modifications",
         "Modified sequence",
         "Missed cleavages",
@@ -94,9 +93,23 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         "Raw file",
     ]
 
+    # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case so we have to find
+    # a way around it by using the select_column function. However, it's not as straightforward as just capitalizing,
+    # so we need to define exceptions.
+    column_exceptions = {
+        "PEP",
+        IntensityType.RATIO_HL.value,
+        IntensityType.RATIO_LH.value,
+        IntensityType.RATIO_HL_NORMALIZED.value,
+        IntensityType.RATIO_LH_NORMALIZED.value,
+    }
+
     def select_column(column):
-        # Check for whitespace in the column name to not capitalize "PEP" which should stay all-caps.
-        capitalized_column = column.capitalize() if " " in column else column
+        capitalized_column = (
+            column.capitalize()
+            if column not in column_exceptions and " " in column
+            else column
+        )
         return capitalized_column in id_columns
 
     df = pd.read_csv(
@@ -107,13 +120,27 @@ def evidence_import(file_path: Path, map_to_uniprot) -> dict:
         keep_default_na=True,
         usecols=select_column,
     )
+    if intensity_name not in df.columns:
+        raise ValueError(
+            f"{intensity_name} was not found in the provided file, please use another intensity and try again or "
+            f"verify your file."
+        )
 
-    # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case
     # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
     #  require bigger changes in the code
-    df = df.rename(columns={c: c.capitalize() if " " in c else c for c in df.columns})
+    #   - maybe use headers of PXD014997_AML_phosphoproteome/txt_LF/peptides.txt and PXD014997_AML_phosphoproteome/txt_LF/evidence_full.txt
     df = df.rename(
-        columns={"Leading razor protein": "Protein ID", "Experiment": "Sample"}
+        columns={
+            c: c.capitalize() if c not in column_exceptions and " " in c else c
+            for c in df.columns
+        }
+    )
+    df = df.rename(
+        columns={
+            "Leading razor protein": "Protein ID",
+            "Experiment": "Sample",
+            intensity_name: "Intensity",
+        }
     )
 
     df.dropna(subset=["Protein ID"], inplace=True)

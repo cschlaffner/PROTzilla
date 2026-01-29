@@ -218,6 +218,8 @@ def t_test(
         t_statistic_df=t_statistic_df,
         log2_fold_change_df=log2_fold_change_df,
         fc_significance_df=fc_significance_df,
+        fc_zscore_alpha=fc_zscore_alpha,
+        fc_zscore_filter=fc_zscore_filter,
         corrected_alpha=corrected_alpha,
         messages=messages,
     )

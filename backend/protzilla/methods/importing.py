@@ -344,6 +344,12 @@ class EvidenceImport(ImportingStep):
                     name="file_path",
                     label="Evidence file",
                 ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    value=IntensityType.INTENSITY.value,
+                    options=IntensityType,
+                ),
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",

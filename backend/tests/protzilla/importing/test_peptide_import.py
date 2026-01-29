@@ -200,6 +200,7 @@ def test_peptide_import(intensity_name):
 def test_evidence_import():
     outputs = peptide_import.evidence_import(
         file_path=TEST_PEPTIDES_PATH / "evidence-vsmall.txt",
+        intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
 

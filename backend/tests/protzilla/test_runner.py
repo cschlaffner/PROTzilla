@@ -234,6 +234,8 @@ def test_runner_imports(
             "protein_df": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
+            "fc_zscore_alpha": 0.05,
+            "fc_zscore_filter": False,
             "grouping": None,
             "group1": None,
             "group2": None,
