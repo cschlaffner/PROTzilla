@@ -106,7 +106,7 @@ export const RunScreen: React.FC = () => {
       }).then(() => {
         void getRunData();
         void getStepPlots();
-        void getStepTable();
+        void getStepTable(); // Bloat :c
       });
     } else {
       void getRunData();

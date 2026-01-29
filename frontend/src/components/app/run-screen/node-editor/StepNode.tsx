@@ -66,8 +66,6 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
   const stepInputs = ["peptide_df", "protein_df", "meta_df"];
   const stepOutputs = ["peptide_df", "protein_df"];
 
-  // TODO: The icons are quite messed up (especially the hitboxes and alignment)
-  // Might want to fix that
   return (
     <StyledNode
       className={`step-node`}
