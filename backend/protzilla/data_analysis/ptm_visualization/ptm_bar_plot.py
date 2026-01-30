@@ -43,6 +43,8 @@ def create_bar_ptm_visualization(
     fasta_file_path: Path,
     regions_file_path: Path,
     groups_file_path: Path,
+    metadata_df: pd.DataFrame,
+    metadata_column: str,
 ) -> dict:
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,
@@ -50,6 +52,8 @@ def create_bar_ptm_visualization(
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
         groups_file_path=groups_file_path,
+        metadata_df=metadata_df,
+        metadata_column=metadata_column,
     )
 
     plot_config_module = get_bar_plot_config_module(groups_file_path, out_dir)

@@ -2424,6 +2424,14 @@ class _PTMVisualizationStep(DataAnalysisStep):
                 value=0.01,
                 hasStepButtons=False,
             ),
+            DropdownField(
+                name="metadata_df",
+                label="Choose dataframe that contains information about the (treatment) groups that should be plotted",
+            ),
+            DropdownField(
+                name="metadata_column",
+                label="Choose the column of the metadata dataframe that should be used",
+            ),
             FileInput(
                 name="fasta_file_path",
                 label="FASTA file",
@@ -2447,10 +2455,26 @@ class _PTMVisualizationStep(DataAnalysisStep):
                 run, output_key="peptide_df", step_type=Step, required=True
             )
         )
+        form["metadata_df"].set_options(
+            form_helper.get_choices(
+                run,
+                output_key="metadata_df",
+                required=True,
+            )
+        )
+        if form.values["metadata_df"] is not None:
+            form["metadata_column"].set_options(
+                form_helper.get_choices_for_metadata_non_sample_columns(
+                    run, instance_identifier=form.values["metadata_df"]
+                )
+            )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["evidence_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["evidence_df"]
+        )
+        inputs["metadata_df"] = steps.get_step_output(
+            Step, "metadata_df", inputs["metadata_df"]
         )
         return inputs
 

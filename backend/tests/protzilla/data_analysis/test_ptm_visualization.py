@@ -17,19 +17,27 @@ from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
 from protzilla.importing import peptide_import
-from tests.paths import TEST_PTM_VISUALIZATION_PATH, TEST_FASTA_PATH, TEST_PEPTIDES_PATH
+from protzilla.importing.metadata_import import metadata_import_method
+from tests.paths import (
+    TEST_PTM_VISUALIZATION_PATH,
+    TEST_FASTA_PATH,
+    TEST_PEPTIDES_PATH,
+    TEST_METADATA_PATH,
+)
 
 GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
 GFAP_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P14136.txt"
 GFAP_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P14136.fasta"
 GFAP_REGIONS_FILE_PATH = GFAP_PATH / "regions.csv"
 GFAP_GROUP_FILE_PATH = GFAP_PATH / "groups_max_quant.csv"
+GFAP_METADATA_FILE_PATH = GFAP_PATH / "metadata.csv"
 
 TAU_PATH = TEST_PTM_VISUALIZATION_PATH / "P10636"
 TAU_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P10636.txt"
 TAU_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
 TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
 TAU_GROUP_FILE_PATH = TAU_PATH / "groups_max_quant_AD.csv"
+TAU_METADATA_FILE_PATH = TEST_METADATA_PATH / "metadata_full.csv"
 
 Q_VALUE_THRESHOLD = 0.01
 
@@ -51,15 +59,24 @@ def get_evidence_df(path: Path):
     return evidence_df
 
 
+def get_metadata_df(path: Path):
+    metadata_df = metadata_import_method(
+        protein_df=None, file_path=path, feature_orientation="columns"
+    )["metadata_df"]
+    return metadata_df
+
+
 def pytest_generate_tests(metafunc):
     # A generation function that makes sure that the matching test functions are run with all three plotting function
-    # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not wort the effort
+    # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not worth the effort
     if "plot_func" in metafunc.fixturenames:
         basic_kwargs = dict(
             evidence_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=GFAP_FASTA_FILE_PATH,
             regions_file_path=GFAP_REGIONS_FILE_PATH,
+            metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
+            metadata_column="Group",
         )
         kwargs_with_groups = dict(**basic_kwargs, groups_file_path=GFAP_GROUP_FILE_PATH)
         plot_funcs_to_kwargs = [
@@ -74,6 +91,8 @@ def pytest_generate_tests(metafunc):
                 evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
                 fasta_file_path=TAU_FASTA_FILE_PATH,
                 regions_file_path=TAU_REGIONS_FILE_PATH,
+                metadata_df=get_metadata_df(TAU_METADATA_FILE_PATH),
+                metadata_column="Group",
             )
             tau_kwargs_with_groups = dict(
                 **tau_kwargs, groups_file_path=TAU_GROUP_FILE_PATH

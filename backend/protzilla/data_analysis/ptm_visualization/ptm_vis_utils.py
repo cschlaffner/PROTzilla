@@ -171,6 +171,8 @@ def preprocess_files(
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
+    metadata_df: pd.DataFrame,
+    metadata_column: str,
     groups_file_path: Path | None = None,
 ) -> tuple[types.ModuleType, Path]:
     out_dir = UPLOAD_PATH / "ptm_tmp"
@@ -184,6 +186,10 @@ def preprocess_files(
     )
 
     MaxQuantPreprocessor(
-        config_module, preprocessor_config_module, evidence_df=evidence_df
+        config_module,
+        preprocessor_config_module,
+        evidence_df=evidence_df,
+        metadata_df=metadata_df,
+        metadata_column=metadata_column,
     )
     return config_module, out_dir
