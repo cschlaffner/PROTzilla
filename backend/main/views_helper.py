@@ -269,4 +269,3 @@ def validate_uploaded_files(
     msg = f"All {len(file_mapping)} files validated successfully"
     logger.info(msg)
     return True, msg
-

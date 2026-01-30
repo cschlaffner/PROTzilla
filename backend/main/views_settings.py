@@ -14,7 +14,12 @@ from django.contrib import messages
 from django.http import JsonResponse, FileResponse
 
 from backend.main import settings
-from backend.main.views_helper import sanitize_name, load_settings_from_file, validate_uploaded_files, copy_file_to_directory
+from backend.main.views_helper import (
+    sanitize_name,
+    load_settings_from_file,
+    validate_uploaded_files,
+    copy_file_to_directory,
+)
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
 from backend.protzilla.data_integration.database_query import (
     uniprot_columns,
@@ -227,6 +232,7 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 
 AF_DICT_PATH = EXTERNAL_DATA_PATH / "alphafold"
 
+
 def get_prot_structure(request):
     metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
     df = pandas.read_csv(metadata_csv)
@@ -263,29 +269,30 @@ def upload_prot_structure(request):
             pae: [".json"],
             fasta_file: [".fasta", ".fa"],
         }
-        
+
         is_valid, validation_message = validate_uploaded_files(
             settings.FILE_UPLOAD_TEMP_DIR, file_mapping
         )
         if not is_valid:
-            messages.add_message(request, messages.ERROR, validation_message, "alert-danger")
-            return JsonResponse({"success": False, "message": validation_message}, status=400)
+            messages.add_message(
+                request, messages.ERROR, validation_message, "alert-danger"
+            )
+            return JsonResponse(
+                {"success": False, "message": validation_message}, status=400
+            )
 
         af_path = AF_DICT_PATH / entry_id.upper()
         if af_path.exists():
             return JsonResponse(
-            {"success": False, "message": "Entry ID is not unique."}, status=405
-        )
+                {"success": False, "message": "Entry ID is not unique."}, status=405
+            )
         else:
             af_path.mkdir(parents=True, exist_ok=True)
 
         for file_name in [cif_file, confidence, pae, fasta_file]:
             source_dir = settings.FILE_UPLOAD_TEMP_DIR / file_name
-            success, message = copy_file_to_directory(
-                source_dir,
-                af_path
-            )
-        
+            success, message = copy_file_to_directory(source_dir, af_path)
+
         # add row to metadata csv
         AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
         metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
@@ -299,11 +306,11 @@ def upload_prot_structure(request):
             "uniprotAccession": uniprot_id,
             "modelCreatedDate": formatted,
             "gene": gene,
-            "alphafold_version": af_version
+            "alphafold_version": af_version,
         }
 
         df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
-        df.to_csv(metadata_csv, index=False)       
+        df.to_csv(metadata_csv, index=False)
 
         return JsonResponse(
             {
@@ -327,7 +334,7 @@ def prot_structure_delete(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
+
     data = json.loads(request.body)
     entry_id = (data.get("entry_id") or "").strip()
     if not entry_id:
@@ -354,11 +361,17 @@ def prot_structure_delete(request):
         )
 
     # remove entry out of metadata csv
-    if metadata_csv.exists() and metadata_csv.is_file() and metadata_csv.stat().st_size > 0:
+    if (
+        metadata_csv.exists()
+        and metadata_csv.is_file()
+        and metadata_csv.stat().st_size > 0
+    ):
         try:
             df = pandas.read_csv(metadata_csv, dtype=str)
-            df = df[df["entryID"].fillna("").str.strip().str.upper() != entry_id.upper()]
-            df.to_csv(metadata_csv, index=False)         
+            df = df[
+                df["entryID"].fillna("").str.strip().str.upper() != entry_id.upper()
+            ]
+            df.to_csv(metadata_csv, index=False)
 
         except Exception as e:
             return JsonResponse(
@@ -372,6 +385,7 @@ def prot_structure_delete(request):
     return JsonResponse(
         {"success": True, "message": "Entry deleted successfully"}, status=200
     )
+
 
 # <--- Databases --->
 

@@ -6,7 +6,6 @@ import { callApi, callApiWithParameters } from "@protzilla/utils";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-
 const ProteinStructureTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
   padding-bottom: ${spacing("small")};
@@ -53,7 +52,6 @@ const ProtStructureEntry = ({
   af_version,
   handleDelete,
 }: ProtStructureProps) => {
-
   return (
     <ProtStructureContainer>
       <ProtStructureInfo>
@@ -77,41 +75,41 @@ const ProtStructureEntry = ({
 };
 
 export const ProteinStructureUpload = () => {
-    const notify = useNotification();
-    const [protStructureList, setProtStructureList] = useState<ProtStructureProps[]>([]);
-    const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggleableState(false);
-    const [selectedProtStructure, setSelectedProtStructure] = useState<string>("");
+  const notify = useNotification();
+  const [protStructureList, setProtStructureList] = useState<ProtStructureProps[]>([]);
+  const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggleableState(false);
+  const [selectedProtStructure, setSelectedProtStructure] = useState<string>("");
 
-    const fetchDatabases = async () => {
-        const protStructures = await callApi("get_prot_structure");
-        if (protStructures) {
-          setProtStructureList(protStructures);
-        }
-      };
-    
-      useEffect(() => {
-        void fetchDatabases();
-      }, []);
+  const fetchProtStructures = async () => {
+    const protStructures = await callApi("get_prot_structure");
+    if (protStructures) {
+      setProtStructureList(protStructures);
+    }
+  };
 
-    const handleAddProteinStructure = async (
-        uniprot_id: string,
-        entry_id: string,
-        af_version: string,
-        gene: string,
-        cif_file: string,
-        confidence: string,
-        pae: string,
-        fasta_file: string,
+  useEffect(() => {
+    void fetchProtStructures();
+  }, []);
+
+  const handleAddProteinStructure = async (
+    uniprot_id: string,
+    entry_id: string,
+    af_version: string,
+    gene: string,
+    cif_file: string,
+    confidence: string,
+    pae: string,
+    fasta_file: string,
   ) => {
     const response = await callApiWithParameters("upload_prot_structure", {
       uniprot_id: uniprot_id,
       entry_id: entry_id,
-        af_version: af_version,
-        gene: gene,
-        cif_file: cif_file,
-        confidence: confidence,
-        pae: pae,
-        fasta_file: fasta_file,
+      af_version: af_version,
+      gene: gene,
+      cif_file: cif_file,
+      confidence: confidence,
+      pae: pae,
+      fasta_file: fasta_file,
     });
     if (response?.success) {
       notify({
@@ -128,35 +126,36 @@ export const ProteinStructureUpload = () => {
         isClosingAutomatically: true,
       });
     }
+    void fetchProtStructures();
   };
 
   const onDeleteProtStructure = (entry_id: string) => {
-      openDeleteModal();
-      setSelectedProtStructure(entry_id);
-    };
-  
-    const handleDeleteProtStructure = async (entry_id: string) => {
-      const response = await callApiWithParameters("prot_structure_delete", {
-        entry_id: entry_id,
+    openDeleteModal();
+    setSelectedProtStructure(entry_id);
+  };
+
+  const handleDeleteProtStructure = async (entry_id: string) => {
+    const response = await callApiWithParameters("prot_structure_delete", {
+      entry_id: entry_id,
+    });
+    if (response?.success) {
+      notify({
+        title: "Protein structure deleted",
+        message: response.message as string,
+        type: "success",
+        isClosingAutomatically: true,
       });
-      if (response?.success) {
-        notify({
-          title: "Protein structure deleted",
-          message: response.message as string,
-          type: "success",
-          isClosingAutomatically: true,
-        });
-      } else {
-        notify({
-          title: "Protein structure deletion failed",
-          message: response?.message ?? "Unknown error",
-          type: "error",
-          isClosingAutomatically: true,
-        });
-      }
-      void fetchDatabases();
-      closeDeleteModal();
-    };
+    } else {
+      notify({
+        title: "Protein structure deletion failed",
+        message: response?.message ?? "Unknown error",
+        type: "error",
+        isClosingAutomatically: true,
+      });
+    }
+    void fetchProtStructures();
+    closeDeleteModal();
+  };
 
   return (
     <div>
@@ -173,65 +172,65 @@ export const ProteinStructureUpload = () => {
         style={{ paddingBottom: "8px" }}
       />
 
-    <Form
+      <Form
         formData={{
-            label: "",
-            labelSubmitButton: "Upload Structure",
-            isAutoSubmit: false,
-            hasChangeIndicator: false,
-            input_fields: [
+          label: "",
+          labelSubmitButton: "Upload Structure",
+          isAutoSubmit: false,
+          hasChangeIndicator: false,
+          input_fields: [
             {
-                type: "text",
-                name: "uniprot_id",
-                label: "Uniprot ID (required):",
-                isVisible: true,
+              type: "text",
+              name: "uniprot_id",
+              label: "Uniprot ID (required):",
+              isVisible: true,
             },
             {
-                type: "text",
-                name: "entry_id",
-                label: "Entry ID (required):",
-                isVisible: true,
+              type: "text",
+              name: "entry_id",
+              label: "Entry ID (required):",
+              isVisible: true,
             },
             {
-                type: "text",
-                name: "af_version",
-                label: "Alphafold Version Number (required):",
-                isVisible: true,
+              type: "text",
+              name: "af_version",
+              label: "Alphafold Version Number (required):",
+              isVisible: true,
             },
             {
-                type: "text",
-                name: "gene",
-                label: "Gene Name (required):",
-                isVisible: true,
+              type: "text",
+              name: "gene",
+              label: "Gene Name (required):",
+              isVisible: true,
             },
             {
-                type: "file",
-                name: "cif_file",
-                label: "CIF file (required):",
-                isVisible: true,
+              type: "file",
+              name: "cif_file",
+              label: "CIF file (required):",
+              isVisible: true,
             },
             {
-                type: "file",
-                name: "confidence_file",
-                label: "Confidence JSON file (required):",
-                isVisible: true,
+              type: "file",
+              name: "confidence_file",
+              label: "Confidence JSON file (required):",
+              isVisible: true,
             },
             {
-                type: "file",
-                name: "pae_file",
-                label: "Predicted Aligned Error JSON file (required):",
-                isVisible: true,
+              type: "file",
+              name: "pae_file",
+              label: "Predicted Aligned Error JSON file (required):",
+              isVisible: true,
             },
             {
-                type: "file",
-                name: "fasta_file",
-                label: "Sequence FASTA file (required):",
-                isVisible: true,
+              type: "file",
+              name: "fasta_file",
+              label: "Sequence FASTA file (required):",
+              isVisible: true,
             },
-            ],
+          ],
         }}
         onChange={(data) => {
-            void handleAddProteinStructure(
+          void handleAddProteinStructure(
             data.uniprot_id as string,
             data.entry_id as string,
             data.af_version as string,
@@ -242,29 +241,35 @@ export const ProteinStructureUpload = () => {
             data.fasta_file as string,
           );
         }}
-        />
-    <ProteinStructureTitle baseComponent={"h2"} title={"Available Predicted Protein Structures"} />
-    <ProtStructureList>
-            {protStructureList.map((ps) => (
-              <ProtStructureEntry
-              key={ps.entry_id}
-                entry_id={ps.entry_id}
-                uniprot_id={ps.uniprot_id}
-                date_modified={ps.date_modified}
-                gene={ps.gene}
-                af_version={ps.af_version}
-                handleDelete={() => {
-                  onDeleteProtStructure(ps.entry_id);
-                }}
-              />
-            ))}
-          </ProtStructureList>
-          <DeleteModal
-            isOpen={isDeleteModalOpen}
-            onClose={closeDeleteModal}
-            onConfirm={() => void handleDeleteProtStructure(selectedProtStructure)}
-            title={`Deleted protein structure "${selectedProtStructure}"?`}
+      />
+      <ProteinStructureTitle
+        baseComponent={"h2"}
+        title={"Available Predicted Protein Structures"}
+      />
+      <ProtStructureList>
+        {protStructureList.map((ps) => (
+          <ProtStructureEntry
+            key={ps.entry_id}
+            entry_id={ps.entry_id}
+            uniprot_id={ps.uniprot_id}
+            date_modified={ps.date_modified}
+            gene={ps.gene}
+            af_version={ps.af_version}
+            handleDelete={() => {
+              onDeleteProtStructure(ps.entry_id);
+            }}
           />
+        ))}
+      </ProtStructureList>
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={() => void handleDeleteProtStructure(selectedProtStructure)}
+        title={
+          `The uploaded protein structure prediction with the entryID ` +
+          `"${selectedProtStructure}" will permanently be deleted. Would you like to proceed?`
+        }
+      />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from textwrap import wrap
 from typing import Any
+import logging
 
 import gemmi
 import pandas as pd
@@ -104,12 +105,14 @@ def handle_alphafold_files(
     :param metadata_df: DataFrame containing AlphaFold metadata
     :param entry_id: The entry_id (in the case of fetching from AF DB the same as uniprot id) (used for directory naming)
     :param persist_uploads: If True, files are saved persistently; if False, only loaded into memory
-    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data or None values for failed loads
+    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, sequence data or None values for
+    failed loads and messages such as warnings
     """
     cif_df = None
     pae_df = None
     plddt_df = None
     sequence_df = None
+    messages = []
 
     meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
     target_dir = meta_dir / uniprot
@@ -131,8 +134,15 @@ def handle_alphafold_files(
             try:
                 if metadata_csv.exists():
                     existing = pd.read_csv(metadata_csv, dtype=str)
-                    if entry_id and "entry_id" in existing.columns:
-                        existing = existing[existing["entry_id"] != entry_id]
+                    mask = existing["entryID"] == entry_id
+                    if mask.any():
+                        msg = (
+                            f'Existing entry with EntryID "{entry_id}" was overwritten.'
+                        )
+                        logger.warning(msg)
+                        messages.append(dict(level=logging.WARNING, msg=msg))
+                        existing = existing[~mask]
+
                     combined = pd.concat([existing, metadata_df], ignore_index=True)
                     combined.to_csv(metadata_csv, index=False)
                 else:
@@ -184,6 +194,7 @@ def handle_alphafold_files(
         "pae_df": pae_df,
         "plddt_df": plddt_df,
         "sequence_df": sequence_df,
+        "messages": messages,
     }
 
 
@@ -255,4 +266,5 @@ def fetch_alphafold_protein_structure(
             "pae_df": alpha_dfs["pae_df"],
             "plddt_df": alpha_dfs["plddt_df"],
             "sequence_df": alpha_dfs["sequence_df"],
+            "messages": alpha_dfs.get("messages", []),
         }

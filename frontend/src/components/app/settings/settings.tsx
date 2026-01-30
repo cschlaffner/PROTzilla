@@ -3,7 +3,12 @@ import { spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { DatabaseSettings, GitHub, ProteinStructureUpload, PTMVisSettings } from "./other-settings/";
+import {
+  DatabaseSettings,
+  GitHub,
+  ProteinStructureUpload,
+  PTMVisSettings,
+} from "./other-settings/";
 import { PlotSettingsModal } from "./plot-settings";
 import { SettingsProps } from "./settings.props.ts";
 import { DiscardModal, Modal, ToggleableButton } from "../../core/";
@@ -113,7 +118,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <SectionButton
               id={"protein-struc-upload"}
               isActive={selectedSetting === "protein-struc-upload"}
-              icon={"structure"}
+              icon={"prot_structure"}
               text={"Protein Structure Upload"}
               onPress={() => {
                 handleSwitchSection("protein-struc-upload");
