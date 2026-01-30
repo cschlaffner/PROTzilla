@@ -410,7 +410,26 @@ class ExampleDatasetImport(ImportingStep):
     def create_form(self):
         return Form(
             label="Example Dataset Import",
-            input_fields=[HeaderInfoField(label=self.method_description)],
+            input_fields=[
+                HeaderInfoField(label=self.method_description),
+                FormDivider("Settings"),
+                CheckboxField(
+                    name="import_peptide_data",
+                    label="Import data from MaxQuant evidence.txt (may take longer and require more memory)",
+                    value=False,
+                ),
+            ],
         )
 
     calc_method = staticmethod(example_dataset_import)
+
+    def modify_form(self, form, run):
+        import_peptide_data_field = form["import_peptide_data"]
+        if import_peptide_data_field.value is False:
+            run.steps.current_step.output_keys = ["metadata_df", "protein_df"]
+        else:
+            run.steps.current_step.output_keys = [
+                "metadata_df",
+                "peptide_df",
+                "protein_df",
+            ]

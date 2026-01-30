@@ -120,10 +120,15 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
         keep_default_na=True,
         usecols=select_column,
     )
+    # TODO: test this error
     if intensity_name not in df.columns:
-        raise ValueError(
-            f"{intensity_name} was not found in the provided file, please use another intensity and try again or "
-            f"verify your file."
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file.",
+                )
+            ],
         )
 
     # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
