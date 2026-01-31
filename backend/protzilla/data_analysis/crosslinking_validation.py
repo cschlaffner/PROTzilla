@@ -8,7 +8,15 @@ from protzilla.importing.alphafold_protein_structure_load import (
 from protzilla.data_preprocessing.plots import create_bar_plot
 
 
-def get_reactive_atom_of_amino_acid_residue(amino_acid_kind: str) -> str:
+def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
+    """
+    Returns the atom of an amino acid residue that is considered reactive for
+    cross-linking. Currently, this always returns the central alpha carbon (CA).
+
+    :param amino_acid_type: code of the amino acid
+
+    :return: the atom identifier of the reactive atom as a string
+    """
     # right now we always return the central C atom
     # later we might want to return the reactive atom of the amino acid residue of the specific amino acid kind
     # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation
@@ -17,10 +25,21 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_kind: str) -> str:
 
 def get_coordinates_of_atom_crosslinker_bound_to(
     amino_acid_position_where_crosslinker_bound: int,
-    amino_acid_kind: str,
+    amino_acid_type: str,
     cif_df: pd.DataFrame,
 ) -> tuple[float, float, float]:
-    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_kind)
+    """
+    Returns the Cartesian coordinates of the atom to which the cross-linker is
+    bound for a given amino acid residue in a protein structure.
+
+    :param amino_acid_position_where_crosslinker_bound: 1-based position of the amino acid residue
+    :param amino_acid_type: amino acid type at the given position
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :return: a tuple (x, y, z) containing the Cartesian coordinates of the atom in Ångström
+    :raises ValueError: if the specified atom cannot be found in the CIF data
+    """
+
+    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type)
 
     # Filter to the exact reactive atom of the amino acid residue
     # where the crosslinker is bound (e.g. CA at position 45)
@@ -53,6 +72,17 @@ def get_distance_between_two_amino_acids_in_angstrom(
     amino_acid_kind2: str,
     cif_df: pd.DataFrame,
 ) -> float:
+    """
+    Calculates the Euclidean distance in Ångström between two amino acid residues
+    based on the coordinates of their reactive atoms in the AlphaFold/predicted structure.
+
+    :param amino_acid_position1: 1-based position of the first amino acid residue
+    :param amino_acid_position2: 1-based position of the second amino acid residue
+    :param amino_acid_kind1: amino acid type at the first position
+    :param amino_acid_kind2: amino acid type at the second position
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :return: the distance between the two residues in Ångström
+    """
     x1, y1, z1 = get_coordinates_of_atom_crosslinker_bound_to(
         amino_acid_position1, amino_acid_kind1, cif_df
     )
@@ -70,7 +100,15 @@ def get_position_of_amino_acid_crosslinker_bound_to(
     peptide_sequence: str,
     crosslinker_position_within_peptide: int,
 ) -> int:
-    """Returns which amino acid the cross-linker bound to, 1-based."""
+    """
+    Determines the position of the amino acid to which the cross-linker bound.
+
+    :param protein_sequence: full protein amino acid sequence
+    :param peptide_sequence: peptide sequence containing the amino acid the cross-linker bound to
+    :param crosslinker_position_within_peptide: 1-based position of the cross-linker within the peptide
+    :return: 1-based position of the amino acid residue in the protein sequence
+    :raises ValueError: if the peptide sequence cannot be found in the protein sequence
+    """
     peptide_start_position = protein_sequence.find(peptide_sequence)
     if peptide_start_position == 0:
         raise ValueError(
@@ -82,6 +120,15 @@ def get_position_of_amino_acid_crosslinker_bound_to(
 def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
     fasta_df: pd.DataFrame, cif_df: pd.DataFrame, crosslink: pd.Series
 ) -> float:
+    """
+    Calculates the distance in Ångström between two amino acid residues connected
+    by a cross-linker using a predicted protein structure (e.g. from AlphaFold).
+
+    :param fasta_df: DataFrame containing the protein sequence
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param crosslink: Series describing a cross-link, including cross-linker positions
+    :return: the distance between the cross-linked amino acids in Ångström
+    """
     protein_sequence = fasta_df.at[0, "Protein Sequence"]
     amino_acid_position_crosslinker1_is_bound_to = (
         get_position_of_amino_acid_crosslinker_bound_to(
