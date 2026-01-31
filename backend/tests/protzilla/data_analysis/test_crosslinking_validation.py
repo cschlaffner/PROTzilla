@@ -3,7 +3,7 @@ from unittest.mock import patch
 from unittest.mock import MagicMock
 
 
-from backend.protzilla.data_analysis.cross_linking_validation import (
+from backend.protzilla.data_analysis.crosslinking_validation import (
     get_distance_between_two_amino_acids_in_angstrom,
     get_position_of_amino_acid_crosslinker_bound_to,
     validate_with_angstrom_deviation,

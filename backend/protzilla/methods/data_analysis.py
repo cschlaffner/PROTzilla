@@ -60,7 +60,7 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
-from protzilla.data_analysis.cross_linking_validation import (
+from protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     bar_plot_of_valid_crosslinks,
 )
@@ -2491,23 +2491,23 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        cross_linker = self._get_crosslinker_names_from_crosslinker_df(run.steps)
-        for cl in cross_linker:
-            field_name = f"length_of_{cl}"
+        crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
+        for crosslinker in crosslinkers:
+            field_name = f"{crosslinker}_length"
             if field_name not in form:
                 crosslinker_length_field = FloatField(
                     name=field_name,
-                    label=f"Length of {cl} in Ångström",
+                    label=f"Length of {crosslinker} in Ångström",
                     min=0,
                 )
                 upper_bound_length_deviation_field = FloatField(
-                    name=f"upper_accepted_deviation_for_{cl}",
-                    label=f"Upper bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
+                    name=f"{crosslinker}_upper_accepted_deviation",
+                    label=f"Upper bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
                     min=0,
                 )
                 lower_bound_length_deviation_field = FloatField(
-                    name=f"lower_accepted_deviation_for_{cl}",
-                    label=f"Lower bound on the accepted deviation for {cl} Cross-Links in Ångström (0 equals no bound)",
+                    name=f"{crosslinker}_lower_accepted_deviation",
+                    label=f"Lower bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
                     min=0,
                 )
                 form.add_field(crosslinker_length_field)
@@ -2529,9 +2529,9 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         crosslinker_to_length_and_deviation = {}
         for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
             crosslinker_to_length_and_deviation[crosslinker] = [
-                inputs.get(f"length_of_{crosslinker}"),
-                inputs.get(f"upper_accepted_deviation_for_{crosslinker}"),
-                inputs.get(f"lower_accepted_deviation_for_{crosslinker}"),
+                inputs.get(f"{crosslinker}_length"),
+                inputs.get(f"{crosslinker}_upper_accepted_deviation"),
+                inputs.get(f"{crosslinker}_lower_accepted_deviation"),
             ]
         inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
 
