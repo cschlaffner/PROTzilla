@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 
 from backend.protzilla.data_analysis.crosslinking_validation import (
-    get_distance_between_two_amino_acids_in_angstrom,
     get_position_of_amino_acid_crosslinker_bound_to,
     validate_with_angstrom_deviation,
 )
@@ -19,7 +18,7 @@ def test_get_position_of_amino_acid_crosslinker_bound_to():
 
 
 @patch(
-    "backend.protzilla.data_analysis.cross_linking_validation.fetch_alphafold_protein_structure"
+    "backend.protzilla.data_analysis.crosslinking_validation.fetch_alphafold_protein_structure"
 )
 def test_validate_with_angstrom_deviation(mock_fetch):
     # Fake AlphaFold Data
@@ -58,7 +57,7 @@ def test_validate_with_angstrom_deviation(mock_fetch):
         crosslinker_information=crosslinker_information,
     )
 
-    df = result["crosslinking_df_result"]
+    df = result["crosslinking_result_df"]
 
     assert "alphafold_distance" in df.columns
     assert "valid_crosslink" in df.columns
@@ -80,10 +79,10 @@ def test_modify_form_creates_crosslinker_fields():
 
     step.modify_form(form, run)
 
-    assert "length_of_DSS" in form
-    assert "upper_accepted_deviation_for_DSS" in form
-    assert "lower_accepted_deviation_for_DSS" in form
+    assert "DSS_length" in form
+    assert "DSS_upper_accepted_deviation" in form
+    assert "DSS_lower_accepted_deviation" in form
 
-    assert "length_of_BS3" in form
-    assert "upper_accepted_deviation_for_BS3" in form
-    assert "lower_accepted_deviation_for_BS3" in form
+    assert "BS3_length" in form
+    assert "BS3_upper_accepted_deviation" in form
+    assert "BS3_lower_accepted_deviation" in form

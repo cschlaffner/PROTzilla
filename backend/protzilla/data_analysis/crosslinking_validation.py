@@ -110,7 +110,7 @@ def get_position_of_amino_acid_crosslinker_bound_to(
     :raises ValueError: if the peptide sequence cannot be found in the protein sequence
     """
     peptide_start_position = protein_sequence.find(peptide_sequence)
-    if peptide_start_position == 0:
+    if peptide_start_position == -1:
         raise ValueError(
             f"Peptide {peptide_sequence} was not found in protein sequence"
         )
