@@ -2,8 +2,9 @@ import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
 import backend.protzilla.methods.importing as importing
+from backend.protzilla.steps import Section, Step
 
-_forward_mapping = [
+_forward_mapping: list[Step] = [
     importing.DiannImport,
     importing.MaxQuantImport,
     importing.MsFraggerImport,
@@ -80,19 +81,19 @@ _forward_mapping = [
 ]
 
 
-def get_all_methods():
+def get_all_methods() -> list[Step]:
     return _forward_mapping
 
 
-def get_all_possible_steps() -> list[dict]:
+def get_all_possible_steps() -> list[dict[str, str]]:
     """
     Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
 
     :return: List of step dictionaries via the steps to_dict function.
     :rtype: List[dict]
     """
-    steps = get_all_methods()
-    step_list = []
+    steps: list[Step] = get_all_methods()
+    step_list: list[dict[str, str]] = []
     for step in steps:
-        step_list.append(step.to_dict(step))
+        step_list.append(step.to_dict())
     return step_list

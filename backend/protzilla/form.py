@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from enum import Enum
-from typing import Any, List, Dict, Union, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from backend.main import settings
 
@@ -104,7 +104,7 @@ class CheckboxMultiSelectField(_baseField):
 @dataclass
 class MultiSelectField(_baseField):
     type: str = "multi-select"
-    options: List[Option] = field(default_factory=list)
+    options: list[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
     def set_options(self, options: list[Option] | Enum) -> None:
@@ -134,7 +134,7 @@ class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
     value: list[str] = field(default_factory=list)
     options: list[Option] | Enum = field(default_factory=list)
-    dropdown_options: List[str] = field(default_factory=list)
+    dropdown_options: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -175,23 +175,14 @@ class HeaderInfoField:
     type: str = "header-info-field"
 
 
-InputField = Union[
-    TextField,
-    NumberField,
-    SearchField,
-    RadioSelectField,
-    CheckboxField,
-    MultiSelectField,
-    DropdownField,
-    FileInput,
-]
-StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
+InputField = TextField | NumberField | FloatField | SearchField | RadioSelectField | CheckboxField | MultiSelectField | DropdownField | FileInput
+StructuralField = FormDivider | InfoField | HeaderInfoField
 
 
 @dataclass
 class Form:
     label: str
-    input_fields: List[InputField | StructuralField]
+    input_fields: list[InputField | StructuralField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
@@ -210,7 +201,7 @@ class Form:
 
         pass
 
-    def update_values(self, values: Dict[str, Any]) -> None:
+    def update_values(self, values: dict[str, Any]) -> None:
         "insert new values into the form"
         if values:
             for fieldname, value in values.items():
@@ -242,7 +233,7 @@ class Form:
         return self.input_fields
 
     @property
-    def values(self) -> Dict[str, str]:
+    def values(self) -> dict[str, str]:
         """
         Returns a dictionary with the values of the form fields.
         The keys are the field names and the values are the field values.
