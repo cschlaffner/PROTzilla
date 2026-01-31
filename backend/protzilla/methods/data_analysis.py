@@ -2469,7 +2469,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     operation = "Cross Linking Validation"
     method_description = "Validates cross links based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
 
-    output_keys = ["crosslinking_df_result"]
+    output_keys = ["crosslinking_result_df"]
 
     @staticmethod
     def _get_crosslinker_names_from_crosslinker_df(steps: StepManager) -> list[str]:

@@ -183,7 +183,7 @@ def validate_with_angstrom_deviation(
         all_crosslinks_df["valid_crosslink"].notna()
     ]
 
-    return dict(crosslinking_df_result=checked_crosslinks_df, messages={})
+    return dict(crosslinking_result_df=checked_crosslinks_df, messages={})
 
 
 def bar_plot_of_valid_crosslinks(
