@@ -13,19 +13,19 @@ class TestStepManager:
         return StepManager(disk_operator=disk_operator)
 
     def test_add_step(self, step_manager):
-        assert len(step_manager.importing) == 0
+        assert len(step_manager.sections[Section.IMPORTING]) == 0
         step = Step()
         step.section = Section.IMPORTING
         step_manager.add_step(step)
-        assert len(step_manager.importing) == 1
+        assert len(step_manager.sections[Section.IMPORTING]) == 1
         assert step_manager.current_step == step
 
     def test_remove_step(self, step_manager):
         step = MaxQuantImport()
         step_manager.add_step(step)
-        assert len(step_manager.importing) == 1
+        assert len(step_manager.sections[Section.IMPORTING]) == 1
         step_manager.remove_step(step)
-        assert len(step_manager.importing) == 0
+        assert len(step_manager.sections[Section.IMPORTING]) == 0
         assert step_manager.current_step is None
 
     def test_current_step(self, step_manager):
