@@ -83,9 +83,8 @@ class Step:
             and self.output == other.output
         )
 
-    def updateInputs(self, inputs: dict) -> None:
-        if inputs:
-            self.inputs = inputs.copy()
+    def get_form_values(self) -> None:
+        self.inputs = self.form_inputs.copy()
 
     def to_dict(self):
         """
@@ -116,11 +115,11 @@ class Step:
             if not previousStep.calculate(steps):
                 return False
 
-        self.updateInputs(self.form_inputs)
+        self.get_form_values()
         self.messages.clear()
 
         try:
-            self.insert_dataframes(steps, self.inputs)
+            self.insert_dataframes(steps)
             if self.calc_method:
                 calc_output = self.calc_method(**self.calculation_input)
                 self.handle_calc_outputs(calc_output)
@@ -185,8 +184,13 @@ class Step:
 
         return self.calculation_status == "complete"
 
-    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
-        return inputs
+    @abstractmethod
+    def insert_dataframes(self, steps: StepManager) -> None:
+        """
+        Adds the necessary entries to self.inputs
+
+        :param steps: The relevant StepManager instance
+        """
 
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
