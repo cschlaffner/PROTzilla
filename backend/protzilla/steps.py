@@ -13,7 +13,7 @@ from typing import Any, Literal
 import pandas as pd
 
 from backend.main import settings
-from backend.protzilla.form import Form
+from backend.protzilla.form import FormInputType, Form
 from backend.protzilla.utilities import format_trace, name_to_title
 
 # to avoid circular imports
@@ -38,6 +38,7 @@ class Step(ABC):
     """
     Abstract base class for concrete step implementations
     """
+
     section: Section
     display_name: str = None
     operation: str = None
@@ -367,7 +368,7 @@ class Step(ABC):
         return self.validate_outputs(soft_check=True)
 
     @property
-    def form_inputs(self) -> dict:
+    def form_inputs(self) -> dict[str, FormInputType]:
         return self.form.values
 
 
