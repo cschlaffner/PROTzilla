@@ -102,14 +102,13 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
 
     out = af.fetch_alphafold_protein_structure("Q8WP00", persist_uploads=True)
     assert out.keys() == {
-            "metadata_df",
-            "cif_df",
-            "pae_df",
-            "plddt_df",
-            "sequence_df",
-            "messages"
-        }
-
+        "metadata_df",
+        "cif_df",
+        "pae_df",
+        "plddt_df",
+        "sequence_df",
+        "messages",
+    }
 
 
 def test_fetch_alphafold_metadata(tmp_path, monkeypatch):

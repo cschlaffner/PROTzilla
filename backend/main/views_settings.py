@@ -262,7 +262,7 @@ def upload_prot_structure(request):
         fasta_file = data.get("fasta_file")
 
         #  Copy files to source directory out of temp directory
-        
+
         af_path = AF_DICT_PATH / entry_id.upper()
         if af_path.exists():
             return JsonResponse(
@@ -285,11 +285,11 @@ def upload_prot_structure(request):
         metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
 
         expected_columns = [
-        "entryID",
-        "uniprotAccession",
-        "modelCreatedDate",
-        "gene",
-        "alphafold_version",
+            "entryID",
+            "uniprotAccession",
+            "modelCreatedDate",
+            "gene",
+            "alphafold_version",
         ]
 
         if metadata_csv.exists():
