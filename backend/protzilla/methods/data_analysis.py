@@ -1839,13 +1839,8 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
             ],
         )
 
-    def method(self, inputs: dict) -> dict:
-        return evaluate_classification_model(**inputs)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
+    # TODO: This is completely broken. Method code is from 2023 and expects data that doesn't get set
+    calc_method = staticmethod(evaluate_classification_model)
 
 
 class DimensionReductionTSNE(DataAnalysisStep):
