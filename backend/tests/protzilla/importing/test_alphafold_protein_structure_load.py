@@ -101,15 +101,15 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
     monkeypatch.setattr(af.paths, "EXTERNAL_DATA_PATH", tmp_path)
 
     out = af.fetch_alphafold_protein_structure("Q8WP00", persist_uploads=True)
-    assert set(out.keys()).issuperset(
-        {
+    assert out.keys() == {
             "metadata_df",
             "cif_df",
             "pae_df",
             "plddt_df",
             "sequence_df",
+            "messages"
         }
-    )
+
 
 
 def test_fetch_alphafold_metadata(tmp_path, monkeypatch):

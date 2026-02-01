@@ -199,14 +199,14 @@ def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str
     """
 
     if not source_file.exists():
-        msg = f"Source file does not exist: {source_file}"
-        logger.error(msg)
-        return False, msg
+        message = f"Source file does not exist: {source_file}"
+        logger.error(message)
+        return False, message
 
     if not source_file.is_file():
-        msg = f"Source path is not a file: {source_file}"
-        logger.error(msg)
-        return False, msg
+        message = f"Source path is not a file: {source_file}"
+        logger.error(message)
+        return False, message
 
     try:
         dest_dir.mkdir(parents=True, exist_ok=True)
@@ -214,58 +214,11 @@ def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str
 
         shutil.copy2(source_file, dest_file)
 
-        msg = f"Successfully copied file {source_file} to {dest_dir}"
-        logger.info(msg)
-        return True, msg
+        message = f"Successfully copied file {source_file} to {dest_dir}"
+        logger.info(message)
+        return True, message
 
     except OSError as e:
-        msg = f"Failed to copy file: {str(e)}"
-        logger.error(msg)
-        return False, msg
-
-
-def validate_uploaded_files(
-    upload_dir: Path, file_mapping: dict[str, list[str]]
-) -> tuple[bool, str]:
-    """
-    Validate that expected files exist in the upload directory with correct formats.
-
-    :param upload_dir: Path to the upload directory
-    :param file_mapping: Dictionary mapping file names to list of valid extensions
-                        e.g., {"cif_file": [".cif"], "fasta_file": [".fasta", ".fa"]}
-    :return: Tuple of (success: bool, message: str)
-    """
-    if not upload_dir.exists():
-        msg = f"Upload directory does not exist: {upload_dir}"
-        logger.error(msg)
-        return False, msg
-
-    missing_files = []
-    invalid_files = []
-
-    for file_name, valid_extensions in file_mapping.items():
-        file_path = upload_dir / file_name
-        if not file_path.exists():
-            missing_files.append(file_name)
-        else:
-            # Check file extension
-            if not any(file_name.lower().endswith(ext) for ext in valid_extensions):
-                invalid_files.append(
-                    f"{file_name} (expected: {', '.join(valid_extensions)})"
-                )
-
-    # Build error message
-    error_messages = []
-    if missing_files:
-        error_messages.append(f"Missing files: {', '.join(missing_files)}")
-    if invalid_files:
-        error_messages.append(f"Invalid file format: {', '.join(invalid_files)}")
-
-    if error_messages:
-        msg = " | ".join(error_messages)
-        logger.warning(msg)
-        return False, msg
-
-    msg = f"All {len(file_mapping)} files validated successfully"
-    logger.info(msg)
-    return True, msg
+        message = f"Failed to copy file: {str(e)}"
+        logger.error(message)
+        return False, message

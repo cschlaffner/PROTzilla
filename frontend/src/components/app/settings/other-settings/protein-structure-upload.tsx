@@ -135,7 +135,7 @@ export const ProteinStructureUpload = () => {
   };
 
   const handleDeleteProtStructure = async (entry_id: string) => {
-    const response = await callApiWithParameters("prot_structure_delete", {
+    const response = await callApiWithParameters("delete_prot_structure", {
       entry_id: entry_id,
     });
     if (response?.success) {
@@ -208,24 +208,28 @@ export const ProteinStructureUpload = () => {
               name: "cif_file",
               label: "CIF file (required):",
               isVisible: true,
+              accept: ".cif",
             },
             {
               type: "file",
               name: "confidence_file",
               label: "Confidence JSON file (required):",
               isVisible: true,
+              accept: ".json",
             },
             {
               type: "file",
               name: "pae_file",
               label: "Predicted Aligned Error JSON file (required):",
               isVisible: true,
+              accept: ".json",
             },
             {
               type: "file",
               name: "fasta_file",
               label: "Sequence FASTA file (required):",
               isVisible: true,
+              accept: ".fasta, .fa",
             },
           ],
         }}
@@ -246,21 +250,31 @@ export const ProteinStructureUpload = () => {
         baseComponent={"h2"}
         title={"Available Predicted Protein Structures"}
       />
-      <ProtStructureList>
-        {protStructureList.map((ps) => (
-          <ProtStructureEntry
-            key={ps.entry_id}
-            entry_id={ps.entry_id}
-            uniprot_id={ps.uniprot_id}
-            date_modified={ps.date_modified}
-            gene={ps.gene}
-            af_version={ps.af_version}
-            handleDelete={() => {
-              onDeleteProtStructure(ps.entry_id);
-            }}
-          />
-        ))}
-      </ProtStructureList>
+      {protStructureList.length === 0 ? (
+        <Text
+          text={
+            "No predicted protein structures uploaded yet. Use the form above to upload a CIF file, confidence and PAE JSON files, and a FASTA sequence. " +
+            "Provide Uniprot ID, Entry ID, Alphafold version and gene name, then click 'Upload Structure'. Else use the step in the workflow under 'Importing' " +
+            "to directly fetch Alphafold predictions from the Alphafold Database."
+          }
+        />
+      ) : (
+        <ProtStructureList>
+          {protStructureList.map((ps) => (
+            <ProtStructureEntry
+              key={ps.entry_id}
+              entry_id={ps.entry_id}
+              uniprot_id={ps.uniprot_id}
+              date_modified={ps.date_modified}
+              gene={ps.gene}
+              af_version={ps.af_version}
+              handleDelete={() => {
+                onDeleteProtStructure(ps.entry_id);
+              }}
+            />
+          ))}
+        </ProtStructureList>
+      )}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}

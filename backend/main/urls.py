@@ -72,9 +72,9 @@ urlpatterns = [
         name="upload_prot_structure",
     ),
     path(
-        "api/prot_structure_delete",
-        views_settings.prot_structure_delete,
-        name="prot_structure_delete",
+        "api/delete_prot_structure",
+        views_settings.delete_prot_structure,
+        name="delete_prot_structure",
     ),
     path(
         "api/load_ptm_settings",

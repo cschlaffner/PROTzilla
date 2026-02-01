@@ -17,7 +17,6 @@ from backend.main import settings
 from backend.main.views_helper import (
     sanitize_name,
     load_settings_from_file,
-    validate_uploaded_files,
     copy_file_to_directory,
 )
 from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
@@ -262,25 +261,8 @@ def upload_prot_structure(request):
         pae = data.get("pae")
         fasta_file = data.get("fasta_file")
 
-        # Validate uploaded files and copy them to source directory out of temp directory
-        file_mapping = {
-            cif_file: [".cif"],
-            confidence: [".json"],
-            pae: [".json"],
-            fasta_file: [".fasta", ".fa"],
-        }
-
-        is_valid, validation_message = validate_uploaded_files(
-            settings.FILE_UPLOAD_TEMP_DIR, file_mapping
-        )
-        if not is_valid:
-            messages.add_message(
-                request, messages.ERROR, validation_message, "alert-danger"
-            )
-            return JsonResponse(
-                {"success": False, "message": validation_message}, status=400
-            )
-
+        #  Copy files to source directory out of temp directory
+        
         af_path = AF_DICT_PATH / entry_id.upper()
         if af_path.exists():
             return JsonResponse(
@@ -292,11 +274,28 @@ def upload_prot_structure(request):
         for file_name in [cif_file, confidence, pae, fasta_file]:
             source_dir = settings.FILE_UPLOAD_TEMP_DIR / file_name
             success, message = copy_file_to_directory(source_dir, af_path)
+            if not success:
+                return JsonResponse(
+                    {"success": False, "message": message},
+                    status=500,
+                )
 
         # add row to metadata csv
         AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
         metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
-        df = pandas.read_csv(metadata_csv)
+
+        expected_columns = [
+        "entryID",
+        "uniprotAccession",
+        "modelCreatedDate",
+        "gene",
+        "alphafold_version",
+        ]
+
+        if metadata_csv.exists():
+            df = pandas.read_csv(metadata_csv, usecols=lambda c: c in expected_columns)
+        else:
+            df = pandas.DataFrame(columns=expected_columns)
 
         now_utc = datetime.now(timezone.utc)
         formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -329,7 +328,7 @@ def upload_prot_structure(request):
         )
 
 
-def prot_structure_delete(request):
+def delete_prot_structure(request):
     if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
