@@ -56,9 +56,7 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
             intensity_df = df.filter(regex=base_pattern, axis=1)
 
             if intensity_df.empty:
-                msg = (
-                    f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file."
-                )
+                msg = f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file."
                 return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
             intensity_df.columns = [
@@ -85,8 +83,12 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 
             tidy_peptide_df = final_df[required]
 
-        tidy_peptide_df = tidy_peptide_df.rename(columns={"Leading razor protein": "Protein ID"})
-        tidy_peptide_df = tidy_peptide_df[["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]]
+        tidy_peptide_df = tidy_peptide_df.rename(
+            columns={"Leading razor protein": "Protein ID"}
+        )
+        tidy_peptide_df = tidy_peptide_df[
+            ["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]
+        ]
         tidy_peptide_df = tidy_peptide_df.dropna(subset=["Protein ID"])
         tidy_peptide_df = tidy_peptide_df.sort_values(
             by=["Sample", "Protein ID"], ignore_index=True
@@ -111,7 +113,11 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid peptide file."
         return dict(
             messages=[
-                dict(level=logging.ERROR, msg=msg, trace=format_trace(traceback.format_exception(e)))
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
             ]
         )
 
