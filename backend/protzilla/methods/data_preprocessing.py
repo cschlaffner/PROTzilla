@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC
 
 from backend.protzilla.data_preprocessing import (
     filter_proteins,
@@ -14,7 +15,7 @@ from backend.protzilla.steps import Step, StepManager, Section
 from backend.protzilla.constants.option_types import *
 
 
-class DataPreprocessingStep(Step):
+class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
     output_keys = ["protein_df"]
 
@@ -25,10 +26,9 @@ class DataPreprocessingStep(Step):
         super().__init__(*args, **kwargs)
         self.plot_inputs: dict = {}
 
-    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
-        inputs["protein_df"] = steps.protein_df
-        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
-        return inputs
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["protein_df"] = steps.protein_df
+        self.inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
 
 
 class FilterProteinsBySamplesMissing(DataPreprocessingStep):
@@ -37,8 +37,6 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     method_description = (
         "Filter proteins based on the amount of samples with nan values"
     )
-
-    input_keys = ["protein_df", "peptide_df", "percentage"]
 
     def create_form(self):
         return Form(
@@ -72,8 +70,6 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
         "Filter proteins based on the amount of samples with SILAC different ratios"
     )
 
-    input_keys = ["protein_df", "peptide_df", "min_amount"]
-
     def create_form(self):
         return Form(
             label="Filter Proteins by SILAC ratios",
@@ -102,8 +98,6 @@ class FilterByProteinsCount(DataPreprocessingStep):
     display_name = "Protein Count"
     operation = "filter_samples"
     method_description = "Filter by protein count per sample"
-
-    input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
 
     def create_form(self):
         return Form(
@@ -175,8 +169,6 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
         "Filter samples based on the amount of proteins with nan values"
     )
 
-    input_keys = ["protein_df", "peptide_df", "percentage"]
-
     def create_form(self):
         return Form(
             label="Filter Samples by Proteins Missing",
@@ -206,8 +198,6 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     display_name = "Sum of intensities"
     operation = "filter_samples"
     method_description = "Filter by sum of protein intensities per sample"
-
-    input_keys = ["protein_df", "peptide_df", "deviation_threshold"]
 
     def create_form(self):
         return Form(
@@ -239,8 +229,6 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     display_name = "PCA"
     operation = "outlier_detection"
     method_description = "Detect outliers using PCA"
-
-    input_keys = ["protein_df", "peptide_df", "number_of_components", "threshold"]
 
     def create_form(self):
         return Form(
@@ -275,8 +263,6 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     operation = "outlier_detection"
     method_description = "Detect outliers using the local outlier factor"
 
-    input_keys = ["protein_df", "peptide_df", "number_of_neighbors"]
-
     def create_form(self):
         return Form(
             label="Outlier Detection by Local Outlier Factor",
@@ -301,8 +287,6 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
     operation = "outlier_detection"
     method_description = "Detect outliers using Isolation Forest"
 
-    input_keys = ["protein_df", "peptide_df", "n_estimators"]
-
     def create_form(self):
         return Form(
             label="Outlier Detection by Isolation Forest",
@@ -326,8 +310,6 @@ class TransformationLog(DataPreprocessingStep):
     display_name = "Log"
     operation = "transformation"
     method_description = "Transform data by log"
-
-    input_keys = ["protein_df", "peptide_df", "log_base"]
 
     def create_form(self):
         return Form(
@@ -363,8 +345,6 @@ class TransformationInversion(DataPreprocessingStep):
     display_name = "Inversion"
     operation = "transformation"
     method_description = "Transform data by inversion"
-
-    input_keys = ["protein_df", "peptide_df"]
 
     def create_form(self):
         return Form(
@@ -447,8 +427,6 @@ class NormalisationByMedian(DataPreprocessingStep):
     display_name = "Median"
     operation = "normalisation"
     method_description = "Normalise data by median"
-
-    input_keys = ["protein_df", "percentile"]
 
     def create_form(self):
         return Form(
@@ -782,8 +760,6 @@ class ImputationByKNN(DataPreprocessingStep):
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
         "the features that neither is missing are close."
     )
-
-    input_keys = ["protein_df", "number_of_neighbours"]
 
     def create_form(self):
         return Form(

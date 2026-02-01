@@ -18,7 +18,7 @@ def _is_valid(value):
 
 
 def t_test(
-    intensity_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     ttest_type: str,
     grouping: str,
@@ -34,7 +34,7 @@ def t_test(
     clinical data. The t-test is conducted on the level of each protein.
     The p-values are corrected for multiple testing.
     :param ttest_type: the type of t-test to be used. Either "Student's t-Test" or "Welch's t-Test"
-    :param intensity_df: the dataframe that should be tested in long format
+    :param protein_df: the dataframe that should be tested in long format
     :param metadata_df: the dataframe that contains the clinical data
     :param grouping: the column name of the grouping variable in the metadata_df
     :param group1: the name of the first group for the t-test
@@ -81,26 +81,26 @@ def t_test(
             }
         )
 
-    intensity_df = pd.merge(
-        left=intensity_df,
+    protein_df = pd.merge(
+        left=protein_df,
         right=metadata_df[["Sample", grouping]],
         on="Sample",
         copy=False,
     )
 
-    intensity_name = default_intensity_column(intensity_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df, intensity_name)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
-    proteins = intensity_df["Protein ID"].unique()
+    proteins = protein_df["Protein ID"].unique()
     p_values = []
     valid_protein_groups = []
     log2_fold_changes = []
     t_statistic = []
     for protein in proteins:
-        protein_df = intensity_df[intensity_df["Protein ID"] == protein]
-        group1_intensities = protein_df[protein_df[grouping] == group1][intensity_name]
-        group2_intensities = protein_df[protein_df[grouping] == group2][intensity_name]
+        single_protein_df = protein_df[protein_df["Protein ID"] == protein]
+        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][intensity_name]
+        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][intensity_name]
 
         group1_intensities = group1_intensities.dropna()
         group2_intensities = group2_intensities.dropna()
@@ -161,10 +161,10 @@ def t_test(
     ]
 
     for df in dataframes:
-        intensity_df = pd.merge(intensity_df, df, on="Protein ID", how="left")
+        protein_df = pd.merge(protein_df, df, on="Protein ID", how="left")
 
-    differentially_expressed_proteins_df = intensity_df.loc[
-        intensity_df["Protein ID"].isin(valid_protein_groups)
+    differentially_expressed_proteins_df = protein_df.loc[
+        protein_df["Protein ID"].isin(valid_protein_groups)
     ]
 
     significant_proteins_df = differentially_expressed_proteins_df[

@@ -16,7 +16,7 @@ from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wi
 
 
 def k_means(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -34,8 +34,8 @@ def k_means(
     function returns a dataframe with the corresponding cluster of each sample and
     another dataframe with the coordinates of the cluster centers.
 
-    :param input_df: The dataframe that should be clustered in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be clustered in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -72,11 +72,11 @@ def k_means(
         - cluster_labels_df: The dataframe with sample IDs and assigned cluster labels.
     :rtype: dict
     """
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     try:
-        # prepare input_df and labels_df dataframes for clustering
-        input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-        input_df_wide.sort_values(by="Sample", inplace=True)
+        # prepare protein_df and labels_df dataframes for clustering
+        protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+        protein_df_wide.sort_values(by="Sample", inplace=True)
         labels_df = (
             metadata_df[["Sample", labels_column]]
             .set_index("Sample")
@@ -100,7 +100,7 @@ def k_means(
         scoring = [scoring] if isinstance(scoring, str) else scoring
 
         model, model_evaluation_df = perform_clustering(
-            input_df_wide,
+            protein_df_wide,
             model_selection,
             clf,
             clf_parameters,
@@ -110,10 +110,10 @@ def k_means(
 
         # create dataframes for ouput dict
         cluster_labels_df = pd.DataFrame(
-            {"Sample": input_df_wide.index, "Cluster Labels": model.labels_}
+            {"Sample": protein_df_wide.index, "Cluster Labels": model.labels_}
         )
         cluster_centers_df = (
-            pd.DataFrame(data=model.cluster_centers_, columns=input_df_wide.columns)
+            pd.DataFrame(data=model.cluster_centers_, columns=protein_df_wide.columns)
             .transpose()
             .reset_index()
         )
@@ -124,15 +124,15 @@ def k_means(
             cluster_centers_df=cluster_centers_df,
         )
     except ValueError as e:
-        if input_df_wide.isnull().sum().any():
+        if protein_df_wide.isnull().sum().any():
             msg = (
                 "KMeans does not accept missing values encoded as NaN. Consider"
                 "preprocessing your data to remove NaN values."
             )
-        elif input_df_wide.shape[0] < n_clusters:
+        elif protein_df_wide.shape[0] < n_clusters:
             msg = (
                 f"The number of clusters should be less or equal than the number of "
-                f"samples. In the selected dataframe there is {input_df_wide.shape[0]}"
+                f"samples. In the selected dataframe there is {protein_df_wide.shape[0]}"
                 f"samples"
             )
         else:
@@ -145,7 +145,7 @@ def k_means(
 
 
 def expectation_maximisation(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -165,8 +165,8 @@ def expectation_maximisation(
     the assigned Gaussian for each sample and a dataframe with the component's density
     for each sample.
 
-    :param input_df: The dataframe that should be clustered in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be clustered in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -203,9 +203,9 @@ def expectation_maximisation(
           cluster probabilities.
     :rtype: dict
     """
-    # prepare input_df and labels_df dataframes for clustering
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    # prepare protein_df and labels_df dataframes for clustering
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -228,7 +228,7 @@ def expectation_maximisation(
     scoring = [scoring] if isinstance(scoring, str) else scoring
 
     model, model_evaluation_df = perform_clustering(
-        input_df_wide,
+        protein_df_wide,
         model_selection,
         clf,
         clf_parameters,
@@ -238,12 +238,12 @@ def expectation_maximisation(
     )
 
     cluster_labels_df = pd.DataFrame(
-        {"Sample": input_df_wide.index, "Cluster Labels": model.predict(input_df_wide)}
+        {"Sample": protein_df_wide.index, "Cluster Labels": model.predict(protein_df_wide)}
     )
     cluster_labels_probabilities_df = pd.DataFrame(
-        model.predict_proba(input_df_wide),
+        model.predict_proba(protein_df_wide),
     )
-    cluster_labels_probabilities_df.insert(0, "Sample", input_df_wide.index)
+    cluster_labels_probabilities_df.insert(0, "Sample", protein_df_wide.index)
     return dict(
         model=model,
         model_evaluation_df=model_evaluation_df,
@@ -253,7 +253,7 @@ def expectation_maximisation(
 
 
 def hierarchical_agglomerative_clustering(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -270,8 +270,8 @@ def hierarchical_agglomerative_clustering(
     distance, which uses the chosen metric to compute the distances between data points.
     The function returns a dataframe with the corresponding cluster of each sample.
 
-    :param input_df: The dataframe that should be clustered in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be clustered in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -297,9 +297,9 @@ def hierarchical_agglomerative_clustering(
         - cluster_labels_df: The dataframe with sample IDs and assigned cluster labels.
     :rtype: dict
     """
-    # prepare input_df and labels_df dataframes for clustering
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    # prepare protein_df and labels_df dataframes for clustering
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -319,7 +319,7 @@ def hierarchical_agglomerative_clustering(
     scoring = [scoring] if isinstance(scoring, str) else scoring
 
     model, model_evaluation_df = perform_clustering(
-        input_df_wide,
+        protein_df_wide,
         model_selection,
         clf,
         clf_parameters,
@@ -329,7 +329,7 @@ def hierarchical_agglomerative_clustering(
     )
 
     cluster_labels_df = pd.DataFrame(
-        {"Sample": input_df_wide.index, "Cluster Labels": model.labels_}
+        {"Sample": protein_df_wide.index, "Cluster Labels": model.labels_}
     )
     return dict(
         model=model,

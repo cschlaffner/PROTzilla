@@ -14,7 +14,7 @@ from .differential_expression_helper import (
 
 
 def linear_model(
-    intensity_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     grouping: str,
     group1: str,
@@ -30,7 +30,7 @@ def linear_model(
     for group1 X=-1 and group2 X=1
     The p-values are corrected for multiple testing.
 
-    :param intensity_df: the dataframe that should be tested in long format
+    :param protein_df: the dataframe that should be tested in long format
     :param metadata_df: the dataframe that contains the clinical data
     :param grouping: the column name of the grouping variable in the metadata_df
     :param group1: the name of the first group for the linear model
@@ -65,27 +65,27 @@ def linear_model(
             }
         )
 
-    intensity_df = pd.merge(
-        left=intensity_df,
+    protein_df = pd.merge(
+        left=protein_df,
         right=metadata_df[["Sample", grouping]],
         on="Sample",
         copy=False,
     )
-    intensity_name = default_intensity_column(intensity_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df, intensity_name)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
-    proteins = intensity_df.loc[:, "Protein ID"].unique()
+    proteins = protein_df.loc[:, "Protein ID"].unique()
     p_values = []
     valid_protein_groups = []
     log2_fold_changes = []
     for protein in proteins:
         # Create temporary protein-group specific df, containing only the two selected groups
-        protein_df = intensity_df.loc[intensity_df["Protein ID"] == protein]
-        protein_df = protein_df[protein_df[grouping].isin([group1, group2])]
-        protein_df[grouping] = protein_df[grouping].replace([group1, group2], [-1, 1])
-        group1_intensities = protein_df[protein_df[grouping] == -1][intensity_name]
-        group2_intensities = protein_df[protein_df[grouping] == 1][intensity_name]
+        single_protein_df = protein_df.loc[protein_df["Protein ID"] == protein]
+        single_protein_df = single_protein_df[single_protein_df[grouping].isin([group1, group2])]
+        single_protein_df[grouping] = single_protein_df[grouping].replace([group1, group2], [-1, 1])
+        group1_intensities = single_protein_df[single_protein_df[grouping] == -1][intensity_name]
+        group2_intensities = single_protein_df[single_protein_df[grouping] == 1][intensity_name]
 
         # if a protein has a NaN value in a sample, user should remove it
         if (
@@ -95,8 +95,8 @@ def linear_model(
             and len(group2_intensities) > 0
         ):
             # lm(intensity ~ group + constant)
-            Y = protein_df[[intensity_name]]
-            X = protein_df[[grouping]]
+            Y = single_protein_df[[intensity_name]]
+            X = single_protein_df[[grouping]]
             X = sm.add_constant(X)
             model = sm.OLS(Y, X)
             results = model.fit()
@@ -139,7 +139,7 @@ def linear_model(
     dataframes = [corrected_p_values_df, log2_fold_change_df]
 
     for df in dataframes:
-        intensity_df = pd.merge(intensity_df, df, on="Protein ID", copy=False)
+        protein_df = pd.merge(protein_df, df, on="Protein ID", copy=False)
 
     differentially_expressed_proteins = [
         protein
@@ -147,8 +147,8 @@ def linear_model(
             valid_protein_groups, corrected_p_values, log2_fold_changes
         )
     ]
-    differentially_expressed_proteins_df = intensity_df.loc[
-        intensity_df["Protein ID"].isin(differentially_expressed_proteins)
+    differentially_expressed_proteins_df = protein_df.loc[
+        protein_df["Protein ID"].isin(differentially_expressed_proteins)
     ]
     significant_proteins_df = differentially_expressed_proteins_df[
         differentially_expressed_proteins_df["corrected_p_value"] <= corrected_alpha
