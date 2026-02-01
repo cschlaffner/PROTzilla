@@ -47,6 +47,14 @@ const StyledFormColumn = styled.div`
   margin: 0 ${spacing("small")};
 `;
 
+const StyledStepButtonsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${spacing("verySmall")};
+  align-items: center;
+  margin-bottom: ${spacing("small")};
+`;
+
 export const NodeEditor: React.FC<NodeEditorProps> = ({
   onFormSubmit,
   runName,
@@ -185,23 +193,24 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   return (
     <StyledRow>
-      <div style={{ width: "25vw", height: "100vh" }}>
-        {/* Buttons for adding steps. TODO: Put these side-by-side*/}
-        {sections.map((section) => (
-          <StepSelection
-            key={`add-button-for-section-${section.id as string}`}
-            section={section.id}
-            ModalTrigger={(openModal) => (
-              <>
-                <SecondaryButton onClick={openModal}>
-                  <Icon icon={section.id} style={{ flexShrink: 0, marginRight: "10px" }} /> Add{" "}
-                  {section.name}
-                </SecondaryButton>
-              </>
-            )}
-            {...stepSelectionProps}
-          />
-        ))}
+      <div style={{ width: "calc(25vw + 24px)", height: "100vh" }}>
+        <StyledStepButtonsRow>
+          {sections.map((section) => (
+            <StepSelection
+              key={`add-button-for-section-${section.id as string}`}
+              section={section.id}
+              ModalTrigger={(openModal) => (
+                <>
+                  <SecondaryButton onClick={openModal}>
+                    <Icon icon={section.id} style={{ flexShrink: 0, marginRight: "10px" }} /> Add{" "}
+                    {section.name}
+                  </SecondaryButton>
+                </>
+              )}
+              {...stepSelectionProps}
+            />
+          ))}
+        </StyledStepButtonsRow>
 
         <ReactFlow
           nodes={nodes}
