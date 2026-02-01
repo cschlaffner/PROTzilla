@@ -183,7 +183,9 @@ def random_forest(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
     # prepare X and y dataframes for classification
     protein_df_wide.sort_values(by="Sample", inplace=True)
@@ -344,7 +346,9 @@ def svm(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
     # prepare X and y dataframes for classification
     protein_df_wide.sort_values(by="Sample", inplace=True)

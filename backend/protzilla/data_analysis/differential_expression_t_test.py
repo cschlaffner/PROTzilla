@@ -99,8 +99,12 @@ def t_test(
     t_statistic = []
     for protein in proteins:
         single_protein_df = protein_df[protein_df["Protein ID"] == protein]
-        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][intensity_name]
-        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][intensity_name]
+        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][
+            intensity_name
+        ]
+        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][
+            intensity_name
+        ]
 
         group1_intensities = group1_intensities.dropna()
         group2_intensities = group2_intensities.dropna()

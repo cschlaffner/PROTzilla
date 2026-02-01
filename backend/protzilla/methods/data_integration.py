@@ -703,9 +703,8 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisGSEAStep):
         if protein_df_field.value:
             column_names = list(
                 run.steps.get_step_output(
-                    Step,
-                    "differentially_expressed_proteins_df",
-                    protein_df_field.value,
+                    output_key="differentially_expressed_proteins_df",
+                    instance_identifier=protein_df_field.value,
                 )
             )
             ranking_column_field.set_options([Option(el, el) for el in column_names])
@@ -860,7 +859,8 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
         if form["input_df_field"].value:
             enrichment_df = run.steps.get_step_output(
-                output_key="enrichment_df", instance_identifier=form["input_df_field"].value
+                output_key="enrichment_df",
+                instance_identifier=form["input_df_field"].value,
             )
 
             if isinstance(enrichment_df, pd.DataFrame):
@@ -957,7 +957,7 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
                 ).unique()
             ]
         )
-    
+
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         # TODO: there should definitely be sth here
@@ -1074,7 +1074,7 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
                 ),
             ],
         )
-    
+
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         # TODO: missing data to plot

@@ -74,7 +74,9 @@ def anova(
         all_group_intensities = []
         for group in selected_groups:
             all_group_intensities.append(
-                single_protein_df[single_protein_df[grouping] == group][intensity_name].to_numpy()
+                single_protein_df[single_protein_df[grouping] == group][
+                    intensity_name
+                ].to_numpy()
             )
         p = stats.f_oneway(*all_group_intensities)[1]
         if not np.isnan(p):

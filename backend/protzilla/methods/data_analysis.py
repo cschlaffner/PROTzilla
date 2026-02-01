@@ -963,7 +963,7 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
 
         peptide_df_instance_id = peptide_df_field.value
         peptide_df = run.steps.get_step_output(
-            Step, "peptide_df", peptide_df_instance_id
+            output_key="peptide_df", instance_identifier=peptide_df_instance_id
         )
         proteins_from_peptide_df = (
             set(peptide_df["Protein ID"].dropna().unique())
@@ -978,7 +978,9 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         }
 
         fasta_df_instance_id = fasta_df_field.value
-        fasta_df = run.steps.get_step_output(Step, "fasta_df", fasta_df_instance_id)
+        fasta_df = run.steps.get_step_output(
+            output_key="fasta_df", instance_identifier=fasta_df_instance_id
+        )
         proteins_from_fasta_df = (
             set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
         )
@@ -1182,7 +1184,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
             form["protein_group"].set_options(
                 form_helper.to_choices(
                     run.steps.get_step_output(
-                        step_type=Step,
                         output_key="protein_df",
                         instance_identifier=form["protein_df_field"].value,
                     )["Protein ID"].unique()
@@ -1212,8 +1213,8 @@ class PlotProtQuant(DataAnalysisPlotStep):
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
-        inputs["protein_df"] = steps.get_step_output(
-            output_key="protein_df", instance_identifier=inputs["protein_df_field"]
+        self.inputs["protein_df"] = steps.get_step_output(
+            output_key="protein_df", instance_identifier=self.inputs["protein_df_field"]
         )
 
 
@@ -2124,18 +2125,15 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             # TODO: Enable toggling
             if chosen_list == "all_proteins":
                 protein_ids_field.set_options(
-                    form_helper.to_choices(
-                        run.steps.get_step_output(Step, "protein_df")[
-                            "Protein ID"
-                        ].unique()
-                    )
+                    form_helper.to_choices(run.steps.protein_df["Protein ID"].unique())
                 )
             else:
                 if sort_proteins_field.value == YesNo.yes:
                     protein_ids_field.set_options(
                         form_helper.to_choices(
                             run.steps.get_step_output(
-                                DataAnalysisStep, "significant_proteins_df", chosen_list
+                                output_key="significant_proteins_df",
+                                instance_identifier=chosen_list,
                             )
                             .sort_values(by="corrected_p_value")["Protein ID"]
                             .unique()
@@ -2143,7 +2141,8 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
                     )
                 else:
                     significant_proteins = run.steps.get_step_output(
-                        DataAnalysisStep, "significant_proteins_df", chosen_list
+                        output_key="significant_proteins_df",
+                        instance_identifier=chosen_list,
                     )
                     if significant_proteins is not None:
                         protein_ids_field.set_options(
@@ -2162,7 +2161,8 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
 
         if self.inputs["auto_select"]:
             significant_proteins = steps.get_step_output(
-                DataAnalysisStep, "significant_proteins_df", self.inputs["protein_list"]
+                output_key="significant_proteins_df",
+                instance_identifier=self.inputs["protein_list"],
             )
             index_of_most_significant_protein = significant_proteins[
                 "corrected_p_value"

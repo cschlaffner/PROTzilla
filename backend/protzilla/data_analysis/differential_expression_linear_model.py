@@ -82,10 +82,18 @@ def linear_model(
     for protein in proteins:
         # Create temporary protein-group specific df, containing only the two selected groups
         single_protein_df = protein_df.loc[protein_df["Protein ID"] == protein]
-        single_protein_df = single_protein_df[single_protein_df[grouping].isin([group1, group2])]
-        single_protein_df[grouping] = single_protein_df[grouping].replace([group1, group2], [-1, 1])
-        group1_intensities = single_protein_df[single_protein_df[grouping] == -1][intensity_name]
-        group2_intensities = single_protein_df[single_protein_df[grouping] == 1][intensity_name]
+        single_protein_df = single_protein_df[
+            single_protein_df[grouping].isin([group1, group2])
+        ]
+        single_protein_df[grouping] = single_protein_df[grouping].replace(
+            [group1, group2], [-1, 1]
+        )
+        group1_intensities = single_protein_df[single_protein_df[grouping] == -1][
+            intensity_name
+        ]
+        group2_intensities = single_protein_df[single_protein_df[grouping] == 1][
+            intensity_name
+        ]
 
         # if a protein has a NaN value in a sample, user should remove it
         if (

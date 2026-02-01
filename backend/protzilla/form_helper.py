@@ -41,7 +41,7 @@ def get_choices_for_metadata(
         metadata_df = run.steps.metadata_df
     else:
         metadata_df = run.steps.get_step_output(
-            Step, output_key="metadata_df", instance_identifier=instance_identifier
+            output_key="metadata_df", instance_identifier=instance_identifier
         )
     if metadata_df is None:
         return to_choices([])
