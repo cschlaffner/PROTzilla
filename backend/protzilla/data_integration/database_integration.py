@@ -82,14 +82,14 @@ def add_uniprot_data(dataframe, database_name=None, fields=None):
 
 
 def gene_mapping(
-    dataframe: pd.DataFrame, database_names: list[str] | str, use_biomart: bool = False
+    protein_df: pd.DataFrame, database_names: list[str] | str, use_biomart: bool = False
 ):
     """
     Maps the protein ID groups to HGNC gene symbols, filtering out ones that are not
     found.
 
-    :param dataframe: the dataframe of which the protein groups will be mapped.
-    :type dataframe: pd.DataFrame
+    :param protein_df: the dataframe of which the protein groups will be mapped.
+    :type protein_df: pd.DataFrame
     :param database_names: names of the database files that will be queried
     :type database_names: list[str] | str
     :param use_biomart: should biomart be used to map ids that could not be mapped with databases
@@ -99,7 +99,7 @@ def gene_mapping(
     :rtype: dict
     """
     try:
-        protein_groups = dataframe["Protein ID"].unique().tolist()
+        protein_groups = protein_df["Protein ID"].unique().tolist()
     except KeyError:
         msg = "No Protein ID column found."
         return dict(

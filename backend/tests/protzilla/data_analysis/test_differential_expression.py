@@ -49,7 +49,7 @@ def diff_expr_test_data():
         ["Sample7", "Protein4", "Gene1", 11],
     )
 
-    test_intensity_df = pd.DataFrame(
+    test_protein_df = pd.DataFrame(
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
@@ -68,19 +68,19 @@ def diff_expr_test_data():
         data=test_metadata_list,
         columns=["Sample", "Group"],
     )
-    return test_intensity_df, test_metadata_df
+    return test_protein_df, test_metadata_df
 
 
 def test_differential_expression_linear_model(
     diff_expr_test_data,
     show_figures,
 ):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
     test_fc_threshold = 0
 
     current_input = dict(
-        intensity_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         group1="Group1",
@@ -124,12 +124,12 @@ def test_differential_expression_linear_model(
 
 
 def test_differential_expression_student_t_test(diff_expr_test_data, show_figures):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
     test_fc_threshold = 0.9
 
     current_input = dict(
-        intensity_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
@@ -181,12 +181,12 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
 
 
 def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
     test_fc_threshold = 0.9
 
     current_input = dict(
-        intensity_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
@@ -238,12 +238,12 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
 
 
 def test_differential_expression_t_test_types(diff_expr_test_data, show_figures):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
 
     # Run Student's t-test
     student_out = t_test(
-        test_intensity_df,
+        test_protein_df,
         test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
@@ -256,7 +256,7 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Run Welch's t-test
     welch_out = t_test(
-        test_intensity_df,
+        test_protein_df,
         test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
@@ -290,12 +290,12 @@ def test_differential_expression_t_test_with_log_data(show_figures):
         ["Sample6", "Protein2", "Gene1"],
     )
     intensities = np.log2([18, 16, 20, 15, 22, 14, 8, 15, 10, 14, 12, 13])
-    test_intensity_df = pd.DataFrame(
+    test_protein_df = pd.DataFrame(
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene"],
     )
 
-    test_intensity_df["Intensity"] = intensities
+    test_protein_df["Intensity"] = intensities
 
     test_metadata_list = (
         ["Sample1", "Group1"],
@@ -315,7 +315,7 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     test_alpha = 0.05
 
     current_out = t_test(
-        test_intensity_df,
+        test_protein_df,
         test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
@@ -400,7 +400,7 @@ def test_differential_expression_anova(show_figures):
         ["Sample6", "Protein3", "Gene1", 3],
     )
 
-    test_intensity_df = pd.DataFrame(
+    test_protein_df = pd.DataFrame(
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
@@ -420,8 +420,8 @@ def test_differential_expression_anova(show_figures):
     )
 
     output_dict = anova(
-        intensity_df=test_intensity_df,
-        metadata_df=test_metadata_df,
+        protein_df=test_protein_df,
+        sample_group_df=test_metadata_df,
         grouping="Group",
         log_base="log2",
         selected_groups=test_metadata_df["Group"].unique().tolist(),
@@ -446,11 +446,11 @@ def test_differential_expression_mann_whitney_on_intensity(
     diff_expr_test_data,
     show_figures,
 ):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
 
     current_input = dict(
-        protein_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         group1="Group1",
@@ -506,11 +506,11 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
     diff_expr_test_data,
     show_figures,
 ):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
 
     current_input = dict(
-        protein_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         selected_groups=["Group1", "Group2", "Group3"],
@@ -550,11 +550,11 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
     diff_expr_test_data,
     show_figures,
 ):
-    test_intensity_df, test_metadata_df = diff_expr_test_data
+    test_protein_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
 
     current_input = dict(
-        protein_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         selected_groups=["Group1", "wrong_group"],

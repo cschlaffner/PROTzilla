@@ -100,7 +100,7 @@ def perform_classification(
 
 
 def random_forest(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -128,8 +128,8 @@ def random_forest(
     """
     Perform classification using a random forest classifier from sklearn.
 
-    :param input_df: The dataframe that should be classified in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be classified in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -183,10 +183,10 @@ def random_forest(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
 
     # prepare X and y dataframes for classification
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -197,7 +197,7 @@ def random_forest(
     )
 
     X_train, X_test, y_train, y_test = perform_train_test_split(
-        input_df_wide,
+        protein_df_wide,
         labels_df["Encoded Label"],
         test_size,
         shuffle=shuffle,
@@ -248,7 +248,7 @@ def random_forest(
 
 
 def svm(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -280,8 +280,8 @@ def svm(
     """
     Perform classification using the support vector machine classifier from sklearn.
 
-    :param input_df: The dataframe that should be classified in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be classified in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -344,10 +344,10 @@ def svm(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
 
     # prepare X and y dataframes for classification
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -358,7 +358,7 @@ def svm(
     )
 
     X_train, X_test, y_train, y_test = perform_train_test_split(
-        input_df_wide,
+        protein_df_wide,
         labels_df["Encoded Label"],
         test_size,
         shuffle=shuffle,

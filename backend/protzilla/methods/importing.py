@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing_extensions import override
 
 from backend.protzilla.form import *
 from backend.protzilla.importing.metadata_import import (
@@ -13,9 +14,9 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager, Section
-from protzilla.importing.example_dataset_import import example_dataset_import
-from protzilla.importing.fasta_import import fasta_import
-from protzilla.importing.import_utils import (
+from backend.protzilla.importing.example_dataset_import import example_dataset_import
+from backend.protzilla.importing.fasta_import import fasta_import
+from backend.protzilla.importing.import_utils import (
     AggregationMethods,
     FeatureOrientationType,
 )
@@ -28,13 +29,17 @@ class ImportingStep(Step):
     def calc_method(self):
         raise NotImplementedError("This method must be implemented in a subclass.")
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        return inputs
-
     def modify_form(self, form, run):
         Step.modify_form(self, form, run)
         if run.steps.current_step.calculation_status == "complete":
             form.input_fields[self.index_of_file_input()].value = None
+
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        """
+        For normal importing steps, there are no dataframes to be inserted
+        """
+        pass
 
     def index_of_file_input(self):
         """
@@ -42,6 +47,12 @@ class ImportingStep(Step):
         must be overridden if the FileInput is not index 0.
         """
         return 0
+
+class MetadataImportingStep(ImportingStep):
+
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["protein_df"] = steps.protein_df
 
 
 class MaxQuantImport(ImportingStep):
@@ -156,7 +167,7 @@ class MsFraggerImport(ImportingStep):
     calc_method = staticmethod(ms_fragger_import)
 
 
-class MetadataImport(ImportingStep):
+class MetadataImport(MetadataImportingStep):
     display_name = "Metadata Import"
     operation = "metadataimport"
     method_description = "Import metadata"
@@ -182,12 +193,8 @@ class MetadataImport(ImportingStep):
 
     calc_method = staticmethod(metadata_import_method)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(output_key="protein_df")
-        return inputs
 
-
-class MetadataImportMethodDiann(ImportingStep):
+class MetadataImportMethodDiann(MetadataImportingStep):
     display_name = "DIA-NN Metadata Import"
     operation = "metadataimport"
     method_description = "Import metadata for run relationships of DIA-NN"
@@ -212,12 +219,8 @@ class MetadataImportMethodDiann(ImportingStep):
 
     calc_method = staticmethod(metadata_import_method_diann)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(DiannImport, "protein_df")
-        return inputs
 
-
-class MetadataColumnAssignment(ImportingStep):
+class MetadataColumnAssignment(MetadataImportingStep):
     display_name = "Metadata column assignment"
     operation = "metadataimport"
     method_description = (
@@ -274,12 +277,10 @@ class MetadataColumnAssignment(ImportingStep):
 
     calc_method = staticmethod(metadata_column_assignment)
 
-    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
-        inputs["protein_df"] = steps.get_step_output(ImportingStep, "protein_df")
-        inputs["metadata_df"] = steps.get_step_output(
-            ImportingStep, "metadata_df", include_current_step=True
-        )
-        return inputs
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        super().insert_dataframes(steps)
+        self.inputs["metadata_df"] = steps.metadata_df
 
 
 class PeptideImport(ImportingStep):
@@ -364,7 +365,6 @@ class FastaImport(ImportingStep):
     operation = "fasta_import"
     method_description = "Import a fasta file containing protein sequences."
 
-    input_keys = ["file_path"]
     output_keys = ["fasta_df"]
 
     calc_method = staticmethod(fasta_import)

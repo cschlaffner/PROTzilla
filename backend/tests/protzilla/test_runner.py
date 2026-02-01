@@ -122,14 +122,14 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "input_df": None,
+            "protein_df_field": None,
             "protein_group": None,
             "similarity_measure": "euclidean distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
-            "protein_df": None,
+            "protein_df_field": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
             "grouping": None,
@@ -138,7 +138,7 @@ def test_runner_imports(
         },
         {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
         {
-            "proteins_df": None,
+            "protein_df_field": None,
             "differential_expression_threshold": 0,
             "gene_sets_restring": [],
             "organism": 9606,
@@ -146,7 +146,7 @@ def test_runner_imports(
             "background_path": None,
         },
         {
-            "input_df_step_instance": None,
+            "input_df_field": None,
             "cutoff": 0.05,
             "gene_sets": ["Process", "Component", "Function", "KEGG"],
             "value": "p-value",

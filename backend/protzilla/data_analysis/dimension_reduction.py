@@ -7,7 +7,7 @@ from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wi
 
 
 def t_sne(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     n_components: int = 2,
     perplexity: float = 30.0,
     metric: str = "euclidean",
@@ -24,8 +24,8 @@ def t_sne(
     You can find the default values for the non-adjustable parameters here:
     https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
 
-    :param input_df: the dataframe, whose dimensions should be reduced.
-    :type input_df: pd.DataFrame
+    :param protein_df: the dataframe, whose dimensions should be reduced.
+    :type protein_df: pd.DataFrame
     :param n_components: The dimension of the space to embed into.
     :type n_components: int
     :param perplexity: the perplexity is related to the number of nearest neighbors
@@ -49,10 +49,10 @@ def t_sne(
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the t-SNE embedded data
         with two columns, "Component1" and "Component2", and shares the same index as
-        the input_df.
+        the protein_df.
     :rtype: dict
     """
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     try:
         embedded_data_model = TSNE(
             n_components=n_components,
@@ -62,34 +62,34 @@ def t_sne(
             n_iter_without_progress=n_iter_without_progress,
             method=method,
             metric=metric,
-        ).fit_transform(intensity_df_wide)
+        ).fit_transform(protein_df_wide)
 
         embedded_data = pd.DataFrame(
             embedded_data_model,
-            index=intensity_df_wide.index,
+            index=protein_df_wide.index,
             columns=["Component1", "Component2"],
         )
         return dict(embedded_data=embedded_data)
 
     except ValueError as e:
-        if intensity_df_wide.isnull().sum().any():
+        if protein_df_wide.isnull().sum().any():
             msg = (
                 "T-SNE does not accept missing values encoded as NaN. Consider"
                 "preprocessing your data to remove NaN values."
             )
-        elif perplexity >= intensity_df_wide.shape[0]:
+        elif perplexity >= protein_df_wide.shape[0]:
             msg = (
                 "Perplexity must be less than the number of samples. In the selected "
-                f"dataframe there is {intensity_df_wide.shape[0]} samples"
+                f"dataframe there is {protein_df_wide.shape[0]} samples"
             )
         elif (
-            min(intensity_df_wide.shape[0], intensity_df_wide.shape[1]) <= n_components
+            min(protein_df_wide.shape[0], protein_df_wide.shape[1]) <= n_components
             or n_components <= 1
         ):
             msg = (
                 f"n_components={n_components} must be between 1 and "
                 f"min(n_samples, n_features)"
-                f"={min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])}"
+                f"={min(protein_df_wide.shape[0], protein_df_wide.shape[1])}"
             )
         elif n_components > 3 and method == "barnes_hut":
             msg = (
@@ -105,7 +105,7 @@ def t_sne(
 
 
 def umap(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     n_neighbors: float = 15,
     n_components: int = 2,
     min_dist: float = 0.1,
@@ -121,8 +121,8 @@ def umap(
     You can find the default values for the non-adjustable parameters here:
     https://umap-learn.readthedocs.io/en/latest/api.html
 
-    :param input_df: the dataframe, whose dimensions should be reduced.
-    :type input_df: pd.DataFrame
+    :param protein_df: the dataframe, whose dimensions should be reduced.
+    :type protein_df: pd.DataFrame
     :param n_components: The dimension of the space to embed into.
     :type n_components: int
     :param n_neighbors: The size of local neighborhood in terms of number of
@@ -144,14 +144,14 @@ def umap(
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the UMAP embedded data
         with two columns, "Component1" and "Component2", and shares the same index as
-        the input_df.
+        the protein_df.
     :rtype: dict
     """
 
     # umap import is slow, so it should only get imported when needed
     from umap import UMAP
 
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     try:
         embedded_data_model = UMAP(
             n_neighbors=n_neighbors,
@@ -160,17 +160,17 @@ def umap(
             metric=metric,
             random_state=random_state,
             transform_seed=transform_seed,
-        ).fit_transform(intensity_df_wide)
+        ).fit_transform(protein_df_wide)
 
         embedded_data = pd.DataFrame(
             embedded_data_model,
-            index=intensity_df_wide.index,
+            index=protein_df_wide.index,
             columns=["Component1", "Component2"],
         )
         return dict(embedded_data=embedded_data)
 
     except ValueError as e:
-        if intensity_df_wide.isnull().sum().any():
+        if protein_df_wide.isnull().sum().any():
             msg = (
                 "UMAP does not accept missing values encoded as NaN. Consider "
                 "preprocessing your data to remove NaN values."

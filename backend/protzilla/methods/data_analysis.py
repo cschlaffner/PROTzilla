@@ -1,4 +1,6 @@
+from abc import ABC
 import logging
+from typing_extensions import override
 
 from backend.protzilla import form_helper
 from backend.protzilla.data_analysis.classification import random_forest, svm
@@ -190,23 +192,53 @@ class DimensionReductionMetric(Enum):
     havensine = "havensine"
 
 
-class DataAnalysisStep(Step):
+class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        return inputs
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        """
+        Generic implementation for data analysis steps, most share these inputs
+        """
+        self.inputs["protein_df"] = steps.protein_df
+        self.inputs["metadata_df"] = steps.metadata_df
 
 
-class DifferentialExpressionANOVA(DataAnalysisStep):
-    display_name = "ANOVA"
+class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
+
     operation = "differential_expression"
+
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["log_base"] = steps.get_step_input(input_key="log_base")
+        self.inputs["protein_df"] = steps.get_step_input(
+            input_key="protein_df",
+            instance_identifier=self.inputs.get("protein_df_field", None),
+        )
+        self.inputs["metadata_df"] = steps.metadata_df
+
+
+class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
+
+    operation = "Peptide analysis"
+
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["ptm_df"] = steps.get_step_output(
+            output_key="ptm_df", instance_identifier=self.inputs["ptm_df_field"]
+        )
+        self.inputs["metadata_df"] = steps.metadata_df
+
+
+class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
+    display_name = "ANOVA"
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
         "differentially_expressed_proteins_df",
         "significant_proteins_df",
         "corrected_p_values_df",
-        "sample_group_df",
+        "metadata_df",
         "corrected_alpha",
         "filtered_proteins",
     ]
@@ -216,7 +248,8 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
             label="ANOVA",
             input_fields=[
                 DropdownField(
-                    name="protein_df", label="Step to use protein intensities from"
+                    name="protein_df_field",
+                    label="Step to use protein intensities from",
                 ),
                 DropdownField(
                     name="multiple_testing_correction_method",
@@ -241,7 +274,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        protein_df_field = form["protein_df"]
+        protein_df_field = form["protein_df_field"]
         grouping_field = form["grouping"]
         selected_groups_field = form["selected_groups"]
 
@@ -256,18 +289,9 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
 
     calc_method = staticmethod(anova)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.get_step_input(
-            Step, "protein_df", inputs["protein_df"]
-        )
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
-
-class DifferentialExpressionTTest(DataAnalysisStep):
+class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
-    operation = "differential_expression"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
@@ -290,7 +314,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                     options=TTestType,
                 ),
                 DropdownField(
-                    name="protein_df",
+                    name="protein_df_field",
                     label="Step to use protein intensities from",
                 ),
                 DropdownField(
@@ -324,7 +348,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        protein_field = form["protein_df"]
+        protein_field = form["protein_df_field"]
         grouping_field = form["grouping"]
         group1_field = form["group1"]
         group2_field = form["group2"]
@@ -364,18 +388,9 @@ class DifferentialExpressionTTest(DataAnalysisStep):
 
     calc_method = staticmethod(t_test)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.get_step_input(
-            Step, "protein_df", inputs["protein_df"]
-        )
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
-
-class DifferentialExpressionLinearModel(DataAnalysisStep):
+class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     display_name = "Linear Model"
-    operation = "differential_expression"
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
@@ -460,16 +475,9 @@ class DifferentialExpressionLinearModel(DataAnalysisStep):
 
     calc_method = staticmethod(linear_model)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.protein_df
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
-
-class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
+class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensityStep):
     display_name = "Mann-Whitney Test"
-    operation = "differential_expression"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -529,7 +537,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        protein_field = form["protein_df"]
+        protein_field = form["protein_df_field"]
         grouping_field = form["grouping"]
         group1_field = form["group1"]
         group2_field = form["group2"]
@@ -569,19 +577,9 @@ class DifferentialExpressionMannWhitneyOnIntensity(DataAnalysisStep):
 
     calc_method = staticmethod(mann_whitney_test_on_intensity_data)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        if steps.get_step_output(Step, "protein_df", inputs["protein_df"]) is not None:
-            inputs["protein_df"] = steps.get_step_output(
-                Step, "protein_df", inputs["protein_df"]
-            )
-        inputs["metadata_df"] = steps.metadata_df
-        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        return inputs
 
-
-class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
+class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
     display_name = "Mann-Whitney Test"
-    operation = "Peptide analysis"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -601,7 +599,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
             label="Mann-Whitney Test",
             input_fields=[
                 DropdownField(
-                    name="ptm_df",
+                    name="ptm_df_field",
                     label="Step to use ptm data from",
                 ),
                 DropdownField(
@@ -641,14 +639,16 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        ptm_df_field = form["ptm_df"]
+        ptm_df_field = form["ptm_df_field"]
         grouping_field = form["grouping"]
         group1_field = form["group1"]
         group2_field = form["group2"]
 
         ptm_df_field.set_options(
             form_helper.to_choices(
-                run.steps.get_instance_identifiers(PTMsPerSample, "ptm_df")
+                run.steps.get_instance_identifiers(
+                    step_type=PTMsPerSample, output_key="ptm_df"
+                )
             )
         )
         grouping_field.set_options(
@@ -685,15 +685,11 @@ class DifferentialExpressionMannWhitneyOnPTM(DataAnalysisStep):
 
     calc_method = staticmethod(mann_whitney_test_on_ptm_data)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["ptm_df"] = steps.get_step_output(Step, "ptm_df", inputs["ptm_df"])
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
-
-class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
+class DifferentialExpressionKruskalWallisOnIntensity(
+    DifferentialExpressionIntensityStep
+):
     display_name = "Kruskal-Wallis Test"
-    operation = "differential_expression"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -710,7 +706,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
         return Form(
             label="Kruskal-Wallis Test",
             input_fields=[
-                DropdownField(name="protein_df", label="Step to use protein data from"),
+                DropdownField(
+                    name="protein_df_field", label="Step to use protein data from"
+                ),
                 DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
@@ -735,7 +733,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        protein_df_field = form["protein_df"]
+        protein_df_field = form["protein_df_field"]
         grouping_field = form["grouping"]
         selected_groups_field = form["selected_groups"]
         protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
@@ -749,18 +747,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(DataAnalysisStep):
 
     calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["protein_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["protein_df"]
-        )
-        inputs["metadata_df"] = steps.metadata_df
-        inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        return inputs
 
-
-class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
+class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
     display_name = "Kruskal-Wallis Test"
-    operation = "Peptide analysis"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -802,7 +791,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        ptm_df_field = form["ptm_df"]
+        ptm_df_field = form["ptm_df_field"]
         grouping_field = form["grouping"]
         selected_groups_field = form["selected_groups"]
 
@@ -821,15 +810,14 @@ class DifferentialExpressionKruskalWallisOnPTM(DataAnalysisStep):
 
     calc_method = staticmethod(kruskal_wallis_test_on_ptm_data)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["ptm_df"] = steps.get_step_output(Step, "ptm_df", inputs["ptm_df"])
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
+class DataAnalysisPlotStep(DataAnalysisStep, ABC):
 
-class PlotVolcano(DataAnalysisStep):
-    display_name = "Volcano Plot"
     operation = "plot"
+
+
+class PlotVolcano(DataAnalysisPlotStep):
+    display_name = "Volcano Plot"
     method_description = (
         "Plots the results of a differential expression analysis in a volcano plot. The x-axis shows "
         "the log2 fold change and the y-axis shows the -log10 of the corrected p-values. The user "
@@ -868,8 +856,8 @@ class PlotVolcano(DataAnalysisStep):
         input_dict_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
-                    Step,
-                    ["corrected_p_values_df", "log2_fold_change_df"],
+                    step_type=Step,
+                    output_key=["corrected_p_values_df", "log2_fold_change_df"],
                 )
             )
         )
@@ -881,57 +869,50 @@ class PlotVolcano(DataAnalysisStep):
 
         items_of_interest = []
         step_output = run.steps.get_step_output(
-            Step, "differentially_expressed_proteins_df", input_dict_instance_id
+            output_key="differentially_expressed_proteins_df",
+            instance_identifier=input_dict_instance_id,
         )
         if step_output is not None:
             items_of_interest = step_output["Protein ID"].unique()
         step_output = run.steps.get_step_output(
-            Step, "differentially_expressed_ptm_df", input_dict_instance_id
+            output_key="differentially_expressed_ptm_df",
+            instance_identifier=input_dict_instance_id,
         )
         if step_output is not None:
             items_of_interest = step_output["PTM"].unique()
 
         items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["p_values"] = steps.get_step_output(
-            Step, "corrected_p_values_df", inputs["input_dict"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        source_id = self.inputs["input_dict"]
+        self.inputs["p_values"] = steps.get_step_output(
+            output_key="corrected_p_values_df",
+            instance_identifier=source_id,
+        )
+        self.inputs["log2_fc"] = steps.get_step_output(
+            output_key="log2_fold_change_df",
+            instance_identifier=source_id,
         )
 
-        step = next(
-            s for s in steps.all_steps if s.instance_identifier == inputs["input_dict"]
-        )
-        inputs["alpha"] = step.inputs["alpha"]
-        inputs["group1"] = step.inputs["group1"]
-        inputs["group2"] = step.inputs["group2"]
-        inputs["log2_fc"] = steps.get_step_output(
-            Step, "log2_fold_change_df", inputs["input_dict"]
-        )
+        for input_key in ["alpha", "group1", "group2"]:
+            self.inputs[input_key] = steps.get_step_input(
+                input_key=input_key, instance_identifier=source_id
+            )
 
-        if step.operation == "differential_expression":
-            inputs["item_type"] = "Protein ID"
-        elif step.operation == "Peptide analysis":
-            inputs["item_type"] = "PTM"
-
-        return inputs
+        source_operation = steps.get_step_operation(source_id)
+        if source_operation == "differential_expression":
+            self.inputs["item_type"] = "Protein ID"
+        elif source_operation == "Peptide analysis":
+            self.inputs["item_type"] = "PTM"
 
 
-class PlotProteinCoverage(DataAnalysisStep):
+class PlotProteinCoverage(DataAnalysisPlotStep):
     display_name = "Protein Coverage Plot"
-    operation = "plot"
     method_description = (
         "Create a protein coverage plot from a protein graph and peptide data"
     )
 
-    input_keys = [
-        "protein_id",
-        "fasta_df",
-        "metadata_df",
-        "peptide_df",
-        "grouping",
-        "selected_groups",
-        "aggregation_method",
-    ]
     output_keys = []
 
     plot_method = staticmethod(plot_protein_coverage)
@@ -942,11 +923,11 @@ class PlotProteinCoverage(DataAnalysisStep):
             label="Protein Coverage Plot",
             input_fields=[
                 DropdownField(
-                    name="peptide_df",
+                    name="peptide_df_field",
                     label="Step to use peptide data from",
                 ),
                 DropdownField(
-                    name="fasta_df",
+                    name="fasta_df_field",
                     label="Step to use fasta protein data from",
                 ),
                 DropdownField(
@@ -971,8 +952,8 @@ class PlotProteinCoverage(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df"]
-        fasta_df_field = form["fasta_df"]
+        peptide_df_field = form["peptide_df_field"]
+        fasta_df_field = form["fasta_df_field"]
         protein_id_field = form["protein_id"]
         grouping_field = form["grouping"]
         selected_groups_field = form["selected_groups"]
@@ -1018,18 +999,19 @@ class PlotProteinCoverage(DataAnalysisStep):
             )
         form["aggregation_method"].isVisible = grouping != "Sample"
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["fasta_df"] = steps.get_step_output(Step, "fasta_df", inputs["fasta_df"])
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["fasta_df"] = steps.get_step_output(
+            output_key="fasta_df", instance_identifier=self.inputs["fasta_df_field"]
         )
-        inputs["metadata_df"] = steps.metadata_df
-        return inputs
+        self.inputs["peptide_df"] = steps.get_step_output(
+            output_key="peptide_df", instance_identifier=self.inputs["peptide_df_field"]
+        )
+        self.inputs["metadata_df"] = steps.metadata_df
 
 
-class PlotScatterPlot(DataAnalysisStep):
+class PlotScatterPlot(DataAnalysisPlotStep):
     display_name = "Scatter Plot"
-    operation = "plot"
     method_description = "Creates a scatter plot from data. This requires a dimension reduction method to be run first, as the input dataframe should contain only 2 or 3 columns."
 
     plot_method = staticmethod(scatter_plot)
@@ -1039,45 +1021,50 @@ class PlotScatterPlot(DataAnalysisStep):
             label="Scatter Plot",
             input_fields=[
                 DropdownField(
-                    name="input_df",
+                    name="input_df_field",
                     label="Choose dataframe to be plotted",
                 ),
                 # TODO: handle isRequired
                 DropdownField(
-                    name="color_df",
+                    name="color_df_field",
                     label="Choose dataframe to be used for coloring",
                 ),
             ],
         )
 
     def modify_form(self, form, run):
-        input_df_field = form["input_df"]
+        input_df_field = form["input_df_field"]
         color_field = form["color_df"]
 
         input_df_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
-                    DimensionReductionUMAP, "embedded_data"
+                    step_type=DimensionReductionUMAP, output_key="embedded_data"
                 )
             )
         )
 
         color_field.set_options(
             form_helper.to_choices(
-                run.steps.get_instance_identifiers(Step, "color_df"), required=False
+                run.steps.get_instance_identifiers(
+                    step_type=Step, output_key="color_df"
+                ),
+                required=False,
             )
         )
 
-    # TODO: input
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "embedded_data", inputs["input_df"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["input_df"] = steps.get_step_output(
+            output_key="embedded_data",
+            instance_identifier=self.inputs["input_df_field"],
         )
-        inputs["color_df"] = steps.get_step_output(Step, "color_df", inputs["color_df"])
-        return inputs
+        self.inputs["color_df"] = steps.get_step_output(
+            output_key="color_df", instance_identifier=self.inputs["color_df_field"]
+        )
 
 
-class PlotClustergram(DataAnalysisStep):
+class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
     operation = "plot"
     method_description = (
@@ -1087,17 +1074,17 @@ class PlotClustergram(DataAnalysisStep):
 
     plot_method = staticmethod(clustergram_plot)
 
-    # TODO: handle isRequired with sample_group_df
+    # TODO: handle isRequired with metadata_df
     def create_form(self):
         return Form(
             label="Clustergram",
             input_fields=[
                 DropdownField(
-                    name="input_df",
+                    name="protein_df_field",
                     label="Choose dataframe to be plotted",
                 ),
                 DropdownField(
-                    name="metadata_df",
+                    name="metadata_df_field",
                     label="Choose dataframe to be used for annotating sample metadata",
                 ),
                 DropdownField(
@@ -1113,43 +1100,42 @@ class PlotClustergram(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        form["input_df"].set_options(
+        form["protein_df_field"].set_options(
             form_helper.get_choices_for_protein_df_steps(
                 run,
             )
         )
-        form["metadata_df"].set_options(
+        form["metadata_df_field"].set_options(
             form_helper.get_choices(
                 run,
                 output_key="metadata_df",
                 required=True,
             )
         )
-        if form.values["metadata_df"] is not None:
+        if form["metadata_df_field"].value is not None:
             form["metadata_column"].set_options(
                 form_helper.get_choices_for_metadata_non_sample_columns(
-                    run, instance_identifier=form.values["metadata_df"]
+                    run, instance_identifier=form["metadata_df_field"].value
                 )
             )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["protein_df"] = steps.get_step_output(
+            output_key="protein_df", instance_identifier=self.inputs["protein_df_field"]
         )
-        inputs["metadata_df"] = steps.get_step_output(
-            Step, "metadata_df", inputs["metadata_df"]
+        self.inputs["metadata_df"] = steps.get_step_output(
+            output_key="metadata_df",
+            instance_identifier=self.inputs["metadata_df_field"],
         )
-        return inputs
 
 
-class PlotProtQuant(DataAnalysisStep):
+class PlotProtQuant(DataAnalysisPlotStep):
     display_name = "Protein Quantification Plot"
-    operation = "plot"
     method_description = (
         "Creates a line chart for intensity across samples for protein groups"
     )
 
-    input_keys = ["input_df", "protein_group", "similarity_measure", "similarity"]
     output_keys = []
 
     def create_form(self):
@@ -1157,7 +1143,7 @@ class PlotProtQuant(DataAnalysisStep):
             label="Protein Quantification Plot",
             input_fields=[
                 DropdownField(
-                    name="input_df",
+                    name="protein_df_field",
                     label="Choose dataframe to be plotted",
                 ),
                 DropdownField(
@@ -1183,18 +1169,22 @@ class PlotProtQuant(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        form["input_df"].set_options(form_helper.get_choices_for_protein_df_steps(run))
+        form["protein_df_field"].set_options(
+            form_helper.get_choices_for_protein_df_steps(run)
+        )
 
-        if form["input_df"].options:
-            if not form["input_df"].value:
-                form["input_df"].value = form["input_df"].options[0].label
+        if form["protein_df_field"].options:
+            if not form["protein_df_field"].value:
+                form["protein_df_field"].value = (
+                    form["protein_df_field"].options[0].label
+                )
 
             form["protein_group"].set_options(
                 form_helper.to_choices(
                     run.steps.get_step_output(
                         step_type=Step,
                         output_key="protein_df",
-                        instance_identifier=form["input_df"].value,
+                        instance_identifier=form["protein_df_field"].value,
                     )["Protein ID"].unique()
                 )
             )
@@ -1220,25 +1210,22 @@ class PlotProtQuant(DataAnalysisStep):
 
     plot_method = staticmethod(prot_quant_plot)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        inputs["protein_df"] = steps.get_step_output(
+            output_key="protein_df", instance_identifier=inputs["protein_df_field"]
         )
-        return inputs
 
 
-class PlotPrecisionRecallCurve(DataAnalysisStep):
+class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
     display_name = "Precision Recall"
-    operation = "plot"
     method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
 
     # Todo: output_keys
 
     calc_method = staticmethod(evaluate_classification_model)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        # TODO: Input
-        return inputs
+    # TODO: insert_dataframes
 
 
 class PlotROC(DataAnalysisStep):
@@ -1250,9 +1237,7 @@ class PlotROC(DataAnalysisStep):
 
     calc_method = staticmethod(evaluate_classification_model)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        # Todo: Input
-        return inputs
+    # TODO: insert_dataframes
 
 
 class ClusteringKMeans(DataAnalysisStep):
@@ -1273,10 +1258,6 @@ class ClusteringKMeans(DataAnalysisStep):
         return Form(
             label="kMeans",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Choose dataframe to be plotted",
-                ),
                 # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
@@ -1293,7 +1274,7 @@ class ClusteringKMeans(DataAnalysisStep):
                     value=ModelSelection.grid_search,
                 ),
                 # TODO: Add dynamic parameters for grid search & randomized search
-                # TODO Add dynamic parameter for model selection scoring
+                # TODO: Add dynamic parameter for model selection scoring
                 DropdownField(
                     name="model_selection_scoring",
                     label="Select a scoring for identifying the best estimator following a grid search",
@@ -1348,11 +1329,6 @@ class ClusteringKMeans(DataAnalysisStep):
             ],
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
-
 
 class ClusteringExpectationMaximisation(DataAnalysisStep):
     display_name = "Expectation-maximization (EM)"
@@ -1372,11 +1348,6 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
         return Form(
             label="Expectation-maximization (EM)",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Choose dataframe to be plotted",
-                    options=AnalysisLevel,
-                ),
                 # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
@@ -1442,11 +1413,6 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
             ],
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
-
 
 class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
     display_name = "Hierarchical Agglomerative Clustering"
@@ -1465,11 +1431,6 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
         return Form(
             label="Hierarchical Agglomerative Clustering",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Choose dataframe to be plotted",
-                    options=AnalysisLevel,
-                ),
                 # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
@@ -1522,11 +1483,6 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
-
 
 class ClassificationRandomForest(DataAnalysisStep):
     display_name = "Random Forest"
@@ -1546,11 +1502,6 @@ class ClassificationRandomForest(DataAnalysisStep):
         return Form(
             label="Random Forest",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Choose dataframe to be plotted",
-                    options=AnalysisLevel,
-                ),
                 # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
@@ -1666,11 +1617,6 @@ class ClassificationRandomForest(DataAnalysisStep):
 
     calc_method = staticmethod(random_forest)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
-
 
 class ClassificationSVM(DataAnalysisStep):
     display_name = "Support Vector Machine"
@@ -1690,11 +1636,6 @@ class ClassificationSVM(DataAnalysisStep):
         return Form(
             label="Support Vector Machine",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Choose dataframe to be plotted",
-                    options=AnalysisLevel,
-                ),
                 # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
@@ -1809,11 +1750,6 @@ class ClassificationSVM(DataAnalysisStep):
 
     calc_method = staticmethod(svm)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
-
 
 class ModelEvaluationClassificationModel(DataAnalysisStep):
     display_name = "Evaluation of classification models"
@@ -1854,11 +1790,6 @@ class DimensionReductionTSNE(DataAnalysisStep):
         return Form(
             label="t-SNE",
             input_fields=[
-                DropdownField(
-                    name="input_df",
-                    label="Dimension reduction of a dataframe using t-SNE",
-                    options=AnalysisLevel,
-                ),
                 NumberField(
                     name="n_components",
                     label="Dimension of the embedded space",
@@ -1903,12 +1834,12 @@ class DimensionReductionTSNE(DataAnalysisStep):
             ],
         )
 
+    # TODO: This method has the option to set a method (via a string), currently defaults to barnes_hut
     calc_method = staticmethod(t_sne)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
-        return inputs
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["protein_df"] = steps.protein_df
 
 
 class DimensionReductionUMAP(DataAnalysisStep):
@@ -1923,7 +1854,7 @@ class DimensionReductionUMAP(DataAnalysisStep):
             label="UMAP",
             input_fields=[
                 DropdownField(
-                    name="input_df",
+                    name="protein_df_field",
                     label="Dimension reduction of a dataframe using UMAP",
                     options=AnalysisLevel,
                 ),
@@ -1968,19 +1899,19 @@ class DimensionReductionUMAP(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        input_df_field = form["input_df"]
-        input_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        protein_df_field = form["protein_df_field"]
+        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
 
     calc_method = staticmethod(umap)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        inputs["protein_df"] = steps.get_step_output(
+            output_key="protein_df", instance_identifier=inputs["protein_df_field"]
         )
-        return inputs
 
 
-class BaseFLEXLF(DataAnalysisStep):
+class BaseFLEXLF(DataAnalysisStep, ABC):
     """
     A base class for FLEXIQuantLF and MultiFLEXLF to reduce code duplication.
     """
@@ -2000,13 +1931,10 @@ class BaseFLEXLF(DataAnalysisStep):
             form_helper.to_choices(run.steps.metadata_df[grouping].unique())
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            step_type=Step,
-            output_key="peptide_df",
-        )
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
         inputs["metadata_df"] = steps.metadata_df
-        return inputs
 
     def get_base_form_fields(self) -> tuple:
         return (
@@ -2119,7 +2047,17 @@ class MultiFLEXLF(BaseFLEXLF):
         )
 
 
-class SelectPeptidesForProtein(DataAnalysisStep):
+class PeptideAnalysisStep(DataAnalysisStep, ABC):
+    operation = "Peptide analysis"
+
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        self.inputs["peptide_df"] = steps.get_step_output(
+            output_key="peptide_df", instance_identifier=self.inputs["peptide_df_field"]
+        )
+
+
+class SelectPeptidesForProtein(PeptideAnalysisStep):
     display_name = "Select Peptides of Protein"
     operation = "Peptide analysis"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
@@ -2133,7 +2071,7 @@ class SelectPeptidesForProtein(DataAnalysisStep):
             label="Select Peptides of Protein",
             input_fields=[
                 DropdownField(
-                    name="peptide_df",
+                    name="peptide_df_field",
                     label="Step to use peptide dataframe from",
                 ),
                 DropdownField(
@@ -2160,7 +2098,7 @@ class SelectPeptidesForProtein(DataAnalysisStep):
         )
 
     def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df"]
+        peptide_df_field = form["peptide_df_field"]
         auto_select_field = form["auto_select"]
         sort_proteins_field = form["sort_proteins"]
         protein_list_field = form["protein_list"]
@@ -2216,16 +2154,15 @@ class SelectPeptidesForProtein(DataAnalysisStep):
 
     calc_method = staticmethod(select_peptides_of_protein)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
-        )
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
+        super().insert_dataframes(steps)
 
-        inputs["metadata_df"] = steps.metadata_df
+        self.inputs["metadata_df"] = steps.metadata_df
 
-        if inputs["auto_select"]:
+        if self.inputs["auto_select"]:
             significant_proteins = steps.get_step_output(
-                DataAnalysisStep, "significant_proteins_df", inputs["protein_list"]
+                DataAnalysisStep, "significant_proteins_df", self.inputs["protein_list"]
             )
             index_of_most_significant_protein = significant_proteins[
                 "corrected_p_value"
@@ -2233,19 +2170,17 @@ class SelectPeptidesForProtein(DataAnalysisStep):
             most_significant_protein = significant_proteins.loc[
                 index_of_most_significant_protein
             ]
-            inputs["protein_id"] = [most_significant_protein["Protein ID"]]
+            self.inputs["protein_id"] = [most_significant_protein["Protein ID"]]
             self.messages.append(
                 {
                     "level": logging.INFO,
                     "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {inputs['protein_list']}",
+                    f"from {self.inputs['protein_list']}",
                 }
             )
 
-        return inputs
 
-
-class PTMsPerSample(DataAnalysisStep):
+class PTMsPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample"
     operation = "Peptide analysis"
     method_description = (
@@ -2262,14 +2197,14 @@ class PTMsPerSample(DataAnalysisStep):
             label="PTMs per Sample",
             input_fields=[
                 DropdownField(
-                    name="peptide_df",
+                    name="peptide_df_field",
                     label="Peptide dataframe containing the peptides of a single protein",
                 )
             ],
         )
 
     def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df"]
+        peptide_df_field = form["peptide_df_field"]
 
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
@@ -2282,14 +2217,8 @@ class PTMsPerSample(DataAnalysisStep):
 
     calc_method = staticmethod(ptms_per_sample)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
-        )
-        return inputs
 
-
-class PTMsProteinAndPerSample(DataAnalysisStep):
+class PTMsProteinAndPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample and Protein"
     operation = "Peptide analysis"
     method_description = (
@@ -2306,14 +2235,14 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
             label="PTMs per Sample and Protein",
             input_fields=[
                 DropdownField(
-                    name="peptide_df",
+                    name="peptide_df_field",
                     label="Peptide dataframe containing the peptides of a single protein",
                 )
             ],
         )
 
     def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df"]
+        peptide_df_field = form["peptide_df_field"]
 
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
@@ -2326,22 +2255,15 @@ class PTMsProteinAndPerSample(DataAnalysisStep):
 
     calc_method = staticmethod(ptms_per_protein_and_sample)
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["peptide_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["peptide_df"]
-        )
-        return inputs
 
-
-class _PTMVisualizationStep(DataAnalysisStep):
-    operation = "plot"
+class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
 
     @classmethod
     def get_form_fields(cls) -> list:
         return [
             DropdownField(
-                name="evidence_df",
+                name="evidence_df_field",
                 label="Dataframe that contains the MaxQuant evidence data",
             ),
             FloatField(
@@ -2370,17 +2292,17 @@ class _PTMVisualizationStep(DataAnalysisStep):
         ]
 
     def modify_form(self, form, run):
-        form["evidence_df"].set_options(
+        form["evidence_df_field"].set_options(
             form_helper.get_choices(
                 run, output_key="peptide_df", step_type=Step, required=True
             )
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+    @override
+    def insert_dataframes(self, steps: StepManager) -> None:
         inputs["evidence_df"] = steps.get_step_output(
-            Step, "peptide_df", inputs["evidence_df"]
+            output_key="peptide_df", instance_identifier=inputs["evidence_df_field"]
         )
-        return inputs
 
 
 class PTMOverviewVisualization(_PTMVisualizationStep):

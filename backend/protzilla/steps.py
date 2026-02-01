@@ -34,8 +34,11 @@ class Section(str, Enum):
     DATA_INTEGRATION = "data_integration"
 
 
-class Step:
-    section: Section = None
+class Step(ABC):
+    """
+    Abstract base class for concrete step implementations
+    """
+    section: Section
     display_name: str = None
     operation: str = None
     method_description: str = None
@@ -106,7 +109,6 @@ class Step:
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
 
         :param steps: The StepManager object that contains all steps
-        :param inputs: These inputs will be supplied to the method. Only keys in the input_keys of the method class will actually be supplied to the method
         :return: bool: True if the calculation was successful, False otherwise
         """
         stepIndex = steps.all_steps.index(self)
@@ -188,10 +190,11 @@ class Step:
     @abstractmethod
     def insert_dataframes(self, steps: StepManager) -> None:
         """
-        Adds the necessary entries to self.inputs
+        Adds the necessary entries to self.inputs. Needs to be overridden in concrete classes.
 
         :param steps: The relevant StepManager instance
         """
+        raise NotImplementedError("This needs to be overridden")
 
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
@@ -496,10 +499,17 @@ class StepManager:
             )
         return instance_identifiers
 
+    @staticmethod
+    def check_instance_identifier(step: Step, instance_identifier: str | None):
+        return (
+            step.instance_identifier == instance_identifier
+            or instance_identifier is None
+        )
+
     def get_step_output(
         self,
-        step_type: type[Step],
-        output_key: str,
+        step_type: Step | None = None,
+        output_key: str = "",  # TODO remove step_type and default empty string
         instance_identifier: str | None = None,
         include_current_step: bool = False,
     ) -> pd.DataFrame | Any | None:
@@ -514,12 +524,8 @@ class StepManager:
         :return: The value of the output of the step or None
         """
 
-        def check_instance_identifier(step):
-            return (
-                step.instance_identifier == instance_identifier
-                if instance_identifier is not None
-                else True
-            )
+        if step_type is not None:
+            raise NotImplementedError("Passing the step type is deprecated")
 
         if include_current_step:
             steps_to_search = self.all_steps
@@ -527,11 +533,7 @@ class StepManager:
             steps_to_search = self.previous_calculated_steps
 
         for step in reversed(steps_to_search):
-            if (
-                isinstance(step, step_type)
-                and check_instance_identifier(step)
-                and output_key in step.output
-            ):
+            if StepManager.check_instance_identifier(step, instance_identifier) and output_key in step.output:
                 val = step.output[output_key]
                 if val is None:
                     continue
@@ -554,8 +556,8 @@ class StepManager:
 
     def get_step_input(
         self,
-        step_type: type[Step] | list[type[Step]],
-        input_key: str,
+        step_type: Step | None = None,
+        input_key: str = "", # TODO same as get_step_output
         instance_identifier: str | None = None,
         default: Any = None,
     ):
@@ -569,22 +571,25 @@ class StepManager:
         :return: The value of the input of the step or None
         """
 
-        def check_instance_identifier(step):
-            return (
-                step.instance_identifier == instance_identifier
-                if instance_identifier is not None
-                else True
-            )
+        if step_type is not None:
+            raise NotImplementedError("Passing the step type is deprecated")
 
-        step_type = [step_type] if not isinstance(step_type, list) else step_type
         for step in reversed(self.previous_calculated_steps):
             if (
-                any(isinstance(step, st) for st in step_type)
-                and check_instance_identifier(step)
+                StepManager.check_instance_identifier(step, instance_identifier)
                 and input_key in step.inputs
             ):
                 return step.inputs[input_key]
         return default
+
+    def get_step_operation(
+        self,
+        instance_identifier: str
+    ) -> str:
+        for step in reversed(self.all_steps):
+            if step.instance_identifier == instance_identifier:
+                return step.operation
+        raise ValueError(f"No step associated with ID {instance_identifier}")
 
     def all_steps_in_section(self, section: Section) -> list[Step]:
         """
@@ -645,15 +650,13 @@ class StepManager:
 
     @property
     def protein_df(self) -> pd.DataFrame:
-        from backend.protzilla.steps import Step
 
-        return self.get_step_output(Step, "protein_df")
+        return self.get_step_output(output_key="protein_df")
 
     @property
     def metadata_df(self) -> pd.DataFrame | None:
-        from backend.protzilla.methods.importing import ImportingStep
 
-        return self.get_step_output(ImportingStep, "metadata_df")
+        return self.get_step_output(output_key="metadata_df")
 
     @property
     def preprocessed_output(self) -> Output | None:

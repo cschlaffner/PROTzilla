@@ -79,7 +79,7 @@ def test_k_means(clustering_df, meta_df):
         }
     )
     current_out = k_means(
-        input_df=clustering_df,
+        protein_df=clustering_df,
         metadata_df=meta_df,
         labels_column="Group",
         positive_label="AD",
@@ -105,7 +105,7 @@ def test_k_means(clustering_df, meta_df):
 
 def test_k_means_nan_handling(df_with_nan, meta_df):
     current_out = k_means(
-        input_df=df_with_nan,
+        protein_df=df_with_nan,
         metadata_df=meta_df,
         labels_column="Group",
         positive_label="AD",
@@ -120,7 +120,7 @@ def test_k_means_nan_handling(df_with_nan, meta_df):
 
 def test_k_means_n_clusters(clustering_df, meta_df):
     current_out = k_means(
-        input_df=clustering_df,
+        protein_df=clustering_df,
         metadata_df=meta_df,
         labels_column="Group",
         positive_label="AD",
@@ -185,7 +185,7 @@ def test_expectation_maximisation(clustering_df, meta_df):
 
 def test_hierarchical_agglomerative_clustering(clustering_df, meta_df):
     current_out = hierarchical_agglomerative_clustering(
-        input_df=clustering_df,
+        protein_df=clustering_df,
         metadata_df=meta_df,
         labels_column="Group",
         positive_label="AD",

@@ -31,7 +31,7 @@ def ttest_input():
         ["Sample7", "Protein3", "Gene1", 3],
     )
 
-    test_intensity_df = pd.DataFrame(
+    test_protein_df = pd.DataFrame(
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
@@ -54,7 +54,7 @@ def ttest_input():
     test_alpha = 0.05
 
     return dict(
-        intensity_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
