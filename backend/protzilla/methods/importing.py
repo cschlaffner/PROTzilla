@@ -48,6 +48,7 @@ class ImportingStep(Step):
         """
         return 0
 
+
 class MetadataImportingStep(ImportingStep):
 
     @override

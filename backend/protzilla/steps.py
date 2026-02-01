@@ -533,7 +533,10 @@ class StepManager:
             steps_to_search = self.previous_calculated_steps
 
         for step in reversed(steps_to_search):
-            if StepManager.check_instance_identifier(step, instance_identifier) and output_key in step.output:
+            if (
+                StepManager.check_instance_identifier(step, instance_identifier)
+                and output_key in step.output
+            ):
                 val = step.output[output_key]
                 if val is None:
                     continue
@@ -557,7 +560,7 @@ class StepManager:
     def get_step_input(
         self,
         step_type: Step | None = None,
-        input_key: str = "", # TODO same as get_step_output
+        input_key: str = "",  # TODO same as get_step_output
         instance_identifier: str | None = None,
         default: Any = None,
     ):
@@ -582,10 +585,7 @@ class StepManager:
                 return step.inputs[input_key]
         return default
 
-    def get_step_operation(
-        self,
-        instance_identifier: str
-    ) -> str:
+    def get_step_operation(self, instance_identifier: str) -> str:
         for step in reversed(self.all_steps):
             if step.instance_identifier == instance_identifier:
                 return step.operation
@@ -681,7 +681,10 @@ class StepManager:
             raise ValueError(f"Unknown section {step.section}")
 
     def remove_step(
-        self, step: Step | None, step_index: int | None = None, section: Section | None = None
+        self,
+        step: Step | None,
+        step_index: int | None = None,
+        section: Section | None = None,
     ) -> None:
         """
         Removes a step. Either the step must be passed or both section and step_index in the specific section.

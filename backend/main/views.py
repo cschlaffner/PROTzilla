@@ -530,7 +530,7 @@ def download_table(request):
         instance_id = run.steps.all_steps[index].instance_identifier
         buffer = io.StringIO()
         df: pd.DataFrame = run.steps.get_step_output(
-            Step, key, instance_id, include_current_step=True
+            output_key=key, instance_identifier=instance_id, include_current_step=True
         )
         df.to_csv(buffer)
 

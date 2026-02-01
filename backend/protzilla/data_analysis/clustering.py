@@ -72,10 +72,14 @@ def k_means(
         - cluster_labels_df: The dataframe with sample IDs and assigned cluster labels.
     :rtype: dict
     """
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
     try:
         # prepare protein_df and labels_df dataframes for clustering
-        protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+        protein_df_wide = (
+            long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+        )
         protein_df_wide.sort_values(by="Sample", inplace=True)
         labels_df = (
             metadata_df[["Sample", labels_column]]
@@ -204,7 +208,9 @@ def expectation_maximisation(
     :rtype: dict
     """
     # prepare protein_df and labels_df dataframes for clustering
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
     protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
@@ -238,7 +244,10 @@ def expectation_maximisation(
     )
 
     cluster_labels_df = pd.DataFrame(
-        {"Sample": protein_df_wide.index, "Cluster Labels": model.predict(protein_df_wide)}
+        {
+            "Sample": protein_df_wide.index,
+            "Cluster Labels": model.predict(protein_df_wide),
+        }
     )
     cluster_labels_probabilities_df = pd.DataFrame(
         model.predict_proba(protein_df_wide),
@@ -298,7 +307,9 @@ def hierarchical_agglomerative_clustering(
     :rtype: dict
     """
     # prepare protein_df and labels_df dataframes for clustering
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
     protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]

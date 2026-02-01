@@ -216,7 +216,9 @@ def clustergram_plot(
         assert isinstance(protein_df, pd.DataFrame) and not protein_df.empty
         assert isinstance(metadata_df, pd.DataFrame) or not metadata_df
 
-        protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+        protein_df_wide = (
+            long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+        )
         assert not protein_df_wide.isna().any(axis=None)
 
         if isinstance(metadata_df, pd.DataFrame):
@@ -316,7 +318,9 @@ def prot_quant_plot(
     :return: returns a dictionary containing a list with a plotly figure
     """
 
-    protein_wide_df = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_wide_df = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
     if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")

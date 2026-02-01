@@ -52,7 +52,9 @@ def t_sne(
         the protein_df.
     :rtype: dict
     """
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
     try:
         embedded_data_model = TSNE(
             n_components=n_components,
@@ -151,7 +153,9 @@ def umap(
     # umap import is slow, so it should only get imported when needed
     from umap import UMAP
 
-    protein_df_wide = long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
     try:
         embedded_data_model = UMAP(
             n_neighbors=n_neighbors,
