@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from backend.protzilla.run import Run
 
 
+FormInputType = str | int | float | bool | list[str]
+
+
 @dataclass
 class Option:
     """
@@ -175,7 +178,17 @@ class HeaderInfoField:
     type: str = "header-info-field"
 
 
-InputField = TextField | NumberField | FloatField | SearchField | RadioSelectField | CheckboxField | MultiSelectField | DropdownField | FileInput
+InputField = (
+    TextField
+    | NumberField
+    | FloatField
+    | SearchField
+    | RadioSelectField
+    | CheckboxField
+    | MultiSelectField
+    | DropdownField
+    | FileInput
+)
 StructuralField = FormDivider | InfoField | HeaderInfoField
 
 
@@ -233,7 +246,7 @@ class Form:
         return self.input_fields
 
     @property
-    def values(self) -> dict[str, str]:
+    def values(self) -> dict[str, FormInputType]:
         """
         Returns a dictionary with the values of the form fields.
         The keys are the field names and the values are the field values.
