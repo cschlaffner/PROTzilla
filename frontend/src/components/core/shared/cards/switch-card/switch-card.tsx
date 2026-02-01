@@ -30,12 +30,15 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
 
   useEffect(() => {
-    selection
-      ? setSwitchState(components.find((c) => c.name == selection))
-      : setSwitchState(components[0]);
+    const selectedComponent = selection
+      ? components.find((component) => component.name === selection)
+      : components[0];
+    const fallbackComponent =
+      components.length > 0 ? components[0] : { name: "Error", value: <></> };
+    setSwitchState(selectedComponent ?? fallbackComponent);
   }, [components, selection]);
 
-  const setSwitchStateWrapper = (newSelection) => {
+  const setSwitchStateWrapper = (newSelection: SwitchComponent) => {
     if (callback) callback(newSelection);
     setSwitchState(newSelection);
   };

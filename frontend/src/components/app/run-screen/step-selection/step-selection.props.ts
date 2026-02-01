@@ -5,10 +5,10 @@ export interface StepSelectionProps extends Omit<React.HTMLAttributes<HTMLElemen
   section: SectionIDs; // Section of the step list to display
   //NOT IMPLEMENTED IN BACKEND YET -
   index: number; // Index in the section for the step to be added to, defaults to last in index
-  isSmallButton: boolean; // Whether the open button is circular small or with text
-  handlePosition: { top: number; left: number }; // Position of the handle
   onAddStep: () => void; // Function to add a step to the run
-  setShowHandle: React.Dispatch<React.SetStateAction<boolean>>;
+  isSmallButton?: boolean; // Whether the open button is circular small or with text
+  handlePosition?: { top: number; left: number }; // Position of the handle
+  setShowHandle?: React.Dispatch<React.SetStateAction<boolean>>;
   // optional render prop for custom button
   ModalTrigger?: (openModal: () => void) => React.ReactNode;
 }

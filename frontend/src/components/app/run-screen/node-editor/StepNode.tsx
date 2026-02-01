@@ -1,24 +1,35 @@
-import { ContentText, DefaultColoredIcon, DefaultColoredIconType, Icon } from "@protzilla/core";
+import type { DefaultColoredIconType, IconType } from "@protzilla/core";
+import { ContentText, DefaultColoredIcon, Icon } from "@protzilla/core";
 import { defaultPalette } from "@protzilla/theme";
-import { Handle, Node, NodeProps } from "@xyflow/react";
+import type { SectionIDs, SelectedStep, Step } from "@protzilla/utils";
+import { Handle, Node, NodeProps, Position } from "@xyflow/react";
+import type React from "react";
 import { styled } from "styled-components";
 
-type StepNode = Node<
-  {
-    step: object;
-    step_index_within_section: number;
-    section: string;
-    isSelected: boolean;
-    navigateOrRefreshSteps;
-    setHoveredHandleMeta;
-  },
-  "step"
->;
+type DataTypeKey = "peptide_df" | "protein_df" | "meta_df";
+type HandleDirection = "Input" | "Output" | "None";
+
+export interface HoveredHandleMeta {
+  isActive: boolean;
+  direction: HandleDirection;
+  type: DataTypeKey | "None";
+}
+
+export interface StepNodeData extends Record<string, unknown> {
+  step: Step;
+  step_index_within_section: number;
+  section: SectionIDs;
+  isSelected: boolean;
+  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
+  setHoveredHandleMeta: React.Dispatch<React.SetStateAction<HoveredHandleMeta>>;
+}
+
+export type StepNodeType = Node<StepNodeData, "step">;
 
 // TODO: I don't like this method of indication,
 // not very inclusive (color blindness).
 // It should work for the initial draft though.
-const DATA_TYPE_COLOR_INDICATORS = {
+const DATA_TYPE_COLOR_INDICATORS: Record<DataTypeKey, string> = {
   peptide_df: "#BF1E74",
   protein_df: "#BF1E2E",
   meta_df: "#2E1EBF",
@@ -46,7 +57,7 @@ const TextContainer = styled.div`
   max-height: 4.5em;
 `;
 
-export default function StepNode({ data }: NodeProps<StepNode>) {
+export default function StepNode({ data }: NodeProps<StepNodeType>) {
   // const onClick = useCallback((evt) => {
   //   console.log(evt.target.value);
   // }, []);
@@ -59,25 +70,24 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
     });
   };
 
-  const icon = data.step.status;
+  const icon: DefaultColoredIconType = data.step.status;
   const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "";
 
   // TODO: Integrate API. This is just a dummy in/out setup rn
-  const stepInputs = ["peptide_df", "protein_df", "meta_df"];
-  const stepOutputs = ["peptide_df", "protein_df"];
+  const stepInputs: DataTypeKey[] = ["peptide_df", "protein_df", "meta_df"];
+  const stepOutputs: DataTypeKey[] = ["peptide_df", "protein_df"];
 
   return (
     <StyledNode
       className={`step-node`}
       style={{ backgroundColor: nodeBgColour }}
       onClick={onElementClick}
-      isSelected={data.isSelected}
     >
-      <Icon icon={data.section} style={{ flexShrink: 0, marginRight: "10px" }} />
-      <DefaultColoredIcon icon={icon as DefaultColoredIconType} style={{ flexShrink: 0 }} />
+      <Icon icon={data.section as IconType} style={{ flexShrink: 0, marginRight: "10px" }} />
+      <DefaultColoredIcon icon={icon} style={{ flexShrink: 0 }} />
       <TextContainer style={{ marginLeft: "5px" }}>
         <ContentText
-          text={`${data.step.method_name as string} : ${data.step.name as string}`}
+          text={`${data.step.method_name} : ${data.step.name}`}
           style={{ userSelect: "none" }}
         />
       </TextContainer>
@@ -87,29 +97,29 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
         <Handle
           key={index}
           type="target"
-          position="top"
-          id={`input-${input}-${index as string}`}
+          position={Position.Top}
+          id={`input-${input}-${String(index)}`}
           style={{
             background: "none",
             border: "none",
             width: "1em",
             height: "1em",
-            left: `${((100 / (stepInputs.length + 1)) * (index + 1)) as string}%`,
+            left: `${String((100 / (stepInputs.length + 1)) * (index + 1))}%`,
             transform: "translateX(-50%)",
           }}
-          onMouseEnter={() =>
-            data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input })
-          }
-          onMouseLeave={() =>
-            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })
-          }
+          onMouseEnter={() => {
+            data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input });
+          }}
+          onMouseLeave={() => {
+            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+          }}
         >
           <div
             style={{
               width: "15px",
               height: "15px",
               clipPath: "polygon(50% 100%,100% 0,0 0)",
-              backgroundColor: DATA_TYPE_COLOR_INDICATORS[input] ?? "red",
+              backgroundColor: DATA_TYPE_COLOR_INDICATORS[input],
             }}
           ></div>
         </Handle>
@@ -120,30 +130,30 @@ export default function StepNode({ data }: NodeProps<StepNode>) {
         <Handle
           key={index}
           type="source"
-          position="bottom"
-          id={`output-${output}-${index as string}`}
+          position={Position.Bottom}
+          id={`output-${output}-${String(index)}`}
           style={{
             background: "none",
             border: "none",
             width: "15px",
             height: "15px",
             marginBottom: "1px",
-            left: `${((100 / (stepOutputs.length + 1)) * (index + 1)) as string}%`,
+            left: `${String((100 / (stepOutputs.length + 1)) * (index + 1))}%`,
             transform: "translateX(-50%)",
           }}
-          onMouseEnter={() =>
-            data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output })
-          }
-          onMouseLeave={() =>
-            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })
-          }
+          onMouseEnter={() => {
+            data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output });
+          }}
+          onMouseLeave={() => {
+            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+          }}
         >
           <div
             style={{
               width: "15px",
               height: "15px",
               clipPath: "polygon(50% 100%,100% 0,0 0)",
-              backgroundColor: DATA_TYPE_COLOR_INDICATORS[output] ?? "red",
+              backgroundColor: DATA_TYPE_COLOR_INDICATORS[output],
             }}
           ></div>
         </Handle>
