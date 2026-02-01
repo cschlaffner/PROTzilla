@@ -143,18 +143,49 @@ def t_test(
             # if the protein has a NaN value in a sample, we just skip it
             pass
 
-    if log2_fold_changes:
-        fc_mean = np.mean(log2_fold_changes)
-        fc_std = np.std(log2_fold_changes)
-        if fc_std == 0 or np.isnan(fc_std):
-            z_scores = np.zeros(len(log2_fold_changes))
-        else:
-            z_scores = np.abs((np.array(log2_fold_changes) - fc_mean) / fc_std)
-        fc_significance = 1 - stats.norm.cdf(z_scores)
-        fc_significance_df = pd.DataFrame(
-            list(zip(valid_protein_groups, z_scores, fc_significance)),
-            columns=["Protein ID", "fc_z_score", "fc_significance"],
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for t-test analysis.",
+            }
         )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=["Protein ID", "corrected_p_value"]
+            ),
+            t_statistic_df=pd.DataFrame(columns=["Protein ID", "t_statistic"]),
+            log2_fold_change_df=pd.DataFrame(
+                columns=["Protein ID", "log2_fold_change"]
+            ),
+            fc_significance_df=pd.DataFrame(
+                columns=["Protein ID", "fc_z_score", "fc_significance"]
+            ),
+            corrected_alpha=alpha,
+            fc_zscore_alpha=fc_zscore_alpha,
+            fc_zscore_filter=fc_zscore_filter,
+            messages=messages,
+        )
+
+    fc_mean = np.mean(log2_fold_changes)
+    fc_std = np.std(log2_fold_changes)
+    if fc_std == 0 or np.isnan(fc_std):
+        z_scores = np.zeros(len(log2_fold_changes))
+    else:
+        z_scores = np.abs((np.array(log2_fold_changes) - fc_mean) / fc_std)
+    fc_significance = 1 - stats.norm.cdf(z_scores)
+    fc_significance_df = pd.DataFrame(
+        list(zip(valid_protein_groups, z_scores, fc_significance)),
+        columns=["Protein ID", "fc_z_score", "fc_significance"],
+    )
 
     (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
         p_values=p_values,
@@ -196,8 +227,6 @@ def t_test(
         significant_proteins_df = significant_proteins_df[
             significant_proteins_df["fc_significance"] <= fc_zscore_alpha
         ]
-
-    # filtered_proteins = list(set(proteins) - set(valid_protein_groups))
 
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
