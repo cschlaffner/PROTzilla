@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import asdict
 import inspect
 import logging
@@ -86,18 +87,18 @@ class Step:
     def get_form_values(self) -> None:
         self.inputs = self.form_inputs.copy()
 
-    def to_dict(self):
+    @classmethod
+    def to_dict(cls):
         """
         Returns a dictionary representation of the step object with some meta information about the step.
         :return: dict
         """
         return {
-            "method_name": self.__name__,
-            "section": self.section,
-            "display_name": self.display_name,
-            "operation": name_to_title(self.operation),
-            "method_description": self.method_description,
-            "calculation_status": self.calculation_status,
+            "method_name": cls.__name__,
+            "section": cls.section,
+            "display_name": cls.display_name,
+            "operation": name_to_title(cls.operation),
+            "method_description": cls.method_description,
         }
 
     def calculate(self, steps: StepManager) -> bool:
