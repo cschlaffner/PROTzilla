@@ -17,6 +17,7 @@ import {
   emptyRunData,
   footerMessages,
   SelectedStep,
+  SwitchComponent,
   Table,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
@@ -262,10 +263,10 @@ export const RunScreen: React.FC = () => {
 
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
-  const selectedEditorMode = "Node";
+  const selectedEditorMode: SwitchComponent["name"] = "Node";
   // const selectedEditorMode = runData.editor_mode;
 
-  const selectEditorMode = (mode) => {
+  const selectEditorMode = (mode: SwitchComponent) => {
     console.log("Changed to", mode.name);
     // TODO: This API call has not been implemented yet
     // void callApiWithParameters("set_editor_mode/", {

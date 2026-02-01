@@ -114,10 +114,10 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   section,
   //eslint-disable-next-line
   index,
-  isSmallButton,
+  isSmallButton = false,
   onAddStep,
-  handlePosition,
-  setShowHandle,
+  handlePosition = { top: 0, left: 0 },
+  setShowHandle = () => undefined,
   ModalTrigger,
 
   ...rest
