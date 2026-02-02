@@ -18,6 +18,16 @@ const StyledCard = styled(Card)<{ hasShadow: boolean }>`
   box-shadow: ${({ hasShadow }) => (hasShadow ? shadow("box_shadow") : "none")};
 `;
 
+const FALLBACK_COMPONENT: SwitchComponent = { name: "Error", value: <></> };
+
+const getSelectedName = (items: SwitchComponent[], selectedName?: string) => {
+  if (selectedName) {
+    const selectedComponent = items.find((component) => component.name === selectedName);
+    if (selectedComponent) return selectedComponent.name;
+  }
+  return items.length > 0 ? items[0].name : FALLBACK_COMPONENT.name;
+};
+
 export const SwitchCard: React.FC<SwitchCardProps> = ({
   components,
   hasSwitchAlignStart = true,
@@ -27,21 +37,23 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
   selection = undefined,
   callback = undefined,
 }) => {
-  const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
+  const [switchStateName, setSwitchStateName] = useState<string>(() =>
+    getSelectedName(components, selection),
+  );
 
   useEffect(() => {
-    const selectedComponent = selection
-      ? components.find((component) => component.name === selection)
-      : components[0];
-    const fallbackComponent =
-      components.length > 0 ? components[0] : { name: "Error", value: <></> };
-    setSwitchState(selectedComponent ?? fallbackComponent);
+    setSwitchStateName(getSelectedName(components, selection));
   }, [components, selection]);
 
-  const setSwitchStateWrapper = (newSelection: SwitchComponent) => {
-    if (callback) callback(newSelection);
-    setSwitchState(newSelection);
+  const setSwitchStateWrapper = (newSelectionName: SwitchComponent["name"]) => {
+    const selectedComponent = components.find((component) => component.name === newSelectionName);
+    if (selectedComponent && callback) callback(selectedComponent);
+    setSwitchStateName(newSelectionName);
   };
+
+  const activeComponent =
+    components.find((component) => component.name === switchStateName) ??
+    (components.length > 0 ? components[0] : FALLBACK_COMPONENT);
 
   return (
     <div
@@ -54,8 +66,11 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
     >
       <SwitchDiv hasSwitchAlignStart={hasSwitchAlignStart}>
         <Switch
-          options={components.map((component) => ({ value: component, label: component.name }))}
-          value={switchState}
+          options={components.map((component) => ({
+            value: component.name,
+            label: component.name,
+          }))}
+          value={switchStateName}
           onChange={setSwitchStateWrapper}
         />
       </SwitchDiv>
@@ -63,11 +78,11 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
         hasShadow={hasShadow}
         {...(hasCardTitle
           ? {
-              title: switchState.name,
+              title: activeComponent.name,
             }
           : {})}
       >
-        {switchState.value}
+        {activeComponent.value}
       </StyledCard>
     </div>
   );
