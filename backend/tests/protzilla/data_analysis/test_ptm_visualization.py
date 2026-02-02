@@ -29,19 +29,17 @@ GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
 GFAP_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P14136.txt"
 GFAP_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P14136.fasta"
 GFAP_REGIONS_FILE_PATH = GFAP_PATH / "regions.csv"
-GFAP_GROUP_FILE_PATH = GFAP_PATH / "groups_max_quant.csv"
 GFAP_METADATA_FILE_PATH = GFAP_PATH / "metadata.csv"
 
 TAU_PATH = TEST_PTM_VISUALIZATION_PATH / "P10636"
 TAU_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P10636.txt"
 TAU_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
-TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
-TAU_GROUP_FILE_PATH = TAU_PATH / "groups_max_quant_AD.csv"
 TAU_METADATA_FILE_PATH = TEST_METADATA_PATH / "metadata_full.csv"
 
 Q_VALUE_THRESHOLD = 0.01
 
 
+# TODO: test frontend again
 @pytest.fixture()
 def tmp_ptm_settings_dir(tmp_path_factory):
     test_tmp_data_dir = Path("ptm_settings/")
@@ -75,35 +73,16 @@ def pytest_generate_tests(metafunc):
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=GFAP_FASTA_FILE_PATH,
             regions_file_path=GFAP_REGIONS_FILE_PATH,
+        )
+        kwargs_with_meta = dict(
+            **basic_kwargs,
             metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
             metadata_column="Group",
         )
-        kwargs_with_groups = dict(**basic_kwargs, groups_file_path=GFAP_GROUP_FILE_PATH)
         plot_funcs_to_kwargs = [
-            (create_bar_ptm_visualization, kwargs_with_groups),
-            (create_details_ptm_visualization, kwargs_with_groups),
+            (create_bar_ptm_visualization, kwargs_with_meta),
+            (create_details_ptm_visualization, kwargs_with_meta),
         ]
-
-        if metafunc.definition.name == "test_plotting_functions":
-            # Additional files, but for the happy path only
-            tau_kwargs = dict(
-                evidence_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
-                evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
-                fasta_file_path=TAU_FASTA_FILE_PATH,
-                regions_file_path=TAU_REGIONS_FILE_PATH,
-                metadata_df=get_metadata_df(TAU_METADATA_FILE_PATH),
-                metadata_column="Group",
-            )
-            tau_kwargs_with_groups = dict(
-                **tau_kwargs, groups_file_path=TAU_GROUP_FILE_PATH
-            )
-            plot_funcs_to_kwargs.extend(
-                [
-                    (create_overview_ptm_visualization, tau_kwargs),
-                    (create_bar_ptm_visualization, tau_kwargs_with_groups),
-                    (create_details_ptm_visualization, tau_kwargs_with_groups),
-                ]
-            )
 
         if "bar_detail_kwargs" in metafunc.fixturenames:
             metafunc.parametrize("plot_func,bar_detail_kwargs", plot_funcs_to_kwargs)
@@ -133,10 +112,6 @@ class TestPTMVisualization:
         return GFAP_REGIONS_FILE_PATH
 
     @pytest.fixture
-    def group_file_path(self):
-        return GFAP_GROUP_FILE_PATH
-
-    @pytest.fixture
     def expected_modifications_path(self):
         return GFAP_PATH / "expected_modifications.csv"
 
@@ -144,6 +119,51 @@ class TestPTMVisualization:
     def test_plotting_functions(plot_func, kwargs):
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
+        plot = result["plots"][0]
+
+        all_layout_strings = {
+            anno.text for anno in plot.layout.annotations if anno.text
+        }
+        all_data_strings = {
+            subplot.text
+            for subplot in plot.data
+            if hasattr(subplot, "mode") and subplot.mode == "text"
+        }
+        all_plot_strings = all_layout_strings.union(all_data_strings)
+        required_ptm_types = {
+            "Phosphorylation",
+            "Acetylation",
+            "Citrullination",
+            "Ubiquitination",
+        }
+        assert required_ptm_types.issubset(all_plot_strings)
+
+        required_ptms = {"S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"}
+        assert required_ptms.issubset(all_plot_strings)
+
+        required_region_names = {
+            "Blah-Term",
+            "1A",
+            "1B",
+            "2A",
+            "2B",
+            "α",
+            "ε",
+        }
+        assert required_region_names.issubset(all_plot_strings)
+
+        if (
+            plot_func == create_details_ptm_visualization
+            or plot_func == create_bar_ptm_visualization
+        ):
+            required_groups = {"clean", "old", "exon"}
+            assert required_groups.issubset(all_plot_strings)
+            excluded_groups = {"AD", "CTR", "test", "fail"}
+            assert all(g not in all_plot_strings for g in excluded_groups)
+
+        if plot_func == create_details_ptm_visualization:
+            required_cleavages = {"1", "7-9", "14", "35", "148", "156", "417"}
+            assert required_cleavages.issubset(all_plot_strings)
 
     @staticmethod
     def test_fasta_non_matching_isoform_ids(plot_func, kwargs):
@@ -240,8 +260,9 @@ class TestPTMVisualization:
             regions_file_path=TAU_PATH
             / "regions_too_short_but_matching_region_end.csv",
         )
-        if "groups_file_path" in kwargs:
-            new_kwargs["groups_file_path"] = TAU_GROUP_FILE_PATH
+        if "metadata_df" in kwargs:
+            new_kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
+            new_kwargs["metadata_column"] = "Group"
 
         with pytest.raises(
             ValueError,
@@ -251,17 +272,23 @@ class TestPTMVisualization:
         ):
             plot_func(**new_kwargs)
 
+    # TODO: remove all the old group files used for testing
+
     @staticmethod
-    def test_groups_differing(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_differing.csv"
+    def test_metadata_file_names_differing(plot_func, bar_detail_kwargs):
+        bar_detail_kwargs["metadata_df"]["Sample"] = bar_detail_kwargs["metadata_df"][
+            "Sample"
+        ].apply(lambda x: f"Different_{x}")
         with pytest.raises(
-            ValueError, match=r"Group .* not found in provided groups file"
+            ValueError, match=r"Group '.*' not found in provided groups file"
         ):
             plot_func(**bar_detail_kwargs)
 
     @staticmethod
-    def test_groups_no_groups_provided(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_empty.csv"
+    def test_no_groups_in_metadata(plot_func, bar_detail_kwargs):
+        bar_detail_kwargs["metadata_df"] = pd.DataFrame(
+            columns=bar_detail_kwargs["metadata_df"].columns
+        )
         with pytest.raises(
             ValueError,
             match=r"No groups found in the provided groups file for (bar|details) plot visualization.",
@@ -269,12 +296,31 @@ class TestPTMVisualization:
             plot_func(**bar_detail_kwargs)
 
     @staticmethod
-    def test_malformed_groups_file(plot_func, bar_detail_kwargs):
-        bar_detail_kwargs["groups_file_path"] = GFAP_PATH / "groups_renamed.csv"
+    def test_group_col_not_in_metadata_df(plot_func, bar_detail_kwargs):
+        bar_detail_kwargs["metadata_column"] = "NonExistingColumn"
         with pytest.raises(
-            AssertionError, match=r"Groups file must contain the columns: :*"
+            AssertionError,
+            match=r"Metadata column '.*' not found in metadata DataFrame columns: .*",
         ):
             plot_func(**bar_detail_kwargs)
+
+    @staticmethod
+    def test_different_metadata_column(
+        evidence_df,
+        q_value_threshold,
+        fasta_file_path,
+        regions_file_path,
+    ):
+        result = create_bar_ptm_visualization(
+            evidence_df=evidence_df,
+            evidence_file_q_value_threshold=q_value_threshold,
+            fasta_file_path=fasta_file_path,
+            regions_file_path=regions_file_path,
+            metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
+            metadata_column="Batch",
+        )
+        # TODO: talk to Chris if this is the desired output
+        assert len(result["plots"]) == 1
 
     @staticmethod
     def test_detected_modifications(
@@ -282,7 +328,6 @@ class TestPTMVisualization:
         q_value_threshold,
         fasta_file_path,
         regions_file_path,
-        group_file_path,
         expected_modifications_path,
         tmp_ptm_settings_dir,
     ):
@@ -292,6 +337,8 @@ class TestPTMVisualization:
             q_value_threshold,
             fasta_file_path,
             regions_file_path,
+            metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
+            metadata_column="Group",
         )
         modification_df = result["modification_df"]
 
@@ -342,7 +389,8 @@ class TestPTMVisualization:
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
-                groups_file_path=group_file_path,
+                metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
+                metadata_column="Group",
             )
             assert (
                 len(result["plots"]) == 1
@@ -356,7 +404,8 @@ class TestPTMVisualization:
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
-                groups_file_path=group_file_path,
+                metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
+                metadata_column="Group",
             )
             assert (
                 len(result["plots"]) == 1
@@ -365,3 +414,6 @@ class TestPTMVisualization:
                 and "More modifications were detected than are present in the settings"
                 in result["messages"][0]["msg"]
             )
+
+
+# TODO: do we need a test for figure orientation here? Somehow?

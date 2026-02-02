@@ -5,17 +5,18 @@ import pandas as pd
 
 from protein_sequencing.bar_plot import BarPlotter
 from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
-    get_group_dict_from_csv,
     preprocess_files,
     get_modification_groups_from_settings,
+    get_group_dict_from_df,
 )
 
 
 def get_bar_plot_config_module(
-    groups_file_path: Path, out_dir: Path
+    metadata_df: pd.DataFrame, metadata_col: str, out_dir: Path
 ) -> types.ModuleType:
     modification_file = out_dir / "result_max_quant_mods.csv"
-    bar_groups = get_group_dict_from_csv(groups_file_path)
+    bar_groups = get_group_dict_from_df(metadata_df, metadata_col)
+
     modifications_group = get_modification_groups_from_settings()
 
     if len(bar_groups) == 0:
@@ -42,21 +43,22 @@ def create_bar_ptm_visualization(
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
-    groups_file_path: Path,
     metadata_df: pd.DataFrame,
     metadata_column: str,
 ) -> dict:
+    # TODO: we probably need some kind check that metadata matches evidence file
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
-        groups_file_path=groups_file_path,
         metadata_df=metadata_df,
         metadata_column=metadata_column,
     )
 
-    plot_config_module = get_bar_plot_config_module(groups_file_path, out_dir)
+    plot_config_module = get_bar_plot_config_module(
+        metadata_df, metadata_column, out_dir
+    )
     bar_plotter = BarPlotter(
         config=config_module,
         plot_config=plot_config_module,

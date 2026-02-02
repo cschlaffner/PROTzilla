@@ -2424,14 +2424,6 @@ class _PTMVisualizationStep(DataAnalysisStep):
                 value=0.01,
                 hasStepButtons=False,
             ),
-            DropdownField(
-                name="metadata_df",
-                label="Choose dataframe that contains information about the (treatment) groups that should be plotted",
-            ),
-            DropdownField(
-                name="metadata_column",
-                label="Choose the column of the metadata dataframe that should be used",
-            ),
             FileInput(
                 name="fasta_file_path",
                 label="FASTA file",
@@ -2455,26 +2447,10 @@ class _PTMVisualizationStep(DataAnalysisStep):
                 run, output_key="peptide_df", step_type=Step, required=True
             )
         )
-        form["metadata_df"].set_options(
-            form_helper.get_choices(
-                run,
-                output_key="metadata_df",
-                required=True,
-            )
-        )
-        if form.values["metadata_df"] is not None:
-            form["metadata_column"].set_options(
-                form_helper.get_choices_for_metadata_non_sample_columns(
-                    run, instance_identifier=form.values["metadata_df"]
-                )
-            )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["evidence_df"] = steps.get_step_output(
             Step, "peptide_df", inputs["evidence_df"]
-        )
-        inputs["metadata_df"] = steps.get_step_output(
-            Step, "metadata_df", inputs["metadata_df"]
         )
         return inputs
 
@@ -2499,19 +2475,41 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
     @classmethod
     def get_form_fields(cls) -> list:
         return _PTMVisualizationStep.get_form_fields() + [
-            FileInput(
-                name="groups_file_path",
-                label="Metadata used to define groups",
+            DropdownField(
+                name="metadata_df",
+                label="Choose dataframe that contains information about the (treatment) groups that should be plotted",
             ),
-            InfoField(
-                label="The groups file should be a CSV file with the following columns: file_name, group_name, "
-                "replicate. These specify the name of the name of the experiment in the evidence file (not "
-                "raw file name), the name that should be displayed when referencing the group, and "
-                "optionally the replicate number (1, 2, ...).",
+            DropdownField(
+                name="metadata_column",
+                label="Choose the column of the metadata dataframe that should be used",
             ),
         ]
 
     calc_method = staticmethod(get_detected_modifications)
+
+    def modify_form(self, form, run):
+        super().modify_form(form, run)
+
+        form["metadata_df"].set_options(
+            form_helper.get_choices(
+                run,
+                output_key="metadata_df",
+                required=True,
+            )
+        )
+        if form.values["metadata_df"] is not None:
+            form["metadata_column"].set_options(
+                form_helper.get_choices_for_metadata_non_sample_columns(
+                    run, instance_identifier=form.values["metadata_df"]
+                )
+            )
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs = super().insert_dataframes(steps, inputs)
+        inputs["metadata_df"] = steps.get_step_output(
+            Step, "metadata_df", inputs["metadata_df"]
+        )
+        return inputs
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):

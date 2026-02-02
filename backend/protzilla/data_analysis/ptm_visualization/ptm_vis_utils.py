@@ -119,7 +119,6 @@ def get_general_config_module(
 
 def get_preprocessor_config_module(
     fasta_file_path: Path,
-    groups_file_path: Path | None,
     q_value_threshold: float,
     out_dir: Path,
 ) -> types.ModuleType:
@@ -128,7 +127,6 @@ def get_preprocessor_config_module(
         {
             # General
             "FASTA_FILE": fasta_file_path,
-            "GROUPS_CSV": groups_file_path,
             # this is the default path where the tool will save the alignment
             # just change if you want to supply your own alignment
             # CAUTION: the alignment must match with the fasta file
@@ -140,17 +138,16 @@ def get_preprocessor_config_module(
     return preprocessor_config_module
 
 
-def get_group_dict_from_csv(groups_file_path: Path) -> dict:
-    groups = {}
-    with open(groups_file_path, "r") as f:
-        csvreader = csv.DictReader(f, delimiter=",")
-        assert set(csvreader.fieldnames) >= {"file_name", "group_name", "replicate"}, (
-            "Groups file must contain at least the columns 'file_name', 'group_name' and 'replicate' but got "
-            f"{csvreader.fieldnames}"
+def get_group_dict_from_df(df: pd.DataFrame, group_col: str) -> dict:
+    if group_col not in df.columns:
+        raise ValueError(
+            f"Groups DataFrame must contain the column {group_col} but got {set(df.columns)}"
         )
-        for row in csvreader:
-            # Seems weird. Is weird. But I didn't want to touch the underlying code
-            groups[row["group_name"]] = row["group_name"]
+
+    groups = {}
+    # Seems weird. Is weird. But I wanted to keep it consistent with the original version
+    for _, row in df.iterrows():
+        groups[str(row[group_col])] = str(row[group_col])
     return groups
 
 
@@ -171,16 +168,14 @@ def preprocess_files(
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
-    metadata_df: pd.DataFrame,
-    metadata_column: str,
-    groups_file_path: Path | None = None,
+    metadata_df: pd.DataFrame | None = None,
+    metadata_column: str | None = None,
 ) -> tuple[types.ModuleType, Path]:
     out_dir = UPLOAD_PATH / "ptm_tmp"
 
     config_module = get_general_config_module(regions_file_path, out_dir)
     preprocessor_config_module = get_preprocessor_config_module(
         fasta_file_path=fasta_file_path,
-        groups_file_path=groups_file_path,
         q_value_threshold=evidence_file_q_value_threshold,
         out_dir=out_dir,
     )
