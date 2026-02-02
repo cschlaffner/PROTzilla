@@ -443,19 +443,19 @@ class AlphaFoldPredictionLoad(ImportingStep):
 
 
 class CrosslinkingImport(ImportingStep):
-    display_name = "Cross-Linking Data Import"
-    operation = "Cross-Linking Data Import"
-    method_description = "Import a file containing cross-linking data"
+    display_name = "Crosslinking Data Import"
+    operation = "Crosslinking Data Import"
+    method_description = "Import a file containing crosslinking data"
 
     output_keys = ["crosslinking_df", "imported_rows_with_errors_df"]
 
     def create_form(self):
         return Form(
-            label="Cross-Linking Data Import",
+            label="Crosslinking Data Import",
             input_fields=[
                 FileInput(
                     name="file_path",
-                    label="Cross-Linking Data file (.xlsx or .csv)",
+                    label="Crosslinking Data file (.xlsx or .csv)",
                     value=None,
                 ),
                 TextField(
