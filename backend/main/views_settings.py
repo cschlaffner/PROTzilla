@@ -232,9 +232,25 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 AF_DICT_PATH = EXTERNAL_DATA_PATH / "alphafold"
 
 
+def get_metadata_df(csv_file_path: str) -> pandas.DataFrame:
+    expected_columns = [
+        "entryID",
+        "uniprotAccession",
+        "modelCreatedDate",
+        "gene",
+        "alphafold_version",
+    ]
+    if csv_file_path.exists():
+        df = pandas.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
+    else:
+        df = pandas.DataFrame(columns=expected_columns)
+    return df
+
+
 def get_prot_structure(request):
     metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
-    df = pandas.read_csv(metadata_csv)
+
+    df = get_metadata_df(metadata_csv)
 
     df_infos = df.rename(
         columns={
@@ -284,18 +300,7 @@ def upload_prot_structure(request):
         AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
         metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
 
-        expected_columns = [
-            "entryID",
-            "uniprotAccession",
-            "modelCreatedDate",
-            "gene",
-            "alphafold_version",
-        ]
-
-        if metadata_csv.exists():
-            df = pandas.read_csv(metadata_csv, usecols=lambda c: c in expected_columns)
-        else:
-            df = pandas.DataFrame(columns=expected_columns)
+        df = get_metadata_df(metadata_csv)
 
         now_utc = datetime.now(timezone.utc)
         formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
