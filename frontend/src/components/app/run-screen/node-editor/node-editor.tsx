@@ -75,9 +75,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
-  // TODO: When do we want to propagate positions to the backend?
-  // This function gets called wayy to frequently to use for that.
-  // Maybe on every new step selection?
   const onNodesChange = useCallback((changes: NodeChange<StepNodeType>[]) => {
     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
   }, []);
