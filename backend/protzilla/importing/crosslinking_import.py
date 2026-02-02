@@ -515,7 +515,7 @@ def get_missing_protein_designation(
         uniprot_lookup_results=uniprot_lookup_results,
     )
 
-    if not good_df.empty: 
+    if not good_df.empty:
         good_df = normalize_crosslinking_df(good_df)
 
     return good_df, failed_df
@@ -712,9 +712,11 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
 def crosslinking_import(file_path: Path, organism_id: str) -> dict:
     file_type = file_path.suffix
     try:
-        scientific_organism_name = None 
+        scientific_organism_name = None
         if file_type == ".csv":
-            success, scientific_organism_name = process_organism_id_from_text_field(organism_id)
+            success, scientific_organism_name = process_organism_id_from_text_field(
+                organism_id
+            )
             if not success:
                 msg = f"Unsupported organism id: {organism_id}. Please provide a valid taxonomy id."
                 return dict(
@@ -741,12 +743,13 @@ def crosslinking_import(file_path: Path, organism_id: str) -> dict:
                 )
             ]
         )
-    
+
     def base_message():
         if file_type == ".csv":
             return f"{len(good_df)} cross-links for the {scientific_organism_name} organism"
         return f"{len(good_df)} cross-links"
-    if good_df.empty: 
+
+    if good_df.empty:
         msg = f"No cross-links could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
         messages = [dict(level=logging.ERROR, msg=msg)]
     elif failed_df.empty:
