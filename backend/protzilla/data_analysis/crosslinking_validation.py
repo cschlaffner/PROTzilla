@@ -261,7 +261,7 @@ def bar_plot_of_valid_crosslinks(
     """
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df, protein_to_validate, crosslinker_information
-    )["crosslinking_df_result"]
+    )["crosslinking_result_df"]
 
     evaluated = validated_df["valid_crosslink"].dropna()
 
