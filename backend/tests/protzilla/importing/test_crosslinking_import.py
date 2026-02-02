@@ -21,12 +21,6 @@ def test_aggregate_data():
     assert result == {"A", "B", "C", "D"}
 
 
-def test_isoform_removal_logic():
-    ids = {"P12345-2", "Q67890"}
-    cleaned = {x.split("-", 1)[0] for x in ids}
-    assert cleaned == {"P12345", "Q67890"}
-
-
 def test_remove_brackets_from_peptide():
     assert remove_brackets_from_peptide("[ABC]DE[FG]") == "ABCDEFG"
 
@@ -117,27 +111,6 @@ def test_uniprot_lookup_successful_request_but_no_results(monkeypatch):
         mock = Mock()
         mock.text = "Entry\tGene Names (primary)\n"
         return mock
-
-    monkeypatch.setattr(
-        "protzilla.importing.crosslinking_import.execute_uniprot_request",
-        mock_execute,
-    )
-
-    results = {}
-    uniprot_lookup(
-        input_data={"P1"},
-        mode="id_to_gene_name",
-        results=results,
-    )
-
-    assert results["P1"] == (False, None, "NO_GENE_NAME_FOUND")
-
-
-def test_uniprot_lookup_no_results(monkeypatch):
-    from protzilla.importing.crosslinking_import import uniprot_lookup
-
-    def mock_execute(*args, **kwargs):
-        return Mock(text="Entry\tGene Names (primary)\n")
 
     monkeypatch.setattr(
         "protzilla.importing.crosslinking_import.execute_uniprot_request",
