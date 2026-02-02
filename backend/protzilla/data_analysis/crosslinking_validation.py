@@ -1,5 +1,5 @@
 import pandas as pd
-import math
+import numpy as np
 from plotly.graph_objects import Figure
 
 from protzilla.importing.alphafold_protein_structure_load import (
@@ -83,16 +83,22 @@ def get_distance_between_two_amino_acids_in_angstrom(
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
     :return: the distance between the two residues in Ångström
     """
-    x1, y1, z1 = get_coordinates_of_atom_crosslinker_bound_to(
-        amino_acid_position1, amino_acid_kind1, cif_df
-    )
-    x2, y2, z2 = get_coordinates_of_atom_crosslinker_bound_to(
-        amino_acid_position2, amino_acid_kind2, cif_df
+
+    pos1 = np.array(
+        get_coordinates_of_atom_crosslinker_bound_to(
+            amino_acid_position1, amino_acid_kind1, cif_df
+        ),
+        dtype=float,
     )
 
-    distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
+    pos2 = np.array(
+        get_coordinates_of_atom_crosslinker_bound_to(
+            amino_acid_position2, amino_acid_kind2, cif_df
+        ),
+        dtype=float,
+    )
 
-    return distance
+    return float(np.linalg.norm(pos2 - pos1))
 
 
 def get_position_of_amino_acid_crosslinker_bound_to(
@@ -211,7 +217,7 @@ def validate_with_angstrom_deviation(
             accepted_deviation_lower_bound or crosslinker_length
         )
         accepted_distance_upper_bound = (
-            accepted_deviation_upper_bound or 1e9
+            accepted_deviation_upper_bound or float("inf")
         ) + crosslinker_length
 
         valid = (
