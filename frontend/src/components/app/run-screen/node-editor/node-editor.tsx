@@ -85,6 +85,18 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
   }, []);
 
+  const onNodeDragStop = useCallback(
+    (_event: unknown, node: StepNodeType) => {
+      void callApiWithParameters("set_step_pos/", {
+        run_name: runName,
+        step_id: node.id,
+        x: node.position.x,
+        y: node.position.y,
+      });
+    },
+    [runName],
+  );
+
   const getEdgesFromRunData = (): Edge[] => {
     // TODO: This needs to be implemented when the API provides sufficient data.
     return [];
@@ -218,6 +230,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
           fitView
         >
