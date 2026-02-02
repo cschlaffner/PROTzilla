@@ -60,6 +60,11 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.data_analysis.crosslinking_validation import (
+    validate_with_angstrom_deviation,
+    bar_plot_of_valid_crosslinks,
+)
+from backend.protzilla.run import Run
 
 
 class TTestType(Enum):
@@ -2457,3 +2462,77 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
             label="PTM Details Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
         )
+
+
+class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
+    display_name = "Ångström Deviation"
+    operation = "Cross Linking Validation"
+    method_description = "Validates cross links based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+
+    output_keys = ["crosslinking_result_df"]
+
+    @staticmethod
+    def _get_crosslinker_names_from_crosslinker_df(steps: StepManager) -> list[str]:
+        df = steps.get_step_output(Step, output_key="crosslinking_df")
+        if df is None or "Crosslinker" not in df.columns:
+            return []
+        crosslinkers = df["Crosslinker"].dropna().unique()
+        return list(crosslinkers)
+
+    def create_form(self):
+        return Form(
+            label="Ångström Deviation",
+            input_fields=[
+                TextField(
+                    name="protein_to_validate",
+                    label="Protein prediction that should be validated",
+                ),
+            ],
+        )
+
+    def modify_form(self, form: Form, run: Run) -> None:
+        crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
+        for crosslinker in crosslinkers:
+            field_name = f"{crosslinker}_length"
+            if field_name not in form:
+                crosslinker_length_field = FloatField(
+                    name=field_name,
+                    label=f"Length of {crosslinker} in Ångström",
+                    min=0,
+                )
+                upper_bound_length_deviation_field = FloatField(
+                    name=f"{crosslinker}_upper_accepted_deviation",
+                    label=f"Upper bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    min=0,
+                )
+                lower_bound_length_deviation_field = FloatField(
+                    name=f"{crosslinker}_lower_accepted_deviation",
+                    label=f"Lower bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    min=0,
+                )
+                form.add_field(crosslinker_length_field)
+                form.add_field(upper_bound_length_deviation_field)
+                form.add_field(lower_bound_length_deviation_field)
+
+    plot_method = staticmethod(bar_plot_of_valid_crosslinks)
+    calc_method = staticmethod(validate_with_angstrom_deviation)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        inputs["crosslinking_df"] = steps.get_step_output(
+            Step,
+            "crosslinking_df",
+        )
+        if inputs.get("crosslinking_df") is None:
+            raise ValueError("No cross linking data found.")
+
+        # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
+        crosslinker_to_length_and_deviation = {}
+        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
+            crosslinker_to_length_and_deviation[crosslinker] = [
+                inputs.get(f"{crosslinker}_length"),
+                inputs.get(f"{crosslinker}_upper_accepted_deviation"),
+                inputs.get(f"{crosslinker}_lower_accepted_deviation"),
+            ]
+        inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
+
+        return inputs
