@@ -11,7 +11,8 @@ import re
 from io import StringIO
 from itertools import islice
 from functools import partial
-from typing import Callable, Optional, Literal
+from typing import Callable, Optional
+from enum import Enum
 
 from backend.protzilla.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
@@ -19,6 +20,22 @@ from backend.protzilla.importing.import_utils import (
     rename_columns_csm_format,
     rename_columns_proteomediscoverer_xlinkx_format,
 )
+
+
+class ProteinLookupError(Enum):
+    NOT_A_VALID_PROTEIN_ID = "NOT_A_VALID_PROTEIN_ID"
+    IS_DECOY_PROTEIN = "IS_DECOY_PROTEIN"
+    NO_PROTEIN_ID_FOUND = "NO_PROTEIN_ID_FOUND"
+    NO_GENE_NAME_FOUND = "NO_GENE_NAME_FOUND"
+    TIMEOUT = "TIMEOUT"
+    HTTP_ERROR = "HTTP_ERROR"
+    REQUEST_ERROR = "REQUEST_ERROR"
+    NOT_LOOKED_UP = "NOT_LOOKED_UP"
+
+
+class ProteinDesignationLookupMode(Enum):
+    gene_name_to_id = "gene_name_to_id"
+    id_to_gene_name = "id_to_gene_name"
 
 
 def aggregate_data(df: pd.DataFrame, column: str) -> set:
@@ -181,11 +198,11 @@ def execute_uniprot_request(
         return response
 
     except requests.exceptions.Timeout:
-        error = "TIMEOUT"
+        error = ProteinLookupError.TIMEOUT.value
     except requests.exceptions.HTTPError as e:
-        error = f"HTTP_{e.response.status_code}"
+        error = f"{ProteinLookupError.HTTP_ERROR.value}_{e.response.status_code}"
     except requests.exceptions.RequestException:
-        error = "REQUEST_ERROR"
+        error = ProteinLookupError.REQUEST_ERROR.value
 
     for data in valid_data:
         results[data] = (False, None, error)
@@ -196,7 +213,7 @@ def process_uniprot_response(
     response: requests.Response,
     results: dict[str, tuple[bool, str | None, None | str]],
     input_data: set[str],
-    mode: Literal["id_to_gene_name", "gene_name_to_id"],
+    mode: ProteinDesignationLookupMode,
 ) -> None:
     """
     Process a UniProt API response and update the results dictionary.
@@ -213,7 +230,7 @@ def process_uniprot_response(
     :param input_data: Set of input values that were originally queried
     :type input_data: set[str]
     :param mode: Lookup mode, either mapping IDs to gene names or gene names to IDs
-    :type mode: Literal["id_to_gene_name", "gene_name_to_id"]
+    :type mode: ProteinDesignationLookupMode
 
     :return: None (results dictionary is updated in place)
     :rtype: None
@@ -224,17 +241,17 @@ def process_uniprot_response(
         protein_id = row.get("Entry")
         primary_gene_name = row.get("Gene Names (primary)")
 
-        if mode == "id_to_gene_name":
+        if mode == ProteinDesignationLookupMode.id_to_gene_name.value:
             existing_data = protein_id
             requested_data = primary_gene_name
-        elif mode == "gene_name_to_id":
+        elif mode == ProteinDesignationLookupMode.gene_name_to_id.value:
             existing_data = primary_gene_name
             requested_data = protein_id
 
         if pd.notna(requested_data) and requested_data != "":
             if existing_data in input_data:
                 results[existing_data] = (True, requested_data, None)
-            elif mode == "gene_name_to_id":
+            elif mode == ProteinDesignationLookupMode.gene_name_to_id.value:
                 alternative_gene_names = str(row.get("Gene Names", "")).split()
                 for gene_name in alternative_gene_names:
                     if gene_name in input_data:
@@ -244,7 +261,7 @@ def process_uniprot_response(
 
 def uniprot_lookup(
     input_data: set[str],
-    mode: Literal["id_to_gene_name", "gene_name_to_id"],
+    mode: ProteinDesignationLookupMode,
     results: dict[str, tuple[bool, Optional[str], Optional[str]]],
     organism_id: Optional[str] = None,
 ) -> None:
@@ -259,7 +276,7 @@ def uniprot_lookup(
     :param input_data: Set of input values to look up (protein IDs or gene names)
     :type input_data: set[str]
     :param mode: Lookup mode, either "id_to_gene_name" or "gene_name_to_id"
-    :type mode: Literal["id_to_gene_name", "gene_name_to_id"]
+    :type mode: ProteinDesignationLookupMode
     :param results: Dictionary to store lookup results; updated in place
                     with ``existing_data -> (success, value, error_code)``
     :type results: dict[str, tuple[bool, str | None, str | None]]
@@ -269,13 +286,13 @@ def uniprot_lookup(
     :return: None (results dictionary is updated in place)
     :rtype: None
     """
-    if mode == "id_to_gene_name":
-        error = "NO_GENE_NAME_FOUND"
+    if mode == ProteinDesignationLookupMode.id_to_gene_name.value:
+        error = ProteinLookupError.NO_GENE_NAME_FOUND.value
         field_of_existing_data = "accession"
         extra_query = None
         extra_fields = None
-    elif mode == "gene_name_to_id":
-        error = "NO_PROTEIN_ID_FOUND"
+    elif mode == ProteinDesignationLookupMode.gene_name_to_id.value:
+        error = ProteinLookupError.NO_PROTEIN_ID_FOUND.value
         field_of_existing_data = "gene_exact"
         extra_query = f"organism_id:{organism_id} AND reviewed:true"
         extra_fields = "gene_names"
@@ -336,7 +353,7 @@ def get_gene_name_from_protein_ids(
     valid_ids, results = validate_data_before_lookup(
         data_for_lookup=protein_ids,
         validator_function=lambda pid: bool(valid_id_pattern.match(pid)),
-        error_code="NOT_A_VALID_PROTEIN_ID",
+        error_code=ProteinLookupError.NOT_A_VALID_PROTEIN_ID.value,
     )
 
     if not valid_ids:
@@ -346,7 +363,7 @@ def get_gene_name_from_protein_ids(
 
     uniprot_lookup(
         input_data=valid_ids_without_isoform,
-        mode="id_to_gene_name",
+        mode=ProteinDesignationLookupMode.id_to_gene_name.value,
         results=results,
         organism_id=None,
     )
@@ -376,7 +393,7 @@ def get_protein_ids_from_gene_name(
     valid_gene_names, results = validate_data_before_lookup(
         data_for_lookup=gene_names,
         validator_function=lambda name: not name.startswith("decoy:"),
-        error_code="IS_DECOY_PROTEIN",
+        error_code=ProteinLookupError.IS_DECOY_PROTEIN.value,
     )
 
     if not valid_gene_names:
@@ -384,7 +401,7 @@ def get_protein_ids_from_gene_name(
 
     uniprot_lookup(
         input_data=valid_gene_names,
-        mode="gene_name_to_id",
+        mode=ProteinDesignationLookupMode.gene_name_to_id.value,
         results=results,
         organism_id=organism_id,
     )
@@ -430,10 +447,10 @@ def iterate_for_protein_designation(
         protein_id2 = row[existing_designation + "2"].split("-", 1)[0]
 
         success1, data1, error1 = uniprot_lookup_results.get(
-            protein_id1, (False, None, "NOT_LOOKED_UP")
+            protein_id1, (False, None, ProteinLookupError.NOT_LOOKED_UP.value)
         )
         success2, data2, error2 = uniprot_lookup_results.get(
-            protein_id2, (False, None, "NOT_LOOKED_UP")
+            protein_id2, (False, None, ProteinLookupError.NOT_LOOKED_UP.value)
         )
 
         errors_occurred = {}
