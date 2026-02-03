@@ -16,6 +16,9 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+    get_general_config_module,
+)
 from protzilla.importing import peptide_import
 from protzilla.importing.metadata_import import metadata_import_method
 from tests.paths import (
@@ -39,7 +42,6 @@ TAU_METADATA_FILE_PATH = TEST_METADATA_PATH / "metadata_full.csv"
 Q_VALUE_THRESHOLD = 0.01
 
 
-# TODO: test frontend again
 @pytest.fixture()
 def tmp_ptm_settings_dir(tmp_path_factory):
     test_tmp_data_dir = Path("ptm_settings/")
@@ -94,6 +96,50 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("plot_func,kwargs", plot_funcs_to_kwargs)
 
 
+def validate_plot_outputs(plot, plot_func):
+    all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
+    all_data_strings = {
+        subplot.text
+        for subplot in plot.data
+        if hasattr(subplot, "mode") and subplot.mode == "text"
+    }
+    all_plot_strings = all_layout_strings.union(all_data_strings)
+    required_ptm_types = {
+        "Phosphorylation",
+        "Acetylation",
+        "Citrullination",
+        "Ubiquitination",
+    }
+    assert required_ptm_types.issubset(all_plot_strings)
+
+    required_ptms = {"S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"}
+    assert required_ptms.issubset(all_plot_strings)
+
+    required_region_names = {
+        "Blah-Term",
+        "1A",
+        "1B",
+        "2A",
+        "2B",
+        "α",
+        "ε",
+    }
+    assert required_region_names.issubset(all_plot_strings)
+
+    if (
+        plot_func == create_details_ptm_visualization
+        or plot_func == create_bar_ptm_visualization
+    ):
+        required_groups = {"clean", "old", "exon"}
+        assert required_groups.issubset(all_plot_strings)
+        excluded_groups = {"AD", "CTR", "test", "fail"}
+        assert all(g not in all_plot_strings for g in excluded_groups)
+
+    if plot_func == create_details_ptm_visualization:
+        required_cleavages = {"1", "7-9", "14", "35", "148", "156", "417"}
+        assert required_cleavages.issubset(all_plot_strings)
+
+
 class TestPTMVisualization:
     @pytest.fixture
     def evidence_df(self):
@@ -121,49 +167,29 @@ class TestPTMVisualization:
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
 
-        all_layout_strings = {
-            anno.text for anno in plot.layout.annotations if anno.text
-        }
-        all_data_strings = {
-            subplot.text
-            for subplot in plot.data
-            if hasattr(subplot, "mode") and subplot.mode == "text"
-        }
-        all_plot_strings = all_layout_strings.union(all_data_strings)
-        required_ptm_types = {
-            "Phosphorylation",
-            "Acetylation",
-            "Citrullination",
-            "Ubiquitination",
-        }
-        assert required_ptm_types.issubset(all_plot_strings)
+        validate_plot_outputs(plot, plot_func)
 
-        required_ptms = {"S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"}
-        assert required_ptms.issubset(all_plot_strings)
+    @staticmethod
+    def test_plotting_functions_vertical_orientation(plot_func, kwargs, monkeypatch):
+        # Mocking the settings load function seemed easier than creating a whole new settings file just for this
+        def mock_figure_orientation(regions_file_path: Path, out_dir: Path):
+            config_module = get_general_config_module(regions_file_path, out_dir)
+            config_module.__dict__.update(
+                {
+                    "FIGURE_ORIENTATION": 1,
+                }
+            )
+            return config_module
 
-        required_region_names = {
-            "Blah-Term",
-            "1A",
-            "1B",
-            "2A",
-            "2B",
-            "α",
-            "ε",
-        }
-        assert required_region_names.issubset(all_plot_strings)
+        monkeypatch.setattr(
+            ptm_vis_utils, "get_general_config_module", mock_figure_orientation
+        )
 
-        if (
-            plot_func == create_details_ptm_visualization
-            or plot_func == create_bar_ptm_visualization
-        ):
-            required_groups = {"clean", "old", "exon"}
-            assert required_groups.issubset(all_plot_strings)
-            excluded_groups = {"AD", "CTR", "test", "fail"}
-            assert all(g not in all_plot_strings for g in excluded_groups)
+        result = plot_func(**kwargs)
+        assert len(result["plots"]) == 1
 
-        if plot_func == create_details_ptm_visualization:
-            required_cleavages = {"1", "7-9", "14", "35", "148", "156", "417"}
-            assert required_cleavages.issubset(all_plot_strings)
+        plot = result["plots"][0]
+        validate_plot_outputs(plot, plot_func)
 
     @staticmethod
     def test_fasta_non_matching_isoform_ids(plot_func, kwargs):
@@ -272,15 +298,14 @@ class TestPTMVisualization:
         ):
             plot_func(**new_kwargs)
 
-    # TODO: remove all the old group files used for testing
-
     @staticmethod
     def test_metadata_file_names_differing(plot_func, bar_detail_kwargs):
         bar_detail_kwargs["metadata_df"]["Sample"] = bar_detail_kwargs["metadata_df"][
             "Sample"
         ].apply(lambda x: f"Different_{x}")
         with pytest.raises(
-            ValueError, match=r"Group '.*' not found in provided groups file"
+            ValueError,
+            match=r"The following samples from the evidence file are missing in the metadata file: .*",
         ):
             plot_func(**bar_detail_kwargs)
 
@@ -291,7 +316,7 @@ class TestPTMVisualization:
         )
         with pytest.raises(
             ValueError,
-            match=r"No groups found in the provided groups file for (bar|details) plot visualization.",
+            match=r"The following samples from the evidence file are missing in the metadata file: .*",
         ):
             plot_func(**bar_detail_kwargs)
 
@@ -299,8 +324,22 @@ class TestPTMVisualization:
     def test_group_col_not_in_metadata_df(plot_func, bar_detail_kwargs):
         bar_detail_kwargs["metadata_column"] = "NonExistingColumn"
         with pytest.raises(
-            AssertionError,
+            ValueError,
             match=r"Metadata column '.*' not found in metadata DataFrame columns: .*",
+        ):
+            plot_func(**bar_detail_kwargs)
+
+    @staticmethod
+    def test_evidence_samples_not_matching_metadata(plot_func, bar_detail_kwargs):
+        new_evidence_df = bar_detail_kwargs["evidence_df"]
+        new_evidence_df["Sample"] = new_evidence_df["Sample"].apply(
+            lambda x: f"Different_{x}" if "AD" in x or "CTR" in x else x
+        )
+        bar_detail_kwargs["evidence_df"] = new_evidence_df
+
+        with pytest.raises(
+            ValueError,
+            match=f"The following samples from the evidence file are missing in the metadata file: .*",
         ):
             plot_func(**bar_detail_kwargs)
 
@@ -319,7 +358,6 @@ class TestPTMVisualization:
             metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
             metadata_column="Batch",
         )
-        # TODO: talk to Chris if this is the desired output
         assert len(result["plots"]) == 1
 
     @staticmethod
@@ -331,14 +369,13 @@ class TestPTMVisualization:
         expected_modifications_path,
         tmp_ptm_settings_dir,
     ):
+        # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
         expected_modification_df = pd.read_csv(expected_modifications_path)
         result = get_detected_modifications(
             evidence_df,
             q_value_threshold,
             fasta_file_path,
             regions_file_path,
-            metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
-            metadata_column="Group",
         )
         modification_df = result["modification_df"]
 
@@ -351,7 +388,6 @@ class TestPTMVisualization:
             ).reset_index(drop=True),
         )
 
-        # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
         shutil.copytree(
             main.views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
         )
@@ -414,6 +450,3 @@ class TestPTMVisualization:
                 and "More modifications were detected than are present in the settings"
                 in result["messages"][0]["msg"]
             )
-
-
-# TODO: do we need a test for figure orientation here? Somehow?

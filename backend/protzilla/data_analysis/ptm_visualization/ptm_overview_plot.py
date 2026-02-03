@@ -32,8 +32,6 @@ def get_detected_modifications(
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
-    metadata_df: pd.DataFrame,
-    metadata_column: str,
 ) -> dict:
     # Although this function is used by different steps, it is tied to the OverviewPlot and thus is placed in this file
     # Everything else would require a bigger rework of the underlying code.
@@ -42,8 +40,6 @@ def get_detected_modifications(
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
-        metadata_df=metadata_df,
-        metadata_column=metadata_column,
     )
 
     plot_config_module = get_overview_plot_config_module(out_dir)
@@ -76,9 +72,6 @@ def create_overview_ptm_visualization(
     fasta_file_path: Path,
     regions_file_path: Path,
 ) -> dict:
-    # TODO: technically doesn't need metadata. Cleavages and stuff are calculated but not used so metadata could also
-    #  stay None (or empty)
-    #  - Same above?
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,

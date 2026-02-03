@@ -46,7 +46,6 @@ def create_bar_ptm_visualization(
     metadata_df: pd.DataFrame,
     metadata_column: str,
 ) -> dict:
-    # TODO: we probably need some kind check that metadata matches evidence file
     config_module, out_dir = preprocess_files(
         evidence_df=evidence_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
