@@ -245,14 +245,14 @@ def test_get_prot_structure_dfs_success(tmp_path, monkeypatch):
 
     cif = prot_dir / "test.cif"
     cif.write_text(
-        """data_test
+        """
+data_test
 loop_
-_atom_site.group_PDB
 _atom_site.id
 _atom_site.type_symbol
 _atom_site.Cartn_x
-ATOM 1 N 1.0
-ATOM 2 CA C 2.0
+N N 1.0
+CA C 2.0
 """
     )
 
