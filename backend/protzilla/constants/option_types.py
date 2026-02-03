@@ -37,6 +37,12 @@ class GroupBy(Enum):
     PROTEIN_ID = "Protein ID"
 
 
+class MultipleTestingCorrectionMethod(Enum):
+    benjamini_hochberg = "Benjamini-Hochberg"
+    bonferroni = "Bonferroni"
+    none = "None"
+
+
 class VisualTransformations(Enum):
     LOG10 = "log10"
     LINEAR = "linear"
