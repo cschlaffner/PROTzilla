@@ -168,7 +168,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           const isSelected =
             currentSectionId === section.id && runData.current_step_index === flatStepIndex;
 
-          // Retain positions on redraw
           const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
           const position = oldMatchingNode ? oldMatchingNode.position : { x: 0, y: yOffset };
 
