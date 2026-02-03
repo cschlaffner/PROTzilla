@@ -207,8 +207,11 @@ export const RunScreen: React.FC = () => {
 
   const singleTableComponent = (table: Table) => (
     <StyledContentDiv>
-      <DataTable data={table.table} />
-      <StyledCSVButton data={table.table} />
+      <DataTable 
+        runName={runName}
+        tableLabel={"protein_df"}
+      />
+      <StyledCSVButton data={table.table} fileName={table.name} />
     </StyledContentDiv>
   );
 

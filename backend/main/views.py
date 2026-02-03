@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from pathlib import Path
 import re
 import traceback
+from typing import Any
 
 import numpy as np
 from django.contrib import messages
@@ -621,8 +622,124 @@ def get_step_plots(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+def _run_output_as_json(
+            label: str, 
+            _data: pd.DataFrame | Any, 
+            index_delims: tuple[int, int] = (None, None)
+        ) -> dict:
+        start_index = index_delims[0]
+        end_index = index_delims[1]
+
+        # Note: using [None:None] as a slice returns the entire collection
+        if isinstance(_data, pd.DataFrame):
+            data = _data.iloc[start_index:end_index].copy()
+            data["id"] = data.index
+            cleaned_data = data.replace(np.nan, None)
+            return {
+                    "table": cleaned_data.to_dict(orient="records"),
+                    "name": get_display_name(label),
+                }
+        # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+        elif (
+            ("_df" not in label)
+            and (label != "messages")
+            and (type(_data) == list)
+            and (len(_data) > 0)
+        ):
+            data = _data
+            data = pd.DataFrame({label: data})
+            data["id"] = data.index
+            cleaned_data = data.replace(np.nan, None)
+            if index_delims is not None:
+                cleaned_data = cleaned_data.iloc[start_index:end_index]
+            return {"table": cleaned_data.to_dict(orient="records"), "name": label}
+
+        # Note: None-table output just get ignored in the end
+        # TODO for the future: Ensure this really does never happen
+        # TODO: Better way to handle this
+        else:
+            return None
+
+def get_current_step_table_data(request):
+    """
+    API call. Returns a specific delimited slice of data from a specified table
+    of the current step's outputs.
+    """
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+    
+    print(request)
+    data = json.loads(request.body)
+
+    run_name = data.get("run_name")
+    table_name = data.get("table_name")
+    start_index = int(data.get("start_index"))
+    end_index = int(data.get("end_index"))
+    index_delims = (start_index, end_index)
+
+    response = {
+            "success": False,
+            "message": None,
+            "rows": None,
+            "total_row_count": 0
+    }
+
+    run = Run(run_name)
+
+    if run.current_step is None:
+        response["message"] = "No step selected"
+        return JsonResponse(response, status=500)
+
+    print(run.current_outputs)
+    table = run.current_outputs[table_name]
+    if table is None:
+        response["message"] = "Requested table not found"
+        return JsonResponse(response, status=404)
+
+    serialised_output = _run_output_as_json(table_name, table, index_delims)
+
+    response["success"] = True
+    response["rows"] = serialised_output
+    response["total_row_count"] = len(table)
+
+    return JsonResponse(response)
+
+def get_current_step_output_labels(request):
+    """
+    API call. Returns all output labels of the current step and their respective visual labels
+    """
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+    
+    data = json.loads(request.body)
+
+    run_name = data.get("run_name")
+    run = Run(run_name)
+
+    response = {
+        "success": False,
+        "message": None,
+        "tables": [],
+    }
+
+    if run.current_step is None:
+        response["message"] = "No step selected"
+        return JsonResponse(response, status=500)
+
+    for label, data in run.current_outputs:
+        response["tables"].append({"label": label, "display_name": label}) # TODO
+
+    return JsonResponse(response)
 
 def get_step_table(request):
+    """
+    API call. Returns all output tables for a step in their entirety.
+    """
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
@@ -632,30 +749,11 @@ def get_step_table(request):
         json_data = []
 
         if run.current_step is not None:
-            for key, value in run.current_outputs:
-                if isinstance(value, pd.DataFrame):
-                    data = value.copy()
-                    data["id"] = data.index
-                    cleaned_data = data.replace(np.nan, None)
-                    json_data.append(
-                        {
-                            "table": cleaned_data.to_dict(orient="records"),
-                            "name": get_display_name(key),
-                        }
-                    )  # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                elif (
-                    ("_df" not in key)
-                    and (key != "messages")
-                    and (type(value) == list)
-                    and (len(value) > 0)
-                ):
-                    data = value
-                    data = pd.DataFrame({key: data})
-                    data["id"] = data.index
-                    cleaned_data = data.replace(np.nan, None)
-                    json_data.append(
-                        {"table": cleaned_data.to_dict(orient="records"), "name": key}
-                    )
+            for label, data in run.current_outputs:
+                json_data.append(_run_output_as_json(label, data))
+
+        json_data = [j for j in json_data if j is not None] # Strip none-table entries
+
         return JsonResponse(
             {
                 "success": True,
