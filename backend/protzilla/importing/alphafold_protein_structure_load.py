@@ -198,6 +198,146 @@ def handle_alphafold_files(
     }
 
 
+def get_all_available_entry_ids() -> list:
+    meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
+    metadata_csv = meta_dir / "alphafold_metadata.csv"
+
+    if metadata_csv.exists():
+        df = pd.read_csv(metadata_csv)
+        return df["entryID"].tolist()
+
+    else:
+        return []
+
+
+def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
+    """
+    Writes data from disk of a specific entry ID into dataframes.
+
+    :param entry_id: entryID of the uploaded protein structure
+    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
+    """
+    messages: list[dict[str, Any]] = []
+
+    meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
+    metadata_csv = meta_dir / "alphafold_metadata.csv"
+
+    if not metadata_csv.exists():
+        msg = f"AlphaFold metadata CSV not found: {metadata_csv}"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+
+    all_metadata_df = pd.read_csv(metadata_csv, dtype=str)
+    metadata_df = all_metadata_df[all_metadata_df["entryID"] == entry_id]
+    if metadata_df.empty:
+        msg = f"No metadata for entryID '{entry_id}' in {metadata_csv}"
+        logger.error(msg)
+        raise ValueError(msg)
+
+    prot_dir = meta_dir / entry_id.upper()
+    if not prot_dir.exists() or not prot_dir.is_dir():
+        msg = f"AlphaFold data directory not found for entry '{entry_id}': {prot_dir}"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+
+    # get cif file
+    cif_files = list(prot_dir.glob("*.cif"))
+    if not cif_files:
+        msg = f"No CIF file found in {prot_dir} for entry '{entry_id}'"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+
+    cif_file = cif_files[0]
+    try:
+        cif_df = read_alphafold_mmcif(str(cif_file))
+    except Exception as e:
+        msg = f"Failed to read CIF file '{cif_file}': {e}"
+        logger.exception(msg)
+        raise RuntimeError(msg) from e
+
+    # get fasta file
+    fasta_files = list(prot_dir.glob("*.fasta")) + list(prot_dir.glob("*.fa"))
+    if not fasta_files:
+        msg = f"No FASTA file found in {prot_dir} for entry '{entry_id}'"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+
+    fasta_file = fasta_files[0]
+    try:
+        fasta_dict = fasta_import(str(fasta_file))
+        sequence_df = fasta_dict.get("fasta_df")
+        if sequence_df is None:
+            raise RuntimeError(
+                f"FASTA importer did not return 'fasta_df' for {fasta_file}"
+            )
+    except Exception as e:
+        msg = f"Failed to load FASTA '{fasta_file}': {e}"
+        logger.exception(msg)
+        raise RuntimeError(msg) from e
+
+    # get jsons (PAE and pLDDT)
+    json_files = list(prot_dir.glob("*.json"))
+    if not json_files:
+        msg = f"No JSON files (PAE/pLDDT) found in {prot_dir} for entry '{entry_id}'"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+
+    pae_df = None
+    plddt_df = None
+
+    try:
+        if len(json_files) == 1:
+            raise RuntimeError()
+        else:
+            json1 = pd.read_json(json_files[0])
+            json2 = pd.read_json(json_files[1])
+            if (
+                "predicted_aligned_error" in json1.columns
+                and "residueNumber" in json2.columns
+            ):
+                pae_df = json1
+                plddt_df = json2
+            elif (
+                "predicted_aligned_error" in json2.columns
+                and "residueNumber" in json1.columns
+            ):
+                pae_df = json2
+                plddt_df = json1
+            else:
+                # Fallback: assign and warn
+                pae_df = json1
+                plddt_df = json2
+                warn = f"Could not detect PAE/pLDDT in JSON files for entry '{entry_id}'; files will be returned as read."
+                logger.warning(warn)
+                messages.append(dict(level=logging.WARNING, msg=warn))
+    except Exception as e:
+        msg = f"Failed to read JSON files in {prot_dir}: {e}"
+        logger.exception(msg)
+        raise RuntimeError(msg) from e
+
+    def _check_df(df: Any) -> bool:
+        return df is not None
+
+    if (
+        _check_df(cif_df)
+        and _check_df(pae_df)
+        and _check_df(plddt_df)
+        and _check_df(sequence_df)
+    ):
+        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+        logger.info(success_msg)
+        messages.append(dict(level=logging.INFO, msg=success_msg))
+
+    return {
+        "metadata_df": metadata_df,
+        "cif_df": cif_df,
+        "pae_df": pae_df,
+        "plddt_df": plddt_df,
+        "sequence_df": sequence_df,
+        "messages": messages,
+    }
+
+
 def fetch_alphafold_protein_structure(
     uniprot_id: str, persist_uploads: bool
 ) -> dict[str, Any]:
