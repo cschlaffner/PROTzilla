@@ -1,6 +1,7 @@
 import logging
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -69,12 +70,6 @@ class TTestType(Enum):
 
 class AnalysisLevel(Enum):
     protein = "Protein"
-
-
-class MultipleTestingCorrectionMethod(Enum):
-    benjamini_hochberg = "Benjamini-Hochberg"
-    bonferroni = "Bonferroni"
-    none = "None"
 
 
 class PValueCalculationMethod(Enum):
