@@ -267,6 +267,7 @@ class Step:
         plot_input = self.inputs | prefixed_output
 
         input_parameters = inspect.signature(self.plot_method).parameters
+
         required_keys = [
             key
             for key, param in input_parameters.items()

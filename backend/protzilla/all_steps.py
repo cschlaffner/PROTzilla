@@ -67,6 +67,7 @@ _forward_mapping = [
     data_analysis.PTMOverviewVisualization,
     data_analysis.PTMBarVisualization,
     data_analysis.PTMDetailsVisualization,
+    data_analysis.CrossLinkingValidationWithAngstromDeviation,
     data_preprocessing.ImputationByMinPerSample,
     data_integration.EnrichmentAnalysisGOAnalysisWithString,
     data_integration.EnrichmentAnalysisGOAnalysisWithEnrichr,

@@ -1,9 +1,11 @@
 import re
+import shutil
 from pathlib import Path
 
 import numpy as np
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
+from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import StepManager, Step
 from backend.protzilla.utilities import name_to_title
@@ -184,3 +186,39 @@ def load_yaml_from_file(path: Path) -> str:
         raise FileNotFoundError(f"File {path} does not exist.")
     with path.open("r") as f:
         return f.read()
+
+
+def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str]:
+    """
+    Copy a single file to a destination directory.
+    Creates the destination directory if it doesn't exist.
+
+    :param source_file: Path to the source file
+    :param dest_dir: Path to the destination directory
+    :return: Tuple of (success: bool, message: str)
+    """
+
+    if not source_file.exists():
+        message = f"Source file does not exist: {source_file}"
+        logger.error(message)
+        return False, message
+
+    if not source_file.is_file():
+        message = f"Source path is not a file: {source_file}"
+        logger.error(message)
+        return False, message
+
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest_file = dest_dir / source_file.name
+
+        shutil.copy2(source_file, dest_file)
+
+        message = f"Successfully copied file {source_file} to {dest_dir}"
+        logger.info(message)
+        return True, message
+
+    except OSError as e:
+        message = f"Failed to copy file: {str(e)}"
+        logger.error(message)
+        return False, message

@@ -184,6 +184,7 @@ InputField = Union[
     MultiSelectField,
     DropdownField,
     FileInput,
+    FloatField,
 ]
 StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
 
@@ -218,6 +219,10 @@ class Form:
 
     def apply_modification(self, run: Run) -> None:
         self.modify_form(run)
+
+    def add_field(self, new_field: InputField):
+        self.input_fields.append(new_field)
+        self._field_map[new_field.name] = new_field
 
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
