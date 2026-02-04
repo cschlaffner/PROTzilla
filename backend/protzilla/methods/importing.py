@@ -467,8 +467,8 @@ class CrosslinkingImport(ImportingStep):
     calc_method = staticmethod(crosslinking_import)
 
 
-class ImportStructurePredictionsFromDisk(ImportingStep):
-    display_name = "Structure Predictions Import from Disk"
+class ImportStructurePredictionFromDisk(ImportingStep):
+    display_name = "Structure Prediction Import from Disk"
     operation = "Protein Structure Import"
     method_description = (
         "Load already uploaded protein structure predictions from disk into current run"

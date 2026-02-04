@@ -17,6 +17,31 @@ from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
 
 
+def get_metadata_df() -> pd.DataFrame:
+    """
+    Returns all data from alphafold_metadata.csv in form of a dataframe. If no such csv exist, it returns
+    a dataframe with the corresponding keys but no values and creates a csv with the expected column names.
+    """
+    metadata_csv = paths.AF_METADATA_CSV_PATH
+
+    if not metadata_csv.exists():
+        msg = f"AlphaFold metadata CSV not found: {metadata_csv}. Returning an empty Dataframe."
+        logger.error(msg)
+        metadata_df = pd.DataFrame(
+            columns=[
+                "entryID",
+                "uniprotAccession",
+                "modelCreatedDate",
+                "gene",
+                "alphafold_version",
+            ]
+        )
+        metadata_df.to_csv(metadata_csv, index=False)
+        return metadata_df
+
+    return pd.read_csv(metadata_csv, dtype=str)
+
+
 def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str:
     """
     Convert a protein sequence to FASTA format.
@@ -65,8 +90,6 @@ def read_alphafold_mmcif(path: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     table = block.find_mmcif_category(cat_name)
-    if table is None:
-        return pd.DataFrame()
 
     columns = list(table.tags)
     nrows = len(table)
@@ -114,8 +137,7 @@ def handle_alphafold_files(
     sequence_df = None
     messages = []
 
-    meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
-    target_dir = meta_dir / uniprot
+    target_dir = paths.ALPHAFOLD_PATH / uniprot
     downloaded: dict[str, str] = {}
 
     temp_dir = None
@@ -128,25 +150,20 @@ def handle_alphafold_files(
         work_dir = temp_dir
 
     try:
-        if persist_uploads and metadata_df is not None:
-            meta_dir.mkdir(parents=True, exist_ok=True)
-            metadata_csv = meta_dir / "alphafold_metadata.csv"
+        if persist_uploads:
+            paths.ALPHAFOLD_PATH.mkdir(parents=True, exist_ok=True)
+            existing = get_metadata_df()
             try:
-                if metadata_csv.exists():
-                    existing = pd.read_csv(metadata_csv, dtype=str)
-                    mask = existing["entryID"] == entry_id
-                    if mask.any():
-                        msg = (
-                            f'Existing entry with EntryID "{entry_id}" was overwritten.'
-                        )
-                        logger.warning(msg)
-                        messages.append(dict(level=logging.WARNING, msg=msg))
-                        existing = existing[~mask]
+                metadata_csv = paths.AF_METADATA_CSV_PATH
+                mask = existing["entryID"] == entry_id
+                if mask.any():
+                    msg = f'Existing entry with EntryID "{entry_id}" was overwritten.'
+                    logger.warning(msg)
+                    messages.append(dict(level=logging.WARNING, msg=msg))
+                    existing = existing[~mask]
 
-                    combined = pd.concat([existing, metadata_df], ignore_index=True)
-                    combined.to_csv(metadata_csv, index=False)
-                else:
-                    metadata_df.to_csv(metadata_csv, index=False)
+                combined = pd.concat([existing, metadata_df], ignore_index=True)
+                combined.to_csv(metadata_csv, index=False)
                 logger.info("Wrote AlphaFold metadata to %s", metadata_csv)
             except Exception:
                 logger.exception(
@@ -198,16 +215,12 @@ def handle_alphafold_files(
     }
 
 
-def get_all_available_entry_ids() -> list:
-    meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
-    metadata_csv = meta_dir / "alphafold_metadata.csv"
-
-    if metadata_csv.exists():
-        df = pd.read_csv(metadata_csv)
-        return df["entryID"].tolist()
-
-    else:
-        return []
+def get_all_available_entry_ids() -> list[str]:
+    """ "
+    Get the entry ids of all the protein structure predictions that can be found on disk.
+    """
+    df = get_metadata_df()
+    return df["entryID"].tolist()
 
 
 def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
@@ -217,24 +230,15 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
     :param entry_id: entryID of the uploaded protein structure
     :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
     """
-    messages: list[dict[str, Any]] = []
-
-    meta_dir = paths.EXTERNAL_DATA_PATH / "alphafold"
-    metadata_csv = meta_dir / "alphafold_metadata.csv"
-
-    if not metadata_csv.exists():
-        msg = f"AlphaFold metadata CSV not found: {metadata_csv}"
-        logger.error(msg)
-        raise FileNotFoundError(msg)
-
-    all_metadata_df = pd.read_csv(metadata_csv, dtype=str)
+    messages: list[dict[str, str | int]] = []
+    all_metadata_df = get_metadata_df()
     metadata_df = all_metadata_df[all_metadata_df["entryID"] == entry_id]
     if metadata_df.empty:
-        msg = f"No metadata for entryID '{entry_id}' in {metadata_csv}"
+        msg = f"No metadata for entryID '{entry_id}' in {paths.AF_METADATA_CSV_PATH}"
         logger.error(msg)
         raise ValueError(msg)
 
-    prot_dir = meta_dir / entry_id.upper()
+    prot_dir = paths.ALPHAFOLD_PATH / entry_id.upper()
     if not prot_dir.exists() or not prot_dir.is_dir():
         msg = f"AlphaFold data directory not found for entry '{entry_id}': {prot_dir}"
         logger.error(msg)
@@ -246,6 +250,11 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         msg = f"No CIF file found in {prot_dir} for entry '{entry_id}'"
         logger.error(msg)
         raise FileNotFoundError(msg)
+
+    if len(cif_files) > 1:
+        message = "There are several CIF files for this protein structure prediction. The first one will be read, all others will be ignored."
+        logger.info(message)
+        messages.append(dict(level=logging.WARNING, msg=message))
 
     cif_file = cif_files[0]
     try:
@@ -267,9 +276,9 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         fasta_dict = fasta_import(str(fasta_file))
         sequence_df = fasta_dict.get("fasta_df")
         if sequence_df is None:
-            raise RuntimeError(
-                f"FASTA importer did not return 'fasta_df' for {fasta_file}"
-            )
+            msg = f"FASTA importer did not return 'fasta_df' for {fasta_file}"
+            logger.error(msg)
+            raise RuntimeError(msg)
     except Exception as e:
         msg = f"Failed to load FASTA '{fasta_file}': {e}"
         logger.exception(msg)
@@ -287,6 +296,8 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
 
     try:
         if len(json_files) == 1:
+            msg = f"Only one json file found in {prot_dir} for entry '{entry_id}'. Two json files are expected"
+            logger.error(msg)
             raise RuntimeError()
         else:
             json1 = pd.read_json(json_files[0])
@@ -307,7 +318,7 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
                 # Fallback: assign and warn
                 pae_df = json1
                 plddt_df = json2
-                warn = f"Could not detect PAE/pLDDT in JSON files for entry '{entry_id}'; files will be returned as read."
+                warn = f"Could not detect PAE/pLDDT in JSON files for entry '{entry_id}'; ''{json_files[0]} is read as PAE, {json_files[1]} is read as pLDDT."
                 logger.warning(warn)
                 messages.append(dict(level=logging.WARNING, msg=warn))
     except Exception as e:
@@ -315,27 +326,23 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         logger.exception(msg)
         raise RuntimeError(msg) from e
 
-    def _check_df(df: Any) -> bool:
-        return df is not None
-
-    if (
-        _check_df(cif_df)
-        and _check_df(pae_df)
-        and _check_df(plddt_df)
-        and _check_df(sequence_df)
-    ):
-        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
-        logger.info(success_msg)
-        messages.append(dict(level=logging.INFO, msg=success_msg))
-
-    return {
+    df_dict = {
         "metadata_df": metadata_df,
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
         "sequence_df": sequence_df,
-        "messages": messages,
     }
+    if not any(df.empty for df in df_dict.values()):
+        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+        logger.info(success_msg)
+        messages.append(dict(level=logging.INFO, msg=success_msg))
+    else:
+        message = f"Could not load AlphaFold data for entry '{entry_id}'"
+        logger.warning(message)
+        messages.append(dict(level=logging.WARNING, msg=message))
+    df_dict["messages"] = messages
+    return df_dict
 
 
 def fetch_alphafold_protein_structure(

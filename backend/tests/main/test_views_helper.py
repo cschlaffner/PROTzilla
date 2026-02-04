@@ -15,7 +15,7 @@ def test_get_all_possible_step_names():
         "FastaImport",
         "AlphaFoldPredictionLoad",
         "CrosslinkingImport",
-        "ImportStructurePredictionsFromDisk",
+        "ImportStructurePredictionFromDisk",
         "FilterProteinsBySamplesMissing",
         "FilterProteinsBySilacRatios",
         "FilterByProteinsCount",

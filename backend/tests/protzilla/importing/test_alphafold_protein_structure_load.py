@@ -1,6 +1,5 @@
 import pandas as pd
 import pytest
-from pathlib import Path
 import json
 import logging
 
@@ -11,8 +10,8 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     read_alphafold_mmcif,
     get_all_available_entry_ids,
     get_prot_structure_dfs,
-    paths,
 )
+from backend.protzilla.constants import paths
 
 
 def test_to_fasta_default_header_and_newline():
@@ -131,10 +130,10 @@ def test_fetch_alphafold_metadata(tmp_path, monkeypatch):
 
 
 def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
+    monkeypatch.setattr(paths, "ALPHAFOLD_PATH", tmp_path)
     fetch_alphafold_protein_structure("Q8WP00", persist_uploads=True)
 
-    target_dir = tmp_path / "alphafold" / "Q8WP00"
+    target_dir = tmp_path / "Q8WP00"
     assert target_dir.exists()
     assert target_dir.is_dir()
 
@@ -173,59 +172,48 @@ def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
 
 
 def test_get_all_available_entry_ids_empty(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
+    metadata_csv = tmp_path / "alphafold_metadata.csv"
+    monkeypatch.setattr(paths, "AF_METADATA_CSV_PATH", metadata_csv)
+
     assert get_all_available_entry_ids() == []
+    assert metadata_csv.exists()
+
+    df = pd.read_csv(metadata_csv, dtype=str)
+    assert list(df.columns) == [
+        "entryID",
+        "uniprotAccession",
+        "modelCreatedDate",
+        "gene",
+        "alphafold_version",
+    ]
+    assert len(df) == 0
 
 
 def test_get_all_available_entry_ids_nonempty(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
-    meta_dir = tmp_path / "alphafold"
-    meta_dir.mkdir(parents=True, exist_ok=True)
-    csv = meta_dir / "alphafold_metadata.csv"
+    metadata_csv = tmp_path / "alphafold_metadata.csv"
+    monkeypatch.setattr(paths, "AF_METADATA_CSV_PATH", metadata_csv)
     df = pd.DataFrame([{"entryID": "Q8WP00", "uniprotAccession": "Q8WP00"}])
-    df.to_csv(csv, index=False)
+    df.to_csv(metadata_csv, index=False)
 
     assert get_all_available_entry_ids() == ["Q8WP00"]
 
 
-def test_get_prot_structure_dfs_no_metadata(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
-    with pytest.raises(FileNotFoundError, match=r"AlphaFold metadata CSV not found"):
-        get_prot_structure_dfs("Q8WP00")
-
-
 def test_get_prot_structure_dfs_no_entry(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
-    meta_dir = tmp_path / "alphafold"
-    meta_dir.mkdir(parents=True, exist_ok=True)
-    csv = meta_dir / "alphafold_metadata.csv"
+    metadata_csv = tmp_path / "alphafold_metadata.csv"
+    monkeypatch.setattr(paths, "AF_METADATA_CSV_PATH", metadata_csv)
     pd.DataFrame([{"entryID": "OTHER", "uniprotAccession": "OTHER"}]).to_csv(
-        csv, index=False
+        metadata_csv, index=False
     )
 
     with pytest.raises(ValueError, match=r"No metadata for entryID 'Q8WP00'"):
         get_prot_structure_dfs("Q8WP00")
 
 
-def test_get_prot_structure_dfs_missing_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
-    meta_dir = tmp_path / "alphafold"
-    meta_dir.mkdir(parents=True, exist_ok=True)
-    csv = meta_dir / "alphafold_metadata.csv"
-    pd.DataFrame([{"entryID": "Q8WP00", "uniprotAccession": "Q8WP00"}]).to_csv(
-        csv, index=False
-    )
-
-    with pytest.raises(FileNotFoundError, match=r"AlphaFold data directory not found"):
-        get_prot_structure_dfs("Q8WP00")
-
-
 def test_get_prot_structure_dfs_success(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
-
-    meta_dir = tmp_path / "alphafold"
-    meta_dir.mkdir(parents=True, exist_ok=True)
-    csv = meta_dir / "alphafold_metadata.csv"
+    monkeypatch.setattr(paths, "ALPHAFOLD_PATH", tmp_path)
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    metadata_csv = tmp_path / "alphafold_metadata.csv"
+    monkeypatch.setattr(paths, "AF_METADATA_CSV_PATH", metadata_csv)
 
     metadata = pd.DataFrame(
         [
@@ -238,9 +226,9 @@ def test_get_prot_structure_dfs_success(tmp_path, monkeypatch):
             }
         ]
     )
-    metadata.to_csv(csv, index=False)
+    metadata.to_csv(metadata_csv, index=False)
 
-    prot_dir = meta_dir / "Q8WP00"
+    prot_dir = tmp_path / "Q8WP00"
     prot_dir.mkdir(parents=True, exist_ok=True)
 
     cif = prot_dir / "test.cif"
@@ -277,15 +265,28 @@ CA C 2.0
 
     assert isinstance(out["cif_df"], pd.DataFrame)
     assert not out["cif_df"].empty
+    assert list(out["cif_df"].columns) == [
+        "_atom_site.id",
+        "_atom_site.type_symbol",
+        "_atom_site.Cartn_x",
+    ]
+    assert out["cif_df"]["_atom_site.id"].tolist() == ["N", "CA"]
+    assert out["cif_df"]["_atom_site.type_symbol"].tolist() == ["N", "C"]
+    assert out["cif_df"]["_atom_site.Cartn_x"].tolist() == ["1.0", "2.0"]
 
     assert isinstance(out["pae_df"], pd.DataFrame)
     assert not out["pae_df"].empty
+    assert out["pae_df"]["predicted_aligned_error"].tolist() == [0.1]
 
     assert isinstance(out["plddt_df"], pd.DataFrame)
     assert not out["plddt_df"].empty
+    assert out["plddt_df"]["residueNumber"].tolist() == [1]
+    assert out["plddt_df"]["confidenceScore"].tolist() == [90]
 
     assert isinstance(out["sequence_df"], pd.DataFrame)
     assert not out["sequence_df"].empty
+    assert out["sequence_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
+    assert out["sequence_df"]["Protein Sequence"].tolist() == ["AAAA"]
 
     assert any(d.get("level") == logging.INFO for d in out["messages"]) or any(
         "Successfully loaded" in d.get("msg", "") for d in out["messages"]
