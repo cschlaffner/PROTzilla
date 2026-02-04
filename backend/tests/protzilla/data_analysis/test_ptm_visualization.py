@@ -4,6 +4,7 @@ from unittest import mock
 
 import pandas as pd
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 import main
 from protzilla.constants.intensity_types import IntensityType
@@ -66,6 +67,17 @@ def get_metadata_df(path: Path):
     return metadata_df
 
 
+def alter_ptm_settings(monkeypatch: MonkeyPatch, new_param_dict: dict):
+    def mock_figure_orientation(regions_file_path: Path, out_dir: Path):
+        config_module = get_general_config_module(regions_file_path, out_dir)
+        config_module.__dict__.update(new_param_dict)
+        return config_module
+
+    monkeypatch.setattr(
+        ptm_vis_utils, "get_general_config_module", mock_figure_orientation
+    )
+
+
 def pytest_generate_tests(metafunc):
     # A generation function that makes sure that the matching test functions are run with all three plotting function
     # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not worth the effort
@@ -96,7 +108,7 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("plot_func,kwargs", plot_funcs_to_kwargs)
 
 
-def validate_plot_outputs(plot, plot_func):
+def validate_plot_outputs(plot, plot_func, all_groups: set, required_groups: set):
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -130,9 +142,10 @@ def validate_plot_outputs(plot, plot_func):
         plot_func == create_details_ptm_visualization
         or plot_func == create_bar_ptm_visualization
     ):
-        required_groups = {"clean", "old", "exon"}
+        # TODO: remove
+        # required_groups = {"clean", "old", "exon"}
         assert required_groups.issubset(all_plot_strings)
-        excluded_groups = {"AD", "CTR", "test", "fail"}
+        excluded_groups = all_groups - required_groups
         assert all(g not in all_plot_strings for g in excluded_groups)
 
     if plot_func == create_details_ptm_visualization:
@@ -167,29 +180,40 @@ class TestPTMVisualization:
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
 
-        validate_plot_outputs(plot, plot_func)
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            (
+                set(kwargs["metadata_df"]["Group"].unique())
+                if "metadata_df" in kwargs
+                else set()
+            ),
+            {"clean", "old", "exon"},
+        )
 
     @staticmethod
     def test_plotting_functions_vertical_orientation(plot_func, kwargs, monkeypatch):
         # Mocking the settings load function seemed easier than creating a whole new settings file just for this
-        def mock_figure_orientation(regions_file_path: Path, out_dir: Path):
-            config_module = get_general_config_module(regions_file_path, out_dir)
-            config_module.__dict__.update(
-                {
-                    "FIGURE_ORIENTATION": 1,
-                }
-            )
-            return config_module
 
-        monkeypatch.setattr(
-            ptm_vis_utils, "get_general_config_module", mock_figure_orientation
-        )
+        new_param_dict = {
+            "FIGURE_ORIENTATION": 1,
+        }
+        alter_ptm_settings(monkeypatch, new_param_dict)
 
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
 
         plot = result["plots"][0]
-        validate_plot_outputs(plot, plot_func)
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            (
+                set(kwargs["metadata_df"]["Group"].unique())
+                if "metadata_df" in kwargs
+                else set()
+            ),
+            {"clean", "old", "exon"},
+        )
 
     @staticmethod
     def test_fasta_non_matching_isoform_ids(plot_func, kwargs):
@@ -345,20 +369,19 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_different_metadata_column(
-        evidence_df,
-        q_value_threshold,
-        fasta_file_path,
-        regions_file_path,
+        plot_func,
+        bar_detail_kwargs,
     ):
-        result = create_bar_ptm_visualization(
-            evidence_df=evidence_df,
-            evidence_file_q_value_threshold=q_value_threshold,
-            fasta_file_path=fasta_file_path,
-            regions_file_path=regions_file_path,
-            metadata_df=get_metadata_df(GFAP_METADATA_FILE_PATH),
-            metadata_column="Batch",
-        )
+        metadata_df = bar_detail_kwargs["metadata_df"]
+        bar_detail_kwargs["metadata_column"] = "Batch"
+        result = plot_func(**bar_detail_kwargs)
         assert len(result["plots"]) == 1
+        validate_plot_outputs(
+            result["plots"][0],
+            create_bar_ptm_visualization,
+            set(metadata_df[bar_detail_kwargs["metadata_column"]].unique()),
+            {"2", "3", "4"},
+        )
 
     @staticmethod
     def test_detected_modifications(
