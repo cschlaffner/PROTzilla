@@ -287,12 +287,10 @@ def uniprot_lookup(
     :rtype: None
     """
     if mode == ProteinDesignationLookupMode.id_to_gene_name.value:
-        error = ProteinLookupError.NO_GENE_NAME_FOUND.value
         field_of_existing_data = "accession"
         extra_query = None
         extra_fields = None
     elif mode == ProteinDesignationLookupMode.gene_name_to_id.value:
-        error = ProteinLookupError.NO_PROTEIN_ID_FOUND.value
         field_of_existing_data = "gene_exact"
         extra_query = f"organism_id:{organism_id} AND reviewed:true"
         extra_fields = "gene_names"
@@ -315,10 +313,6 @@ def uniprot_lookup(
         process_uniprot_response(
             response=response, results=results, input_data=batch, mode=mode
         )
-
-    for data in input_data:
-        if data not in results:
-            results[data] = (False, None, error)
 
 
 def get_gene_name_from_protein_ids(
@@ -368,19 +362,27 @@ def get_gene_name_from_protein_ids(
         organism_id=None,
     )
 
+    for protein_id in valid_ids_without_isoform:
+        if protein_id not in results:
+            results[protein_id] = (
+                False,
+                None,
+                ProteinLookupError.NO_GENE_NAME_FOUND.value,
+            )
+
     return results
 
 
 def get_protein_ids_from_gene_name(
-    gene_names: set[str], organism_id: str
+    gene_names: set[str], organism_ids: list[str]
 ) -> dict[str, tuple[bool, Optional[str], Optional[str]]]:
     """
     Retrieve UniProt protein IDs for a given set of human gene names as a batch query.
 
     :param gene_names: Set of gene symbols to look up (e.g., {"RAD50", "MRE11"})
     :type gene_names: set[str]
-    :param organism_id: Organism identifier for filtering UniProt queries (e.g., "9606" for human)
-    :type organism_id: str
+    :param organism_ids: list of organism identifiers for filtering UniProt queries (e.g., "9606" for human)
+    :type organism_ids: list[str]
 
     :return: Dictionary mapping each gene name to a tuple of (success, protein_id, error)
     :rtype: dict[str, tuple[bool, str | None, str | None]]
@@ -399,12 +401,30 @@ def get_protein_ids_from_gene_name(
     if not valid_gene_names:
         return results
 
-    uniprot_lookup(
-        input_data=valid_gene_names,
-        mode=ProteinDesignationLookupMode.gene_name_to_id.value,
-        results=results,
-        organism_id=organism_id,
-    )
+    remaining_gene_names = set(valid_gene_names)
+    for single_organism_id in organism_ids:
+
+        if not remaining_gene_names:
+            continue
+
+        uniprot_lookup(
+            input_data=remaining_gene_names,
+            mode=ProteinDesignationLookupMode.gene_name_to_id.value,
+            results=results,
+            organism_id=single_organism_id,
+        )
+
+        for gene_name in list(remaining_gene_names):
+            if gene_name in results:
+                remaining_gene_names.discard(gene_name)
+
+    for gene_name in valid_gene_names:
+        if gene_name not in results:
+            results[gene_name] = (
+                False,
+                None,
+                ProteinLookupError.NO_GENE_NAME_FOUND.value,
+            )
 
     return results
 
@@ -580,7 +600,7 @@ def read_ProteomeDiscoverer_XlinkX_file(
 
 
 def read_csm_file(
-    file_path: Path, organism_id: str
+    file_path: Path, organism_ids: list[str]
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read and process a CSM CSV file:
@@ -593,8 +613,8 @@ def read_csm_file(
 
     :param file_path: Path to the CSM CSV file
     :type file_path: pathlib.Path
-    :param organism_id: Organism identifier used for UniProt lookups (e.g., "9606" for human)
-    :type organism_id: str
+    :param organism_ids: list of organism identifiers used for UniProt lookups (e.g., "9606" for human)
+    :type organism_id: list[str]
 
     :return: Tuple of DataFrames containing rows with successfully mapped protein IDs
              and rows where lookup failed
@@ -609,14 +629,14 @@ def read_csm_file(
 
     df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
 
-    uniprot_lookup_function_with_organism_id = partial(
-        get_protein_ids_from_gene_name, organism_id=organism_id
+    uniprot_lookup_function_with_organism_ids = partial(
+        get_protein_ids_from_gene_name, organism_ids=organism_ids
     )
     good_df, failed_df = get_missing_protein_designation(
         df=df,
         existing_column="Protein",
         missing_column="Protein_id",
-        uniprot_lookup_function=uniprot_lookup_function_with_organism_id,
+        uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
     )
 
     return good_df, failed_df
@@ -643,35 +663,52 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[:, columns_in_crosslinking_df]
 
 
-def process_organism_id_from_text_field(organism_id: str) -> tuple[bool, Optional[str]]:
+def process_organism_id_from_text_field(
+    organism_ids: str,
+) -> tuple[bool, Optional[list[str]], Optional[list[str]]]:
     """
-    Retrieve the scientific name of an organism from its NCBI Taxonomy ID.
+    Validates a comma-separated string of NCBI Taxonomy IDs.
+    Returns False immediately if any ID is invalid.
+    Otherwise returns True, the list of cleaned IDs, and the corresponding scientific names.
 
-    The function:
-    1. Cleans the input organism ID (removes spaces).
-    2. Queries the NCBI Entrez E-utilities esummary endpoint.
-    3. Returns a tuple indicating whether the lookup succeeded and the scientific name.
+    param organism_ids: Comma-separated string of NCBI Taxonomy IDs (e.g., "9606,10090,10116")
+    :type organism_ids: str
 
-    :param organism_id: NCBI Taxonomy ID as a string (may contain spaces)
-    :type organism_id: str
-
-    :return: Tuple indicating success and the scientific name
-    :rtype: tuple[bool, str | None]
-
-    :returns success: True if the organism ID was found and the scientific name retrieved
-    :returns name: Scientific name of the organism if found, else None
+    :return: A tuple containing:
+        - success (bool): True if all IDs are valid, False if any ID is invalid
+        - ids (list[str] | None): List of cleaned IDs in input order if successful, None if failed or the cause of the fail
+        - names (list[str] | None): List of scientific names corresponding to IDs if successful, None if failed
     """
-    cleaned_organism_id = organism_id.strip().replace(" ", "")
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={cleaned_organism_id}&retmode=json"
-    response = requests.get(url)
-    if response.status_code != 200:
-        return False, None
-    data = response.json()
-    output_ids = data.get("result", {})
-    if cleaned_organism_id not in output_ids:
-        return False, None
-    name = output_ids[cleaned_organism_id].get("scientificname")
-    return True, name
+    organism_ids_list: list[str] = [
+        id.strip() for id in organism_ids.split(",") if id.strip()
+    ]
+    if not organism_ids_list:
+        return False, None, None
+
+    organism_ids_for_request = ",".join(organism_ids_list)
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={organism_ids_for_request}&retmode=json"
+    try:
+        response = requests.get(url, timeout=15)
+        if response.status_code != 200:
+            return False, None, None
+        data = response.json()
+    except Exception:
+        return False, None, None
+
+    result = data.get("result", {})
+    valid_organism_ids = result.get("uids", [])
+    organism_names = []
+
+    for id in organism_ids_list:
+        if id not in valid_organism_ids:
+            # Abort at the first invalid id
+            return False, id, None
+        name = result[id].get("scientificname")
+        if not name:
+            return False, id, None
+        organism_names.append(name)
+
+    return True, organism_ids_list, organism_names
 
 
 def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
@@ -709,16 +746,19 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
     return "\n".join(sorted(protein_with_error_set))
 
 
-def crosslinking_import(file_path: Path, organism_id: str) -> dict:
+def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
     file_type = file_path.suffix
     try:
-        scientific_organism_name = None
+        scientific_organism_names: list[str] = None
         if file_type == ".csv":
-            success, scientific_organism_name = process_organism_id_from_text_field(
-                organism_id
+            success, organism_ids_list, scientific_organism_names = (
+                process_organism_id_from_text_field(organism_ids)
             )
             if not success:
-                msg = f"Unsupported organism id: {organism_id}. Please provide a valid taxonomy id."
+                if organism_ids_list:
+                    msg = f"Unsupported organism id: {organism_ids_list}. Please provide all valid taxonomy ids."
+                else:
+                    msg = f"An error occurred while reading the organism ids. Please provide all valid taxonomy ids, separated by a comma."
                 return dict(
                     messages=[
                         dict(
@@ -727,7 +767,7 @@ def crosslinking_import(file_path: Path, organism_id: str) -> dict:
                         )
                     ]
                 )
-            good_df, failed_df = read_csm_file(file_path, organism_id)
+            good_df, failed_df = read_csm_file(file_path, organism_ids_list)
         elif file_type == ".xlsx":
             good_df, failed_df = read_ProteomeDiscoverer_XlinkX_file(file_path)
         else:
@@ -746,7 +786,8 @@ def crosslinking_import(file_path: Path, organism_id: str) -> dict:
 
     def base_message():
         if file_type == ".csv":
-            return f"{len(good_df)} cross-links for the {scientific_organism_name} organism"
+            organism_names_string = ", ".join(scientific_organism_names)
+            return f"{len(good_df)} cross-links for the {organism_names_string} organism(s)"
         return f"{len(good_df)} cross-links"
 
     if good_df.empty:

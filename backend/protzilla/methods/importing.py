@@ -459,9 +459,11 @@ class CrosslinkingImport(ImportingStep):
                     value=None,
                 ),
                 TextField(
-                    name="organism_id",
-                    label="Organism ID",
+                    name="organism_ids",
+                    label="Organism IDs \n(please list them in the order in which they should be applied, separated by a comma)",
+                    value="",
                 ),
+                InfoField(label="e.g.: 9606, 10090, 10116"),
             ],
         )
 
