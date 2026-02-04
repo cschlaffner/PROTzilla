@@ -623,48 +623,48 @@ def get_step_plots(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+
 # TODO: Move somewhere else
 def _step_output_as_serialised_table(
-            label: str, 
-            _data: pd.DataFrame | Any, 
-            index_delims: tuple[int, int] = (None, None)
-        ) -> list[dict]:
-        """
-        Returns the output data of a step as a list of dicts in "records" orientaion, like this:
-        [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
-        Also delimits the return according to index_delims.
-        If the output could not be serialised, None is returned
+    label: str, _data: pd.DataFrame | Any, index_delims: tuple[int, int] = (None, None)
+) -> list[dict]:
+    """
+    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+    Also delimits the return according to index_delims.
+    If the output could not be serialised, None is returned
 
-        :param label: The label of the step output to serialise
-        :param _data: The data associated with the output
-        :param index_delims: tuple used as slice begin and end indices to delimit the output
-        """
-        start_index = index_delims[0]
-        end_index = index_delims[1]
+    :param label: The label of the step output to serialise
+    :param _data: The data associated with the output
+    :param index_delims: tuple used as slice begin and end indices to delimit the output
+    """
+    start_index = index_delims[0]
+    end_index = index_delims[1]
 
-        # Note: using [None:None] as a slice returns the entire collection
-        if isinstance(_data, pd.DataFrame):
-            data = _data.iloc[start_index:end_index].copy()
-            data["id"] = data.index # TODO: What if we already have an "id" column?
-            cleaned_data = data.replace(np.nan, None)
-            return cleaned_data.to_dict(orient="records")
+    # Note: using [None:None] as a slice returns the entire collection
+    if isinstance(_data, pd.DataFrame):
+        data = _data.iloc[start_index:end_index].copy()
+        data["id"] = data.index  # TODO: What if we already have an "id" column?
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
 
-        # Serialise compatible lists
-        # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
-        # Potential fix: Just do not use lists bro???
-        elif (
-            ("_df" not in label)
-            and (label not in hidden_outputs)
-            and (type(_data) == list)
-            and (len(_data) > 0)
-        ):
-            data = pd.DataFrame({label: _data[start_index:end_index]})
-            data["id"] = data.index
-            cleaned_data = data.replace(np.nan, None)
-            return cleaned_data.to_dict(orient="records")
+    # Serialise compatible lists
+    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
+    # Potential fix: Just do not use lists bro???
+    elif (
+        ("_df" not in label)
+        and (label not in hidden_outputs)
+        and (type(_data) == list)
+        and (len(_data) > 0)
+    ):
+        data = pd.DataFrame({label: _data[start_index:end_index]})
+        data["id"] = data.index
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
 
-        else:
-            return None
+    else:
+        return None
+
 
 def get_current_step_table_data(request):
     """
@@ -675,7 +675,7 @@ def get_current_step_table_data(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
+
     data = json.loads(request.body)
 
     run_name = data.get("run_name")
@@ -684,12 +684,7 @@ def get_current_step_table_data(request):
     end_index = data.get("end_index")
     index_delims = (start_index, end_index)
 
-    response = {
-            "success": False,
-            "message": None,
-            "rows": None,
-            "total_row_count": 0
-    }
+    response = {"success": False, "message": None, "rows": None, "total_row_count": 0}
 
     run = Run(run_name)
 
@@ -702,7 +697,9 @@ def get_current_step_table_data(request):
         response["message"] = "Requested step output not found"
         return JsonResponse(response, status=404)
 
-    serialised_output = _step_output_as_serialised_table(table_label, step_output, index_delims)
+    serialised_output = _step_output_as_serialised_table(
+        table_label, step_output, index_delims
+    )
 
     if serialised_output is None:
         response["rows"] = [{"Info": "This step output cannot be displayed as a table"}]
@@ -714,6 +711,7 @@ def get_current_step_table_data(request):
 
     return JsonResponse(response)
 
+
 def get_current_step_output_labels(request):
     """
     API call. Returns all output labels of the current step and their respective visual labels
@@ -723,7 +721,7 @@ def get_current_step_output_labels(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
+
     data = json.loads(request.body)
 
     run_name = data.get("run_name")
@@ -741,10 +739,13 @@ def get_current_step_output_labels(request):
 
     for label, data in run.current_outputs:
         if label not in hidden_outputs:
-            response["outputs"].append({"label": label, "display_name": get_display_name(label)})
+            response["outputs"].append(
+                {"label": label, "display_name": get_display_name(label)}
+            )
 
     response["success"] = True
     return JsonResponse(response)
+
 
 def calculate_step(request):
     if request.method == "POST":
