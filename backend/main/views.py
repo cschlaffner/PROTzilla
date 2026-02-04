@@ -49,7 +49,8 @@ from protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
-dataframes = ["protein_df", "metadata_df", "peptide_df", "modification_df"]
+# Labels of outputs not sent via the output tables API
+hidden_outputs = ["messages"]
 
 
 @ensure_csrf_cookie
@@ -622,41 +623,46 @@ def get_step_plots(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
-def _run_output_as_json(
+# TODO: Move somewhere else
+def _step_output_as_serialised_table(
             label: str, 
             _data: pd.DataFrame | Any, 
             index_delims: tuple[int, int] = (None, None)
-        ) -> dict:
+        ) -> list[dict]:
+        """
+        Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+        [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+        Also delimits the return according to index_delims.
+        If the output could not be serialised, None is returned
+
+        :param label: The label of the step output to serialise
+        :param _data: The data associated with the output
+        :param index_delims: tuple used as slice begin and end indices to delimit the output
+        """
         start_index = index_delims[0]
         end_index = index_delims[1]
 
         # Note: using [None:None] as a slice returns the entire collection
         if isinstance(_data, pd.DataFrame):
             data = _data.iloc[start_index:end_index].copy()
-            data["id"] = data.index
+            data["id"] = data.index # TODO: What if we already have an "id" column?
             cleaned_data = data.replace(np.nan, None)
-            return {
-                    "table": cleaned_data.to_dict(orient="records"),
-                    "name": get_display_name(label),
-                }
-        # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
+            return cleaned_data.to_dict(orient="records")
+
+        # Serialise compatible lists
+        # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
+        # Potential fix: Just do not use lists bro???
         elif (
             ("_df" not in label)
-            and (label != "messages")
+            and (label not in hidden_outputs)
             and (type(_data) == list)
             and (len(_data) > 0)
         ):
-            data = _data
-            data = pd.DataFrame({label: data})
+            data = pd.DataFrame({label: _data[start_index:end_index]})
             data["id"] = data.index
             cleaned_data = data.replace(np.nan, None)
-            if index_delims is not None:
-                cleaned_data = cleaned_data.iloc[start_index:end_index]
-            return {"table": cleaned_data.to_dict(orient="records"), "name": label}
+            return cleaned_data.to_dict(orient="records")
 
-        # Note: None-table output just get ignored in the end
-        # TODO for the future: Ensure this really does never happen
-        # TODO: Better way to handle this
         else:
             return None
 
@@ -670,13 +676,12 @@ def get_current_step_table_data(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
     
-    print(request)
     data = json.loads(request.body)
 
     run_name = data.get("run_name")
-    table_name = data.get("table_name")
-    start_index = int(data.get("start_index"))
-    end_index = int(data.get("end_index"))
+    table_label = data.get("table_label")
+    start_index = data.get("start_index")
+    end_index = data.get("end_index")
     index_delims = (start_index, end_index)
 
     response = {
@@ -692,17 +697,20 @@ def get_current_step_table_data(request):
         response["message"] = "No step selected"
         return JsonResponse(response, status=500)
 
-    print(run.current_outputs)
-    table = run.current_outputs[table_name]
-    if table is None:
-        response["message"] = "Requested table not found"
+    step_output = run.current_outputs[table_label]
+    if step_output is None:
+        response["message"] = "Requested step output not found"
         return JsonResponse(response, status=404)
 
-    serialised_output = _run_output_as_json(table_name, table, index_delims)
+    serialised_output = _step_output_as_serialised_table(table_label, step_output, index_delims)
 
-    response["success"] = True
-    response["rows"] = serialised_output
-    response["total_row_count"] = len(table)
+    if serialised_output is None:
+        response["rows"] = [{"Info": "This step output cannot be displayed as a table"}]
+    else:
+        response["success"] = True
+        response["rows"] = serialised_output
+
+    response["total_row_count"] = len(step_output)
 
     return JsonResponse(response)
 
@@ -724,7 +732,7 @@ def get_current_step_output_labels(request):
     response = {
         "success": False,
         "message": None,
-        "tables": [],
+        "outputs": [],
     }
 
     if run.current_step is None:
@@ -732,41 +740,11 @@ def get_current_step_output_labels(request):
         return JsonResponse(response, status=500)
 
     for label, data in run.current_outputs:
-        response["tables"].append({"label": label, "display_name": label}) # TODO
+        if label not in hidden_outputs:
+            response["outputs"].append({"label": label, "display_name": get_display_name(label)})
 
+    response["success"] = True
     return JsonResponse(response)
-
-def get_step_table(request):
-    """
-    API call. Returns all output tables for a step in their entirety.
-    """
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-
-        run = Run(run_name)
-
-        json_data = []
-
-        if run.current_step is not None:
-            for label, data in run.current_outputs:
-                json_data.append(_run_output_as_json(label, data))
-
-        json_data = [j for j in json_data if j is not None] # Strip none-table entries
-
-        return JsonResponse(
-            {
-                "success": True,
-                "message": "Got the tables for the step",
-                "data": json_data,
-            },
-            safe=False,
-        )
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
 
 def calculate_step(request):
     if request.method == "POST":

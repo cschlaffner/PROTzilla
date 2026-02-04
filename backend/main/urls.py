@@ -50,7 +50,6 @@ urlpatterns = [
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path("api/get_current_step_output_labels/", views.get_current_step_output_labels, name="get_current_step_output_labels"),
     path("api/get_current_step_table_data/", views.get_current_step_table_data, name="get_current_step_table_data"),
-    path("api/get_step_table/", views.get_step_table, name="get_step_table"), # TODO: rename
     path("api/get_run_data/", views.get_run_data, name="get_run_data"),
     path("api/upload_file/", views.upload_file, name="upload_file"),
     path("api/calculate_step/", views.calculate_step, name="calculate_step"),

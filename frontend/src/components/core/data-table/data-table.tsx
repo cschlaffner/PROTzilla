@@ -50,7 +50,7 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
       try {
         const response = await callApiWithParameters("get_current_step_table_data/", {
           run_name: runName,
-          table_name: tableLabel,
+          table_label: tableLabel,
           start_index: startIndex,
           end_index: endIndex
         });
@@ -97,7 +97,6 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
         columns={columns}
         rowCount={totalRowCount}
         loading={loading}
-
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={setColumnVisibilityModel}
         paginationMode="server"
