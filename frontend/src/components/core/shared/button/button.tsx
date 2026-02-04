@@ -584,9 +584,9 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
       header
         .map((key) => {
           const value = row[key];
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (value == null) return "NaN";
           // Value will be explicitly converted via String()
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           const stringified = typeof value === "object" ? JSON.stringify(value) : String(value);
           return `"${stringified.replace(/"/g, '""')}"`;
         })

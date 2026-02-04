@@ -17,6 +17,7 @@ import {
   emptyRunData,
   footerMessages,
   SelectedStep,
+  StepOutputInfo,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -87,7 +88,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [availableTables, setAvailableTables] = useState<object[]>();
+  const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -216,9 +217,9 @@ export const RunScreen: React.FC = () => {
       {availableTables && availableTables.length > 0 ? (
         <SwitchCard
           hasShadow={false}
-          components={availableTables.map((tableDescriptor) => ({
-            value: singleTableComponent(tableDescriptor.label),
-            name: tableDescriptor.display_name,
+          components={availableTables.map((output_info) => ({
+            value: singleTableComponent(output_info.label),
+            name: output_info.display_name,
           }))}
         />
       ) : (

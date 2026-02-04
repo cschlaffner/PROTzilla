@@ -9,6 +9,13 @@ export interface SelectedStep {
   index: number;
 }
 
+export interface StepOutputInfo {
+  label: string;
+  display_name: string;
+}
+
+export type TableRecord = Record<string, any>;
+
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 
 export interface Step {

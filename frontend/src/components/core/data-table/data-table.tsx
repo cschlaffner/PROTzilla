@@ -10,7 +10,7 @@ import {
   GridPaginationModel,
 } from "@mui/x-data-grid";
 import { baseTheme, getMuiTheme } from "@protzilla/theme";
-import { callApiWithParameters } from "@protzilla/utils";
+import { callApiWithParameters, TableRecord } from "@protzilla/utils";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
@@ -38,7 +38,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
     id: false,
   });
-  const [currentRows, setCurrentRows] = useState<object[]>([]);
+  const [currentRows, setCurrentRows] = useState<TableRecord[]>([]);
   const [totalRowCount, setTotalRowCount] = useState(0);
   const [isLoading, setLoading] = useState(false);
 

@@ -1,5 +1,3 @@
-import { GridRowsProp } from "@mui/x-data-grid";
-
 import { DataTable } from "./data-table";
 import { DataTableProps } from "./data-table.props";
 
@@ -8,6 +6,7 @@ export default {
   title: "Data Table",
 };
 
+/*
 const exampleData: GridRowsProp = [
   {
     Sample: "AD01_C1_INSOLUBLE_01",
@@ -360,9 +359,10 @@ const exampleData: GridRowsProp = [
     id: 49,
   },
 ];
+*/
 
 export const Default = (args: DataTableProps): React.ReactNode => {
-  return <DataTable {...args} data={exampleData} />;
+  return <DataTable {...args} runName={"default"} tableLabel={"protein_df"} />;
 };
 
 Default.args = {
