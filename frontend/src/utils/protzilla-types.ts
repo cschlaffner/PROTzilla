@@ -14,7 +14,8 @@ export interface StepOutputInfo {
   display_name: string;
 }
 
-export type TableRecord = Record<string, any>;
+// We assume these are the only data types we receive for tables
+export type TableRecord = Record<string, number | string | null>;
 
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 

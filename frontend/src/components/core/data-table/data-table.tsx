@@ -84,6 +84,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         type: isNumeric ? "number" : "string",
         align: "left",
         headerAlign: "left",
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         valueFormatter: (value) => value ?? "NaN",
       } as GridColDef;
     });
