@@ -10,8 +10,8 @@ import {
   GridPaginationModel,
 } from "@mui/x-data-grid";
 import { baseTheme, getMuiTheme } from "@protzilla/theme";
-import React, { useMemo, useState, useEffect } from "react";
-import { callApiWithParameters } from "@protzilla/utils"
+import { callApiWithParameters } from "@protzilla/utils";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { DataTableProps } from "./data-table.props";
 
@@ -25,7 +25,12 @@ export const CustomFooter: React.FC<GridFooterContainerProps> = () => {
   );
 };
 
-export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageSize, pageSizeOptions }) => {
+export const DataTable: React.FC<DataTableProps> = ({
+  runName,
+  tableLabel,
+  pageSize,
+  pageSizeOptions,
+}) => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: pageSize ?? 10,
@@ -33,17 +38,15 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
     id: false,
   });
-  const [currentRows, setCurrentRows] = useState<any[]>([]);
+  const [currentRows, setCurrentRows] = useState<object[]>([]);
   const [totalRowCount, setTotalRowCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   // Fetch data when pagination changes
   useEffect(() => {
-    let active = true;
-
     const fetchData = async () => {
       setLoading(true);
-      
+
       const startIndex = paginationModel.page * paginationModel.pageSize;
       const endIndex = startIndex + paginationModel.pageSize;
 
@@ -52,10 +55,8 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
           run_name: runName,
           table_label: tableLabel,
           start_index: startIndex,
-          end_index: endIndex
+          end_index: endIndex,
         });
-
-        if (!active) return;
 
         setCurrentRows(response.rows);
         setTotalRowCount(response.total_row_count);
@@ -66,15 +67,16 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
       }
     };
 
-    fetchData();
-    return () => { active = false; };
-  }, [paginationModel, tableLabel]);
+    void fetchData();
+  }, [paginationModel, tableLabel, runName]);
 
   const columns = useMemo(() => {
     if (currentRows.length === 0) return [];
 
     return Object.keys(currentRows[0]).map((key) => {
-      const isNumeric = currentRows.every((row) => typeof row[key] === "number" || row[key] === null);
+      const isNumeric = currentRows.every(
+        (row) => typeof row[key] === "number" || row[key] === null,
+      );
       return {
         field: key,
         headerName: key,
@@ -82,7 +84,7 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
         type: isNumeric ? "number" : "string",
         align: "left",
         headerAlign: "left",
-        valueFormatter: (value: any) => (value == null ? "NaN" : value),
+        valueFormatter: (value) => value ?? "NaN",
       } as GridColDef;
     });
   }, [currentRows]);
@@ -96,7 +98,7 @@ export const DataTable: React.FC<DataTableProps> = ({ runName, tableLabel, pageS
         rows={currentRows}
         columns={columns}
         rowCount={totalRowCount}
-        loading={loading}
+        loading={isLoading}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={setColumnVisibilityModel}
         paginationMode="server"

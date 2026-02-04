@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { useMultiRef } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, opacity, radius, size, spacing } from "@protzilla/theme";
+import { callApiWithParameters } from "@protzilla/utils";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { css, styled } from "styled-components";
-import { callApiWithParameters } from "@protzilla/utils"
 
 import { FocusOutline } from "../box";
 import { Icon, iconColor, IconType } from "../icon";
@@ -553,8 +553,13 @@ export const SubmitButton = styled(Button)`
 // Implementation based on
 // https://dev.to/graciesharma/implementing-csv-data-export-in-react-without-external-libraries-3030
 // Downloads an entire table of the current step
-export const CSVButton: React.FC<CSVButtonProps> = ({runName, tableLabel, fileName = "data.csv", ...params }) => {
-  const [loading, setLoading] = useState(false);
+export const CSVButton: React.FC<CSVButtonProps> = ({
+  runName,
+  tableLabel,
+  fileName = "data.csv",
+  ...params
+}) => {
+  const [isLoading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
   const downloadCSV = async () => {
@@ -565,13 +570,13 @@ export const CSVButton: React.FC<CSVButtonProps> = ({runName, tableLabel, fileNa
         run_name: runName,
         table_label: tableLabel,
       });
-      setData(response.rows)
+      setData(response.rows);
     } catch (error) {
       console.error("Failed to fetch table data:", error);
     } finally {
       setLoading(false);
     }
-    
+
     if (data.length === 0) return;
 
     const header = Object.keys(data[0]);
@@ -579,7 +584,7 @@ export const CSVButton: React.FC<CSVButtonProps> = ({runName, tableLabel, fileNa
       header
         .map((key) => {
           const value = row[key];
-          if (value === null || value === undefined) return "NaN";
+          if (value == null) return "NaN";
           // Value will be explicitly converted via String()
           // eslint-disable-next-line @typescript-eslint/no-base-to-string
           const stringified = typeof value === "object" ? JSON.stringify(value) : String(value);
@@ -601,5 +606,13 @@ export const CSVButton: React.FC<CSVButtonProps> = ({runName, tableLabel, fileNa
     URL.revokeObjectURL(url);
   };
 
-  return <SecondaryButton text={loading ? "Loading..." : "Download as CSV"} onPress={downloadCSV} {...params} />;
+  return (
+    <SecondaryButton
+      text={isLoading ? "Loading..." : "Download as CSV"}
+      onPress={() => {
+        void downloadCSV();
+      }}
+      {...params}
+    />
+  );
 };

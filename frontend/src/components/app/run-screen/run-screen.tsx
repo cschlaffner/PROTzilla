@@ -17,7 +17,6 @@ import {
   emptyRunData,
   footerMessages,
   SelectedStep,
-  Table,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -207,10 +206,7 @@ export const RunScreen: React.FC = () => {
 
   const singleTableComponent = (tableLabel: string) => (
     <StyledContentDiv>
-      <DataTable 
-        runName={runName}
-        tableLabel={tableLabel}
-      />
+      <DataTable runName={runName} tableLabel={tableLabel} />
       <StyledCSVButton runName={runName} tableLabel={tableLabel} fileName={tableLabel} />
     </StyledContentDiv>
   );
@@ -228,9 +224,7 @@ export const RunScreen: React.FC = () => {
       ) : (
         <SectionTitle
           baseComponent={"h4"}
-          description={
-            "This step does not provide any tables as output"
-          }
+          description={"This step does not provide any tables as output"}
         />
       )}
     </StyledContentContainer>
