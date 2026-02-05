@@ -4,6 +4,12 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from backend.protzilla.constants.option_types import (
+    CORRECTED_P_VALUES_COLUMNS,
+    FC_SIGNIFICANCE_COLUMNS,
+    LOG2_FOLD_CHANGE_COLUMNS,
+    T_STATISTIC_COLUMNS,
+)
 from backend.protzilla.utilities import default_intensity_column, exists_message
 
 from .differential_expression_helper import (
@@ -28,6 +34,8 @@ def t_test(
     alpha: float,
     log_base: str = None,
     intensity_name: str = None,
+    fc_zscore_filter: bool = False,
+    fc_zscore_alpha: float = 0.05,
 ) -> dict:
     """
     A function to conduct a two sample t-test between groups defined in the
@@ -43,6 +51,8 @@ def t_test(
     :param alpha: the p-value cut-off before multiple testing correction
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
     :param intensity_name: name of the column containing the protein group intensities
+    :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
+    :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
 
     :return: a dict containing
         - a df differentially_expressed_proteins_df in typical protzilla long format containing the t-test results
@@ -50,6 +60,7 @@ def t_test(
         - a df corrected_p_values, containing the p_values after application of multiple testing correction,
         - a df log2_fold_change, containing the log2 fold changes per protein,
         - a df t_statistic_df, containing the t-statistic per protein,
+        - a df fc_significance_df, containing the fold-change z-scores and their tail probabilities,
         - a float corrected_alpha, containing the alpha value after application of multiple testing correction (depending on the selected multiple testing correction method corrected_alpha may be equal to alpha),
         - a list messages, containing messages for the user
     """
@@ -97,6 +108,7 @@ def t_test(
     valid_protein_groups = []
     log2_fold_changes = []
     t_statistic = []
+    fc_significance_df = pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS)
     for protein in proteins:
         protein_df = intensity_df[intensity_df["Protein ID"] == protein]
         group1_intensities = protein_df[protein_df[grouping] == group1][intensity_name]
@@ -112,18 +124,18 @@ def t_test(
         t, p = stats.ttest_ind(
             group1_intensities,
             group2_intensities,
-            equal_var=not (ttest_type == "Student's t-Test"),
+            equal_var=(ttest_type == "Student's t-Test"),
         )
 
         if not np.isnan(p):
-            log2_fold_change = (
-                np.log2(
-                    np.power(log_base, group2_intensities).mean()
-                    / np.power(log_base, group1_intensities).mean()
+            if log_base:
+                log2_fold_change = np.median(group2_intensities) - np.median(
+                    group1_intensities
                 )
-                if log_base
-                else np.log2(group2_intensities.mean() / group1_intensities.mean())
-            )
+            else:
+                log2_fold_change = np.log2(
+                    np.median(group2_intensities) / np.median(group1_intensities)
+                )
 
             valid_protein_groups.append(protein)
             p_values.append(p)
@@ -135,6 +147,44 @@ def t_test(
             # if the protein has a NaN value in a sample, we just skip it
             pass
 
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for t-test analysis.",
+            }
+        )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
+            t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
+            log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
+            fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
+            corrected_alpha=alpha,
+            fc_zscore_alpha=fc_zscore_alpha,
+            fc_zscore_filter=fc_zscore_filter,
+            messages=messages,
+        )
+
+    fc_mean = np.mean(log2_fold_changes)
+    fc_std = np.std(log2_fold_changes)
+    if fc_std == 0 or np.isnan(fc_std):
+        z_scores = np.zeros(len(log2_fold_changes))
+    else:
+        z_scores = np.abs((np.array(log2_fold_changes) - fc_mean) / fc_std)
+    fc_significance = 1 - stats.norm.cdf(z_scores)
+    fc_significance_df = pd.DataFrame(
+        list(zip(valid_protein_groups, z_scores, fc_significance)),
+        columns=FC_SIGNIFICANCE_COLUMNS,
+    )
+
     (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,
@@ -143,21 +193,22 @@ def t_test(
 
     corrected_p_values_df = pd.DataFrame(
         list(zip(valid_protein_groups, corrected_p_values)),
-        columns=["Protein ID", "corrected_p_value"],
+        columns=CORRECTED_P_VALUES_COLUMNS,
     )
     log2_fold_change_df = pd.DataFrame(
         list(zip(valid_protein_groups, log2_fold_changes)),
-        columns=["Protein ID", "log2_fold_change"],
+        columns=LOG2_FOLD_CHANGE_COLUMNS,
     )
     t_statistic_df = pd.DataFrame(
         list(zip(valid_protein_groups, t_statistic)),
-        columns=["Protein ID", "t_statistic"],
+        columns=T_STATISTIC_COLUMNS,
     )
 
     dataframes = [
         corrected_p_values_df,
         log2_fold_change_df,
         t_statistic_df,
+        fc_significance_df,
     ]
 
     for df in dataframes:
@@ -170,8 +221,10 @@ def t_test(
     significant_proteins_df = differentially_expressed_proteins_df[
         differentially_expressed_proteins_df["corrected_p_value"] <= corrected_alpha
     ]
-
-    # filtered_proteins = list(set(proteins) - set(valid_protein_groups))
+    if fc_zscore_filter and not fc_significance_df.empty:
+        significant_proteins_df = significant_proteins_df[
+            significant_proteins_df["fc_significance"] <= fc_zscore_alpha
+        ]
 
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
@@ -179,7 +232,9 @@ def t_test(
         corrected_p_values_df=corrected_p_values_df,
         t_statistic_df=t_statistic_df,
         log2_fold_change_df=log2_fold_change_df,
+        fc_significance_df=fc_significance_df,
         corrected_alpha=corrected_alpha,
-        # filtered_proteins=filtered_proteins,
+        fc_zscore_alpha=fc_zscore_alpha,
+        fc_zscore_filter=fc_zscore_filter,
         messages=messages,
     )

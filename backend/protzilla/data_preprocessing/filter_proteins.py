@@ -1,10 +1,9 @@
 import pandas as pd
 
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
-
 from backend.protzilla.utilities.utilities import default_intensity_column
 
-from ..utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
 def by_samples_missing(
@@ -48,13 +47,16 @@ def by_samples_missing(
 
 def by_silac_ratios(
     protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
     peptide_df: pd.DataFrame | None,
     min_amount: int,
 ) -> dict:
     """
-    This function filters proteins based on the amount of samples with unique SILAC ratios.
+    This function filters proteins based on the amount of samples with unique SILAC ratios per group. Only proteins with
+    at least the specified amount of samples in each group are kept.
 
     :param protein_df: the protein dataframe that should be filtered
+    :param metadata_df: the metadata dataframe from which to take group labels
     :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param min_amount: defines the minimum amount of samples the protein has to have a unique intensity in (inclusive)
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
@@ -62,7 +64,13 @@ def by_silac_ratios(
     """
 
     intensity_name = default_intensity_column(protein_df)
-    unique_ratio_count = protein_df.groupby("Protein ID")[intensity_name].nunique()
+    labeled_df = pd.merge(protein_df, metadata_df, on="Sample", how="left")
+    unique_ratio_count = (
+        labeled_df.groupby(["Protein ID", "Group"])[intensity_name]
+        .nunique()
+        .groupby("Protein ID")
+        .min()
+    )
     remaining_proteins_list = unique_ratio_count[
         unique_ratio_count >= min_amount
     ].index.tolist()
