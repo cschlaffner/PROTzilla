@@ -406,12 +406,23 @@ def fetch_alphafold_protein_structure(
             entry_id=uniprot_id,
             persist_uploads=persist_uploads,
         )
-
-        return {
-            "metadata_df": metadata_df,
-            "cif_df": alpha_dfs["cif_df"],
-            "pae_df": alpha_dfs["pae_df"],
-            "plddt_df": alpha_dfs["plddt_df"],
-            "sequence_df": alpha_dfs["sequence_df"],
-            "messages": alpha_dfs.get("messages", []),
-        }
+    df_dict = {
+        "metadata_df": metadata_df,
+        "cif_df": alpha_dfs["cif_df"],
+        "pae_df": alpha_dfs["pae_df"],
+        "plddt_df": alpha_dfs["plddt_df"],
+        "sequence_df": alpha_dfs["sequence_df"],
+    }
+    messages = alpha_dfs["messages"]
+    if not any(df.empty for df in df_dict.values()):
+        success_msg = f"Successfully loaded AlphaFold data for protein with Protein ID '{uniprot_id}'"
+        logger.info(success_msg)
+        messages.append(dict(level=logging.INFO, msg=success_msg))
+    else:
+        message = (
+            f"Could not load AlphaFold data for protein with Protein ID '{uniprot_id}'"
+        )
+        logger.warning(message)
+        messages.append(dict(level=logging.WARNING, msg=message))
+    df_dict["messages"] = messages
+    return df_dict
