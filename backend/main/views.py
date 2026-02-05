@@ -648,9 +648,9 @@ def _step_output_as_serialised_table(
         # Safer than just adding the new column. We assume __id_col is not
         # a column name anyone would use
         if "id" in data.columns:
-            data.rename(columns={'id': '__id_col'}, inplace=True) 
+            data.rename(columns={"id": "__id_col"}, inplace=True)
 
-        data["id"] = data.index 
+        data["id"] = data.index
         cleaned_data = data.replace(np.nan, None)
         return cleaned_data.to_dict(orient="records")
 
