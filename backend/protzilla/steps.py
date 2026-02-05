@@ -596,6 +596,29 @@ class StepManager:
                 return step.inputs[input_key]
         return default
 
+    def get_inputs_of_step_type(
+        self,
+        step_types: type[Step] | list[type[Step]],
+        input_key: str,
+    ) -> list[str]:
+        """
+        Get the specific input of all steps that have a specific step type.
+        :param step_types: The types of the relevant steps
+        :param input_key: The key of the desired input in the input dictionary of the step
+        :return: The values of the input of the steps
+        """
+
+        step_types = [step_types] if not isinstance(step_types, list) else step_types
+        inputs = []
+        for step in reversed(self.previous_calculated_steps):
+            print(str(type(step)) + " expected one of these:  " + str(step_types))
+            if (
+                any(isinstance(step, st) for st in step_types)
+                and input_key in step.inputs
+            ):
+                inputs.append(step.inputs[input_key])
+        return inputs
+
     def all_steps_in_section(self, section: str) -> list[Step]:
         """
         Get all steps in a specific section via the section name
