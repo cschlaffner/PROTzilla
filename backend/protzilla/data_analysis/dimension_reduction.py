@@ -78,7 +78,10 @@ def t_sne(
             " support a higher number of dimensions."
         )
 
-    method_string_to_param = {"exact": "exact", "Barnes-Hut approximation": "barnes_hut"}
+    method_string_to_param = {
+        "exact": "exact",
+        "Barnes-Hut approximation": "barnes_hut",
+    }
     embedded_data_model = TSNE(
         n_components=n_components,
         perplexity=perplexity,

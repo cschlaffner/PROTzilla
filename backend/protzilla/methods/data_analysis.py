@@ -1068,9 +1068,7 @@ class PlotScatterPlot(DataAnalysisStep):
 
         input_df_field.set_options(
             form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    Step, "embedded_data"
-                )
+                run.steps.get_instance_identifiers(Step, "embedded_data")
             )
         )
 

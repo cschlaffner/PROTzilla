@@ -218,7 +218,12 @@ def test_tsne_n_components_barnes_hut(dimension_reduction_four_proteins_df):
         ("dimension_reduction_df", TSNEMethod.exact.value, 2, "Batch"),
         ("dimension_reduction_four_proteins_df", TSNEMethod.exact.value, 3, "Batch"),
         ("dimension_reduction_df", TSNEMethod.barnes_hut.value, 2, "Group"),
-        ("dimension_reduction_four_proteins_df", TSNEMethod.barnes_hut.value, 3, "Batch"),
+        (
+            "dimension_reduction_four_proteins_df",
+            TSNEMethod.barnes_hut.value,
+            3,
+            "Batch",
+        ),
     ],
 )
 def test_tsne_scatter_plot_integration(
