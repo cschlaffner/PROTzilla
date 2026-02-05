@@ -1136,7 +1136,7 @@ class PlotClustergram(DataAnalysisStep):
             + form_helper.to_choices(
                 run.steps.get_instance_identifiers(
                     Step,
-                    ["significant_proteins_df"],
+                    "significant_proteins_df",
                 )
             )
         )
