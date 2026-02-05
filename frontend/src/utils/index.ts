@@ -1,4 +1,4 @@
-export * from "./amount"
+export * from "./amount";
 export * from "./api-call";
 export * from "./arrayElement.ts";
 export * from "./async";
