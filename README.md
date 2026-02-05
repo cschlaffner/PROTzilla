@@ -19,11 +19,11 @@
 | backend/protzilla/data\_analysis/clustering.py                                |       69 |       11 |     84% |139, 362-377, 381-385 |
 | backend/protzilla/data\_analysis/differential\_expression.py                  |       13 |        7 |     46% |     17-23 |
 | backend/protzilla/data\_analysis/differential\_expression\_anova.py           |       40 |        1 |     98% |       118 |
-| backend/protzilla/data\_analysis/differential\_expression\_helper.py          |       57 |        2 |     96% |   43, 134 |
+| backend/protzilla/data\_analysis/differential\_expression\_helper.py          |       60 |        3 |     95% |34, 46, 137 |
 | backend/protzilla/data\_analysis/differential\_expression\_kruskal\_wallis.py |       47 |        1 |     98% |       190 |
 | backend/protzilla/data\_analysis/differential\_expression\_linear\_model.py   |       59 |        7 |     88% |52-53, 60-61, 116-117, 122 |
 | backend/protzilla/data\_analysis/differential\_expression\_mann\_whitney.py   |       50 |        0 |    100% |           |
-| backend/protzilla/data\_analysis/differential\_expression\_t\_test.py         |       62 |       11 |     82% |17, 63-64, 73-77, 132-136 |
+| backend/protzilla/data\_analysis/differential\_expression\_t\_test.py         |       75 |       11 |     85% |23, 74-75, 84-88, 144-148 |
 | backend/protzilla/data\_analysis/dimension\_reduction.py                      |       33 |        6 |     82% |67-72, 100, 165-170, 179 |
 | backend/protzilla/data\_analysis/model\_evaluation.py                         |       10 |        0 |    100% |           |
 | backend/protzilla/data\_analysis/model\_evaluation\_plots.py                  |       19 |        0 |    100% |           |
@@ -49,7 +49,7 @@
 | backend/protzilla/data\_preprocessing/filter\_proteins.py                     |       35 |        2 |     94% |   122-123 |
 | backend/protzilla/data\_preprocessing/filter\_samples.py                      |       47 |        0 |    100% |           |
 | backend/protzilla/data\_preprocessing/imputation.py                           |      132 |        3 |     98% |51-57, 179 |
-| backend/protzilla/data\_preprocessing/normalisation.py                        |      122 |        5 |     96% |195-196, 209-210, 342 |
+| backend/protzilla/data\_preprocessing/normalisation.py                        |      143 |        6 |     96% |203-207, 222, 235-236, 389 |
 | backend/protzilla/data\_preprocessing/outlier\_detection.py                   |       63 |        3 |     95% |185, 202, 265 |
 | backend/protzilla/data\_preprocessing/peptide\_filter.py                      |       16 |        2 |     88% |     48-49 |
 | backend/protzilla/data\_preprocessing/plots.py                                |      102 |       10 |     90% |207-208, 241, 252, 328-347 |
@@ -65,7 +65,7 @@
 | backend/protzilla/importing/metadata\_import.py                               |       74 |       38 |     49% |28, 30, 32, 34, 48, 52-53, 87, 98-108, 113, 119-126, 141-166, 192-217 |
 | backend/protzilla/importing/ms\_data\_import.py                               |      135 |       22 |     84% |47-48, 122-124, 164-166, 306-324 |
 | backend/protzilla/importing/peptide\_import.py                                |       75 |       22 |     71% |26, 41-42, 59-60, 73-84, 110-114, 128-129 |
-| backend/protzilla/methods/data\_analysis.py                                   |      677 |      285 |     58% |197, 215, 244-253, 260-265, 327-357, 391, 425-453, 464-467, 488, 532-562, 573-579, 600, 644-678, 689-691, 710, 738-746, 753-758, 777, 808-821, 828-830, 868-897, 916-917, 944, 977-1022, 1025-1030, 1041, 1057-1068, 1076-1080, 1095, 1119-1132, 1139-1145, 1189-1215, 1244, 1258, 1276, 1355-1362, 1370-1372, 1390, 1464-1471, 1479-1481, 1498, 1559-1566, 1574-1576, 1594, 1718-1720, 1738, 1861-1863, 1878, 1891, 1894-1896, 1907, 1962-1964, 1975, 2024-2025, 2030-2033, 2042-2052, 2057-2062, 2065, 2107, 2119-2120, 2150, 2185, 2216-2264, 2273-2298, 2314, 2326-2335, 2340-2343, 2359, 2370-2379, 2384-2387, 2396, 2427, 2434-2437, 2450, 2459, 2485, 2501 |
+| backend/protzilla/methods/data\_analysis.py                                   |      678 |      288 |     58% |193, 211, 240-249, 256-261, 340-370, 404, 438-466, 477-480, 501, 545-575, 586-592, 613, 657-691, 702-704, 723, 751-759, 766-771, 790, 821-834, 841-843, 881-910, 929-930, 957, 990-1035, 1038-1043, 1054, 1070-1081, 1089-1093, 1108, 1132-1152, 1162-1176, 1220-1246, 1275, 1289, 1307, 1386-1393, 1401-1403, 1421, 1495-1502, 1510-1512, 1529, 1590-1597, 1605-1607, 1625, 1749-1751, 1769, 1892-1894, 1909, 1922, 1925-1927, 1938, 1993-1995, 2006, 2055-2056, 2061-2064, 2073-2083, 2088-2093, 2096, 2138, 2150-2151, 2181, 2216, 2247-2295, 2304-2329, 2345, 2357-2366, 2371-2374, 2390, 2401-2410, 2415-2418, 2427, 2458, 2465-2468, 2481, 2490, 2516, 2532 |
 | backend/protzilla/methods/data\_integration.py                                |      295 |      132 |     55% |95, 102-104, 154-161, 175, 192, 267-326, 329-345, 359, 416-441, 444-460, 473, 552-600, 609-615, 630, 708-745, 748-753, 768, 788-790, 795-798, 813, 877-897, 921, 978, 998, 1052-1053, 1058-1061, 1074 |
 | backend/protzilla/methods/data\_preprocessing.py                              |      214 |       20 |     91% |77, 97-100, 114, 146, 176-177, 255, 316, 379, 393, 427, 506, 540, 584, 692, 746, 847 |
 | backend/protzilla/methods/importing.py                                        |      133 |       29 |     78% |29, 203, 221-222, 235, 250-278, 283-287, 298, 320-323, 340, 356-360, 378, 404 |
@@ -82,7 +82,7 @@
 | backend/protzilla/workflow.py                                                 |       11 |        6 |     45% |  6, 15-20 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-| **TOTAL**                                                                     | **6963** | **1877** | **73%** |           |
+| **TOTAL**                                                                     | **7001** | **1882** | **73%** |           |
 
 
 ## Setup coverage badge
