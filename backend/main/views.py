@@ -644,7 +644,13 @@ def _step_output_as_serialised_table(
     # Note: using [None:None] as a slice returns the entire collection
     if isinstance(_data, pd.DataFrame):
         data = _data.iloc[start_index:end_index].copy()
-        data["id"] = data.index  # TODO: What if we already have an "id" column?
+
+        # Safer than just adding the new column. We assume __id_col is not
+        # a column name anyone would use
+        if "id" in data.columns:
+            data.rename(columns={'id': '__id_col'}, inplace=True) 
+
+        data["id"] = data.index 
         cleaned_data = data.replace(np.nan, None)
         return cleaned_data.to_dict(orient="records")
 
