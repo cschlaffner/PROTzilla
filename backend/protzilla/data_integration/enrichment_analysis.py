@@ -1,10 +1,8 @@
-from enum import Enum
 import logging
 import time
-from typing import Any
+from enum import Enum
 
 import gseapy
-import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from restring import restring
@@ -34,7 +32,7 @@ MIN_WAIT_TIME = 1  # Minimum wait time between STRING API calls in seconds
 
 def is_dataframe_valid(
     proteins_df: DataFrame, differential_expression_col: str
-) -> bool | Any:
+) -> bool:
     return (
         isinstance(proteins_df, pd.DataFrame)
         and "Protein ID" in proteins_df.columns
