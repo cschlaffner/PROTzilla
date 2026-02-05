@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from backend.protzilla.form import *
+from backend.protzilla import form_helper
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
     metadata_import_method,
@@ -13,6 +14,8 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
+    get_all_available_entry_ids,
+    get_prot_structure_dfs,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
@@ -466,3 +469,33 @@ class CrosslinkingImport(ImportingStep):
         )
 
     calc_method = staticmethod(crosslinking_import)
+
+
+class ImportStructurePredictionFromDisk(ImportingStep):
+    display_name = "Structure Prediction Import from Disk"
+    operation = "Protein Structure Import"
+    method_description = (
+        "Load already uploaded protein structure predictions from disk into current run"
+    )
+
+    output_keys = [
+        "metadata_df",
+        "cif_df",
+        "pae_df",
+        "plddt_df",
+        "sequence_df",
+    ]
+
+    def create_form(self):
+        return Form(
+            label="Structure Predictions Import from Disk",
+            input_fields=[
+                DropdownField(
+                    name="entry_id",
+                    label="Entry ID of the prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
+                    options=form_helper.to_choices(get_all_available_entry_ids()),
+                )
+            ],
+        )
+
+    calc_method = staticmethod(get_prot_structure_dfs)
