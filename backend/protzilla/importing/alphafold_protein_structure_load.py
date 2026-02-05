@@ -419,7 +419,9 @@ def fetch_alphafold_protein_structure(
         logger.info(success_msg)
         messages.append(dict(level=logging.INFO, msg=success_msg))
     else:
-        message = f"Could not load AlphaFold data for protein with Protein ID '{uniprot_id}'"
+        message = (
+            f"Could not load AlphaFold data for protein with Protein ID '{uniprot_id}'"
+        )
         logger.warning(message)
         messages.append(dict(level=logging.WARNING, msg=message))
     df_dict["messages"] = messages
