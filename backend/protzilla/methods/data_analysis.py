@@ -184,6 +184,11 @@ class ClassificationKernel(Enum):
     precomputed = "precomputed"
 
 
+class TSNEMethod(Enum):
+    barnes_hut = "Barnes-Hut approximation"
+    exact = "exact"
+
+
 class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
@@ -1064,10 +1069,7 @@ class PlotScatterPlot(DataAnalysisStep):
         input_df_field.set_options(
             form_helper.to_choices(
                 run.steps.get_instance_identifiers(
-                    DimensionReductionUMAP, "embedded_data"
-                )
-                + run.steps.get_instance_identifiers(
-                    DimensionReductionTSNE, "embedded_data"
+                    Step, "embedded_data"
                 )
             )
         )
@@ -1091,9 +1093,7 @@ class PlotScatterPlot(DataAnalysisStep):
         inputs["input_df"] = steps.get_step_output(
             Step, "embedded_data", inputs["input_df"]
         )
-        inputs["metadata_df"] = steps.get_step_output(
-            Step, "metadata_df", inputs["metadata_df"]
-        )
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1947,6 +1947,11 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     min=5.0,
                     max=50.0,
                     value=30.0,
+                ),
+                DropdownField(
+                    name="method",
+                    label="Gradient calculation method",
+                    options=TSNEMethod,
                 ),
                 DropdownField(
                     name="metric",

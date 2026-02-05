@@ -6,13 +6,13 @@ from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wi
 
 def t_sne(
     input_df: pd.DataFrame,
+    method: str,
     n_components: int = 2,
     perplexity: float = 30.0,
     metric: str = "euclidean",
     random_state: int = 42,
     max_iter: int = 1000,
     n_iter_without_progress: int = 300,
-    method: str = "barnes_hut",
 ):
     """
     A function that uses t-SNE to reduce the dimension of a dataframe and returns a
@@ -72,19 +72,20 @@ def t_sne(
             f"{min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])} (the smaller one of number of "
             "samples/features). "
         )
-    if n_components > 3 and method == "barnes_hut":
+    if n_components > 3 and method == "Barnes-Hut approximation":
         raise ValueError(
             "The number of dimensions should be smaller than 4 because the underlying algorithm does not"
             " support a higher number of dimensions."
         )
 
+    method_string_to_param = {"exact": "exact", "Barnes-Hut approximation": "barnes_hut"}
     embedded_data_model = TSNE(
         n_components=n_components,
         perplexity=perplexity,
         random_state=random_state,
         max_iter=max_iter,
         n_iter_without_progress=n_iter_without_progress,
-        method=method,
+        method=method_string_to_param[method],
         metric=metric,
     ).fit_transform(intensity_df_wide)
 

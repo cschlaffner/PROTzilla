@@ -4,7 +4,7 @@ import pytest
 
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
 from protzilla.data_analysis.plots import scatter_plot
-from protzilla.methods.data_analysis import DimensionReductionMetric
+from protzilla.methods.data_analysis import DimensionReductionMetric, TSNEMethod
 from tests.protzilla.data_analysis.test_scatter_plot import check_figure_output
 
 
@@ -128,17 +128,23 @@ def check_dimensionality_reduction_output(
 
 
 @pytest.mark.parametrize(
-    "df_name,n_components",
-    [("dimension_reduction_df", 2), ("dimension_reduction_four_proteins_df", 3)],
+    "df_name,n_components,method",
+    [
+        ("dimension_reduction_df", 2, TSNEMethod.exact.value),
+        ("dimension_reduction_four_proteins_df", 3, TSNEMethod.exact.value),
+        ("dimension_reduction_df", 2, TSNEMethod.barnes_hut.value),
+        ("dimension_reduction_four_proteins_df", 3, TSNEMethod.barnes_hut.value),
+    ],
 )
-def test_tsne_metrics(df_name, n_components, request):
+def test_tsne_metrics(df_name, n_components, method, request):
     for metric in DimensionReductionMetric:
         df = request.getfixturevalue(df_name)
         current_out = t_sne(
             df,
+            method=method,
             n_components=n_components,
-            metric=metric.value,
             perplexity=4,
+            metric=metric.value,
             random_state=42,
         )
         check_dimensionality_reduction_output(
@@ -154,6 +160,7 @@ def test_tsne_nan_handling(df_with_nan):
     ):
         _ = t_sne(
             df_with_nan,
+            method=TSNEMethod.barnes_hut.value,
             n_components=2,
             perplexity=4,
         )
@@ -167,6 +174,7 @@ def test_tsne_perplexity(dimension_reduction_df):
     ):
         _ = t_sne(
             dimension_reduction_df,
+            method=TSNEMethod.barnes_hut.value,
             n_components=2,
             perplexity=30,
         )
@@ -180,10 +188,10 @@ def test_tsne_n_components(dimension_reduction_df):
     ):
         _ = t_sne(
             dimension_reduction_df,
+            method="exact",
             n_components=8,
             perplexity=4,
             random_state=42,
-            method="exact",
         )
 
 
@@ -195,6 +203,7 @@ def test_tsne_n_components_barnes_hut(dimension_reduction_four_proteins_df):
     ):
         _ = t_sne(
             dimension_reduction_four_proteins_df,
+            method=TSNEMethod.barnes_hut.value,
             n_components=4,
             perplexity=4,
             random_state=42,
@@ -202,20 +211,23 @@ def test_tsne_n_components_barnes_hut(dimension_reduction_four_proteins_df):
 
 
 @pytest.mark.parametrize(
-    "df_name,n_components,metadata_column",
+    "df_name,method,n_components,metadata_column",
     [
-        ("dimension_reduction_df", 2, "Group"),
-        ("dimension_reduction_four_proteins_df", 3, "Group"),
-        ("dimension_reduction_df", 2, "Batch"),
-        ("dimension_reduction_four_proteins_df", 3, "Batch"),
+        ("dimension_reduction_df", TSNEMethod.exact.value, 2, "Group"),
+        ("dimension_reduction_four_proteins_df", TSNEMethod.exact.value, 3, "Group"),
+        ("dimension_reduction_df", TSNEMethod.exact.value, 2, "Batch"),
+        ("dimension_reduction_four_proteins_df", TSNEMethod.exact.value, 3, "Batch"),
+        ("dimension_reduction_df", TSNEMethod.barnes_hut.value, 2, "Group"),
+        ("dimension_reduction_four_proteins_df", TSNEMethod.barnes_hut.value, 3, "Batch"),
     ],
 )
 def test_tsne_scatter_plot_integration(
-    df_name, n_components, metadata_column, metadata_df, request
+    df_name, method, n_components, metadata_column, metadata_df, request
 ):
     df = request.getfixturevalue(df_name)
     tsne_out = t_sne(
         df,
+        method=TSNEMethod.exact.value,
         n_components=n_components,
         perplexity=4,
         random_state=42,
