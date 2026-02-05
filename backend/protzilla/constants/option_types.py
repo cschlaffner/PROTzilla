@@ -46,3 +46,9 @@ class MultipleTestingCorrectionMethod(Enum):
 class VisualTransformations(Enum):
     LOG10 = "log10"
     LINEAR = "linear"
+
+
+FC_SIGNIFICANCE_COLUMNS = ["Protein ID", "fc_z_score", "fc_significance"]
+CORRECTED_P_VALUES_COLUMNS = ["Protein ID", "corrected_p_value"]
+LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"]
+T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
