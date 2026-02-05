@@ -235,6 +235,5 @@ def t_test(
         corrected_alpha=corrected_alpha,
         fc_zscore_alpha=fc_zscore_alpha,
         fc_zscore_filter=fc_zscore_filter,
-        # filtered_proteins=filtered_proteins,
         messages=messages,
     )
