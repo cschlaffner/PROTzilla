@@ -237,6 +237,8 @@ def test_runner_imports(
             "grouping": None,
             "group1": None,
             "group2": None,
+            "fc_zscore_filter": False,
+            "fc_zscore_alpha": 0.05,
         },
         {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
         {
