@@ -2,9 +2,10 @@ name: Backend CI Pipeline
 
 on:
   push:
-    paths:
-      - backend/**
+    branches:
+      - 'dev'
   pull_request:
+    types: ['opened', 'synchronize']
     paths:
       - backend/**
 
