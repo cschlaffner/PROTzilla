@@ -9,6 +9,7 @@ from backend.protzilla.data_preprocessing import (
     peptide_filter,
     transformation,
 )
+from backend.protzilla import form_helper
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.constants.option_types import *
@@ -170,6 +171,10 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):
