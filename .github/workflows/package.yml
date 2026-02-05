@@ -4,7 +4,7 @@ name: Create and publish Docker images
 # Configures this workflow to run every time a change is pushed to the branch called `dev` (and, for testing purposes also the feature branch).
 on:
   push:
-    branches: ['dev']
+    branches: ['dev', '180-add-workflow-to-build-and-publish-docker-images']
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
@@ -48,6 +48,10 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ matrix.image }}
+          flavor: latest=auto
+          tags: |
+            type=ref,event=tag
+            type=sha
       # Next two steps are necessary for using cache mounts in GHA
       - name: Cache
         uses: actions/cache@v4
