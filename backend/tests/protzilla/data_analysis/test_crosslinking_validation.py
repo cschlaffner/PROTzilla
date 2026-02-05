@@ -19,9 +19,6 @@ def test_get_position_of_amino_acid_crosslinker_bound_to():
     assert pos == 3
 
 
-@patch(
-    "backend.protzilla.data_analysis.crosslinking_validation.fetch_alphafold_protein_structure"
-)
 @pytest.mark.parametrize(
     "distance, expected",
     [
@@ -31,7 +28,7 @@ def test_get_position_of_amino_acid_crosslinker_bound_to():
         (6.01, False),  # outside bounds
     ],
 )
-def test_validate_with_angstrom_deviation(mock_fetch, distance, expected):
+def test_validate_with_angstrom_deviation(distance, expected):
     # Fake AlphaFold Data
     cif_df = pd.DataFrame(
         {
@@ -43,9 +40,7 @@ def test_validate_with_angstrom_deviation(mock_fetch, distance, expected):
         }
     )
 
-    fasta_df = pd.DataFrame({"Protein Sequence": ["AB"]})
-
-    mock_fetch.return_value = {"cif_df": cif_df, "sequence_df": fasta_df}
+    amino_acid_sequence_df = pd.DataFrame({"Protein Sequence": ["AB"]})
 
     # Fake Crosslink Data
     crosslinking_df = pd.DataFrame(
@@ -66,6 +61,8 @@ def test_validate_with_angstrom_deviation(mock_fetch, distance, expected):
         crosslinking_df,
         protein_to_validate="P12345",
         crosslinker_information=crosslinker_information,
+        amino_acid_sequence_df=amino_acid_sequence_df,
+        cif_df=cif_df,
     )
 
     df = result["crosslinking_result_df"]

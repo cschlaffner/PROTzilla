@@ -506,6 +506,30 @@ class StepManager:
             )
         return instance_identifiers
 
+    def get_step_identifier_of_step_with_input(
+        self,
+        step_types: type[Step] | list[type[Step]],
+        input_key: str,
+        input: str,
+    ) -> str | None:
+        """
+        Get the step identifier of a step with a certain type and a specific input value for one of the input fields.
+        :param step_types: The types of the relevant steps
+        :param input_key: The key of the desired input in the input dictionary of the step
+        :param input: The specific value for the input_key we are looking for.
+        :return: The step identifier of the step with the correct input
+        """
+
+        step_types = [step_types] if not isinstance(step_types, list) else step_types
+        for step in reversed(self.previous_calculated_steps):
+            if (
+                any(isinstance(step, st) for st in step_types)
+                and input_key in step.inputs
+                and step.inputs[input_key] == input
+            ):
+                return step.instance_identifier
+        return None
+
     def get_step_output(
         self,
         step_type: type[Step],
@@ -611,7 +635,6 @@ class StepManager:
         step_types = [step_types] if not isinstance(step_types, list) else step_types
         inputs = []
         for step in reversed(self.previous_calculated_steps):
-            print(str(type(step)) + " expected one of these:  " + str(step_types))
             if (
                 any(isinstance(step, st) for st in step_types)
                 and input_key in step.inputs
