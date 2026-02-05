@@ -73,6 +73,9 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
     )
     cleaned = ordered.assign(**{"Protein ID": new_groups})
 
+    has_valid_protein_id = cleaned["Protein ID"].map(bool)
+    cleaned = df[has_valid_protein_id]
+
     return dict(peptide_df=cleaned)
 
 
@@ -159,5 +162,8 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
         df["Protein ID"].tolist(), map_to_uniprot
     )
     df = df.assign(**{"Protein ID": new_groups})
+
+    has_valid_protein_id = df["Protein ID"].map(bool)
+    df = df[has_valid_protein_id]
 
     return dict(peptide_df=df)
