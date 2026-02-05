@@ -18,6 +18,7 @@ from .differential_expression_helper import (
     apply_multiple_testing_correction,
 )
 
+
 def _is_valid(value):
     return value != 0 and not np.isnan(value)
 
