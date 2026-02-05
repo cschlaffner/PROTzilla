@@ -29,7 +29,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   runName,
   tableLabel,
   pageSize,
-  pageSizeOptions,
+  pageSizeOptions = [10],
 }) => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
