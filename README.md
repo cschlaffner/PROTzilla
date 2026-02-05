@@ -10,14 +10,17 @@
 PROTzilla is an open-source and browser-based tool for downstream proteomics MS analysis, enabling non-programmers to preprocess data, perform analyses, and generate publication-ready plots. The shareable, reproducible workflows and the integration of knowledge databases support automated analysis and transparent reporting in proteomics research.
 
 ## :gear: Deploy PROTzilla
+
+### Regular setup
+
+We have prepared guides for [Windows](./docs/Windows.md), [MacOS](./docs/MacOS.md) and [Linux](./docs/Linux.md).
+
+### Development (Docker)
+
 1. Clone the PROTzilla repository <br> `git clone https://github.com/cschlaffner/PROTzilla.git`
 2. Enter repository folder <br> `cd PROTzilla`
 
-### :whale: Using Docker (recommended)
-
-First, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
-
-#### Development
+Before running, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
 
 1. Run `docker compose up vite` (or `docker-compose up vite` on old versions). Should you need to rebuild the image, add the `--build` flag after `up` <br> You can optionally add `-d` to detach protzilla from your shell
 2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
@@ -27,12 +30,7 @@ First, make sure you have [Docker](https://www.docker.com/) and Docker Compose i
     For other setups, `debugpy` is listening on its default port 5678
 
 
-#### Production
-
-1. Run `docker compose up prod` (again, if this fails but Compose is installed, use `docker-compose`)
-2. The server listens on [localhost](http://localhost:8000)
-
-### Windows native 
+### Windows native
 > [!NOTE]
 > We ensure native compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
 

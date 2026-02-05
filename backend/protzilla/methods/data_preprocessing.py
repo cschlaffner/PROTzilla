@@ -9,6 +9,7 @@ from backend.protzilla.data_preprocessing import (
     peptide_filter,
     transformation,
 )
+from backend.protzilla import form_helper
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, StepManager
 from backend.protzilla.constants.option_types import *
@@ -68,9 +69,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
 class FilterProteinsBySilacRatios(DataPreprocessingStep):
     display_name = "By SILAC ratios"
     operation = "filter_proteins"
-    method_description = (
-        "Filter proteins based on the amount of samples with SILAC different ratios"
-    )
+    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
 
     input_keys = ["protein_df", "peptide_df", "min_amount"]
 
@@ -80,7 +79,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples with different SILAC ratios",
+                    label="Amount of minimum present samples per group with different SILAC ratios",
                     value=1,
                     min=0,
                     step=1,
@@ -93,6 +92,12 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
                 ),
             ],
         )
+
+    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
+        inputs["protein_df"] = steps.protein_df
+        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
+        inputs["metadata_df"] = steps.get_step_output(Step, "metadata_df")
+        return inputs
 
     calc_method = staticmethod(filter_proteins.by_silac_ratios)
     plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
@@ -166,6 +171,10 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):

@@ -4,24 +4,20 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - "DEBUG=False"
 
     # volumes:
     # Use this if you want to persistently store user data
-    # - '/home/www/.protzilla/user_data:./home/prot/zilla/backend/user_data'
+    # - '/home/www/.protzilla/user_data:./home/prot/zilla/backend/user_data:Z' # :Z is required for SELinux and should be ignored everywhere else
     # Use this for backend changes to reflect without rebuilding
-    # - "./backend:/home/prot/zilla/backend"
+    # - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
 
   django:
     image: ghcr.io/cschlaffner/protzilla-django
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
-    environment:
-      - "DEBUG=True"
     volumes:
-      - "./backend:/home/prot/zilla/backend"
+      - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
     ports:
       - "5678:5678"
     networks:
@@ -35,7 +31,7 @@ services:
     environment:
       - VITE_API_URL=http://django
     volumes:
-      - "./frontend/src:/prot/zilla/frontend/src"
+      - "./frontend/src:/prot/zilla/frontend/src:Z" # :Z is required for SELinux and should be ignored everywhere else
       - "node_modules:/prot/zilla/frontend/node_modules"
       - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
     networks:
@@ -53,8 +49,8 @@ services:
     environment:
       - "BROWSER=none"
     volumes:
-      - "./frontend/src:/prot/zilla/frontend/src"
-      - "./frontend/.storybook:/prot/zilla/frontend/.storybook"
+      - "./frontend/src:/prot/zilla/frontend/src:Z" # :Z is required for SELinux and should be ignored everywhere else
+      - "./frontend/.storybook:/prot/zilla/frontend/.storybook:Z"
       - "node_modules:/prot/zilla/frontend/node_modules"
       - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
     entrypoint: ["pnpm", "run", "storybook", "--no-open"]

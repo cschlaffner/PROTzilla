@@ -190,6 +190,29 @@ def kruskal_wallis_test_on_columns(
         else:
             invalid_columns.append(column)
 
+    if len(valid_columns) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": f"No valid {columns_name.lower()}s found for Kruskal-Wallis test analysis.",
+            }
+        )
+        # return empty dataframes with the correct columns
+        return dict(
+            differential_expressed_columns_df=pd.DataFrame(
+                columns=[columns_name, "corrected_p_value", "h_statistic"]
+            ),
+            significant_columns_df=pd.DataFrame(
+                columns=[columns_name, "corrected_p_value", "h_statistic"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=[columns_name, "corrected_p_value"]
+            ),
+            h_statistic_df=pd.DataFrame(columns=[columns_name, "h_statistic"]),
+            corrected_alpha=alpha,
+            messages=messages,
+        )
+
     corrected_p_values, corrected_alpha = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,
