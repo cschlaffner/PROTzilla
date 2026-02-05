@@ -30,7 +30,7 @@ def apply_multiple_testing_correction(
     ), "List contains non-number or NaN values"
     assert 0 <= alpha <= 1, "Alpha value must be between 0 and 1"
 
-    if method == "None":
+    if method == MultipleTestingCorrectionMethod.none.value:
         return p_values, alpha
 
     to_param = {"Bonferroni": "bonferroni", "Benjamini-Hochberg": "fdr_bh"}
