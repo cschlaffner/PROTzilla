@@ -6,4 +6,6 @@ export interface SwitchCardProps {
   hasCardTitle?: boolean;
   hasShadow?: boolean;
   styleProps?: React.CSSProperties;
+  selection?: SwitchComponent["name"];
+  callback?: (arg: SwitchComponent) => void;
 }

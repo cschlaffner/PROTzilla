@@ -27,6 +27,7 @@
     "@mui/x-data-grid": "^7.29.6",
     "@storybook/addon-actions": "^8.6.14",
     "@types/node": "^24.3.1",
+    "@xyflow/react": "^12.10.0",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "corepack": "^0.34.0",

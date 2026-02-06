@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
+import { ListEditor, Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -17,6 +17,7 @@ import {
   emptyRunData,
   footerMessages,
   SelectedStep,
+  SwitchComponent,
   Table,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
@@ -106,7 +107,7 @@ export const RunScreen: React.FC = () => {
       }).then(() => {
         void getRunData();
         void getStepPlots();
-        void getStepTable();
+        void getStepTable(); // Bloat :c
       });
     } else {
       void getRunData();
@@ -237,6 +238,15 @@ export const RunScreen: React.FC = () => {
     <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
   );
 
+  const nodeEditorComponent = (
+    <NodeEditor
+      onFormSubmit={onFormSubmit}
+      runName={runName}
+      navigateOrRefreshSteps={navigateOrRefreshSteps}
+      runData={runData}
+    />
+  );
+
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}
@@ -245,6 +255,29 @@ export const RunScreen: React.FC = () => {
       runData={runData}
     />
   );
+
+  const editorModes = [
+    { name: "List", value: listEditorComponent },
+    { name: "Node", value: nodeEditorComponent },
+  ];
+
+  // TODO: Replace this with appropriate data from runData
+  // Else it resets whenever the run data is reset
+  const selectedEditorMode: SwitchComponent["name"] = "Node";
+  // const selectedEditorMode = runData.editor_mode;
+
+  const selectEditorMode = (mode: SwitchComponent) => {
+    console.log("Changed to", mode.name);
+    // TODO: This API call has not been implemented yet
+    // void callApiWithParameters("set_editor_mode/", {
+    //   run_name: runName,
+    //   mode: mode.name
+    // }).then(() => {
+    //   void getRunData();
+    //   void getStepPlots();
+    //   void getStepTable();
+    // });
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -260,10 +293,9 @@ export const RunScreen: React.FC = () => {
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            components={[
-              { name: "List", value: listEditorComponent },
-              { name: "Node", value: dummyTextComponent1 },
-            ]}
+            components={editorModes}
+            selection={selectedEditorMode}
+            callback={selectEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
