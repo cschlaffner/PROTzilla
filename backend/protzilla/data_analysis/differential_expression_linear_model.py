@@ -129,6 +129,33 @@ def linear_model(
             # if the protein has a NaN value in a sample, we just skip it
             pass
 
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for linear model analysis.",
+            }
+        )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=intensity_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=["Protein ID", "corrected_p_value"]
+            ),
+            log2_fold_change_df=pd.DataFrame(
+                columns=["Protein ID", "log2_fold_change"]
+            ),
+            corrected_alpha=alpha,
+            filtered_proteins=list(proteins),
+            messages=messages,
+        )
+
     (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,

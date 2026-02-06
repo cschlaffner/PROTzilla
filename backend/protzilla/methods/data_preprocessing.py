@@ -10,6 +10,7 @@ from backend.protzilla.data_preprocessing import (
     peptide_filter,
     transformation,
 )
+from backend.protzilla import form_helper
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, StepManager, Section
 from backend.protzilla.constants.option_types import *
@@ -66,9 +67,7 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
 class FilterProteinsBySilacRatios(DataPreprocessingStep):
     display_name = "By SILAC ratios"
     operation = "filter_proteins"
-    method_description = (
-        "Filter proteins based on the amount of samples with SILAC different ratios"
-    )
+    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
 
     def create_form(self):
         return Form(
@@ -76,7 +75,7 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples with different SILAC ratios",
+                    label="Amount of minimum present samples per group with different SILAC ratios",
                     value=1,
                     min=0,
                     step=1,
@@ -84,11 +83,17 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BarAndPieChart.pie_chart.value,
+                    value=BarAndPieChart.PIE_CHART.value,
                     options=BarAndPieChart,
                 ),
             ],
         )
+
+    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
+        inputs["protein_df"] = steps.protein_df
+        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
+        inputs["metadata_df"] = steps.get_step_output(Step, "metadata_df")
+        return inputs
 
     calc_method = staticmethod(filter_proteins.by_silac_ratios)
     plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
@@ -160,6 +165,10 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+
+    def modify_form(self, form, run):
+        peptide_df_field = form["peptide_df"]
+        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):
@@ -478,20 +487,20 @@ class NormalisationByWidthAdjustment(DataPreprocessingStep):
                 DropdownField(
                     name="graph_type",
                     label="Graph type",
-                    value=BoxAndHistogramGraph.boxplot.value,
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
                     options=BoxAndHistogramGraph,
                 ),
                 DropdownField(
                     name="group_by",
                     label="Group by",
-                    value=GroupBy.no_grouping.value,
+                    value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
                 DropdownField(
                     name="visual_transformation",
                     label="Visual transformation",
-                    value=VisualTrasformations.log10.value,
-                    options=VisualTrasformations,
+                    value=VisualTransformations.LOG10.value,
+                    options=VisualTransformations,
                 ),
             ],
         )

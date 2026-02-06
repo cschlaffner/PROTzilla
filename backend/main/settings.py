@@ -45,7 +45,9 @@ if not os.path.exists(UPLOAD_PATH):
 SECRET_KEY = "django-insecure-^b(z4a%_42zo=feur29^g5sz9+7a(gcqq_l8vgkd$og36@+x5f"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", False)
+# should be changed for prod setup
+# but requires static files to be served by proper webserver
+DEBUG = True
 
 ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1", "localhost", "django"]
 

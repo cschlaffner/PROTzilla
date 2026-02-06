@@ -377,7 +377,7 @@ class Step(ABC):
                 ),
                 DropdownField(
                     name="graph_type",
-                    value=BarAndPieChart.pie_chart,
+                    value=BarAndPieChart.PIE_CHART,
                     label="Graph type",
                     options=BarAndPieChart,
                 ),
@@ -457,6 +457,9 @@ class Messages:
 
     def __repr__(self):
         return f"Messages: {[message['msg'] for message in self.messages]}"
+
+    def __len__(self):
+        return len(self.messages)
 
     def append(self, param):
         self.messages.append(param)
