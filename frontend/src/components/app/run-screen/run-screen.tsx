@@ -225,7 +225,7 @@ export const RunScreen: React.FC = () => {
       ) : (
         <SectionTitle
           baseComponent={"h4"}
-          description={"This step does not provide any tables as output"}
+          description={"This step does not provide any tables as output."}
         />
       )}
     </StyledContentContainer>
