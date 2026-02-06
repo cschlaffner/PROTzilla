@@ -50,7 +50,7 @@ def test_metadata_import_faulty_file(run_imported):
 #     run_empty.step_add(DiannImport())
 #     run_empty.current_form(
 #         {
-#             "file_path": f"{TEST_METADATA_PATH}/DIANN/20230605 24h prodi DMSO report.pg_matrix.tsv",
+#             "file_path": f"{TEST_METADATA_PATH}/DIANN/20230605_24h_prodi_DMSO_report.pg_matrix.tsv",
 #             "map_to_uniprot": "False",
 #             "aggregation_method": "Sum",
 #         }
@@ -72,7 +72,7 @@ def test_metadata_import_faulty_file(run_imported):
 #     )
 #     run_empty.step_calculate()
 #     test_metadata = pd.read_csv(
-#         f"{TEST_METADATA_PATH}/DIANN/correct_metadata_table.csv"
+#         f"{TEST_METADATA_PATH}/DIANN/meta.csv"
 #     )
 #     test_protein_df = pd.read_csv(
 #         f"{TEST_METADATA_PATH}/DIANN/correct_protein_df.csv"

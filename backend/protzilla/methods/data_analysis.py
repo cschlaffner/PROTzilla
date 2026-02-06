@@ -3,6 +3,7 @@ import logging
 from typing_extensions import override
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -73,11 +74,6 @@ class AnalysisLevel(Enum):
     protein = "Protein"
 
 
-class MultipleTestingCorrectionMethod(Enum):
-    benjamini_hochberg = "Benjamini-Hochberg"
-    bonferroni = "Bonferroni"
-
-
 class PValueCalculationMethod(Enum):
     auto = "Auto"
     exact = "Exact"
@@ -117,14 +113,14 @@ class ClusteringCriterion(Enum):
 
 
 class ClusteringScoring(Enum):
-    adjusted_rand_score = "Adjusted Rand Score"
-    completeness_score = "Completeness Score"
-    fowlkes_mallows_score = "Fowlkes Mallows Score"
-    homogeneity_score = "Homogeneity Score"
-    mutual_info_score = "Mutual Info Score"
-    normalized_mutual_info_score = "Normalized Mutual Info Score"
-    rand_score = "Rand Score"
-    v_measure_score = "V Measure Score"
+    adjusted_rand_score = "adjusted_rand_score"
+    completeness_score = "completeness_score"
+    fowlkes_mallows_score = "fowlkes_mallows_score"
+    homogeneity_score = "homogeneity_score"
+    mutual_info_score = "mutual_info_score"
+    normalized_mutual_info_score = "normalized_mutual_info_score"
+    rand_score = "rand_score"
+    v_measure_score = "v_measure_score"
 
 
 class InitCentroidStrategy(Enum):
@@ -301,6 +297,9 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         "t_statistic_df",
         "log2_fold_change_df",
         "corrected_alpha",
+        "fc_significance_df",
+        "fc_zscore_alpha",
+        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -343,6 +342,20 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                 DropdownField(
                     name="group2",
                     label="Group 2",
+                ),
+                CheckboxField(
+                    name="fc_zscore_filter",
+                    label="Fold-change Z-score significance",
+                    value=False,
+                ),
+                FloatField(
+                    name="fc_zscore_alpha",
+                    label="Z-score tail cutoff",
+                    value=0.05,
+                    min=0,
+                    max=0.5,
+                    step=0.01,
+                    separatePrefix="p",
                 ),
             ],
         )
@@ -766,7 +779,10 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
         return Form(
             label="Kruskal-Wallis Test",
             input_fields=[
-                DropdownField(name="ptm_df", label="Step to use ptm data from"),
+                DropdownField(
+                    name="ptm_df",
+                    label="Step to use ptm data from. ('PTMs per Sample' step needed for preproceesing)",
+                ),
                 DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
@@ -1106,6 +1122,12 @@ class PlotClustergram(DataAnalysisPlotStep):
             form_helper.get_choices_for_protein_df_steps(
                 run,
             )
+            + form_helper.to_choices(
+                run.steps.get_instance_identifiers(
+                    Step,
+                    "significant_proteins_df",
+                )
+            )
         )
         form["metadata_df_field"].set_options(
             form_helper.get_choices(
@@ -1121,14 +1143,23 @@ class PlotClustergram(DataAnalysisPlotStep):
                 )
             )
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.get_step_output(
-            output_key="protein_df", instance_identifier=self.inputs["protein_df_field"]
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        # Note: This is a hotfix that will be overridden anyway as soon
+        # as the node-based workflow has been finished.
+        # So the code is not top notch
+        selected_prot_df = steps.get_step_output(
+            output_key="significant_proteins_df", instance_identifier=inputs["protein_df_field"]
         )
-        self.inputs["metadata_df"] = steps.get_step_output(
-            output_key="metadata_df",
-            instance_identifier=self.inputs["metadata_df_field"],
+
+        if selected_prot_df is None:
+            selected_prot_df = steps.get_step_output(
+                output_key="protein_df", instance_identifier=inputs["protein_df_field"]
+            )
+
+        inputs["protein_df"] = selected_prot_df
+
+        inputs["metadata_df"] = steps.get_step_output(
+            output_key="metadata_df", instance_identifier=inputs["metadata_df_field"]
         )
 
 
@@ -1241,9 +1272,26 @@ class PlotROC(DataAnalysisStep):
     # TODO: insert_dataframes
 
 
-class ClusteringKMeans(DataAnalysisStep):
-    display_name = "KMeans"
+class ClusteringStep(DataAnalysisStep):
     operation = "clustering"
+
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
+class ClusteringKMeans(ClusteringStep):
+    display_name = "KMeans"
     method_description = "Partitions a number of samples in k clusters using k-means"
 
     output_keys = [
@@ -1331,9 +1379,8 @@ class ClusteringKMeans(DataAnalysisStep):
         )
 
 
-class ClusteringExpectationMaximisation(DataAnalysisStep):
+class ClusteringExpectationMaximisation(ClusteringStep):
     display_name = "Expectation-maximization (EM)"
-    operation = "clustering"
     method_description = "A clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
 
     output_keys = [
@@ -1349,7 +1396,6 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
         return Form(
             label="Expectation-maximization (EM)",
             input_fields=[
-                # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
                     label="Choose labels column from metadata",
@@ -1415,9 +1461,8 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
         )
 
 
-class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
+class ClusteringHierarchicalAgglomerative(ClusteringStep):
     display_name = "Hierarchical Agglomerative Clustering"
-    operation = "clustering"
     method_description = (
         "Performs hierarchical clustering utilizing a bottom-up approach"
     )
@@ -2198,7 +2243,8 @@ class PTMsPerSample(PeptideAnalysisStep):
             input_fields=[
                 DropdownField(
                     name="peptide_df_field",
-                    label="Peptide dataframe containing the peptides of a single protein",
+                    label="Peptide dataframe containing the peptides of a single protein including their modifications "
+                    "(e.g. from evidence.txt)",
                 )
             ],
         )

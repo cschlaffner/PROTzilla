@@ -49,17 +49,8 @@ def anova(
             - a df filtered_proteins, containing the filtered out proteins (due to missing values or identical values),
     """
 
-    selected_groups, messages = preprocess_grouping(
-        metadata_df, grouping, selected_groups
-    )
-
-    # Merge the intensity and metadata dataframes in order to assign to each Sample
-    # their corresponding group
-    protein_df = pd.merge(
-        left=protein_df,
-        right=metadata_df[["Sample", grouping]],
-        on="Sample",
-        copy=False,
+    protein_df, selected_groups, messages = preprocess_grouping(
+        protein_df, metadata_df, grouping, selected_groups
     )
     intensity_name = default_intensity_column(protein_df, intensity_name)
 
@@ -84,6 +75,29 @@ def anova(
             valid_protein_groups.append(protein)
         elif not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
             messages.append(INVALID_PROTEINGROUP_DATA_MSG)
+
+    if len(valid_protein_groups) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for ANOVA analysis.",
+            }
+        )
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=protein_df.columns.tolist() + ["corrected_p_values"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=protein_df.columns.tolist() + ["corrected_p_values"]
+            ),
+            corrected_p_values_df=pd.DataFrame(
+                columns=["Protein ID", "corrected_p_values"]
+            ),
+            sample_group_df=pd.DataFrame(columns=["Sample", grouping]),
+            corrected_alpha=alpha,
+            filtered_proteins=[],
+            messages=messages,
+        )
 
     # Apply multiple testing correction and create a dataframe with corrected p-values
     corrected_p_values, corrected_alpha = apply_multiple_testing_correction(
