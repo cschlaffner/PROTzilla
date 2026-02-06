@@ -13,6 +13,7 @@ from typing import Any, Literal
 import pandas as pd
 
 from backend.main import settings
+from backend.protzilla.constants.data_types import Connection, DataKeys
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -34,12 +35,6 @@ class Section(str, Enum):
     DATA_INTEGRATION = "data_integration"
 
 
-class DataKeys(str, Enum):
-    PROTEIN_DF = "protein_df"
-    PEPTIDE_DF = "peptide_df"
-    METADATA_DF = "metadata_df"
-
-
 class Step(ABC):
     """
     Abstract base class for concrete step implementations
@@ -50,15 +45,19 @@ class Step(ABC):
     operation: str = None
     method_description: str = None
     input_sources: dict[DataKeys, str]  # maps to instance identifier
-    additional_inputs: list[str]
+    additional_inputs: list[str] = []
     output_keys: list[DataKeys] = []
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
         "incomplete"
     )
 
-    def __init__(self, instance_identifier: str | None = None):
+    def __init__(
+        self,
+        instance_identifier: str | None = None,
+    ):
         self.inputs: dict = {}
         self.output: Output = Output()
+        self.input_sources = {}
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
@@ -202,7 +201,7 @@ class Step(ABC):
 
         :param steps: The relevant StepManager instance
         """
-        for key, instance_identifier in self.input_sources:
+        for key, instance_identifier in self.input_sources.items():
             output = steps.get_step_output(
                 output_key=key, instance_identifier=instance_identifier
             ).copy()
@@ -212,8 +211,9 @@ class Step(ABC):
                 )
             self.inputs[key] = output.copy()
 
-    def external_input_keys(self) -> list[str]:
-        keys: list[str] = []
+    @property
+    def external_input_keys(self) -> list[DataKeys]:
+        keys: list[DataKeys] = []
         form_keys = [
             field.name
             for field in self.form.input_fields
@@ -489,6 +489,8 @@ class Plots:
 
 
 class StepManager:
+    id_mapping: dict[str, Step]
+
     def __repr__(self):
         return f"IMP: {self.sections[Section.IMPORTING]} PRE: {self.sections[Section.DATA_PREPROCESSING]} ANA: {self.sections[Section.DATA_PREPROCESSING]} INT: {self.sections[Section.DATA_INTEGRATION]}"
 
@@ -503,6 +505,7 @@ class StepManager:
         self.current_step_index = 0
         self.failed_step_index = -1
         self.sections: dict[Section, list[Step]] = {section: [] for section in Section}
+        self.id_mapping = {}
 
         if steps is not None:
             for step in steps:
@@ -726,6 +729,7 @@ class StepManager:
     def add_step(self, step: Step) -> None:
         if step.section in self.sections:
             self.sections[step.section].append(step)
+            self.id_mapping[step.instance_identifier] = step
         else:
             raise ValueError(f"Unknown section {step.section}")
 
@@ -758,6 +762,7 @@ class StepManager:
         if global_step_index < self.current_step_index:
             self.current_step_index -= 1
         self.sections[step.section].remove(step)
+        del self.id_mapping[step.instance_identifier]
 
     def next_step(self) -> None:
         """
@@ -821,6 +826,32 @@ class StepManager:
         step = self.all_steps_in_section(section)[step_index]
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index
+
+    def connect_steps(self, connection: Connection):
+        try:
+            source = connection["source"]
+            sourceHandle = connection["sourceHandle"]
+            target = connection["target"]
+            targetHandle = connection["targetHandle"]
+            self.id_mapping[target].input_sources[targetHandle] = source
+        except KeyError as e:
+            raise ValueError(
+                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
+            ) from e
+
+    def get_edges(self) -> list[Connection]:
+        return [
+            {
+                "source": source,
+                "sourceHandle": key,
+                "target": step.instance_identifier,
+                "targetHandle": key,
+                "key": f"{source}->{step.instance_identifier}: {key}",
+                "id": f"{source}->{step.instance_identifier}: {key}",
+            }
+            for step in self.all_steps
+            for key, source in step.input_sources.items()
+        ]
 
     def name_current_step_instance(self, new_instance_identifier: str) -> None:
         """

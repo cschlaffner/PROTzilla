@@ -84,7 +84,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
-      void callApiWithParameters("set_step_pos/", {
+        void callApiWithParameters("set_step_pos/", {
         run_name: runName,
         step_id: node.id,
         x: node.position.x,
@@ -94,26 +94,28 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [runName],
   );
 
-  const getEdgesFromRunData = (): Edge[] => {
-    // TODO: This needs to be implemented when the API provides sufficient data.
-    return [];
+  const getEdgesFromRunData = async (): Promise<Edge[]> => {
+    const res = await callApiWithParameters("get_edges/", { run_name: runName });
+    const edges = res.data
+    return edges
   };
 
   const onConnect = useCallback(
-    (params: Connection) => {
+    async (params: Connection) => {
       console.log(params);
       // TODO: Implement this in API
-      // await callApiWithParameters("connect_steps/", {
-      //   run_name: runName,
-      //   connection: params,
-      // }).then((response) => {
-      //   notify({
-      //     type: response.success ? "success" : "error",
-      //     title: response.message,
-      //   });
-      // });
+      await callApiWithParameters("connect_steps/", {
+        run_name: runName,
+        connection: params,
+      }).then((response) => {
+        notify({
+          type: response.success ? "success" : "error",
+          title: response.message,
+        });
+      });
       navigateOrRefreshSteps();
-      setEdges(getEdgesFromRunData());
+      const newEdges = await getEdgesFromRunData()
+      setEdges(newEdges);
     },
     [navigateOrRefreshSteps],
   );
@@ -157,6 +159,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   useEffect(() => {
     console.log("Run Data", runData);
+    // TODO: also load edge data
     const effectSections = runData.displayed_steps;
     setNodes((nodesSnapshot) => {
       const newNodes: StepNodeType[] = [];
@@ -265,7 +268,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             sections
               .map((section) => section.steps.length)
               .reduce((acc: number, val: number) => acc + val, 0) -
-              1
+            1
           }
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");

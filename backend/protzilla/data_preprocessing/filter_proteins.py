@@ -48,8 +48,8 @@ def by_samples_missing(
 def by_silac_ratios(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
-    min_amount: int,
+    peptide_df: pd.DataFrame | None = None,
+    min_amount: int = 1,
 ) -> dict:
     """
     This function filters proteins based on the amount of samples with unique SILAC ratios per group. Only proteins with

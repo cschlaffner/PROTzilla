@@ -27,9 +27,9 @@ class DataPreprocessingStep(Step, ABC):
         super().__init__(*args, **kwargs)
         self.plot_inputs: dict = {}
 
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.protein_df
-        self.inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
+    # def insert_dataframes(self, steps: StepManager) -> None:
+    #     self.inputs["protein_df"] = steps.protein_df
+    #     self.inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
 
 
 class FilterProteinsBySamplesMissing(DataPreprocessingStep):
@@ -89,11 +89,11 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
-        inputs["protein_df"] = steps.protein_df
-        inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
-        inputs["metadata_df"] = steps.get_step_output(Step, "metadata_df")
-        return inputs
+    # def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
+    #     inputs["protein_df"] = steps.protein_df
+    #     inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
+    #     inputs["metadata_df"] = steps.get_step_output(Step, "metadata_df")
+    #     return inputs
 
     calc_method = staticmethod(filter_proteins.by_silac_ratios)
     plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)

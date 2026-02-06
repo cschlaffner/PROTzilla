@@ -427,6 +427,36 @@ def navigate_to_step(request):
         )
 
 
+def connect_steps(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        connection = data.get("connection")
+        run = Run(run_name)
+        run.steps.connect_steps(connection)
+
+        return JsonResponse(
+            {"success": True, "message": "Connected steps successfully"}
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def get_edges(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        run = Run(run_name)
+        edges = run.steps.get_edges()
+        return JsonResponse({"success": True, "data": edges})
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
 def save_workflow(request):
     if request.method == "POST":
         data = json.loads(request.body)
