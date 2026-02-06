@@ -13,7 +13,7 @@ from typing import Any, Literal
 import pandas as pd
 
 from backend.main import settings
-from backend.protzilla.form import FormInputType, Form
+from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities import format_trace, name_to_title
 
 # to avoid circular imports
@@ -34,6 +34,12 @@ class Section(str, Enum):
     DATA_INTEGRATION = "data_integration"
 
 
+class DataKeys(str, Enum):
+    PROTEIN_DF = "protein_df"
+    PEPTIDE_DF = "peptide_df"
+    METADATA_DF = "metadata_df"
+
+
 class Step(ABC):
     """
     Abstract base class for concrete step implementations
@@ -43,7 +49,9 @@ class Step(ABC):
     display_name: str = None
     operation: str = None
     method_description: str = None
-    output_keys: list[str] = []
+    input_sources: dict[DataKeys, str]  # maps to instance identifier
+    additional_inputs: list[str]
+    output_keys: list[DataKeys] = []
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
         "incomplete"
     )
@@ -188,14 +196,51 @@ class Step(ABC):
 
         return self.calculation_status == "complete"
 
-    @abstractmethod
     def insert_dataframes(self, steps: StepManager) -> None:
         """
         Adds the necessary entries to self.inputs. Needs to be overridden in concrete classes.
 
         :param steps: The relevant StepManager instance
         """
-        raise NotImplementedError("This needs to be overridden")
+        for key, instance_identifier in self.input_sources:
+            output = steps.get_step_output(
+                output_key=key, instance_identifier=instance_identifier
+            ).copy()
+            if output is None:
+                raise ValueError(
+                    f"Step {instance_identifier} has no output with key {key}, but was set to be this key's input in {self.instance_identifier}"
+                )
+            self.inputs[key] = output.copy()
+
+    def external_input_keys(self) -> list[str]:
+        keys: list[str] = []
+        form_keys = [
+            field.name
+            for field in self.form.input_fields
+            if isinstance(field, InputField)
+        ]
+        if self.calc_method:
+            calc_params = inspect.signature(self.calc_method).parameters.values()
+            keys += [
+                param.name
+                for param in calc_params
+                if (
+                    param.name.endswith("_df")
+                    or param.annotation == pd.DataFrame
+                    or not param.name in form_keys
+                )
+                and not param.name in self.additional_inputs
+            ]
+        if self.plot_method:
+            plot_params = inspect.signature(self.plot_method).parameters.values()
+            keys += [
+                param.name
+                for param in plot_params
+                if not param.name.startswith("output_")
+                and not param.name in form_keys
+                and not param.name in self.additional_inputs
+            ]
+        return keys
 
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
