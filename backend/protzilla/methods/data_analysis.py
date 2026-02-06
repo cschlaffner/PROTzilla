@@ -1148,7 +1148,8 @@ class PlotClustergram(DataAnalysisPlotStep):
         # as the node-based workflow has been finished.
         # So the code is not top notch
         selected_prot_df = steps.get_step_output(
-            output_key="significant_proteins_df", instance_identifier=inputs["protein_df_field"]
+            output_key="significant_proteins_df",
+            instance_identifier=inputs["protein_df_field"],
         )
 
         if selected_prot_df is None:
@@ -1289,6 +1290,7 @@ class ClusteringStep(DataAnalysisStep):
                 required=False,
             )
         )
+
 
 class ClusteringKMeans(ClusteringStep):
     display_name = "KMeans"

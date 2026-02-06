@@ -1,12 +1,12 @@
 import type { DefaultColoredIconType, IconType } from "@protzilla/core";
 import { ContentText, DefaultColoredIcon, Icon } from "@protzilla/core";
 import { defaultPalette } from "@protzilla/theme";
-import type { SectionIDs, SelectedStep, Step } from "@protzilla/utils";
+import { type SectionIDs, type SelectedStep, type Step } from "@protzilla/utils";
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
 
-type DataTypeKey = "peptide_df" | "protein_df" | "meta_df";
+type DataTypeKey = "peptide_df" | "protein_df" | "metadata_df";
 type HandleDirection = "Input" | "Output" | "None";
 
 export interface HoveredHandleMeta {
@@ -32,7 +32,7 @@ export type StepNodeType = Node<StepNodeData, "step">;
 const DATA_TYPE_COLOR_INDICATORS: Record<DataTypeKey, string> = {
   peptide_df: "#BF1E74",
   protein_df: "#BF1E2E",
-  meta_df: "#2E1EBF",
+  metadata_df: "#2E1EBF",
 };
 
 const StyledNode = styled.div`
@@ -63,7 +63,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
   // }, []);
 
   const onElementClick = () => {
-    console.log(data.step.name);
+    console.log(data.step.name); // TODO: still required?
     data.navigateOrRefreshSteps({
       section: data.section,
       index: data.step_index_within_section,
@@ -72,10 +72,6 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
   const icon: DefaultColoredIconType = data.step.status;
   const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "";
-
-  // TODO: Integrate API. This is just a dummy in/out setup rn
-  const stepInputs: DataTypeKey[] = ["peptide_df", "protein_df", "meta_df"];
-  const stepOutputs: DataTypeKey[] = ["peptide_df", "protein_df"];
 
   return (
     <StyledNode
@@ -93,18 +89,18 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
       </TextContainer>
 
       {/*Target (input) handles*/}
-      {stepInputs.map((input, index) => (
+      {data.step.input_keys.map((input, index) => (
         <Handle
           key={index}
           type="target"
           position={Position.Top}
-          id={`input-${input}-${String(index)}`}
+          id={input}
           style={{
             background: "none",
             border: "none",
             width: "1em",
             height: "1em",
-            left: `${String((100 / (stepInputs.length + 1)) * (index + 1))}%`,
+            left: `${String((100 / (data.step.input_keys.length + 1)) * (index + 1))}%`,
             transform: "translateX(-50%)",
           }}
           onMouseEnter={() => {
@@ -126,19 +122,19 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
       ))}
 
       {/*Source (ouput) handles*/}
-      {stepOutputs.map((output, index) => (
+      {data.step.output_keys.map((output, index) => (
         <Handle
           key={index}
           type="source"
           position={Position.Bottom}
-          id={`output-${output}-${String(index)}`}
+          id={output}
           style={{
             background: "none",
             border: "none",
             width: "15px",
             height: "15px",
             marginBottom: "1px",
-            left: `${String((100 / (stepOutputs.length + 1)) * (index + 1))}%`,
+            left: `${String((100 / (data.step.output_keys.length + 1)) * (index + 1))}%`,
             transform: "translateX(-50%)",
           }}
           onMouseEnter={() => {

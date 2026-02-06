@@ -42,6 +42,8 @@ urlpatterns = [
     path("api/delete_step/", views.delete_step, name="delete_step"),
     path("api/update_step/", views.update_step, name="update_step"),
     path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
+    path("api/connect_steps/", views.connect_steps, name="connect_steps"),
+    path("api/get_edges/", views.get_edges, name="get_edges"),
     path("api/save_workflow/", views.save_workflow, name="save_workflow"),
     path(
         "api/download_table/", views.download_table, name="download_table"

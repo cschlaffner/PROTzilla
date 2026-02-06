@@ -14,6 +14,8 @@ export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 export interface Step {
   id: string;
   name: string;
+  input_keys: string[];
+  output_keys: string[];
   method_name: string;
   status: StepStatus;
 }

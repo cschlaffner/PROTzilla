@@ -34,12 +34,12 @@ class ImportingStep(Step):
         if run.steps.current_step.calculation_status == "complete":
             form.input_fields[self.index_of_file_input()].value = None
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        """
-        For normal importing steps, there are no dataframes to be inserted
-        """
-        pass
+    # @override
+    # def insert_dataframes(self, steps: StepManager) -> None:
+    #     """
+    #     For normal importing steps, there are no dataframes to be inserted
+    #     """
+    #     pass
 
     def index_of_file_input(self):
         """
@@ -50,10 +50,10 @@ class ImportingStep(Step):
 
 
 class MetadataImportingStep(ImportingStep):
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.protein_df
+    pass
+    # @override
+    # def insert_dataframes(self, steps: StepManager) -> None:
+    #     self.inputs["protein_df"] = steps.protein_df
 
 
 class MaxQuantImport(ImportingStep):

@@ -93,6 +93,7 @@ class KEYS:
     STEP_TYPE = "type"
     STEP_CALCULATION_STATUS = "calculation_status"
     DF_MODE = "df_mode"
+    INPUT_SOURCES = "input_sources"
 
 
 class DiskOperator:
@@ -259,6 +260,7 @@ class DiskOperator:
             step.inputs = step_data.get(KEYS.STEP_INPUTS, {})
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
+            step.input_sources = step_data.get(KEYS.INPUT_SOURCES, {})
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
             step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
             step.calculation_status = step_data.get(
@@ -286,6 +288,7 @@ class DiskOperator:
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
+                step_data[KEYS.INPUT_SOURCES] = step.input_sources
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
