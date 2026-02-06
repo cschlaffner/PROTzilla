@@ -114,10 +114,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   section,
   //eslint-disable-next-line
   index,
-  isSmallButton,
+  isSmallButton = false,
   onAddStep,
-  handlePosition,
-  setShowHandle,
+  handlePosition = { top: 0, left: 0 },
+  setShowHandle = () => undefined,
+  ModalTrigger,
 
   ...rest
 }) => {
@@ -209,7 +210,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - Render - - -
   return (
     <div style={{ display: "flex", flexDirection: "column", margin: "0 5px" }}>
-      {isSmallButton ? (
+      {ModalTrigger ? (
+        ModalTrigger(handleOpenModal)
+      ) : isSmallButton ? (
         <IconButton
           icon={"add"}
           onPointerDown={isModalOpen ? undefined : handleOpenModal}
