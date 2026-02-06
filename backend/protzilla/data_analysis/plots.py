@@ -191,6 +191,12 @@ def clustergram_plot(
     metadata_df: pd.DataFrame | None,
     flip_axes: bool,
     metadata_column: str | None = None,
+    heatmap_legend_title: str | None = None,
+    use_custom_colour_scale: bool = False,
+    heatmap_low_colour_limit: float | None = None,
+    heatmap_low_colour: str | None = None,
+    heatmap_high_colour_limit: float | None = None,
+    heatmap_high_colour: str | None = None,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
@@ -253,7 +259,14 @@ def clustergram_plot(
             row_colors = None
             color_label_dict = None
 
-        # TODO: Would be nice to actually center values at the z-score of 0
+        if use_custom_colour_scale:
+            custom_colour_scale = (
+                (heatmap_low_colour_limit, heatmap_low_colour),
+                (heatmap_high_colour_limit, heatmap_high_colour),
+            )
+        else:
+            custom_colour_scale = None
+
         clustergram = Clustergram(
             flip_axes=flip_axes,
             data=input_df_wide.values,
@@ -262,8 +275,10 @@ def clustergram_plot(
             row_colors_to_label_dict=color_label_dict,
             column_labels=input_df_wide.columns.values.tolist(),
             line_width=2,
-            color_map=px.colors.diverging.RdBu,
+            color_map=px.colors.diverging.RdBu_r,
             hidden_labels=["row", "col"],
+            custom_colour_scale=custom_colour_scale,
+            heatmap_legend_title=heatmap_legend_title,
         )
 
         clustergram.update_layout(

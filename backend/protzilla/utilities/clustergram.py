@@ -23,6 +23,10 @@ from plotly import subplots
 from sklearn.impute import SimpleImputer
 
 
+HEATMAP_LOW_COLOUR = "#0000FF"
+HEATMAP_HIGH_COLOUR = "#FF0000"
+
+
 # pylint: disable=assignment-from-no-return, no-self-use
 def Clustergram(
     data,
@@ -49,7 +53,8 @@ def Clustergram(
     color_threshold=None,
     optimal_leaf_order=False,
     color_map=None,
-    color_list=None,
+    custom_colour_scale=None,  # optional: ((zmin, zmin_colour), (zmax, zmax_colour))
+    heatmap_legend_title="(Heatmap legend)",
     display_range=3,
     center_values=True,
     log_transform=False,
@@ -130,7 +135,8 @@ class _Clustergram:
         color_threshold=None,
         optimal_leaf_order=False,
         color_map=None,
-        color_list=None,
+        custom_colour_scale=None,
+        heatmap_legend_title="(Heatmap legend)",
         display_range=3,
         center_values=True,
         log_transform=False,
@@ -194,7 +200,6 @@ class _Clustergram:
             ]
         else:
             self._color_map = color_map
-        self._color_list = color_list
         self._display_range = display_range
         self._center_values = center_values
         self._display_ratio = display_ratio
@@ -298,6 +303,9 @@ class _Clustergram:
         else:
             self.row_colorbar_title = "Sample Grouping"
             self.column_colorbar_title = "Protein Grouping"
+
+        self._custom_colour_scale = custom_colour_scale
+        self._heatmap_legend_title = heatmap_legend_title
 
     def figure(self, computed_traces=None):
         dt, heatmap = None, None
@@ -528,21 +536,38 @@ class _Clustergram:
             heat_data = self._data
 
             # symmetrize the heatmap about zero, if necessary
-            if self._center_values:
-                heat_data = np.subtract(heat_data, np.mean(heat_data))
+            # if self._center_values:
+            #     heat_data = np.subtract(heat_data, np.mean(heat_data))
+
+            if self._custom_colour_scale is not None:
+                zmin = self._custom_colour_scale[0][0]
+                zmax = self._custom_colour_scale[1][0]
+                low_colour = self._custom_colour_scale[0][1]
+                high_colour = self._custom_colour_scale[1][1]
+
+            else:
+                zmin = np.min(heat_data)
+                zmax = np.max(heat_data)
+                low_colour = HEATMAP_LOW_COLOUR
+                high_colour = HEATMAP_HIGH_COLOUR
+
+            # Lerp to keep zero centered
+            midpoint = (0 - zmin) / (zmax - zmin)
 
             heatmap = go.Heatmap(
                 x=tickvals_col,
                 y=tickvals_row,
                 z=heat_data,
-                colorscale=self._color_map,
-                # TODO: This should be based on the text width of the labels,
-                # or at least passable by the user, so they can adjust it
+                colorscale=[[0, low_colour], [midpoint, "white"], [1, high_colour]],
+                zmin=zmin,
+                zmax=zmax,
                 colorbar=dict(
-                    title="Heatmap Legend",
+                    title=self._heatmap_legend_title,
                     yanchor="bottom",
                     y=0.0,
                     len=1 / self.colorbar_count,
+                    tickmode="array",
+                    tickvals=(zmin, 0, zmax),
                 ),
             )
 

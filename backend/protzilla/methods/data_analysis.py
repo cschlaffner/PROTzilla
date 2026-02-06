@@ -31,6 +31,10 @@ from backend.protzilla.data_analysis.plots import (
     prot_quant_plot,
     scatter_plot,
 )
+from backend.protzilla.utilities.clustergram import (
+    HEATMAP_LOW_COLOUR,
+    HEATMAP_HIGH_COLOUR,
+)
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
     ptms_per_protein_and_sample,
@@ -1125,6 +1129,37 @@ class PlotClustergram(DataAnalysisStep):
                     label="Flip axis",
                     text="Flip axes",
                 ),
+                TextField(
+                    name="heatmap_legend_title",
+                    label="Heatmap legend title",
+                    value="Heatmap legend",
+                ),
+                CheckboxField(
+                    name="use_custom_colour_scale",
+                    label="Use custom colour scale",
+                ),
+                FloatField(
+                    name="heatmap_low_colour_limit",
+                    label="Heatmap lower colour limit",
+                    isVisible=False,
+                ),
+                TextField(
+                    name="heatmap_low_colour",
+                    label="Heatmap lower colour",
+                    value=HEATMAP_LOW_COLOUR,
+                    isVisible=False,
+                ),
+                FloatField(
+                    name="heatmap_high_colour_limit",
+                    label="Heatmap upper colour limit",
+                    isVisible=False,
+                ),
+                TextField(
+                    name="heatmap_high_colour",
+                    label="Heatmap upper colour",
+                    value=HEATMAP_HIGH_COLOUR,
+                    isVisible=False,
+                ),
             ],
         )
 
@@ -1148,12 +1183,19 @@ class PlotClustergram(DataAnalysisStep):
                 required=True,
             )
         )
+
         if form.values["metadata_df"] is not None:
             form["metadata_column"].set_options(
                 form_helper.get_choices_for_metadata_non_sample_columns(
                     run, instance_identifier=form.values["metadata_df"]
                 )
             )
+
+        custom_scale_toggled = form.values["use_custom_colour_scale"]
+        form["heatmap_low_colour_limit"].isVisible = custom_scale_toggled
+        form["heatmap_high_colour_limit"].isVisible = custom_scale_toggled
+        form["heatmap_low_colour"].isVisible = custom_scale_toggled
+        form["heatmap_high_colour"].isVisible = custom_scale_toggled
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         # Note: This is a hotfix that will be overridden anyway as soon
