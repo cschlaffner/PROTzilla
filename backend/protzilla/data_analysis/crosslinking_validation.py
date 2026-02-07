@@ -1,11 +1,15 @@
 import pandas as pd
 import numpy as np
 from plotly.graph_objects import Figure
+from scipy.ndimage import standard_deviation
 
-from protzilla.importing.alphafold_protein_structure_load import (
+from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
 )
-from protzilla.data_preprocessing.plots import create_bar_plot
+from backend.protzilla.data_preprocessing.plots import (
+    create_histograms,
+    create_bar_plot,
+)
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -261,21 +265,94 @@ def bar_plot_of_valid_crosslinks(
     """
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df, protein_to_validate, crosslinker_information
-    )["crosslinking_result_df"]
+    )[
+        "crosslinking_result_df"
+    ]  # TODO: was wenn wir einfach keine relevanten Crosslinks zurück bekommen
+
+    validated_df = validated_df.dropna(subset=["valid_crosslink"])
+
+    distances_valid = validated_df.loc[
+        validated_df["valid_crosslink"] == True, "alphafold_distance"
+    ]
+    distances_invalid = validated_df.loc[
+        validated_df["valid_crosslink"] == False, "alphafold_distance"
+    ]
+    df_valid = pd.DataFrame({"alphafold_distance": distances_valid})
+    df_invalid = pd.DataFrame({"alphafold_distance": distances_invalid})
+
+    histogram = create_histograms(
+        dataframe_a=df_valid,
+        dataframe_b=df_invalid,
+        name_a="Valid Crosslinks",
+        name_b="Invalid Crosslinks",
+        heading=f"AlphaFold Distances for {protein_to_validate}",
+        x_title="Distance (Å)",
+        y_title="Count",
+        overlay=True,
+        visual_transformation="linear",
+        relevant_column_a="alphafold_distance",
+        relevant_column_b="alphafold_distance",
+    )
+
+    mean_predicted_lengths = validated_df["alphafold_distance"].mean()
+    standard_deviation_predicted_lengths = validated_df["alphafold_distance"].std()
+
+    histogram2 = create_histograms(
+        dataframe_a=df_valid,
+        dataframe_b=df_invalid,
+        name_a="Valid Crosslinks",
+        name_b="Invalid Crosslinks",
+        heading=f"AlphaFold Distances for {protein_to_validate}, mean +- 2 standard deviations",
+        x_title="Distance (Å)",
+        y_title="Count",
+        overlay=True,
+        visual_transformation="linear",
+        relevant_column_a="alphafold_distance",
+        relevant_column_b="alphafold_distance",
+        min_value_to_plot=mean_predicted_lengths
+        - 2 * standard_deviation_predicted_lengths,
+        max_value_to_plot=mean_predicted_lengths
+        + 2 * standard_deviation_predicted_lengths,
+        vertical_lines=[
+            (crosslinker_length, key)
+            for key, (
+                crosslinker_length,
+                accepted_deviation_upper_bound,
+                accepted_deviation_lower_bound,
+            ) in crosslinker_information.items()
+        ],
+        vertical_lines_dashed=[
+            (crosslinker_length + accepted_deviation_upper_bound, f"{key}_upper_bound")
+            for key, (
+                crosslinker_length,
+                accepted_deviation_upper_bound,
+                accepted_deviation_lower_bound,
+            ) in crosslinker_information.items()
+            if accepted_deviation_upper_bound != 0
+        ]
+        + [
+            (crosslinker_length - accepted_deviation_lower_bound, f"{key}_lower_bound")
+            for key, (
+                crosslinker_length,
+                accepted_deviation_upper_bound,
+                accepted_deviation_lower_bound,
+            ) in crosslinker_information.items()
+            if accepted_deviation_lower_bound != 0
+        ],
+    )
 
     evaluated = validated_df["valid_crosslink"].dropna()
-
     valid_crosslinks = (evaluated == True).sum()
     invalid_crosslinks = (evaluated == False).sum()
 
-    return [
-        create_bar_plot(
-            values_of_sectors=[
-                valid_crosslinks,
-                invalid_crosslinks,
-            ],
-            names_of_sectors=["Valid Cross-Links", "Invalid Cross-Links"],
-            heading="Cross-Links used for Validation",
-            y_title="Number of Cross-Links",
-        )
-    ]
+    bar_plot = create_bar_plot(
+        values_of_sectors=[
+            valid_crosslinks,
+            invalid_crosslinks,
+        ],
+        names_of_sectors=["Valid Cross-Links", "Invalid Cross-Links"],
+        heading="Cross-Links used for Validation",
+        y_title="Number of Cross-Links",
+    )
+
+    return [histogram2, histogram, bar_plot]

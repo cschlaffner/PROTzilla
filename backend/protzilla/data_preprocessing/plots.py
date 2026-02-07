@@ -169,6 +169,12 @@ def create_histograms(
     x_title: str = "",
     visual_transformation: str = "linear",
     overlay: bool = False,
+    relevant_column_a: str = None,
+    relevant_column_b: str = None,
+    min_value_to_plot: int = None,
+    max_value_to_plot: int = None,
+    vertical_lines: list[tuple[float, str]] = None,
+    vertical_lines_dashed: list[tuple[float, str]] = None,
 ) -> Figure:
     """
     A function to create a histogram for visualisation
@@ -196,39 +202,48 @@ def create_histograms(
             f"""visual_transformation parameter  must be "linear" or
                 "log10" but is {visual_transformation}"""
         )
+    if relevant_column_a is None:
+        relevant_column_a = default_intensity_column(dataframe_a)
+    if relevant_column_b is None:
+        relevant_column_b = default_intensity_column(dataframe_b)
 
-    intensity_name_a = default_intensity_column(dataframe_a)
-    intensity_name_b = default_intensity_column(dataframe_b)
-
-    intensities_a = dataframe_a[intensity_name_a]
-    intensities_b = dataframe_b[intensity_name_b]
+    values_a = dataframe_a[relevant_column_a]
+    values_b = dataframe_b[relevant_column_b]
 
     if visual_transformation == "log10":
-        intensities_a = intensities_a.apply(np.log10)
-        intensities_b = intensities_b.apply(np.log10)
+        values_a = values_a.apply(np.log10)
+        values_b = values_b.apply(np.log10)
 
-    min_value = min(intensities_a.min(skipna=True), intensities_b.min(skipna=True))
-    max_value = max(intensities_a.max(skipna=True), intensities_b.max(skipna=True))
+    if min_value_to_plot is None:
+        min_value = min(values_a.min(skipna=True), values_b.min(skipna=True))
+    else:
+        min_value = min_value_to_plot
+    if max_value_to_plot is None:
+        max_value = max(values_a.max(skipna=True), values_b.max(skipna=True))
+    else:
+        max_value = max_value_to_plot
 
     number_of_bins = 100
     binsize_a = (
-        intensities_a.max(skipna=True) - intensities_a.min(skipna=True)
+        min(values_a.max(skipna=True), max_value)
+        - max(values_a.min(skipna=True), min_value)
     ) / number_of_bins
     binsize_b = (
-        intensities_b.max(skipna=True) - intensities_b.min(skipna=True)
+        min(values_b.max(skipna=True), max_value)
+        - max(values_b.min(skipna=True), min_value)
     ) / number_of_bins
 
     if overlay:
         binsize_a = binsize_b = max(binsize_a, binsize_b)
 
     trace0 = go.Histogram(
-        x=intensities_a,
+        x=values_a,
         marker_color=PLOT_PRIMARY_COLOR,
         name=name_a,
         xbins=dict(start=min_value, end=max_value, size=binsize_a),
     )
     trace1 = go.Histogram(
-        x=intensities_b,
+        x=values_b,
         marker_color=PLOT_SECONDARY_COLOR,
         name=name_b,
         xbins=dict(start=min_value, end=max_value, size=binsize_b),
@@ -250,6 +265,24 @@ def create_histograms(
         fig.update_traces(opacity=0.75)
         if visual_transformation == "log10":
             fig.update_layout(xaxis=generate_tics(0, max_value, True))
+
+    for lines, dash in [
+        (vertical_lines, None),
+        (vertical_lines_dashed, "dash"),
+    ]:
+        if lines is None:
+            continue
+
+        for position, annotation in lines:
+            fig.add_vline(
+                x=position,
+                line=dict(color="red", width=2, dash=dash),
+                annotation_text=annotation,
+                annotation_position="top left",
+                annotation_textangle=-90,
+                annotation_y=1,
+                annotation_yanchor="top",
+            )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
