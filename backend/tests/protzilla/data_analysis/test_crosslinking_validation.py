@@ -5,18 +5,10 @@ from unittest.mock import MagicMock
 
 
 from backend.protzilla.data_analysis.crosslinking_validation import (
-    get_position_of_amino_acid_crosslinker_bound_to,
     validate_with_angstrom_deviation,
     get_distance_between_two_amino_acids_in_angstrom,
 )
 from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
-
-
-def test_get_position_of_amino_acid_crosslinker_bound_to():
-    protein = "MABCDEFGHIJK"
-    peptide = "ABC"
-    pos = get_position_of_amino_acid_crosslinker_bound_to(protein, peptide, 2)
-    assert pos == 3
 
 
 @patch(
@@ -54,8 +46,8 @@ def test_validate_with_angstrom_deviation(mock_fetch, distance, expected):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position1": [1],
-            "CL_position2": [1],
+            "CL_position_within_peptide1": [1],
+            "CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
