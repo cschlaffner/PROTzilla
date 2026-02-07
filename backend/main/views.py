@@ -427,6 +427,29 @@ def navigate_to_step(request):
         )
 
 
+def set_step_pos(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        step_id = data.get("step_id")
+        x = data.get("x")
+        y = data.get("y")
+
+        if run_name is None or step_id is None or x is None or y is None:
+            return JsonResponse(
+                {"success": False, "message": "Missing parameters"}, status=400
+            )
+
+        run = Run(run_name)
+        run.set_step_pos(step_id, float(x), float(y))
+
+        return JsonResponse({"success": True, "message": "Updated step position"}) 
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
 def connect_steps(request) -> JsonResponse:
     if request.method == "POST":
         data = json.loads(request.body)

@@ -16,6 +16,12 @@ export interface Step {
   name: string;
   input_keys: string[];
   output_keys: string[];
+  visual_data?: {
+    node_position?: {
+      x: number;
+      y: number;
+    };
+  };
   method_name: string;
   status: StepStatus;
 }
