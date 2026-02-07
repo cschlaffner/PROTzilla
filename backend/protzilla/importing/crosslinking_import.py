@@ -633,8 +633,6 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
             "Crosslinker": "string",
             "Peptide1": "string",
             "Peptide2": "string",
-            "Peptide_position1": "int",
-            "Peptide_position2": "int",
             "CL_position1": "int",
             "CL_position2": "int",
             "Q_value": "Float64",
