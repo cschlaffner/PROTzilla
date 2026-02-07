@@ -443,7 +443,7 @@ def set_step_pos(request) -> JsonResponse:
         run = Run(run_name)
         run.set_step_pos(step_id, float(x), float(y))
 
-        return JsonResponse({"success": True, "message": "Updated step position"}) 
+        return JsonResponse({"success": True, "message": "Updated step position"})
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
