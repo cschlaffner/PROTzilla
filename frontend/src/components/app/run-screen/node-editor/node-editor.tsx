@@ -160,7 +160,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   useEffect(() => {
     console.log("Run Data", runData);
-    // TODO: also load edge data
     const effectSections = runData.displayed_steps;
     setNodes((nodesSnapshot) => {
       const newNodes: StepNodeType[] = [];
@@ -199,6 +198,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         });
       });
       return newNodes;
+    });
+
+    void getEdgesFromRunData().then((newEdges) => {
+      setEdges(newEdges);
     });
   }, [currentSectionId, navigateOrRefreshSteps, runData]);
 
