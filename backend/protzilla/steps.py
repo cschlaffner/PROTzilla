@@ -45,6 +45,7 @@ class Step(ABC):
     operation: str = None
     method_description: str = None
     input_sources: dict[DataKeys, str]  # maps to instance identifier
+    visual_data: dict
     additional_inputs: list[str] = []
     output_keys: list[DataKeys] = []
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
@@ -58,6 +59,7 @@ class Step(ABC):
         self.inputs: dict = {}
         self.output: Output = Output()
         self.input_sources = {}
+        self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])

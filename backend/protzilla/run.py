@@ -254,6 +254,14 @@ class Run:
         """
         self._metadata.update(metadata)
 
+    @error_handling
+    @auto_save
+    def set_step_pos(self, step_id: str, x: float, y: float) -> None:
+        step = self.steps.id_mapping.get(step_id)
+        if step is None:
+            raise ValueError(f"Unknown step id: {step_id}")
+        step.visual_data["node_position"] = {"x": x, "y": y}
+
     def update_modification_date(self) -> None:
         self._metadata["modification_date"] = datetime.now().strftime(
             metadata_date_format

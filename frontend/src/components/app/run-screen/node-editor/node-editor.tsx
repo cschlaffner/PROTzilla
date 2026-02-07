@@ -84,27 +84,27 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
-        void callApiWithParameters("set_step_pos/", {
+      void callApiWithParameters("set_step_pos/", {
         run_name: runName,
         step_id: node.id,
         x: node.position.x,
         y: node.position.y,
+      }).then(() => {
+        navigateOrRefreshSteps();
       });
     },
-    [runName],
+    [navigateOrRefreshSteps, runName],
   );
 
-  const getEdgesFromRunData = async (): Promise<Edge[]> => {
+  const getEdgesFromRunData = useCallback(async (): Promise<Edge[]> => {
     const res = await callApiWithParameters("get_edges/", { run_name: runName });
-    const edges = res.data
-    return edges
-  };
+    return res.data as Edge[];
+  }, [runName]);
 
   const onConnect = useCallback(
-    async (params: Connection) => {
+    (params: Connection) => {
       console.log(params);
-      // TODO: Implement this in API
-      await callApiWithParameters("connect_steps/", {
+      void callApiWithParameters("connect_steps/", {
         run_name: runName,
         connection: params,
       }).then((response) => {
@@ -112,12 +112,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           type: response.success ? "success" : "error",
           title: response.message,
         });
+        navigateOrRefreshSteps();
+        void getEdgesFromRunData().then((newEdges) => {
+          setEdges(newEdges);
+        });
       });
-      navigateOrRefreshSteps();
-      const newEdges = await getEdgesFromRunData()
-      setEdges(newEdges);
     },
-    [navigateOrRefreshSteps],
+    [getEdgesFromRunData, navigateOrRefreshSteps, notify, runName],
   );
 
   // Mouse-Over info for each handle, displayed in the corner
@@ -172,7 +173,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             currentSectionId === section.id && runData.current_step_index === flatStepIndex;
 
           const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
-          const position = oldMatchingNode ? oldMatchingNode.position : { x: 0, y: yOffset };
+          const savedPosition = step.visual_data?.node_position;
+          const position = oldMatchingNode
+            ? oldMatchingNode.position
+            : savedPosition
+              ? { x: savedPosition.x, y: savedPosition.y }
+              : { x: 0, y: yOffset };
 
           newNodes.push({
             id: step.id,
@@ -268,7 +274,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             sections
               .map((section) => section.steps.length)
               .reduce((acc: number, val: number) => acc + val, 0) -
-            1
+              1
           }
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");
