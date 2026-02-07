@@ -554,6 +554,12 @@ class _Clustergram:
             # Lerp to keep zero centered
             midpoint = (0 - zmin) / (zmax - zmin)
 
+            # If range of values is only positive or only negative, lerp doesn't work.
+            # In this case we reset. Shouldn't happen for most normalised data sets
+            # which are usually plotted with heatmaps
+            if midpoint < 0 or midpoint > 1.0:
+                midpoint = 0.5
+
             heatmap = go.Heatmap(
                 x=tickvals_col,
                 y=tickvals_row,
