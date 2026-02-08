@@ -8,7 +8,7 @@ from backend.protzilla.data_preprocessing.plots import (
 from backend.protzilla.utilities import default_intensity_column
 
 
-def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> dict:
+def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None = None) -> dict:
     """
     This function inverts the intensity column of a dataframe (1/n).
     Especially useful for H/L <-> L/H ratio transformations.
@@ -42,7 +42,7 @@ def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> d
 
 
 def by_log(
-    protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None, log_base="log10"
+    protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None = None, log_base="log10"
 ) -> dict:
     """
     This function log-transforms intensity

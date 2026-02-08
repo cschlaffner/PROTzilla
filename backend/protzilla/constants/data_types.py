@@ -7,6 +7,7 @@ class DataKeys(str, Enum):
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
+    FASTA_DF = "fasta_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)
