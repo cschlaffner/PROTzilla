@@ -61,7 +61,7 @@ def get_step(step: Step) -> dict:
     return {
         "id": step.instance_identifier,
         "name": step.display_name,
-        "input_keys": list(step.external_input_keys),
+        "input_keys": step.external_input_keys,
         "output_keys": step.output_keys,
         "visual_data": step.visual_data,
         "method_name": name_to_title(step.operation),
