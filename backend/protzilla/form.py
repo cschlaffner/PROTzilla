@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
 FormInputType = str | int | float | bool | list[str]
 
+# Backwards compatibility for older imports that expect `inputs` from this module.
+inputs = FormInputType
+
 
 @dataclass
 class Option:
