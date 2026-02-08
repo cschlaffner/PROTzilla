@@ -18,6 +18,7 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
+from backend.protzilla.constants.data_types import Connection
 from backend.protzilla.form import Form
 from backend.protzilla.run import (
     Run,
@@ -454,13 +455,36 @@ def connect_steps(request) -> JsonResponse:
     if request.method == "POST":
         data = json.loads(request.body)
         run_name: str = data.get("run_name")
-        connection = data.get("connection")
+        connection: Connection = data.get("connection")
         run = Run(run_name)
-        run.steps.connect_steps(connection)
+        try:
+            # TODO: this would also modify the form:
+            # run.connect_steps(connection)
+            # however, currently the form isn't reloaded after connect_steps calls anyways, so we might as well just bypass the overhead until it is
+            _ = run.steps.connect_steps(connection)
+            return JsonResponse(
+                {
+                    "success": True,
+                    # we really need a general message type outside of step calculation
+                    "message": {
+                        "title": "Connected steps successfully",
+                        # very verbose, could be condensed in the future
+                        "msg": f"Step {connection['target']} now uses the output with key {connection['sourceHandle']} of step {connection['source']} as its input with key {connection['targetHandle']}.",
+                    },
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        title="Error connecting steps",
+                        msg=str(e),
+                        trace=format_trace(traceback.format_exception(e)),
+                    ),
+                }
+            )
 
-        return JsonResponse(
-            {"success": True, "message": "Connected steps successfully"}
-        )
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
