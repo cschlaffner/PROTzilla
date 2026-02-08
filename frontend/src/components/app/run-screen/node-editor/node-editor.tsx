@@ -74,6 +74,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
 
   const onNodesChange = useCallback((changes: NodeChange<StepNodeType>[]) => {
     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
@@ -100,6 +101,36 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     const res = await callApiWithParameters("get_edges/", { run_name: runName });
     return res.data as Edge[];
   }, [runName]);
+
+  const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
+    setSelectedEdge(edge);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedEdge(null);
+  }, []);
+
+  const removeCurrentConnection = useCallback(() => {
+    if (!selectedEdge) return;
+    void callApiWithParameters("disconnect_steps/", {
+      run_name: runName,
+      connection: {
+        source: selectedEdge.source,
+        sourceHandle: selectedEdge.sourceHandle,
+        target: selectedEdge.target,
+        targetHandle: selectedEdge.targetHandle,
+      },
+    }).then((response) => {
+      notify({
+        type: response.success ? "success" : "error",
+        title: response.message,
+      });
+      setSelectedEdge(null);
+      void getEdgesFromRunData().then((newEdges) => {
+        setEdges(newEdges);
+      });
+    });
+  }, [getEdgesFromRunData, notify, runName, selectedEdge]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -238,12 +269,19 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={onPaneClick}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
           fitView
         >
           <Panel position="top-left">
-            <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
+              <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                Remove current connection
+              </RedButton>
+            </div>
           </Panel>
 
           <Panel position="top-right">
