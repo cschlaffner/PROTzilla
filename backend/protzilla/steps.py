@@ -829,16 +829,22 @@ class StepManager:
         new_step_index = self.all_steps.index(step)
         self.current_step_index = new_step_index
 
-    def connect_steps(self, connection: Connection):
+    def connect_steps(self, connection: Connection) -> Step:
         try:
             source = connection["source"]
-            # do we allow these keys to differ?
             sourceHandle = connection["sourceHandle"]
             target = connection["target"]
             targetHandle = connection["targetHandle"]
-            self.id_mapping[target].input_sources[targetHandle] = source
+            # do we allow these keys to differ?
+            if sourceHandle != targetHandle:
+                raise ValueError(
+                    f"The output key {sourceHandle} does not match the input key {targetHandle}"
+                )
+            target_instance = self.id_mapping[target]
+            target_instance.input_sources[targetHandle] = source
+            return target_instance
         except KeyError as e:
-            raise ValueError(
+            raise KeyError(
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
             ) from e
 

@@ -141,9 +141,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       }).then((response) => {
         notify({
           type: response.success ? "success" : "error",
-          title: response.message,
+          title: response.message.title,
+          message: response.message.msg,
         });
-        navigateOrRefreshSteps();
         void getEdgesFromRunData().then((newEdges) => {
           setEdges(newEdges);
         });
@@ -315,7 +315,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             sections
               .map((section) => section.steps.length)
               .reduce((acc: number, val: number) => acc + val, 0) -
-              1
+            1
           }
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");

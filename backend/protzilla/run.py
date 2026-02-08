@@ -310,8 +310,14 @@ class Run:
             }
         )
 
-    def step_external_input_keys(self) -> list[str]:
-        return self.steps.current_step.external_input_keys
+    @auto_save
+    def connect_steps(self, connection: Connection) -> None:
+        """
+        Currently not used. Applies the connection that is passed and reloads the target's form
+        :param connection: The connection to apply to the steps
+        """
+        target = self.steps.connect_steps(connection)
+        target.form.apply_modification(self)
 
     @error_handling
     @auto_save
