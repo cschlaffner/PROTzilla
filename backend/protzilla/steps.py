@@ -114,6 +114,10 @@ class Step(ABC):
             "method_description": cls.method_description,
         }
 
+    @abstractmethod
+    def calc_method(self):
+        raise NotImplementedError("This method must be implemented in a subclass.")
+
     def calculate(self, steps: StepManager) -> bool:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.
@@ -586,6 +590,8 @@ class StepManager:
         else:
             steps_to_search = self.previous_calculated_steps
 
+        # TODO: this is stupid. iterating over all steps should now only be necessary if for whatever reason the instance identifier is unknown
+        # if an instance identifier is present, self.id_mapping should be used
         for step in reversed(steps_to_search):
             if (
                 StepManager.check_instance_identifier(step, instance_identifier)

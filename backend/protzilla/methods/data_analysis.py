@@ -3,6 +3,7 @@ import logging
 from typing_extensions import override
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.data_types import DataKeys
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -191,14 +192,6 @@ class DimensionReductionMetric(Enum):
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        """
-        Generic implementation for data analysis steps, most share these inputs
-        """
-        self.inputs["protein_df"] = steps.protein_df
-        self.inputs["metadata_df"] = steps.metadata_df
-
 
 class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
 
@@ -206,12 +199,8 @@ class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
+        super().insert_dataframes(steps)
         self.inputs["log_base"] = steps.get_step_input(input_key="log_base")
-        self.inputs["protein_df"] = steps.get_step_input(
-            input_key="protein_df",
-            instance_identifier=self.inputs.get("protein_df_field", None),
-        )
-        self.inputs["metadata_df"] = steps.metadata_df
 
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
@@ -313,10 +302,6 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                     options=TTestType,
                 ),
                 DropdownField(
-                    name="protein_df_field",
-                    label="Step to use protein intensities from",
-                ),
-                DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     value=MultipleTestingCorrectionMethod.benjamini_hochberg,
@@ -361,32 +346,45 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         )
 
     def modify_form(self, form, run):
-        protein_field = form["protein_df_field"]
-        grouping_field = form["grouping"]
-        group1_field = form["group1"]
-        group2_field = form["group2"]
+        grouping_field: DropdownField = form["grouping"]
+        group1_field: DropdownField = form["group1"]
+        group2_field: DropdownField = form["group2"]
 
-        protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
+        metadata_source = self.input_sources.get(DataKeys.METADATA_DF, None)
+
+        if metadata_source is None:
+            return
+
         grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
+            form_helper.get_choices_for_metadata_non_sample_columns(run, metadata_source)
         )
 
         if grouping_field.options == []:
             return
 
+        # TODO: everything below shold be moved somewhere else, at least into the parent class
+        # since setting the relevant groups is the same across all differential expression steps
+
         grouping = grouping_field.value
+
+        metadata_df = run.steps.get_step_output(output_key=DataKeys.METADATA_DF, instance_identifier=metadata_source)
+
+        if metadata_df is None:
+            return
+
+        groups = metadata_df[grouping].unique()
 
         # Set choices for group1 field based on selected grouping
         group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+            form_helper.to_choices(groups)
         )
 
         # set choices for group2 field based on selected grouping and group1
-        if group1_field.value in run.steps.metadata_df[grouping].unique():
+        if group1_field.value in groups:
             group2_field.set_options(
                 [
                     Option(el, el)
-                    for el in run.steps.metadata_df[grouping].unique()
+                    for el in groups
                     if el != group1_field.value
                 ]
             )
@@ -394,7 +392,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
             group2_field.set_options(
                 list(
                     reversed(
-                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+                        form_helper.to_choices(groups)
                     )
                 )
             )

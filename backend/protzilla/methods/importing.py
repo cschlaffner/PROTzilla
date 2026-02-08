@@ -1,6 +1,8 @@
 from __future__ import annotations
+from abc import ABC
 from typing_extensions import override
 
+from backend.protzilla.constants.data_types import DataKeys
 from backend.protzilla.form import *
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
@@ -23,23 +25,12 @@ from backend.protzilla.importing.import_utils import (
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
-class ImportingStep(Step):
+class ImportingStep(Step, ABC):
     section = Section.IMPORTING
 
-    def calc_method(self):
-        raise NotImplementedError("This method must be implemented in a subclass.")
-
-    def modify_form(self, form, run):
-        Step.modify_form(self, form, run)
+    def modify_form(self, form: Form, run: Run):
         if run.steps.current_step.calculation_status == "complete":
             form.input_fields[self.index_of_file_input()].value = None
-
-    # @override
-    # def insert_dataframes(self, steps: StepManager) -> None:
-    #     """
-    #     For normal importing steps, there are no dataframes to be inserted
-    #     """
-    #     pass
 
     def index_of_file_input(self):
         """
@@ -49,11 +40,9 @@ class ImportingStep(Step):
         return 0
 
 
-class MetadataImportingStep(ImportingStep):
-    pass
-    # @override
-    # def insert_dataframes(self, steps: StepManager) -> None:
-    #     self.inputs["protein_df"] = steps.protein_df
+class MetadataImportingStep(ImportingStep, ABC):
+
+    operation = "metadataimport"
 
 
 class MaxQuantImport(ImportingStep):
@@ -61,7 +50,7 @@ class MaxQuantImport(ImportingStep):
     operation = "Protein Data Import"
     method_description = "Import the protein groups file form output of MaxQuant"
 
-    output_keys = ["protein_df"]
+    output_keys = [DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -105,7 +94,7 @@ class DiannImport(ImportingStep):
     operation = "Protein Data Import"
     method_description = "DIA-NN data import"
 
-    output_keys = ["protein_df"]
+    output_keys = [DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -140,7 +129,7 @@ class MsFraggerImport(ImportingStep):
         "Import the combined_protein.tsv file form output of MS Fragger"
     )
 
-    output_keys = ["protein_df"]
+    output_keys = [DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -175,10 +164,9 @@ class MsFraggerImport(ImportingStep):
 
 class MetadataImport(MetadataImportingStep):
     display_name = "Metadata Import"
-    operation = "metadataimport"
     method_description = "Import metadata"
 
-    output_keys = ["metadata_df"]
+    output_keys = [DataKeys.METADATA_DF]
 
     def create_form(self):
         return Form(
@@ -202,10 +190,9 @@ class MetadataImport(MetadataImportingStep):
 
 class MetadataImportMethodDiann(MetadataImportingStep):
     display_name = "DIA-NN Metadata Import"
-    operation = "metadataimport"
     method_description = "Import metadata for run relationships of DIA-NN"
 
-    output_keys = ["metadata_df", "protein_df"]
+    output_keys = [DataKeys.METADATA_DF, DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -228,12 +215,11 @@ class MetadataImportMethodDiann(MetadataImportingStep):
 
 class MetadataColumnAssignment(MetadataImportingStep):
     display_name = "Metadata column assignment"
-    operation = "metadataimport"
     method_description = (
         "Assign columns to metadata categories, repeatable for each category"
     )
 
-    output_keys = ["metadata_df", "protein_df"]
+    output_keys = [DataKeys.METADATA_DF, DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -250,12 +236,17 @@ class MetadataColumnAssignment(MetadataImportingStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, form: Form, run: Run):
         metadata_required_column = form["metadata_required_column"]
         metadata_unknown_column = form["metadata_unknown_column"]
 
+        metadata_source = self.input_sources.get(DataKeys.METADATA_DF, None)
+
+        if metadata_source is None:
+            return
+
         metadata = run.steps.get_step_output(
-            ImportingStep, "metadata_df", include_current_step=True
+            output_key=DataKeys.METADATA_DF, instance_identifier=metadata_source
         )
 
         if metadata is not None:
@@ -283,18 +274,13 @@ class MetadataColumnAssignment(MetadataImportingStep):
 
     calc_method = staticmethod(metadata_column_assignment)
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-        self.inputs["metadata_df"] = steps.metadata_df
-
 
 class PeptideImport(ImportingStep):
     display_name = "MaxQuant Peptide Import"
     operation = "peptide_import"
     method_description = "Import peptide data"
 
-    output_keys = ["peptide_df"]
+    output_keys = [DataKeys.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
@@ -318,8 +304,8 @@ class PeptideImport(ImportingStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        ImportingStep.modify_form(self, form, run)
+    def modify_form(self, form: Form, run: Run):
+        super().modify_form(self, form, run)
 
         map_to_uniprot_field = form["map_to_uniprot"]
         map_to_uniprot_field.value = run.steps.get_step_input(
@@ -336,7 +322,7 @@ class EvidenceImport(ImportingStep):
     operation = "peptide_import"
     method_description = "Import an evidence file"
 
-    output_keys = ["peptide_df"]
+    output_keys = [DataKeys.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
@@ -354,8 +340,8 @@ class EvidenceImport(ImportingStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        ImportingStep.modify_form(self, form, run)
+    def modify_form(self, form: Form, run: Run):
+        super().modify_form(self, form, run)
 
         map_to_uniprot_field = form["map_to_uniprot"]
 
@@ -371,7 +357,7 @@ class FastaImport(ImportingStep):
     operation = "fasta_import"
     method_description = "Import a fasta file containing protein sequences."
 
-    output_keys = ["fasta_df"]
+    output_keys = [DataKeys.FASTA_DF]
 
     calc_method = staticmethod(fasta_import)
 
@@ -399,7 +385,7 @@ class ExampleDatasetImport(ImportingStep):
         "https://doi.org/10.3390/cancers12030709 "
     )
 
-    output_keys = ["metadata_df", "peptide_df", "protein_df"]
+    output_keys = [DataKeys.METADATA_DF, DataKeys.PEPTIDE_DF, DataKeys.PROTEIN_DF]
 
     def create_form(self):
         return Form(

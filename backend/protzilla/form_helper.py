@@ -35,10 +35,10 @@ def get_choices(
 
 
 def get_choices_for_metadata(
-    run: Run, instance_identifier: str | None = None
+    run: Run, instance_identifier: str
 ) -> list[Option]:
     if instance_identifier is None:
-        metadata_df = run.steps.metadata_df
+        raise ValueError("Not passing an instance identifier is deprecated. You probably want the metadata from a specific step")
     else:
         metadata_df = run.steps.get_step_output(
             output_key="metadata_df", instance_identifier=instance_identifier
@@ -49,7 +49,7 @@ def get_choices_for_metadata(
 
 
 def get_choices_for_metadata_non_sample_columns(
-    run: Run, instance_identifier: str | None = None
+    run: Run, instance_identifier: str
 ) -> list[Option]:
     metadata_choices = get_choices_for_metadata(run, instance_identifier)
     return [c for c in metadata_choices if c.label != "Sample"]
