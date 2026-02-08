@@ -467,6 +467,23 @@ def connect_steps(request) -> JsonResponse:
         )
 
 
+def disconnect_steps(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        connection = data.get("connection")
+        run = Run(run_name)
+        run.steps.disconnect_steps(connection)
+
+        return JsonResponse(
+            {"success": True, "message": "Disconnected steps successfully"}
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
 def get_edges(request) -> JsonResponse:
     if request.method == "POST":
         data = json.loads(request.body)
