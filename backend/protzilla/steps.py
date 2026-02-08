@@ -215,15 +215,15 @@ class Step(ABC):
 
     @property
     def external_input_keys(self) -> list[DataKeys]:
-        keys: list[DataKeys] = []
-        form_keys = [
+        keys: set[DataKeys] = set[DataKeys]()
+        form_keys = {
             field.name
             for field in self.form.input_fields
             if isinstance(field, InputField)
-        ]
+        }
         if self.calc_method:
             calc_params = inspect.signature(self.calc_method).parameters.values()
-            keys += [
+            keys |= {
                 param.name
                 for param in calc_params
                 if (
@@ -232,17 +232,17 @@ class Step(ABC):
                     or not param.name in form_keys
                 )
                 and not param.name in self.additional_inputs
-            ]
+            }
         if self.plot_method:
             plot_params = inspect.signature(self.plot_method).parameters.values()
-            keys += [
+            keys |= {
                 param.name
                 for param in plot_params
                 if not param.name.startswith("output_")
                 and not param.name in form_keys
                 and not param.name in self.additional_inputs
-            ]
-        return list(dict.fromkeys(keys))
+            }
+        return list(keys)
 
     def handle_calc_outputs(self, outputs: dict) -> None:
         """
@@ -832,6 +832,7 @@ class StepManager:
     def connect_steps(self, connection: Connection):
         try:
             source = connection["source"]
+            # do we allow these keys to differ?
             sourceHandle = connection["sourceHandle"]
             target = connection["target"]
             targetHandle = connection["targetHandle"]
