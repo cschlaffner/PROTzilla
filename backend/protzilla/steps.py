@@ -242,7 +242,6 @@ class Step(ABC):
                 and not param.name in form_keys
                 and not param.name in self.additional_inputs
             ]
-        # Preserve order while removing duplicates.
         return list(dict.fromkeys(keys))
 
     def handle_calc_outputs(self, outputs: dict) -> None:
