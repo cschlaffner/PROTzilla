@@ -151,19 +151,22 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
 
     if not rows_to_duplicate:
         return crosslinking_df, messages
+    new_rows = []
     for row_to_duplicate_idx, potential_positions in rows_to_duplicate.items():
         for potential_cl_position1, potential_cl_position2 in potential_positions:
             new_row = crosslinking_df.loc[row_to_duplicate_idx].copy()
             new_row["crosslinker_position1"] = potential_cl_position1
             new_row["crosslinker_position2"] = potential_cl_position2
-            crosslinking_df = pd.concat(
-                [crosslinking_df, new_row.to_frame().T], ignore_index=True
-            )
+            new_rows.append(new_row)
         messages.append(
             dict(
                 level=logging.WARNING,
                 msg=f"Row {row_to_duplicate_idx} was duplicated {len(potential_positions)} times due to several matches between peptide sequence and protein sequence.",
             )
+        )
+    if new_rows:
+        crosslinking_df = pd.concat(
+            [crosslinking_df, pd.DataFrame(new_rows)], ignore_index=True
         )
 
     return crosslinking_df, messages
@@ -261,13 +264,13 @@ def validate_with_angstrom_deviation(
         "crosslinker_position1",
         "crosslinker_position2",
     ]
-    all_crosslinks_df.loc[mask, new_colums] = relevant_crosslinks_df.apply(
+    relevant_crosslinks_df[new_colums] = relevant_crosslinks_df.apply(
         check_crosslink, axis=1
     )
 
     # removing all crosslinks that weren't checked from the df
-    checked_crosslinks_df = all_crosslinks_df[
-        all_crosslinks_df["valid_crosslink"].notna()
+    checked_crosslinks_df = relevant_crosslinks_df[
+        relevant_crosslinks_df["valid_crosslink"].notna()
     ]
 
     return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
