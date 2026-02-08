@@ -106,7 +106,25 @@ def get_distance_between_two_amino_acids_in_angstrom(
 def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
     crosslinking_df: pd.DataFrame, protein_sequence: str
 ) -> tuple[pd.DataFrame, list[dict]]:
-    # 1-based
+    """
+    Adds for each crosslink the 1-based positions of amino acids where the crosslink bound to a crosslinking DataFrame.
+    If a peptide sequence occurs multiple times in the protein, the row is duplicated for each
+    additional combination of positions.
+    If a peptide sequence can't be matched the row will be deleted and a warning emitted.
+
+    :param crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+                           - 'Peptide1': first peptide sequence
+                           - 'Peptide2': second peptide sequence
+                           - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
+                           - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
+    :param protein_sequence: Full protein sequence in which the peptides are located.
+    :return: tuple (updated_crosslinking_df, messages)
+             - updated_crosslinking_df: input DataFrame with two new columns:
+                 - 'crosslinker_position1': 1-based crosslinker position in Peptide1
+                 - 'crosslinker_position2': 1-based crosslinker position in Peptide2
+                 Rows are duplicated for multiple peptide matches.
+             - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
+    """
     crosslinking_df["crosslinker_position1"] = pd.Series(
         [pd.NA] * len(crosslinking_df), dtype="Int64"
     )
@@ -193,7 +211,6 @@ def validate_with_angstrom_deviation(
     protein to validate) of crosslinking_df and two more colums containing the distances in AlphaFold and wheter the crosslink matches the
     AlphaFold data or not
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
-    :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
     alphafold_data = fetch_alphafold_protein_structure(
         uniprot_id=protein_to_validate, persist_uploads=False
