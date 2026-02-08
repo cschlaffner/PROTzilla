@@ -103,10 +103,10 @@ def get_distance_between_two_amino_acids_in_angstrom(
     return float(np.linalg.norm(pos2 - pos1))
 
 
-def _add_positions_of_amino_acid_where_crosslinker_bound_to_df(
+def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
     crosslinking_df: pd.DataFrame, protein_sequence: str
-) -> list[dict]:
-    # 0-based
+) -> tuple[pd.DataFrame, list[dict]]:
+    # 1-based
     crosslinking_df["crosslinker_position1"] = pd.Series(
         [pd.NA] * len(crosslinking_df), dtype="Int64"
     )
@@ -127,8 +127,8 @@ def _add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         ]
         all_position_combinations = [
             (
-                pos1 + crosslinker_row.CL_position_within_peptide1,
-                pos2 + crosslinker_row.CL_position_within_peptide2,
+                pos1 + crosslinker_row.CL_position_within_peptide1 + 1,
+                pos2 + crosslinker_row.CL_position_within_peptide2 + 1,
             )
             for pos1 in peptide1_positions
             for pos2 in peptide2_positions
@@ -146,8 +146,11 @@ def _add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         ][1]
         if len(all_position_combinations) > 1:
             rows_to_duplicate[idx] = all_position_combinations[1:]
+
+    crosslinking_df.drop(rows_to_delete, inplace=True)
+
     if not rows_to_duplicate:
-        return messages
+        return crosslinking_df, messages
     for row_to_duplicate_idx, potential_positions in rows_to_duplicate.items():
         for potential_cl_position1, potential_cl_position2 in potential_positions:
             new_row = crosslinking_df.loc[row_to_duplicate_idx].copy()
@@ -163,7 +166,7 @@ def _add_positions_of_amino_acid_where_crosslinker_bound_to_df(
             )
         )
 
-    return messages
+    return crosslinking_df, messages
 
 
 def validate_with_angstrom_deviation(
@@ -203,16 +206,18 @@ def validate_with_angstrom_deviation(
     )
     relevant_crosslinks_df = all_crosslinks_df[mask].copy()
 
-    messages = _add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        relevant_crosslinks_df, protein_sequence
+    relevant_crosslinks_df, messages = (
+        add_positions_of_amino_acid_where_crosslinker_bound_to_df(
+            relevant_crosslinks_df, protein_sequence
+        )
     )
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
             amino_acid_position2=crosslink.crosslinker_position2,
-            amino_acid_kind1=protein_sequence[crosslink.crosslinker_position1],
-            amino_acid_kind2=protein_sequence[crosslink.crosslinker_position2],
+            amino_acid_kind1=protein_sequence[crosslink.crosslinker_position1 - 1],
+            amino_acid_kind2=protein_sequence[crosslink.crosslinker_position2 - 1],
             cif_df=cif_df,
         )
         try:
@@ -241,12 +246,23 @@ def validate_with_angstrom_deviation(
         )
 
         return pd.Series(
-            {"alphafold_distance": predicted_distance, "valid_crosslink": valid}
+            {
+                "alphafold_distance": predicted_distance,
+                "valid_crosslink": valid,
+                "crosslinker_position1": crosslink.crosslinker_position1,
+                "crosslinker_position2": crosslink.crosslinker_position2,
+            }
         )
 
-    # adding the distance in alphafold and the result of the validation to all relevant crosslinks
-    all_crosslinks_df.loc[mask, ["alphafold_distance", "valid_crosslink"]] = (
-        relevant_crosslinks_df.apply(check_crosslink, axis=1)
+    # adding the distance in alphafold, the result of the validation and the crosslinker positions to all relevant crosslinks
+    new_colums = [
+        "alphafold_distance",
+        "valid_crosslink",
+        "crosslinker_position1",
+        "crosslinker_position2",
+    ]
+    all_crosslinks_df.loc[mask, new_colums] = relevant_crosslinks_df.apply(
+        check_crosslink, axis=1
     )
 
     # removing all crosslinks that weren't checked from the df
