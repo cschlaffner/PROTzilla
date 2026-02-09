@@ -47,7 +47,9 @@ class Step(ABC):
     input_sources: dict[DataKeys, str]  # maps to instance identifier
     visual_data: dict
     internal_inputs: set[str] = set[str]()
-    output_keys: list[DataKeys] = [] # keys collections like this should probably be sets
+    output_keys: list[DataKeys] = (
+        []
+    )  # keys collections like this should probably be sets
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
         "incomplete"
     )

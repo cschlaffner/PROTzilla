@@ -34,11 +34,11 @@ def get_choices(
     return list(reversed(choices))
 
 
-def get_choices_for_metadata(
-    run: Run, instance_identifier: str
-) -> list[Option]:
+def get_choices_for_metadata(run: Run, instance_identifier: str) -> list[Option]:
     if instance_identifier is None:
-        raise ValueError("Not passing an instance identifier is deprecated. You probably want the metadata from a specific step")
+        raise ValueError(
+            "Not passing an instance identifier is deprecated. You probably want the metadata from a specific step"
+        )
     else:
         metadata_df = run.steps.get_step_output(
             output_key="metadata_df", instance_identifier=instance_identifier
