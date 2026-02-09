@@ -665,7 +665,7 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def process_organism_id_from_text_field(
     organism_ids: str,
-) -> tuple[bool, Optional[list[str]], Optional[list[str]]]:
+) -> tuple[bool, Optional[list[str]], Optional[list[str]], Optional[str]]:
     """
     Validates a comma-separated string of NCBI Taxonomy IDs.
     Returns False immediately if any ID is invalid.
@@ -683,32 +683,36 @@ def process_organism_id_from_text_field(
         id.strip() for id in organism_ids.split(",") if id.strip()
     ]
     if not organism_ids_list:
-        return False, None, None
+        return False, None, None, "EMPTY_INPUT"
 
     organism_ids_for_request = ",".join(organism_ids_list)
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id={organism_ids_for_request}&retmode=json"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code != 200:
-            return False, None, None
+            return False, None, None, "NCBI_TAXONOMY_REQUEST_FAILED"
         data = response.json()
+    except requests.Timeout:
+        return False, None, None, "NCBI_TAXONOMY_TIMEOUT"
     except Exception:
-        return False, None, None
+        return False, None, None, "NCBI_TAXONOMY_SERVICE_UNAVAILABLE"
 
     result = data.get("result", {})
+    if not result or "uids" not in result:
+        return False, None, None, "NCBI_TAXONOMY_RESPONSE_INVALID"
     valid_organism_ids = result.get("uids", [])
     organism_names = []
 
     for id in organism_ids_list:
         if id not in valid_organism_ids:
             # Abort at the first invalid id
-            return False, id, None
+            return False, id, None, "ORGANISM_ID_NOT_FOUND"
         name = result[id].get("scientificname")
         if not name:
-            return False, id, None
+            return False, id, None, "MISSING_SCIENTIFIC_NAME"
         organism_names.append(name)
 
-    return True, organism_ids_list, organism_names
+    return True, organism_ids_list, organism_names, None 
 
 
 def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
@@ -746,27 +750,34 @@ def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
     return "\n".join(sorted(protein_with_error_set))
 
 
+def error_output(msg, trace: str | None = None) -> dict:
+    return dict(
+        crosslinking_df=pd.DataFrame(),
+        imported_rows_with_errors_df=pd.DataFrame(),
+        messages=[
+            dict(
+                level=logging.ERROR,
+                msg=msg,
+                trace=trace,
+            )
+        ],
+    )
+
+
 def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
     file_type = file_path.suffix
     try:
         scientific_organism_names: list[str] = None
         if file_type == ".csv":
-            success, organism_ids_list, scientific_organism_names = (
+            success, organism_ids_list, scientific_organism_names, error = (
                 process_organism_id_from_text_field(organism_ids)
             )
             if not success:
                 if organism_ids_list:
-                    msg = f"Unsupported organism id: {organism_ids_list}. Please provide all valid taxonomy ids."
+                    msg = f"Unsupported organism id: {organism_ids_list}. \nOrganism id validation failed with error: {error}. \nPlease provide all valid taxonomy ids."
                 else:
-                    msg = f"An error occurred while reading the organism ids. Please provide all valid taxonomy ids, separated by a comma."
-                return dict(
-                    messages=[
-                        dict(
-                            level=logging.ERROR,
-                            msg=msg,
-                        )
-                    ]
-                )
+                    msg = f"An error occurred while reading the organism ids: {error}. \nPlease provide all valid taxonomy ids, separated by a comma."
+                return error_output(msg)
             good_df, failed_df = read_csm_file(file_path, organism_ids_list)
         elif file_type == ".xlsx":
             good_df, failed_df = read_ProteomeDiscoverer_XlinkX_file(file_path)
@@ -774,15 +785,7 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
             raise ValueError(f"Unsupported file type: {file_path.suffix}")
     except Exception as e:
         msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid cross linking file."
-        return dict(
-            messages=[
-                dict(
-                    level=logging.ERROR,
-                    msg=msg,
-                    trace=format_trace(traceback.format_exception(e)),
-                )
-            ]
-        )
+        return error_output(msg, trace=format_trace(traceback.format_exception(e)))
 
     def base_message():
         if file_type == ".csv":
