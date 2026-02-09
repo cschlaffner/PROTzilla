@@ -122,8 +122,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       },
     }).then((response) => {
       notify({
-        type: response.success ? "success" : "error",
-        title: response.message,
+          type: response.success ? "success" : "error",
+          title: response.message.title,
+          message: response.message.msg,
       });
       setSelectedEdge(null);
       void getEdgesFromRunData().then((newEdges) => {

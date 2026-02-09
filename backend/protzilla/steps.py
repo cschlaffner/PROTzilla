@@ -856,22 +856,23 @@ class StepManager:
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
             ) from e
 
-    def disconnect_steps(self, connection: Connection):
+    def disconnect_steps(self, connection: Connection) -> Step:
         try:
             source = connection["source"]
             target = connection["target"]
             targetHandle = connection["targetHandle"]
         except KeyError as e:
-            raise ValueError(
+            raise KeyError(
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
             ) from e
 
-        step = self.id_mapping.get(target)
-        if step is None:
-            return
-        existing_source = step.input_sources.get(targetHandle)
+        target_instance = self.id_mapping.get(target)
+        if target_instance is None:
+            raise ValueError(f"No step with id {target} found")
+        existing_source = target_instance.input_sources.get(targetHandle)
         if existing_source == source:
-            del step.input_sources[targetHandle]
+            del target_instance.input_sources[targetHandle]
+        return target_instance
 
     def get_edges(self) -> list[Connection]:
         return [

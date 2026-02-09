@@ -480,6 +480,7 @@ def connect_steps(request) -> JsonResponse:
                     "message": dict(
                         title="Error connecting steps",
                         msg=str(e),
+                        # TODO: trace is never shown atm, but should be part of a message system refactor
                         trace=format_trace(traceback.format_exception(e)),
                     ),
                 }
@@ -497,11 +498,35 @@ def disconnect_steps(request) -> JsonResponse:
         run_name: str = data.get("run_name")
         connection = data.get("connection")
         run = Run(run_name)
-        run.steps.disconnect_steps(connection)
+        try:
+            # TODO: this would also modify the form:
+            # run.disconnect_steps(connection)
+            # however, currently the form isn't reloaded after disconnect_steps calls anyways, so we might as well just bypass the overhead until it is
+            _ = run.steps.disconnect_steps(connection)
+            return JsonResponse(
+                {
+                    "success": True,
+                    # we really need a general message type outside of step calculation
+                    "message": {
+                        "title": "Disconnected steps successfully",
+                        # very verbose, could be condensed in the future
+                        "msg": f"Removed {connection['source']} as the input for {connection['targetHandle']} of step {connection['target']}.",
+                    },
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        title="Error disconnecting steps",
+                        msg=str(e),
+                        # TODO: trace is never shown atm, but should be part of a message system refactor
+                        trace=format_trace(traceback.format_exception(e)),
+                    ),
+                }
+            )
 
-        return JsonResponse(
-            {"success": True, "message": "Disconnected steps successfully"}
-        )
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405

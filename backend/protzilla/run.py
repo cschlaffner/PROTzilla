@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from backend.protzilla.constants.data_types import Connection
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
@@ -317,6 +318,15 @@ class Run:
         :param connection: The connection to apply to the steps
         """
         target = self.steps.connect_steps(connection)
+        target.form.apply_modification(self)
+
+    @auto_save
+    def disconnect_steps(self, connection: Connection) -> None:
+        """
+        Currently not used. Removes the connection that is passed and reloads the target's form
+        :param connection: The connection to remove from the steps
+        """
+        target = self.steps.disconnect_steps(connection)
         target.form.apply_modification(self)
 
     @error_handling
