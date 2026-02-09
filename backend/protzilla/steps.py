@@ -46,8 +46,8 @@ class Step(ABC):
     method_description: str = None
     input_sources: dict[DataKeys, str]  # maps to instance identifier
     visual_data: dict
-    additional_inputs: list[str] = []
-    output_keys: list[DataKeys] = []
+    internal_inputs: set[str] = set[str]()
+    output_keys: list[DataKeys] = [] # keys collections like this should probably be sets
     calculation_status: Literal["complete", "outdated", "incomplete", "failed"] = (
         "incomplete"
     )
@@ -235,7 +235,7 @@ class Step(ABC):
                     or param.annotation == pd.DataFrame
                     or not param.name in form_keys
                 )
-                and not param.name in self.additional_inputs
+                and not param.name in self.internal_inputs
             }
         if self.plot_method:
             plot_params = inspect.signature(self.plot_method).parameters.values()
@@ -244,7 +244,7 @@ class Step(ABC):
                 for param in plot_params
                 if not param.name.startswith("output_")
                 and not param.name in form_keys
-                and not param.name in self.additional_inputs
+                and not param.name in self.internal_inputs
             }
         return list(keys)
 

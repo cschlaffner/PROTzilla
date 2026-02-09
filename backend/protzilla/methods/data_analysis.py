@@ -279,6 +279,8 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
+    internal_inputs = {"log_base"}
+
     output_keys = [
         "differentially_expressed_proteins_df",
         "significant_proteins_df",
