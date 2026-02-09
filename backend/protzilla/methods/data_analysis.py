@@ -358,7 +358,9 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
             return
 
         grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run, metadata_source)
+            form_helper.get_choices_for_metadata_non_sample_columns(
+                run, metadata_source
+            )
         )
 
         if grouping_field.options == []:
@@ -369,7 +371,9 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
 
         grouping = grouping_field.value
 
-        metadata_df = run.steps.get_step_output(output_key=DataKeys.METADATA_DF, instance_identifier=metadata_source)
+        metadata_df = run.steps.get_step_output(
+            output_key=DataKeys.METADATA_DF, instance_identifier=metadata_source
+        )
 
         if metadata_df is None:
             return
@@ -377,27 +381,15 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         groups = metadata_df[grouping].unique()
 
         # Set choices for group1 field based on selected grouping
-        group1_field.set_options(
-            form_helper.to_choices(groups)
-        )
+        group1_field.set_options(form_helper.to_choices(groups))
 
         # set choices for group2 field based on selected grouping and group1
         if group1_field.value in groups:
             group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in groups
-                    if el != group1_field.value
-                ]
+                [Option(el, el) for el in groups if el != group1_field.value]
             )
         else:
-            group2_field.set_options(
-                list(
-                    reversed(
-                        form_helper.to_choices(groups)
-                    )
-                )
-            )
+            group2_field.set_options(list(reversed(form_helper.to_choices(groups))))
 
     calc_method = staticmethod(t_test)
 
