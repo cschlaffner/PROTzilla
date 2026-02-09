@@ -463,7 +463,9 @@ class CrosslinkingImport(ImportingStep):
                     label="Organism IDs \n(only required when importing a CSM file)",
                     value="",
                 ),
-                InfoField(label="Please list them in the order in which they should be applied, separated by a comma \n e.g.: 9606, 10090, 10116"),
+                InfoField(
+                    label="Please list them in the order in which they should be applied, separated by a comma \n e.g.: 9606, 10090, 10116"
+                ),
             ],
         )
 

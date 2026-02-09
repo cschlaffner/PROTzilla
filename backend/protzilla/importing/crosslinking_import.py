@@ -712,7 +712,7 @@ def process_organism_id_from_text_field(
             return False, id, None, "MISSING_SCIENTIFIC_NAME"
         organism_names.append(name)
 
-    return True, organism_ids_list, organism_names, None 
+    return True, organism_ids_list, organism_names, None
 
 
 def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
