@@ -191,7 +191,7 @@ def test_get_missing_protein_designation():
                 "9606": {"scientificname": "Homo sapiens"},
                 "10090": {"scientificname": "Mus musculus"},
             },
-            (True, ["9606", "10090"], ["Homo sapiens", "Mus musculus"]),
+            (True, ["9606", "10090"], ["Homo sapiens", "Mus musculus"], None),
         ),
         (
             "9606,9999",
@@ -199,7 +199,7 @@ def test_get_missing_protein_designation():
                 "uids": ["9606"],
                 "9606": {"scientificname": "Homo sapiens"},
             },
-            (False, "9999", None),
+            (False, "9999", None, "ORGANISM_ID_NOT_FOUND"),
         ),
     ],
 )
