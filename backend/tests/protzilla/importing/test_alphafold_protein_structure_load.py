@@ -109,7 +109,7 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "sequence_df",
+        "amino_acid_sequence_df",
         "messages",
     }
 
@@ -166,7 +166,7 @@ def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
     assert isinstance(plddt_df, pd.DataFrame)
     assert not plddt_df.empty
 
-    seq_df = out["sequence_df"]
+    seq_df = out["amino_acid_sequence_df"]
     assert isinstance(seq_df, pd.DataFrame)
     assert not seq_df.empty
 
@@ -283,10 +283,10 @@ CA C 2.0
     assert out["plddt_df"]["residueNumber"].tolist() == [1]
     assert out["plddt_df"]["confidenceScore"].tolist() == [90]
 
-    assert isinstance(out["sequence_df"], pd.DataFrame)
-    assert not out["sequence_df"].empty
-    assert out["sequence_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
-    assert out["sequence_df"]["Protein Sequence"].tolist() == ["AAAA"]
+    assert isinstance(out["amino_acid_sequence_df"], pd.DataFrame)
+    assert not out["amino_acid_sequence_df"].empty
+    assert out["amino_acid_sequence_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
+    assert out["amino_acid_sequence_df"]["Protein Sequence"].tolist() == ["AAAA"]
 
     assert any(d.get("level") == logging.INFO for d in out["messages"]) or any(
         "Successfully loaded" in d.get("msg", "") for d in out["messages"]

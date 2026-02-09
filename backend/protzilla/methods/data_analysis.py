@@ -65,6 +65,10 @@ from protzilla.data_analysis.crosslinking_validation import (
     bar_plot_of_valid_crosslinks,
 )
 from backend.protzilla.run import Run
+from backend.protzilla.methods.importing import (
+    ImportStructurePredictionFromDisk,
+    AlphaFoldPredictionLoad,
+)
 
 
 class TTestType(Enum):
@@ -2483,7 +2487,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         return Form(
             label="Ångström Deviation",
             input_fields=[
-                TextField(
+                DropdownField(
                     name="protein_to_validate",
                     label="Protein prediction that should be validated",
                 ),
@@ -2491,6 +2495,21 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
+        # add all loaded protein entry ids to the dropdown of protein_to_validate_field
+        loaded_protein_entry_ids = list(
+            set(
+                run.steps.get_inputs_of_step_type(
+                    ImportStructurePredictionFromDisk, "entry_id"
+                )
+                + run.steps.get_inputs_of_step_type(
+                    AlphaFoldPredictionLoad, "uniprot_id"
+                )
+            )
+        )
+        form["protein_to_validate"].set_options(
+            form_helper.to_choices(loaded_protein_entry_ids)
+        )
+        # create fields for every crosslink
         crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
         for crosslinker in crosslinkers:
             field_name = f"{crosslinker}_length"
@@ -2518,6 +2537,18 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        entry_id = inputs["protein_to_validate"]
+        correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
+            ImportStructurePredictionFromDisk, "entry_id", entry_id
+        ) or steps.get_step_identifier_of_step_with_input(
+            AlphaFoldPredictionLoad, "uniprot_id", entry_id
+        )
+        inputs["cif_df"] = steps.get_step_output(
+            Step, "cif_df", correct_input_step_identifier
+        )
+        inputs["amino_acid_sequence_df"] = steps.get_step_output(
+            Step, "amino_acid_sequence_df", correct_input_step_identifier
+        )
         inputs["crosslinking_df"] = steps.get_step_output(
             Step,
             "crosslinking_df",

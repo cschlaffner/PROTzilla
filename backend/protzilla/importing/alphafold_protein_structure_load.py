@@ -134,7 +134,7 @@ def handle_alphafold_files(
     cif_df = None
     pae_df = None
     plddt_df = None
-    sequence_df = None
+    amino_acid_sequence_df = None
     messages = []
 
     target_dir = paths.ALPHAFOLD_PATH / uniprot
@@ -196,7 +196,7 @@ def handle_alphafold_files(
                 f.write(sequence)
             logger.info("Wrote FASTA sequence to %s", fasta_dest)
             fasta_dict = fasta_import(str(fasta_dest))
-            sequence_df = fasta_dict["fasta_df"]
+            amino_acid_sequence_df = fasta_dict["fasta_df"]
         except OSError:
             logger.exception("Failed to write FASTA file %s", fasta_dest)
         except Exception:
@@ -210,7 +210,7 @@ def handle_alphafold_files(
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
-        "sequence_df": sequence_df,
+        "amino_acid_sequence_df": amino_acid_sequence_df,
         "messages": messages,
     }
 
@@ -274,8 +274,8 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
     fasta_file = fasta_files[0]
     try:
         fasta_dict = fasta_import(str(fasta_file))
-        sequence_df = fasta_dict.get("fasta_df")
-        if sequence_df is None:
+        amino_acid_sequence_df = fasta_dict.get("fasta_df")
+        if amino_acid_sequence_df is None:
             msg = f"FASTA importer did not return 'fasta_df' for {fasta_file}"
             logger.error(msg)
             raise RuntimeError(msg)
@@ -290,9 +290,6 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         msg = f"No JSON files (PAE/pLDDT) found in {prot_dir} for entry '{entry_id}'"
         logger.error(msg)
         raise FileNotFoundError(msg)
-
-    pae_df = None
-    plddt_df = None
 
     try:
         if len(json_files) == 1:
@@ -331,7 +328,7 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
-        "sequence_df": sequence_df,
+        "amino_acid_sequence_df": amino_acid_sequence_df,
     }
     if not any(df.empty for df in df_dict.values()):
         success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
@@ -411,7 +408,7 @@ def fetch_alphafold_protein_structure(
         "cif_df": alpha_dfs["cif_df"],
         "pae_df": alpha_dfs["pae_df"],
         "plddt_df": alpha_dfs["plddt_df"],
-        "sequence_df": alpha_dfs["sequence_df"],
+        "amino_acid_sequence_df": alpha_dfs["amino_acid_sequence_df"],
     }
     messages = alpha_dfs["messages"]
     if not any(df.empty for df in df_dict.values()):
