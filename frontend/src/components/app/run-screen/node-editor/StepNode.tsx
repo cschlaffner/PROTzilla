@@ -6,13 +6,14 @@ import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
 
-type DataTypeKey = "peptide_df" | "protein_df" | "metadata_df";
+import { metadataIcon, peptidesIcon, proteinIcon } from "../../../core/shared/icon/icons";
+
 type HandleDirection = "Input" | "Output" | "None";
 
 export interface HoveredHandleMeta {
   isActive: boolean;
   direction: HandleDirection;
-  type: DataTypeKey | "None";
+  type: string;
 }
 
 export interface StepNodeData extends Record<string, unknown> {
@@ -26,14 +27,25 @@ export interface StepNodeData extends Record<string, unknown> {
 
 export type StepNodeType = Node<StepNodeData, "step">;
 
-// TODO: I don't like this method of indication,
-// not very inclusive (color blindness).
-// It should work for the initial draft though.
-const DATA_TYPE_COLOR_INDICATORS: Record<DataTypeKey, string> = {
-  peptide_df: "#BF1E74",
-  protein_df: "#BF1E2E",
-  metadata_df: "#2E1EBF",
+type HandleIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+
+const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
+  peptide_df: peptidesIcon,
+  protein_df: proteinIcon,
+  metadata_df: metadataIcon,
 };
+
+const HANDLE_ICON_SIZE = 26;
+const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
+const FALLBACK_TRIANGLE_SIZE = Math.round(HANDLE_ICON_SIZE * 0.6);
+
+const triangleStyle = (direction: HandleDirection) => ({
+  width: FALLBACK_TRIANGLE_SIZE,
+  height: FALLBACK_TRIANGLE_SIZE,
+  clipPath:
+    direction === "Input" ? "polygon(50% 0,100% 100%,0 100%)" : "polygon(50% 100%,100% 0,0 0)",
+  backgroundColor: "#1d1d1d",
+});
 
 const StyledNode = styled.div`
   padding-left: 10px;
@@ -89,71 +101,110 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
       </TextContainer>
 
       {/*Target (input) handles*/}
-      {data.step.input_keys.map((input, index) => (
-        <Handle
-          key={index}
-          type="target"
-          position={Position.Top}
-          id={input}
-          style={{
-            background: "none",
-            border: "none",
-            width: "1em",
-            height: "1em",
-            left: `${String((100 / (data.step.input_keys.length + 1)) * (index + 1))}%`,
-            transform: "translateX(-50%)",
-          }}
-          onMouseEnter={() => {
-            data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input });
-          }}
-          onMouseLeave={() => {
-            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
-          }}
-        >
-          <div
+      {data.step.input_keys.map((input, index) => {
+        const InputIcon = DATA_TYPE_ICON_MAP[input];
+        return (
+          <Handle
+            key={index}
+            type="target"
+            position={Position.Top}
+            id={input}
             style={{
-              width: "15px",
-              height: "15px",
-              clipPath: "polygon(50% 100%,100% 0,0 0)",
-              backgroundColor: DATA_TYPE_COLOR_INDICATORS[input],
+              background: "none",
+              border: "none",
+              width: HANDLE_ICON_SIZE,
+              height: HANDLE_ICON_SIZE,
+              left: `${String((100 / (data.step.input_keys.length + 1)) * (index + 1))}%`,
+              top: -HANDLE_ICON_OFFSET,
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          ></div>
-        </Handle>
-      ))}
+            onMouseEnter={() => {
+              data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input });
+            }}
+            onMouseLeave={() => {
+              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+            }}
+          >
+            {InputIcon ? (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <InputIcon
+                  style={{ width: "100%", height: "100%" }}
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              </div>
+            ) : (
+              <div style={triangleStyle("Input")}></div>
+            )}
+          </Handle>
+        );
+      })}
 
       {/*Source (ouput) handles*/}
-      {data.step.output_keys.map((output, index) => (
-        <Handle
-          key={index}
-          type="source"
-          position={Position.Bottom}
-          id={output}
-          style={{
-            background: "none",
-            border: "none",
-            width: "15px",
-            height: "15px",
-            marginBottom: "1px",
-            left: `${String((100 / (data.step.output_keys.length + 1)) * (index + 1))}%`,
-            transform: "translateX(-50%)",
-          }}
-          onMouseEnter={() => {
-            data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output });
-          }}
-          onMouseLeave={() => {
-            data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
-          }}
-        >
-          <div
+      {data.step.output_keys.map((output, index) => {
+        const OutputIcon = DATA_TYPE_ICON_MAP[output];
+        return (
+          <Handle
+            key={index}
+            type="source"
+            position={Position.Bottom}
+            id={output}
             style={{
-              width: "15px",
-              height: "15px",
-              clipPath: "polygon(50% 100%,100% 0,0 0)",
-              backgroundColor: DATA_TYPE_COLOR_INDICATORS[output],
+              background: "none",
+              border: "none",
+              width: HANDLE_ICON_SIZE,
+              height: HANDLE_ICON_SIZE,
+              left: `${String((100 / (data.step.output_keys.length + 1)) * (index + 1))}%`,
+              bottom: -HANDLE_ICON_OFFSET,
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          ></div>
-        </Handle>
-      ))}
+            onMouseEnter={() => {
+              data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output });
+            }}
+            onMouseLeave={() => {
+              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+            }}
+          >
+            {OutputIcon ? (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <OutputIcon
+                  style={{ width: "100%", height: "100%" }}
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              </div>
+            ) : (
+              <div style={triangleStyle("Output")}></div>
+            )}
+          </Handle>
+        );
+      })}
     </StyledNode>
   );
 }
