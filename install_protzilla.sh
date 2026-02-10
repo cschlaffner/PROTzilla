@@ -119,6 +119,11 @@ npm install corepack@latest
 # install needed pnpm version
 corepack enable
 
+if ! npm list molstar >/dev/null 2>&1; then
+    echo "Installing Mol*..."
+    npm install molstar
+fi
+
 cd ..
 
 echo "done."

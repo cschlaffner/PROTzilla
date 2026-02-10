@@ -16,6 +16,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
     get_all_available_entry_ids,
     get_prot_structure_dfs,
+    show_visualization_of_protein_structure,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
@@ -499,3 +500,22 @@ class ImportStructurePredictionFromDisk(ImportingStep):
         )
 
     calc_method = staticmethod(get_prot_structure_dfs)
+    plot_method = staticmethod(show_visualization_of_protein_structure)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        entry_id = inputs["protein_to_validate"]
+
+        correct_input_step_identifier = (
+            steps.get_step_identifier_of_step_with_input(
+                ImportStructurePredictionFromDisk, "entry_id", entry_id
+            )
+            or steps.get_step_identifier_of_step_with_input(
+                AlphaFoldPredictionLoad, "uniprot_id", entry_id
+            )
+        )
+
+        inputs["cif_df"] = steps.get_step_output(
+            Step, "cif_df", correct_input_step_identifier
+        )
+
+        return inputs
