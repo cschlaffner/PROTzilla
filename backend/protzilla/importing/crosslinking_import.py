@@ -765,7 +765,7 @@ def error_output(msg, trace: str | None = None) -> dict:
 
 
 def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
-    file_type = file_path.suffix
+    file_type = file_path.suffix.lower()
     try:
         scientific_organism_names: list[str] = None
         if file_type == ".csv":
