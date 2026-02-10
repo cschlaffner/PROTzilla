@@ -23,8 +23,8 @@ from plotly import subplots
 from sklearn.impute import SimpleImputer
 
 
-HEATMAP_LOW_COLOUR = "#0000FF"
-HEATMAP_HIGH_COLOUR = "#FF0000"
+HEATMAP_LOW_COLOR = "#0000FF"
+HEATMAP_HIGH_COLOR = "#FF0000"
 
 
 # pylint: disable=assignment-from-no-return, no-self-use
@@ -53,7 +53,7 @@ def Clustergram(
     color_threshold=None,
     optimal_leaf_order=False,
     color_map=None,
-    custom_colour_scale=None,  # optional: ((zmin, zmin_colour), (zmax, zmax_colour))
+    custom_color_scale=None,  # optional: ((zmin, zmin_color), (zmax, zmax_color))
     heatmap_legend_title="(Heatmap legend)",
     display_range=3,
     center_values=True,
@@ -135,7 +135,7 @@ class _Clustergram:
         color_threshold=None,
         optimal_leaf_order=False,
         color_map=None,
-        custom_colour_scale=None,
+        custom_color_scale=None,
         heatmap_legend_title="(Heatmap legend)",
         display_range=3,
         center_values=True,
@@ -304,7 +304,7 @@ class _Clustergram:
             self.row_colorbar_title = "Sample Grouping"
             self.column_colorbar_title = "Protein Grouping"
 
-        self._custom_colour_scale = custom_colour_scale
+        self._custom_color_scale = custom_color_scale
         self._heatmap_legend_title = heatmap_legend_title
 
     def figure(self, computed_traces=None):
@@ -539,17 +539,17 @@ class _Clustergram:
             # if self._center_values:
             #     heat_data = np.subtract(heat_data, np.mean(heat_data))
 
-            if self._custom_colour_scale is not None:
-                zmin = self._custom_colour_scale[0][0]
-                zmax = self._custom_colour_scale[1][0]
-                low_colour = self._custom_colour_scale[0][1]
-                high_colour = self._custom_colour_scale[1][1]
+            if self._custom_color_scale is not None:
+                zmin = self._custom_color_scale[0][0]
+                zmax = self._custom_color_scale[1][0]
+                low_color = self._custom_color_scale[0][1]
+                high_color = self._custom_color_scale[1][1]
 
             else:
                 zmin = np.min(heat_data)
                 zmax = np.max(heat_data)
-                low_colour = HEATMAP_LOW_COLOUR
-                high_colour = HEATMAP_HIGH_COLOUR
+                low_color = HEATMAP_LOW_COLOR
+                high_color = HEATMAP_HIGH_COLOR
 
             # Lerp to keep zero centered
             midpoint = (0 - zmin) / (zmax - zmin)
@@ -564,7 +564,7 @@ class _Clustergram:
                 x=tickvals_col,
                 y=tickvals_row,
                 z=heat_data,
-                colorscale=[[0, low_colour], [midpoint, "white"], [1, high_colour]],
+                colorscale=[[0, low_color], [midpoint, "white"], [1, high_color]],
                 zmin=zmin,
                 zmax=zmax,
                 colorbar=dict(

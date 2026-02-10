@@ -32,8 +32,8 @@ from backend.protzilla.data_analysis.plots import (
     scatter_plot,
 )
 from backend.protzilla.utilities.clustergram import (
-    HEATMAP_LOW_COLOUR,
-    HEATMAP_HIGH_COLOUR,
+    HEATMAP_LOW_COLOR,
+    HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
@@ -1135,29 +1135,29 @@ class PlotClustergram(DataAnalysisStep):
                     value="Heatmap legend",
                 ),
                 CheckboxField(
-                    name="use_custom_colour_scale",
-                    label="Use custom colour scale",
+                    name="use_custom_color_scale",
+                    label="Use custom color scale",
                 ),
                 FloatField(
-                    name="heatmap_low_colour_limit",
-                    label="Heatmap lower colour limit",
+                    name="heatmap_low_color_limit",
+                    label="Heatmap lower color limit",
                     isVisible=False,
                 ),
                 TextField(
-                    name="heatmap_low_colour",
-                    label="Heatmap lower colour",
-                    value=HEATMAP_LOW_COLOUR,
+                    name="heatmap_low_color",
+                    label="Heatmap lower color",
+                    value=HEATMAP_LOW_COLOR,
                     isVisible=False,
                 ),
                 FloatField(
-                    name="heatmap_high_colour_limit",
-                    label="Heatmap upper colour limit",
+                    name="heatmap_high_color_limit",
+                    label="Heatmap upper color limit",
                     isVisible=False,
                 ),
                 TextField(
-                    name="heatmap_high_colour",
-                    label="Heatmap upper colour",
-                    value=HEATMAP_HIGH_COLOUR,
+                    name="heatmap_high_color",
+                    label="Heatmap upper color",
+                    value=HEATMAP_HIGH_COLOR,
                     isVisible=False,
                 ),
             ],
@@ -1191,11 +1191,11 @@ class PlotClustergram(DataAnalysisStep):
                 )
             )
 
-        custom_scale_toggled = form.values["use_custom_colour_scale"]
-        form["heatmap_low_colour_limit"].isVisible = custom_scale_toggled
-        form["heatmap_high_colour_limit"].isVisible = custom_scale_toggled
-        form["heatmap_low_colour"].isVisible = custom_scale_toggled
-        form["heatmap_high_colour"].isVisible = custom_scale_toggled
+        custom_scale_toggled = form.values["use_custom_color_scale"]
+        form["heatmap_low_color_limit"].isVisible = custom_scale_toggled
+        form["heatmap_high_color_limit"].isVisible = custom_scale_toggled
+        form["heatmap_low_color"].isVisible = custom_scale_toggled
+        form["heatmap_high_color"].isVisible = custom_scale_toggled
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         # Note: This is a hotfix that will be overridden anyway as soon

@@ -192,11 +192,11 @@ def clustergram_plot(
     flip_axes: bool,
     metadata_column: str | None = None,
     heatmap_legend_title: str | None = None,
-    use_custom_colour_scale: bool = False,
-    heatmap_low_colour_limit: float | None = None,
-    heatmap_low_colour: str | None = None,
-    heatmap_high_colour_limit: float | None = None,
-    heatmap_high_colour: str | None = None,
+    use_custom_color_scale: bool = False,
+    heatmap_low_color_limit: float | None = None,
+    heatmap_low_color: str | None = None,
+    heatmap_high_color_limit: float | None = None,
+    heatmap_high_color: str | None = None,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
@@ -217,14 +217,14 @@ def clustergram_plot(
         is provided.
     :param heatmap_legend_title: The title to be displayed on top of the heatmap legend,
         e.g. "z-score" or "ratio h/l normalised"
-    :param use_custom_colour_scale: Whether or not to use custom value range limits
+    :param use_custom_color_scale: Whether or not to use custom value range limits
         and colors for the heatmap coloring
-    :param heatmap_low_colour_limit: (if use_custom_colour_scale) the threshold for which
-        all smaller values take heatmap_low_colour
-    :param heatmap_low_colour: colour used for the smallest mapped values
-    :param heatmap_high_colour_limit: (if use_custom_colour_scale) the threshold for which
-        all greater values take heatmap_high_colour
-    :param heatmap_high_colour: colour used for the greatest mapped values
+    :param heatmap_low_color_limit: (if use_custom_color_scale) the threshold for which
+        all smaller values take heatmap_low_color
+    :param heatmap_low_color: color used for the smallest mapped values
+    :param heatmap_high_color_limit: (if use_custom_color_scale) the threshold for which
+        all greater values take heatmap_high_color
+    :param heatmap_high_color: color used for the greatest mapped values
 
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
@@ -269,13 +269,13 @@ def clustergram_plot(
             row_colors = None
             color_label_dict = None
 
-        if use_custom_colour_scale:
-            custom_colour_scale = (
-                (heatmap_low_colour_limit, heatmap_low_colour),
-                (heatmap_high_colour_limit, heatmap_high_colour),
+        if use_custom_color_scale:
+            custom_color_scale = (
+                (heatmap_low_color_limit, heatmap_low_color),
+                (heatmap_high_color_limit, heatmap_high_color),
             )
         else:
-            custom_colour_scale = None
+            custom_color_scale = None
 
         clustergram = Clustergram(
             flip_axes=flip_axes,
@@ -287,7 +287,7 @@ def clustergram_plot(
             line_width=2,
             color_map=px.colors.diverging.RdBu_r,
             hidden_labels=["row", "col"],
-            custom_colour_scale=custom_colour_scale,
+            custom_color_scale=custom_color_scale,
             heatmap_legend_title=heatmap_legend_title,
         )
 
