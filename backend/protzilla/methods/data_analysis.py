@@ -1,6 +1,7 @@
 import logging
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -69,12 +70,6 @@ class TTestType(Enum):
 
 class AnalysisLevel(Enum):
     protein = "Protein"
-
-
-class MultipleTestingCorrectionMethod(Enum):
-    benjamini_hochberg = "Benjamini-Hochberg"
-    bonferroni = "Bonferroni"
-    none = "None"
 
 
 class PValueCalculationMethod(Enum):
@@ -1138,7 +1133,14 @@ class PlotClustergram(DataAnalysisStep):
             form_helper.get_choices_for_protein_df_steps(
                 run,
             )
+            + form_helper.to_choices(
+                run.steps.get_instance_identifiers(
+                    Step,
+                    "significant_proteins_df",
+                )
+            )
         )
+
         form["metadata_df"].set_options(
             form_helper.get_choices(
                 run,
@@ -1154,9 +1156,20 @@ class PlotClustergram(DataAnalysisStep):
             )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+        # Note: This is a hotfix that will be overridden anyway as soon
+        # as the node-based workflow has been finished.
+        # So the code is not top notch
+        selected_prot_df = steps.get_step_output(
+            Step, "significant_proteins_df", inputs["input_df"]
         )
+
+        if selected_prot_df is None:
+            selected_prot_df = steps.get_step_output(
+                Step, "protein_df", inputs["input_df"]
+            )
+
+        inputs["input_df"] = selected_prot_df
+
         inputs["metadata_df"] = steps.get_step_output(
             Step, "metadata_df", inputs["metadata_df"]
         )

@@ -1,88 +1,132 @@
 import logging
 from pathlib import Path
 import re
+import traceback
 
 import pandas as pd
 
-from protzilla.importing.ms_data_import import clean_protein_groups
-from protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.importing.ms_data_import import clean_protein_groups
+from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.utilities import format_trace
 
 
 def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
+    messages = []
     try:
         allowed = {item.value for item in IntensityType}
         assert intensity_name in allowed, f"Unknown intensity name: {intensity_name}"
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
-    except AssertionError as e:
-        return dict(
-            messages=[dict(level=logging.ERROR, msg=e)],
+
+        # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
+        # "LFQ intensity" are only defined for proteins. However, ratios can be used for peptides.
+        if (
+            intensity_name == IntensityType.LFQ_INTENSITY.value
+            or intensity_name == IntensityType.IBAQ.value
+        ):
+            intensity_name = IntensityType.INTENSITY.value
+
+        id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
+        df = pd.read_csv(
+            file_path,
+            sep="\t",
+            low_memory=False,
+            na_values=["", 0],
+            keep_default_na=True,
         )
 
-    # We hardcode the intensity because for peptides we only ever have "Intensity" in the files. "iBAQ" and
-    # "LFQ intensity" are only defined for proteins. However, ratios can be used for peptides.
-    if (
-        intensity_name == IntensityType.LFQ_INTENSITY.value
-        or intensity_name == IntensityType.IBAQ.value
-    ):
-        intensity_name = IntensityType.INTENSITY.value
+        if "Sample" not in df.columns:
+            # Ensure required id columns are present
+            missing = [c for c in id_columns if c not in df.columns]
+            if missing:
+                msg = f"Peptide file is missing required columns: {missing}"
+                return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    id_columns = ["Leading razor protein", "Sequence", "Missed cleavages", "PEP"]
-    df = pd.read_csv(
-        file_path,
-        sep="\t",
-        low_memory=False,
-        na_values=["", 0],
-        keep_default_na=True,
-    )
+            id_df = df[id_columns]
+            disallowed_suffixes = r"(variability|count|type|peptides)"
+            if intensity_name in (
+                IntensityType.RATIO_HL.value,
+                IntensityType.RATIO_LH.value,
+            ):
+                base_pattern = rf"^{re.escape(intensity_name)}\s(?!normalized\b)(?!.*\b{disallowed_suffixes}\b).*$"
+            else:
+                base_pattern = (
+                    rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+                )
 
-    if "Sample" not in df.columns:
-        id_df = df[id_columns]
-        disallowed_suffixes = r"(variability|count|type|peptides)"
-        if intensity_name in (
-            IntensityType.RATIO_HL.value,
-            IntensityType.RATIO_LH.value,
-        ):
-            base_pattern = rf"^{re.escape(intensity_name)}\s(?!normalized\b)(?!.*\b{disallowed_suffixes}\b).*$"
-        else:
-            base_pattern = (
-                rf"^{re.escape(intensity_name)}\s(?!.*\b{disallowed_suffixes}\b).*$"
+            intensity_df = df.filter(regex=base_pattern, axis=1)
+
+            if intensity_df.empty:
+                msg = f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file."
+                return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+            intensity_df.columns = [
+                c[len(intensity_name) + 1 :] for c in intensity_df.columns
+            ]
+            tidy_peptide_df = pd.melt(
+                pd.concat([id_df, intensity_df], axis=1),
+                id_vars=id_columns,
+                var_name="Sample",
+                value_name="Intensity",
             )
 
-        intensity_df = df.filter(regex=base_pattern, axis=1)
-        intensity_df.columns = [
-            c[len(intensity_name) + 1 :] for c in intensity_df.columns
+        else:
+            if "Proteins" not in df.columns:
+                msg = "Peptide file with 'Sample' column requires 'Proteins' column"
+                return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+            final_df = df.rename(columns={"Proteins": "Protein ID"})
+            required = ["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]
+            missing = [c for c in required if c not in final_df.columns]
+            if missing:
+                msg = f"Peptide file is missing required columns: {missing}"
+                return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+            tidy_peptide_df = final_df[required]
+
+        tidy_peptide_df = tidy_peptide_df.rename(
+            columns={"Leading razor protein": "Protein ID"}
+        )
+        tidy_peptide_df = tidy_peptide_df[
+            ["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]
         ]
-        molten = pd.melt(
-            pd.concat([id_df, intensity_df], axis=1),
-            id_vars=id_columns,
-            var_name="Sample",
-            value_name="Intensity",
+        tidy_peptide_df = tidy_peptide_df.dropna(subset=["Protein ID"])
+        tidy_peptide_df = tidy_peptide_df.sort_values(
+            by=["Sample", "Protein ID"], ignore_index=True
         )
 
-    else:
-        final_df = df.rename(columns={"Proteins": "Protein ID"})
-        ordered = final_df[["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]]
+        new_groups, _filtered_proteins = clean_protein_groups(
+            tidy_peptide_df["Protein ID"].tolist(), map_to_uniprot
+        )
+        cleaned = tidy_peptide_df.assign(**{"Protein ID": new_groups})
 
-    molten = molten.rename(columns={"Leading razor protein": "Protein ID"})
-    ordered = molten[["Sample", "Protein ID", "Sequence", "Intensity", "PEP"]]
-    ordered.dropna(subset=["Protein ID"], inplace=True)
-    ordered.sort_values(by=["Sample", "Protein ID"], ignore_index=True, inplace=True)
+        msg = (
+            f"Successfully imported {cleaned['Protein ID'].nunique()} protein groups "
+            f"for {cleaned['Sample'].nunique()} samples."
+        )
+        messages.append(dict(level=logging.INFO, msg=msg))
 
-    new_groups, filtered_proteins = clean_protein_groups(
-        ordered["Protein ID"].tolist(), map_to_uniprot
-    )
-    cleaned = ordered.assign(**{"Protein ID": new_groups})
+        return dict(peptide_df=cleaned, messages=messages)
 
-    has_valid_protein_id = cleaned["Protein ID"].map(bool)
-    cleaned = df[has_valid_protein_id]
-
-    return dict(peptide_df=cleaned)
+    except AssertionError as e:
+        return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
+    except Exception as e:
+        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid peptide file."
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
+            ]
+        )
 
 
 def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
-    # TODO: add test that checks if Ratio H/L works?
-    if not Path(file_path).is_file():
-        raise FileNotFoundError(f"Cannot find Peptide File at {file_path}")
+    try:
+        assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
+    except AssertionError as e:
+        return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
 
     id_columns = [
         "Leading razor protein",
@@ -162,8 +206,5 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
         df["Protein ID"].tolist(), map_to_uniprot
     )
     df = df.assign(**{"Protein ID": new_groups})
-
-    has_valid_protein_id = df["Protein ID"].map(bool)
-    df = df[has_valid_protein_id]
 
     return dict(peptide_df=df)
