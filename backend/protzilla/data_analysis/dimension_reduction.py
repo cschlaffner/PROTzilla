@@ -1,7 +1,14 @@
+from enum import Enum
+
 import pandas as pd
 from sklearn.manifold import TSNE
 
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+
+
+class TSNEMethod(Enum):
+    barnes_hut = "Barnes-Hut approximation"
+    exact = "exact"
 
 
 def t_sne(
@@ -72,23 +79,19 @@ def t_sne(
             f"{min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])} (the smaller one of number of "
             "samples/features). "
         )
-    if n_components > 3 and method == "Barnes-Hut approximation":
+    if n_components > 3 and method == TSNEMethod.barnes_hut.value:
         raise ValueError(
             "The number of dimensions should be smaller than 4 because the underlying algorithm does not"
             " support a higher number of dimensions."
         )
 
-    method_string_to_param = {
-        "exact": "exact",
-        "Barnes-Hut approximation": "barnes_hut",
-    }
     embedded_data_model = TSNE(
         n_components=n_components,
         perplexity=perplexity,
         random_state=random_state,
         max_iter=max_iter,
         n_iter_without_progress=n_iter_without_progress,
-        method=method_string_to_param[method],
+        method=TSNEMethod(method).name,
         metric=metric,
     ).fit_transform(intensity_df_wide)
 

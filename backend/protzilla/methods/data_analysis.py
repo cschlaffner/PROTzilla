@@ -20,7 +20,7 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
-from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
+from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap, TSNEMethod
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
@@ -182,11 +182,6 @@ class ClassificationKernel(Enum):
     rbf = "rbf"
     sigmoid = "sigmoid"
     precomputed = "precomputed"
-
-
-class TSNEMethod(Enum):
-    barnes_hut = "Barnes-Hut approximation"
-    exact = "exact"
 
 
 class DimensionReductionMetric(Enum):
