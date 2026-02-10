@@ -215,6 +215,16 @@ def clustergram_plot(
     :param metadata_column: The name of the column in `metadata_df` that contains the
         group information for each sample. This parameter is required if `metadata_df`
         is provided.
+    :param heatmap_legend_title: The title to be displayed on top of the heatmap legend,
+        e.g. "z-score" or "ratio h/l normalised"
+    :param use_custom_colour_scale: Whether or not to use custom value range limits
+        and colors for the heatmap coloring
+    :param heatmap_low_colour_limit: (if use_custom_colour_scale) the threshold for which
+        all smaller values take heatmap_low_colour
+    :param heatmap_low_colour: colour used for the smallest mapped values
+    :param heatmap_high_colour_limit: (if use_custom_colour_scale) the threshold for which
+        all greater values take heatmap_high_colour
+    :param heatmap_high_colour: colour used for the greatest mapped values
 
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
