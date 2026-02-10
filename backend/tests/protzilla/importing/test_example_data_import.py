@@ -128,7 +128,7 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         ),
         (
             "MaxQuant/small.tsv",
-            "evidence-vsmall.txt",
+            "evidence_vsmall.txt",
             "metadata_full.csv",
             "Ratio H/L was not found in the provided file",
         ),

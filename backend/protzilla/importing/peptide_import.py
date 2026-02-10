@@ -33,6 +33,16 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
             na_values=["", 0],
             keep_default_na=True,
         )
+        if not any(intensity_name in col for col in df.columns):
+            return dict(
+                messages=[
+                    dict(
+                        level=logging.ERROR,
+                        msg=f"{intensity_name} was not found in the provided file, please use another intensity measure "
+                        "and try again or verify your file.",
+                    )
+                ],
+            )
 
         if "Sample" not in df.columns:
             # Ensure required id columns are present
@@ -125,86 +135,94 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
     try:
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
+
+        id_columns = [
+            "Leading razor protein",
+            "Sequence",
+            intensity_name,
+            "Modifications",
+            "Modified sequence",
+            "Missed cleavages",
+            "Experiment",
+            "PEP",
+            "Raw file",
+        ]
+
+        # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case so we have to find
+        # a way around it by using the select_column function. However, it's not as straightforward as just capitalizing,
+        # so we need to define exceptions.
+        column_exceptions = {
+            "PEP",
+            IntensityType.RATIO_HL.value,
+            IntensityType.RATIO_LH.value,
+            IntensityType.RATIO_HL_NORMALIZED.value,
+            IntensityType.RATIO_LH_NORMALIZED.value,
+        }
+
+        def select_column(column):
+            capitalized_column = (
+                column.capitalize()
+                if column not in column_exceptions and " " in column
+                else column
+            )
+            return capitalized_column in id_columns
+
+        df = pd.read_csv(
+            file_path,
+            sep="\t",
+            low_memory=False,
+            na_values=["", 0],
+            keep_default_na=True,
+            usecols=select_column,
+        )
+        if intensity_name not in df.columns:
+            return dict(
+                messages=[
+                    dict(
+                        level=logging.ERROR,
+                        msg=f"{intensity_name} was not found in the provided file, please use another intensity measure "
+                        "and try again or verify your file.",
+                    )
+                ],
+            )
+
+        df = df.rename(
+            columns={
+                c: c.capitalize() if c not in column_exceptions and " " in c else c
+                for c in df.columns
+            }
+        )
+        df = df.rename(
+            columns={
+                "Leading razor protein": "Protein ID",
+                "Experiment": "Sample",
+                intensity_name: IntensityType.INTENSITY.value,
+            }
+        )
+
+        df.dropna(subset=["Protein ID"], inplace=True)
+        df.sort_values(
+            by=["Sample", "Protein ID", "Sequence", "Modifications"],
+            ignore_index=True,
+            inplace=True,
+        )
+
+        new_groups, filtered_proteins = clean_protein_groups(
+            df["Protein ID"].tolist(), map_to_uniprot
+        )
+        df = df.assign(**{"Protein ID": new_groups})
+
+        return dict(peptide_df=df)
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
-
-    id_columns = [
-        "Leading razor protein",
-        "Sequence",
-        intensity_name,
-        "Modifications",
-        "Modified sequence",
-        "Missed cleavages",
-        "Experiment",
-        "PEP",
-        "Raw file",
-    ]
-
-    # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case so we have to find
-    # a way around it by using the select_column function. However, it's not as straightforward as just capitalizing,
-    # so we need to define exceptions.
-    column_exceptions = {
-        "PEP",
-        IntensityType.RATIO_HL.value,
-        IntensityType.RATIO_LH.value,
-        IntensityType.RATIO_HL_NORMALIZED.value,
-        IntensityType.RATIO_LH_NORMALIZED.value,
-    }
-
-    def select_column(column):
-        capitalized_column = (
-            column.capitalize()
-            if column not in column_exceptions and " " in column
-            else column
-        )
-        return capitalized_column in id_columns
-
-    df = pd.read_csv(
-        file_path,
-        sep="\t",
-        low_memory=False,
-        na_values=["", 0],
-        keep_default_na=True,
-        usecols=select_column,
-    )
-    # TODO: test this error
-    if intensity_name not in df.columns:
+    except Exception as e:
+        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid evidence file."
         return dict(
             messages=[
                 dict(
                     level=logging.ERROR,
-                    msg=f"{intensity_name} was not found in the provided file, please use another intensity and try again or verify your file.",
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
                 )
-            ],
+            ]
         )
-
-    # TODO: maybe write test for this. It would probably be safer to convert all columns to lower case but that would
-    #  require bigger changes in the code
-    #   - maybe use headers of PXD014997_AML_phosphoproteome/txt_LF/peptides.txt and PXD014997_AML_phosphoproteome/txt_LF/evidence_full.txt
-    df = df.rename(
-        columns={
-            c: c.capitalize() if c not in column_exceptions and " " in c else c
-            for c in df.columns
-        }
-    )
-    df = df.rename(
-        columns={
-            "Leading razor protein": "Protein ID",
-            "Experiment": "Sample",
-            intensity_name: "Intensity",
-        }
-    )
-
-    df.dropna(subset=["Protein ID"], inplace=True)
-    df.sort_values(
-        by=["Sample", "Protein ID", "Sequence", "Modifications"],
-        ignore_index=True,
-        inplace=True,
-    )
-
-    new_groups, filtered_proteins = clean_protein_groups(
-        df["Protein ID"].tolist(), map_to_uniprot
-    )
-    df = df.assign(**{"Protein ID": new_groups})
-
-    return dict(peptide_df=df)
