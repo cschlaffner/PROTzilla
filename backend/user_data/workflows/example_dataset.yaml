@@ -1,0 +1,62 @@
+df_mode: Low Memory
+steps:
+- form_inputs:
+    import_peptide_data: false
+  inputs: {}
+  instance_identifier: ExampleDatasetImport_1
+  type: ExampleDatasetImport
+- form_inputs:
+    graph_type: Pie chart
+    min_amount: 1
+  inputs: {}
+  instance_identifier: FilterProteinsBySilacRatios_1
+  type: FilterProteinsBySilacRatios
+- form_inputs: {}
+  inputs: {}
+  instance_identifier: TransformationInversion_1
+  type: TransformationInversion
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    log_base: log2
+  inputs: {}
+  instance_identifier: TransformationLog_1
+  type: TransformationLog
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    visual_transformation: log10
+  inputs: {}
+  instance_identifier: NormalisationByWidthAdjustment_1
+  type: NormalisationByWidthAdjustment
+- form_inputs:
+    graph_type: Pie chart
+    min_amount: 5
+  inputs: {}
+  instance_identifier: FilterProteinsBySilacRatios_2
+  type: FilterProteinsBySilacRatios
+- form_inputs:
+    alpha: 0.05
+    fc_zscore_alpha: 0.08
+    fc_zscore_filter: true
+    group1: REL-FREE
+    group2: RELAPSE
+    grouping: Group
+    multiple_testing_correction_method: None
+    protein_df: FilterProteinsBySilacRatios_2
+    ttest_type: Welch's t-Test
+  inputs: {}
+  instance_identifier: DifferentialExpressionTTest_1
+  type: DifferentialExpressionTTest
+- form_inputs:
+    fc_threshold: 0.5
+    input_dict: DifferentialExpressionTTest_1
+    items_of_interest:
+    - O00567
+    - Q03701
+    - Q14684
+    - Q9NVP1
+    - Q9NY61
+  inputs: {}
+  instance_identifier: PlotVolcano_1
+  type: PlotVolcano

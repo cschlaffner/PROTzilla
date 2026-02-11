@@ -405,7 +405,7 @@ class ExampleDatasetImport(ImportingStep):
         "If you run this step for the first time, the data will be downloaded from PRIDE, which may take a few minutes."
     )
 
-    output_keys = ["metadata_df", "peptide_df", "protein_df"]
+    output_keys = ["metadata_df", "protein_df"]
 
     def create_form(self):
         return Form(

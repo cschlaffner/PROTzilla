@@ -86,7 +86,6 @@ def mock_example_data_download(
     [False, True],
 )
 def test_example_data_import(monkeypatch, example_data_paths, import_peptide_data):
-    # TODO: we should also mock metadata
     tmp_protein_path, tmp_evidence_path, tmp_meta_path = example_data_paths
     test_protein_file = TEST_MSDATA_PATH / "MaxQuant/small.tsv"
     test_evidence_file = TEST_PEPTIDES_PATH / "evidence_ratio_hl.txt"
@@ -102,8 +101,8 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         test_metadata_file,
     ):
         import_results = example_dataset_import(
-            import_peptide_data=True
-        )  # TODO: variable
+            import_peptide_data=import_peptide_data,
+        )
         assert "protein_df" in import_results
         if import_peptide_data:
             assert "peptide_df" in import_results

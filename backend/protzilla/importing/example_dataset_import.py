@@ -76,6 +76,7 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         file_path=EXAMPLE_DATASET_PROTEIN_FILE,
         intensity_name=intensity_name,
         aggregation_method="Sum",
+        ignore_only_identified_by_site=True,
     )
     if "protein_df" not in protein_import_dict:
         return protein_import_dict

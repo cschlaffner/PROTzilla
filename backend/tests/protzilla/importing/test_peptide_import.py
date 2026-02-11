@@ -285,8 +285,16 @@ def test_peptide_import_invalid_intensity_name(
     "intensity_name,file_name,df",
     [
         (IntensityType.INTENSITY.value, "evidence_vsmall.txt", evidence_df()),
-        (IntensityType.RATIO_HL_NORMALIZED.value, "evidence_ratio_hl.txt", evidence_ratio_df(IntensityType.RATIO_HL_NORMALIZED.value)),
-        (IntensityType.RATIO_HL.value, "evidence_ratio_hl.txt", evidence_ratio_df(IntensityType.RATIO_HL.value)),
+        (
+            IntensityType.RATIO_HL_NORMALIZED.value,
+            "evidence_ratio_hl.txt",
+            evidence_ratio_df(IntensityType.RATIO_HL_NORMALIZED.value),
+        ),
+        (
+            IntensityType.RATIO_HL.value,
+            "evidence_ratio_hl.txt",
+            evidence_ratio_df(IntensityType.RATIO_HL.value),
+        ),
     ],
 )
 def test_evidence_import(intensity_name: str, file_name: str, df: pd.DataFrame):

@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 from backend.main import settings
@@ -14,8 +15,11 @@ from backend.tests.paths import (
     TEST_WORKFLOWS_PATH,
 )
 from protzilla import disk_operator
+from protzilla.constants.paths import EXAMPLE_DATASET_DIR
 from protzilla.runner import Runner
+from backend.protzilla.steps import Step
 from runner_cli import args_parser
+from tests.paths import TEST_AML_DATA_PATH
 
 
 @pytest.fixture
@@ -380,7 +384,6 @@ def test_integration_runner(
     metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch
 ):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
-    print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
     runner = Runner(
         **{
             "workflow": "standard",
@@ -401,6 +404,63 @@ def test_integration_runner(
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
     assert_runner_finished_successfully(runner)
+
+
+# TODO: remove skipping when caching the example dataset properly
+@pytest.mark.skip(
+    "Skipping for now before caching the example dataset is solved for the CI (and what to do about it locally)"
+)
+def test_example_dataset_runner(tests_folder_name, monkeypatch):
+    # TODO: add clustergram to example workflow
+    protein_file = EXAMPLE_DATASET_DIR / "txt_REL_FREE-REPASE/proteinGroups.txt"
+    metadata_file = EXAMPLE_DATASET_DIR / "meta.csv"
+    assert metadata_file.exists() and protein_file.exists()
+
+    name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
+    runner = Runner(
+        **{
+            "workflow": "example_dataset",
+            "ms_data_path": None,
+            "meta_data_path": None,
+            "peptides_path": None,
+            "run_name": name,
+            "df_mode": "memory",
+            "all_plots": True,
+            "verbose": False,
+        }
+    )
+
+    mock_write = mock.MagicMock()
+    monkeypatch.setattr(runner.run, "_run_write", mock_write)
+    mock_plot_safe = mock.MagicMock()
+    monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
+    runner.compute_workflow()
+    assert_runner_finished_successfully(runner)
+
+    preprocessing_output_df = runner.run.steps.get_step_output(
+        step_type=Step,
+        output_key="protein_df",
+        instance_identifier="FilterProteinsBySilacRatios_2",
+    )
+
+    assert len(preprocessing_output_df["Protein ID"].unique()) == 5309
+
+    protein_list = pd.read_csv(TEST_AML_DATA_PATH / "preprocessed_protein_list.csv")
+
+    # Do some preprocessing to account for differences in additional protein ids
+    protein_list_1 = protein_list["Protein IDs"].str.split(";").str[0]
+    preprocessing_output_df_1 = (
+        preprocessing_output_df["Protein ID"].str.split(";").str[0].unique()
+    )
+    assert set(protein_list_1) == set(preprocessing_output_df_1)
+
+    significant_protein_df = runner.run.steps.get_step_output(
+        step_type=Step,
+        output_key="significant_proteins_df",
+        instance_identifier="DifferentialExpressionTTest_1",
+    )
+    # TODO: find a better metric to test
+    # assert len(significant_protein_df["Protein ID"].unique()) == 321
 
 
 @pytest.mark.parametrize(
