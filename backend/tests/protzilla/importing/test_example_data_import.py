@@ -107,14 +107,22 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         if import_peptide_data:
             assert "peptide_df" in import_results
         assert "metadata_df" in import_results
-        assert len(import_results["messages"]) == 2
+        assert len(import_results["messages"]) == (2 if not import_peptide_data else 3)
         sorted_messages = sorted(import_results["messages"], key=lambda x: x["msg"])
         assert sorted_messages[0]["msg"] == "Metadata file successfully imported."
+
+        protein_msg_idx = 1 if not import_peptide_data else 2
         assert (
-            sorted_messages[1]["msg"]
+            sorted_messages[protein_msg_idx]["msg"]
             == "Successfully imported 22 protein groups for 1 samples. 0 contaminant groups were dropped. 0 invalid "
             "proteins were filtered."
         )
+
+        if import_peptide_data:
+            assert (
+                sorted_messages[1]["msg"]
+                == "Successfully imported 1 protein groups for 2 samples."
+            )
 
 
 @pytest.mark.parametrize(
