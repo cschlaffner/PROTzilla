@@ -51,6 +51,7 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 # Labels of outputs not sent via the output tables API
 hidden_outputs = ["messages"]
 
+
 @ensure_csrf_cookie
 def get_csrf_token(request):
     csrf_token = get_token(request)
