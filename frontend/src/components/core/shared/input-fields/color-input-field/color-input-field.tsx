@@ -11,23 +11,23 @@ const StyledColorInput = styled.input<{ $isSmall: boolean }>`
   border: none;
   outline: none;
   cursor: pointer;
-  
+
   height: ${({ $isSmall }) => size($isSmall ? "inputFieldHeightSmall" : "inputFieldHeightDefault")};
   width: 100%;
-  padding: ${spacing("tiny")} ${spacing("small")};
+  padding: 4px ${spacing("small")};
 
   /* Removes default padding/border from the color swatch in Chrome/Safari */
   &::-webkit-color-swatch-wrapper {
     padding: 0;
   }
   &::-webkit-color-swatch {
-    border: 1px solid ${color("border")};
+    border: 1px solid ${color("black")};
     border-radius: 4px;
   }
 
   /* For Firefox */
   &::-moz-color-swatch {
-    border: 1px solid ${color("border")};
+    border: 1px solid ${color("black")};
     border-radius: 4px;
   }
 `;
@@ -60,7 +60,7 @@ export const ColorInputField: React.FC<ColorInputFieldProps> = ({
       <StyledColorInput
         type="color"
         value={value}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={(e) => {handleChange(e.target.value)}}
         $isSmall={props.isSmall ?? false}
         {...props}
       />

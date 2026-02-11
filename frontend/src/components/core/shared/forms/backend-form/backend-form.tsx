@@ -13,6 +13,7 @@ import {
 import { Button } from "../../button";
 import {
   CheckboxSelectInputField,
+  ColorInputField,
   DropdownInputField,
   FileInputField,
   FormDivider,
@@ -24,7 +25,6 @@ import {
   SearchInputField,
   SingleCheckboxInputField,
   TextInputField,
-  ColorInputField,
 } from "../../input-fields";
 import { H3 } from "../../text";
 
