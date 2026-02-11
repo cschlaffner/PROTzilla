@@ -21,6 +21,7 @@ import scipy.cluster.hierarchy as sch
 import scipy.spatial as scs
 from plotly import subplots
 from sklearn.impute import SimpleImputer
+from backend.protzilla.utilities.utilities import lerp
 
 
 HEATMAP_LOW_COLOR = "#0000FF"
@@ -536,8 +537,10 @@ class _Clustergram:
             heat_data = self._data
 
             # symmetrize the heatmap about zero, if necessary
-            # if self._center_values:
-            #     heat_data = np.subtract(heat_data, np.mean(heat_data))
+            if self._center_values:
+                heat_data = np.subtract(heat_data, np.mean(heat_data))
+
+            heat_data = np.subtract(heat_data, np.max(heat_data))
 
             if self._custom_color_scale is not None:
                 zmin = self._custom_color_scale[0][0]
@@ -545,26 +548,38 @@ class _Clustergram:
                 low_color = self._custom_color_scale[0][1]
                 high_color = self._custom_color_scale[1][1]
 
+                if not zmin < zmax:
+                    raise ValueError(
+                        "Lower colour limit must be less than higher colour limit."
+                    )
+
             else:
                 zmin = np.min(heat_data)
                 zmax = np.max(heat_data)
                 low_color = HEATMAP_LOW_COLOR
                 high_color = HEATMAP_HIGH_COLOR
 
-            # Lerp to keep zero centered
-            midpoint = (0 - zmin) / (zmax - zmin)
+                # Really only zmin == zmax can happen here
+                if not zmin < zmax:
+                    raise ValueError(
+                        "Data consists only of identical values. Not plotting."
+                    )
 
-            # If range of values is only positive or only negative, lerp doesn't work.
-            # In this case we reset. Shouldn't happen for most normalised data sets
-            # which are usually plotted with heatmaps
-            if midpoint < 0 or midpoint > 1.0:
-                midpoint = 0.5
+            # If limits have different signs, center color scale at zero
+            if zmin < 0 and zmax > 0:
+                target_data_midpoint = 0
+
+            # Else, center at average between limits
+            else:
+                target_data_midpoint = np.average((zmin, zmax))
+
+            color_midpoint = lerp(0, 1, (target_data_midpoint - zmin) / (zmax - zmin))
 
             heatmap = go.Heatmap(
                 x=tickvals_col,
                 y=tickvals_row,
                 z=heat_data,
-                colorscale=[[0, low_color], [midpoint, "white"], [1, high_color]],
+                colorscale=[[0, low_color], [color_midpoint, "white"], [1, high_color]],
                 zmin=zmin,
                 zmax=zmax,
                 colorbar=dict(
@@ -573,7 +588,7 @@ class _Clustergram:
                     y=0.0,
                     len=1 / self.colorbar_count,
                     tickmode="array",
-                    tickvals=(zmin, 0, zmax),
+                    tickvals=(zmin, target_data_midpoint, zmax),
                 ),
             )
 

@@ -54,6 +54,22 @@ def wide_4d_df():
 
 
 @pytest.fixture
+def same_data_4d_df():
+    return pd.DataFrame(
+        np.array(
+            [
+                [5, 5, 5, 5],
+                [5, 5, 5, 5],
+                [5, 5, 5, 5],
+                [5, 5, 5, 5],
+            ]
+        ),
+        columns=["Protein1", "Protein2", "Protein3", "Protein4"],
+        index=["Sample1", "Sample2", "Sample3", "Sample4"],
+    )
+
+
+@pytest.fixture
 def color_df():
     return pd.DataFrame(
         np.array(
@@ -169,6 +185,40 @@ def test_clustergram_nans_in_input(wide_4d_df):
     assert "plots" not in outputs
     assert any(
         "The selected input dataframe contains missing values." in message["msg"]
+        for message in outputs["messages"]
+    )
+
+
+def test_clustergram_identical_data(same_data_4d_df):
+    outputs = clustergram_plot(
+        same_data_4d_df,
+        metadata_df=None,
+        flip_axes=False,
+        use_custom_color_scale=True,
+        heatmap_low_color_limit=0.0,
+        heatmap_high_color_limit=7.0,
+    )
+    assert "messages" in outputs
+    assert "plots" not in outputs
+    assert any(
+        "Data consists only of idential values. Not plotting." in message["msg"]
+        for message in outputs["messages"]
+    )
+
+
+def test_clustergram_invalid_color_scale(wide_4d_df):
+    outputs = clustergram_plot(
+        wide_4d_df,
+        metadata_df=None,
+        flip_axes=False,
+        use_custom_color_scale=True,
+        heatmap_low_color_limit=1.0,
+        heatmap_high_color_limit=1.0,
+    )
+    assert "messages" in outputs
+    assert "plots" not in outputs
+    assert any(
+        "Lower colour limit must be less than higher colour limit." in message["msg"]
         for message in outputs["messages"]
     )
 
