@@ -540,8 +540,6 @@ class _Clustergram:
             if self._center_values:
                 heat_data = np.subtract(heat_data, np.mean(heat_data))
 
-            heat_data = np.subtract(heat_data, np.max(heat_data))
-
             if self._custom_color_scale is not None:
                 zmin = self._custom_color_scale[0][0]
                 zmax = self._custom_color_scale[1][0]
