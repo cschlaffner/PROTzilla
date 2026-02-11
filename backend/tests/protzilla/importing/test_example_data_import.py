@@ -113,7 +113,7 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         assert (
             sorted_messages[1]["msg"]
             == "Successfully imported 22 protein groups for 1 samples. 0 contaminant groups were dropped. 0 invalid "
-               "proteins were filtered."
+            "proteins were filtered."
         )
 
 
