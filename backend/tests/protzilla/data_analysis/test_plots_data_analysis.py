@@ -190,36 +190,32 @@ def test_clustergram_nans_in_input(wide_4d_df):
 
 
 def test_clustergram_identical_data(same_data_4d_df):
-    outputs = clustergram_plot(
-        same_data_4d_df,
-        metadata_df=None,
-        flip_axes=False,
-        use_custom_color_scale=True,
-        heatmap_low_color_limit=0.0,
-        heatmap_high_color_limit=7.0,
-    )
-    assert "messages" in outputs
-    assert "plots" not in outputs
-    assert any(
-        "Data consists only of idential values. Not plotting." in message["msg"]
-        for message in outputs["messages"]
+    with pytest.raises(ValueError) as exc_info:
+        clustergram_plot(
+            same_data_4d_df,
+            metadata_df=None,
+            flip_axes=False,
+            heatmap_low_color_limit=0.0,
+            heatmap_high_color_limit=7.0,
+        )
+    assert (
+        str(exc_info.value) == "Data consists only of identical values. Not plotting."
     )
 
 
 def test_clustergram_invalid_color_scale(wide_4d_df):
-    outputs = clustergram_plot(
-        wide_4d_df,
-        metadata_df=None,
-        flip_axes=False,
-        use_custom_color_scale=True,
-        heatmap_low_color_limit=1.0,
-        heatmap_high_color_limit=1.0,
-    )
-    assert "messages" in outputs
-    assert "plots" not in outputs
-    assert any(
-        "Lower colour limit must be less than higher colour limit." in message["msg"]
-        for message in outputs["messages"]
+    with pytest.raises(ValueError) as exc_info:
+        clustergram_plot(
+            wide_4d_df,
+            metadata_df=None,
+            flip_axes=False,
+            use_custom_color_scale=True,
+            heatmap_low_color_limit=1.0,
+            heatmap_high_color_limit=1.0,
+        )
+    assert (
+        str(exc_info.value)
+        == "Lower colour limit must be less than higher colour limit."
     )
 
 

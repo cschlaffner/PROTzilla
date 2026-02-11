@@ -24,8 +24,8 @@ from sklearn.impute import SimpleImputer
 from backend.protzilla.utilities.utilities import lerp
 
 
-HEATMAP_LOW_COLOR = "#0000FF"
-HEATMAP_HIGH_COLOR = "#FF0000"
+HEATMAP_LOW_COLOR = "#053061"
+HEATMAP_HIGH_COLOR = "#67001f"
 
 
 # pylint: disable=assignment-from-no-return, no-self-use
