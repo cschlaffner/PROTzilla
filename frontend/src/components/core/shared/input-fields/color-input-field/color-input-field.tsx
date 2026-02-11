@@ -60,7 +60,9 @@ export const ColorInputField: React.FC<ColorInputFieldProps> = ({
       <StyledColorInput
         type="color"
         value={value}
-        onChange={(e) => {handleChange(e.target.value)}}
+        onChange={(e) => {
+          handleChange(e.target.value);
+        }}
         $isSmall={props.isSmall ?? false}
         {...props}
       />
