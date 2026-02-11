@@ -1143,7 +1143,7 @@ class PlotClustergram(DataAnalysisStep):
                     label="Heatmap lower color limit",
                     isVisible=False,
                 ),
-                TextField(
+                ColorField(
                     name="heatmap_low_color",
                     label="Heatmap lower color",
                     value=HEATMAP_LOW_COLOR,
@@ -1154,7 +1154,7 @@ class PlotClustergram(DataAnalysisStep):
                     label="Heatmap upper color limit",
                     isVisible=False,
                 ),
-                TextField(
+                ColorField(
                     name="heatmap_high_color",
                     label="Heatmap upper color",
                     value=HEATMAP_HIGH_COLOR,

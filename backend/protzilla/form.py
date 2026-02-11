@@ -46,6 +46,10 @@ class TextField(_baseField):
     type: str = "text"
     value: str = ""
 
+@dataclass
+class ColorField(_baseField):
+    type: str = "color"
+    value: str = "#000000"
 
 @dataclass
 class NumberField(_baseField):

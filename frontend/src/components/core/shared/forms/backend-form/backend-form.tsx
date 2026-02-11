@@ -24,6 +24,7 @@ import {
   SearchInputField,
   SingleCheckboxInputField,
   TextInputField,
+  ColorInputField,
 } from "../../input-fields";
 import { H3 } from "../../text";
 
@@ -188,6 +189,8 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
       return <TextInputField onChange={handleInputChange} {...props} />;
     case "number":
       return <NumberInputField onChange={handleInputChange} {...props} />;
+    case "color":
+      return <ColorInputField onChange={handleInputChange} {...props} />;
     case "search":
       return <SearchInputField onChange={handleInputChange} {...props} />;
     case "radio-select":
