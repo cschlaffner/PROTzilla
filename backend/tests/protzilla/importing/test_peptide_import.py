@@ -250,6 +250,28 @@ def test_peptide_import(intensity_name):
     )
 
 
+def test_peptide_import_contaminant_reverse_removal():
+    outputs = peptide_import.peptide_import(
+        file_path=TEST_PEPTIDES_PATH / "peptides_vsmall_con_rev.txt",
+        intensity_name=IntensityType.INTENSITY.value,
+        map_to_uniprot=False,
+    )
+
+    original_proteins = peptide_df(IntensityType.INTENSITY.value)["Protein ID"].unique()
+    new_proteins = ["O76009"] + list(original_proteins)
+    assert outputs["peptide_df"]["Protein ID"].nunique() == len(new_proteins)
+    assert set(outputs["peptide_df"]["Protein ID"].unique()) == set(new_proteins)
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("REV"))
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("CON"))
+    assert not any(outputs["peptide_df"]["Protein ID"] == "")
+
+    assert outputs["messages"][0]["level"] == logging.INFO
+    assert (
+        f"Successfully imported {len(new_proteins)} protein groups"
+        in outputs["messages"][0]["msg"]
+    )
+
+
 @pytest.mark.parametrize(
     "intensity_name,expected_intensity_name",
     [
@@ -365,3 +387,19 @@ def test_evidence_import_different_column_capitalization(intensity_name: str):
 
     assert "peptide_df" in outputs
     assert IntensityType.INTENSITY.value in outputs["peptide_df"].columns
+
+
+def test_evidence_import_contaminant_reverse_removal():
+    outputs = peptide_import.evidence_import(
+        file_path=TEST_PEPTIDES_PATH / "evidence_vsmall_con_rev.txt",
+        intensity_name=IntensityType.INTENSITY.value,
+        map_to_uniprot=False,
+    )
+
+    assert len(outputs["peptide_df"]) == 4
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("REV"))
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("CON"))
+    assert not any(outputs["peptide_df"]["Protein ID"] == "")
+
+    assert outputs["messages"][0]["level"] == logging.INFO
+    assert f"Successfully imported 3 protein groups" in outputs["messages"][0]["msg"]

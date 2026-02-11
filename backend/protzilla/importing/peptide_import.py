@@ -109,6 +109,10 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
         )
         cleaned = tidy_peptide_df.assign(**{"Protein ID": new_groups})
 
+        # Filter empty Protein IDs
+        has_valid_protein_id = cleaned["Protein ID"].map(bool)
+        cleaned = cleaned[has_valid_protein_id]
+
         msg = (
             f"Successfully imported {cleaned['Protein ID'].nunique()} protein groups "
             f"for {cleaned['Sample'].nunique()} samples."
@@ -133,6 +137,7 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 
 
 def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:
+    messages = []
     try:
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
 
@@ -207,12 +212,25 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
             inplace=True,
         )
 
+        # TODO: remove
+        old_groups = df["Protein ID"].tolist()
+
         new_groups, filtered_proteins = clean_protein_groups(
             df["Protein ID"].tolist(), map_to_uniprot
         )
         df = df.assign(**{"Protein ID": new_groups})
 
-        return dict(peptide_df=df)
+        # Filter empty Protein IDs
+        has_valid_protein_id = df["Protein ID"].map(bool)
+        df = df[has_valid_protein_id]
+
+        msg = (
+            f"Successfully imported {df['Protein ID'].nunique()} protein groups "
+            f"for {df['Sample'].nunique()} samples."
+        )
+        messages.append(dict(level=logging.INFO, msg=msg))
+
+        return dict(peptide_df=df, messages=messages)
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
     except Exception as e:
