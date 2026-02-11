@@ -74,6 +74,11 @@ class MaxQuantImport(ImportingStep):
                     options=IntensityType,
                 ),
                 CheckboxField(
+                    name="ignore_only_identified_by_site",
+                    label="Ignore proteins only identified by site",
+                    value=False,
+                ),
+                CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
                     value=False,

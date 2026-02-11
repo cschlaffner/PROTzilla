@@ -405,6 +405,9 @@ class Messages:
     def __repr__(self):
         return f"Messages: {[message['msg'] for message in self.messages]}"
 
+    def __len__(self):
+        return len(self.messages)
+
     def append(self, param):
         self.messages.append(param)
 

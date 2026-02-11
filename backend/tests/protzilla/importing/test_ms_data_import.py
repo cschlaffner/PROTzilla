@@ -326,6 +326,28 @@ def test_transform_and_clean():
     assert outputs["filtered_proteins"] == ["REV__P12345"]
 
 
+def test_transform_and_clean_ignore_only_identified_by_site():
+    df = pd.DataFrame(
+        {
+            "Protein ID": ["P00000", "P00001"],
+            "Only identified by site": ["+", ""],
+            "S1": [1.0, 2.0],
+        }
+    )
+    outputs = ms_data_import.transform_and_clean(
+        df,
+        "Intensity",
+        map_to_uniprot=False,
+        aggregation_method="Sum",
+        ignore_only_identified_by_site=True,
+    )
+    protein_df = outputs["protein_df"].drop(columns=["Gene"])
+    expected_df = pd.DataFrame(
+        {"Sample": ["S1"], "Protein ID": ["P00001"], "Intensity": [2.0]}
+    )
+    pd.testing.assert_frame_equal(protein_df, expected_df)
+
+
 def test_clean_protein_groups():
     expected = [
         "P12345",

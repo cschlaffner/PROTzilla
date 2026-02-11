@@ -166,13 +166,12 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
 
 def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     """
-    The first, second and third quartiles (q_1, q_2, q_3) are
-    calculated from the distribution of all values. The second
-    quartile (which is the median) is subtracted from each value
-    to center the distribution. Then we divide by the width in an
-    asymmetric way. All values that are positive after subtraction
-    of the median are divided by (q_3 - q_2) while all negative
-    values are divided by (q2 - q1).
+    The first, second and third quartiles (q_1, q_2, q_3) are calculated
+    per sample. The second quartile (median) is subtracted to center the
+    distribution, then the data are rescaled asymmetrically towards the
+    median upper/lower quartile width across samples. Positive values are
+    multiplied by (median(q3 - q2) / (q3 - q2)_sample) and negative values
+    by (median(q2 - q1) / (q2 - q1)_sample).
 
     :param protein_df: the dataframe that should be normalised in
         long format
@@ -190,38 +189,86 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     pd.set_option("mode.chained_assignment", None)
 
     intensity_name = default_intensity_column(protein_df)
-    intensity_series = pd.to_numeric(protein_df[intensity_name], errors="coerce")
+    samples = protein_df["Sample"].unique().tolist()
+    sample_quartiles = {}
+    upper_widths = []
+    lower_widths = []
 
-    if intensity_series.isna().all():
-        msg = "Width adjustment normalisation failed because all intensity values are non-numeric."
+    for sample in samples:
+        sample_series = pd.to_numeric(
+            protein_df.loc[protein_df["Sample"] == sample, intensity_name],
+            errors="coerce",
+        )
+
+        if sample_series.isna().all():
+            msg = (
+                f"Width adjustment normalisation failed because all intensity values in sample {sample} "
+                f"are non-numeric."
+            )
+            return dict(
+                protein_df=None,
+                messages=[dict(level=logging.ERROR, msg=msg)],
+            )
+
+        q1 = sample_series.quantile(0.25)
+        q2 = sample_series.quantile(0.5)
+        q3 = sample_series.quantile(0.75)
+        upper_width = q3 - q2
+        lower_width = q2 - q1
+
+        if upper_width == 0 or lower_width == 0:
+            if upper_width > 0:
+                upper_widths.append(upper_width)
+            if lower_width > 0:
+                lower_widths.append(lower_width)
+        else:
+            upper_widths.append(upper_width)
+            lower_widths.append(lower_width)
+
+        sample_quartiles[sample] = dict(
+            q2=q2, upper_width=upper_width, lower_width=lower_width
+        )
+
+    target_upper_width = pd.Series(upper_widths).median() if upper_widths else 0
+    target_lower_width = pd.Series(lower_widths).median() if lower_widths else 0
+
+    if target_upper_width == 0 or target_lower_width == 0:
+        msg = "Width adjustment normalisation failed because no sample had a non-zero quartile width."
         return dict(
             protein_df=None,
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
 
-    q1 = intensity_series.quantile(0.25)
-    q2 = intensity_series.quantile(0.5)
-    q3 = intensity_series.quantile(0.75)
-
-    upper_width = q3 - q2
-    lower_width = q2 - q1
-
-    if upper_width == 0 or lower_width == 0:
-        msg = "Width adjustment normalisation failed because one of the quartile widths is zero."
-        return dict(
-            protein_df=None,
-            messages=[dict(level=logging.ERROR, msg=msg)],
+    scaled_df = pd.DataFrame()
+    for sample in samples:
+        sample_df = protein_df.loc[protein_df["Sample"] == sample].copy()
+        centered = pd.to_numeric(sample_df[intensity_name], errors="coerce") - (
+            sample_quartiles[sample]["q2"]
         )
 
-    centered = intensity_series - q2
-    scaled = centered
-    scaled[centered > 0] = centered[centered > 0] / upper_width
-    scaled[centered <= 0] = centered[centered <= 0] / lower_width
+        scale_upper = (
+            target_upper_width / sample_quartiles[sample]["upper_width"]
+            if sample_quartiles[sample]["upper_width"] > 0
+            else 1
+        )
+        scale_lower = (
+            target_lower_width / sample_quartiles[sample]["lower_width"]
+            if sample_quartiles[sample]["lower_width"] > 0
+            else 1
+        )
 
-    result_df = protein_df.copy()
-    result_df[f"Normalised {intensity_name}"] = scaled
-    result_df.drop(axis=1, labels=[intensity_name], inplace=True)
-    result_df.sort_values(by=["Sample", "Protein ID"], inplace=True, ignore_index=True)
+        scaled = centered.copy()
+        scaled_mask = centered > 0
+        scaled.loc[scaled_mask] = centered.loc[scaled_mask] * scale_upper
+        scaled.loc[~scaled_mask] = centered.loc[~scaled_mask] * scale_lower
+
+        sample_df[f"Normalised {intensity_name}"] = scaled
+        sample_df.drop(axis=1, labels=[intensity_name], inplace=True)
+        scaled_df = pd.concat([scaled_df, sample_df], ignore_index=True)
+
+    result_df = scaled_df.sort_values(
+        by=["Sample", "Protein ID"], inplace=False, ignore_index=True
+    )
 
     pd.reset_option("mode.chained_assignment")
     return dict(protein_df=result_df)
