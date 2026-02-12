@@ -212,9 +212,6 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
             inplace=True,
         )
 
-        # TODO: remove
-        old_groups = df["Protein ID"].tolist()
-
         new_groups, filtered_proteins = clean_protein_groups(
             df["Protein ID"].tolist(), map_to_uniprot
         )

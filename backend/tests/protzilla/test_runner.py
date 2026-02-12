@@ -411,7 +411,6 @@ def test_integration_runner(
     "Skipping for now before caching the example dataset is solved for the CI (and what to do about it locally)"
 )
 def test_example_dataset_runner(tests_folder_name, monkeypatch):
-    # TODO: add clustergram to example workflow
     protein_file = EXAMPLE_DATASET_DIR / "txt_REL_FREE-REPASE/proteinGroups.txt"
     metadata_file = EXAMPLE_DATASET_DIR / "meta.csv"
     assert metadata_file.exists() and protein_file.exists()
