@@ -71,6 +71,7 @@ export interface StatusButtonProps extends ButtonProps {
 }
 
 export interface CSVButtonProps extends ButtonProps {
-  data: readonly Record<string, unknown>[];
+  runName: string;
+  tableLabel: string;
   fileName?: string;
 }

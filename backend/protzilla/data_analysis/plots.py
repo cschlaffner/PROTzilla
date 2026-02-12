@@ -191,6 +191,12 @@ def clustergram_plot(
     metadata_df: pd.DataFrame | None,
     flip_axes: bool,
     metadata_column: str | None = None,
+    heatmap_legend_title: str | None = None,
+    use_custom_color_scale: bool = False,
+    heatmap_low_color_limit: float | None = None,
+    heatmap_low_color: str | None = None,
+    heatmap_high_color_limit: float | None = None,
+    heatmap_high_color: str | None = None,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
@@ -209,6 +215,16 @@ def clustergram_plot(
     :param metadata_column: The name of the column in `metadata_df` that contains the
         group information for each sample. This parameter is required if `metadata_df`
         is provided.
+    :param heatmap_legend_title: The title to be displayed on top of the heatmap legend,
+        e.g. "z-score" or "ratio h/l normalised"
+    :param use_custom_color_scale: Whether or not to use custom value range limits
+        and colors for the heatmap coloring
+    :param heatmap_low_color_limit: (if use_custom_color_scale) the threshold for which
+        all smaller values take heatmap_low_color
+    :param heatmap_low_color: color used for the smallest mapped values
+    :param heatmap_high_color_limit: (if use_custom_color_scale) the threshold for which
+        all greater values take heatmap_high_color
+    :param heatmap_high_color: color used for the greatest mapped values
 
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
@@ -253,7 +269,14 @@ def clustergram_plot(
             row_colors = None
             color_label_dict = None
 
-        # TODO: Would be nice to actually center values at the z-score of 0
+        if use_custom_color_scale:
+            custom_color_scale = (
+                (heatmap_low_color_limit, heatmap_low_color),
+                (heatmap_high_color_limit, heatmap_high_color),
+            )
+        else:
+            custom_color_scale = None
+
         clustergram = Clustergram(
             flip_axes=flip_axes,
             data=input_df_wide.values,
@@ -262,8 +285,10 @@ def clustergram_plot(
             row_colors_to_label_dict=color_label_dict,
             column_labels=input_df_wide.columns.values.tolist(),
             line_width=2,
-            color_map=px.colors.diverging.RdBu,
+            color_map=px.colors.diverging.RdBu_r,
             hidden_labels=["row", "col"],
+            custom_color_scale=custom_color_scale,
+            heatmap_legend_title=heatmap_legend_title,
         )
 
         clustergram.update_layout(

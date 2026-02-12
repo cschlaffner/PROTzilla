@@ -140,3 +140,14 @@ def get_file_name_from_upload_path(upload_path: str) -> str:
     base_name = file_name_randomized.split("_")[0]
     file_extension = file_name_randomized.split(".")[-1]
     return f"{base_name}.{file_extension}"
+
+
+def lerp(start: float, end: float, interpolation_factor: float) -> float:
+    """
+    Performs linear interpolation
+
+    :param start: first interpolation value
+    :param end: second interpolation value
+    :param interpolation_factor: interpolation factor (between 0 and 1)
+    """
+    return (1 - interpolation_factor) * start + interpolation_factor * end
