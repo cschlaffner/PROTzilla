@@ -856,9 +856,7 @@ class _Clustergram:
         """
 
         if not np.min(self._data) < np.max(self._data):
-            raise ValueError(
-                "Data consists only of identical values. Not plotting."
-            )
+            raise ValueError("Data consists only of identical values. Not plotting.")
 
         # 8 is the arbitrary number of colors that is used by the dendrograms (last one is ignored)
         dendro_colorscale = ["rgb(133,133,133)" for _ in range(8)]
