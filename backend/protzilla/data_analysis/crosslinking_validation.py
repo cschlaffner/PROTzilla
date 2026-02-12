@@ -1,3 +1,5 @@
+import itertools
+
 import pandas as pd
 import numpy as np
 import re
@@ -104,7 +106,7 @@ def get_distance_between_two_amino_acids_in_angstrom(
 
 
 def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-    crosslinking_df: pd.DataFrame, protein_sequence: str
+    input_crosslinking_df: pd.DataFrame, protein_sequence: str
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Adds for each crosslink the 1-based positions of amino acids where the crosslink bound to a crosslinking DataFrame.
@@ -112,7 +114,7 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
     additional combination of positions.
     If a peptide sequence can't be matched the row will be deleted and a warning emitted.
 
-    :param crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+    :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
                            - 'Peptide1': first peptide sequence
                            - 'Peptide2': second peptide sequence
                            - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
@@ -125,12 +127,9 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
                  Rows are duplicated for multiple peptide matches.
              - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
     """
-    crosslinking_df["crosslinker_position1"] = pd.Series(
-        [pd.NA] * len(crosslinking_df), dtype="Int64"
-    )
-    crosslinking_df["crosslinker_position2"] = pd.Series(
-        [pd.NA] * len(crosslinking_df), dtype="Int64"
-    )
+    crosslinking_df = input_crosslinking_df.copy()
+    crosslinking_df["crosslinker_position1"] = pd.Series(dtype="Int64")
+    crosslinking_df["crosslinker_position2"] = pd.Series(dtype="Int64")
     rows_to_duplicate = {}
     rows_to_delete = []
     messages = []
@@ -138,20 +137,17 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         peptide_sequence1 = crosslinker_row.Peptide1
         peptide_sequence2 = crosslinker_row.Peptide2
         peptide1_positions = [
-            m.start() for m in re.finditer(f"(?={peptide_sequence1})", protein_sequence)
+            m.start() + crosslinker_row.CL_position_within_peptide1 + 1
+            for m in re.finditer(f"(?={peptide_sequence1})", protein_sequence)
         ]
         peptide2_positions = [
-            m.start() for m in re.finditer(f"(?={peptide_sequence2})", protein_sequence)
+            m.start() + crosslinker_row.CL_position_within_peptide2 + 1
+            for m in re.finditer(f"(?={peptide_sequence2})", protein_sequence)
         ]
-        all_position_combinations = [
-            (
-                pos1 + crosslinker_row.CL_position_within_peptide1 + 1,
-                pos2 + crosslinker_row.CL_position_within_peptide2 + 1,
-            )
-            for pos1 in peptide1_positions
-            for pos2 in peptide2_positions
-        ]
-        if not all_position_combinations:
+        all_position_combinations = list(
+            itertools.product(peptide1_positions, peptide2_positions)
+        )
+        if all_position_combinations == [()]:
             if not peptide1_positions and not peptide2_positions:
                 msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequence. The entry was deleted."
             else:
@@ -162,9 +158,9 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         crosslinking_df.at[idx, "crosslinker_position1"] = all_position_combinations[0][
             0
         ]
-        crosslinking_df.loc[idx, "crosslinker_position2"] = all_position_combinations[
-            0
-        ][1]
+        crosslinking_df.at[idx, "crosslinker_position2"] = all_position_combinations[0][
+            1
+        ]
         if len(all_position_combinations) > 1:
             rows_to_duplicate[idx] = all_position_combinations[1:]
 

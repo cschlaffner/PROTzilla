@@ -13,9 +13,6 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
 from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
 
 
-@patch(
-    "backend.protzilla.data_analysis.crosslinking_validation.fetch_alphafold_protein_structure"
-)
 @pytest.mark.parametrize(
     "distance, expected",
     [
