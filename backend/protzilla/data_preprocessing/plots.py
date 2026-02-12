@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -171,10 +173,11 @@ def create_histograms(
     overlay: bool = False,
     relevant_column_a: str = None,
     relevant_column_b: str = None,
-    min_value_to_plot: int = None,
-    max_value_to_plot: int = None,
+    min_value: float = None,
+    max_value: float = None,
     vertical_lines: list[tuple[float, str]] = None,
     vertical_lines_dashed: list[tuple[float, str]] = None,
+    one_bin_per_int = False
 ) -> Figure:
     """
     A function to create a histogram for visualisation
@@ -214,16 +217,16 @@ def create_histograms(
         values_a = values_a.apply(np.log10)
         values_b = values_b.apply(np.log10)
 
-    if min_value_to_plot is None:
+    if min_value is None:
         min_value = min(values_a.min(skipna=True), values_b.min(skipna=True))
-    else:
-        min_value = min_value_to_plot
-    if max_value_to_plot is None:
+    if max_value is None:
         max_value = max(values_a.max(skipna=True), values_b.max(skipna=True))
-    else:
-        max_value = max_value_to_plot
 
-    number_of_bins = 100
+    if one_bin_per_int:
+        min_value = math.floor(min_value)
+        max_value = math.ceil(max_value)
+
+    number_of_bins = max_value-min_value if one_bin_per_int else 100
     binsize_a = (
         min(values_a.max(skipna=True), max_value)
         - max(values_a.min(skipna=True), min_value)
