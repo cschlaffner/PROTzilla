@@ -197,6 +197,8 @@ def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     protein_to_validate: str,
     crosslinker_information: dict[str, list[float]],
+    cif_df: pd.DataFrame,
+    amino_acid_sequence_df: pd.DataFrame,
 ) -> dict:
     """
     Validates cross-links by comparing the cross-linker lengths with the distances between the linked
@@ -210,16 +212,15 @@ def validate_with_angstrom_deviation(
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param amino_acid_sequence_df: DataFrame containing the protein sequence
     :return: dict (crosslinking_df_result, messages), crosslinking_df_result contains the relevant rows (rows of intra-crosslinks within the
     protein to validate) of crosslinking_df and two more columns containing the distances in AlphaFold and whether the crosslink matches the
     AlphaFold data or not
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
+    :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
-    alphafold_data = fetch_alphafold_protein_structure(
-        uniprot_id=protein_to_validate, persist_uploads=False
-    )
-    cif_df = alphafold_data["cif_df"]
-    protein_sequence = alphafold_data["sequence_df"].at[0, "Protein Sequence"]
+    protein_sequence = amino_acid_sequence_df.at[0, "Protein Sequence"]
 
     all_crosslinks_df = crosslinking_df.copy()
 
@@ -300,6 +301,8 @@ def bar_plot_of_valid_crosslinks(
     crosslinking_df: pd.DataFrame,
     protein_to_validate: str,
     crosslinker_information: dict[str, list[float]],
+    cif_df: pd.DataFrame,
+    amino_acid_sequence_df: pd.DataFrame,
 ) -> list[Figure]:
     """
     Creates a bar plot summarizing the number of valid and invalid cross-links
@@ -312,12 +315,18 @@ def bar_plot_of_valid_crosslinks(
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param amino_acid_sequence_df: DataFrame containing the protein sequence
     :return: List containing a single bar plot object representing counts of
              valid and invalid cross-links.
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     """
     validated_df = validate_with_angstrom_deviation(
-        crosslinking_df, protein_to_validate, crosslinker_information
+        crosslinking_df,
+        protein_to_validate,
+        crosslinker_information,
+        cif_df,
+        amino_acid_sequence_df,
     )["crosslinking_result_df"]
 
     evaluated = validated_df["valid_crosslink"].dropna()

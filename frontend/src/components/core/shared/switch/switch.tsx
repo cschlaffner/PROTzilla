@@ -36,16 +36,23 @@ export const Switch: React.FC<SwitchProps> = ({
     <SwitchContainer {...rest}>
       {length && (
         <>
-          {options.map(({ value: itemValue, isDisabled: isItemDisabled, ...itemRest }, index) => (
-            <SwitchOption
-              isActive={index === activeIndex}
-              key={itemValue}
-              onChange={onChange}
-              value={itemValue}
-              isDisabled={isItemDisabled ?? isDisabled}
-              {...itemRest}
-            />
-          ))}
+          {options.map(({ value: itemValue, isDisabled: isItemDisabled, ...itemRest }, index) => {
+            const optionKey =
+              typeof itemValue === "string" || typeof itemValue === "number"
+                ? itemValue
+                : `${itemRest.label ?? "option"}-${String(index)}`;
+
+            return (
+              <SwitchOption
+                isActive={index === activeIndex}
+                key={optionKey}
+                onChange={onChange}
+                value={itemValue}
+                isDisabled={isItemDisabled ?? isDisabled}
+                {...itemRest}
+              />
+            );
+          })}
         </>
       )}
     </SwitchContainer>
