@@ -17,6 +17,7 @@ _forward_mapping = [
     importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
     importing.ImportStructurePredictionFromDisk,
+    importing.UploadMultimerPredictions,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterProteinsBySilacRatios,
     data_preprocessing.FilterByProteinsCount,

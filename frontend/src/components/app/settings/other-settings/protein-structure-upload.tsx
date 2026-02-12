@@ -22,7 +22,7 @@ interface ProtStructureProps {
   uniprot_id: string;
   date_modified: string;
   gene: string;
-  af_version: string;
+  model_used: string;
   handleDelete?: () => void;
 }
 
@@ -49,7 +49,7 @@ const ProtStructureEntry = ({
   uniprot_id,
   date_modified,
   gene,
-  af_version,
+  model_used,
   handleDelete,
 }: ProtStructureProps) => {
   return (
@@ -65,7 +65,7 @@ const ProtStructureEntry = ({
             "  |  " +
             gene +
             "  |  " +
-            af_version
+            model_used
           }
         />
       </ProtStructureInfo>
@@ -94,7 +94,7 @@ export const ProteinStructureUpload = () => {
   const handleAddProteinStructure = async (
     uniprot_id: string,
     entry_id: string,
-    af_version: string,
+    model_used: string,
     gene: string,
     cif_file: string,
     confidence: string,
@@ -104,7 +104,7 @@ export const ProteinStructureUpload = () => {
     const response = await callApiWithParameters("upload_prot_structure", {
       uniprot_id: uniprot_id,
       entry_id: entry_id,
-      af_version: af_version,
+      model_used: model_used,
       gene: gene,
       cif_file: cif_file,
       confidence: confidence,
@@ -193,7 +193,7 @@ export const ProteinStructureUpload = () => {
             },
             {
               type: "text",
-              name: "af_version",
+              name: "model_used",
               label: "Alphafold Version Number (required):",
               isVisible: true,
             },
@@ -237,7 +237,7 @@ export const ProteinStructureUpload = () => {
           void handleAddProteinStructure(
             data.uniprot_id as string,
             data.entry_id as string,
-            data.af_version as string,
+            data.model_used as string,
             data.gene as string,
             data.cif_file as string,
             data.confidence_file as string,
@@ -267,7 +267,7 @@ export const ProteinStructureUpload = () => {
               uniprot_id={ps.uniprot_id}
               date_modified={ps.date_modified}
               gene={ps.gene}
-              af_version={ps.af_version}
+              model_used={ps.model_used}
               handleDelete={() => {
                 onDeleteProtStructure(ps.entry_id);
               }}
@@ -280,7 +280,7 @@ export const ProteinStructureUpload = () => {
         onClose={closeDeleteModal}
         onConfirm={() => void handleDeleteProtStructure(selectedProtStructure)}
         title={
-          `The uploaded protein structure prediction with the entryID ` +
+          `The uploaded protein structure prediction with the entry ID ` +
           `"${selectedProtStructure}" will permanently be deleted. Would you like to proceed?`
         }
       />

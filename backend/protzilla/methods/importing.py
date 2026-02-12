@@ -14,8 +14,9 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
-    get_all_available_entry_ids,
+    get_all_available_entry_ids_of_monomer_metadata,
     get_prot_structure_dfs,
+    upload_multimer_prediction,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
@@ -440,7 +441,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
                     label="Protein ID",
                 ),
                 CheckboxField(
-                    name="persist_uploads",
+                    name="persist_upload",
                     label="Upload should be saved persistently across runs",
                     value=True,
                 ),
@@ -502,9 +503,74 @@ class ImportStructurePredictionFromDisk(ImportingStep):
                 DropdownField(
                     name="entry_id",
                     label="Entry ID of the prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
-                    options=form_helper.to_choices(get_all_available_entry_ids()),
+                    options=form_helper.to_choices(
+                        get_all_available_entry_ids_of_monomer_metadata()
+                    ),
                 )
             ],
         )
 
     calc_method = staticmethod(get_prot_structure_dfs)
+
+
+class UploadMultimerPredictions(ImportingStep):
+    display_name = "Multimer Structure Prediction Upload"
+    operation = "Protein Structure Import"
+    method_description = "Upload a multimer protein prediction"
+
+    output_keys = [
+        "metadata_df",
+        "cif_df",
+        "confidence_df",
+        "full_data_df",
+        "amino_acid_sequences_df",
+    ]
+
+    def create_form(self):
+        return Form(
+            label="Multimer Structure Prediction Upload",
+            input_fields=[
+                TextField(
+                    name="entry_id",
+                    label="Entry ID of the prediction to be loaded into the run.",
+                ),
+                TextField(
+                    name="protein_ids",
+                    label="Protein IDs of all proteins used in the sequence.",
+                ),
+                InfoField(
+                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9"
+                ),
+                TextField(
+                    name="model_used",
+                    label="The AlphaFold Model used to predict the structure.",
+                ),
+                FileInput(
+                    name="amino_acid_sequences",
+                    label="Amino acid sequences of proteins in the prediction (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="cif_file",
+                    label="CIF file (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="confidence_file",
+                    label="Confidence summary json file (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="full_data_file",
+                    label="Full data json file (required)",
+                    value=None,
+                ),
+                CheckboxField(
+                    name="persist_upload",
+                    label="Upload should be saved persistently across runs",
+                    value=True,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(upload_multimer_prediction)

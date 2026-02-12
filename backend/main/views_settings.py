@@ -3,7 +3,6 @@ import os
 import shutil
 from datetime import date, datetime, timezone
 from io import BytesIO
-from pathlib import Path
 
 
 import pandas
@@ -17,9 +16,14 @@ from backend.main import settings
 from backend.main.views_helper import (
     sanitize_name,
     load_settings_from_file,
-    copy_file_to_directory,
 )
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
+from backend.protzilla.utilities.utilities import copy_file_to_directory
+from backend.protzilla.constants.paths import (
+    EXTERNAL_DATA_PATH,
+    SETTINGS_PATH,
+    AF_MONOMER_METADATA_CSV_PATH,
+    ALPHAFOLD_MONOMER_PATH,
+)
 from backend.protzilla.data_integration.database_query import (
     uniprot_columns,
     uniprot_databases,
@@ -229,16 +233,14 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 
 # <--- Protein Structure Predictions --->
 
-AF_DICT_PATH = EXTERNAL_DATA_PATH / "alphafold"
-
 
 def get_metadata_df(csv_file_path: str) -> pandas.DataFrame:
     expected_columns = [
-        "entryID",
-        "uniprotAccession",
-        "modelCreatedDate",
+        "entry_id",
+        "uniprot_accession",
+        "model_created_date",
         "gene",
-        "alphafold_version",
+        "model_used",
     ]
     if csv_file_path.exists():
         df = pandas.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
@@ -248,17 +250,17 @@ def get_metadata_df(csv_file_path: str) -> pandas.DataFrame:
 
 
 def get_prot_structure(request):
-    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+    metadata_csv = AF_MONOMER_METADATA_CSV_PATH
 
     df = get_metadata_df(metadata_csv)
 
     df_infos = df.rename(
         columns={
-            "entryID": "entry_id",
-            "uniprotAccession": "uniprot_id",
-            "modelCreatedDate": "date_modified",
+            "entry_id": "entry_id",
+            "uniprot_accession": "uniprot_id",
+            "model_created_date": "date_modified",
             "gene": "gene",
-            "alphafold_version": "af_version",
+            "model_used": "model_used",
         }
     ).to_dict(orient="records")
 
@@ -270,7 +272,7 @@ def upload_prot_structure(request):
         data = json.loads(request.body)
         uniprot_id = data.get("uniprot_id")
         entry_id = data.get("entry_id")
-        af_version = data.get("af_version")
+        model_used = data.get("model_used")
         gene = data.get("gene")
         cif_file = data.get("cif_file")
         confidence = data.get("confidence")
@@ -279,7 +281,7 @@ def upload_prot_structure(request):
 
         #  Copy files to source directory out of temp directory
 
-        af_path = AF_DICT_PATH / entry_id.upper()
+        af_path = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
         if af_path.exists():
             return JsonResponse(
                 {"success": False, "message": "Entry ID is not unique."}, status=405
@@ -297,8 +299,8 @@ def upload_prot_structure(request):
                 )
 
         # add row to metadata csv
-        AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
-        metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+        ALPHAFOLD_MONOMER_PATH.mkdir(parents=True, exist_ok=True)
+        metadata_csv = AF_MONOMER_METADATA_CSV_PATH
 
         df = get_metadata_df(metadata_csv)
 
@@ -306,11 +308,11 @@ def upload_prot_structure(request):
         formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         new_row = {
-            "entryID": entry_id,
-            "uniprotAccession": uniprot_id,
-            "modelCreatedDate": formatted,
+            "entry_id": entry_id,
+            "uniprot_accession": uniprot_id,
+            "model_created_date": formatted,
             "gene": gene,
-            "alphafold_version": af_version,
+            "model_used": model_used,
         }
 
         df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
@@ -347,8 +349,8 @@ def delete_prot_structure(request):
         )
 
     # delete folder with files for the protein structure
-    target_dir = AF_DICT_PATH / entry_id.upper()
-    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+    target_dir = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+    metadata_csv = AF_MONOMER_METADATA_CSV_PATH
 
     if not target_dir.exists() or not target_dir.is_dir():
         return JsonResponse(
@@ -373,7 +375,7 @@ def delete_prot_structure(request):
         try:
             df = pandas.read_csv(metadata_csv, dtype=str)
             df = df[
-                df["entryID"].fillna("").str.strip().str.upper() != entry_id.upper()
+                df["entry_id"].fillna("").str.strip().str.upper() != entry_id.upper()
             ]
             df.to_csv(metadata_csv, index=False)
 
