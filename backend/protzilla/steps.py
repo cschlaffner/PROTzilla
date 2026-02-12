@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 # To avoid race conditions when dumping to disk
 from threading import Lock
 
+import networkx as nx
 
 class Section(str, Enum):
     IMPORTING = "importing"
@@ -514,6 +515,8 @@ class StepManager:
         self.failed_step_index = -1
         self.sections: dict[Section, list[Step]] = {section: [] for section in Section}
         self.id_mapping = {}
+        
+        self.graph = nx.DiGraph()
 
         if steps is not None:
             for step in steps:
@@ -740,6 +743,7 @@ class StepManager:
         if step.section in self.sections:
             self.sections[step.section].append(step)
             self.id_mapping[step.instance_identifier] = step
+            self.graph.add_node(step.instance_identifier)
         else:
             raise ValueError(f"Unknown section {step.section}")
 
@@ -772,6 +776,7 @@ class StepManager:
         if global_step_index < self.current_step_index:
             self.current_step_index -= 1
         self.sections[step.section].remove(step)
+        self.graph.remove_node(step.instance_identifier)
         del self.id_mapping[step.instance_identifier]
 
     def next_step(self) -> None:
@@ -850,6 +855,10 @@ class StepManager:
                 )
             target_instance = self.id_mapping[target]
             target_instance.input_sources[targetHandle] = source
+            if not self.graph.has_edge(source, target):
+                self.graph.add_edge(source, target, n_connections=1)
+            else:
+                self.graph[source][target]["n_connections"] += 1
             return target_instance
         except KeyError as e:
             raise KeyError(
@@ -871,6 +880,12 @@ class StepManager:
             raise ValueError(f"No step with id {target} found")
         existing_source = target_instance.input_sources.get(targetHandle)
         if existing_source == source:
+            self.graph[source][target]["n_connections"] -= 1
+
+            # Remove edge if no more connections exist
+            if self.graph[source][target]["n_connections"] == 0:
+                self.graph.remove_edge(source, target)
+
             del target_instance.input_sources[targetHandle]
         return target_instance
 
