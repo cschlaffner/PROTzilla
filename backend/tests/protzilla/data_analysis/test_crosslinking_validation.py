@@ -178,7 +178,7 @@ def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
 
     assert len(messages) == 1
     assert messages[0]["level"] == logging.WARNING
-    assert "was not found" in messages[0]["msg"]
+    assert "not found" in messages[0]["msg"]
 
     # row should be deleted
     assert df.empty

@@ -147,7 +147,7 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         all_position_combinations = list(
             itertools.product(peptide1_positions, peptide2_positions)
         )
-        if all_position_combinations == [()]:
+        if not all_position_combinations:
             if not peptide1_positions and not peptide2_positions:
                 msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequence. The entry was deleted."
             else:
