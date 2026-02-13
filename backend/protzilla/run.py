@@ -296,29 +296,12 @@ class Run:
             }
         )
 
-
     @error_handling
     @auto_save
-    def __B250_step_remove(self, step_iid: str) -> None:
-        self.steps.__TODOB250_remove_step(step_iid)
+    def step_remove(self, step_iid: str) -> None:
+        self.steps.remove_step(step_iid)
         self.update_metadata({"steps": [step.display_name for step in self.steps.all_steps.values()]})
 
-
-    # TODO: B250: deprecate
-    @error_handling
-    @auto_save
-    def step_remove(
-        self,
-        step: Step | None = None,
-        step_index: int | None = None,
-        section: Section | None = None,
-    ) -> None:
-        self.steps.remove_step(step=step, step_index=step_index, section=section)
-        self.update_metadata(
-            {
-                "steps": [step.display_name for step in self.steps.all_steps],
-            }
-        )
 
     @auto_save
     def connect_steps(self, connection: Connection) -> None:
@@ -360,12 +343,12 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_goto(self, step_index: int, section: Section) -> None:
-        self.steps.goto_step(step_index, section)
+    def step_goto(self, step_iid: str) -> None:
+        self.steps.goto_step(step_iid)
 
     @error_handling
-    def step_set_outdated(self, offset: int = 0) -> int:
-        return self.steps.set_steps_outdated(offset)
+    def step_set_outdated(self) -> int:
+        return self.steps.invalidate_succeeding_steps()
 
     @auto_save
     def step_upload_file(self, inputname: str, file) -> None:

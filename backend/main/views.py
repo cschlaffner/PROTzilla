@@ -356,7 +356,7 @@ def add_step(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
-def __B250_delete_step(request):
+def delete_step(request):
     """
     API call. Deletes the step with the given instance identifier
     """
@@ -371,55 +371,18 @@ def __B250_delete_step(request):
 
     run = Run(run_name)
 
-    run.__B250_step_remove(step_iid)
+    run.step_remove(step_iid)
 
-
-def delete_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
-
-        index = int(index)
-        run = Run(run_name)
-
-        if (
-            section == run.current_step.section
-            and index == run.steps.current_step_index_in_section
-        ):
-            # if the step to be deleted is the current step, we need to go to the next step first
-            if run.steps.current_step_index > 0:
-                run.step_previous()
-            else:
-                return JsonResponse(
-                    {"success": False, "message": "Cannot delete the first step"},
-                    status=405,
-                )
-
-        run.step_remove(step_index=index, section=section)
-
-        return JsonResponse({"success": True, "message": "Deleted step"})
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
+    return JsonResponse({"success": True, "message": "Deleted step"})
 
 def navigate_to_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
+        step_iid = data.get("step_iid")
 
-        index = int(index)
         run = Run(run_name)
-        run.step_goto(index, section)
+        run.step_goto(step_iid)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
     else:
@@ -800,8 +763,7 @@ def calculate_step(request):
         run.step_calculate()
 
         calculation_data = {}
-        calculation_data["section"] = run.current_step.section
-        calculation_data["index"] = run.steps.current_step_index_in_section
+        calculation_data["step_iid"] = run.current_step.instance_identifier
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [
             message for message in run.current_messages.messages

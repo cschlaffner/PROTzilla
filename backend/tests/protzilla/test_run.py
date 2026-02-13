@@ -107,6 +107,7 @@ class TestRun:
         run_imported.step_goto(0, "importing")
         assert run_imported.current_step == run_imported.steps.all_steps[0]
 
+    # TODO B250
     def test_set_steps_outdated(self, run_imported):
         step = ImputationByKNN()
         run_imported.step_add(step)
