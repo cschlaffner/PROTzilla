@@ -6,7 +6,8 @@ import { styled } from "styled-components";
 import {
   DatabaseSettings,
   GitHub,
-  ProteinStructureUpload,
+  MonomerStructureUpload,
+  MultimerStructureUpload,
   PTMVisSettings,
 } from "./other-settings/";
 import { PlotSettingsModal } from "./plot-settings";
@@ -116,12 +117,21 @@ export const Settings: React.FC<SettingsProps> = ({
               }}
             />
             <SectionButton
-              id={"protein-struc-upload"}
-              isActive={selectedSetting === "protein-struc-upload"}
+              id={"monomer-structure-upload"}
+              isActive={selectedSetting === "monomer-structure-upload"}
               icon={"prot_structure"}
-              text={"Protein Structure Upload"}
+              text={"Monomer Structure Upload"}
               onPress={() => {
-                handleSwitchSection("protein-struc-upload");
+                handleSwitchSection("monomer-structure-upload");
+              }}
+            />
+            <SectionButton
+              id={"multimer-structure-upload"}
+              isActive={selectedSetting === "multimer-structure-upload"}
+              icon={"prot_structure"}
+              text={"Multimer Structure Upload"}
+              onPress={() => {
+                handleSwitchSection("multimer-structure-upload");
               }}
             />
             <SectionButton
@@ -140,7 +150,8 @@ export const Settings: React.FC<SettingsProps> = ({
             )}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "ptm-vis" && <PTMVisSettings />}
-            {selectedSetting === "protein-struc-upload" && <ProteinStructureUpload />}
+            {selectedSetting === "monomer-structure-upload" && <MonomerStructureUpload />}
+            {selectedSetting === "multimer-structure-upload" && <MultimerStructureUpload />}
             {selectedSetting === "github" && <GitHub />}
           </SpecificSettings>
           <DiscardModal

@@ -418,9 +418,9 @@ class ExampleDatasetImport(ImportingStep):
 
 
 class AlphaFoldPredictionLoad(ImportingStep):
-    display_name = "AlphaFold DB Prediction Load"
-    operation = "Protein Structure Import"
-    method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
+    display_name = "AlphaFold DB Monomer Prediction Load"
+    operation = "Monomer Structure Import"
+    method_description = "Loads the predicted structure of the monomer with the given protein ID out of the AlphaFold DB."
 
     output_keys = [
         "metadata_df",
@@ -434,7 +434,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
 
     def create_form(self):
         return Form(
-            label="AlphaFold DB Prediction Load",
+            label="AlphaFold DB Monomer Prediction Load",
             input_fields=[
                 TextField(
                     name="uniprot_id",
@@ -483,9 +483,9 @@ class CrosslinkingImport(ImportingStep):
 
 class ImportStructurePredictionFromDisk(ImportingStep):
     display_name = "Structure Prediction Import from Disk"
-    operation = "Protein Structure Import"
+    operation = "Monomer Structure Import"
     method_description = (
-        "Load already uploaded protein structure predictions from disk into current run"
+        "Load an already uploaded monomer structure prediction from disk into current run"
     )
 
     output_keys = [
@@ -515,7 +515,7 @@ class ImportStructurePredictionFromDisk(ImportingStep):
 
 class UploadMultimerPredictions(ImportingStep):
     display_name = "Multimer Structure Prediction Upload"
-    operation = "Protein Structure Import"
+    operation = "Multimer Structure Import"
     method_description = "Upload a multimer protein prediction"
 
     output_keys = [
