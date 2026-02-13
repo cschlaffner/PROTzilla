@@ -296,6 +296,15 @@ class Run:
             }
         )
 
+
+    @error_handling
+    @auto_save
+    def __B250_step_remove(self, step_iid: str) -> None:
+        self.steps.__TODOB250_remove_step(step_iid)
+        self.update_metadata({"steps": [step.display_name for step in self.steps.all_steps.values()]})
+
+
+    # TODO: B250: deprecate
     @error_handling
     @auto_save
     def step_remove(
@@ -357,11 +366,6 @@ class Run:
     @error_handling
     def step_set_outdated(self, offset: int = 0) -> int:
         return self.steps.set_steps_outdated(offset)
-
-    @error_handling
-    @auto_save
-    def step_change_method(self, new_method: str) -> None:
-        self.steps.change_method(new_method)
 
     @auto_save
     def step_upload_file(self, inputname: str, file) -> None:
