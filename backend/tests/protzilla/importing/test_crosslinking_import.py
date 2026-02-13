@@ -138,10 +138,8 @@ def _minimal_valid_crosslinking_df():
             "Crosslinker": ["DSS"],
             "Peptide1": ["AAA"],
             "Peptide2": ["BBB"],
-            "Peptide_position1": [1],
-            "Peptide_position2": [2],
-            "CL_position1": [3],
-            "CL_position2": [4],
+            "CL_position_within_peptide1": [1],
+            "CL_position_within_peptide2": [2],
             "Q_value": [0.01],
         }
     )
@@ -246,10 +244,9 @@ def test_crosslinking_import_csv(tmp_path):
     csv_file = tmp_path / "test.csv"
     csv_file.write_text(
         "Protein1,Protein2,Peptide1,Peptide2,"
-        "Peptide_position1,Peptide_position2,"
-        "CL_position1,CL_position2,"
+        "CL_position_within_peptide1,CL_position_within_peptide2,"
         "Crosslinker,Q_value\n"
-        "RAD50,MRE11,AAA,BBB,1,2,3,4,DSS,0.01\n"
+        "RAD50,MRE11,AAA,BBB,1,2,DSS,0.01\n"
     )
 
     with patch(
@@ -274,10 +271,8 @@ def test_crosslinking_import_xlsx(monkeypatch, tmp_path):
             "Peptide1": ["[AAA]"],
             "Peptide2": ["[BBB]"],
             "Is_intra_crosslink": ["Intra"],
-            "Peptide_position1": [1],
-            "Peptide_position2": [2],
-            "CL_position1": [3],
-            "CL_position2": [4],
+            "CL_position_within_peptide1": [1],
+            "CL_position_within_peptide2": [2],
             "Crosslinker": ["DSS"],
             "Q_value": [0.01],
         }
