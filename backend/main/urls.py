@@ -40,7 +40,6 @@ urlpatterns = [
     path("api/add_plot/", views.add_plot, name="add_plot"),
     path("api/add_step/", views.add_step, name="add_step"),
     path("api/delete_step/", views.delete_step, name="delete_step"),
-    path("api/update_step/", views.update_step, name="update_step"),
     path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
     path("api/set_step_pos/", views.set_step_pos, name="set_step_pos"),
     path("api/connect_steps/", views.connect_steps, name="connect_steps"),

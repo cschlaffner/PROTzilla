@@ -356,6 +356,23 @@ def add_step(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+def __B250_delete_step(request):
+    """
+    API call. Deletes the step with the given instance identifier
+    """
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_iid = data.get("step_iid")
+
+    run = Run(run_name)
+
+    run.__B250_step_remove(step_iid)
+
 
 def delete_step(request):
     if request.method == "POST":
@@ -385,23 +402,6 @@ def delete_step(request):
         run.step_remove(step_index=index, section=section)
 
         return JsonResponse({"success": True, "message": "Deleted step"})
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
-
-def update_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        method = data.get("method")
-
-        run = Run(run_name)
-
-        run.step_change_method(method)
-
-        return JsonResponse({"success": True, "message": "Updated step method"})
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
@@ -705,7 +705,7 @@ def get_step_form(request):
         run = Run(run_name)
 
         if new_form_values != {}:
-            run.steps.set_steps_outdated()
+            run.steps.invalidate_succeeding_steps()
 
         form = run.current_form(new_form_values)
 

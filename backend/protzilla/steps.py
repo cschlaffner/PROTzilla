@@ -128,12 +128,11 @@ class Step(ABC):
         :param steps: The StepManager object that contains all steps
         :return: bool: True if the calculation was successful, False otherwise
         """
-        stepIndex = steps.all_steps.index(self)
-        previousStep = steps.all_steps[stepIndex - 1]
+        stepIndex = steps.DEPR_all_steps.index(self)
+        previousStep = steps.DEPR_all_steps[stepIndex - 1]
 
-        if stepIndex != 0 and previousStep.calculation_status == "outdated":
-            if not previousStep.calculate(steps):
-                return False
+        if not steps.calc_dependencies_met_for_step(self.instance_identifier):
+            return False
 
         self.get_form_values()
         self.messages.clear()
@@ -498,8 +497,6 @@ class Plots:
 
 
 class StepManager:
-    id_mapping: dict[str, Step]
-
     def __repr__(self):
         return f"IMP: {self.sections[Section.IMPORTING]} PRE: {self.sections[Section.DATA_PREPROCESSING]} ANA: {self.sections[Section.DATA_PREPROCESSING]} INT: {self.sections[Section.DATA_INTEGRATION]}"
 
@@ -509,27 +506,58 @@ class StepManager:
         df_mode: str = "disk",
         disk_operator: DiskOperator | None = None,
     ):
-        self.df_mode = df_mode
-        self.disk_operator = disk_operator
+        # >> DEPRECATED
         self.current_step_index = 0
         self.failed_step_index = -1
-        self.sections: dict[Section, list[Step]] = {section: [] for section in Section}
-        self.id_mapping = {}
-        
+        # <<
+
+        self.df_mode = df_mode
+        self.disk_operator = disk_operator
+
+        # Saves all steps, accessible by their instance identifiers
+        self.all_steps: dict[str, Step] = {}
+
+        # Graph saving connections between steps.
+        # All steps are represented by their instance_identifiers as nodes.
+        # If an output of step X is connected to an input of step Y,
+        # an edge with weight "n_connections" 1 is added. If multiple such links exist,
+        # the edge's weight is incremented by 1 with every additional link
         self.graph = nx.DiGraph()
+
+        # Instance identifier of the currently selected step
+        self.current_selected_step_iid: str | None = None
 
         if steps is not None:
             for step in steps:
                 self.add_step(step)
 
     @property
-    def all_steps(self) -> list[Step]:
+    def sections(self) -> dict[Section, list[Step]]:
+        """
+        For front-end compatibility
+
+        :return: Dict mapping section titles to lists of step objects
+        """
+        return {section: [step for step in self.all_steps.values() if step.section == section] for section in Section}
+
+    @property
+    def DEPR_all_steps(self) -> list[Step]:
         """
         This is read-only, meaning the changes made to this list will not persist.
-        :return: a list of all the steps in the current StepManager
+        :return: A list of all the steps in the current StepManager
         """
         return sum(self.sections.values(), [])
 
+    @property
+    def all_step_iids_toposorted(self) -> list[Step]:
+        """
+        :return: A list of all step IDs in topological order according to the current
+            connections in self.graph
+        """
+        return list(nx.topological_sort(self.graph))
+
+
+    # TODO B250 remove calls
     @property
     def current_step_index_in_section(self) -> int:
         """
@@ -544,6 +572,31 @@ class StepManager:
             and section not in [step.section for step in self.future_steps]
         )
 
+    def preceding_steps(self, step_iid: str) -> list[Step]:
+        """
+        :param step_iid: Step of interest
+        :return: List of all predecessors of the given step
+        """
+        ancestor_iids = list(nx.ancestors(self.graph, step_iid))
+        return [self.all_steps[iid] for iid in ancestor_iids]
+
+    def succeeding_steps(self, step_iid: str) -> list[Step]:
+        """
+        :param step_iid: Step of interest
+        :return: List of all predecessors of the given step
+        """
+        ancestor_iids = list(nx.ancestors(self.graph, step_iid))
+        return [self.all_steps[iid] for iid in ancestor_iids]
+
+    def calc_dependencies_met_for_step(self, step_iid: str) -> bool:
+        """
+        Checks calculation status of all preceding steps in the graph.
+        :return: True iff all preceding steps have been calculated
+        """
+        return all([step.calculation_status == "complete" for step in self.preceding_steps(step_iid)])
+
+
+    # TODO B179: make obsolete and delete
     def get_instance_identifiers(
         self, step_type: type[Step], output_key: str | list[str] | None = None
     ) -> list[str]:
@@ -552,7 +605,7 @@ class StepManager:
 
         instance_identifiers = [
             step.instance_identifier
-            for step in self.all_steps
+            for step in self.all_steps.values()
             if isinstance(step, step_type)
             and (output_key is None or all(k in step.output for k in output_key))
         ]
@@ -562,6 +615,7 @@ class StepManager:
             )
         return instance_identifiers
 
+    # TODO B250
     @staticmethod
     def check_instance_identifier(step: Step, instance_identifier: str | None):
         return (
@@ -569,6 +623,7 @@ class StepManager:
             or instance_identifier is None
         )
 
+    # TODO B250
     def get_step_output(
         self,
         step_type: Step | None = None,
@@ -591,12 +646,12 @@ class StepManager:
             raise NotImplementedError("Passing the step type is deprecated")
 
         if include_current_step:
-            steps_to_search = self.all_steps
+            steps_to_search = self.DEPR_all_steps
         else:
             steps_to_search = self.previous_calculated_steps
 
         # TODO: this is stupid. iterating over all steps should now only be necessary if for whatever reason the instance identifier is unknown
-        # if an instance identifier is present, self.id_mapping should be used
+        # if an instance identifier is present, self.all_steps should be used
         for step in reversed(steps_to_search):
             if (
                 StepManager.check_instance_identifier(step, instance_identifier)
@@ -622,6 +677,7 @@ class StepManager:
                 return val
         return None
 
+    # TODO B250
     def get_step_input(
         self,
         step_type: Step | None = None,
@@ -650,8 +706,10 @@ class StepManager:
                 return step.inputs[input_key]
         return default
 
+
+    # TODO B250
     def get_step_operation(self, instance_identifier: str) -> str:
-        for step in reversed(self.all_steps):
+        for step in reversed(self.DEPR_all_steps):
             if step.instance_identifier == instance_identifier:
                 return step.operation
         raise ValueError(f"No step associated with ID {instance_identifier}")
@@ -667,6 +725,15 @@ class StepManager:
         else:
             raise ValueError(f"Unknown section {section}")
 
+    def invalidate_succeeding_steps(self) -> int:
+        if self.current_selected_step_iid is None:
+            return 0
+        steps_to_remove = self.succeeding_steps(self.current_selected_step_iid)
+        for step in steps_to_remove:
+            step.calculation_status = "outdated"
+        return len(steps_to_remove)
+
+    # TODO B250
     def set_steps_outdated(self, offset: int = 0) -> None:
         count = 0
         for step in self.following_steps[offset:]:
@@ -675,10 +742,12 @@ class StepManager:
                 count += 1
         return count
 
+    # TODO B250
     @property
     def previous_steps(self) -> list[Step]:
-        return self.all_steps[: self.current_step_index]
+        return self.DEPR_all_steps[: self.current_step_index]
 
+    # TODO B250
     @property
     def previous_calculated_steps(self) -> list[Step]:
         return list(
@@ -687,15 +756,14 @@ class StepManager:
             )
         )
 
+    # TODO B250
     @property
     def following_steps(self) -> list[Step]:
-        return self.all_steps[self.current_step_index :]
+        return self.DEPR_all_steps[self.current_step_index :]
 
     @property
-    def current_step(self) -> Step:
-        if self.current_step_index >= len(self.all_steps):
-            return None
-        return self.all_steps[self.current_step_index]
+    def current_step(self) -> Step | None:
+        return self.all_steps.get(self.current_selected_step_iid)
 
     @property
     def current_operation(self) -> str:
@@ -713,40 +781,54 @@ class StepManager:
             self.current_step.instance_identifier,
         )
 
+    # TODO B179
     @property
     def protein_df(self) -> pd.DataFrame:
-
         return self.get_step_output(output_key="protein_df")
 
+    # TODO B179
     @property
     def metadata_df(self) -> pd.DataFrame | None:
-
         return self.get_step_output(output_key="metadata_df")
 
-    @property
-    def preprocessed_output(self) -> Output | None:
-        if self.current_section == Section.IMPORTING:
-            return None
-        if self.current_section == Section.DATA_PREPROCESSING:
-            return (
-                self.current_step.output
-                if self.current_step.calculation_status != "incomplete"
-                else self.previous_steps[-1].output
-            )
-        return self.sections[Section.DATA_PREPROCESSING][-1].output
-
+    # TODO B250
     @property
     def is_at_last_step(self) -> bool:
-        return self.current_step_index == len(self.all_steps) - 1
+        return self.current_step_index == len(self.DEPR_all_steps) - 1
 
     def add_step(self, step: Step) -> None:
         if step.section in self.sections:
-            self.sections[step.section].append(step)
-            self.id_mapping[step.instance_identifier] = step
+            self.all_steps[step.instance_identifier] = step
             self.graph.add_node(step.instance_identifier)
         else:
             raise ValueError(f"Unknown section {step.section}")
 
+
+    # TODO: New API
+    def __TODOB250_remove_step(self, step_iid: str | None) -> None:
+        """
+        Removes a step.
+        :param step_iid: instance identifier of the step to delete
+        """
+        if step_iid is None:
+            raise ValueError("")
+        if step_iid not in self.all_steps.keys():
+            raise ValueError(f"No step with iid {str(step_iid)} found")
+
+        self._clear_succeeding_steps(step_iid)
+        
+        # Navigate to a predecessor if step was selected
+        if self.current_selected_step_iid == step_iid:
+            # TODO: Ok for now.
+            # For the future: Consider deleting the last step (-> nav to None)
+            # or navigating to some predecessor instead
+            self.current_selected_step_iid = None
+
+        self.graph.remove_node(step_iid)
+        del self.all_steps[step_iid]
+
+
+    # TODO: B250 remove this and change to new API
     def remove_step(
         self,
         step: Step | None,
@@ -771,14 +853,15 @@ class StepManager:
 
             step = self.all_steps_in_section(section)[step_index]
 
-        global_step_index = self.all_steps.index(step)
-        self._clear_future_steps(global_step_index)
+        global_step_index = self.DEPR_all_steps.index(step)
+        self._clear_succeeding_steps(step.instance_identifier)
         if global_step_index < self.current_step_index:
             self.current_step_index -= 1
         self.sections[step.section].remove(step)
         self.graph.remove_node(step.instance_identifier)
-        del self.id_mapping[step.instance_identifier]
+        del self.all_steps[step.instance_identifier]
 
+    # TODO B250
     def next_step(self) -> None:
         """
         Go to the next step in the workflow. Depending on the df_mode, the dataframes of the previous output are
@@ -799,6 +882,7 @@ class StepManager:
         else:
             raise ValueError("Cannot go to the next step from the last step")
 
+    # TODO B250
     def previous_step(self) -> None:
         """
         Go to the previous step in the workflow. If the previous step is in disk mode, the respective dataframes are
@@ -811,6 +895,7 @@ class StepManager:
         else:
             raise ValueError("Cannot go back from the first step")
 
+    # TODO B250 remove with current_step_index_in_section
     @property
     def future_steps(self) -> list[Step]:
         """
@@ -819,8 +904,10 @@ class StepManager:
         """
         if self.is_at_last_step:
             return []
-        return self.all_steps[self.current_step_index + 1 :]
+        return self.DEPR_all_steps[self.current_step_index + 1 :]
 
+
+    # TODO B250: Needs to be completely updated
     def goto_step(self, step_index: int, section: Section) -> None:
         """
         Go to a specific step in the workflow.
@@ -839,7 +926,7 @@ class StepManager:
             self.disk_operator._write_output(self.current_step)
 
         step = self.all_steps_in_section(section)[step_index]
-        new_step_index = self.all_steps.index(step)
+        new_step_index = self.DEPR_all_steps.index(step)
         self.current_step_index = new_step_index
 
     def connect_steps(self, connection: Connection) -> Step:
@@ -853,12 +940,14 @@ class StepManager:
                 raise ValueError(
                     f"The output key {sourceHandle} does not match the input key {targetHandle}"
                 )
-            target_instance = self.id_mapping[target]
+            target_instance = self.all_steps[target]
             target_instance.input_sources[targetHandle] = source
+
             if not self.graph.has_edge(source, target):
                 self.graph.add_edge(source, target, n_connections=1)
             else:
                 self.graph[source][target]["n_connections"] += 1
+
             return target_instance
         except KeyError as e:
             raise KeyError(
@@ -875,7 +964,7 @@ class StepManager:
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
             ) from e
 
-        target_instance = self.id_mapping.get(target)
+        target_instance = self.all_steps.get(target)
         if target_instance is None:
             raise ValueError(f"No step with id {target} found")
         existing_source = target_instance.input_sources.get(targetHandle)
@@ -890,6 +979,10 @@ class StepManager:
         return target_instance
 
     def get_edges(self) -> list[Connection]:
+        """
+        For front-end
+        :return: List of connections between steps as interpretable by front-end
+        """
         return [
             {
                 "source": source,
@@ -899,46 +992,16 @@ class StepManager:
                 "key": f"{source}->{step.instance_identifier}: {key}",
                 "id": f"{source}->{step.instance_identifier}: {key}",
             }
-            for step in self.all_steps
+            for step in self.all_steps.values()
             for key, source in step.input_sources.items()
         ]
 
-    def name_current_step_instance(self, new_instance_identifier: str) -> None:
+    def _clear_succeeding_steps(self, step_iid: str) -> None:
         """
-        Change the instance identifier of the current step
-        :return: None
-        :param new_instance_identifier: the new instance identifier
+        Voids outputs, messages and plots of all steps succeeding a given step
+        :param step_iid: instance identifier of step of interest
         """
-        self.current_step.instance_identifier = new_instance_identifier
-
-    def change_method(self, new_method: str) -> None:
-        """
-        Change the method of the current step,
-        :param new_method: the new method, the name of the method class (accessible via __class__.__name__)
-        :return: None
-        :raises ValueError: if the section of the current step is unknown
-        """
-        from backend.protzilla.stepfactory import StepFactory
-
-        new_step = StepFactory.create_step(new_method, self)
-
-        try:
-            current_index = self.all_steps_in_section(self.current_section).index(
-                self.current_step
-            )
-            self.all_steps_in_section(self.current_section)[current_index] = new_step
-            self._clear_future_steps()
-        except ValueError:
-            raise ValueError(f"Unknown section {self.current_section}")
-        except Exception as e:
-            logging.error(f"Error while changing method: {e}")
-
-    def _clear_future_steps(self, index: int | None = None) -> None:
-        if index == None:
-            index = self.current_step_index
-        if index == len(self.all_steps) - 1:
-            return
-        for step in self.all_steps[index + 1 :]:
+        for step in self.succeeding_steps(step_iid);
             step.output = Output()
             step.messages = Messages()
             step.plots = Plots()

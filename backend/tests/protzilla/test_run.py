@@ -107,10 +107,6 @@ class TestRun:
         run_imported.step_goto(0, "importing")
         assert run_imported.current_step == run_imported.steps.all_steps[0]
 
-    def test_step_change_method(self, run_imported):
-        run_imported.step_change_method("DiannImport")
-        assert run_imported.current_step.__class__.__name__ == "DiannImport"
-
     def test_set_steps_outdated(self, run_imported):
         step = ImputationByKNN()
         run_imported.step_add(step)
