@@ -27,7 +27,7 @@ class StepFactory:
                 instance_count = len(
                     [
                         instance
-                        for instance in steps.all_steps
+                        for instance in steps.all_steps.values()
                         if isinstance(instance, method)
                     ]
                 )
