@@ -864,6 +864,11 @@ class StepManager:
             if target_instance.input_sources.get(targetHandle) == source:
                 return target_instance
 
+            # Delete old connection in graph if input source changes from existing connection
+            old_source = target_instance.input_sources.get(targetHandle) 
+            if old_source is not None:
+                self.remove_graph_connection(old_source, target)
+
             target_instance.input_sources[targetHandle] = source
             if not self.graph.has_edge(source, target):
                 self.graph.add_edge(source, target, n_connections=1)
@@ -875,6 +880,13 @@ class StepManager:
             raise KeyError(
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
             ) from e
+
+    def remove_graph_connection(self, source_iid: str, target_iid: str) -> None:
+        self.graph[source_iid][target_iid]["n_connections"] -= 1
+
+        # Remove edge if no more connections exist
+        if self.graph[source_iid][target_iid]["n_connections"] == 0:
+            self.graph.remove_edge(source_iid, target_iid)
 
     def disconnect_steps(self, connection: Connection) -> Step:
         try:
@@ -891,12 +903,7 @@ class StepManager:
             raise ValueError(f"No step with id {target} found")
         existing_source = target_instance.input_sources.get(targetHandle)
         if existing_source == source:
-            self.graph[source][target]["n_connections"] -= 1
-
-            # Remove edge if no more connections exist
-            if self.graph[source][target]["n_connections"] == 0:
-                self.graph.remove_edge(source, target)
-
+            self.remove_graph_connection(source, target)
             del target_instance.input_sources[targetHandle]
         return target_instance
 
