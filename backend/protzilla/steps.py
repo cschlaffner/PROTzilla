@@ -853,13 +853,18 @@ class StepManager:
             target = connection["target"]
             targetHandle = connection["targetHandle"]
             # do we allow these keys to differ?
+            # TODO: yes, we need a compatibility matrix. ~ Joris
             if sourceHandle != targetHandle:
                 raise ValueError(
                     f"The output key {sourceHandle} does not match the input key {targetHandle}"
                 )
             target_instance = self.all_steps[target]
-            target_instance.input_sources[targetHandle] = source
 
+            # Skip connection if already connected
+            if target_instance.input_sources.get(targetHandle) == source:
+                return target_instance
+
+            target_instance.input_sources[targetHandle] = source
             if not self.graph.has_edge(source, target):
                 self.graph.add_edge(source, target, n_connections=1)
             else:
