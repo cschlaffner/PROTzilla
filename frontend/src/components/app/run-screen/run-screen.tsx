@@ -246,6 +246,15 @@ export const RunScreen: React.FC = () => {
     />
   );
 
+  const __list_editor_temp_component = (
+    <StyledContentContainer>
+      <SectionTitle
+        baseComponent={"p"}
+        description={"The List Editor is broken and needs to be refactored"}
+      />
+    </StyledContentContainer>
+  )
+
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}
@@ -256,7 +265,7 @@ export const RunScreen: React.FC = () => {
   );
 
   const editorModes = [
-    { name: "List", value: listEditorComponent },
+    { name: "List", value: __list_editor_temp_component },
     { name: "Node", value: nodeEditorComponent },
   ];
 

@@ -62,9 +62,8 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     setSections(runData.displayed_steps);
   }, [runData]);
 
-  const previousStepCalculationStatus = "complete"; // TODO B250: Get from Backend and rename
+  const previousStepCalculationStatus = "complete";
 
-  // TODO B250: Should work but please refactor
   const currentSection = sections.find(
     (section) => (section.id as string) === runData.current_section,
   );
@@ -85,7 +84,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         : "Calculate";
 
   const onNext = () => {
-    console.error("Not implemented. TODO B250 use API for nextStep");
+    console.error("Not implemented.");
   };
 
   const onFormChanged = useCallback(() => {

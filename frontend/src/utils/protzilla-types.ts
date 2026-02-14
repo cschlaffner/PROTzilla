@@ -60,7 +60,8 @@ export const supportedSections: Section[] = [
   },
 ];
 
-export const emptySections: Section[] = supportedSections; // TODO B250: remove
+// TODO: remove with List editor refactoring
+export const emptySections: Section[] = supportedSections; 
 
 export interface Run {
   run_name: string;

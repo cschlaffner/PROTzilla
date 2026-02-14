@@ -298,7 +298,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
       <StyledDivider />
 
-      {/* TODO: B250 add appropriate calls */}
       <StyledFormColumn>
         <BackendForm
           runName={runName}
@@ -312,6 +311,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
+            // Quite a radical solution, but sadly works
             navigateOrRefreshSteps();
           }}
         />
