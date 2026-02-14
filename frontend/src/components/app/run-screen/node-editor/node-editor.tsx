@@ -3,7 +3,7 @@ import { useNotification } from "@protzilla/app";
 import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import type { Section, Step } from "@protzilla/utils";
-import { callApiWithParameters, SectionIDs, translateGlobalToSectionIndex } from "@protzilla/utils";
+import { callApiWithParameters, emptyRunData, SectionIDs, supportedSections, translateGlobalToSectionIndex } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
 import { useCallback, useEffect, useState } from "react";
@@ -61,6 +61,11 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   navigateOrRefreshSteps,
   runData,
 }) => {
+  // Fallback. Future TODO: Make this cleaner
+  if (runData == emptyRunData) {
+    return <h1>Node Editor Fallback</h1>
+  }
+
   const notify = useNotification();
 
   const onAddStep = () => {
@@ -164,6 +169,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   // Run data
   //
 
+
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
       run_name: runName,
@@ -178,9 +184,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   const allSteps: Step[] = runData.displayed_steps;
-  const sections: SectionIDs[] = [...new Set(allSteps.map(step => step.section))];
   const currentSectionId = runData.current_section as SectionIDs;
-  const currentSection = sections.find((section) => section.id === currentSectionId);
+  const currentSection = supportedSections.find((section) => section.id === currentSectionId);
   const currentStep = allSteps.find((step) => step.id === runData.current_step_iid)
 
   const currentStepCalculationStatus = currentStep.status;
@@ -216,7 +221,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           position: position,
           data: {
             step: step,
-            step_index_within_section: index,
             section: step.section,
             isSelected: isSelected,
             navigateOrRefreshSteps: navigateOrRefreshSteps,
@@ -243,7 +247,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     <StyledRow>
       <div style={{ width: "calc(25vw + 24px)", height: "100vh" }}>
         <StyledStepButtonsRow>
-          {sections.map((section) => (
+          {supportedSections.map((section) => (
             <StepSelection
               key={`add-button-for-section-${section.id as string}`}
               section={section.id}

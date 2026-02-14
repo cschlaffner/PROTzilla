@@ -39,31 +39,28 @@ export const enum SectionIDs {
 export interface Section {
   id: SectionIDs;
   name: string;
-  steps: Step[];
 }
 
-export const emptySections: Section[] = [
+export const supportedSections: Section[] = [
   {
     id: SectionIDs.Importing,
     name: "Importing",
-    steps: [],
   },
   {
     id: SectionIDs.DataPreprocessing,
     name: "Data Preprocessing",
-    steps: [],
   },
   {
     id: SectionIDs.DataAnalysis,
     name: "Data Analysis",
-    steps: [],
   },
   {
     id: SectionIDs.DataIntegration,
     name: "Data Integration",
-    steps: [],
   },
 ];
+
+export const emptySections: Section[] = supportedSections; // TODO B250: remove
 
 export interface Run {
   run_name: string;

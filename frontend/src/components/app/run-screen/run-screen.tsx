@@ -156,7 +156,7 @@ export const RunScreen: React.FC = () => {
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepTable]);
+  }, [runName]);
 
   const onFormSubmit = () => {
     void getRunData();

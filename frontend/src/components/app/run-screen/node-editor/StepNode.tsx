@@ -18,7 +18,6 @@ export interface HoveredHandleMeta {
 
 export interface StepNodeData extends Record<string, unknown> {
   step: Step;
-  step_index_within_section: number;
   section: SectionIDs;
   isSelected: boolean;
   navigateOrRefreshSteps: (stepIID?: StepIID) => void;
