@@ -41,7 +41,8 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   isCollapsed,
   sectionName,
   sectionLength,
-  index,
+  index, // TODO: B250 remove and refactor references
+  iid,
   isSelected,
   navigateOrRefreshSteps,
   deleteStep,
@@ -95,15 +96,12 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const handleClick = () => {
-    navigateOrRefreshSteps({
-      section: sectionName,
-      index: index,
-    });
+    navigateOrRefreshSteps(iid);
   };
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    deleteStep(index);
+    deleteStep(iid);
   };
 
   return (

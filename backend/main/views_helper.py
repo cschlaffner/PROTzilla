@@ -56,11 +56,12 @@ def convert_str_if_possible(s):
             return numbers
         return s
 
-
+# TODO: Rename this
 def get_step(step: Step) -> dict:
     return {
         "id": step.instance_identifier,
         "name": step.display_name,
+        "section": step.section,
         "input_keys": step.external_input_keys,
         "output_keys": step.output_keys,
         "visual_data": step.visual_data,
@@ -69,37 +70,22 @@ def get_step(step: Step) -> dict:
     }
 
 
-def get_displayed_steps(
-    steps: StepManager,
-) -> list[
-    dict
-]:  # TODO i think this broke with the new naming scheme, should be redone (old protzilla - jannes hat nur kopiert)
+def get_displayed_steps(steps: StepManager) -> list[dict]:
+    """
+    For front-end. Returns the necessary short info for all steps. Returned steps are ordered
+    using toposort
+
+    :param steps: A StepManager to get the steps from
+    :return: A list of dictionaries with the necessary info for each step
+    """
     displayed_steps = []
-    index_global = 0
 
-    sections = steps.sections.keys()
+    for step_iid in steps.all_step_iids_toposorted:
+        step = steps.all_steps[step_iid]
+        displayed_steps.append(get_step(step))
 
-    for section in sections:
-        workflow_steps = []
-
-        for index_in_section, step in enumerate(steps.all_steps_in_section(section)):
-            workflow_steps.append(get_step(step))
-
-            index_global += 1
-        displayed_steps.append(
-            {
-                "id": section,
-                "name": name_to_title(section),
-                "steps": workflow_steps,
-                # "selected": steps.current_section == section,
-                # "finished": index_global - 1 < steps.current_step_index,
-                # "calculation_status": step.calculation_status,
-                # TODO merge changes from old Repos
-            }
-        )
     return displayed_steps
-
-
+        
 # TODO display_message, display_messages, clear_messages
 
 

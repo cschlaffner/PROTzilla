@@ -1,4 +1,4 @@
-import { SectionIDs, SelectedStep, StepStatus } from "@protzilla/utils";
+import { SectionIDs, StepIID, StepStatus } from "@protzilla/utils";
 
 export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement> {
   number: string;
@@ -8,9 +8,10 @@ export interface SidebarStepProps extends React.HTMLAttributes<HTMLDivElement> {
   sectionName: SectionIDs;
   sectionLength: number;
   index: number;
+  iid: StepIID;
   isSelected: boolean;
-  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
-  deleteStep: (index: number) => void;
+  navigateOrRefreshSteps: (stepIID: StepIID) => void;
+  deleteStep: (stepIID: StepIID) => void;
   setHandlePosition: React.Dispatch<React.SetStateAction<{ top: number; left: number }>>;
   setShowHandle: React.Dispatch<React.SetStateAction<boolean>>;
   setHoveredStepIndex: React.Dispatch<React.SetStateAction<number>>;

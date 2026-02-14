@@ -82,7 +82,6 @@ RUN_FILE = "run.yaml"
 @dataclass
 class KEYS:
     # We add this here to avoid typos and signal to the developer that accessing the keys should be done through this class only
-    CURRENT_STEP_INDEX = "current_step_index"
     STEPS = "steps"
     STEP_OUTPUTS = "output"
     STEP_FORM_INPUTS = "form_inputs"
@@ -95,6 +94,7 @@ class KEYS:
     DF_MODE = "df_mode"
     INPUT_SOURCES = "input_sources"
     VISUAL_DATA = "visual_data"
+    CURRENT_STEP_IID = "current_step_iid"
 
 
 class DiskOperator:
@@ -117,13 +117,6 @@ class DiskOperator:
                     continue
                 step_manager.add_step(step)
 
-            # this expression ensures that the current step index is within the bounds of the steps list, and at least 0
-            step_manager.current_step_index = max(
-                0,
-                min(
-                    run.get(KEYS.CURRENT_STEP_INDEX, 0), len(step_manager.all_steps) - 1
-                ),
-            )
             return step_manager
 
     def write_run(self, step_manager: StepManager) -> None:
@@ -134,7 +127,7 @@ class DiskOperator:
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
             run = {}
-            run[KEYS.CURRENT_STEP_INDEX] = step_manager.current_step_index
+            run[KEYS.CURRENT_STEP_IID] = step_manager.current_selected_step_iid
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
             for step in step_manager.all_steps:

@@ -499,10 +499,6 @@ class StepManager:
         df_mode: str = "disk",
         disk_operator: DiskOperator | None = None,
     ):
-        # TODO B250 remove all references to this
-        self.current_step_index: int = 0
-        # <<
-
         self.df_mode: str = df_mode
         self.disk_operator: DiskOperator | None = disk_operator
 
