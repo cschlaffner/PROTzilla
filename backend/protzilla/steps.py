@@ -130,6 +130,12 @@ class Step(ABC):
         :return: bool: True if the calculation was successful, False otherwise
         """
         if not steps.calc_dependencies_met_for_step(self.instance_identifier):
+            self.messages.append(
+                dict(
+                    level=logging.ERROR,
+                    msg=f"At least one dependent step has not been calculated yet",
+                )
+            )
             return False
 
         self.get_form_values()
@@ -556,10 +562,10 @@ class StepManager:
     def succeeding_steps(self, step_iid: str) -> list[Step]:
         """
         :param step_iid: Step of interest
-        :return: List of all predecessors of the given step
+        :return: List of all successors of the given step
         """
-        ancestor_iids = list(nx.ancestors(self.graph, step_iid))
-        return [self.all_steps[iid] for iid in ancestor_iids]
+        descendant_iids = list(nx.descendants(self.graph, step_iid))
+        return [self.all_steps[iid] for iid in descendant_iids]
 
     def calc_dependencies_met_for_step(self, step_iid: str) -> bool:
         """
@@ -801,9 +807,14 @@ class StepManager:
             except ValueError: # No previous step
                 mustNavigateToFallback = True
     
-        # TODO: @Tarek B179 We need to delete all references to that step in the connection
-        # Arrays here. Else, if we re-add a step that gets assigned the same IID,
-        # the connection respawns, but not in self.graph (only in the actual step data links)
+        # Remove all dangling references
+        for step in self.all_steps.values():
+            step.input_sources = {
+                data_key: mapped_step_iid 
+                for data_key, mapped_step_iid 
+                in step.input_sources.items() 
+                if mapped_step_iid != step_iid
+            }
 
         self.graph.remove_node(step_iid)
         del self.all_steps[step_iid]
@@ -890,7 +901,7 @@ class StepManager:
             return target_instance
         except KeyError as e:
             raise KeyError(
-                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
+                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle" + str(e)
             ) from e
 
     def remove_graph_connection(self, source_iid: str, target_iid: str) -> None:
