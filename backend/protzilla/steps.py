@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict
 import inspect
 import logging
+from multiprocessing.sharedctypes import Value
 import traceback
 from enum import Enum
 from pathlib import Path
@@ -748,6 +749,10 @@ class StepManager:
         return int(self.graph.in_degree(step_iid)) == 0
 
     @property
+    def fallback_step_iid(self) -> str:
+        return list(self.all_steps.keys())[0]
+
+    @property
     def is_at_terminal_step(self) -> bool:
         return self.step_is_terminal(self.current_selected_step_iid)
 
@@ -760,6 +765,10 @@ class StepManager:
             raise ValueError(f"Unknown section {step.section}")
 
         self.all_steps[step.instance_identifier] = step
+
+        if len(self.all_steps) == 1:
+            self.current_selected_step_iid = step.instance_identifier
+        
         self.graph.add_node(step.instance_identifier)
 
     def remove_step(self, step_iid: str | None) -> None:
@@ -771,15 +780,24 @@ class StepManager:
             raise ValueError("")
         if step_iid not in self.all_steps.keys():
             raise ValueError(f"No step with iid {str(step_iid)} found")
+        if len(self.all_steps) == 1:
+            raise ValueError("At least one step must exist")
 
         self._clear_succeeding_steps(step_iid)
         
         # Navigate to a predecessor if step was selected
+        mustNavigateToFallback = False
         if self.current_selected_step_iid == step_iid:
-            self.previous_step()
+            try:
+                self.previous_step()
+            except ValueError: # No previous step
+                mustNavigateToFallback = True
 
         self.graph.remove_node(step_iid)
         del self.all_steps[step_iid]
+
+        if mustNavigateToFallback:
+            self.goto_step(self.fallback_step_iid)
 
     def next_step(self) -> None:
         """
@@ -809,7 +827,7 @@ class StepManager:
 
         :return: None
         """
-        if self.is_at_source_step:
+        if not self.is_at_source_step:
             prev_step_iid = list(self.graph.predecessors(self.current_selected_step_iid))[0]
             self.current_selected_step_iid = prev_step_iid
         else:

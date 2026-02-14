@@ -258,7 +258,7 @@ class Run:
     @error_handling
     @auto_save
     def set_step_pos(self, step_id: str, x: float, y: float) -> None:
-        step = self.steps.id_mapping.get(step_id)
+        step = self.steps.all_steps.get(step_id)
         if step is None:
             raise ValueError(f"Unknown step id: {step_id}")
         step.visual_data["node_position"] = {"x": x, "y": y}
@@ -276,7 +276,7 @@ class Run:
         self.update_metadata(
             {
                 "df_mode": self.steps.df_mode,
-                "steps": [step.display_name for step in self.steps.all_steps],
+                "steps": [step.display_name for step in self.steps.all_steps.values()],
             }
         )
 
@@ -292,11 +292,11 @@ class Run:
         self.steps.add_step(step)
         self.update_metadata(
             {
-                "steps": [step.display_name for step in self.steps.all_steps],
+                "steps": [step.display_name for step in self.steps.all_steps.values()],
             }
         )
 
-    @error_handling
+    # @error_handling
     @auto_save
     def step_remove(self, step_iid: str) -> None:
         self.steps.remove_step(step_iid)

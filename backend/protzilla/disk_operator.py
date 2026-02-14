@@ -130,7 +130,7 @@ class DiskOperator:
             run[KEYS.CURRENT_STEP_IID] = step_manager.current_selected_step_iid
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
-            for step in step_manager.all_steps:
+            for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
 
@@ -193,7 +193,7 @@ class DiskOperator:
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
         with ErrorHandler():
-            for step in step_manager.all_steps:
+            for step in step_manager.all_steps.values():
                 step_data = self._write_step(step, workflow_mode=True).copy()
                 inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
                 inputs_to_write = {}
@@ -221,7 +221,7 @@ class DiskOperator:
         return any(
             step.instance_identifier in file.name
             and step.calculation_status != "incomplete"
-            for step in steps.all_steps
+            for step in steps.all_steps.values()
         )
 
     def clean_dataframes_dir(self, steps: StepManager) -> None:
