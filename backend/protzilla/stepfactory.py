@@ -24,12 +24,6 @@ class StepFactory:
             if method.__name__ == step_type:
                 if instance_identifier:
                     return method(instance_identifier=instance_identifier)
-                instance_count = len(
-                    [
-                        instance
-                        for instance in steps.all_steps.values()
-                        if isinstance(instance, method)
-                    ]
-                )
-                return method(instance_identifier=f"{step_type}_{instance_count + 1}")
+                new_iid_number: int = steps.next_iid_clock_value()
+                return method(instance_identifier=f"s{new_iid_number:05}_{step_type}")
         raise ValueError(f"Unknown step type {step_type}")

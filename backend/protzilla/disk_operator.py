@@ -82,20 +82,21 @@ RUN_FILE = "run.yaml"
 @dataclass
 class KEYS:
     # We add this here to avoid typos and signal to the developer that accessing the keys should be done through this class only
-    STEPS = "steps"
-    STEP_OUTPUTS = "output"
-    STEP_FORM_INPUTS = "form_inputs"
-    STEP_INPUTS = "inputs"
-    STEP_MESSAGES = "messages"
-    STEP_PLOTS = "plots"
-    STEP_INSTANCE_IDENTIFIER = "instance_identifier"
-    STEP_TYPE = "type"
-    STEP_CALCULATION_STATUS = "calculation_status"
-    DF_MODE = "df_mode"
-    INPUT_SOURCES = "input_sources"
-    VISUAL_DATA = "visual_data"
-    CURRENT_STEP_IID = "current_step_iid"
-    GRAPH_EDGES = "graph_edges"
+    STEPS: str = "steps"
+    STEP_OUTPUTS: str = "output"
+    STEP_FORM_INPUTS: str = "form_inputs"
+    STEP_INPUTS: str = "inputs"
+    STEP_MESSAGES: str = "messages"
+    STEP_PLOTS: str = "plots"
+    STEP_INSTANCE_IDENTIFIER: str = "instance_identifier"
+    STEP_TYPE: str = "type"
+    STEP_CALCULATION_STATUS: str = "calculation_status"
+    DF_MODE: str = "df_mode"
+    INPUT_SOURCES: str = "input_sources"
+    VISUAL_DATA: str = "visual_data"
+    CURRENT_STEP_IID: str = "current_step_iid"
+    GRAPH_EDGES: str = "graph_edges"
+    IID_CLOCK: str = "iid_clock"
 
 
 class DiskOperator:
@@ -122,6 +123,10 @@ class DiskOperator:
             if edges is not None:
                 step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])
 
+            iid_clock = run.get(KEYS.IID_CLOCK)
+            if iid_clock is not None:
+                step_manager.iid_clock = iid_clock
+
             return step_manager
 
     def write_run(self, step_manager: StepManager) -> None:
@@ -136,6 +141,7 @@ class DiskOperator:
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
             run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
+            run[KEYS.IID_CLOCK] = step_manager.iid_clock
             for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)

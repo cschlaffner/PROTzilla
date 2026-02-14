@@ -516,9 +516,17 @@ class StepManager:
         # Instance identifier of the currently selected step
         self.current_selected_step_iid: str | None = None
 
+        # Logical clock for instance identifier creation.
+        # Incremented by StepFactory after every created step, may never be decremented
+        self.iid_clock: int = 0
+
         if steps is not None:
             for step in steps:
                 self.add_step(step)
+
+    def next_iid_clock_value(self) -> int:
+        self.iid_clock += 1
+        return self.iid_clock
 
     @property
     def sections(self) -> dict[Section, list[Step]]:
@@ -792,6 +800,10 @@ class StepManager:
                 self.previous_step()
             except ValueError: # No previous step
                 mustNavigateToFallback = True
+    
+        # TODO: @Tarek B179 We need to delete all references to that step in the connection
+        # Arrays here. Else, if we re-add a step that gets assigned the same IID,
+        # the connection respawns, but not in self.graph (only in the actual step data links)
 
         self.graph.remove_node(step_iid)
         del self.all_steps[step_iid]
