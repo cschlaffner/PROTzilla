@@ -41,7 +41,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   isCollapsed,
   sectionName,
   sectionLength,
-  index, // TODO: B250 remove and refactor references
+  index,
   iid,
   isSelected,
   navigateOrRefreshSteps,
