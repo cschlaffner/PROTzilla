@@ -131,6 +131,24 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
 def get_correct_af_directories(
     entry_id: str, directory_name: Path, persist_upload: bool
 ) -> tuple[Path | None, Path]:
+    """
+    Determine and prepare the appropriate working directory for an entry.
+
+    If persist_upload is True, a persistent directory named after the
+    uppercased entry_id is created inside directory_name and used as the
+    working directory. If persist_upload is False, a temporary directory
+    is created and used instead.
+
+    :param entry_id: Identifier of the entry. Used as the name of the
+        subdirectory (uppercased) when persist_upload is True.
+    :param directory_name: Base directory under which the persistent
+        entry-specific directory is created.
+    :param persist_upload: Whether to create and use a persistent
+        directory or a temporary one.
+    :return: A tuple containing the temporary directory (or None if not
+        created) and the working directory to use.
+    """
+
     target_dir = directory_name / entry_id.upper()
     temp_dir = None
 
@@ -151,6 +169,30 @@ def extend_metadata_csv(
     metadata_df: pd.DataFrame,
     messages: list,
 ) -> None:
+    """
+    Extend or update the AlphaFold metadata CSV with a new entry.
+
+    If an entry with the given entry_id already exists in the provided
+    existing_metadata_df, it is removed and replaced with the data from
+    metadata_df. The combined DataFrame is then written to metadata_csv.
+
+    Any warnings or errors encountered during processing are logged and
+    appended to the provided messages list.
+
+    :param entry_id: The Entry ID used to identify and potentially
+        overwrite an existing row in the metadata.
+    :param metadata_csv: Path to the metadata CSV file that should be
+        updated.
+    :param exsisting_metadata_df: The current metadata DataFrame loaded
+        from the CSV file.
+    :param metadata_df: The new metadata DataFrame to append to the
+        existing data.
+    :param messages: A list used to collect structured log messages
+        with level and message content.
+    :return: None.
+    :raises Exception: Propagates unexpected errors that occur during
+        concatenation or writing to disk after logging them.
+    """
     try:
         mask = exsisting_metadata_df["entry_id"] == entry_id
         if mask.any():
@@ -168,6 +210,22 @@ def extend_metadata_csv(
 
 
 def get_amino_acid_sequence_df(fasta_dest: Path, messages: list) -> pd.DataFrame:
+    """
+    Load a FASTA file and return its amino acid sequence DataFrame.
+
+    The function uses fasta_import to parse the FASTA file and extracts
+    the DataFrame stored under the key "fasta_df". If an error occurs
+    during parsing, the exception is logged, a message is appended to
+    the provided messages list, and an empty DataFrame is returned.
+
+    :param fasta_dest: Path to the FASTA file to be imported.
+    :param messages: A list used to collect structured log messages
+        with level and message content.
+    :return: A DataFrame containing the amino acid sequence information,
+        or an empty DataFrame if parsing fails.
+    :raises Exception: Propagates unexpected errors from fasta_import
+        after logging them.
+    """
     try:
         fasta_dict = fasta_import(str(fasta_dest))
         amino_acid_sequence_df = fasta_dict["fasta_df"]
@@ -381,6 +439,22 @@ def get_all_available_entry_ids_of_multimer_metadata() -> list[str]:
 def check_and_get_metadata_df(
     entry_id: str, all_metadata_df: pd.DataFrame, csv_file: Path
 ) -> pd.DataFrame:
+    """
+    Retrieve the metadata row for a given Entry ID from a DataFrame.
+
+    The function filters all_metadata_df for rows matching the provided
+    entry_id. If no matching metadata is found, an error is logged and
+    a ValueError is raised.
+
+    :param entry_id: The Entry ID used to filter the metadata DataFrame.
+    :param all_metadata_df: The complete metadata DataFrame containing
+        all entries.
+    :param csv_file: Path to the CSV file from which the metadata was
+        loaded. Used for error reporting.
+    :return: A DataFrame containing the metadata for the specified
+        Entry ID.
+    :raises ValueError: If no metadata for the given Entry ID is found.
+    """
     metadata_df = all_metadata_df[all_metadata_df["entry_id"] == entry_id]
     if metadata_df.empty:
         msg = f"No metadata for Entry ID '{entry_id}' in {csv_file}"
@@ -389,7 +463,16 @@ def check_and_get_metadata_df(
     return metadata_df
 
 
-def check_dir(entry_id: str, dir: Path):
+def check_dir(entry_id: str, dir: Path) -> None:
+    """
+    Validate that the given directory exists and is a directory.
+
+    :param entry_id: The Entry ID used for error reporting.
+    :param dir: Path to the expected AlphaFold data directory.
+    :return: None.
+    :raises FileNotFoundError: If the directory does not exist or is
+        not a valid directory.
+    """
     if not dir.exists() or not dir.is_dir():
         msg = f"AlphaFold data directory not found for entry '{entry_id}': {dir}"
         logger.error(msg)
@@ -399,6 +482,23 @@ def check_dir(entry_id: str, dir: Path):
 def get_cif_df_from_disk(
     entry_id: str, structure_dir: Path, messages: list
 ) -> pd.DataFrame:
+    """
+    Load the AlphaFold mmCIF file from disk and return it as a DataFrame.
+
+    The function searches the given structure directory for files with
+    the .cif extension. If multiple CIF files are found, only the first
+    one is read and a warning message is logged and appended to the
+    messages list. If no CIF file is found, a FileNotFoundError is raised.
+
+    :param entry_id: The Entry ID used for error reporting.
+    :param structure_dir: Path to the directory containing the structure
+        files.
+    :param messages: A list used to collect structured log messages
+        with level and message content.
+    :return: A DataFrame containing the parsed mmCIF data.
+    :raises FileNotFoundError: If no CIF file is found in the directory.
+    :raises RuntimeError: If reading the CIF file fails.
+    """
     cif_files = list(structure_dir.glob("*.cif"))
     if not cif_files:
         msg = f"No CIF file found in {structure_dir} for entry '{entry_id}'"
@@ -423,6 +523,21 @@ def get_cif_df_from_disk(
 def get_amino_acid_sequences_df_from_disk(
     entry_id: str, structure_dir: Path
 ) -> pd.DataFrame:
+    """
+    Load the amino acid sequence DataFrame from a FASTA file on disk.
+
+    The function searches the given structure directory for files with
+    the .fasta or .fa extension. The first matching file is parsed using
+    fasta_import and the DataFrame stored under the key "fasta_df" is
+    returned.
+
+    :param entry_id: The Entry ID used for error reporting.
+    :param structure_dir: Path to the directory containing the FASTA file.
+    :return: A DataFrame containing the amino acid sequence data.
+    :raises FileNotFoundError: If no FASTA file is found in the directory.
+    :raises RuntimeError: If loading the FASTA file fails or if the
+        importer does not return a "fasta_df" entry.
+    """
     fasta_files = list(structure_dir.glob("*.fasta")) + list(structure_dir.glob("*.fa"))
     if not fasta_files:
         msg = f"No FASTA file found in {structure_dir} for entry '{entry_id}'"
@@ -445,6 +560,19 @@ def get_amino_acid_sequences_df_from_disk(
 
 
 def get_json_files_in_dir(entry_id: str, structure_dir: Path) -> list:
+    """
+    Retrieve all JSON files from a given structure directory.
+
+    The function searches the specified directory for files with the
+    .json extension and returns them as a list. If no JSON files are
+    found, an error is logged and a FileNotFoundError is raised.
+
+    :param entry_id: The Entry ID used for error reporting.
+    :param structure_dir: Path to the directory to search for JSON files.
+    :return: A list of Path objects representing the JSON files found
+        in the directory.
+    :raises FileNotFoundError: If no JSON files are found in the directory.
+    """
     json_files = list(structure_dir.glob("*.json"))
     if not json_files:
         msg = f"No JSON files found in {structure_dir} for entry '{entry_id}'"
@@ -454,6 +582,21 @@ def get_json_files_in_dir(entry_id: str, structure_dir: Path) -> list:
 
 
 def check_success_of_get_df(entry_id: str, df_dict: dict, messages: list) -> None:
+    """
+    Evaluate whether all retrieved DataFrames contain data and log the result.
+
+    The function checks if any DataFrame in df_dict is empty. If none are
+    empty, a success message is logged and appended to the messages list.
+    If at least one DataFrame is empty, a warning message is logged and
+    appended instead.
+
+    :param entry_id: The Entry ID used for logging the result.
+    :param df_dict: A dictionary containing DataFrames that were loaded
+        for the given entry.
+    :param messages: A list used to collect structured log messages
+        with level and message content.
+    :return: None.
+    """
     if not any(df.empty for df in df_dict.values()):
         success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
         logger.info(success_msg)
@@ -633,6 +776,49 @@ def upload_multimer_prediction(
     full_data_file: Path,
     persist_upload: bool,
 ) -> dict[str, Any]:
+    """
+    Process an AlphaFold multimer prediction and return its parsed data as DataFrames.
+
+    The function assembles metadata for the prediction, optionally persists both
+    metadata and input files to the configured multimer storage directory, and
+    parses the provided files into DataFrames:
+    - FASTA sequences via fasta_import, key "fasta_df".
+    - mmCIF structure via read_alphafold_mmcif.
+    - Confidence JSON via pandas.read_json.
+    - Full data JSON via json.load and pandas.json_normalize if it is a dict.
+
+    The returned dictionary contains the DataFrames and a "messages" list with
+    structured log entries describing warnings or errors encountered.
+
+    Temporary working directories created when persist_upload is False are
+    removed in a finally block.
+
+    :param entry_id: Unique identifier for the prediction entry. Used for
+        directory naming and metadata.
+    :param uniprot_ids: UniProt identifiers associated with the multimer
+        prediction.
+    :param model_used: Name or identifier of the AlphaFold model used to
+        create the prediction.
+    :param amino_acid_sequences: Path to the FASTA file containing the amino
+        acid sequences.
+    :param cif_file: Path to the mmCIF structure file.
+    :param confidence_file: Path to the confidence JSON file.
+    :param full_data_file: Path to the full data JSON file. If the JSON
+        content is a dict it is normalized into a single-row DataFrame.
+        Otherwise, an empty DataFrame is returned and a warning is recorded.
+    :param persist_upload: If True, persist metadata and copy input files into
+        the configured multimer directory. If False, use a temporary directory
+        and do not persist metadata.
+    :return: A dictionary containing:
+        - "metadata_df": DataFrame with entry metadata.
+        - "cif_df": DataFrame parsed from the mmCIF file.
+        - "confidence_df": DataFrame loaded from the confidence JSON.
+        - "full_data_df": Normalized DataFrame from the full data JSON or empty.
+        - "amino_acid_sequences_df": DataFrame from the FASTA import.
+        - "messages": List of structured log messages with level and msg.
+    :raises Exception: Any exception raised during parsing or file operations
+        will propagate after cleanup of any temporary directory.
+    """
 
     messages = []
 
