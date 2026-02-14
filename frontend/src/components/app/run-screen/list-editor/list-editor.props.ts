@@ -1,8 +1,8 @@
-import { RunData, SelectedStep } from "@protzilla/utils";
+import { RunData, StepIID } from "@protzilla/utils";
 
 export interface ListEditorProps {
   onFormSubmit: () => void;
   runName: string;
-  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
+  navigateOrRefreshSteps: (stepIID?: StepIID) => void;
   runData: RunData;
 }

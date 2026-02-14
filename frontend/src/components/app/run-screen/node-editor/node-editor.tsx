@@ -167,8 +167,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
       run_name: runName,
-      section: runData.current_section,
-      index: translateGlobalToSectionIndex(runData.current_step_index, sections).index,
+      step_iid: runData.current_step_iid,
     }).then((response) => {
       notify({
         type: response.success ? "success" : "error",
@@ -178,11 +177,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     navigateOrRefreshSteps();
   };
 
-  const sections: Section[] = runData.displayed_steps;
+  const allSteps: Step[] = runData.displayed_steps;
+  const sections: SectionIDs[] = [...new Set(allSteps.map(step => step.section))];
   const currentSectionId = runData.current_section as SectionIDs;
   const currentSection = sections.find((section) => section.id === currentSectionId);
+  const currentStep = allSteps.find((step) => step.id === runData.current_step_iid)
 
-  const currentStepCalculationStatus = currentSection?.steps[runData.current_step_index]?.status;
+  const currentStepCalculationStatus = currentStep.status;
   const buttonText =
     currentStepCalculationStatus === "complete"
       ? "Next"
@@ -192,42 +193,38 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   useEffect(() => {
     console.log("Run Data", runData);
-    const effectSections = runData.displayed_steps;
+    const effectAllSteps = runData.displayed_steps;
     setNodes((nodesSnapshot) => {
       const newNodes: StepNodeType[] = [];
       let yOffset = 0;
-      let flatStepIndex = 0;
 
-      effectSections.forEach((section: Section) => {
-        section.steps.forEach((step: Step, index: number) => {
-          const isSelected =
-            currentSectionId === section.id && runData.current_step_index === flatStepIndex;
+      
+      effectAllSteps.forEach((step: Step) => {
+        const isSelected = runData.current_step_iid === step.id
 
-          const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
-          const savedPosition = step.visual_data?.node_position;
-          const position = oldMatchingNode
-            ? oldMatchingNode.position
-            : savedPosition
-              ? { x: savedPosition.x, y: savedPosition.y }
-              : { x: 0, y: yOffset };
+        const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
+        const savedPosition = step.visual_data?.node_position;
+        const position = oldMatchingNode
+          ? oldMatchingNode.position
+          : savedPosition
+            ? { x: savedPosition.x, y: savedPosition.y }
+            : { x: 0, y: yOffset };
 
-          newNodes.push({
-            id: step.id,
-            type: "step",
-            position: position,
-            data: {
-              step: step,
-              step_index_within_section: index,
-              section: section.id,
-              isSelected: isSelected,
-              navigateOrRefreshSteps: navigateOrRefreshSteps,
-              setHoveredHandleMeta: setHoveredHandleMeta,
-            },
-          });
-
-          flatStepIndex += 1;
-          yOffset += 60;
+        newNodes.push({
+          id: step.id,
+          type: "step",
+          position: position,
+          data: {
+            step: step,
+            step_index_within_section: index,
+            section: step.section,
+            isSelected: isSelected,
+            navigateOrRefreshSteps: navigateOrRefreshSteps,
+            setHoveredHandleMeta: setHoveredHandleMeta,
+          },
         });
+
+        yOffset += 60;
       });
       return newNodes;
     });
@@ -239,7 +236,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const stepSelectionProps = {
     runName: runName,
-    index: 0,
     onAddStep: onAddStep,
   };
 
@@ -298,26 +294,15 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
       <StyledDivider />
 
-      {/* TODO: Well, this is stupid. We probably need to redefine this component.
-      previousStepCalculationStatus does not make a lot of sense with the new system.
-      onNext also isn't really a thing anymore I suppose.
-      onChange suffers from similar problems, but should be doable.
-      Gotta discuss this in a meeting
-    */}
+      {/* TODO: B250 add appropriate calls */}
       <StyledFormColumn>
         <BackendForm
           runName={runName}
           buttonText={buttonText}
           previousStepCalculationStatus={"complete"}
           currentStepCalculationStatus={currentStepCalculationStatus}
-          current_step_index={runData.current_step_index}
-          isLastStep={
-            runData.current_step_index >=
-            sections
-              .map((section) => section.steps.length)
-              .reduce((acc: number, val: number) => acc + val, 0) -
-            1
-          }
+          current_step_iid={runData.current_step_iid}
+          isLastStep={false}
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");
           }}

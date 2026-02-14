@@ -1,6 +1,6 @@
 import { useNotification } from "@protzilla/app";
 import { CollapsibleLabel, H3, Icon } from "@protzilla/core";
-import { callApiWithParameters, Step } from "@protzilla/utils";
+import { callApiWithParameters, Step, StepIID } from "@protzilla/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { styled } from "styled-components";
@@ -76,11 +76,10 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
     navigateOrRefreshSteps();
   };
 
-  const deleteStep = async (index: number) => {
+  const deleteStep = async (stepIID: StepIID) => {
     await callApiWithParameters("delete_step/", {
       run_name: runName,
-      section: name,
-      index: index.toString(),
+      step_iid: stepIID,
     }).then((response) => {
       notify({
         type: response.success ? "success" : "error",
@@ -123,10 +122,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               sectionName={name}
               sectionLength={currentSteps.length}
               index={j}
+              iid={step.id}
               isSelected={isCurrentSection && stepSectionIndex === j}
               navigateOrRefreshSteps={navigateOrRefreshSteps}
               deleteStep={() => {
-                void deleteStep(j);
+                void deleteStep(step.id);
               }}
               setHandlePosition={setHandlePosition}
               setShowHandle={setShowHandle}
