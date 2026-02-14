@@ -371,7 +371,11 @@ def delete_step(request):
 
     run = Run(run_name)
 
-    run.step_remove(step_iid)
+    try:
+        run.step_remove(step_iid)
+    except ValueError as e:
+        return JsonResponse({"success": False, "message": "Cannot delete step: " + str(e)})
+        
 
     return JsonResponse({"success": True, "message": "Deleted step"})
 
