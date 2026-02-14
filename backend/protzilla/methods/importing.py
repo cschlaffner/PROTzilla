@@ -15,8 +15,10 @@ from backend.protzilla.importing.ms_data_import import (
 from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
     get_all_available_entry_ids_of_monomer_metadata,
-    get_prot_structure_dfs,
+    get_all_available_entry_ids_of_multimer_metadata,
+    get_monomer_structure_dfs,
     upload_multimer_prediction,
+    get_multimer_structure_dfs,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
@@ -481,8 +483,8 @@ class CrosslinkingImport(ImportingStep):
     calc_method = staticmethod(crosslinking_import)
 
 
-class ImportStructurePredictionFromDisk(ImportingStep):
-    display_name = "Structure Prediction Import from Disk"
+class ImportMonomerStructurePredictionFromDisk(ImportingStep):
+    display_name = "Monomer Structure Prediction Import from Disk"
     operation = "Monomer Structure Import"
     method_description = (
         "Load an already uploaded monomer structure prediction from disk into current run"
@@ -498,11 +500,11 @@ class ImportStructurePredictionFromDisk(ImportingStep):
 
     def create_form(self):
         return Form(
-            label="Structure Predictions Import from Disk",
+            label="Monomer Structure Predictions Import from Disk",
             input_fields=[
                 DropdownField(
                     name="entry_id",
-                    label="Entry ID of the prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
+                    label="Entry ID of the monomer prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
                     options=form_helper.to_choices(
                         get_all_available_entry_ids_of_monomer_metadata()
                     ),
@@ -510,7 +512,7 @@ class ImportStructurePredictionFromDisk(ImportingStep):
             ],
         )
 
-    calc_method = staticmethod(get_prot_structure_dfs)
+    calc_method = staticmethod(get_monomer_structure_dfs)
 
 
 class UploadMultimerPredictions(ImportingStep):
@@ -535,7 +537,7 @@ class UploadMultimerPredictions(ImportingStep):
                     label="Entry ID of the prediction to be loaded into the run.",
                 ),
                 TextField(
-                    name="protein_ids",
+                    name="uniprot_ids",
                     label="Protein IDs of all proteins used in the sequence.",
                 ),
                 InfoField(
@@ -574,3 +576,35 @@ class UploadMultimerPredictions(ImportingStep):
         )
 
     calc_method = staticmethod(upload_multimer_prediction)
+
+
+class ImportMultimerStructurePredictionFromDisk(ImportingStep):
+    display_name = "Multimer Structure Prediction Import from Disk"
+    operation = "Multimer Structure Import"
+    method_description = (
+        "Load an already uploaded multimer structure prediction from disk into current run"
+    )
+
+    output_keys = [
+        "metadata_df",
+        "amino_acid_sequences_df", 
+        "cif_df",
+        "confidence_df",
+        "full_data_df",
+    ]
+
+    def create_form(self):
+        return Form(
+            label="Multimer Structure Predictions Import from Disk",
+            input_fields=[
+                DropdownField(
+                    name="entry_id",
+                    label="Entry ID of the multimer prediction to be loaded into the run.",
+                    options=form_helper.to_choices(
+                        get_all_available_entry_ids_of_multimer_metadata()
+                    ),
+                )
+            ],
+        )
+
+    calc_method = staticmethod(get_multimer_structure_dfs)

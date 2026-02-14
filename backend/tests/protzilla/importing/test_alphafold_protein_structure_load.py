@@ -12,7 +12,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     to_fasta,
     read_alphafold_mmcif,
     get_all_available_entry_ids_of_monomer_metadata,
-    get_prot_structure_dfs,
+    get_monomer_structure_dfs,
     get_monomer_metadata_df,
     get_multimer_metadata_df,
     get_correct_af_directories,
@@ -213,7 +213,7 @@ def test_get_prot_structure_dfs_no_entry(tmp_path, monkeypatch):
     )
 
     with pytest.raises(ValueError, match=r"No metadata for Entry ID 'Q8WP00'"):
-        get_prot_structure_dfs("Q8WP00")
+        get_monomer_structure_dfs("Q8WP00")
 
 
 def test_get_prot_structure_dfs_success(tmp_path, monkeypatch):
@@ -264,7 +264,7 @@ CA C 2.0
     with open(plddt, "w") as f:
         json.dump(plddt_data, f)
 
-    out = get_prot_structure_dfs("Q8WP00")
+    out = get_monomer_structure_dfs("Q8WP00")
 
     assert isinstance(out["metadata_df"], pd.DataFrame)
     assert not out["metadata_df"].empty
@@ -427,7 +427,7 @@ N N
 
     out = upload_multimer_prediction(
         entry_id="M1",
-        protein_ids=["X"],
+        uniprot_ids=["X"],
         model_used="m",
         amino_acid_sequences=fasta,
         cif_file=cif,
@@ -556,7 +556,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
 
     out = upload_multimer_prediction(
         entry_id="M2",
-        protein_ids=["Y"],
+        uniprot_ids=["Y"],
         model_used="test",
         amino_acid_sequences=fasta,
         cif_file=cif,
@@ -586,7 +586,7 @@ def test_get_prot_structure_dfs_missing_cif(tmp_path, monkeypatch):
     prot_dir.mkdir(parents=True, exist_ok=True)
 
     with pytest.raises(FileNotFoundError, match="No CIF file found"):
-        get_prot_structure_dfs("NOCIF")
+        get_monomer_structure_dfs("NOCIF")
 
 
 def test_get_prot_structure_dfs_missing_fasta(tmp_path, monkeypatch):
@@ -606,7 +606,7 @@ def test_get_prot_structure_dfs_missing_fasta(tmp_path, monkeypatch):
     cif.write_text("data_test\nloop_\n_atom_site.id\nN\n")
 
     with pytest.raises(FileNotFoundError, match="No FASTA file found"):
-        get_prot_structure_dfs("NOFASTA")
+        get_monomer_structure_dfs("NOFASTA")
 
 
 def test_get_prot_structure_dfs_missing_json(tmp_path, monkeypatch):
@@ -630,7 +630,7 @@ def test_get_prot_structure_dfs_missing_json(tmp_path, monkeypatch):
     fasta.write_text(">alpha|NOJSON\nAAAA\n")
 
     with pytest.raises(FileNotFoundError, match="No JSON files"):
-        get_prot_structure_dfs("NOJSON")
+        get_monomer_structure_dfs("NOJSON")
 
 
 def test_extend_metadata_csv_empty_existing(tmp_path):

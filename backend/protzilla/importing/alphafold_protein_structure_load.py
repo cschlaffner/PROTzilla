@@ -53,7 +53,7 @@ def get_multimer_metadata_df() -> pd.DataFrame:
         metadata_df = pd.DataFrame(
             columns=[
                 "entry_id",
-                "protein_ids",
+                "uniprot_ids",
                 "model_created_date",
                 "model_used",
             ]
@@ -158,13 +158,12 @@ def extend_metadata_csv(
             msg = f'Existing entry with Entry ID "{entry_id}" was overwritten.'
             logger.warning(msg)
             messages.append(dict(level=logging.WARNING, msg=msg))
-            filtered_exsisting_metadata_df = exsisting_metadata_df[~mask]
-            combined = pd.concat(
-                [filtered_exsisting_metadata_df, metadata_df], ignore_index=True
+            exsisting_metadata_df = exsisting_metadata_df[~mask]
+
+        combined = pd.concat(
+                [exsisting_metadata_df, metadata_df], ignore_index=True
             )
-            combined.to_csv(metadata_csv, index=False)
-        else:
-            metadata_df.to_csv(metadata_csv, index=False)
+        combined.to_csv(metadata_csv, index=False)
     except Exception:
         msg = f'Failed to write AlphaFold metadata CSV to "{metadata_csv}".'
         logger.exception(msg)
@@ -369,36 +368,38 @@ def get_all_available_entry_ids_of_monomer_metadata() -> list[str]:
     """ "
     Get the entry ids of all the protein structure predictions that can be found on disk.
     """
-    messages = []
     df = get_monomer_metadata_df()
     return df["entry_id"].tolist()
 
 
-def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
+def get_all_available_entry_ids_of_multimer_metadata() -> list[str]:
+    """ "
+    Get the entry ids of all the protein structure predictions that can be found on disk.
     """
-    Writes data from disk of a specific entry ID into dataframes.
+    df = get_multimer_metadata_df()
+    return df["entry_id"].tolist()
 
-    :param entry_id: entry_id of the uploaded protein structure
-    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
-    """
-    messages: list[dict[str, str | int]] = []
-    all_metadata_df = get_monomer_metadata_df()
+
+def check_and_get_metadata_df(entry_id: str, all_metadata_df: pd.DataFrame, csv_file: Path) -> pd.DataFrame:
     metadata_df = all_metadata_df[all_metadata_df["entry_id"] == entry_id]
     if metadata_df.empty:
-        msg = f"No metadata for Entry ID '{entry_id}' in {paths.AF_MONOMER_METADATA_CSV_PATH}"
+        msg = f"No metadata for Entry ID '{entry_id}' in {csv_file}"
         logger.error(msg)
         raise ValueError(msg)
+    return metadata_df
 
-    prot_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id.upper()
-    if not prot_dir.exists() or not prot_dir.is_dir():
-        msg = f"AlphaFold data directory not found for entry '{entry_id}': {prot_dir}"
+
+def check_dir(entry_id: str, dir: Path):
+    if not dir.exists() or not dir.is_dir():
+        msg = f"AlphaFold data directory not found for entry '{entry_id}': {dir}"
         logger.error(msg)
         raise FileNotFoundError(msg)
 
-    # get cif file
-    cif_files = list(prot_dir.glob("*.cif"))
+
+def get_cif_df_from_disk(entry_id: str, structure_dir: Path, messages: list) -> pd.DataFrame:
+    cif_files = list(structure_dir.glob("*.cif"))
     if not cif_files:
-        msg = f"No CIF file found in {prot_dir} for entry '{entry_id}'"
+        msg = f"No CIF file found in {structure_dir} for entry '{entry_id}'"
         logger.error(msg)
         raise FileNotFoundError(msg)
 
@@ -410,23 +411,25 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
     cif_file = cif_files[0]
     try:
         cif_df = read_alphafold_mmcif(str(cif_file))
+        return cif_df
     except Exception as e:
         msg = f"Failed to read CIF file '{cif_file}': {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
+    
 
-    # get fasta file
-    fasta_files = list(prot_dir.glob("*.fasta")) + list(prot_dir.glob("*.fa"))
+def get_amino_acid_sequences_df_from_disk(entry_id: str, structure_dir: Path) -> pd.DataFrame:
+    fasta_files = list(structure_dir.glob("*.fasta")) + list(structure_dir.glob("*.fa"))
     if not fasta_files:
-        msg = f"No FASTA file found in {prot_dir} for entry '{entry_id}'"
+        msg = f"No FASTA file found in {structure_dir} for entry '{entry_id}'"
         logger.error(msg)
         raise FileNotFoundError(msg)
 
     fasta_file = fasta_files[0]
     try:
         fasta_dict = fasta_import(str(fasta_file))
-        amino_acid_sequence_df = fasta_dict.get("fasta_df")
-        if amino_acid_sequence_df is None:
+        amino_acid_sequences_df = fasta_dict.get("fasta_df")
+        if amino_acid_sequences_df is None:
             msg = f"FASTA importer did not return 'fasta_df' for {fasta_file}"
             logger.error(msg)
             raise RuntimeError(msg)
@@ -434,17 +437,60 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         msg = f"Failed to load FASTA '{fasta_file}': {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
+    return amino_acid_sequences_df
+
+
+def get_json_files_in_dir(entry_id: str, structure_dir: Path) -> list:
+    json_files = list(structure_dir.glob("*.json"))
+    if not json_files:
+        msg = f"No JSON files found in {structure_dir} for entry '{entry_id}'"
+        logger.error(msg)
+        raise FileNotFoundError(msg)
+    return json_files
+
+
+def check_success_of_get_df(entry_id:str, df_dict: dict, messages: list) -> None:
+    if not any(df.empty for df in df_dict.values()):
+        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+        logger.info(success_msg)
+        messages.append(dict(level=logging.INFO, msg=success_msg))
+    else:
+        message = f"Could not load AlphaFold data for entry '{entry_id}'"
+        logger.warning(message)
+        messages.append(dict(level=logging.WARNING, msg=message))
+
+
+def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
+    """
+    Writes monomer structure data from disk of a specific entry ID into dataframes.
+
+    :param entry_id: entry_id of the uploaded monomer structure
+    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
+    """
+    messages: list[dict[str, str | int]] = []
+    all_metadata_df = get_monomer_metadata_df()
+
+    metadata_df = check_and_get_metadata_df(entry_id=entry_id, all_metadata_df=all_metadata_df, csv_file=paths.AF_MONOMER_METADATA_CSV_PATH)
+
+    structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+    check_dir(entry_id=entry_id, dir=structure_dir)
+
+    # get cif file
+    cif_df = get_cif_df_from_disk(entry_id=entry_id, structure_dir=structure_dir, messages=messages)
+
+    # get fasta file
+    amino_acid_sequence_df = get_amino_acid_sequences_df_from_disk(entry_id=entry_id, structure_dir=structure_dir)
 
     # get jsons (PAE and pLDDT)
-    json_files = list(prot_dir.glob("*.json"))
+    json_files = list(structure_dir.glob("*.json"))
     if not json_files:
-        msg = f"No JSON files (PAE/pLDDT) found in {prot_dir} for entry '{entry_id}'"
+        msg = f"No JSON files (PAE/pLDDT) found in {structure_dir} for entry '{entry_id}'"
         logger.error(msg)
         raise FileNotFoundError(msg)
 
     try:
         if len(json_files) == 1:
-            msg = f"Only one json file found in {prot_dir} for entry '{entry_id}'. Two json files are expected"
+            msg = f"Only one json file found in {structure_dir} for entry '{entry_id}'. Two json files are expected"
             logger.error(msg)
             raise RuntimeError()
         else:
@@ -470,7 +516,7 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
                 logger.warning(warn)
                 messages.append(dict(level=logging.WARNING, msg=warn))
     except Exception as e:
-        msg = f"Failed to read JSON files in {prot_dir}: {e}"
+        msg = f"Failed to read JSON files in {structure_dir}: {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
 
@@ -481,21 +527,89 @@ def get_prot_structure_dfs(entry_id: str) -> dict[str, Any]:
         "plddt_df": plddt_df,
         "amino_acid_sequence_df": amino_acid_sequence_df,
     }
-    if not any(df.empty for df in df_dict.values()):
-        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
-        logger.info(success_msg)
-        messages.append(dict(level=logging.INFO, msg=success_msg))
-    else:
-        message = f"Could not load AlphaFold data for entry '{entry_id}'"
-        logger.warning(message)
-        messages.append(dict(level=logging.WARNING, msg=message))
+    check_success_of_get_df(entry_id=entry_id, df_dict=df_dict)
+    df_dict["messages"] = messages
+    return df_dict
+
+
+def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
+    """
+    Writes multimer structure data from disk of a specific entry ID into dataframes.
+
+    :param entry_id: entry_id of the uploaded monomer structure
+    :return: A dictionary containing DataFrames for metadata, CIF, confidence, full data, and sequence data
+    """
+    messages: list[dict[str, str | int]] = []
+    all_metadata_df = get_multimer_metadata_df()
+
+    metadata_df = check_and_get_metadata_df(entry_id=entry_id, all_metadata_df=all_metadata_df, csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH)
+
+    structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
+    check_dir(entry_id=entry_id, dir=structure_dir)
+
+    # get cif file
+    cif_df = get_cif_df_from_disk(entry_id=entry_id, structure_dir=structure_dir, messages=messages)
+
+    # get fasta file
+    amino_acid_sequences_df = get_amino_acid_sequences_df_from_disk(entry_id=entry_id, structure_dir=structure_dir)
+
+    # get jsons (PAE and pLDDT)
+    json_files = get_json_files_in_dir(entry_id=entry_id, structure_dir=structure_dir)
+
+    try:
+        if len(json_files) == 1:
+            msg = f"Only one json file found in {structure_dir} for entry '{entry_id}'. Two json files are expected"
+            logger.error(msg)
+            raise RuntimeError()
+        else:
+            with open(json_files[0], "r") as f:
+                obj1 = json.load(f)
+            with open(json_files[1], "r") as f:
+                obj2 = json.load(f)
+
+            json1 = pd.json_normalize(obj1)
+            json2 = pd.json_normalize(obj2)
+            # iptm stands for interface predicted TM score
+            if (
+                "chain_iptm" in json1.columns
+                and "pae" in json2.columns
+            ):
+                confidence_df = json1
+                full_data_df = json2
+            elif (
+                "chain_iptm" in json2.columns
+                and "pae" in json1.columns
+            ):
+                confidence_df = json2
+                full_data_df = json1
+            else:
+                # Fallback: assign and warn
+                confidence_df = json1
+                full_data_df = json2
+                warn = f"Could not detect confidence scores/full data information in JSON files for entry '{entry_id}'; ''{json_files[0]} is read as confidenc, {json_files[1]} is read as full data summary."
+                logger.warning(warn)
+                messages.append(dict(level=logging.WARNING, msg=warn))
+    except Exception as e:
+        msg = f"Failed to read JSON files in {structure_dir}: {e}"
+        logger.exception(msg)
+        raise RuntimeError(msg) from e
+
+    df_dict = {
+        "metadata_df": metadata_df,
+        "amino_acid_sequences_df": amino_acid_sequences_df,
+        "cif_df": cif_df,
+        "confidence_df": confidence_df,
+        "full_data_df": full_data_df,   
+    }
+
+    check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
     return df_dict
 
 
 def upload_multimer_prediction(
     entry_id: str,
-    protein_ids: list[str],
+    uniprot_ids: list[str],
     model_used: str,
     amino_acid_sequences: Path,
     cif_file: Path,
@@ -508,7 +622,7 @@ def upload_multimer_prediction(
 
     temp_dir, work_dir = get_correct_af_directories(
         entry_id=entry_id,
-        directory_name=paths.ALPHAFOLD_MONOMER_PATH,
+        directory_name=paths.ALPHAFOLD_MULTIMER_PATH,
         persist_upload=persist_upload,
     )
 
@@ -517,7 +631,7 @@ def upload_multimer_prediction(
 
     data: dict[str, Any] = {
         "entry_id": entry_id,
-        "protein_ids": protein_ids,
+        "uniprot_ids": uniprot_ids,
         "model_created_date": formatted,
         "model_used": model_used,
     }

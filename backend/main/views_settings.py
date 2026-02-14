@@ -235,7 +235,7 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 # <--- helper functions for monomer and multimer structure prediction --->
 def check_and_copy_files_to_directory(file_names: list, target_dir: str):
     if target_dir.exists():
-            False, "Entry ID is not unique."
+            return False, "Entry ID is not unique."
     else:
         target_dir.mkdir(parents=True, exist_ok=True)
 
