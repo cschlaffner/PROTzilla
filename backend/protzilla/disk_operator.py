@@ -95,6 +95,7 @@ class KEYS:
     INPUT_SOURCES = "input_sources"
     VISUAL_DATA = "visual_data"
     CURRENT_STEP_IID = "current_step_iid"
+    GRAPH_EDGES = "graph_edges"
 
 
 class DiskOperator:
@@ -116,6 +117,10 @@ class DiskOperator:
                     logger.error(f"Error reading step: {e}")
                     continue
                 step_manager.add_step(step)
+            
+            edges = run.get(KEYS.GRAPH_EDGES)
+            if edges is not None:
+                step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])
 
             return step_manager
 
@@ -130,6 +135,7 @@ class DiskOperator:
             run[KEYS.CURRENT_STEP_IID] = step_manager.current_selected_step_iid
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
+            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges())
             for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
