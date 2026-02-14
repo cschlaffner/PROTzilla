@@ -379,3 +379,7 @@ class Run:
     @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+
+    @property
+    def current_step_ready_for_calculation(self) -> bool:
+        return self.steps.calc_dependencies_met_for_step(self.steps.current_selected_step_iid)

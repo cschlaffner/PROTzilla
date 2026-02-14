@@ -5,7 +5,7 @@ import traceback
 from zipfile import ZipFile
 from pathlib import Path
 import re
-import traceback
+import logging
 
 import numpy as np
 from django.contrib import messages
@@ -767,6 +767,14 @@ def calculate_step(request):
         user_input = data.get("data")
 
         run = Run(run_name)
+
+        if not run.current_step_ready_for_calculation:
+            return JsonResponse(
+            { 
+                "success": False,
+                "message": dict(level=logging.ERROR, msg="At least one dependent step has not been calculated yet")
+            })
+
         run.current_form(user_input)
         run.step_calculate()
 
