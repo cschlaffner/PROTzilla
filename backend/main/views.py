@@ -643,6 +643,7 @@ def get_run_data(request):
             run_data["displayed_steps"] = get_displayed_steps(run.steps)
             run_data["current_section"] = run.current_step.section
             run_data["current_step_iid"] = run.steps.current_selected_step_iid
+            run_data["recommended_next_step_iid"] = run.steps.recommended_next_step_iid
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = (
                 True if run.current_step.plot_method is not None else False

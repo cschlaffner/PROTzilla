@@ -822,6 +822,17 @@ class StepManager:
 
         if mustNavigateToFallback:
             self.goto_step(self.fallback_step_iid)
+    
+    @property
+    def recommended_next_step_iid(self) -> str | None:
+        """
+        Mainly for front-end. Instance identifier of the next step to naviagte to when pressing the "Next" button.
+
+        :return: The recommended next step identifier or None if we are at a terminal step
+        """
+        if self.is_at_terminal_step:
+            return None
+        return list(self.graph.successors(self.current_selected_step_iid))[0]
 
     def next_step(self) -> None:
         """
@@ -839,7 +850,7 @@ class StepManager:
                 self.current_step.output = Output(
                     self.disk_operator._write_output(self.current_step)
                 )
-            next_step_iid = list(self.graph.successors(self.current_selected_step_iid))[0]
+            next_step_iid = self.recommended_next_step_iid
             self.current_selected_step_iid = next_step_iid
         else:
             raise ValueError("Cannot go to the next step from a terminal step")
