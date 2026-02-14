@@ -308,11 +308,11 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           current_step_iid={runData.current_step_iid}
           isLastStep={(!runData.recommended_next_step_iid)}
           onNext={() => {
-            navigateOrRefreshSteps(runData.recommended_next_step_iid)
+            navigateOrRefreshSteps(runData.recommended_next_step_iid);
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
-            console.log("TODO: A vulture ate this callback! Come up with something better.");
+            navigateOrRefreshSteps();
           }}
         />
       </StyledFormColumn>

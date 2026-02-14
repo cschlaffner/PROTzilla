@@ -602,35 +602,6 @@ def delete_workflow(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-
-
-# TODO B250
-def download_table(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        index = data.get("index")
-        key = data.get("key")
-
-        run = Run(run_name)
-
-        instance_id = run.steps.all_steps[index].instance_identifier
-        buffer = io.StringIO()
-        df: pd.DataFrame = run.steps.get_step_output(
-            output_key=key, instance_identifier=instance_id, include_current_step=True
-        )
-        df.to_csv(buffer)
-
-        buffer.seek(0)
-        csv_bytes = buffer.getvalue()
-
-        return FileResponse(csv_bytes, content_type="text/csv")
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
-
 def get_run_data(request):
     if request.method == "POST":
         data = json.loads(request.body)
