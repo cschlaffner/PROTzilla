@@ -600,6 +600,7 @@ def delete_workflow(request):
         )
 
 
+# TODO B250
 def download_table(request):
     if request.method == "POST":
         data = json.loads(request.body)
