@@ -706,6 +706,7 @@ class StepManager:
         if self.current_selected_step_iid is None:
             return 0
         steps_to_remove = self.succeeding_steps(self.current_selected_step_iid)
+        steps_to_remove.append(self.current_step)
         for step in steps_to_remove:
             step.calculation_status = "outdated"
         return len(steps_to_remove)
