@@ -120,7 +120,9 @@ def test_fetch_alphafold_protein_structure_wrong_uniprot_id():
 def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
     monkeypatch.setattr(
-        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+        paths,
+        "AF_MONOMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_monomer_metadata.csv",
     )
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
@@ -137,7 +139,9 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
 def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
     monkeypatch.setattr(
-        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+        paths,
+        "AF_MONOMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_monomer_metadata.csv",
     )
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
@@ -152,7 +156,9 @@ def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
 def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
     monkeypatch.setattr(
-        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+        paths,
+        "AF_MONOMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_monomer_metadata.csv",
     )
 
     fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
@@ -177,7 +183,9 @@ def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
 def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
     monkeypatch.setattr(
-        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+        paths,
+        "AF_MONOMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_monomer_metadata.csv",
     )
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
@@ -667,7 +675,6 @@ def test_extend_metadata_csv_empty_existing(tmp_path):
     assert out.iloc[0]["entry_id"] == "Z"
 
 
-
 def test_get_all_available_entry_ids_of_multimer_metadata_empty(tmp_path, monkeypatch):
     metadata_csv = tmp_path / "alphafold_multimer_metadata.csv"
     monkeypatch.setattr(paths, "AF_MULTIMER_METADATA_CSV_PATH", metadata_csv)
@@ -685,7 +692,9 @@ def test_get_all_available_entry_ids_of_multimer_metadata_empty(tmp_path, monkey
     assert len(df) == 0
 
 
-def test_get_all_available_entry_ids_of_multimer_metadata_nonempty(tmp_path, monkeypatch):
+def test_get_all_available_entry_ids_of_multimer_metadata_nonempty(
+    tmp_path, monkeypatch
+):
     metadata_csv = tmp_path / "alphafold_multimer_metadata.csv"
     monkeypatch.setattr(paths, "AF_MULTIMER_METADATA_CSV_PATH", metadata_csv)
 
@@ -702,7 +711,6 @@ def test_get_all_available_entry_ids_of_multimer_metadata_nonempty(tmp_path, mon
     df.to_csv(metadata_csv, index=False)
 
     assert get_all_available_entry_ids_of_multimer_metadata() == ["M1"]
-
 
 
 def test_check_and_get_metadata_df_success(tmp_path):
@@ -722,7 +730,6 @@ def test_check_dir_missing_raises(tmp_path):
     d = tmp_path / "MISSING"
     with pytest.raises(FileNotFoundError, match="AlphaFold data directory not found"):
         check_dir("MISSING", d)
-
 
 
 def test_get_json_files_in_dir_success(tmp_path):
@@ -772,7 +779,6 @@ CA C
     assert isinstance(df, pd.DataFrame)
     assert not df.empty
     assert any(m.get("level") == logging.WARNING for m in messages)
-
 
 
 def test_get_multimer_structure_dfs_success(tmp_path, monkeypatch):
@@ -834,8 +840,6 @@ N N
     )
 
 
-
-
 def test_get_multimer_structure_dfs_json_fallback_warns(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path / "multimer")
     monkeypatch.setattr(
@@ -882,4 +886,7 @@ N N
 
     out = get_multimer_structure_dfs("M2")
     assert any(m.get("level") == logging.WARNING for m in out["messages"])
-    assert any("Could not detect confidence scores" in str(m.get("msg", "")) for m in out["messages"])
+    assert any(
+        "Could not detect confidence scores" in str(m.get("msg", ""))
+        for m in out["messages"]
+    )
