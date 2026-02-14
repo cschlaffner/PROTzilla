@@ -306,9 +306,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           previousStepCalculationStatus={"complete"}
           currentStepCalculationStatus={currentStepCalculationStatus}
           current_step_iid={runData.current_step_iid}
-          isLastStep={false}
+          isLastStep={(!runData.recommended_next_step_iid)}
           onNext={() => {
-            console.log("TODO: A vulture ate this callback! Come up with something better.");
+            navigateOrRefreshSteps(runData.recommended_next_step_iid)
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
