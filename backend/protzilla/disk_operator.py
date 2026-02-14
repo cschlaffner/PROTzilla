@@ -47,7 +47,7 @@ class YamlOperator:
         with ErrorHandler():
             with open(file_path, "r") as file:
                 logger.info(f"Reading yaml from {file_path}")
-                return yaml.safe_load(file)
+                return yaml.full_load(file)
 
     @staticmethod
     def write(file_path: Path, data: dict):
@@ -135,7 +135,7 @@ class DiskOperator:
             run[KEYS.CURRENT_STEP_IID] = step_manager.current_selected_step_iid
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
-            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges())
+            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
             for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
