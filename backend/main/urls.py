@@ -46,9 +46,6 @@ urlpatterns = [
     path("api/disconnect_steps/", views.disconnect_steps, name="disconnect_steps"),
     path("api/get_edges/", views.get_edges, name="get_edges"),
     path("api/save_workflow/", views.save_workflow, name="save_workflow"),
-    path(
-        "api/download_table/", views.download_table, name="download_table"
-    ),  # might function?
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path("api/get_step_table/", views.get_step_table, name="get_step_table"),
