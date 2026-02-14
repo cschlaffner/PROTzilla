@@ -31,6 +31,9 @@ from threading import Lock
 import networkx as nx
 
 class Section(str, Enum):
+    """
+    Supported sections for steps
+    """
     IMPORTING = "importing"
     DATA_PREPROCESSING = "data_preprocessing"
     DATA_ANALYSIS = "data_analysis"
@@ -531,6 +534,10 @@ class StepManager:
                 self.add_step(step)
 
     def next_iid_clock_value(self) -> int:
+        """
+        Logical clock implementation for step instance identifier generation
+        :return: The next instance identifier clock value
+        """
         self.iid_clock += 1
         return self.iid_clock
 
@@ -546,7 +553,7 @@ class StepManager:
     @property
     def all_step_iids_toposorted(self) -> list[str]:
         """
-        :return: A list of all step IDs in topological order according to the current
+        :return: A list of all step instance identifiers in topological order according to the current
             connections in self.graph
         """
         return list(nx.topological_sort(self.graph))
@@ -917,6 +924,15 @@ class StepManager:
             ) from e
 
     def remove_graph_connection(self, source_iid: str, target_iid: str) -> None:
+        """
+        Removes a connection between two steps. If multiple connections between these
+        steps existed (i.e. 2+ outputs of source mapping to inputs on target), 
+        the connetion counter is decremented. If no more such connections exist,
+        the edge is deleted from the graph.
+
+        :param source_iid: instance identifier of source step
+        :param target_iid: instance identifier of target step
+        """
         self.graph[source_iid][target_iid]["n_connections"] -= 1
 
         # Remove edge if no more connections exist
