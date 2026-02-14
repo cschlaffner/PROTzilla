@@ -4,7 +4,6 @@ import json
 import logging
 import shutil
 from pathlib import Path
-import tempfile
 
 
 from backend.protzilla.importing.alphafold_protein_structure_load import (
@@ -12,7 +11,9 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     to_fasta,
     read_alphafold_mmcif,
     get_all_available_entry_ids_of_monomer_metadata,
+    get_all_available_entry_ids_of_multimer_metadata,
     get_monomer_structure_dfs,
+    get_multimer_structure_dfs,
     get_monomer_metadata_df,
     get_multimer_metadata_df,
     get_correct_af_directories,
@@ -20,6 +21,12 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     get_amino_acid_sequence_df,
     handle_alphafold_files,
     upload_multimer_prediction,
+    check_and_get_metadata_df,
+    check_dir,
+    get_json_files_in_dir,
+    get_cif_df_from_disk,
+    get_amino_acid_sequences_df_from_disk,
+    check_success_of_get_df,
 )
 from backend.protzilla.constants import paths
 
@@ -49,19 +56,19 @@ def test_to_fasta_whitespace():
 def test_read_alphafold_mmcif_file_not_found(tmp_path):
     missing = tmp_path / "unexisting.cif"
     with pytest.raises(FileNotFoundError):
-        read_alphafold_mmcif(str(missing))
+        read_alphafold_mmcif(missing)
 
 
 def test_read_alphafold_mmcif_is_directory(tmp_path):
     with pytest.raises(IsADirectoryError):
-        read_alphafold_mmcif(str(tmp_path))
+        read_alphafold_mmcif(tmp_path)
 
 
 def test_read_alphafold_mmcif_empty(tmp_path):
     cif = tmp_path / "empty.cif"
     cif.write_text("")
     with pytest.raises(ValueError, match="No CIF blocks found"):
-        read_alphafold_mmcif(str(cif))
+        read_alphafold_mmcif(cif)
 
 
 def test_read_alphafold_mmcif_atom_site_not_found(tmp_path):
@@ -72,7 +79,7 @@ data_test
 _entry.id test
 """
     )
-    df = read_alphafold_mmcif(str(cif))
+    df = read_alphafold_mmcif(cif)
     assert isinstance(df, pd.DataFrame)
     assert df.empty
 
@@ -91,7 +98,7 @@ CA C 2.0
 """
     )
 
-    df = read_alphafold_mmcif(str(cif))
+    df = read_alphafold_mmcif(cif)
 
     assert isinstance(df, pd.DataFrame)
     assert list(df.columns) == [
@@ -111,7 +118,10 @@ def test_fetch_alphafold_protein_structure_wrong_uniprot_id():
 
 
 def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
+    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
+    monkeypatch.setattr(
+        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+    )
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
     assert out.keys() == {
@@ -125,7 +135,10 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
 
 
 def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
+    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
+    monkeypatch.setattr(
+        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+    )
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
     assert isinstance(out["metadata_df"], pd.DataFrame)
@@ -137,10 +150,15 @@ def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
 
 
 def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path)
+    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
+    monkeypatch.setattr(
+        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+    )
+
     fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
-    target_dir = tmp_path / "Q8WP00"
+    target_dir = (tmp_path / "alphafold_monomer") / "Q8WP00"
+
     assert target_dir.exists()
     assert target_dir.is_dir()
 
@@ -157,7 +175,11 @@ def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
 
 
 def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "EXTERNAL_DATA_PATH", tmp_path)
+    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path / "alphafold_monomer")
+    monkeypatch.setattr(
+        paths, "AF_MONOMER_METADATA_CSV_PATH", tmp_path / "alphafold_monomer_metadata.csv"
+    )
+
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
     cif_df = out["cif_df"]
@@ -321,7 +343,7 @@ def test_get_monomer_and_multimer_metadata_df_create(tmp_path, monkeypatch):
     assert isinstance(multi_df, pd.DataFrame)
     assert list(multi_df.columns) == [
         "entry_id",
-        "protein_ids",
+        "uniprot_ids",
         "model_created_date",
         "model_used",
     ]
@@ -375,25 +397,23 @@ def test_get_amino_acid_sequence_df_and_handle_files(tmp_path, monkeypatch):
     fasta = tmp_path / "P.fasta"
     fasta.write_text(">alpha|P\nTESTSEQ\n")
     messages = []
-    seq_df = get_amino_acid_sequence_df("P", tmp_path, fasta, messages)
+    seq_df = get_amino_acid_sequence_df(fasta, messages)
     assert isinstance(seq_df, pd.DataFrame)
     assert not seq_df.empty
 
     # test handle_alphafold_files with no remote files (should still create fasta)
-    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path)
     metadata_df = pd.DataFrame([{"entry_id": "P", "uniprot_accession": "P"}])
     out = handle_alphafold_files(
         {}, "P", "TESTSEQ", metadata_df, "P", persist_upload=False
     )
     assert "amino_acid_sequence_df" in out
-    assert out["cif_df"] is None
-    assert out["pae_df"] is None
-    assert out["plddt_df"] is None
+    assert isinstance(out["cif_df"], pd.DataFrame) and out["cif_df"].empty
+    assert isinstance(out["pae_df"], pd.DataFrame) and out["pae_df"].empty
+    assert isinstance(out["plddt_df"], pd.DataFrame) and out["plddt_df"].empty
     assert isinstance(out["amino_acid_sequence_df"], pd.DataFrame)
 
 
 def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path)
     monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path)
 
     # prepare files
@@ -440,7 +460,7 @@ N N
     # check metadata contents
     mdf = out["metadata_df"]
     assert mdf.iloc[0]["entry_id"] == "M1"
-    assert mdf.iloc[0]["protein_ids"] == ["X"]
+    assert mdf.iloc[0]["uniprot_ids"] == ["X"]
     assert mdf.iloc[0]["model_used"] == "m"
 
     # cif contents
@@ -512,7 +532,7 @@ def test_get_multimer_metadata_df_existing_csv(tmp_path, monkeypatch):
         [
             {
                 "entry_id": "M1",
-                "protein_ids": "P1,P2",
+                "uniprot_ids": "P1,P2",
                 "model_created_date": "2025-01-01",
                 "model_used": "m1",
             }
@@ -570,7 +590,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     assert isinstance(out["cif_df"], pd.DataFrame)
     # directory should still exist (created for the entry)
     upload_dir = tmp_path / "M2"
-    assert upload_dir.exists() or not upload_dir.exists()
+    assert not upload_dir.exists()
 
 
 def test_get_prot_structure_dfs_missing_cif(tmp_path, monkeypatch):
@@ -645,3 +665,221 @@ def test_extend_metadata_csv_empty_existing(tmp_path):
 
     out = pd.read_csv(csv_path, dtype=str)
     assert out.iloc[0]["entry_id"] == "Z"
+
+
+
+def test_get_all_available_entry_ids_of_multimer_metadata_empty(tmp_path, monkeypatch):
+    metadata_csv = tmp_path / "alphafold_multimer_metadata.csv"
+    monkeypatch.setattr(paths, "AF_MULTIMER_METADATA_CSV_PATH", metadata_csv)
+
+    assert get_all_available_entry_ids_of_multimer_metadata() == []
+    assert metadata_csv.exists()
+
+    df = pd.read_csv(metadata_csv, dtype=str)
+    assert list(df.columns) == [
+        "entry_id",
+        "uniprot_ids",
+        "model_created_date",
+        "model_used",
+    ]
+    assert len(df) == 0
+
+
+def test_get_all_available_entry_ids_of_multimer_metadata_nonempty(tmp_path, monkeypatch):
+    metadata_csv = tmp_path / "alphafold_multimer_metadata.csv"
+    monkeypatch.setattr(paths, "AF_MULTIMER_METADATA_CSV_PATH", metadata_csv)
+
+    df = pd.DataFrame(
+        [
+            {
+                "entry_id": "M1",
+                "uniprot_ids": "P1,P2",
+                "model_created_date": "2025-01-01T00:00:00Z",
+                "model_used": "test",
+            }
+        ]
+    )
+    df.to_csv(metadata_csv, index=False)
+
+    assert get_all_available_entry_ids_of_multimer_metadata() == ["M1"]
+
+
+
+def test_check_and_get_metadata_df_success(tmp_path):
+    all_df = pd.DataFrame(
+        [
+            {"entry_id": "A", "x": "1"},
+            {"entry_id": "B", "x": "2"},
+        ]
+    )
+    out = check_and_get_metadata_df("B", all_df, tmp_path / "meta.csv")
+    assert isinstance(out, pd.DataFrame)
+    assert len(out) == 1
+    assert out.iloc[0]["entry_id"] == "B"
+
+
+def test_check_dir_missing_raises(tmp_path):
+    d = tmp_path / "MISSING"
+    with pytest.raises(FileNotFoundError, match="AlphaFold data directory not found"):
+        check_dir("MISSING", d)
+
+
+
+def test_get_json_files_in_dir_success(tmp_path):
+    d = tmp_path / "D"
+    d.mkdir()
+    (d / "a.json").write_text('{"x": 1}')
+    (d / "b.json").write_text('{"y": 2}')
+    files = get_json_files_in_dir("E1", d)
+    assert len(files) == 2
+    assert all(f.suffix == ".json" for f in files)
+
+
+def test_get_json_files_in_dir_missing_raises(tmp_path):
+    d = tmp_path / "D"
+    d.mkdir()
+    with pytest.raises(FileNotFoundError, match="No JSON files found"):
+        get_json_files_in_dir("E1", d)
+
+
+def test_get_cif_df_from_disk_multiple_cif_warns(tmp_path):
+    d = tmp_path / "E1"
+    d.mkdir()
+
+    cif1 = d / "a.cif"
+    cif2 = d / "b.cif"
+    cif1.write_text(
+        """
+data_test
+loop_
+_atom_site.id
+_atom_site.type_symbol
+N N
+"""
+    )
+    cif2.write_text(
+        """
+data_test
+loop_
+_atom_site.id
+_atom_site.type_symbol
+CA C
+"""
+    )
+
+    messages = []
+    df = get_cif_df_from_disk("E1", d, messages)
+    assert isinstance(df, pd.DataFrame)
+    assert not df.empty
+    assert any(m.get("level") == logging.WARNING for m in messages)
+
+
+
+def test_get_multimer_structure_dfs_success(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path / "multimer")
+    monkeypatch.setattr(
+        paths,
+        "AF_MULTIMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_multimer_metadata.csv",
+    )
+
+    paths.ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
+
+    md = pd.DataFrame(
+        [
+            {
+                "entry_id": "M1",
+                "uniprot_ids": "P1,P2",
+                "model_created_date": "2025-01-01T00:00:00Z",
+                "model_used": "Multimer",
+            }
+        ]
+    )
+    md.to_csv(paths.AF_MULTIMER_METADATA_CSV_PATH, index=False)
+
+    prot_dir = paths.ALPHAFOLD_MULTIMER_PATH / "M1"
+    prot_dir.mkdir(parents=True, exist_ok=True)
+
+    cif = prot_dir / "m1.cif"
+    cif.write_text(
+        """
+data_test
+loop_
+_atom_site.id
+_atom_site.type_symbol
+N N
+"""
+    )
+
+    fasta = prot_dir / "m1.fasta"
+    fasta.write_text(">alpha|M1\nAAAA\n")
+
+    confidence = prot_dir / "confidence.json"
+    full_data = prot_dir / "full.json"
+    confidence.write_text(json.dumps({"chain_iptm": [0.75]}))
+    full_data.write_text(json.dumps({"pae": [[0.1, 0.2], [0.3, 0.4]]}))
+
+    out = get_multimer_structure_dfs("M1")
+    assert isinstance(out["metadata_df"], pd.DataFrame)
+    assert isinstance(out["cif_df"], pd.DataFrame)
+    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
+    assert isinstance(out["confidence_df"], pd.DataFrame)
+    assert isinstance(out["full_data_df"], pd.DataFrame)
+
+    assert "chain_iptm" in out["confidence_df"].columns
+    assert "pae" in out["full_data_df"].columns
+
+    assert any(m.get("level") == logging.INFO for m in out["messages"]) or any(
+        "Successfully loaded" in str(m.get("msg", "")) for m in out["messages"]
+    )
+
+
+
+
+def test_get_multimer_structure_dfs_json_fallback_warns(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path / "multimer")
+    monkeypatch.setattr(
+        paths,
+        "AF_MULTIMER_METADATA_CSV_PATH",
+        tmp_path / "alphafold_multimer_metadata.csv",
+    )
+
+    paths.ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
+
+    md = pd.DataFrame(
+        [
+            {
+                "entry_id": "M2",
+                "uniprot_ids": "P1,P2",
+                "model_created_date": "2025-01-01T00:00:00Z",
+                "model_used": "Multimer",
+            }
+        ]
+    )
+    md.to_csv(paths.AF_MULTIMER_METADATA_CSV_PATH, index=False)
+
+    prot_dir = paths.ALPHAFOLD_MULTIMER_PATH / "M2"
+    prot_dir.mkdir(parents=True, exist_ok=True)
+
+    cif = prot_dir / "m2.cif"
+    cif.write_text(
+        """
+data_test
+loop_
+_atom_site.id
+_atom_site.type_symbol
+N N
+"""
+    )
+
+    fasta = prot_dir / "m2.fasta"
+    fasta.write_text(">alpha|M2\nAAAA\n")
+
+    j1 = prot_dir / "j1.json"
+    j2 = prot_dir / "j2.json"
+    j1.write_text(json.dumps({"something": 1}))
+    j2.write_text(json.dumps({"other": 2}))
+
+    out = get_multimer_structure_dfs("M2")
+    assert any(m.get("level") == logging.WARNING for m in out["messages"])
+    assert any("Could not detect confidence scores" in str(m.get("msg", "")) for m in out["messages"])

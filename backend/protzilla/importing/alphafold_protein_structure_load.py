@@ -85,7 +85,7 @@ def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str
     return f">alpha|{header}\n{joined}\n"
 
 
-def read_alphafold_mmcif(path: str) -> pd.DataFrame:
+def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
     """
     Parse an AlphaFold mmCIF (Macromolecular Crystallographic Information File) file.
 
@@ -95,15 +95,14 @@ def read_alphafold_mmcif(path: str) -> pd.DataFrame:
     :raises IsADirectoryError: If the path points to a directory instead of a file
     :raises ValueError: If no CIF blocks are found in the file
     """
-    p = Path(path)
-    if not p.exists():
-        raise FileNotFoundError(f"File not found: {p}")
-    if p.is_dir():
-        raise IsADirectoryError(f"Expected a file path, got a directory: {p}")
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+    if path.is_dir():
+        raise IsADirectoryError(f"Expected a file path, got a directory: {path}")
 
-    doc = gemmi.cif.read_file(str(p))
+    doc = gemmi.cif.read_file(str(path))
     if len(doc) == 0:
-        raise ValueError(f"No CIF blocks found in file: {p}")
+        raise ValueError(f"No CIF blocks found in file: {path}")
 
     block = doc.sole_block()
 
@@ -131,7 +130,7 @@ def read_alphafold_mmcif(path: str) -> pd.DataFrame:
 
 def get_correct_af_directories(
     entry_id: str, directory_name: Path, persist_upload: bool
-) -> list[Path, Path]:
+) -> tuple[Path | None, Path]:
     target_dir = directory_name / entry_id.upper()
     temp_dir = None
 
@@ -160,9 +159,7 @@ def extend_metadata_csv(
             messages.append(dict(level=logging.WARNING, msg=msg))
             exsisting_metadata_df = exsisting_metadata_df[~mask]
 
-        combined = pd.concat(
-                [exsisting_metadata_df, metadata_df], ignore_index=True
-            )
+        combined = pd.concat([exsisting_metadata_df, metadata_df], ignore_index=True)
         combined.to_csv(metadata_csv, index=False)
     except Exception:
         msg = f'Failed to write AlphaFold metadata CSV to "{metadata_csv}".'
@@ -170,17 +167,16 @@ def extend_metadata_csv(
         messages.append(dict(level=logging.ERROR, msg=msg))
 
 
-def get_amino_acid_sequence_df(
-    entry_id: str, work_dir: Path, fasta_dest: Path, messages: list
-) -> pd.DataFrame:
+def get_amino_acid_sequence_df(fasta_dest: Path, messages: list) -> pd.DataFrame:
     try:
         fasta_dict = fasta_import(str(fasta_dest))
         amino_acid_sequence_df = fasta_dict["fasta_df"]
+        return amino_acid_sequence_df
     except Exception:
         msg = "Failed to create sequence dataframe"
         logger.exception(msg)
         messages.append(dict(level=logging.ERROR, msg=msg))
-    return amino_acid_sequence_df
+        return pd.DataFrame()
 
 
 def handle_alphafold_files(
@@ -207,15 +203,14 @@ def handle_alphafold_files(
     :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, sequence data or None values for
     failed loads and messages such as warnings
     """
-    cif_df = None
-    pae_df = None
-    plddt_df = None
-    amino_acid_sequence_df = None
+    cif_df = pd.DataFrame()
+    pae_df = pd.DataFrame()
+    plddt_df = pd.DataFrame()
+    amino_acid_sequence_df = pd.DataFrame()
     messages = []
-    downloaded: dict[str, str] = {}
 
     temp_dir, work_dir = get_correct_af_directories(
-        entry_id=uniprot,
+        entry_id=entry_id,
         directory_name=paths.ALPHAFOLD_MONOMER_PATH,
         persist_upload=persist_upload,
     )
@@ -225,7 +220,7 @@ def handle_alphafold_files(
             paths.ALPHAFOLD_MONOMER_PATH.mkdir(parents=True, exist_ok=True)
             existing_metadata_df = get_monomer_metadata_df()
             extend_metadata_csv(
-                entry_id=uniprot,
+                entry_id=entry_id,
                 metadata_csv=paths.AF_MONOMER_METADATA_CSV_PATH,
                 exsisting_metadata_df=existing_metadata_df,
                 metadata_df=metadata_df,
@@ -239,7 +234,6 @@ def handle_alphafold_files(
                 dest = work_dir / fname
                 saved = download_file_from_url(urlval, dest)
                 if saved:
-                    downloaded[key] = str(saved)
                     try:
                         if key == "cifUrl":
                             cif_df = read_alphafold_mmcif(saved)
@@ -251,6 +245,7 @@ def handle_alphafold_files(
                         msg = f'Failed to load "{key}" into dataframe'
                         logger.exception(msg)
                         messages.append(dict(level=logging.ERROR, msg=msg))
+        fasta_dest: Path | None = None
         try:
             sequence = to_fasta(seq=seq, header=uniprot)
             fasta_dest = work_dir / f"{entry_id.upper()}.fasta"
@@ -261,12 +256,11 @@ def handle_alphafold_files(
             msg = f'Failed to write FASTA file "{fasta_dest}"'
             logger.exception(msg)
             messages.append(dict(level=logging.ERROR, msg=msg))
-        amino_acid_sequence_df = get_amino_acid_sequence_df(
-            entry_id=uniprot,
-            work_dir=work_dir,
-            fasta_dest=fasta_dest,
-            messages=messages,
-        )
+        if fasta_dest is not None:
+            amino_acid_sequence_df = get_amino_acid_sequence_df(
+                fasta_dest=fasta_dest,
+                messages=messages,
+            )
 
     finally:
         if temp_dir is not None:
@@ -325,6 +319,10 @@ def fetch_alphafold_protein_structure(
         }
 
         seq_tmp = r.get("sequence")
+        if not isinstance(seq_tmp, str) or not seq_tmp.strip():
+            raise RuntimeError(
+                f"AlphaFold payload for {uniprot_id} does not contain a valid protein sequence."
+            )
 
         files_urls: dict[str, Any] = {}
 
@@ -380,7 +378,9 @@ def get_all_available_entry_ids_of_multimer_metadata() -> list[str]:
     return df["entry_id"].tolist()
 
 
-def check_and_get_metadata_df(entry_id: str, all_metadata_df: pd.DataFrame, csv_file: Path) -> pd.DataFrame:
+def check_and_get_metadata_df(
+    entry_id: str, all_metadata_df: pd.DataFrame, csv_file: Path
+) -> pd.DataFrame:
     metadata_df = all_metadata_df[all_metadata_df["entry_id"] == entry_id]
     if metadata_df.empty:
         msg = f"No metadata for Entry ID '{entry_id}' in {csv_file}"
@@ -396,7 +396,9 @@ def check_dir(entry_id: str, dir: Path):
         raise FileNotFoundError(msg)
 
 
-def get_cif_df_from_disk(entry_id: str, structure_dir: Path, messages: list) -> pd.DataFrame:
+def get_cif_df_from_disk(
+    entry_id: str, structure_dir: Path, messages: list
+) -> pd.DataFrame:
     cif_files = list(structure_dir.glob("*.cif"))
     if not cif_files:
         msg = f"No CIF file found in {structure_dir} for entry '{entry_id}'"
@@ -410,15 +412,17 @@ def get_cif_df_from_disk(entry_id: str, structure_dir: Path, messages: list) -> 
 
     cif_file = cif_files[0]
     try:
-        cif_df = read_alphafold_mmcif(str(cif_file))
+        cif_df = read_alphafold_mmcif(cif_file)
         return cif_df
     except Exception as e:
         msg = f"Failed to read CIF file '{cif_file}': {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
-    
 
-def get_amino_acid_sequences_df_from_disk(entry_id: str, structure_dir: Path) -> pd.DataFrame:
+
+def get_amino_acid_sequences_df_from_disk(
+    entry_id: str, structure_dir: Path
+) -> pd.DataFrame:
     fasta_files = list(structure_dir.glob("*.fasta")) + list(structure_dir.glob("*.fa"))
     if not fasta_files:
         msg = f"No FASTA file found in {structure_dir} for entry '{entry_id}'"
@@ -449,7 +453,7 @@ def get_json_files_in_dir(entry_id: str, structure_dir: Path) -> list:
     return json_files
 
 
-def check_success_of_get_df(entry_id:str, df_dict: dict, messages: list) -> None:
+def check_success_of_get_df(entry_id: str, df_dict: dict, messages: list) -> None:
     if not any(df.empty for df in df_dict.values()):
         success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
         logger.info(success_msg)
@@ -470,21 +474,31 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     messages: list[dict[str, str | int]] = []
     all_metadata_df = get_monomer_metadata_df()
 
-    metadata_df = check_and_get_metadata_df(entry_id=entry_id, all_metadata_df=all_metadata_df, csv_file=paths.AF_MONOMER_METADATA_CSV_PATH)
+    metadata_df = check_and_get_metadata_df(
+        entry_id=entry_id,
+        all_metadata_df=all_metadata_df,
+        csv_file=paths.AF_MONOMER_METADATA_CSV_PATH,
+    )
 
     structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id.upper()
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
-    cif_df = get_cif_df_from_disk(entry_id=entry_id, structure_dir=structure_dir, messages=messages)
+    cif_df = get_cif_df_from_disk(
+        entry_id=entry_id, structure_dir=structure_dir, messages=messages
+    )
 
     # get fasta file
-    amino_acid_sequence_df = get_amino_acid_sequences_df_from_disk(entry_id=entry_id, structure_dir=structure_dir)
+    amino_acid_sequence_df = get_amino_acid_sequences_df_from_disk(
+        entry_id=entry_id, structure_dir=structure_dir
+    )
 
     # get jsons (PAE and pLDDT)
     json_files = list(structure_dir.glob("*.json"))
     if not json_files:
-        msg = f"No JSON files (PAE/pLDDT) found in {structure_dir} for entry '{entry_id}'"
+        msg = (
+            f"No JSON files (PAE/pLDDT) found in {structure_dir} for entry '{entry_id}'"
+        )
         logger.error(msg)
         raise FileNotFoundError(msg)
 
@@ -527,7 +541,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "plddt_df": plddt_df,
         "amino_acid_sequence_df": amino_acid_sequence_df,
     }
-    check_success_of_get_df(entry_id=entry_id, df_dict=df_dict)
+    check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
     return df_dict
 
@@ -542,16 +556,24 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     messages: list[dict[str, str | int]] = []
     all_metadata_df = get_multimer_metadata_df()
 
-    metadata_df = check_and_get_metadata_df(entry_id=entry_id, all_metadata_df=all_metadata_df, csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH)
+    metadata_df = check_and_get_metadata_df(
+        entry_id=entry_id,
+        all_metadata_df=all_metadata_df,
+        csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH,
+    )
 
     structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
-    cif_df = get_cif_df_from_disk(entry_id=entry_id, structure_dir=structure_dir, messages=messages)
+    cif_df = get_cif_df_from_disk(
+        entry_id=entry_id, structure_dir=structure_dir, messages=messages
+    )
 
     # get fasta file
-    amino_acid_sequences_df = get_amino_acid_sequences_df_from_disk(entry_id=entry_id, structure_dir=structure_dir)
+    amino_acid_sequences_df = get_amino_acid_sequences_df_from_disk(
+        entry_id=entry_id, structure_dir=structure_dir
+    )
 
     # get jsons (PAE and pLDDT)
     json_files = get_json_files_in_dir(entry_id=entry_id, structure_dir=structure_dir)
@@ -570,16 +592,10 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
             json1 = pd.json_normalize(obj1)
             json2 = pd.json_normalize(obj2)
             # iptm stands for interface predicted TM score
-            if (
-                "chain_iptm" in json1.columns
-                and "pae" in json2.columns
-            ):
+            if "chain_iptm" in json1.columns and "pae" in json2.columns:
                 confidence_df = json1
                 full_data_df = json2
-            elif (
-                "chain_iptm" in json2.columns
-                and "pae" in json1.columns
-            ):
+            elif "chain_iptm" in json2.columns and "pae" in json1.columns:
                 confidence_df = json2
                 full_data_df = json1
             else:
@@ -599,7 +615,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "amino_acid_sequences_df": amino_acid_sequences_df,
         "cif_df": cif_df,
         "confidence_df": confidence_df,
-        "full_data_df": full_data_df,   
+        "full_data_df": full_data_df,
     }
 
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
@@ -636,60 +652,69 @@ def upload_multimer_prediction(
         "model_used": model_used,
     }
 
-    metadata_df = pd.DataFrame([data])
-    exsisting_metadata_df = get_multimer_metadata_df()
-    extend_metadata_csv(
-        entry_id=entry_id,
-        metadata_csv=paths.AF_MULTIMER_METADATA_CSV_PATH,
-        exsisting_metadata_df=exsisting_metadata_df,
-        metadata_df=metadata_df,
-        messages=messages,
-    )
+    try:
+        metadata_df = pd.DataFrame([data])
+        if persist_upload:
+            exsisting_metadata_df = get_multimer_metadata_df()
+            extend_metadata_csv(
+                entry_id=entry_id,
+                metadata_csv=paths.AF_MULTIMER_METADATA_CSV_PATH,
+                exsisting_metadata_df=exsisting_metadata_df,
+                metadata_df=metadata_df,
+                messages=messages,
+            )
+            for file_name in [
+                amino_acid_sequences,
+                cif_file,
+                confidence_file,
+                full_data_file,
+            ]:
+                success, msg = copy_file_to_directory(file_name, work_dir)
+                if not success:
+                    logger.error(msg)
+                    messages.append(dict(level=logging.ERROR, msg=msg))
 
-    upload_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
-    if not upload_dir.exists():
-        upload_dir.mkdir(parents=True, exist_ok=True)
+        fasta_dict = fasta_import(str(amino_acid_sequences))
+        amino_acid_sequence_df = fasta_dict["fasta_df"]
 
-    if persist_upload:
-        for file_name in [
-            amino_acid_sequences,
-            cif_file,
-            confidence_file,
-            full_data_file,
-        ]:
-            success, msg = copy_file_to_directory(file_name, upload_dir)
-            if not success:
-                logger.error(msg)
-                messages.append(dict(level=logging.ERROR, msg=msg))
+        confidence_df = pd.read_json(confidence_file)
 
-    fasta_dict = fasta_import(str(amino_acid_sequences))
-    amino_acid_sequence_df = fasta_dict["fasta_df"]
+        # full_data json has arrays of unequal lengths so we need to normalize
+        full_data_df = pd.DataFrame()
+        with open(full_data_file, "r") as f:
+            full_data = json.load(f)
+        if isinstance(full_data, dict):
+            full_data_df = pd.json_normalize(full_data)
+        else:
+            messages.append(
+                {
+                    "level": logging.WARNING,
+                    "msg": "Could not load full data Json",
+                }
+            )
 
-    confidence_df = pd.read_json(confidence_file)
+        cif_df = read_alphafold_mmcif(cif_file)
 
-    # full_data json has arrays of unequal lengths so we need to normalize
-    with open(full_data_file, "r") as f:
-        full_data = json.load(f)
-    if isinstance(full_data, dict):
-        full_data_df = pd.json_normalize(full_data)
+        df_dict = {
+            "metadata_df": metadata_df,
+            "cif_df": cif_df,
+            "confidence_df": confidence_df,
+            "full_data_df": full_data_df,
+            "amino_acid_sequences_df": amino_acid_sequence_df,
+        }
 
-    cif_df = read_alphafold_mmcif(cif_file)
+        if not any(df.empty for df in df_dict.values()):
+            success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+            logger.info(success_msg)
+            messages.append(dict(level=logging.INFO, msg=success_msg))
+        else:
+            message = f"Could not load AlphaFold data for entry '{entry_id}'"
+            logger.warning(message)
+            messages.append(dict(level=logging.WARNING, msg=message))
+        df_dict["messages"] = messages
 
-    df_dict = {
-        "metadata_df": metadata_df,
-        "cif_df": cif_df,
-        "confidence_df": confidence_df,
-        "full_data_df": full_data_df,
-        "amino_acid_sequences_df": amino_acid_sequence_df,
-    }
+    finally:
+        if temp_dir is not None:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
-    if not any(df.empty for df in df_dict.values()):
-        success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
-        logger.info(success_msg)
-        messages.append(dict(level=logging.INFO, msg=success_msg))
-    else:
-        message = f"Could not load AlphaFold data for entry '{entry_id}'"
-        logger.warning(message)
-        messages.append(dict(level=logging.WARNING, msg=message))
-    df_dict["messages"] = messages
     return df_dict

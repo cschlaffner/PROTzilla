@@ -232,10 +232,11 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
         {"success": True, "message": "Settings successfully saved."}, status=200
     )
 
+
 # <--- helper functions for monomer and multimer structure prediction --->
 def check_and_copy_files_to_directory(file_names: list, target_dir: str):
     if target_dir.exists():
-            return False, "Entry ID is not unique."
+        return False, "Entry ID is not unique."
     else:
         target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -245,10 +246,11 @@ def check_and_copy_files_to_directory(file_names: list, target_dir: str):
         if not success:
             return False, message
     return True, "All files successfully uploaded"
-    
 
 
-def get_metadata_df(csv_file_path: str, expected_columns: list[str]) -> pandas.DataFrame:
+def get_metadata_df(
+    csv_file_path: str, expected_columns: list[str]
+) -> pandas.DataFrame:
     if csv_file_path.exists():
         df = pandas.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
     else:
@@ -314,19 +316,18 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
     )
 
 
-
 # <--- Monomer Structure Predictions --->
 
 
 def get_monomer_structure(request):
     metadata_csv = AF_MONOMER_METADATA_CSV_PATH
     expected_columns = [
-            "entry_id",
-            "uniprot_accession",
-            "model_created_date",
-            "gene",
-            "model_used",
-        ]
+        "entry_id",
+        "uniprot_accession",
+        "model_created_date",
+        "gene",
+        "model_used",
+    ]
 
     df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
 
@@ -359,7 +360,9 @@ def upload_monomer_structure(request):
 
         target_dir = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
         file_names = [cif_file, confidence, pae, fasta_file]
-        success, message = check_and_copy_files_to_directory(file_names=file_names, target_dir=target_dir)
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
         if not success:
             return JsonResponse(
                 {"success": False, "message": message},
@@ -378,7 +381,9 @@ def upload_monomer_structure(request):
             "model_used",
         ]
 
-        df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+        df = get_metadata_df(
+            csv_file_path=metadata_csv, expected_columns=expected_columns
+        )
 
         now_utc = datetime.now(timezone.utc)
         formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -412,10 +417,15 @@ def upload_monomer_structure(request):
 
 
 def delete_monomer_structure(request):
-    return delete_structure(dir_path=ALPHAFOLD_MONOMER_PATH, csv_file_path=AF_MONOMER_METADATA_CSV_PATH, request=request)
+    return delete_structure(
+        dir_path=ALPHAFOLD_MONOMER_PATH,
+        csv_file_path=AF_MONOMER_METADATA_CSV_PATH,
+        request=request,
+    )
 
 
 # <--- Multimer Structure Predictions --->
+
 
 def get_multimer_structure(request):
     metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
@@ -454,7 +464,9 @@ def upload_multimer_structure(request):
 
         target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
         file_names = [fasta_file, cif_file, confidence_file, full_data_file]
-        success, message = check_and_copy_files_to_directory(file_names=file_names, target_dir=target_dir)
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
         if not success:
             return JsonResponse(
                 {"success": False, "message": message},
@@ -470,7 +482,9 @@ def upload_multimer_structure(request):
             "model_used",
         ]
 
-        df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+        df = get_metadata_df(
+            csv_file_path=metadata_csv, expected_columns=expected_columns
+        )
 
         now_utc = datetime.now(timezone.utc)
         formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -503,7 +517,11 @@ def upload_multimer_structure(request):
 
 
 def delete_multimer_structure(request):
-    return delete_structure(dir_path=ALPHAFOLD_MULTIMER_PATH, csv_file_path=AF_MULTIMER_METADATA_CSV_PATH, request=request)
+    return delete_structure(
+        dir_path=ALPHAFOLD_MULTIMER_PATH,
+        csv_file_path=AF_MULTIMER_METADATA_CSV_PATH,
+        request=request,
+    )
 
 
 # <--- Databases --->

@@ -486,9 +486,7 @@ class CrosslinkingImport(ImportingStep):
 class ImportMonomerStructurePredictionFromDisk(ImportingStep):
     display_name = "Monomer Structure Prediction Import from Disk"
     operation = "Monomer Structure Import"
-    method_description = (
-        "Load an already uploaded monomer structure prediction from disk into current run"
-    )
+    method_description = "Load an already uploaded monomer structure prediction from disk into current run"
 
     output_keys = [
         "metadata_df",
@@ -581,13 +579,11 @@ class UploadMultimerPredictions(ImportingStep):
 class ImportMultimerStructurePredictionFromDisk(ImportingStep):
     display_name = "Multimer Structure Prediction Import from Disk"
     operation = "Multimer Structure Import"
-    method_description = (
-        "Load an already uploaded multimer structure prediction from disk into current run"
-    )
+    method_description = "Load an already uploaded multimer structure prediction from disk into current run"
 
     output_keys = [
         "metadata_df",
-        "amino_acid_sequences_df", 
+        "amino_acid_sequences_df",
         "cif_df",
         "confidence_df",
         "full_data_df",
