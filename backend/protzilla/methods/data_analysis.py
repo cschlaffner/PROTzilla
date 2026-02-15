@@ -1,5 +1,6 @@
 import logging
 
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
@@ -1128,6 +1129,12 @@ class PlotClustergram(DataAnalysisStep):
                     name="flip_axes",
                     label="Flip axis",
                     text="Flip axes",
+                ),
+                DropdownField(
+                    name="imputation_strategy",
+                    label="Impute missing values per protein by:",
+                    value=SimpleImputerStrategyType.MEAN.value,
+                    options=SimpleImputerStrategyType,
                 ),
                 TextField(
                     name="heatmap_legend_title",
