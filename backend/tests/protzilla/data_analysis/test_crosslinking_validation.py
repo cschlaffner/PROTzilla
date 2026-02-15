@@ -12,8 +12,8 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     get_distance_between_two_amino_acids_in_angstrom,
     add_positions_of_amino_acid_where_crosslinker_bound_to_df,
     diagrams_of_crosslinking_validation_data,
-    add_vertical_line_with_annotation_in_legend,
 )
+from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
 from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
 
 

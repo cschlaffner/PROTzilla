@@ -6,17 +6,14 @@ import pandas as pd
 import numpy as np
 import re
 import logging
-import plotly.graph_objects as go
 
 from plotly.graph_objects import Figure
 
-from backend.protzilla.importing.alphafold_protein_structure_load import (
-    fetch_alphafold_protein_structure,
-)
 from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
     create_bar_plot,
 )
+from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -298,34 +295,6 @@ def validate_with_angstrom_deviation(
     ]
 
     return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
-
-
-def add_vertical_line_with_annotation_in_legend(
-    fig: Figure, dash: str, annotation: str, x_value: float, color: str = "blue"
-) -> None:
-    """
-    Adds a vertical line to a Plotly figure and includes a corresponding entry in the legend
-    without displaying an additional visible trace in the plot.
-
-    :param fig: Plotly Figure object to which the vertical line and legend entry are added.
-    :param dash: Line style for the vertical line (e.g., "solid", "dash", "dot").
-    :param annotation: Text to display in the legend corresponding to the vertical line.
-    :param x_value: X-coordinate at which to draw the vertical line.
-    :param color: Color of the vertical line and legend entry (default is "blue").
-    :return: None
-    """
-    # add vertical line
-    fig.add_vline(x=x_value, line_color=color, line_dash=dash, line_width=2)
-    # add annotation of the line to the legend
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="lines",
-            name=annotation,
-            line=dict(color=color, width=2, dash=dash),
-        )
-    )
 
 
 def diagrams_of_crosslinking_validation_data(
