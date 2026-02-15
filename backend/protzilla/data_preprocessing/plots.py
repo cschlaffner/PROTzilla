@@ -175,9 +175,7 @@ def create_histograms(
     relevant_column_b: str = None,
     min_value: float = None,
     max_value: float = None,
-    vertical_lines: list[tuple[float, str]] = None,
-    vertical_lines_dashed: list[tuple[float, str]] = None,
-    one_bin_per_int = False
+    one_bin_per_int: bool = False,
 ) -> Figure:
     """
     A function to create a histogram for visualisation
@@ -197,8 +195,14 @@ def create_histograms(
     :param x_title: Optional x axis title for graphs.
     :param overlay: Specifies whether to draw one Histogram with overlay or two separate histograms
     :param visual_transformation: Visual transformation of the y-axis data.
+    :param relevant_column_a: Which column of dataframe_a should be used for the histogram. If None, the default_intensity_column will be used.
+    :param relevant_column_b: Which column of dataframe_b should be used for the histogram. If None, the default_intensity_column will be used.
+    :param min_value: Where the first bin should start. If None, will be set to the minimum value of the two dataframes.
+    :param max_value: Where the last bin should end. If None, will be set to the maximum value of the two dataframes.
+    :param one_bin_per_int: If set to True, min_value will be rounded down to the next int and max_value will be rounded up to the next int and there will\
+    be max_value-min_value many bins.
 
-    :return: returns a pie or bar chart of the data
+    :return: returns a histogram of the data
     """
     if visual_transformation not in {"linear", "log10"}:
         raise ValueError(
@@ -218,25 +222,32 @@ def create_histograms(
         values_b = values_b.apply(np.log10)
 
     if min_value is None:
-        min_value = min(values_a.min(skipna=True), values_b.min(skipna=True))
+        min_value = np.nanmin([values_a.min(), values_b.min()])
     if max_value is None:
-        max_value = max(values_a.max(skipna=True), values_b.max(skipna=True))
+        max_value = np.nanmax([values_a.max(), values_b.max()])
 
     if one_bin_per_int:
         min_value = math.floor(min_value)
         max_value = math.ceil(max_value)
+        number_of_bins = max_value - min_value
+        binsize_a = 1
+        binsize_b = 1
+    else:
+        number_of_bins = 100
+        if len(values_a) > 0:
+            binsize_a = (
+                values_a.max(skipna=True) - values_a.min(skipna=True)
+            ) / number_of_bins
+        else:
+            binsize_a = 1  # default value of 1 in case that values_a is empty
+        if len(values_b) > 0:
+            binsize_b = (
+                values_b.max(skipna=True) - values_b.min(skipna=True)
+            ) / number_of_bins
+        else:
+            binsize_b = 1  # default value of 1 in case that values_b is empty
 
-    number_of_bins = max_value-min_value if one_bin_per_int else 100
-    binsize_a = (
-        min(values_a.max(skipna=True), max_value)
-        - max(values_a.min(skipna=True), min_value)
-    ) / number_of_bins
-    binsize_b = (
-        min(values_b.max(skipna=True), max_value)
-        - max(values_b.min(skipna=True), min_value)
-    ) / number_of_bins
-
-    if overlay:
+    if overlay and len(values_a) > 0 and len(values_b) > 0:
         binsize_a = binsize_b = max(binsize_a, binsize_b)
 
     trace0 = go.Histogram(
@@ -268,24 +279,6 @@ def create_histograms(
         fig.update_traces(opacity=0.75)
         if visual_transformation == "log10":
             fig.update_layout(xaxis=generate_tics(0, max_value, True))
-
-    for lines, dash in [
-        (vertical_lines, None),
-        (vertical_lines_dashed, "dash"),
-    ]:
-        if lines is None:
-            continue
-
-        for position, annotation in lines:
-            fig.add_vline(
-                x=position,
-                line=dict(color="red", width=2, dash=dash),
-                annotation_text=annotation,
-                annotation_position="top left",
-                annotation_textangle=-90,
-                annotation_y=1,
-                annotation_yanchor="top",
-            )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
