@@ -246,7 +246,7 @@ def validate_with_angstrom_deviation(
     return dict(crosslinking_result_df=checked_crosslinks_df, messages={})
 
 
-def _add_vertical_line_with_annotation_in_legend(
+def add_vertical_line_with_annotation_in_legend(
     fig: Figure, dash: str, annotation: str, x_value: float, color: str = "blue"
 ) -> None:
     """
@@ -343,7 +343,7 @@ def diagrams_of_crosslinking_validation_data(
             relevant_column_b="alphafold_distance",
             one_bin_per_int=True,
         )
-        _add_vertical_line_with_annotation_in_legend(
+        add_vertical_line_with_annotation_in_legend(
             fig=histogram,
             dash="solid",
             annotation=f"{crosslinker} length",
@@ -374,7 +374,7 @@ def diagrams_of_crosslinking_validation_data(
             max_value=mean_plus_minus_two_std_range[1],
             one_bin_per_int=True,
         )
-        _add_vertical_line_with_annotation_in_legend(
+        add_vertical_line_with_annotation_in_legend(
             fig=histogram_two_standard_deviations,
             dash="solid",
             annotation=f"{crosslinker} length",
@@ -382,7 +382,7 @@ def diagrams_of_crosslinking_validation_data(
         )
 
         if accepted_deviation_upper_bound != 0:
-            _add_vertical_line_with_annotation_in_legend(
+            add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
                 annotation=f"allowed deviation upper bound",
@@ -393,14 +393,14 @@ def diagrams_of_crosslinking_validation_data(
                 <= crosslinker_length + accepted_deviation_upper_bound
                 <= math.ceil(mean_plus_minus_two_std_range[1])
             ):
-                _add_vertical_line_with_annotation_in_legend(
+                add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
                     annotation=f"allowed deviation upper bound",
                     x_value=crosslinker_length + accepted_deviation_upper_bound,
                 )
         if accepted_deviation_lower_bound != 0:
-            _add_vertical_line_with_annotation_in_legend(
+            add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
                 annotation=f"allowed deviation lower bound",
@@ -411,7 +411,7 @@ def diagrams_of_crosslinking_validation_data(
                 <= crosslinker_length - accepted_deviation_lower_bound
                 <= math.ceil(mean_plus_minus_two_std_range[1])
             ):
-                _add_vertical_line_with_annotation_in_legend(
+                add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
                     annotation=f"allowed deviation lower bound",
