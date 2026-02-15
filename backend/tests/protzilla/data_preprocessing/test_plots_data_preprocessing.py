@@ -101,6 +101,66 @@ def test_create_histograms(
     return
 
 
+def test_create_histograms_one_bin_per_int_is_true():
+
+    df_a = pd.DataFrame({"value": [1.2, 2.7, 3.5]})
+    df_b = pd.DataFrame({"value": [2.1, 4.6, 5.9]})
+
+    fig = create_histograms(
+        dataframe_a=df_a,
+        dataframe_b=df_b,
+        relevant_column_a="value",
+        relevant_column_b="value",
+        name_a="A",
+        name_b="B",
+        one_bin_per_int=True,
+    )
+
+    trace_a = fig.data[0]
+    trace_b = fig.data[1]
+
+    # Check bin size is 1
+    assert trace_a.xbins["size"] == 1
+    assert trace_b.xbins["size"] == 1
+
+    # Check min and max are rounded correctly
+    # min_value should be floor(min(values_a.min(), values_b.min())) = floor(1.2) = 1
+    # max_value should be ceil(max(values_a.max(), values_b.max())) = ceil(5.9) = 6
+    assert trace_a.xbins["start"] == 1
+    assert trace_a.xbins["end"] == 6
+    assert trace_b.xbins["start"] == 1
+    assert trace_b.xbins["end"] == 6
+
+
+def test_create_histograms_with_empty_dataframe():
+    df_empty = pd.DataFrame({"value": []})
+    df_nonempty = pd.DataFrame({"value": [1, 2, 3]})
+
+    fig = create_histograms(
+        dataframe_a=df_empty,
+        dataframe_b=df_nonempty,
+        relevant_column_a="value",
+        relevant_column_b="value",
+        name_a="Empty",
+        name_b="NonEmpty",
+        one_bin_per_int=True,
+    )
+
+    trace_empty = fig.data[0]
+    trace_nonempty = fig.data[1]
+
+    # Ensure the function did not crash and returned a Figure
+    assert isinstance(fig, Figure)
+
+    # Even if dataframe_a is empty, trace_a should exist with default bin size 1
+    assert trace_empty.xbins["size"] == 1
+
+    # trace_b should have correct start/end bin values
+    assert trace_nonempty.xbins["start"] == 1  # floor(min(values_b)) = 1
+    assert trace_nonempty.xbins["end"] == 3  # ceil(max(values_b)) = 3
+    assert trace_nonempty.xbins["size"] == 1
+
+
 @pytest.mark.order(2)
 @pytest.mark.dependency(
     depends=[
