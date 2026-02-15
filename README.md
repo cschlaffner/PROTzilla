@@ -42,8 +42,8 @@
 | backend/protzilla/data\_integration/database\_integration.py                  |       58 |       10 |     83% |73, 101-114 |
 | backend/protzilla/data\_integration/database\_query.py                        |      129 |       60 |     53% |28-81, 85-87, 91, 114-117, 120-138, 142-146, 150-157, 195-200, 211-214 |
 | backend/protzilla/data\_integration/di\_plots.py                              |      123 |       21 |     83% |90-91, 174-175, 178-179, 181, 184-185, 213-215, 235-240, 293-294, 297, 370 |
-| backend/protzilla/data\_integration/enrichment\_analysis.py                   |      359 |      138 |     62% |25-26, 179-180, 216, 223, 278-282, 330, 395, 398-401, 416-433, 539-540, 557-560, 566-696, 789-790, 799-800, 813-814, 816-817, 819-822, 826-827, 829-832, 842-843, 853-857, 861-862, 874-875, 887-888, 891-892, 902-905 |
-| backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py             |      147 |       17 |     88% |145-146, 149-150, 157-158, 161-163, 166, 216-218, 408-409, 413, 420 |
+| backend/protzilla/data\_integration/enrichment\_analysis.py                   |      361 |      138 |     62% |25-26, 185-186, 222, 229, 284-288, 336, 401, 404-407, 422-439, 545-546, 558-561, 567-697, 785-786, 795-796, 809-810, 812-813, 815-818, 822-823, 825-828, 838-839, 849-853, 857-858, 870-871, 883-884, 887-888, 898-901 |
+| backend/protzilla/data\_integration/enrichment\_analysis\_gsea.py             |      146 |       17 |     88% |144-145, 148-149, 156-157, 160-162, 165, 215-217, 407-408, 412, 419 |
 | backend/protzilla/data\_integration/enrichment\_analysis\_helper.py           |       73 |        6 |     92% |137-139, 145, 150-151 |
 | backend/protzilla/data\_preprocessing/\_\_init\_\_.py                         |        0 |        0 |    100% |           |
 | backend/protzilla/data\_preprocessing/filter\_proteins.py                     |       35 |        2 |     94% |   122-123 |
@@ -82,7 +82,7 @@
 | backend/protzilla/workflow.py                                                 |       11 |        6 |     45% |  6, 15-20 |
 | frontend/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | runner\_cli.py                                                                |       24 |        5 |     79% | 60-63, 67 |
-| **TOTAL**                                                                     | **7075** | **1925** | **73%** |           |
+| **TOTAL**                                                                     | **7076** | **1925** | **73%** |           |
 
 
 ## Setup coverage badge
