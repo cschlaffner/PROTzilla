@@ -28,8 +28,8 @@ HEATMAP_LOW_COLOR = "#053061"
 HEATMAP_HIGH_COLOR = "#67001f"
 
 # Default axis configuration used for calculation
-AXIS_SAMPLE: int = 0 # Rows
-AXIS_PROTEIN: int = 1 # Columns
+AXIS_SAMPLE: int = 0  # Rows
+AXIS_PROTEIN: int = 1  # Columns
 
 
 # pylint: disable=assignment-from-no-return, no-self-use

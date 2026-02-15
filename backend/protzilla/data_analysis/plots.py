@@ -15,8 +15,8 @@ from backend.protzilla.constants.colors import (
     PLOT_SECONDARY_COLOR,
 )
 from backend.protzilla.utilities.clustergram import (
-        Clustergram,
-        AXIS_PROTEIN,
+    Clustergram,
+    AXIS_PROTEIN,
 )
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 
@@ -31,7 +31,7 @@ colors = {
 
 def scatter_plot(
     input_df: pd.DataFrame,
-color_df: pd.DataFrame | None = None,
+    color_df: pd.DataFrame | None = None,
 ) -> dict:
     """
     Function to create a scatter plot from data.
@@ -240,7 +240,12 @@ def clustergram_plot(
         messages = []
         input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
         if input_df_wide.isna().any(axis=None):
-            messages.append(dict(level=logging.WARNING, msg="Input contains missing data; clustergram thus contains imputed values."))
+            messages.append(
+                dict(
+                    level=logging.WARNING,
+                    msg="Input contains missing data; clustergram thus contains imputed values.",
+                )
+            )
 
         if isinstance(metadata_df, pd.DataFrame):
             assert metadata_column in metadata_df.columns
@@ -285,9 +290,7 @@ def clustergram_plot(
             custom_color_scale = None
 
         imputer_parameters = dict(
-            axis=AXIS_PROTEIN,
-            missing_values="nan",
-            strategy=imputation_strategy
+            axis=AXIS_PROTEIN, missing_values="nan", strategy=imputation_strategy
         )
 
         clustergram = Clustergram(
@@ -302,7 +305,7 @@ def clustergram_plot(
             hidden_labels=["row", "col"],
             custom_color_scale=custom_color_scale,
             heatmap_legend_title=heatmap_legend_title,
-            imputer_parameters=imputer_parameters
+            imputer_parameters=imputer_parameters,
         )
 
         clustergram.update_layout(
