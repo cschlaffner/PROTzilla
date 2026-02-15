@@ -153,7 +153,7 @@ def gsea_preranked(
         msg = f"Ranking column '{ranking_column}' not found in protein_df."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if not protein_df[ranking_column].dtype == np.number:
+    if not pd.api.types.is_numeric_dtype(protein_df[ranking_column].dtype):
         msg = f"Ranking column '{ranking_column}' must be numeric. Please check your input data or choose a different column."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 

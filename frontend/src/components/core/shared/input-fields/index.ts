@@ -11,3 +11,4 @@ export * from "./text-input-field";
 export * from "./form-divider";
 export * from "./info-field";
 export * from "./header-info-field";
+export * from "./color-input-field";
