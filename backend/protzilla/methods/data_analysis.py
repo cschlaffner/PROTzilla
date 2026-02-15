@@ -258,7 +258,7 @@ class DifferentialExpressionANOVA(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.get_step_input(
+        inputs["intensity_df"] = steps.get_step_output(
             Step, "protein_df", inputs["protein_df"]
         )
         inputs["metadata_df"] = steps.metadata_df
@@ -383,7 +383,7 @@ class DifferentialExpressionTTest(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["log_base"] = steps.get_step_input(TransformationLog, "log_base")
-        inputs["intensity_df"] = steps.get_step_input(
+        inputs["intensity_df"] = steps.get_step_output(
             Step, "protein_df", inputs["protein_df"]
         )
         inputs["metadata_df"] = steps.metadata_df
