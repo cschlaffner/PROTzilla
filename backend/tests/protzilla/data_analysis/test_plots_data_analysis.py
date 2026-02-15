@@ -3,6 +3,7 @@ import pytest
 
 from backend.protzilla.data_analysis.plots import *
 from backend.tests.protzilla.data_analysis.test_clustering import *
+from backend.protzilla.data_preprocessing.plots import create_histograms
 
 
 @pytest.fixture
@@ -286,3 +287,95 @@ def test_clustergram_flip_axes(show_figures, wide_4d_df, metadata_df):
     if show_figures:
         fig.show()
     return
+
+
+def test_create_histograms_one_bin_per_int_is_true():
+
+    df_a = pd.DataFrame({"value": [1.2, 2.7, 3.5]})
+    df_b = pd.DataFrame({"value": [2.1, 4.6, 5.9]})
+
+    fig = create_histograms(
+        dataframe_a=df_a,
+        dataframe_b=df_b,
+        relevant_column_a="value",
+        relevant_column_b="value",
+        name_a="A",
+        name_b="B",
+        one_bin_per_int=True,
+    )
+
+    trace_a = fig.data[0]
+    trace_b = fig.data[1]
+
+    # Check bin size is 1
+    assert trace_a.xbins["size"] == 1
+    assert trace_b.xbins["size"] == 1
+
+    # Check min and max are rounded correctly
+    # min_value should be floor(min(values_a.min(), values_b.min())) = floor(1.2) = 1
+    # max_value should be ceil(max(values_a.max(), values_b.max())) = ceil(5.9) = 6
+    assert trace_a.xbins["start"] == 1
+    assert trace_a.xbins["end"] == 6
+    assert trace_b.xbins["start"] == 1
+    assert trace_b.xbins["end"] == 6
+
+
+def test_create_histograms_with_empty_dataframe():
+    df_empty = pd.DataFrame({"value": []})
+    df_nonempty = pd.DataFrame({"value": [1, 2, 3]})
+
+    fig = create_histograms(
+        dataframe_a=df_empty,
+        dataframe_b=df_nonempty,
+        relevant_column_a="value",
+        relevant_column_b="value",
+        name_a="Empty",
+        name_b="NonEmpty",
+        one_bin_per_int=True,
+    )
+
+    trace_empty = fig.data[0]
+    trace_nonempty = fig.data[1]
+
+    # Ensure the function did not crash and returned a Figure
+    assert isinstance(fig, Figure)
+
+    # Even if dataframe_a is empty, trace_a should exist with default bin size 1
+    assert trace_empty.xbins["size"] == 1
+
+    # trace_b should have correct start/end bin values
+    assert trace_nonempty.xbins["start"] == 1  # floor(min(values_b)) = 1
+    assert trace_nonempty.xbins["end"] == 3  # ceil(max(values_b)) = 3
+    assert trace_nonempty.xbins["size"] == 1
+
+
+def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend_multiple_calls():
+    fig = go.Figure()
+    add_vertical_line_with_annotation_in_legend(
+        fig=fig, dash="dash", annotation="Line 1", x_value=1.0
+    )
+    add_vertical_line_with_annotation_in_legend(
+        fig=fig, dash="dot", annotation="Line 2", x_value=2.0, color="green"
+    )
+
+    # Check layout.shapes -> add_vline internally adds a shape to layout.shapes
+    assert len(fig.layout.shapes) == 2
+    vlines_x = [shape.x0 for shape in fig.layout.shapes]
+    assert vlines_x == [1.0, 2.0]
+    vlines_colors = [shape["line"]["color"] for shape in fig.layout.shapes]
+    assert vlines_colors == ["blue", "green"]
+    vlines_dashes = [shape["line"]["dash"] for shape in fig.layout.shapes]
+    assert vlines_dashes == ["dash", "dot"]
+
+    # Check legend traces
+    assert len(fig.data) == 2
+    names = [trace.name for trace in fig.data]
+    colors = [trace.line.color for trace in fig.data]
+    dashes = [trace.line.dash for trace in fig.data]
+    x_values = [trace.x for trace in fig.data]
+    y_values = [trace.y for trace in fig.data]
+    assert names == ["Line 1", "Line 2"]
+    assert colors == ["blue", "green"]
+    assert dashes == ["dash", "dot"]
+    assert x_values == [(None,), (None,)]
+    assert y_values == [(None,), (None,)]

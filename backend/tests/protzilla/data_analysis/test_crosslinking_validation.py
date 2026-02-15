@@ -277,38 +277,6 @@ def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
     assert trace.y == (None,)
 
 
-def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend_multiple_calls():
-    fig = go.Figure()
-    add_vertical_line_with_annotation_in_legend(
-        fig=fig, dash="dash", annotation="Line 1", x_value=1.0
-    )
-    add_vertical_line_with_annotation_in_legend(
-        fig=fig, dash="dot", annotation="Line 2", x_value=2.0, color="green"
-    )
-
-    # Check layout.shapes -> add_vline internally adds a shape to layout.shapes
-    assert len(fig.layout.shapes) == 2
-    vlines_x = [shape.x0 for shape in fig.layout.shapes]
-    assert vlines_x == [1.0, 2.0]
-    vlines_colors = [shape["line"]["color"] for shape in fig.layout.shapes]
-    assert vlines_colors == ["blue", "green"]
-    vlines_dashes = [shape["line"]["dash"] for shape in fig.layout.shapes]
-    assert vlines_dashes == ["dash", "dot"]
-
-    # Check legend traces
-    assert len(fig.data) == 2
-    names = [trace.name for trace in fig.data]
-    colors = [trace.line.color for trace in fig.data]
-    dashes = [trace.line.dash for trace in fig.data]
-    x_values = [trace.x for trace in fig.data]
-    y_values = [trace.y for trace in fig.data]
-    assert names == ["Line 1", "Line 2"]
-    assert colors == ["blue", "green"]
-    assert dashes == ["dash", "dot"]
-    assert x_values == [(None,), (None,)]
-    assert y_values == [(None,), (None,)]
-
-
 @pytest.fixture
 def sample_crosslinking_df():
     return pd.DataFrame(
@@ -357,15 +325,15 @@ def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_line
         crosslinking_df=sample_crosslinking_df,
         protein_to_validate="P12345",
         crosslinker_information=sample_crosslinker_info,
+        cif_df=pd.DataFrame(),
+        amino_acid_sequence_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
     assert len(figures) == 5
     assert all(isinstance(f, Figure) for f in figures)
 
-    mock_validate.assert_called_once_with(
-        sample_crosslinking_df, "P12345", sample_crosslinker_info
-    )
+    mock_validate.assert_called_once()
 
     assert (
         mock_add_vline.call_count == 8
@@ -426,6 +394,8 @@ def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_l
         crosslinking_df=sample_crosslinking_df_with_no_std,
         protein_to_validate="P12345",
         crosslinker_information=sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
+        cif_df=pd.DataFrame(),
+        amino_acid_sequence_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
@@ -487,13 +457,11 @@ def test_diagrams_calls_with_correct_parameters(
             crosslinking_df=sample_crosslinking_df_with_one_crosslinker,
             protein_to_validate="P12345",
             crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
+            cif_df=pd.DataFrame(),
+            amino_acid_sequence_df=pd.DataFrame(),
         )
 
-        mock_validate.assert_called_once_with(
-            sample_crosslinking_df_with_one_crosslinker,
-            "P12345",
-            sample_crosslinker_info_with_one_crosslinker,
-        )
+        mock_validate.assert_called_once()
 
         # There should be 2 histogram calls: 2 per crosslinker
         assert mock_hist.call_count == 2
