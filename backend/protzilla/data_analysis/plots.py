@@ -201,7 +201,7 @@ def clustergram_plot(
     heatmap_low_color: str | None = None,
     heatmap_high_color_limit: float | None = None,
     heatmap_high_color: str | None = None,
-    imputation_strategy: SimpleImputerStrategyType = SimpleImputerStrategyType.MEAN,
+    imputation_strategy: SimpleImputerStrategyType = SimpleImputerStrategyType.MEAN.value,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
