@@ -10,6 +10,7 @@ django-cors-headers==4.9.0
 gseapy==1.1.10
 isort==7.0.0
 kaleido~=0.1
+networkx==3.5
 numpy<=2.2.5  # because of parmed in dashbio
 matplotlib==3.10.7
 openpyxl==3.1.5
