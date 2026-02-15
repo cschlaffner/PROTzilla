@@ -71,7 +71,9 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
       if (response) {
         const data = response.data;
         setBackendFormData(data);
+        return response.outdated_count ?? 0;
       }
+      return 0;
     },
     [runName],
   );
@@ -81,8 +83,11 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   }, [current_step_index, getStepForm]);
 
   const handleChange = (name: string, value: BackendInputValueType) => {
-    void getStepForm({ [name]: value });
-    onChange();
+    void getStepForm({ [name]: value }).then((outdatedCount) => {
+      if (outdatedCount > 0) {
+        onChange();
+      }
+    });
   };
 
   const handleNotify = (message: CalculationMessage) => {

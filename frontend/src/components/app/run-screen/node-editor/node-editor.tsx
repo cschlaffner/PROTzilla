@@ -122,9 +122,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       },
     }).then((response) => {
       notify({
-          type: response.success ? "success" : "error",
-          title: response.message.title,
-          message: response.message.msg,
+        type: response.success ? "success" : "error",
+        title: response.message.title,
+        message: response.message.msg,
       });
       setSelectedEdge(null);
       void getEdgesFromRunData().then((newEdges) => {
@@ -316,14 +316,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             sections
               .map((section) => section.steps.length)
               .reduce((acc: number, val: number) => acc + val, 0) -
-            1
+              1
           }
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
-            console.log("TODO: A vulture ate this callback! Come up with something better.");
+            navigateOrRefreshSteps();
           }}
         />
       </StyledFormColumn>

@@ -704,13 +704,19 @@ def get_step_form(request):
 
         run = Run(run_name)
 
+        outdated_count = 0
         if new_form_values != {}:
-            run.steps.set_steps_outdated()
+            outdated_count = run.steps.set_steps_outdated()
 
         form = run.current_form(new_form_values)
 
         return JsonResponse(
-            {"success": True, "message": "Received input parameters", "data": form},
+            {
+                "success": True,
+                "message": "Received input parameters",
+                "data": form,
+                "outdated_count": outdated_count,
+            },
             safe=False,
             encoder=Form.CustomEncoder,
         )
