@@ -52,7 +52,7 @@ def test_validate_data_before_lookup():
 
 
 def test_validate_data_before_lookup_empty():
-    valid, results = validate_data_before_lookup(set(), lambda x: True, "ERR")
+    valid, results = validate_data_before_lookup(set(), lambda x: True, "ERROR")
     assert valid == set()
     assert results == {}
 
@@ -124,7 +124,7 @@ def test_uniprot_lookup_successful_request_but_no_results(monkeypatch):
         results=results,
     )
 
-    assert results["P1"] == (False, None, "NO_GENE_NAME_FOUND")
+    assert results == {}
 
 
 def _minimal_valid_crosslinking_df():
@@ -138,10 +138,8 @@ def _minimal_valid_crosslinking_df():
             "Crosslinker": ["DSS"],
             "Peptide1": ["AAA"],
             "Peptide2": ["BBB"],
-            "Peptide_position1": [1],
-            "Peptide_position2": [2],
-            "CL_position1": [3],
-            "CL_position2": [4],
+            "CL_position_within_peptide1": [1],
+            "CL_position_within_peptide2": [2],
             "Q_value": [0.01],
         }
     )
@@ -181,6 +179,49 @@ def test_get_missing_protein_designation():
     assert failed_df.empty
 
 
+@pytest.mark.parametrize(
+    "input_string, mock_result, expected",
+    [
+        (
+            "9606,10090",
+            {
+                "uids": ["9606", "10090"],
+                "9606": {"scientificname": "Homo sapiens"},
+                "10090": {"scientificname": "Mus musculus"},
+            },
+            (True, ["9606", "10090"], ["Homo sapiens", "Mus musculus"], None),
+        ),
+        (
+            "9606,9999",
+            {
+                "uids": ["9606"],
+                "9606": {"scientificname": "Homo sapiens"},
+            },
+            (False, "9999", None, "ORGANISM_ID_NOT_FOUND"),
+        ),
+    ],
+)
+def test_process_organism_id_from_text_field(
+    monkeypatch, input_string, mock_result, expected
+):
+    from protzilla.importing.crosslinking_import import (
+        process_organism_id_from_text_field,
+    )
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": mock_result}
+
+    monkeypatch.setattr(
+        "protzilla.importing.crosslinking_import.requests.get",
+        lambda *args, **kwargs: mock_response,
+    )
+
+    result = process_organism_id_from_text_field(input_string)
+
+    assert result == expected
+
+
 def test_aggregate_failed_proteins_for_display():
     df = pd.DataFrame(
         {
@@ -203,10 +244,9 @@ def test_crosslinking_import_csv(tmp_path):
     csv_file = tmp_path / "test.csv"
     csv_file.write_text(
         "Protein1,Protein2,Peptide1,Peptide2,"
-        "Peptide_position1,Peptide_position2,"
-        "CL_position1,CL_position2,"
+        "CL_position_within_peptide1,CL_position_within_peptide2,"
         "Crosslinker,Q_value\n"
-        "RAD50,MRE11,AAA,BBB,1,2,3,4,DSS,0.01\n"
+        "RAD50,MRE11,AAA,BBB,1,2,DSS,0.01\n"
     )
 
     with patch(
@@ -216,7 +256,7 @@ def test_crosslinking_import_csv(tmp_path):
             "MRE11": (True, "Q67890", None),
         },
     ):
-        result = crosslinking_import(csv_file, organism_id="9606")
+        result = crosslinking_import(csv_file, organism_ids="9606")
 
     assert "crosslinking_df" in result
     assert not result["crosslinking_df"].empty
@@ -231,10 +271,8 @@ def test_crosslinking_import_xlsx(monkeypatch, tmp_path):
             "Peptide1": ["[AAA]"],
             "Peptide2": ["[BBB]"],
             "Is_intra_crosslink": ["Intra"],
-            "Peptide_position1": [1],
-            "Peptide_position2": [2],
-            "CL_position1": [3],
-            "CL_position2": [4],
+            "CL_position_within_peptide1": [1],
+            "CL_position_within_peptide2": [2],
             "Crosslinker": ["DSS"],
             "Q_value": [0.01],
         }
@@ -245,13 +283,13 @@ def test_crosslinking_import_xlsx(monkeypatch, tmp_path):
         lambda ids: {i: (True, f"G{i}", None) for i in ids},
     )
 
-    result = crosslinking_import(xlsx, organism_id="9606")
+    result = crosslinking_import(xlsx, organism_ids="9606")
     assert "crosslinking_df" in result
 
 
 def test_crosslinking_import_invalid_file(tmp_path):
     bad_file = tmp_path / "test.txt"
     bad_file.write_text("something invalid")
-    result = crosslinking_import(bad_file, organism_id="9606")
+    result = crosslinking_import(bad_file, organism_ids="9606")
     assert "messages" in result
     assert any("Unsupported file type" in m["msg"] for m in result["messages"])

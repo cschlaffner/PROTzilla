@@ -16,14 +16,14 @@ class TestRun:
         assert run_standard.steps.current_section == "importing"
 
     def test_init_empty(self, run_empty):
-        assert run_empty.workflow_name == "test-run-empty"
+        assert run_empty.workflow_name == ".test-run-empty"
         assert run_empty.steps is not None
         assert len(run_empty.steps.all_steps) == 0
         assert run_empty.current_step is None
         assert run_empty.steps.current_step_index == 0
 
     def test_init_imported(self, run_imported):
-        assert run_imported.workflow_name == "test-run-empty"
+        assert run_imported.workflow_name == ".test-run-empty"
         assert run_imported.steps is not None and len(run_imported.steps.all_steps) == 1
         assert (
             run_imported.current_step.output["protein_df"] is not None

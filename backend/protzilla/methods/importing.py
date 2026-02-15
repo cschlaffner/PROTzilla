@@ -74,6 +74,11 @@ class MaxQuantImport(ImportingStep):
                     options=IntensityType,
                 ),
                 CheckboxField(
+                    name="ignore_only_identified_by_site",
+                    label="Ignore proteins only identified by site",
+                    value=False,
+                ),
+                CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
                     value=False,
@@ -421,7 +426,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "sequence_df",
+        "amino_acid_sequence_df",
     ]
 
     plot_method = None
@@ -462,8 +467,12 @@ class CrosslinkingImport(ImportingStep):
                     value=None,
                 ),
                 TextField(
-                    name="organism_id",
-                    label="Organism ID",
+                    name="organism_ids",
+                    label="Organism IDs \n(only required when importing a CSM file)",
+                    value="",
+                ),
+                InfoField(
+                    label="Please list them in the order in which they should be applied, separated by a comma \n e.g.: 9606, 10090, 10116"
                 ),
             ],
         )
@@ -483,7 +492,7 @@ class ImportStructurePredictionFromDisk(ImportingStep):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "sequence_df",
+        "amino_acid_sequence_df",
     ]
 
     def create_form(self):

@@ -1,7 +1,11 @@
+import itertools
+
 import math
 
 import pandas as pd
 import numpy as np
+import re
+import logging
 import plotly.graph_objects as go
 
 from plotly.graph_objects import Figure
@@ -25,7 +29,7 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     :return: the atom identifier of the reactive atom as a string
     """
     # right now we always return the central C atom
-    # later we might want to return the reactive atom of the amino acid residue of the specific amino acid kind
+    # later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
     # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation
     return "CA"
 
@@ -75,8 +79,8 @@ def get_coordinates_of_atom_crosslinker_bound_to(
 def get_distance_between_two_amino_acids_in_angstrom(
     amino_acid_position1: int,
     amino_acid_position2: int,
-    amino_acid_kind1: str,
-    amino_acid_kind2: str,
+    amino_acid_type1: str,
+    amino_acid_type2: str,
     cif_df: pd.DataFrame,
 ) -> float:
     """
@@ -85,22 +89,22 @@ def get_distance_between_two_amino_acids_in_angstrom(
 
     :param amino_acid_position1: 1-based position of the first amino acid residue
     :param amino_acid_position2: 1-based position of the second amino acid residue
-    :param amino_acid_kind1: amino acid type at the first position
-    :param amino_acid_kind2: amino acid type at the second position
+    :param amino_acid_type1: amino acid type at the first position
+    :param amino_acid_type2: amino acid type at the second position
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
     :return: the distance between the two residues in Ångström
     """
 
     pos1 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
-            amino_acid_position1, amino_acid_kind1, cif_df
+            amino_acid_position1, amino_acid_type1, cif_df
         ),
         dtype=float,
     )
 
     pos2 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
-            amino_acid_position2, amino_acid_kind2, cif_df
+            amino_acid_position2, amino_acid_type2, cif_df
         ),
         dtype=float,
     )
@@ -108,69 +112,96 @@ def get_distance_between_two_amino_acids_in_angstrom(
     return float(np.linalg.norm(pos2 - pos1))
 
 
-def get_position_of_amino_acid_crosslinker_bound_to(
-    protein_sequence: str,
-    peptide_sequence: str,
-    crosslinker_position_within_peptide: int,
-) -> int:
+def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
+    input_crosslinking_df: pd.DataFrame, protein_sequence: str
+) -> tuple[pd.DataFrame, list[dict]]:
     """
-    Determines the position of the amino acid to which the cross-linker bound.
+    Adds for each crosslink the 1-based positions of amino acids where the crosslink bound to a crosslinking DataFrame.
+    If a peptide sequence occurs multiple times in the protein, the row is duplicated for each
+    additional combination of positions.
+    If a peptide sequence can't be matched the row will be deleted and a warning emitted.
 
-    :param protein_sequence: full protein amino acid sequence
-    :param peptide_sequence: peptide sequence containing the amino acid the cross-linker bound to
-    :param crosslinker_position_within_peptide: 1-based position of the cross-linker within the peptide
-    :return: 1-based position of the amino acid residue in the protein sequence
-    :raises ValueError: if the peptide sequence cannot be found in the protein sequence
+    :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+                           - 'Peptide1': first peptide sequence
+                           - 'Peptide2': second peptide sequence
+                           - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
+                           - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
+    :param protein_sequence: Full protein sequence in which the peptides are located.
+    :return: tuple (updated_crosslinking_df, messages)
+             - updated_crosslinking_df: input DataFrame with two new columns:
+                 - 'crosslinker_position1': 1-based crosslinker position in Peptide1
+                 - 'crosslinker_position2': 1-based crosslinker position in Peptide2
+                 Rows are duplicated for multiple peptide matches.
+             - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
     """
-    peptide_start_position = protein_sequence.find(peptide_sequence)
-    if peptide_start_position == -1:
-        raise ValueError(
-            f"Peptide {peptide_sequence} was not found in protein sequence"
+    crosslinking_df = input_crosslinking_df.copy()
+    crosslinking_df["crosslinker_position1"] = pd.Series(dtype="Int64")
+    crosslinking_df["crosslinker_position2"] = pd.Series(dtype="Int64")
+    rows_to_duplicate = {}
+    rows_to_delete = []
+    messages = []
+    for idx, crosslinker_row in crosslinking_df.iterrows():
+        peptide_sequence1 = crosslinker_row.Peptide1
+        peptide_sequence2 = crosslinker_row.Peptide2
+        peptide1_positions = [
+            m.start() + crosslinker_row.CL_position_within_peptide1 + 1
+            for m in re.finditer(f"(?={peptide_sequence1})", protein_sequence)
+        ]
+        peptide2_positions = [
+            m.start() + crosslinker_row.CL_position_within_peptide2 + 1
+            for m in re.finditer(f"(?={peptide_sequence2})", protein_sequence)
+        ]
+        all_position_combinations = list(
+            itertools.product(peptide1_positions, peptide2_positions)
         )
-    return peptide_start_position + crosslinker_position_within_peptide
+        if not all_position_combinations:
+            if not peptide1_positions and not peptide2_positions:
+                msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequence. The entry was deleted."
+            else:
+                msg = f"Peptide sequence {peptide_sequence1 if not peptide1_positions else peptide_sequence2} of crosslink entry {idx} was not found in the protein sequence. The entry was deleted."
+            messages.append(dict(level=logging.WARNING, msg=msg))
+            rows_to_delete.append(idx)
+            continue
+        crosslinking_df.at[idx, "crosslinker_position1"] = all_position_combinations[0][
+            0
+        ]
+        crosslinking_df.at[idx, "crosslinker_position2"] = all_position_combinations[0][
+            1
+        ]
+        if len(all_position_combinations) > 1:
+            rows_to_duplicate[idx] = all_position_combinations[1:]
 
+    crosslinking_df.drop(rows_to_delete, inplace=True)
 
-def get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
-    fasta_df: pd.DataFrame, cif_df: pd.DataFrame, crosslink: pd.Series
-) -> float:
-    """
-    Calculates the distance in Ångström between two amino acid residues connected
-    by a cross-linker using a predicted protein structure (e.g. from AlphaFold).
-
-    :param fasta_df: DataFrame containing the protein sequence
-    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
-    :param crosslink: Series describing a cross-link, including cross-linker positions
-    :return: the distance between the cross-linked amino acids in Ångström
-    """
-    protein_sequence = fasta_df.at[0, "Protein Sequence"]
-    amino_acid_position_crosslinker1_is_bound_to = (
-        get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=protein_sequence,
-            peptide_sequence=crosslink.Peptide1,
-            crosslinker_position_within_peptide=crosslink.CL_position1,
+    if not rows_to_duplicate:
+        return crosslinking_df, messages
+    new_rows = []
+    for row_to_duplicate_idx, potential_positions in rows_to_duplicate.items():
+        for potential_cl_position1, potential_cl_position2 in potential_positions:
+            new_row = crosslinking_df.loc[row_to_duplicate_idx].copy()
+            new_row["crosslinker_position1"] = potential_cl_position1
+            new_row["crosslinker_position2"] = potential_cl_position2
+            new_rows.append(new_row)
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=f"Row {row_to_duplicate_idx} was duplicated {len(potential_positions)} times due to several matches between peptide sequence and protein sequence.",
+            )
         )
-    )
-    amino_acid_position_crosslinker2_is_bound_to = (
-        get_position_of_amino_acid_crosslinker_bound_to(
-            protein_sequence=protein_sequence,
-            peptide_sequence=crosslink.Peptide2,
-            crosslinker_position_within_peptide=crosslink.CL_position2,
+    if new_rows:
+        crosslinking_df = pd.concat(
+            [crosslinking_df, pd.DataFrame(new_rows)], ignore_index=True
         )
-    )
-    distance_in_alphafold = get_distance_between_two_amino_acids_in_angstrom(
-        amino_acid_position_crosslinker1_is_bound_to,
-        amino_acid_position_crosslinker2_is_bound_to,
-        protein_sequence[amino_acid_position_crosslinker1_is_bound_to - 1],
-        protein_sequence[amino_acid_position_crosslinker2_is_bound_to - 1],
-        cif_df,
-    )
-    return distance_in_alphafold
+
+    return crosslinking_df, messages
 
 
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     protein_to_validate: str,
     crosslinker_information: dict[str, list[float]],
+    cif_df: pd.DataFrame,
+    amino_acid_sequence_df: pd.DataFrame,
 ) -> dict:
     """
     Validates cross-links by comparing the cross-linker lengths with the distances between the linked
@@ -184,17 +215,15 @@ def validate_with_angstrom_deviation(
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param amino_acid_sequence_df: DataFrame containing the protein sequence
     :return: dict (crosslinking_df_result, messages), crosslinking_df_result contains the relevant rows (rows of intra-crosslinks within the
-    protein to validate) of crosslinking_df and two more colums containing the distances in AlphaFold and wheter the crosslink matches the
+    protein to validate) of crosslinking_df and two more columns containing the distances in AlphaFold and whether the crosslink matches the
     AlphaFold data or not
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
-    alphafold_data = fetch_alphafold_protein_structure(
-        uniprot_id=protein_to_validate, persist_uploads=False
-    )
-    cif_df = alphafold_data["cif_df"]
-    fasta_df = alphafold_data["sequence_df"]
+    protein_sequence = amino_acid_sequence_df.at[0, "Protein Sequence"]
 
     all_crosslinks_df = crosslinking_df.copy()
 
@@ -204,9 +233,19 @@ def validate_with_angstrom_deviation(
     )
     relevant_crosslinks_df = all_crosslinks_df[mask].copy()
 
+    relevant_crosslinks_df, messages = (
+        add_positions_of_amino_acid_where_crosslinker_bound_to_df(
+            relevant_crosslinks_df, protein_sequence
+        )
+    )
+
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
-        distance = get_distance_between_crosslinker_connected_amino_acids_in_alphafold(
-            fasta_df, cif_df, crosslink
+        predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
+            amino_acid_position1=crosslink.crosslinker_position1,
+            amino_acid_position2=crosslink.crosslinker_position2,
+            amino_acid_type1=protein_sequence[crosslink.crosslinker_position1 - 1],
+            amino_acid_type2=protein_sequence[crosslink.crosslinker_position2 - 1],
+            cif_df=cif_df,
         )
         try:
             (
@@ -228,22 +267,37 @@ def validate_with_angstrom_deviation(
         ) + crosslinker_length
 
         valid = (
-            accepted_distance_lower_bound <= distance <= accepted_distance_upper_bound
+            accepted_distance_lower_bound
+            <= predicted_distance
+            <= accepted_distance_upper_bound
         )
 
-        return pd.Series({"alphafold_distance": distance, "valid_crosslink": valid})
+        return pd.Series(
+            {
+                "alphafold_distance": predicted_distance,
+                "valid_crosslink": valid,
+                "crosslinker_position1": crosslink.crosslinker_position1,
+                "crosslinker_position2": crosslink.crosslinker_position2,
+            }
+        )
 
-    # adding the distance in alphafold and the result of the validation to all relevant crosslinks
-    all_crosslinks_df.loc[mask, ["alphafold_distance", "valid_crosslink"]] = (
-        relevant_crosslinks_df.apply(check_crosslink, axis=1)
+    # adding the distance in alphafold, the result of the validation and the crosslinker positions to all relevant crosslinks
+    new_columns = [
+        "alphafold_distance",
+        "valid_crosslink",
+        "crosslinker_position1",
+        "crosslinker_position2",
+    ]
+    relevant_crosslinks_df[new_columns] = relevant_crosslinks_df.apply(
+        check_crosslink, axis=1
     )
 
     # removing all crosslinks that weren't checked from the df
-    checked_crosslinks_df = all_crosslinks_df[
-        all_crosslinks_df["valid_crosslink"].notna()
+    checked_crosslinks_df = relevant_crosslinks_df[
+        relevant_crosslinks_df["valid_crosslink"].notna()
     ]
 
-    return dict(crosslinking_result_df=checked_crosslinks_df, messages={})
+    return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
 
 
 def add_vertical_line_with_annotation_in_legend(
@@ -278,6 +332,8 @@ def diagrams_of_crosslinking_validation_data(
     crosslinking_df: pd.DataFrame,
     protein_to_validate: str,
     crosslinker_information: dict[str, list[float]],
+    cif_df: pd.DataFrame,
+    amino_acid_sequence_df: pd.DataFrame,
 ) -> list[Figure]:
     """
     Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
@@ -301,13 +357,19 @@ def diagrams_of_crosslinking_validation_data(
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
+    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param amino_acid_sequence_df: DataFrame containing the protein sequence
     :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
              figures (mean ± 2 standard deviations first, full range second), followed by a final
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
     validated_df = validate_with_angstrom_deviation(
-        crosslinking_df, protein_to_validate, crosslinker_information
+        crosslinking_df,
+        protein_to_validate,
+        crosslinker_information,
+        cif_df,
+        amino_acid_sequence_df,
     )["crosslinking_result_df"]
     validated_df = validated_df.dropna(subset=["valid_crosslink"])
 

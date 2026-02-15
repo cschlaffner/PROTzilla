@@ -20,10 +20,8 @@ rename_columns_csm_format = {
     "Crosslink Type": "Is_intra_crosslink",
     "PepSeq1": "Peptide1",
     "PepSeq2": "Peptide2",
-    "PepPos1": "Peptide_position1",
-    "PepPos2": "Peptide_position2",
-    "LinkPos1": "CL_position1",
-    "LinkPos2": "CL_position2",
+    "LinkPos1": "CL_position_within_peptide1",
+    "LinkPos2": "CL_position_within_peptide2",
     "PEP": "Q_value",
 }
 
@@ -33,8 +31,6 @@ rename_columns_proteomediscoverer_xlinkx_format = {
     "Crosslink Type": "Is_intra_crosslink",
     "Sequence A": "Peptide1",
     "Sequence B": "Peptide2",
-    "Position A": "Peptide_position1",
-    "Position B": "Peptide_position2",
     "Q-value": "Q_value",
 }
 
@@ -47,9 +43,7 @@ columns_in_crosslinking_df = [
     "Crosslinker",
     "Peptide1",
     "Peptide2",
-    "Peptide_position1",
-    "Peptide_position2",
-    "CL_position1",
-    "CL_position2",
+    "CL_position_within_peptide1",
+    "CL_position_within_peptide2",
     "Q_value",
 ]
