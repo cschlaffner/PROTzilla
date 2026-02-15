@@ -30,6 +30,7 @@ RUN --mount=type=bind,source=install_scripts/database_download.py,target=install
 # production image
 FROM python:3.11-slim AS runtime
 
+LABEL org.opencontainers.image.source=https://github.com/cschlaffner/PROTzilla
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt update && apt-get --no-install-recommends install -y tk

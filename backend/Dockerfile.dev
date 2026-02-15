@@ -1,5 +1,6 @@
 FROM python:3.11 AS backend-base
 
+LABEL org.opencontainers.image.source=https://github.com/cschlaffner/PROTzilla
 RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
     --mount=type=cache,target=/root/.cache/pip \
     pip install -U pip && pip install -r requirements.txt
