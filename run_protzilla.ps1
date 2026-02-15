@@ -89,7 +89,10 @@ if ($envs -match $envName) {
 Write-Host "Installing Python dependencies..." -ForegroundColor Cyan
 # Note: We are installing conda-forge and parmed manually here. Else, parmed
 # won't install due to missing VC++.
-cmd /c "conda activate $envName && conda install -y -c conda-forge parmed && pip install wheel && pip install -r requirements.txt 2>&1" | Out-Default
+# We need to pre-install numpy=2.3.5 and pandas=2.3.3 as well.
+# If we don't do this, parmed will trigger an installation of newer versions,
+# which will cause statsmodels to break.
+cmd /c "conda activate $envName && conda install -y -c conda-forge numpy=2.3.5 pandas=2.3.3 parmed=4.3.1 && pip install wheel && pip install -r requirements.txt 2>&1" | Out-Default
 
 # --- 4. Node.js Installation ---
 
