@@ -11,7 +11,8 @@ gseapy==1.1.10
 isort==7.0.0
 kaleido~=0.1
 networkx==3.5
-numpy<=2.2.5  # because of parmed in dashbio
+numba==0.62.1
+numpy==2.3.5
 matplotlib==3.10.7
 openpyxl==3.1.5
 pandas==2.3.3
