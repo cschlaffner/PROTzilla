@@ -365,7 +365,7 @@ def diagrams_of_crosslinking_validation_data(
             dataframe_b=df_invalid,
             name_a="Valid Crosslinks",
             name_b="Invalid Crosslinks",
-            heading=f"Predicted distances for {protein_to_validate}",
+            heading=f"Predicted distances for {protein_to_validate} with crosslinker {crosslinker}",
             x_title="Distance (Å)",
             y_title="Count",
             overlay=True,
@@ -381,28 +381,31 @@ def diagrams_of_crosslinking_validation_data(
             x_value=crosslinker_length,
         )
 
-        mean_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
+        mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         standard_deviation_predicted_lengths = crosslinker_df[
             "alphafold_distance"
         ].std()
-        mean_plus_minus_two_std_range = (
-            max(0, mean_predicted_lengths - 2 * standard_deviation_predicted_lengths),
-            mean_predicted_lengths + 2 * standard_deviation_predicted_lengths,
+        mean_plus_two_std = (
+            mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
         )
+        mean_minus_two_std = max(
+            0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
+        )
+
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
             name_a="Valid Crosslinks",
             name_b="Invalid Crosslinks",
-            heading=f"Predicted distances for {protein_to_validate}, mean +- 2 standard deviations",
+            heading=f"Predicted distances for {protein_to_validate} with crosslinker {crosslinker}, mean +/- 2 σ",
             x_title="Distance (Å)",
             y_title="Count",
             overlay=True,
             visual_transformation="linear",
             relevant_column_a="alphafold_distance",
             relevant_column_b="alphafold_distance",
-            min_value=mean_plus_minus_two_std_range[0],
-            max_value=mean_plus_minus_two_std_range[1],
+            min_value=mean_minus_two_std,
+            max_value=mean_plus_two_std,
             one_bin_per_int=True,
         )
         add_vertical_line_with_annotation_in_legend(
@@ -420,9 +423,9 @@ def diagrams_of_crosslinking_validation_data(
                 x_value=crosslinker_length + accepted_deviation_upper_bound,
             )
             if (
-                math.floor(mean_plus_minus_two_std_range[0])
+                math.floor(mean_minus_two_std)
                 <= crosslinker_length + accepted_deviation_upper_bound
-                <= math.ceil(mean_plus_minus_two_std_range[1])
+                <= math.ceil(mean_plus_two_std)
             ):
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
@@ -438,9 +441,9 @@ def diagrams_of_crosslinking_validation_data(
                 x_value=crosslinker_length - accepted_deviation_lower_bound,
             )
             if (
-                math.floor(mean_plus_minus_two_std_range[0])
+                math.floor(mean_minus_two_std)
                 <= crosslinker_length - accepted_deviation_lower_bound
-                <= math.ceil(mean_plus_minus_two_std_range[1])
+                <= math.ceil(mean_plus_two_std)
             ):
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
@@ -452,8 +455,8 @@ def diagrams_of_crosslinking_validation_data(
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
-    valid_crosslinks = (validated_df["Is_intra_crosslink"] == True).sum()
-    invalid_crosslinks = (validated_df["Is_intra_crosslink"] == False).sum()
+    valid_crosslinks = (validated_df["valid_crosslink"] == True).sum()
+    invalid_crosslinks = (validated_df["valid_crosslink"] == False).sum()
 
     bar_plot_over_all_checked_crosslinks = create_bar_plot(
         values_of_sectors=[

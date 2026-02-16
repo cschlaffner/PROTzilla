@@ -13,8 +13,13 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     add_positions_of_amino_acid_where_crosslinker_bound_to_df,
     diagrams_of_crosslinking_validation_data,
 )
-from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
-from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
+from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
+from backend.protzilla.data_analysis.plots import (
+    add_vertical_line_with_annotation_in_legend,
+)
+from backend.protzilla.methods.data_analysis import (
+    CrossLinkingValidationWithAngstromDeviation,
+)
 
 
 @pytest.mark.parametrize(
@@ -264,7 +269,7 @@ def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
     vline = fig.layout.shapes[0]
     assert vline["x0"] == 5.0
     assert vline["line"]["dash"] == "dash"
-    assert vline["line"]["color"] == "blue"
+    assert vline["line"]["color"] == PLOT_PRIMARY_COLOR
 
     # There should be 1 scatter trace for the legend
     assert len(fig.data) == 1
@@ -272,7 +277,7 @@ def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
     assert trace.mode == "lines"
     assert trace.name == "Test Line"
     assert trace.line.dash == "dash"
-    assert trace.line.color == "blue"
+    assert trace.line.color == PLOT_PRIMARY_COLOR
     assert trace.x == (None,)
     assert trace.y == (None,)
 
@@ -284,7 +289,6 @@ def sample_crosslinking_df():
             "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
             "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
             "valid_crosslink": [True, False, True, False],
-            "Is_intra_crosslink": [True, False, True, False],
         }
     )
 
@@ -353,7 +357,6 @@ def sample_crosslinking_df_with_no_std():
             "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
             "alphafold_distance": [10.5, 10.5, 10.5, 10.5],
             "valid_crosslink": [True, False, True, False],
-            "Is_intra_crosslink": [True, False, True, False],
         }
     )
 
@@ -427,7 +430,6 @@ def sample_crosslinking_df_with_one_crosslinker():
             "Crosslinker": ["CL1", "CL1", "CL1", "CL1"],
             "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
             "valid_crosslink": [True, False, True, False],
-            "Is_intra_crosslink": [True, False, True, False],
         }
     )
 
@@ -470,7 +472,10 @@ def test_diagrams_calls_with_correct_parameters(
         first_hist_call = mock_hist.call_args_list[0].kwargs
         assert first_hist_call["name_a"] == "Valid Crosslinks"
         assert first_hist_call["name_b"] == "Invalid Crosslinks"
-        assert first_hist_call["heading"] == "Predicted distances for P12345"
+        assert (
+            first_hist_call["heading"]
+            == "Predicted distances for P12345 with crosslinker CL1"
+        )
         assert first_hist_call["relevant_column_a"] == "alphafold_distance"
         assert first_hist_call["relevant_column_b"] == "alphafold_distance"
         assert first_hist_call["one_bin_per_int"] == True
@@ -490,7 +495,10 @@ def test_diagrams_calls_with_correct_parameters(
 
         # Check histogram call parameters for crosslinker ±2 std
         second_hist_call = mock_hist.call_args_list[1].kwargs
-        assert "mean +- 2 standard deviations" in second_hist_call["heading"]
+        assert (
+            second_hist_call["heading"]
+            == "Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ"
+        )
         mean_predicted_lengths = sample_crosslinking_df_with_one_crosslinker[
             "alphafold_distance"
         ].mean()
@@ -513,8 +521,8 @@ def test_diagrams_calls_with_correct_parameters(
         mock_bar.assert_called_once()
 
         expected_figures = [
-            "hist_Predicted distances for P12345, mean +- 2 standard deviations",
-            "hist_Predicted distances for P12345",
+            "hist_Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ",
+            "hist_Predicted distances for P12345 with crosslinker CL1",
             "bar_fig",
         ]
         assert figures == expected_figures
