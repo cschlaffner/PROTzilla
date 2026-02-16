@@ -39,6 +39,7 @@ TAU_PATH = TEST_PTM_VISUALIZATION_PATH / "P10636"
 TAU_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P10636.txt"
 TAU_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
 TAU_METADATA_FILE_PATH = TEST_METADATA_PATH / "metadata_full.csv"
+TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
 
 Q_VALUE_THRESHOLD = 0.01
 
@@ -108,7 +109,24 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("plot_func,kwargs", plot_funcs_to_kwargs)
 
 
-def validate_plot_outputs(plot, plot_func, all_groups: set, required_groups: set):
+def validate_plot_outputs(
+    # TODO: this could probably be made prettier, especially not setting any default value
+    plot,
+    plot_func,
+    all_groups: set,
+    required_groups: set,
+    required_ptm_types: tuple = (
+        "Phosphorylation",
+        "Acetylation",
+        "Citrullination",
+        "Ubiquitination",
+    ),
+    required_ptms: tuple = ("S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"),
+    required_region_names: tuple = ("Blah-Term", "1A", "1B", "2A", "2B", "α", "ε"),
+    required_cleavages: tuple = ("1", "7-9", "14", "35", "148", "156", "417"),
+    additional_required_strings: tuple = (),
+    additional_excluded_strings: tuple = (),
+):
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -116,41 +134,22 @@ def validate_plot_outputs(plot, plot_func, all_groups: set, required_groups: set
         if hasattr(subplot, "mode") and subplot.mode == "text"
     }
     all_plot_strings = all_layout_strings.union(all_data_strings)
-    required_ptm_types = {
-        "Phosphorylation",
-        "Acetylation",
-        "Citrullination",
-        "Ubiquitination",
-    }
-    assert required_ptm_types.issubset(all_plot_strings)
 
-    required_ptms = {"S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"}
-    assert required_ptms.issubset(all_plot_strings)
+    assert set(required_ptm_types).issubset(all_plot_strings)
+    assert set(required_ptms).issubset(all_plot_strings)
+    assert set(required_region_names).issubset(all_plot_strings)
 
-    required_region_names = {
-        "Blah-Term",
-        "1A",
-        "1B",
-        "2A",
-        "2B",
-        "α",
-        "ε",
-    }
-    assert required_region_names.issubset(all_plot_strings)
-
-    if (
-        plot_func == create_details_ptm_visualization
-        or plot_func == create_bar_ptm_visualization
-    ):
-        # TODO: remove
-        # required_groups = {"clean", "old", "exon"}
+    if plot_func in (create_details_ptm_visualization, create_bar_ptm_visualization):
+        required_groups = set(required_groups)
         assert required_groups.issubset(all_plot_strings)
         excluded_groups = all_groups - required_groups
         assert all(g not in all_plot_strings for g in excluded_groups)
 
     if plot_func == create_details_ptm_visualization:
-        required_cleavages = {"1", "7-9", "14", "35", "148", "156", "417"}
-        assert required_cleavages.issubset(all_plot_strings)
+        assert set(required_cleavages).issubset(all_plot_strings)
+
+    assert all(s in all_plot_strings for s in additional_required_strings)
+    assert all(s not in all_plot_strings for s in additional_excluded_strings)
 
 
 class TestPTMVisualization:
@@ -183,12 +182,12 @@ class TestPTMVisualization:
         validate_plot_outputs(
             plot,
             plot_func,
-            (
+            all_groups=(
                 set(kwargs["metadata_df"]["Group"].unique())
                 if "metadata_df" in kwargs
                 else set()
             ),
-            {"clean", "old", "exon"},
+            required_groups={"clean", "old", "exon"},
         )
 
     @staticmethod
@@ -207,12 +206,12 @@ class TestPTMVisualization:
         validate_plot_outputs(
             plot,
             plot_func,
-            (
+            all_groups=(
                 set(kwargs["metadata_df"]["Group"].unique())
                 if "metadata_df" in kwargs
                 else set()
             ),
-            {"clean", "old", "exon"},
+            required_groups={"clean", "old", "exon"},
         )
 
     @staticmethod
@@ -379,8 +378,8 @@ class TestPTMVisualization:
         validate_plot_outputs(
             result["plots"][0],
             create_bar_ptm_visualization,
-            set(metadata_df[bar_detail_kwargs["metadata_column"]].unique()),
-            {"2", "3", "4"},
+            all_groups=set(metadata_df[bar_detail_kwargs["metadata_column"]].unique()),
+            required_groups={"2", "3", "4"},
         )
 
     @staticmethod
@@ -473,3 +472,153 @@ class TestPTMVisualization:
                 and "More modifications were detected than are present in the settings"
                 in result["messages"][0]["msg"]
             )
+
+    @staticmethod
+    def test_cassette_exon(plot_func, kwargs):
+        kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        if "metadata_df" in kwargs:
+            kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
+        kwargs["fasta_file_path"] = Path(TAU_PATH / "uniprotkb_P10636_7_8.fasta")
+        kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
+
+        # TODO: adapt to other functions, but talk to Chris about expected results - might require crafted evidence
+        #  files
+        result = create_overview_ptm_visualization(**kwargs)
+        assert len(result["plots"]) == 1
+        plot = result["plots"][0]
+
+        all_groups = (
+            set(kwargs["metadata_df"]["Group"].unique())
+            if "metadata_df" in kwargs
+            else set()
+        )
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            all_groups=all_groups,
+            required_groups=all_groups,
+            required_ptm_types=("Phosphorylation",),
+            required_ptms=("S68", "T71", "S113"),
+            required_region_names=(),
+            required_cleavages=(
+                "N-term",
+                "N1",
+                "N2",
+                "Mid",
+                "PRR",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "C-term",
+            ),
+        )
+
+    @staticmethod
+    def test_modification_at_first_location(plot_func, kwargs):
+        # TODO: maybe also test with the other functions later
+        if plot_func != create_overview_ptm_visualization:
+            return
+
+        ##### Overlapping Exons
+        # AML
+        # TODO: doesn't work because we don't have a clean exon, but a single amino acid with two possibilites
+        kwargs["evidence_df"] = get_evidence_df(
+            Path(
+                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q01826.txt"
+            )
+        )
+        kwargs["fasta_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1.fasta"
+        )
+        kwargs["regions_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1_regions.csv"
+        )
+        # Tau
+        # kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        # if "metadata_df" in kwargs:
+        #     kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
+        # # TODO: migrate to repo if test stays
+        # # TODO: might be the better file for test above
+        # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/uniprotkb_P10636_5_8.fasta")
+        # kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
+
+        # GFAP
+        # mock_start_peptide = kwargs["evidence_df"].iloc[97]
+        # mock_start_peptide["Modified sequence"] = "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
+        # mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
+        # kwargs["evidence_df"] = pd.concat(
+        #     [kwargs["evidence_df"], pd.DataFrame([mock_start_peptide])], ignore_index=True
+        # )
+        #
+        # mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
+        # mock_exon1_peptide["Sequence"] = "GGKST"
+        # mock_exon1_peptide["Modified sequence"] = "_G(ci)GKST_"
+        # mock_exon1_peptide["Modifications"] = "ci"
+        # kwargs["evidence_df"] = pd.concat(
+        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])], ignore_index=True
+        # )
+        #
+        # # TODO: drawing is fucked and does not point to the exon - talk to Chris
+        # mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
+        # mock_exon2_peptide["Sequence"] = "ETSLDT"
+        # mock_exon2_peptide["Modified sequence"] = "_E(ci)TSLDT_"
+        # mock_exon2_peptide["Modifications"] = "ci"
+        # kwargs["evidence_df"] = pd.concat(
+        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])], ignore_index=True
+        # )
+
+        result = create_overview_ptm_visualization(**kwargs)
+        assert len(result["plots"]) == 1
+        plot = result["plots"][0]
+        # TODO: remove
+        plot.show()
+
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            all_groups=(
+                set(kwargs["metadata_df"]["Group"].unique())
+                if "metadata_df" in kwargs
+                else set()
+            ),
+            required_groups={"clean", "old", "exon"},
+            additional_required_strings=("M1", "G391", "E391"),
+            additional_excluded_strings=("M0",),
+        )
+
+    # TODO: rename
+    @staticmethod
+    def test_overlapping_at_end_of_exon(plot_func, kwargs):
+        # TODO: maybe also test with the other functions later
+        if plot_func != create_overview_ptm_visualization:
+            return
+
+        ##### Overlapping Exons
+        # Tau
+        kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        if "metadata_df" in kwargs:
+            kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
+        # TODO: migrate to repo if test stays
+        # TODO: might be the better file for test above
+        kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/uniprotkb_P10636_5_8.fasta")
+        kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
+
+        result = create_overview_ptm_visualization(**kwargs)
+        assert len(result["plots"]) == 1
+        plot = result["plots"][0]
+        # TODO: remove
+        plot.show()
+
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            all_groups=(
+                set(kwargs["metadata_df"]["Group"].unique())
+                if "metadata_df" in kwargs
+                else set()
+            ),
+            required_groups={"clean", "old", "exon"},
+            additional_required_strings=("M1", "G391", "E391"),
+            additional_excluded_strings=("M0",),
+        )
