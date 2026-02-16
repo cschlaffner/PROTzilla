@@ -362,7 +362,7 @@ def test_get_correct_af_directories_persist_and_temp(tmp_path):
     # persist_upload True
     temp, work = get_correct_af_directories("abc", tmp_path, True)
     assert temp is None
-    assert work == tmp_path / "ABC"
+    assert work == tmp_path / "abc"
     assert work.exists()
 
     # persist_upload False -> temporary directory created
