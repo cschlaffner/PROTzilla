@@ -157,7 +157,7 @@ def assert_runner_finished_successfully(runner: Runner):
     assert (
         all(step.finished for step in runner.run.steps.all_steps)
         and not runner.run.current_step.messages
-        and "messages" not in runner.run.current_step.output
+        and not (getattr(runner.run.current_step.output, "messages", []))
     )
 
 
@@ -454,8 +454,7 @@ def test_example_dataset_runner(tests_folder_name, monkeypatch):
         output_key="significant_proteins_df",
         instance_identifier="DifferentialExpressionTTest_1",
     )
-    # TODO: find a better metric to test
-    # assert len(significant_protein_df["Protein ID"].unique()) == 321
+    assert significant_protein_df["Protein ID"].nunique() == 359
 
 
 @pytest.mark.parametrize(
