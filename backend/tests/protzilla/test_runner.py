@@ -406,10 +406,6 @@ def test_integration_runner(
     assert_runner_finished_successfully(runner)
 
 
-# TODO: remove skipping when caching the example dataset properly
-@pytest.mark.skip(
-    "Skipping for now before caching the example dataset is solved for the CI (and what to do about it locally)"
-)
 def test_example_dataset_runner(tests_folder_name, monkeypatch):
     protein_file = EXAMPLE_DATASET_DIR / "txt_REL_FREE-REPASE/proteinGroups.txt"
     metadata_file = EXAMPLE_DATASET_DIR / "meta.csv"
