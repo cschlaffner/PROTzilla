@@ -241,8 +241,8 @@ def check_and_copy_files_to_directory(file_names: list, target_dir: str):
         target_dir.mkdir(parents=True, exist_ok=True)
 
     for file_name in file_names:
-        source_dir = settings.FILE_UPLOAD_TEMP_DIR / file_name
-        success, message = copy_file_to_directory(source_dir, target_dir)
+        source_file = settings.FILE_UPLOAD_TEMP_DIR / file_name
+        success, message = copy_file_to_directory(source_file, target_dir)
         if not success:
             return False, message
     return True, "All files successfully uploaded"
@@ -272,7 +272,7 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
         )
 
     # delete folder with files for the monomer structure
-    target_dir = dir_path / entry_id.upper()
+    target_dir = dir_path / entry_id
     metadata_csv = csv_file_path
 
     if not target_dir.exists() or not target_dir.is_dir():
@@ -297,9 +297,7 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
     ):
         try:
             df = pandas.read_csv(metadata_csv, dtype=str)
-            df = df[
-                df["entry_id"].fillna("").str.strip().str.upper() != entry_id.upper()
-            ]
+            df = df[df["entry_id"].fillna("").str.strip().str != entry_id]
             df.to_csv(metadata_csv, index=False)
 
         except Exception as e:
@@ -358,7 +356,7 @@ def upload_monomer_structure(request):
 
         #  Copy files to source directory out of temp directory
 
-        target_dir = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+        target_dir = ALPHAFOLD_MONOMER_PATH / entry_id
         file_names = [cif_file, confidence, pae, fasta_file]
         success, message = check_and_copy_files_to_directory(
             file_names=file_names, target_dir=target_dir
@@ -385,13 +383,12 @@ def upload_monomer_structure(request):
             csv_file_path=metadata_csv, expected_columns=expected_columns
         )
 
-        now_utc = datetime.now(timezone.utc)
-        formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         new_row = {
             "entry_id": entry_id,
             "uniprot_accession": uniprot_id,
-            "model_created_date": formatted,
+            "model_created_date": timestamp,
             "gene": gene,
             "model_used": model_used,
         }
@@ -462,7 +459,7 @@ def upload_multimer_structure(request):
 
         #  Copy files to source directory out of temp directory
 
-        target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
+        target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id
         file_names = [fasta_file, cif_file, confidence_file, full_data_file]
         success, message = check_and_copy_files_to_directory(
             file_names=file_names, target_dir=target_dir
@@ -486,13 +483,12 @@ def upload_multimer_structure(request):
             csv_file_path=metadata_csv, expected_columns=expected_columns
         )
 
-        now_utc = datetime.now(timezone.utc)
-        formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         new_row = {
             "entry_id": entry_id,
             "uniprot_ids": uniprot_ids,
-            "model_created_date": formatted,
+            "model_created_date": timestamp,
             "model_used": model_used,
         }
 

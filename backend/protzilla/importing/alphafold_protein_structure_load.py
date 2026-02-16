@@ -149,7 +149,7 @@ def get_correct_af_directories(
         created) and the working directory to use.
     """
 
-    target_dir = directory_name / entry_id.upper()
+    target_dir = directory_name / entry_id
     temp_dir = None
 
     if persist_upload:
@@ -306,7 +306,7 @@ def handle_alphafold_files(
         fasta_dest: Path | None = None
         try:
             sequence = to_fasta(seq=seq, header=uniprot)
-            fasta_dest = work_dir / f"{entry_id.upper()}.fasta"
+            fasta_dest = work_dir / f"{entry_id}.fasta"
             fasta_dest.parent.mkdir(parents=True, exist_ok=True)
             with open(fasta_dest, "w") as f:
                 f.write(sequence)
@@ -623,7 +623,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         csv_file=paths.AF_MONOMER_METADATA_CSV_PATH,
     )
 
-    structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+    structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
@@ -705,7 +705,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH,
     )
 
-    structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
+    structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
