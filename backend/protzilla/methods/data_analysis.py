@@ -21,7 +21,7 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
-from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
+from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap, TSNEMethod
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
@@ -65,6 +65,7 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -187,7 +188,6 @@ class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
     cosine = "cosine"
-    havensine = "havensine"
 
 
 class DataAnalysisStep(Step):
@@ -1064,36 +1064,46 @@ class PlotScatterPlot(DataAnalysisStep):
                 ),
                 # TODO: handle isRequired
                 DropdownField(
-                    name="color_df",
+                    name="metadata_df",
                     label="Choose dataframe to be used for coloring",
+                ),
+                DropdownField(
+                    name="metadata_column",
+                    label="Choose the column of the metadata dataframe that should be used for coloring",
                 ),
             ],
         )
 
     def modify_form(self, form, run):
         input_df_field = form["input_df"]
-        color_field = form["color_df"]
+        metadata_field = form["metadata_df"]
 
         input_df_field.set_options(
             form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    DimensionReductionUMAP, "embedded_data"
-                )
+                run.steps.get_instance_identifiers(Step, "embedded_data")
             )
         )
 
-        color_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(Step, "color_df"), required=False
+        metadata_field.set_options(
+            form_helper.get_choices(
+                run,
+                output_key="metadata_df",
+                required=False,
             )
         )
+        if form.values["metadata_df"] is not None:
+            form["metadata_column"].set_options(
+                form_helper.get_choices_for_metadata_non_sample_columns(
+                    run, instance_identifier=form.values["metadata_df"]
+                )
+            )
 
     # TODO: input
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.get_step_output(
             Step, "embedded_data", inputs["input_df"]
         )
-        inputs["color_df"] = steps.get_step_output(Step, "color_df", inputs["color_df"])
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1980,6 +1990,10 @@ class DimensionReductionTSNE(DataAnalysisStep):
         return Form(
             label="t-SNE",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using t-SNE. To "
+                    "visualize the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 DropdownField(
                     name="input_df",
                     label="Dimension reduction of a dataframe using t-SNE",
@@ -1989,6 +2003,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     name="n_components",
                     label="Dimension of the embedded space",
                     min=1,
+                    max=3,
                     step=1,
                     value=2,
                 ),
@@ -1999,11 +2014,15 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     max=50.0,
                     value=30.0,
                 ),
-                MultiSelectField(
+                DropdownField(
+                    name="method",
+                    label="Gradient calculation method",
+                    options=TSNEMethod,
+                ),
+                DropdownField(
                     name="metric",
-                    label="Metric",
+                    label="Distance metric",
                     options=DimensionReductionMetric,
-                    value=DimensionReductionMetric.euclidean,
                 ),
                 NumberField(
                     name="random_state",
@@ -2048,6 +2067,10 @@ class DimensionReductionUMAP(DataAnalysisStep):
         return Form(
             label="UMAP",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using UMAP. To "
+                    "visualize the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 DropdownField(
                     name="input_df",
                     label="Dimension reduction of a dataframe using UMAP",
