@@ -235,6 +235,10 @@ export const RunScreen: React.FC = () => {
     <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
   );
 
+  const downloadComponent = (
+    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
+  );
+
   const listEditorComponent = (
     <ListEditor
       onFormSubmit={onFormSubmit}
@@ -277,6 +281,7 @@ export const RunScreen: React.FC = () => {
               components={[
                 { name: "Plots", value: plotComponent },
                 { name: "Tables", value: tableComponent },
+                { name: "Downloads", value: downloadComponent },
                 { name: "Other Output", value: otherComponent },
               ]}
               hasCardTitle={false}
