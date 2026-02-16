@@ -135,7 +135,7 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
 
   const combinedSubscript = [
     subscript,
-    isInteger ? "Enter an integer" : "Enter a float",
+    isInteger ? "Enter an integer" : "Enter a decimal number",
     hasMin ? `Min: ${min.toString()}` : null,
     hasMax ? `Max: ${max.toString()}` : null,
   ]

@@ -1,6 +1,6 @@
 services:
   prod:
-    image: protzilla
+    image: ghcr.io/cschlaffner/protzilla
     build: .
     ports:
       - "8000:8000"
@@ -12,6 +12,7 @@ services:
     # - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
 
   django:
+    image: ghcr.io/cschlaffner/protzilla-django
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
@@ -23,6 +24,7 @@ services:
       - "dev-network"
 
   vite:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"
@@ -40,6 +42,7 @@ services:
       - "django"
   
   storybook:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"

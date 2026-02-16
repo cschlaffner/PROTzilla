@@ -9,6 +9,14 @@ export interface SelectedStep {
   index: number;
 }
 
+export interface StepOutputInfo {
+  label: string;
+  display_name: string;
+}
+
+// We assume these are the only data types we receive for tables
+export type TableRecord = Record<string, number | string | null>;
+
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 
 export interface Step {

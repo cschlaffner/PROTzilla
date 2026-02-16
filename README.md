@@ -22,7 +22,7 @@ We have prepared guides for [Windows](./docs/Windows.md), [MacOS](./docs/MacOS.m
 
 Before running, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
 
-1. Run `docker compose up --build vite` (or `docker-compose up --build vite` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell
+1. Run `docker compose up vite` (or `docker-compose up vite` on old versions). Should you need to rebuild the image, add the `--build` flag after `up` <br> You can optionally add `-d` to detach protzilla from your shell
 2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
 3. Go to [the web UI](http://localhost:5173)
 4. Hack away and see the changes reflected instantly!

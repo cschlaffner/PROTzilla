@@ -1,6 +1,7 @@
 import logging
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -29,6 +30,10 @@ from backend.protzilla.data_analysis.plots import (
     create_volcano_plot,
     prot_quant_plot,
     scatter_plot,
+)
+from backend.protzilla.utilities.clustergram import (
+    HEATMAP_LOW_COLOR,
+    HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
@@ -70,11 +75,6 @@ class TTestType(Enum):
 
 class AnalysisLevel(Enum):
     protein = "Protein"
-
-
-class MultipleTestingCorrectionMethod(Enum):
-    benjamini_hochberg = "Benjamini-Hochberg"
-    bonferroni = "Bonferroni"
 
 
 class PValueCalculationMethod(Enum):
@@ -277,6 +277,9 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         "t_statistic_df",
         "log2_fold_change_df",
         "corrected_alpha",
+        "fc_significance_df",
+        "fc_zscore_alpha",
+        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -319,6 +322,20 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                 DropdownField(
                     name="group2",
                     label="Group 2",
+                ),
+                CheckboxField(
+                    name="fc_zscore_filter",
+                    label="Fold-change Z-score significance",
+                    value=False,
+                ),
+                FloatField(
+                    name="fc_zscore_alpha",
+                    label="Z-score tail cutoff",
+                    value=0.05,
+                    min=0,
+                    max=0.5,
+                    step=0.01,
+                    separatePrefix="p",
                 ),
             ],
         )
@@ -1122,6 +1139,37 @@ class PlotClustergram(DataAnalysisStep):
                     label="Flip axis",
                     text="Flip axes",
                 ),
+                TextField(
+                    name="heatmap_legend_title",
+                    label="Heatmap legend title",
+                    value="Heatmap legend",
+                ),
+                CheckboxField(
+                    name="use_custom_color_scale",
+                    label="Use custom color scale",
+                ),
+                FloatField(
+                    name="heatmap_low_color_limit",
+                    label="Heatmap lower color limit",
+                    isVisible=False,
+                ),
+                ColorField(
+                    name="heatmap_low_color",
+                    label="Heatmap lower color",
+                    value=HEATMAP_LOW_COLOR,
+                    isVisible=False,
+                ),
+                FloatField(
+                    name="heatmap_high_color_limit",
+                    label="Heatmap upper color limit",
+                    isVisible=False,
+                ),
+                ColorField(
+                    name="heatmap_high_color",
+                    label="Heatmap upper color",
+                    value=HEATMAP_HIGH_COLOR,
+                    isVisible=False,
+                ),
             ],
         )
 
@@ -1130,7 +1178,14 @@ class PlotClustergram(DataAnalysisStep):
             form_helper.get_choices_for_protein_df_steps(
                 run,
             )
+            + form_helper.to_choices(
+                run.steps.get_instance_identifiers(
+                    Step,
+                    "significant_proteins_df",
+                )
+            )
         )
+
         form["metadata_df"].set_options(
             form_helper.get_choices(
                 run,
@@ -1138,6 +1193,7 @@ class PlotClustergram(DataAnalysisStep):
                 required=True,
             )
         )
+
         if form.values["metadata_df"] is not None:
             form["metadata_column"].set_options(
                 form_helper.get_choices_for_metadata_non_sample_columns(
@@ -1145,10 +1201,27 @@ class PlotClustergram(DataAnalysisStep):
                 )
             )
 
+        custom_scale_toggled = form.values["use_custom_color_scale"]
+        form["heatmap_low_color_limit"].isVisible = custom_scale_toggled
+        form["heatmap_high_color_limit"].isVisible = custom_scale_toggled
+        form["heatmap_low_color"].isVisible = custom_scale_toggled
+        form["heatmap_high_color"].isVisible = custom_scale_toggled
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+        # Note: This is a hotfix that will be overridden anyway as soon
+        # as the node-based workflow has been finished.
+        # So the code is not top notch
+        selected_prot_df = steps.get_step_output(
+            Step, "significant_proteins_df", inputs["input_df"]
         )
+
+        if selected_prot_df is None:
+            selected_prot_df = steps.get_step_output(
+                Step, "protein_df", inputs["input_df"]
+            )
+
+        inputs["input_df"] = selected_prot_df
+
         inputs["metadata_df"] = steps.get_step_output(
             Step, "metadata_df", inputs["metadata_df"]
         )
