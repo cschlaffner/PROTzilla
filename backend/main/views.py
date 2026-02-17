@@ -710,11 +710,7 @@ def get_step_form(request):
         form = run.current_form(new_form_values)
 
         return JsonResponse(
-            {
-                "success": True,
-                "message": "Received input parameters",
-                "data": form
-            },
+            {"success": True, "message": "Received input parameters", "data": form},
             safe=False,
             encoder=Form.CustomEncoder,
         )
