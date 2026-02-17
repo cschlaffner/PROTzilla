@@ -704,9 +704,8 @@ def get_step_form(request):
 
         run = Run(run_name)
 
-        outdated_count = 0
         if new_form_values != {}:
-            outdated_count = run.steps.set_steps_outdated()
+            run.steps.set_steps_outdated()
 
         form = run.current_form(new_form_values)
 
@@ -714,8 +713,7 @@ def get_step_form(request):
             {
                 "success": True,
                 "message": "Received input parameters",
-                "data": form,
-                "outdated_count": outdated_count,
+                "data": form
             },
             safe=False,
             encoder=Form.CustomEncoder,
