@@ -149,7 +149,7 @@ def get_correct_af_directories(
         created) and the working directory to use.
     """
 
-    target_dir = directory_name / entry_id
+    target_dir = directory_name / entry_id.upper()
     temp_dir = None
 
     if persist_upload:
@@ -165,7 +165,7 @@ def get_correct_af_directories(
 def extend_metadata_csv(
     entry_id: str,
     metadata_csv: Path,
-    exsisting_metadata_df: pd.DataFrame,
+    existing_metadata_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     messages: list,
 ) -> None:
@@ -194,14 +194,16 @@ def extend_metadata_csv(
         concatenation or writing to disk after logging them.
     """
     try:
-        mask = exsisting_metadata_df["entry_id"] == entry_id
+        mask = (
+            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
+        )
         if mask.any():
-            msg = f'Existing entry with Entry ID "{entry_id}" was overwritten.'
+            msg = f'Existing entry with Entry ID "{entry_id}" was overwritten. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
             logger.warning(msg)
             messages.append(dict(level=logging.WARNING, msg=msg))
-            exsisting_metadata_df = exsisting_metadata_df[~mask]
+            existing_metadata_df = existing_metadata_df[~mask]
 
-        combined = pd.concat([exsisting_metadata_df, metadata_df], ignore_index=True)
+        combined = pd.concat([existing_metadata_df, metadata_df], ignore_index=True)
         combined.to_csv(metadata_csv, index=False)
     except Exception:
         msg = f'Failed to write AlphaFold metadata CSV to "{metadata_csv}".'
@@ -280,7 +282,7 @@ def handle_alphafold_files(
             extend_metadata_csv(
                 entry_id=entry_id,
                 metadata_csv=paths.AF_MONOMER_METADATA_CSV_PATH,
-                exsisting_metadata_df=existing_metadata_df,
+                existing_metadata_df=existing_metadata_df,
                 metadata_df=metadata_df,
                 messages=messages,
             )
@@ -455,7 +457,9 @@ def check_and_get_metadata_df(
         Entry ID.
     :raises ValueError: If no metadata for the given Entry ID is found.
     """
-    metadata_df = all_metadata_df[all_metadata_df["entry_id"] == entry_id]
+    metadata_df = all_metadata_df[
+        all_metadata_df["entry_id"].upper() == entry_id.upper()
+    ]
     if metadata_df.empty:
         msg = f"No metadata for Entry ID '{entry_id}' in {csv_file}"
         logger.error(msg)
@@ -623,7 +627,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         csv_file=paths.AF_MONOMER_METADATA_CSV_PATH,
     )
 
-    structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id
+    structure_dir = paths.ALPHAFOLD_MONOMER_PATH / entry_id.upper()
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
@@ -705,7 +709,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH,
     )
 
-    structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id
+    structure_dir = paths.ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
     check_dir(entry_id=entry_id, dir=structure_dir)
 
     # get cif file
@@ -828,13 +832,12 @@ def upload_multimer_prediction(
         persist_upload=persist_upload,
     )
 
-    now_utc = datetime.now(timezone.utc)
-    formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     data: dict[str, Any] = {
         "entry_id": entry_id,
         "uniprot_ids": uniprot_ids,
-        "model_created_date": formatted,
+        "model_created_date": timestamp,
         "model_used": model_used,
     }
 
@@ -845,7 +848,7 @@ def upload_multimer_prediction(
             extend_metadata_csv(
                 entry_id=entry_id,
                 metadata_csv=paths.AF_MULTIMER_METADATA_CSV_PATH,
-                exsisting_metadata_df=exsisting_metadata_df,
+                existing_metadata_df=exsisting_metadata_df,
                 metadata_df=metadata_df,
                 messages=messages,
             )

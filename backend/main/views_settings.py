@@ -5,7 +5,7 @@ from datetime import date, datetime, timezone
 from io import BytesIO
 
 
-import pandas
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from PIL import Image
@@ -236,7 +236,10 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
 # <--- helper functions for monomer and multimer structure prediction --->
 def check_and_copy_files_to_directory(file_names: list, target_dir: str):
     if target_dir.exists():
-        return False, "Entry ID is not unique."
+        return (
+            False,
+            'Entry ID is not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.',
+        )
     else:
         target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -248,13 +251,11 @@ def check_and_copy_files_to_directory(file_names: list, target_dir: str):
     return True, "All files successfully uploaded"
 
 
-def get_metadata_df(
-    csv_file_path: str, expected_columns: list[str]
-) -> pandas.DataFrame:
+def get_metadata_df(csv_file_path: str, expected_columns: list[str]) -> pd.DataFrame:
     if csv_file_path.exists():
-        df = pandas.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
+        df = pd.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
     else:
-        df = pandas.DataFrame(columns=expected_columns)
+        df = pd.DataFrame(columns=expected_columns)
     return df
 
 
@@ -272,7 +273,7 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
         )
 
     # delete folder with files for the monomer structure
-    target_dir = dir_path / entry_id
+    target_dir = dir_path / entry_id.upper()
     metadata_csv = csv_file_path
 
     if not target_dir.exists() or not target_dir.is_dir():
@@ -296,8 +297,10 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
         and metadata_csv.stat().st_size > 0
     ):
         try:
-            df = pandas.read_csv(metadata_csv, dtype=str)
-            df = df[df["entry_id"].fillna("").str.strip().str != entry_id]
+            df = pd.read_csv(metadata_csv, dtype=str)
+            df = df[
+                (df["entry_id"].fillna("").str.strip().str).upper() != entry_id.upper()
+            ]
             df.to_csv(metadata_csv, index=False)
 
         except Exception as e:
@@ -312,6 +315,29 @@ def delete_structure(dir_path: str, csv_file_path: str, request):
     return JsonResponse(
         {"success": True, "message": "Entry deleted successfully"}, status=200
     )
+
+
+def extend_metadata_csv(
+    entry_id: str,
+    metadata_csv: str,
+    existing_metadata_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+) -> None:
+    try:
+        mask = (
+            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
+        )
+        if mask.any():
+            msg = f'Entry ID "{entry_id}" not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
+            return False, msg
+
+        combined = pd.concat([existing_metadata_df, metadata_df], ignore_index=True)
+        combined.to_csv(metadata_csv, index=False)
+        return True, f'"{metadata_csv}" updated successfully.'
+
+    except Exception:
+        msg = f'Failed to write AlphaFold metadata CSV to "{metadata_csv}".'
+        return False, msg
 
 
 # <--- Monomer Structure Predictions --->
@@ -354,19 +380,6 @@ def upload_monomer_structure(request):
         pae = data.get("pae")
         fasta_file = data.get("fasta_file")
 
-        #  Copy files to source directory out of temp directory
-
-        target_dir = ALPHAFOLD_MONOMER_PATH / entry_id
-        file_names = [cif_file, confidence, pae, fasta_file]
-        success, message = check_and_copy_files_to_directory(
-            file_names=file_names, target_dir=target_dir
-        )
-        if not success:
-            return JsonResponse(
-                {"success": False, "message": message},
-                status=500,
-            )
-
         # add row to metadata csv
         ALPHAFOLD_MONOMER_PATH.mkdir(parents=True, exist_ok=True)
         metadata_csv = AF_MONOMER_METADATA_CSV_PATH
@@ -379,7 +392,7 @@ def upload_monomer_structure(request):
             "model_used",
         ]
 
-        df = get_metadata_df(
+        existing_metadata_df = get_metadata_df(
             csv_file_path=metadata_csv, expected_columns=expected_columns
         )
 
@@ -393,8 +406,31 @@ def upload_monomer_structure(request):
             "model_used": model_used,
         }
 
-        df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
-        df.to_csv(metadata_csv, index=False)
+        metadata_df = pd.DataFrame([new_row])
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        #  Copy files to source directory out of temp directory
+
+        target_dir = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+        file_names = [cif_file, confidence, pae, fasta_file]
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
 
         return JsonResponse(
             {
@@ -457,19 +493,6 @@ def upload_multimer_structure(request):
         confidence_file = data.get("confidence_file")
         full_data_file = data.get("full_data_file")
 
-        #  Copy files to source directory out of temp directory
-
-        target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id
-        file_names = [fasta_file, cif_file, confidence_file, full_data_file]
-        success, message = check_and_copy_files_to_directory(
-            file_names=file_names, target_dir=target_dir
-        )
-        if not success:
-            return JsonResponse(
-                {"success": False, "message": message},
-                status=500,
-            )
-
         # add row to metadata csv
         metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
         expected_columns = [
@@ -479,7 +502,7 @@ def upload_multimer_structure(request):
             "model_used",
         ]
 
-        df = get_metadata_df(
+        existing_metadata_df = get_metadata_df(
             csv_file_path=metadata_csv, expected_columns=expected_columns
         )
 
@@ -492,8 +515,31 @@ def upload_multimer_structure(request):
             "model_used": model_used,
         }
 
-        df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
-        df.to_csv(metadata_csv, index=False)
+        metadata_df = pd.DataFrame([new_row])
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        #  Copy files to source directory out of temp directory
+
+        target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
+        file_names = [fasta_file, cif_file, confidence_file, full_data_file]
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
 
         return JsonResponse(
             {
@@ -578,7 +624,7 @@ def database_upload(request):
                 return JsonResponse({"success": False, "message": msg}, status=400)
 
             try:
-                dataframe = pandas.read_csv(path, sep="\t")
+                dataframe = pd.read_csv(path, sep="\t")
             except UnicodeDecodeError:
                 msg = "File could not be decoded."
                 messages.add_message(request, messages.ERROR, msg, "alert-danger")
