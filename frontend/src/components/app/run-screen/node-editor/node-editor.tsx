@@ -235,7 +235,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     void getEdgesFromRunData().then((newEdges) => {
       setEdges(newEdges);
     });
-  }, [currentSectionId, navigateOrRefreshSteps, runData]);
+  }, [currentSectionId, getEdgesFromRunData, navigateOrRefreshSteps, runData]);
 
   const stepSelectionProps = {
     runName: runName,
