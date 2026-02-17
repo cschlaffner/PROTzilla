@@ -67,7 +67,7 @@ from protzilla.data_analysis.crosslinking_validation import (
 )
 from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (
-    ImportStructurePredictionFromDisk,
+    ImportMonomerStructurePredictionFromDisk,
     AlphaFoldPredictionLoad,
 )
 
@@ -2575,7 +2575,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         loaded_protein_entry_ids = list(
             set(
                 run.steps.get_inputs_of_step_type(
-                    ImportStructurePredictionFromDisk, "entry_id"
+                    ImportMonomerStructurePredictionFromDisk, "entry_id"
                 )
                 + run.steps.get_inputs_of_step_type(
                     AlphaFoldPredictionLoad, "uniprot_id"
@@ -2615,7 +2615,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         entry_id = inputs["protein_to_validate"]
         correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
-            ImportStructurePredictionFromDisk, "entry_id", entry_id
+            ImportMonomerStructurePredictionFromDisk, "entry_id", entry_id
         ) or steps.get_step_identifier_of_step_with_input(
             AlphaFoldPredictionLoad, "uniprot_id", entry_id
         )

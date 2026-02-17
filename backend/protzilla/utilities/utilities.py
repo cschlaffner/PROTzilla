@@ -3,6 +3,7 @@ import io
 import operator
 import os
 import re
+import shutil
 from itertools import groupby
 from pathlib import Path
 from random import choices
@@ -11,7 +12,8 @@ from string import ascii_letters
 import pandas as pd
 import psutil
 
-from protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from backend.protzilla.constants.protzilla_logging import logger
 
 
 # recipie from https://docs.python.org/3/library/itertools.html
@@ -140,3 +142,39 @@ def get_file_name_from_upload_path(upload_path: str) -> str:
     base_name = file_name_randomized.split("_")[0]
     file_extension = file_name_randomized.split(".")[-1]
     return f"{base_name}.{file_extension}"
+
+
+def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str]:
+    """
+    Copy a single file to a destination directory.
+    Creates the destination directory if it doesn't exist.
+
+    :param source_file: Path to the source file
+    :param dest_dir: Path to the destination directory
+    :return: Tuple of (success: bool, message: str)
+    """
+
+    if not source_file.exists():
+        message = f"Source file does not exist: {source_file}"
+        logger.error(message)
+        return False, message
+
+    if not source_file.is_file():
+        message = f"Source path is not a file: {source_file}"
+        logger.error(message)
+        return False, message
+
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest_file = dest_dir / source_file.name
+
+        shutil.copy2(source_file, dest_file)
+
+        message = f"Successfully copied file {source_file} to {dest_dir}"
+        logger.info(message)
+        return True, message
+
+    except OSError as e:
+        message = f"Failed to copy file: {str(e)}"
+        logger.error(message)
+        return False, message
