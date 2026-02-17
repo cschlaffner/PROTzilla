@@ -458,7 +458,7 @@ def check_and_get_metadata_df(
     :raises ValueError: If no metadata for the given Entry ID is found.
     """
     metadata_df = all_metadata_df[
-        all_metadata_df["entry_id"].upper() == entry_id.upper()
+        all_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
     ]
     if metadata_df.empty:
         msg = f"No metadata for Entry ID '{entry_id}' in {csv_file}"
