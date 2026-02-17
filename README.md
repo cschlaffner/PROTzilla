@@ -11,9 +11,10 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 
 ## :gear: Deploy PROTzilla
 
-### Regular setup
+### Regular setup (production deployment)
 
-We have prepared guides for [Windows](./docs/Windows.md), [MacOS](./docs/MacOS.md) and [Linux](./docs/Linux.md).
+We have prepared user guides for [Windows](./docs/Windows.md), [macOS](./docs/MacOS.md) and [Linux](./docs/Linux.md).
+We have also prepared a guide for [Windows Server 2012](./docs/WindowsServer2012.md).
 
 ### Development (Docker)
 
@@ -22,19 +23,12 @@ We have prepared guides for [Windows](./docs/Windows.md), [MacOS](./docs/MacOS.m
 
 Before running, make sure you have [Docker](https://www.docker.com/) and Docker Compose installed. 
 
-1. Run `docker compose up --build vite` (or `docker-compose up --build vite` on old versions) <br> You can optionally add `-d` to detatch protzilla from your shell
+1. Run `docker compose up vite` (or `docker-compose up vite` on old versions). Should you need to rebuild the image, add the `--build` flag after `up` <br> You can optionally add `-d` to detach protzilla from your shell
 2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
 3. Go to [the web UI](http://localhost:5173)
 4. Hack away and see the changes reflected instantly!
-5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debuggin in your IDE!
+5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debugging in your IDE!
     For other setups, `debugpy` is listening on its default port 5678
-
-
-### Windows native
-> [!NOTE]
-> We ensure native compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
-
-1. Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
 
 ### Linux/macOS native
 > [!NOTE]
