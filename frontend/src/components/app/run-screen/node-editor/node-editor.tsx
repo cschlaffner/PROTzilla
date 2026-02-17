@@ -1,17 +1,32 @@
 import "@xyflow/react/dist/style.css";
 import { useNotification } from "@protzilla/app";
-import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
+import {
+  BackendForm,
+  FlexRow,
+  GrayButton,
+  Icon,
+  RedButton,
+  SecondaryButton,
+} from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import type { Section, Step } from "@protzilla/utils";
 import { callApiWithParameters, SectionIDs, translateGlobalToSectionIndex } from "@protzilla/utils";
-import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
+import type {
+  Connection,
+  Edge,
+  EdgeChange,
+  NodeChange,
+  NodeTypes,
+  ReactFlowInstance,
+} from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
 import type { HoveredHandleMeta, StepNodeType } from "./StepNode";
 import StepNode from "./StepNode";
+import { layoutNodesWithDagre } from "./node-editor-layout";
 import { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
@@ -62,6 +77,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   runData,
 }) => {
   const notify = useNotification();
+  const reactFlowInstanceRef = useRef<ReactFlowInstance<StepNodeType> | null>(null);
 
   const onAddStep = () => {
     notify({ type: "success", title: "Step added", message: "Successfully added step" });
@@ -81,6 +97,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   }, []);
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+  }, []);
+  const onReactFlowInit = useCallback((instance: ReactFlowInstance<StepNodeType>) => {
+    reactFlowInstanceRef.current = instance;
   }, []);
 
   const onNodeDragStop = useCallback(
@@ -122,9 +141,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       },
     }).then((response) => {
       notify({
-          type: response.success ? "success" : "error",
-          title: response.message.title,
-          message: response.message.msg,
+        type: response.success ? "success" : "error",
+        title: response.message.title,
+        message: response.message.msg,
       });
       setSelectedEdge(null);
       void getEdgesFromRunData().then((newEdges) => {
@@ -132,6 +151,41 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       });
     });
   }, [getEdgesFromRunData, notify, runName, selectedEdge]);
+
+  const onAutoLayout = useCallback(() => {
+    const layoutedNodes = layoutNodesWithDagre(nodes, edges);
+    setNodes(layoutedNodes);
+    void reactFlowInstanceRef.current?.fitView({ padding: 0.2, duration: 200 });
+
+    const persistLayout = async () => {
+      try {
+        await Promise.all(
+          layoutedNodes.map((node) =>
+            callApiWithParameters("set_step_pos/", {
+              run_name: runName,
+              step_id: node.id,
+              x: node.position.x,
+              y: node.position.y,
+            }),
+          ),
+        );
+        notify({
+          type: "success",
+          title: "Layout updated",
+          message: "Node positions saved",
+        });
+        navigateOrRefreshSteps();
+      } catch {
+        notify({
+          type: "error",
+          title: "Layout failed",
+          message: "Could not save node positions",
+        });
+      }
+    };
+
+    void persistLayout();
+  }, [edges, navigateOrRefreshSteps, nodes, notify, runName]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -150,7 +204,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         });
       });
     },
-    [getEdgesFromRunData, navigateOrRefreshSteps, notify, runName],
+    [getEdgesFromRunData, notify, runName],
   );
 
   // Mouse-Over info for each handle, displayed in the corner
@@ -235,7 +289,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     void getEdgesFromRunData().then((newEdges) => {
       setEdges(newEdges);
     });
-  }, [currentSectionId, navigateOrRefreshSteps, runData]);
+  }, [currentSectionId, getEdgesFromRunData, navigateOrRefreshSteps, runData]);
 
   const stepSelectionProps = {
     runName: runName,
@@ -274,10 +328,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           onPaneClick={onPaneClick}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
+          onInit={onReactFlowInit}
           fitView
         >
           <Panel position="top-left">
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
               <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
               <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
                 Remove current connection
@@ -316,7 +372,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             sections
               .map((section) => section.steps.length)
               .reduce((acc: number, val: number) => acc + val, 0) -
-            1
+              1
           }
           onNext={() => {
             console.log("TODO: A vulture ate this callback! Come up with something better.");
