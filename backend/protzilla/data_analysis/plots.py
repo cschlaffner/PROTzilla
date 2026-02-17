@@ -1,5 +1,6 @@
 import logging
 
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -13,7 +14,10 @@ from backend.protzilla.constants.colors import (
     PLOT_PRIMARY_COLOR,
     PLOT_SECONDARY_COLOR,
 )
-from backend.protzilla.utilities.clustergram import Clustergram
+from backend.protzilla.utilities.clustergram import (
+    Clustergram,
+    AXIS_PROTEIN,
+)
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 
 colors = {
@@ -205,6 +209,7 @@ def clustergram_plot(
     heatmap_low_color: str | None = None,
     heatmap_high_color_limit: float | None = None,
     heatmap_high_color: str | None = None,
+    imputation_strategy: SimpleImputerStrategyType = SimpleImputerStrategyType.MEAN.value,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
@@ -240,8 +245,15 @@ def clustergram_plot(
         assert isinstance(input_df, pd.DataFrame) and not input_df.empty
         assert isinstance(metadata_df, pd.DataFrame) or not metadata_df
 
+        messages = []
         input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-        assert not input_df_wide.isna().any(axis=None)
+        if input_df_wide.isna().any(axis=None):
+            messages.append(
+                dict(
+                    level=logging.WARNING,
+                    msg="The selected input dataframe contains missing values. The clustergram thus includes imputed values.",
+                )
+            )
 
         if isinstance(metadata_df, pd.DataFrame):
             assert metadata_column in metadata_df.columns
@@ -285,6 +297,10 @@ def clustergram_plot(
         else:
             custom_color_scale = None
 
+        imputer_parameters = dict(
+            axis=AXIS_PROTEIN, missing_values="nan", strategy=imputation_strategy
+        )
+
         clustergram = Clustergram(
             flip_axes=flip_axes,
             data=input_df_wide.values,
@@ -297,12 +313,13 @@ def clustergram_plot(
             hidden_labels=["row", "col"],
             custom_color_scale=custom_color_scale,
             heatmap_legend_title=heatmap_legend_title,
+            imputer_parameters=imputer_parameters,
         )
 
         clustergram.update_layout(
             autosize=True,
         )
-        return dict(plots=[clustergram])
+        return dict(plots=[clustergram], messages=messages)
     except AssertionError as e:
         if not isinstance(input_df, pd.DataFrame):
             msg = 'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
