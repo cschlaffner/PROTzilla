@@ -179,9 +179,22 @@ export const MultimerStructureUpload = () => {
               isVisible: true,
             },
             {
+              type: "info-field",
+              name: "entry_id_info",
+              label: "The entry ID should be a unique name given to the uploaded prediction.",
+              isVisible: true,
+            },
+            {
               type: "text",
               name: "uniprot_ids",
               label: "Protein IDs of all proteins used in the sequence (required):",
+              isVisible: true,
+            },
+            {
+              type: "info-field",
+              name: "uniprot_ids_info",
+              label:
+                "Please provide the list of Protein IDs separated by a comma e.g.: P68871, P69905, Q5VSL9",
               isVisible: true,
             },
             {

@@ -192,6 +192,12 @@ export const MonomerStructureUpload = () => {
               isVisible: true,
             },
             {
+              type: "info-field",
+              name: "entry_id_info",
+              label: "The entry ID should be a unique name given to the uploaded prediction.",
+              isVisible: true,
+            },
+            {
               type: "text",
               name: "model_used",
               label: "Alphafold Version Number (required):",
