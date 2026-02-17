@@ -5,7 +5,8 @@ import numpy as np
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.disk_operator import YamlOperator
-from backend.protzilla.steps import StepManager, Step
+from backend.protzilla.steps import Step
+from backend.protzilla.step_manager import StepManager
 from backend.protzilla.utilities import name_to_title
 
 

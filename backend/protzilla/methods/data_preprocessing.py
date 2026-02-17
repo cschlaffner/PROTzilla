@@ -12,7 +12,7 @@ from backend.protzilla.data_preprocessing import (
 )
 from backend.protzilla import form_helper
 from backend.protzilla.form import *
-from backend.protzilla.steps import Step, StepManager, Section
+from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
 
 

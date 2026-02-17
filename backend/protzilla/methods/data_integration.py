@@ -18,7 +18,8 @@ from backend.protzilla.data_integration.database_query import (
 )
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
 from backend.protzilla.form import *
-from backend.protzilla.steps import Plots, Step, StepManager, Section
+from backend.protzilla.steps import Plots, Step, Section
+from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_integration.enrichment_analysis import (
     GOAnalysisOflineBackgroundType,
     GOAnalysisWithEnrichrBackgroundType,

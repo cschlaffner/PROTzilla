@@ -47,7 +47,8 @@ from backend.protzilla.methods.data_preprocessing import (
     DataPreprocessingStep,
 )
 from backend.protzilla.methods.data_preprocessing import TransformationLog
-from backend.protzilla.steps import Step, StepManager, Section
+from backend.protzilla.steps import Step, Section
+from backend.protzilla.step_manager import StepManager
 from protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
     AggregationMethod as ProteinCoverageAggregationMethod,
