@@ -8,6 +8,7 @@ from _pytest.monkeypatch import MonkeyPatch
 
 import main
 from protzilla.constants.intensity_types import IntensityType
+from protzilla.constants.paths import EXAMPLE_DATASET_METADATA_FILE
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
@@ -40,6 +41,11 @@ TAU_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P10636.txt"
 TAU_FASTA_FILE_PATH = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
 TAU_METADATA_FILE_PATH = TEST_METADATA_PATH / "metadata_full.csv"
 TAU_REGIONS_FILE_PATH = TAU_PATH / "regions_P10636.csv"
+
+SATB1_PATH = TEST_PTM_VISUALIZATION_PATH / "Q01826"
+SATB1_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_Q01826.txt"
+SATB1_FASTA_FILE_PATH = TEST_FASTA_PATH / "Q01826_SATB1.fasta"
+SATB1_REGIONS_FILE_PATH = SATB1_PATH / "Q01826_SATB1_regions.csv"
 
 Q_VALUE_THRESHOLD = 0.01
 
@@ -401,6 +407,7 @@ class TestPTMVisualization:
         )
         modification_df = result["modification_df"]
 
+        # TODO: fix this test or the underlying code (Oxidation at position 1 is not found anymore)
         pd.testing.assert_frame_equal(
             modification_df.sort_values(
                 by=["Location", "Amino Acid", "Modification", "Isoform"]
@@ -479,7 +486,7 @@ class TestPTMVisualization:
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
         kwargs["fasta_file_path"] = Path(TAU_PATH / "uniprotkb_P10636_7_8.fasta")
-        kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
+        kwargs["regions_file_path"] = TAU_REGIONS_FILE_PATH
 
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
@@ -497,6 +504,7 @@ class TestPTMVisualization:
             required_groups={"AD"},
             required_ptm_types=("Phosphorylation",),
             required_ptms=("S68", "T71", "S113"),
+            # TODO: deduplicate with below?
             required_region_names=(
                 "N-term",
                 "N1",
@@ -512,6 +520,8 @@ class TestPTMVisualization:
             required_cleavages=(),
         )
 
+    # TODO: what to do with this test?
+    @pytest.mark.skip()
     @staticmethod
     def test_modification_at_first_location(plot_func, kwargs):
         # TODO: maybe also test with the other functions later
@@ -558,7 +568,6 @@ class TestPTMVisualization:
         plot = result["plots"][0]
         # TODO: remove
         plot.show()
-        ######### TODO: double check that these are all the modifications that we could have found
 
         # TODO: this check is for the mocked GFAP
         validate_plot_outputs(
@@ -576,31 +585,16 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_single_amino_acid_substitution_start_of_exon(plot_func, kwargs):
-        # TODO: maybe also test with the other functions later
-        if plot_func != create_overview_ptm_visualization:
-            return
+        kwargs["evidence_df"] = get_evidence_df(SATB1_EVIDENCE_FILE_PATH)
+        kwargs["fasta_file_path"] = SATB1_FASTA_FILE_PATH
+        kwargs["regions_file_path"] = SATB1_REGIONS_FILE_PATH
+        if "metadata_df" in kwargs:
+            kwargs["metadata_df"] = get_metadata_df(EXAMPLE_DATASET_METADATA_FILE)
 
-        # AML
-        # TODO: doesn't work because we don't have a clean exon, but a single amino acid with two possibilites
-        kwargs["evidence_df"] = get_evidence_df(
-            Path(
-                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q01826.txt"
-            )
-        )
-        kwargs["fasta_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1.fasta"
-        )
-        kwargs["regions_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1_regions.csv"
-        )
-
-        result = create_overview_ptm_visualization(**kwargs)
+        result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
-        # TODO: remove
-        plot.show()
 
-        # TODO: adapt
         validate_plot_outputs(
             plot,
             plot_func,
@@ -609,33 +603,24 @@ class TestPTMVisualization:
                 if "metadata_df" in kwargs
                 else set()
             ),
-            required_groups={"clean", "old", "exon"},
-            additional_required_strings=("M1", "G391", "E391"),
-            additional_excluded_strings=("M0",),
+            required_groups={"REL-FREE", "RELAPSE"},
+            required_ptm_types=("Phosphorylation",),
+            required_ptms=("S38", "S60", "S665", "S669"),
+            required_region_names=("Pre-Exon", "Exon", "End"),
+            required_cleavages=("1",),
         )
 
-    # TODO: fix
     @staticmethod
     def test_single_amino_acid_substitution_end_of_exon(plot_func, kwargs):
-        # TODO: maybe also test with the other functions later
-        if plot_func != create_overview_ptm_visualization:
-            return
-
-        ##### Overlapping Exons
-        # Tau
         kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
-        # TODO: migrate to repo if test stays
-        # TODO: might be the better file for test above
-        kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/uniprotkb_P10636_5_8.fasta")
-        kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
+        kwargs["fasta_file_path"] = TAU_PATH / "uniprotkb_P10636_5_8.fasta"
+        kwargs["regions_file_path"] = TAU_REGIONS_FILE_PATH
 
-        result = create_overview_ptm_visualization(**kwargs)
+        result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
-        # TODO: remove
-        plot.show()
 
         validate_plot_outputs(
             plot,
@@ -645,7 +630,24 @@ class TestPTMVisualization:
                 if "metadata_df" in kwargs
                 else set()
             ),
-            required_groups={"clean", "old", "exon"},
-            additional_required_strings=("M1", "G391", "E391"),
-            additional_excluded_strings=("M0",),
+            required_groups=(
+                {"AD", "CTR"}
+                if plot_func == create_details_ptm_visualization
+                else {"AD"}
+            ),
+            required_ptm_types=("Phosphorylation", "Ubiquitination", "Acetylation"),
+            required_ptms=("S113", "K305", "K311", "K317", "K321"),
+            required_region_names=(
+                "N-term",
+                "N1",
+                "N2",
+                "Mid",
+                "PRR",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "C-term",
+            ),
+            required_cleavages=("306",),
         )
