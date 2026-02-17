@@ -74,9 +74,9 @@ def test_clustergram_nans_in_input(wide_4d_df):
 
     outputs = clustergram_plot(nan_df, metadata_df=None, flip_axes=False)
     assert "messages" in outputs
-    assert "plots" not in outputs
     assert any(
-        "The selected input dataframe contains missing values." in message["msg"]
+        "The selected input dataframe contains missing values. The clustergram thus includes imputed values."
+        in message["msg"]
         for message in outputs["messages"]
     )
 
