@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from backend.protzilla.steps import Step, StepManager
+from backend.protzilla.steps import Step
+from backend.protzilla.step_manager import StepManager
 
 
 class StepFactory:

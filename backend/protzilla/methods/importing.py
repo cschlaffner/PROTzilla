@@ -15,7 +15,7 @@ from backend.protzilla.importing.ms_data_import import (
     ms_fragger_import,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
-from backend.protzilla.steps import Step, StepManager, Section
+from backend.protzilla.steps import Step, Section
 from backend.protzilla.importing.example_dataset_import import example_dataset_import
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.importing.import_utils import (

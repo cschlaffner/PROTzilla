@@ -15,7 +15,8 @@ import backend.protzilla.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
+from backend.protzilla.steps import Messages, Output, Plots, Step
+from backend.protzilla.step_manager import StepManager
 
 try:
     from django.conf import settings
