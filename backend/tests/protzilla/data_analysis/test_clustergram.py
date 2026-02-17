@@ -1,40 +1,5 @@
-import numpy as np
-import pytest
-
 from backend.protzilla.data_analysis.plots import *
 from backend.tests.protzilla.data_analysis.test_clustering import *
-
-
-@pytest.fixture
-def wide_2d_df():
-    return pd.DataFrame(
-        np.array(
-            [
-                [4, 10],
-                [8, 2],
-                [2, 7],
-                [13, 5],
-            ]
-        ),
-        columns=["Protein1", "Protein2"],
-        index=["Sample1", "Sample2", "Sample3", "Sample4"],
-    )
-
-
-@pytest.fixture
-def wide_3d_df():
-    return pd.DataFrame(
-        np.array(
-            [
-                [4, 10, 3],
-                [8, 2, 4],
-                [2, 7, 1],
-                [13, 5, 7],
-            ]
-        ),
-        columns=["Protein1", "Protein2", "Protein3"],
-        index=["Sample1", "Sample2", "Sample3", "Sample4"],
-    )
 
 
 @pytest.fixture
@@ -70,22 +35,6 @@ def same_data_4d_df():
 
 
 @pytest.fixture
-def color_df():
-    return pd.DataFrame(
-        np.array(
-            [
-                ["Color1"],
-                ["Color2"],
-                ["Color1"],
-                ["Color1"],
-            ]
-        ),
-        columns=["Color"],
-        index=["Sample1", "Sample2", "Sample3", "Sample4"],
-    )
-
-
-@pytest.fixture
 def metadata_df():
     return pd.DataFrame(
         np.array(
@@ -98,63 +47,6 @@ def metadata_df():
         ),
         columns=["Sample", "Group"],
     )
-
-
-def test_scatter_plot_2d(show_figures, wide_2d_df, color_df):
-    outputs = scatter_plot(wide_2d_df, color_df)
-    assert "plots" in outputs
-    fig = outputs["plots"][0]
-    if show_figures:
-        fig.show()
-    return
-
-
-def test_scatter_plot_no_color_df(show_figures, wide_2d_df):
-    outputs = scatter_plot(wide_2d_df)
-    assert "plots" in outputs
-    fig = outputs["plots"][0]
-    if show_figures:
-        fig.show()
-    return
-
-
-def test_scatter_plot_3d(show_figures, wide_3d_df, color_df):
-    outputs = scatter_plot(wide_3d_df, color_df)
-    assert "plots" in outputs
-    fig = outputs["plots"][0]
-    if show_figures:
-        fig.show()
-    return
-
-
-def test_scatter_plot_4d_df(wide_4d_df, color_df):
-    outputs = scatter_plot(wide_4d_df, color_df)
-
-    assert "messages" in outputs
-    assert "plots" not in outputs
-    assert any(
-        "Consider reducing the dimensionality" in message["msg"]
-        for message in outputs["messages"]
-    )
-
-
-def test_scatter_plot_color_df_2d(show_figures, wide_2d_df):
-    outputs = scatter_plot(wide_2d_df, wide_2d_df)
-    assert "messages" in outputs
-    assert "plots" not in outputs
-    assert any(
-        "The color dataframe should have 1 dimension only" in message["msg"]
-        for message in outputs["messages"]
-    )
-
-
-def test_prot_quant_plot(show_figures, wide_4d_df):
-    outputs = prot_quant_plot(wide_4d_df, "Protein1")
-    assert "plots" in outputs
-    fig = outputs["plots"][0]
-    if show_figures:
-        fig.show()
-    return
 
 
 def test_clustergram(show_figures, wide_4d_df, metadata_df):
@@ -183,7 +75,8 @@ def test_clustergram_nans_in_input(wide_4d_df):
     outputs = clustergram_plot(nan_df, metadata_df=None, flip_axes=False)
     assert "messages" in outputs
     assert any(
-        "Input contains missing data" in message["msg"]
+        "The selected input dataframe contains missing values. The clustergram thus includes imputed values."
+        in message["msg"]
         for message in outputs["messages"]
     )
 

@@ -31,67 +31,75 @@ colors = {
 
 def scatter_plot(
     input_df: pd.DataFrame,
-    color_df: pd.DataFrame | None = None,
+    metadata_df: pd.DataFrame | None = None,
+    metadata_column: str | None = None,
 ) -> dict:
     """
     Function to create a scatter plot from data.
 
     :param input_df: the dataframe that should be plotted. It should have either 2
         or 3 dimensions
-    :param color_df: the Dataframe with one column according to which the marks should
+    :param metadata_df: the Dataframe with one column according to which the marks should
         be colored. This is an optional parameter
+    :param metadata_column: the name of the column in `metadata_df` that contains the
+        group information for each sample. This parameter is required if `metadata_df`
+        is provided.
 
     :return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
-
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    try:
-        color_df = (
-            pd.DataFrame() if not isinstance(color_df, pd.DataFrame) else color_df
-        )
-
-        if color_df.shape[1] > 1:
-            raise ValueError("The color dataframe should have 1 dimension only")
-
-        if intensity_df_wide.shape[1] == 2:
-            intensity_df_wide = pd.concat([intensity_df_wide, color_df], axis=1)
-            x_name, y_name = intensity_df_wide.columns[:2]
-            color_name = color_df.columns[0] if not color_df.empty else None
-            fig = px.scatter(intensity_df_wide, x=x_name, y=y_name, color=color_name)
-            fig.update_traces(
-                marker=dict(color=colors["annotation_proteins_of_interest"])
-            )
-        elif intensity_df_wide.shape[1] == 3:
-            intensity_df_wide = pd.concat([intensity_df_wide, color_df], axis=1)
-            x_name, y_name, z_name = intensity_df_wide.columns[:3]
-            color_name = color_df.columns[0] if not color_df.empty else None
-            fig = px.scatter_3d(
-                intensity_df_wide, x=x_name, y=y_name, z=z_name, color=color_name
-            )
-            fig.update_traces(marker_color=colors["annotation_proteins_of_interest"])
-        else:
+    if isinstance(metadata_df, pd.DataFrame):
+        if metadata_column not in metadata_df.columns:
             raise ValueError(
-                "The dimensions of the DataFrame are either too high or too low."
+                "The column selected for annotation is not present in the corresponding metadata dataframe.",
             )
-        fig.update_layout(plot_bgcolor=colors["plot_bgcolor"])
-        fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
-        fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
-        return dict(plots=[fig])
-    except ValueError as e:
-        msg = ""
-        if intensity_df_wide.shape[1] < 2:
-            msg = (
-                f"The input dataframe has {intensity_df_wide.shape[1]} feature. "
-                f"Consider using another plot to visualize your data"
+
+    intensity_df = input_df.copy()
+    if isinstance(metadata_df, pd.DataFrame):
+        intensity_df = pd.merge(
+            intensity_df,
+            metadata_df[["Sample", metadata_column]],
+            on="Sample",
+            how="left",
+        )
+    else:
+        # Mock a metadata column here so that we can treat dfs with and without metadata the same way
+        metadata_column = "mock_metadata_column"
+        intensity_df[metadata_column] = None
+    intensity_df = intensity_df.drop(columns="Sample")
+
+    color_col = (
+        metadata_column if intensity_df[metadata_column].notnull().any() else None
+    )
+    if intensity_df.shape[1] - 1 == 2:
+        x_name, y_name = intensity_df.drop(columns=metadata_column).columns[:2]
+        if not (
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
+        ):
+            raise ValueError(
+                "All columns used for the 2D scatter plot must be numeric."
             )
-        elif intensity_df_wide.shape[1] > 3:
-            msg = (
-                f"The input dataframe has {intensity_df_wide.shape[1]} features. "
-                f"Consider reducing the dimensionality of your data"
+        fig = px.scatter(intensity_df, x=x_name, y=y_name, color=color_col)
+    elif intensity_df.shape[1] - 1 == 3:
+        x_name, y_name, z_name = intensity_df.drop(columns=metadata_column).columns[:3]
+        if not (
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[z_name])
+        ):
+            raise ValueError(
+                "All columns used for the 3D scatter plot must be numeric."
             )
-        elif color_df.shape[1] != 1:
-            msg = "The color dataframe should have 1 dimension only"
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
+        fig = px.scatter_3d(intensity_df, x=x_name, y=y_name, z=z_name, color=color_col)
+    else:
+        raise ValueError(
+            f"The provided DataFrame has {intensity_df.shape[1] - 1} dimensions, but only 2D or 3D data can "
+            "be plotted."
+        )
+    fig.update_layout(plot_bgcolor=colors["plot_bgcolor"])
+    fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    return dict(plots=[fig])
 
 
 def create_volcano_plot(
@@ -243,7 +251,7 @@ def clustergram_plot(
             messages.append(
                 dict(
                     level=logging.WARNING,
-                    msg="Input contains missing data; clustergram thus contains imputed values.",
+                    msg="The selected input dataframe contains missing values. The clustergram thus includes imputed values.",
                 )
             )
 
