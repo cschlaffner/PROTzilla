@@ -243,7 +243,7 @@ def clustergram_plot(
             messages.append(
                 dict(
                     level=logging.WARNING,
-                    msg="Input contains missing data; clustergram thus contains imputed values.",
+                    msg="The selected input dataframe contains missing values. The clustergram thus includes imputed values.",
                 )
             )
 
