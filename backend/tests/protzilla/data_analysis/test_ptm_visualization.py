@@ -481,9 +481,7 @@ class TestPTMVisualization:
         kwargs["fasta_file_path"] = Path(TAU_PATH / "uniprotkb_P10636_7_8.fasta")
         kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
 
-        # TODO: adapt to other functions, but talk to Chris about expected results - might require crafted evidence
-        #  files
-        result = create_overview_ptm_visualization(**kwargs)
+        result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
 
@@ -496,11 +494,10 @@ class TestPTMVisualization:
             plot,
             plot_func,
             all_groups=all_groups,
-            required_groups=all_groups,
+            required_groups={"AD"},
             required_ptm_types=("Phosphorylation",),
             required_ptms=("S68", "T71", "S113"),
-            required_region_names=(),
-            required_cleavages=(
+            required_region_names=(
                 "N-term",
                 "N1",
                 "N2",
@@ -512,6 +509,7 @@ class TestPTMVisualization:
                 "R4",
                 "C-term",
             ),
+            required_cleavages=(),
         )
 
     @staticmethod
@@ -521,19 +519,6 @@ class TestPTMVisualization:
             return
 
         ##### Overlapping Exons
-        # AML
-        # TODO: doesn't work because we don't have a clean exon, but a single amino acid with two possibilites
-        kwargs["evidence_df"] = get_evidence_df(
-            Path(
-                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q01826.txt"
-            )
-        )
-        kwargs["fasta_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1.fasta"
-        )
-        kwargs["regions_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1_regions.csv"
-        )
         # Tau
         # kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         # if "metadata_df" in kwargs:
@@ -573,7 +558,9 @@ class TestPTMVisualization:
         plot = result["plots"][0]
         # TODO: remove
         plot.show()
+        ######### TODO: double check that these are all the modifications that we could have found
 
+        # TODO: this check is for the mocked GFAP
         validate_plot_outputs(
             plot,
             plot_func,
@@ -587,9 +574,49 @@ class TestPTMVisualization:
             additional_excluded_strings=("M0",),
         )
 
-    # TODO: rename
     @staticmethod
-    def test_overlapping_at_end_of_exon(plot_func, kwargs):
+    def test_single_amino_acid_substitution_start_of_exon(plot_func, kwargs):
+        # TODO: maybe also test with the other functions later
+        if plot_func != create_overview_ptm_visualization:
+            return
+
+        # AML
+        # TODO: doesn't work because we don't have a clean exon, but a single amino acid with two possibilites
+        kwargs["evidence_df"] = get_evidence_df(
+            Path(
+                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q01826.txt"
+            )
+        )
+        kwargs["fasta_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1.fasta"
+        )
+        kwargs["regions_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q01826_SATB1_regions.csv"
+        )
+
+        result = create_overview_ptm_visualization(**kwargs)
+        assert len(result["plots"]) == 1
+        plot = result["plots"][0]
+        # TODO: remove
+        plot.show()
+
+        # TODO: adapt
+        validate_plot_outputs(
+            plot,
+            plot_func,
+            all_groups=(
+                set(kwargs["metadata_df"]["Group"].unique())
+                if "metadata_df" in kwargs
+                else set()
+            ),
+            required_groups={"clean", "old", "exon"},
+            additional_required_strings=("M1", "G391", "E391"),
+            additional_excluded_strings=("M0",),
+        )
+
+    # TODO: fix
+    @staticmethod
+    def test_single_amino_acid_substitution_end_of_exon(plot_func, kwargs):
         # TODO: maybe also test with the other functions later
         if plot_func != create_overview_ptm_visualization:
             return
