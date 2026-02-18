@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from statsmodels.stats.multitest import multipletests
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 
 
 def apply_multiple_testing_correction(
@@ -21,9 +22,7 @@ def apply_multiple_testing_correction(
           either the input alpha value or the corrected alpha value
     """
     assert method in [
-        "Bonferroni",
-        "Benjamini-Hochberg",
-        "None",
+        option.value for option in MultipleTestingCorrectionMethod
     ], "Invalid multiple testing correction method"
     assert all(
         isinstance(i, (int, float)) and not math.isnan(i) and i is not None
@@ -31,7 +30,7 @@ def apply_multiple_testing_correction(
     ), "List contains non-number or NaN values"
     assert 0 <= alpha <= 1, "Alpha value must be between 0 and 1"
 
-    if method == "None":
+    if method == MultipleTestingCorrectionMethod.none.value:
         return p_values, alpha
 
     to_param = {"Bonferroni": "bonferroni", "Benjamini-Hochberg": "fdr_bh"}

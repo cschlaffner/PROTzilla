@@ -21,6 +21,11 @@ import scipy.cluster.hierarchy as sch
 import scipy.spatial as scs
 from plotly import subplots
 from sklearn.impute import SimpleImputer
+from backend.protzilla.utilities.utilities import lerp
+
+
+HEATMAP_LOW_COLOR = "#053061"
+HEATMAP_HIGH_COLOR = "#67001f"
 
 
 # pylint: disable=assignment-from-no-return, no-self-use
@@ -49,7 +54,8 @@ def Clustergram(
     color_threshold=None,
     optimal_leaf_order=False,
     color_map=None,
-    color_list=None,
+    custom_color_scale=None,  # optional: ((zmin, zmin_color), (zmax, zmax_color))
+    heatmap_legend_title="(Heatmap legend)",
     display_range=3,
     center_values=True,
     log_transform=False,
@@ -130,7 +136,8 @@ class _Clustergram:
         color_threshold=None,
         optimal_leaf_order=False,
         color_map=None,
-        color_list=None,
+        custom_color_scale=None,
+        heatmap_legend_title="(Heatmap legend)",
         display_range=3,
         center_values=True,
         log_transform=False,
@@ -194,7 +201,6 @@ class _Clustergram:
             ]
         else:
             self._color_map = color_map
-        self._color_list = color_list
         self._display_range = display_range
         self._center_values = center_values
         self._display_ratio = display_ratio
@@ -298,6 +304,9 @@ class _Clustergram:
         else:
             self.row_colorbar_title = "Sample Grouping"
             self.column_colorbar_title = "Protein Grouping"
+
+        self._custom_color_scale = custom_color_scale
+        self._heatmap_legend_title = heatmap_legend_title
 
     def figure(self, computed_traces=None):
         dt, heatmap = None, None
@@ -531,18 +540,53 @@ class _Clustergram:
             if self._center_values:
                 heat_data = np.subtract(heat_data, np.mean(heat_data))
 
+            if self._custom_color_scale is not None:
+                zmin = self._custom_color_scale[0][0]
+                zmax = self._custom_color_scale[1][0]
+                low_color = self._custom_color_scale[0][1]
+                high_color = self._custom_color_scale[1][1]
+
+                if not zmin < zmax:
+                    raise ValueError(
+                        "Lower colour limit must be less than higher colour limit."
+                    )
+
+            else:
+                zmin = np.min(heat_data)
+                zmax = np.max(heat_data)
+                low_color = HEATMAP_LOW_COLOR
+                high_color = HEATMAP_HIGH_COLOR
+
+                # Really only zmin == zmax can happen here
+                if not zmin < zmax:
+                    raise ValueError(
+                        "Data consists only of identical values. Not plotting."
+                    )
+
+            # If limits have different signs, center color scale at zero
+            if zmin < 0 and zmax > 0:
+                target_data_midpoint = 0
+
+            # Else, center at average between limits
+            else:
+                target_data_midpoint = np.average((zmin, zmax))
+
+            color_midpoint = lerp(0, 1, (target_data_midpoint - zmin) / (zmax - zmin))
+
             heatmap = go.Heatmap(
                 x=tickvals_col,
                 y=tickvals_row,
                 z=heat_data,
-                colorscale=self._color_map,
-                # TODO: This should be based on the text width of the labels,
-                # or at least passable by the user, so they can adjust it
+                colorscale=[[0, low_color], [color_midpoint, "white"], [1, high_color]],
+                zmin=zmin,
+                zmax=zmax,
                 colorbar=dict(
-                    title="Heatmap Legend",
+                    title=self._heatmap_legend_title,
                     yanchor="bottom",
                     y=0.0,
                     len=1 / self.colorbar_count,
+                    tickmode="array",
+                    tickvals=(zmin, target_data_midpoint, zmax),
                 ),
             )
 
@@ -810,6 +854,9 @@ class _Clustergram:
         - list: a list of the column labels that have been reordered to match
         the ordering of the column dendrogram leaves.
         """
+
+        if not np.min(self._data) < np.max(self._data):
+            raise ValueError("Data consists only of identical values. Not plotting.")
 
         # 8 is the arbitrary number of colors that is used by the dendrograms (last one is ignored)
         dendro_colorscale = ["rgb(133,133,133)" for _ in range(8)]
