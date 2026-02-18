@@ -1,5 +1,8 @@
 import shutil
+from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from unittest import mock
 
 import pandas as pd
@@ -115,24 +118,73 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("plot_func,kwargs", plot_funcs_to_kwargs)
 
 
-def validate_plot_outputs(
-    # TODO: this could probably be made prettier, especially not setting any default value
-    plot,
-    plot_func,
-    all_groups: set,
-    required_groups: set,
-    required_ptm_types: tuple = (
+@dataclass
+class PlotValidationConfig:
+    required_ptm_types: tuple[str, ...] = (
         "Phosphorylation",
         "Acetylation",
         "Citrullination",
         "Ubiquitination",
-    ),
-    required_ptms: tuple = ("S8", "S13", "T35", "R152", "K154", "S409", "R413", "T411"),
-    required_region_names: tuple = ("Blah-Term", "1A", "1B", "2A", "2B", "α", "ε"),
-    required_cleavages: tuple = ("1", "7-9", "14", "35", "148", "156", "417"),
-    additional_required_strings: tuple = (),
-    additional_excluded_strings: tuple = (),
+    )
+    required_ptms: tuple[str, ...] = (
+        "S8",
+        "S13",
+        "T35",
+        "R152",
+        "K154",
+        "S409",
+        "R413",
+        "T411",
+    )
+    required_region_names: tuple[str, ...] = (
+        "Blah-Term",
+        "1A",
+        "1B",
+        "2A",
+        "2B",
+        "α",
+        "ε",
+    )
+    required_cleavages: tuple[str, ...] = (
+        "1",
+        "7-9",
+        "14",
+        "35",
+        "148",
+        "156",
+        "417",
+    )
+    excluded_strings: tuple[str, ...] = ()
+
+
+def validate_plot_outputs(
+    plot,
+    plot_func,
+    all_groups: set,
+    required_groups: set,
+    validation_config: Optional[PlotValidationConfig],
+    # TODO: maybe remove overrides again, if I don't find a use case
+    **overrides,
 ):
+    # Apply any overrides
+    config_dict = {
+        "required_ptm_types": overrides.get(
+            "required_ptm_types", validation_config.required_ptm_types
+        ),
+        "required_ptms": overrides.get(
+            "required_ptms", validation_config.required_ptms
+        ),
+        "required_region_names": overrides.get(
+            "required_region_names", validation_config.required_region_names
+        ),
+        "required_cleavages": overrides.get(
+            "required_cleavages", validation_config.required_cleavages
+        ),
+        "excluded_strings": overrides.get(
+            "excluded_strings", validation_config.excluded_strings
+        ),
+    }
+
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -141,9 +193,9 @@ def validate_plot_outputs(
     }
     all_plot_strings = all_layout_strings.union(all_data_strings)
 
-    assert set(required_ptm_types).issubset(all_plot_strings)
-    assert set(required_ptms).issubset(all_plot_strings)
-    assert set(required_region_names).issubset(all_plot_strings)
+    assert set(config_dict["required_ptm_types"]).issubset(all_plot_strings)
+    assert set(config_dict["required_ptms"]).issubset(all_plot_strings)
+    assert set(config_dict["required_region_names"]).issubset(all_plot_strings)
 
     if plot_func in (create_details_ptm_visualization, create_bar_ptm_visualization):
         required_groups = set(required_groups)
@@ -152,10 +204,33 @@ def validate_plot_outputs(
         assert all(g not in all_plot_strings for g in excluded_groups)
 
     if plot_func == create_details_ptm_visualization:
-        assert set(required_cleavages).issubset(all_plot_strings)
+        assert set(config_dict["required_cleavages"]).issubset(all_plot_strings)
 
-    assert all(s in all_plot_strings for s in additional_required_strings)
-    assert all(s not in all_plot_strings for s in additional_excluded_strings)
+    assert all(s not in all_plot_strings for s in config_dict["excluded_strings"])
+
+
+@contextmanager
+def mock_settings_file(new_settings_file_path: Path, tmp_dir: Path):
+    shutil.copytree(main.views_helper.SETTINGS_PATH, tmp_dir, dirs_exist_ok=True)
+    shutil.copy(new_settings_file_path, tmp_dir)
+    with (
+        # Mocking is a bit more difficult because the values of default arguments are not overwritten once a function
+        # is imported, so it would not be enough just to overwrite SETTINGS_PATH
+        mock.patch.object(
+            main.views_helper.load_settings_from_file,
+            "__defaults__",
+            (
+                main.views_helper.load_settings_from_file.__defaults__[0],
+                tmp_dir.resolve(),
+            ),
+        ),
+        mock.patch.object(
+            ptm_vis_utils,
+            "CUSTOM_PTM_SETTINGS_FILE_STEM",
+            new_settings_file_path.stem,
+        ),
+    ):
+        yield
 
 
 class TestPTMVisualization:
@@ -179,8 +254,50 @@ class TestPTMVisualization:
     def expected_modifications_path(self):
         return GFAP_PATH / "expected_modifications.csv"
 
+    @pytest.fixture
+    def gfap_config(self):
+        return PlotValidationConfig()
+
+    @pytest.fixture
+    def tau_casette_exon_config(self):
+        return PlotValidationConfig(
+            required_ptm_types=("Phosphorylation",),
+            required_ptms=("S68", "T71", "S113"),
+            required_region_names=(
+                "N-term",
+                "N1",
+                "N2",
+                "Mid",
+                "PRR",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "C-term",
+            ),
+            required_cleavages=(),
+        )
+
+    @pytest.fixture
+    def tau_substitution_config(self, tau_casette_exon_config):
+        return PlotValidationConfig(
+            required_ptm_types=("Phosphorylation", "Ubiquitination", "Acetylation"),
+            required_ptms=("S113", "K305", "K311", "K317", "K321"),
+            required_region_names=tau_casette_exon_config.required_region_names,
+            required_cleavages=("306",),
+        )
+
+    @pytest.fixture
+    def satb1_config(self):
+        return PlotValidationConfig(
+            required_ptm_types=("Phosphorylation",),
+            required_ptms=("S38", "S60", "S665", "S669"),
+            required_region_names=("Pre-Exon", "Exon", "End"),
+            required_cleavages=("1",),
+        )
+
     @staticmethod
-    def test_plotting_functions(plot_func, kwargs):
+    def test_plotting_functions(plot_func, kwargs, gfap_config):
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
@@ -194,12 +311,14 @@ class TestPTMVisualization:
                 else set()
             ),
             required_groups={"clean", "old", "exon"},
+            validation_config=gfap_config,
         )
 
     @staticmethod
-    def test_plotting_functions_vertical_orientation(plot_func, kwargs, monkeypatch):
+    def test_plotting_functions_vertical_orientation(
+        plot_func, kwargs, monkeypatch, gfap_config
+    ):
         # Mocking the settings load function seemed easier than creating a whole new settings file just for this
-
         new_param_dict = {
             "FIGURE_ORIENTATION": 1,
         }
@@ -218,6 +337,7 @@ class TestPTMVisualization:
                 else set()
             ),
             required_groups={"clean", "old", "exon"},
+            validation_config=gfap_config,
         )
 
     @staticmethod
@@ -373,10 +493,7 @@ class TestPTMVisualization:
             plot_func(**bar_detail_kwargs)
 
     @staticmethod
-    def test_different_metadata_column(
-        plot_func,
-        bar_detail_kwargs,
-    ):
+    def test_different_metadata_column(plot_func, bar_detail_kwargs, gfap_config):
         metadata_df = bar_detail_kwargs["metadata_df"]
         bar_detail_kwargs["metadata_column"] = "Batch"
         result = plot_func(**bar_detail_kwargs)
@@ -386,6 +503,7 @@ class TestPTMVisualization:
             create_bar_ptm_visualization,
             all_groups=set(metadata_df[bar_detail_kwargs["metadata_column"]].unique()),
             required_groups={"2", "3", "4"},
+            validation_config=gfap_config,
         )
 
     @staticmethod
@@ -407,7 +525,6 @@ class TestPTMVisualization:
         )
         modification_df = result["modification_df"]
 
-        # TODO: fix this test or the underlying code (Oxidation at position 1 is not found anymore)
         pd.testing.assert_frame_equal(
             modification_df.sort_values(
                 by=["Location", "Amino Acid", "Modification", "Isoform"]
@@ -417,25 +534,10 @@ class TestPTMVisualization:
             ).reset_index(drop=True),
         )
 
-        shutil.copytree(
-            main.views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
-        )
         settings_reduced_ptms_file = Path(
             TEST_PTM_VISUALIZATION_PATH / f"ptm_settings_fewer_ptms.yaml"
         )
-        shutil.copy(settings_reduced_ptms_file, tmp_ptm_settings_dir)
-        with (
-            mock.patch.object(
-                main.views_helper,
-                "SETTINGS_PATH",
-                tmp_ptm_settings_dir.resolve(),
-            ),
-            mock.patch.object(
-                ptm_vis_utils,
-                "CUSTOM_PTM_SETTINGS_FILE_STEM",
-                settings_reduced_ptms_file.stem,
-            ),
-        ):
+        with mock_settings_file(settings_reduced_ptms_file, tmp_ptm_settings_dir):
             result = create_overview_ptm_visualization(
                 evidence_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
@@ -481,7 +583,7 @@ class TestPTMVisualization:
             )
 
     @staticmethod
-    def test_cassette_exon(plot_func, kwargs):
+    def test_cassette_exon(plot_func, kwargs, tau_casette_exon_config):
         kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
@@ -502,89 +604,72 @@ class TestPTMVisualization:
             plot_func,
             all_groups=all_groups,
             required_groups={"AD"},
-            required_ptm_types=("Phosphorylation",),
-            required_ptms=("S68", "T71", "S113"),
-            # TODO: deduplicate with below?
-            required_region_names=(
-                "N-term",
-                "N1",
-                "N2",
-                "Mid",
-                "PRR",
-                "R1",
-                "R2",
-                "R3",
-                "R4",
-                "C-term",
-            ),
-            required_cleavages=(),
-        )
-
-    # TODO: what to do with this test?
-    @pytest.mark.skip()
-    @staticmethod
-    def test_modification_at_first_location(plot_func, kwargs):
-        # TODO: maybe also test with the other functions later
-        if plot_func != create_overview_ptm_visualization:
-            return
-
-        ##### Overlapping Exons
-        # Tau
-        # kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
-        # if "metadata_df" in kwargs:
-        #     kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
-        # # TODO: migrate to repo if test stays
-        # # TODO: might be the better file for test above
-        # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/uniprotkb_P10636_5_8.fasta")
-        # kwargs["regions_file_path"] = Path(TAU_PATH / "regions_P10636_7_8.csv")
-
-        # GFAP
-        # mock_start_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_start_peptide["Modified sequence"] = "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
-        # mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_start_peptide])], ignore_index=True
-        # )
-        #
-        # mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon1_peptide["Sequence"] = "GGKST"
-        # mock_exon1_peptide["Modified sequence"] = "_G(ci)GKST_"
-        # mock_exon1_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])], ignore_index=True
-        # )
-        #
-        # # TODO: drawing is fucked and does not point to the exon - talk to Chris
-        # mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon2_peptide["Sequence"] = "ETSLDT"
-        # mock_exon2_peptide["Modified sequence"] = "_E(ci)TSLDT_"
-        # mock_exon2_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])], ignore_index=True
-        # )
-
-        result = create_overview_ptm_visualization(**kwargs)
-        assert len(result["plots"]) == 1
-        plot = result["plots"][0]
-        # TODO: remove
-        plot.show()
-
-        # TODO: this check is for the mocked GFAP
-        validate_plot_outputs(
-            plot,
-            plot_func,
-            all_groups=(
-                set(kwargs["metadata_df"]["Group"].unique())
-                if "metadata_df" in kwargs
-                else set()
-            ),
-            required_groups={"clean", "old", "exon"},
-            additional_required_strings=("M1", "G391", "E391"),
-            additional_excluded_strings=("M0",),
+            validation_config=tau_casette_exon_config,
         )
 
     @staticmethod
-    def test_single_amino_acid_substitution_start_of_exon(plot_func, kwargs):
+    def test_modification_at_first_location(
+        plot_func, kwargs, tmp_ptm_settings_dir, gfap_config
+    ):
+        mock_start_peptide = kwargs["evidence_df"].iloc[97]
+        mock_start_peptide["Modified sequence"] = (
+            "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
+        )
+        mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_start_peptide])],
+            ignore_index=True,
+        )
+
+        mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
+        mock_exon1_peptide["Sequence"] = "GGKST"
+        mock_exon1_peptide["Modified sequence"] = "_G(ci)GKST_"
+        mock_exon1_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])],
+            ignore_index=True,
+        )
+
+        mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
+        mock_exon2_peptide["Sequence"] = "ETSLDT"
+        mock_exon2_peptide["Modified sequence"] = "_E(ci)TSLDT_"
+        mock_exon2_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])],
+            ignore_index=True,
+        )
+
+        with mock_settings_file(
+            TEST_PTM_VISUALIZATION_PATH / "ptm_settings_mods_at_first_location.yaml",
+            tmp_ptm_settings_dir,
+        ):
+            result = plot_func(**kwargs)
+            assert len(result["plots"]) == 1
+            plot = result["plots"][0]
+            # TODO: remove
+            plot.show()
+
+            additional_required_ptms = ("M1", "G391", "E391")
+            additional_excluded_strings = ("M0",)
+            gfap_config.required_ptms += additional_required_ptms
+            gfap_config.excluded_strings += additional_excluded_strings
+
+            validate_plot_outputs(
+                plot,
+                plot_func,
+                all_groups=(
+                    set(kwargs["metadata_df"]["Group"].unique())
+                    if "metadata_df" in kwargs
+                    else set()
+                ),
+                required_groups={"clean", "old", "exon"},
+                validation_config=gfap_config,
+            )
+
+    @staticmethod
+    def test_single_amino_acid_substitution_start_of_exon(
+        plot_func, kwargs, satb1_config
+    ):
         kwargs["evidence_df"] = get_evidence_df(SATB1_EVIDENCE_FILE_PATH)
         kwargs["fasta_file_path"] = SATB1_FASTA_FILE_PATH
         kwargs["regions_file_path"] = SATB1_REGIONS_FILE_PATH
@@ -604,14 +689,13 @@ class TestPTMVisualization:
                 else set()
             ),
             required_groups={"REL-FREE", "RELAPSE"},
-            required_ptm_types=("Phosphorylation",),
-            required_ptms=("S38", "S60", "S665", "S669"),
-            required_region_names=("Pre-Exon", "Exon", "End"),
-            required_cleavages=("1",),
+            validation_config=satb1_config,
         )
 
     @staticmethod
-    def test_single_amino_acid_substitution_end_of_exon(plot_func, kwargs):
+    def test_single_amino_acid_substitution_end_of_exon(
+        plot_func, kwargs, tau_substitution_config
+    ):
         kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
@@ -635,19 +719,5 @@ class TestPTMVisualization:
                 if plot_func == create_details_ptm_visualization
                 else {"AD"}
             ),
-            required_ptm_types=("Phosphorylation", "Ubiquitination", "Acetylation"),
-            required_ptms=("S113", "K305", "K311", "K317", "K321"),
-            required_region_names=(
-                "N-term",
-                "N1",
-                "N2",
-                "Mid",
-                "PRR",
-                "R1",
-                "R2",
-                "R3",
-                "R4",
-                "C-term",
-            ),
-            required_cleavages=("306",),
+            validation_config=tau_substitution_config,
         )
