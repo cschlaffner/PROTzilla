@@ -26,3 +26,6 @@ class Connection(TypedDict):
     targetHandle: DataKeys
     key: str
     id: str
+
+
+StepID = NewType("StepID", str)

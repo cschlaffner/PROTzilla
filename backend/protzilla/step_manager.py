@@ -1,15 +1,29 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
 
 from backend.protzilla.steps import Step, Section, Output, Messages, Plots
-from backend.protzilla.constants.data_types import Connection
+from backend.protzilla.constants.data_types import Connection, StepID
 
 import networkx as nx
 
+from warnings import deprecated
+
+
 class StepManager:
+    """
+    Manages steps within a run.
+
+    :ivar df_mode: keep DFs in memory or write on disk (note: probably not even used correctly)
+    :ivar disk_operator: disk operator to manage dumping step data to disk
+    :ivar all_steps: main database for all step instances, addressed by their IDs
+    :ivar graph: DiGraph representing connections between steps for easier management
+    :ivar current_selected_step_id: ID of the currently selected step
+    :ivar _id_clock: logical clock used for instance identifier creation
+    """
+    @override
     def __repr__(self):
         return f"IMP: {self.sections[Section.IMPORTING]} PRE: {self.sections[Section.DATA_PREPROCESSING]} ANA: {self.sections[Section.DATA_PREPROCESSING]} INT: {self.sections[Section.DATA_INTEGRATION]}"
 
@@ -23,103 +37,103 @@ class StepManager:
         self.disk_operator: DiskOperator | None = disk_operator
 
         # Saves all steps, accessible by their instance identifiers
-        self.all_steps: dict[str, Step] = {}
+        self.all_steps: dict[StepID, Step] = {}
 
         # Graph saving connections between steps.
         # All steps are represented by their instance_identifiers as nodes.
         # If an output of step X is connected to an input of step Y,
-        # an edge with weight "n_connections" 1 is added. If multiple such links exist,
+        # an edge with weight "n_connections"=1 is added. If multiple such links exist,
         # the edge's weight is incremented by 1 with every additional link
-        self.graph: nx.DiGraph[str] = nx.DiGraph()
+        self.graph: nx.DiGraph[StepID] = nx.DiGraph()
 
         # Instance identifier of the currently selected step
-        self.current_selected_step_iid: str | None = None
+        self._current_selected_step_id: StepID | None = None
 
         # Logical clock for instance identifier creation.
-        # Incremented by StepFactory after every created step, may never be decremented
-        self.iid_clock: int = 0
+        # May only be accessed via next_id_number
+        self._id_clock: int = 0
 
         if steps is not None:
             for step in steps:
                 self.add_step(step)
 
-    def next_iid_clock_value(self) -> int:
+    ##
+    ## General accessors
+    ##
+
+    def get_step_by_id(self, step_id: StepID) -> Step:
         """
-        Logical clock implementation for step instance identifier generation
-        :return: The next instance identifier clock value
+        Returns the step instance of the step with the given ID.
+
+        :param step_id: ID of step of interest
+        :return: Instance corresponding to the given step ID
         """
-        self.iid_clock += 1
-        return self.iid_clock
+        try:
+            return self.all_steps[step_id]
+        except KeyError:
+            raise KeyError("The requested step does not exist.")
 
     @property
-    def sections(self) -> dict[Section, list[Step]]:
-        """
-        For front-end compatibility. Please deprecate eventually
-
-        :return: Dict mapping section titles to lists of step objects
-        """
-        return {section: [step for step in self.all_steps.values() if step.section == section] for section in Section}
+    def all_step_instances(self) -> list[Step]:
+        return list(self.all_steps.values())
 
     @property
-    def all_step_iids_toposorted(self) -> list[str]:
+    def all_step_ids(self) -> list[StepID]:
+        return list(self.all_steps.keys())
+
+    @property
+    def all_step_ids_toposorted(self) -> list[StepID]:
         """
         :return: A list of all step instance identifiers in topological order according to the current
             connections in self.graph
         """
         return list(nx.topological_sort(self.graph))
 
-    def preceding_steps(self, step_iid: str) -> list[Step]:
+    @property
+    def current_selected_step_id(self) -> StepID:
         """
-        :param step_iid: Step of interest
+        :return: ID of the currently selected step
+        :raises ValueError: if there is no currently selected step
+        """
+        if self._current_selected_step_id is not None:
+            return self._current_selected_step_id
+        raise BaseException("No step currently selected.")
+
+    ##
+    ## Specific sets of steps/ids by graph properties
+    ##
+    
+    def preceding_steps(self, step_id: StepID) -> list[Step]:
+        """
+        :param step_id: ID of step of interest
         :return: List of all predecessors of the given step
         """
-        ancestor_iids = list(nx.ancestors(self.graph, step_iid))
-        return [self.all_steps[iid] for iid in ancestor_iids]
+        ancestor_ids = list(nx.ancestors(self.graph, step_id))
+        return [self.all_steps[step_id] for step_id in ancestor_ids]
 
-    def succeeding_steps(self, step_iid: str) -> list[Step]:
+    def succeeding_steps(self, step_id: StepID) -> list[Step]:
         """
-        :param step_iid: Step of interest
+        :param step_id: ID of step of interest
         :return: List of all successors of the given step
         """
-        descendant_iids = list(nx.descendants(self.graph, step_iid))
-        return [self.all_steps[iid] for iid in descendant_iids]
+        descendant_ids = list(nx.descendants(self.graph, step_id))
+        return [self.all_steps[id] for id in descendant_ids]
 
-    def calc_dependencies_met_for_step(self, step_iid: str) -> bool:
+    @property
+    def previous_steps(self) -> list[Step]:
+        return self.preceding_steps(self.current_selected_step_id)
+
+    @property
+    def following_steps(self) -> list[Step]:
+        return self.succeeding_steps(self.current_selected_step_id)
+
+    def calc_dependencies_met_for_step(self, step_id: StepID) -> bool:
         """
         Checks calculation status of all preceding steps in the graph.
         :return: True iff all preceding steps have been calculated
         """
-        return all([step.calculation_status == "complete" for step in self.preceding_steps(step_iid)])
+        return all([step.calculation_status == "complete" for step in self.preceding_steps(step_id)])
 
-    # TODO B179: make obsolete and delete
-    def get_instance_identifiers(
-        self, step_type: type[Step], output_key: str | list[str] | None = None
-    ) -> list[str]:
-        if isinstance(output_key, str):
-            output_key = [output_key]
-
-        instance_identifiers = [
-            step.instance_identifier
-            for step in self.all_steps.values()
-            if isinstance(step, step_type)
-            and (output_key is None or all(k in step.output for k in output_key))
-        ]
-        if not instance_identifiers:
-            logging.warning(
-                f"No instance identifiers found with step type {step_type} and output_key{'s' if len(output_key) > 1 else ''} {output_key}"
-            )
-        return instance_identifiers
-
-    # TODO WTAF is this?
-    # It only makes sense in the context in which it is used,
-    # which is a stupid context that will be deprecated with B179.
-    # Looking forward to it @Tarek
-    @staticmethod
-    def check_instance_identifier(step: Step, instance_identifier: str | None):
-        return (
-            step.instance_identifier == instance_identifier
-            or instance_identifier is None
-        )
 
     def get_step_output(
         self,
@@ -228,13 +242,6 @@ class StepManager:
             step.calculation_status = "outdated"
         return len(steps_to_remove)
 
-    @property
-    def previous_steps(self) -> list[Step]:
-        return self.preceding_steps(self.current_selected_step_iid)
-
-    @property
-    def following_steps(self) -> list[Step]:
-        return self.succeeding_steps(self.current_selected_step_iid)
 
     @property
     def previous_calculated_steps(self) -> list[Step]:
@@ -264,15 +271,6 @@ class StepManager:
             self.current_selected_step_iid,
         )
 
-    # TODO B179
-    @property
-    def protein_df(self) -> pd.DataFrame:
-        return self.get_step_output(output_key="protein_df")
-
-    # TODO B179
-    @property
-    def metadata_df(self) -> pd.DataFrame | None:
-        return self.get_step_output(output_key="metadata_df")
 
     def step_is_terminal(self, step_iid: str) -> bool:
         return int(self.graph.out_degree(step_iid)) == 0
@@ -397,7 +395,11 @@ class StepManager:
             self.disk_operator._write_output(self.current_step)
 
         self.current_selected_step_iid = step_iid
-            
+    
+    ## 
+    ## Connection management
+    ## 
+
     def connect_steps(self, connection: Connection) -> Step:
         try:
             source = connection["source"]
@@ -486,12 +488,78 @@ class StepManager:
             for key, source in step.input_sources.items()
         ]
 
-    def _clear_succeeding_steps(self, step_iid: str) -> None:
+    def _clear_succeeding_steps(self, step_id: StepID) -> None:
         """
         Voids outputs, messages and plots of all steps succeeding a given step
         :param step_iid: instance identifier of step of interest
         """
-        for step in self.succeeding_steps(step_iid):
-            step.output = Output()
-            step.messages = Messages()
-            step.plots = Plots()
+        for step in self.succeeding_steps(step_id):
+            step.clear_generated_artifacts()
+
+    ##
+    ## Other methods
+    ##
+
+    def next_id_number(self) -> int:
+        """
+        Logical clock implementation for step instance identifier generation
+        :return: The next instance identifier clock value
+        """
+        self._id_clock += 1
+        return self._id_clock
+
+    ##
+    ## Deprecated stuff, B179: delete these when rewrite is complete
+    ##
+
+    @property
+    @deprecated("Use the flat hierarchy .all_step_instances() instead")
+    def sections(self) -> dict[Section, list[Step]]:
+        """
+        For front-end compatibility.
+
+        :return: Dict mapping section titles to lists of step objects
+        """
+        return {section: [step for step in self.all_steps.values() if step.section == section] for section in Section}
+
+    # TODO B179: make obsolete and delete
+    # Left from old code and slightly adjusted to keep functionality as much as possible
+    @deprecated("cringe")
+    def get_instance_identifiers(
+        self, step_type: type[Step], output_key: str | list[str] | None = None
+    ) -> list[str]:
+        if isinstance(output_key, str):
+            output_key = [output_key]
+
+        instance_identifiers = [
+            step.instance_identifier
+            for step in self.all_steps.values()
+            if isinstance(step, step_type)
+            and (output_key is None or all(k in step.output for k in output_key))
+        ]
+        if not instance_identifiers:
+            logging.warning(
+                f"No instance identifiers found with step type {step_type} and output_key{'s' if len(output_key) > 1 else ''} {output_key}"
+            )
+        return instance_identifiers
+
+    # TODO WTAF is this?
+    # It only makes sense in the context in which it is used,
+    # which is a stupid context that will be deprecated with B179.
+    # Looking forward to it @Tarek
+    @staticmethod
+    def check_instance_identifier(step: Step, instance_identifier: str | None):
+        return (
+            step.instance_identifier == instance_identifier
+            or instance_identifier is None
+        )
+
+    # TODO B179
+    @property
+    def protein_df(self) -> pd.DataFrame:
+        return self.get_step_output(output_key="protein_df")
+
+    # TODO B179
+    @property
+    def metadata_df(self) -> pd.DataFrame | None:
+        return self.get_step_output(output_key="metadata_df")

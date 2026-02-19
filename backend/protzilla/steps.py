@@ -425,6 +425,14 @@ class Step(ABC):
     def form_inputs(self) -> dict[str, FormInputType]:
         return self.form.values
 
+    def clear_generated_artifacts(self) -> None:
+        """
+        Voids all artifacts the step has generated
+        """
+        self.output = Output()
+        self.messages = Messages()
+        self.plots = Plots()
+
 
 class Output:
     def __init__(self, output: dict = {}):
