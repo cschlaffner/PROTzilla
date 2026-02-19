@@ -137,12 +137,17 @@ class PlotValidationConfig:
         "T411",
     )
     required_region_names: tuple[str, ...] = (
-        "Blah-Term",
-        "1A",
+        "N-Term",
+        "1Aaaa",
+        "1Bbbb",
+        "2Aaaa",
+        "2Bbbb",
+        "alpha",
+        "epsilon",
+    )
+    required_region_short_names: tuple[str, ...] = (
+        "N",
         "1B",
-        "2A",
-        "2B",
-        "α",
         "ε",
     )
     required_cleavages: tuple[str, ...] = (
@@ -163,28 +168,7 @@ def validate_plot_outputs(
     all_groups: set,
     required_groups: set,
     validation_config: Optional[PlotValidationConfig],
-    # TODO: maybe remove overrides again, if I don't find a use case
-    **overrides,
 ):
-    # Apply any overrides
-    config_dict = {
-        "required_ptm_types": overrides.get(
-            "required_ptm_types", validation_config.required_ptm_types
-        ),
-        "required_ptms": overrides.get(
-            "required_ptms", validation_config.required_ptms
-        ),
-        "required_region_names": overrides.get(
-            "required_region_names", validation_config.required_region_names
-        ),
-        "required_cleavages": overrides.get(
-            "required_cleavages", validation_config.required_cleavages
-        ),
-        "excluded_strings": overrides.get(
-            "excluded_strings", validation_config.excluded_strings
-        ),
-    }
-
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -193,9 +177,9 @@ def validate_plot_outputs(
     }
     all_plot_strings = all_layout_strings.union(all_data_strings)
 
-    assert set(config_dict["required_ptm_types"]).issubset(all_plot_strings)
-    assert set(config_dict["required_ptms"]).issubset(all_plot_strings)
-    assert set(config_dict["required_region_names"]).issubset(all_plot_strings)
+    assert set(validation_config.required_ptm_types).issubset(all_plot_strings)
+    assert set(validation_config.required_ptms).issubset(all_plot_strings)
+    assert set(validation_config.required_region_names).issubset(all_plot_strings)
 
     if plot_func in (create_details_ptm_visualization, create_bar_ptm_visualization):
         required_groups = set(required_groups)
@@ -204,9 +188,12 @@ def validate_plot_outputs(
         assert all(g not in all_plot_strings for g in excluded_groups)
 
     if plot_func == create_details_ptm_visualization:
-        assert set(config_dict["required_cleavages"]).issubset(all_plot_strings)
+        assert set(validation_config.required_cleavages).issubset(all_plot_strings)
+        assert set(validation_config.required_region_short_names).issubset(
+            all_plot_strings
+        )
 
-    assert all(s not in all_plot_strings for s in config_dict["excluded_strings"])
+    assert all(s not in all_plot_strings for s in validation_config.excluded_strings)
 
 
 @contextmanager
@@ -275,6 +262,7 @@ class TestPTMVisualization:
                 "R4",
                 "C-term",
             ),
+            required_region_short_names=(),
             required_cleavages=(),
         )
 
@@ -284,6 +272,7 @@ class TestPTMVisualization:
             required_ptm_types=("Phosphorylation", "Ubiquitination", "Acetylation"),
             required_ptms=("S113", "K305", "K311", "K317", "K321"),
             required_region_names=tau_casette_exon_config.required_region_names,
+            required_region_short_names=(),
             required_cleavages=("306",),
         )
 
@@ -293,6 +282,7 @@ class TestPTMVisualization:
             required_ptm_types=("Phosphorylation",),
             required_ptms=("S38", "S60", "S665", "S669"),
             required_region_names=("Pre-Exon", "Exon", "End"),
+            required_region_short_names=("P", "E"),
             required_cleavages=("1",),
         )
 
@@ -646,13 +636,12 @@ class TestPTMVisualization:
             result = plot_func(**kwargs)
             assert len(result["plots"]) == 1
             plot = result["plots"][0]
-            # TODO: remove
-            plot.show()
 
             additional_required_ptms = ("M1", "G391", "E391")
             additional_excluded_strings = ("M0",)
             gfap_config.required_ptms += additional_required_ptms
             gfap_config.excluded_strings += additional_excluded_strings
+            gfap_config.required_region_short_names += ("α",)
 
             validate_plot_outputs(
                 plot,

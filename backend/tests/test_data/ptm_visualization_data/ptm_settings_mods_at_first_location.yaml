@@ -26,6 +26,7 @@ modifications:
     - M  # TODO: for testing only
     - G  # TODO: for testing only
     - E  # TODO: for testing only
+    - T  # TODO: for testing only - and to be removed
   Deamidated:
     above_below: A
     color: '#34AEEB'
