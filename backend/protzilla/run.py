@@ -349,7 +349,7 @@ class Run:
 
     @error_handling
     def step_set_outdated(self) -> int:
-        return self.steps.invalidate_succeeding_steps()
+        return self.steps.invalidate_current_and_following_steps()
 
     @auto_save
     def step_upload_file(self, inputname: str, file) -> None:

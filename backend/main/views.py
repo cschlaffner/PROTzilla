@@ -648,7 +648,7 @@ def get_step_form(request):
         run = Run(run_name)
 
         if new_form_values != {}:
-            run.steps.invalidate_succeeding_steps()
+            run.steps.invalidate_current_and_following_steps()
 
         form = run.current_form(new_form_values)
 
