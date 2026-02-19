@@ -14,7 +14,7 @@ from typing import Any, Literal
 import pandas as pd
 
 from backend.main import settings
-from backend.protzilla.constants.data_types import DataKeys
+from backend.protzilla.constants.data_types import DataKeys, StepID
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -59,7 +59,7 @@ class Step(ABC):
 
     def __init__(
         self,
-        instance_identifier: str | None = None,
+        instance_identifier: StepID | None = None,
     ):
         self.inputs: dict = {}
         self.output: Output = Output()
@@ -432,6 +432,9 @@ class Step(ABC):
         self.output = Output()
         self.messages = Messages()
         self.plots = Plots()
+
+    def invalidate(self) -> None:
+        self.calculation_status = "outdated"
 
 
 class Output:
