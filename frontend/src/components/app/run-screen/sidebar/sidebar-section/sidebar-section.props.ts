@@ -1,4 +1,4 @@
-import { RunData, SectionIDs, Step, StepIID } from "@protzilla/utils";
+import { RunData, SectionIDs, Step, StepID } from "@protzilla/utils";
 
 export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   name: SectionIDs;
@@ -8,6 +8,6 @@ export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement
   isCollapsed: boolean;
   currentSteps: Step[];
   stepSectionIndex: number | undefined;
-  navigateOrRefreshSteps: (stepIID?: StepIID) => void;
+  navigateOrRefreshSteps: (stepID?: StepID) => void;
   runData: RunData;
 }

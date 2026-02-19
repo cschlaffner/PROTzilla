@@ -50,7 +50,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   buttonText,
   previousStepCalculationStatus,
   currentStepCalculationStatus,
-  current_step_iid,
+  current_step_id,
   isLastStep,
   onNext,
   onSubmit,
@@ -78,7 +78,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
 
   useEffect(() => {
     void getStepForm();
-  }, [current_step_iid, getStepForm]);
+  }, [current_step_id, getStepForm]);
 
   const handleChange = (name: string, value: BackendInputValueType) => {
     void getStepForm({ [name]: value });

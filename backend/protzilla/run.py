@@ -299,8 +299,8 @@ class Run:
 
     # @error_handling
     @auto_save
-    def step_remove(self, step_iid: str) -> None:
-        self.steps.remove_step(step_iid)
+    def step_remove(self, step_id: str) -> None:
+        self.steps.remove_step(step_id)
         self.update_metadata({"steps": [step.display_name for step in self.steps.all_steps.values()]})
 
 
@@ -344,8 +344,8 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_goto(self, step_iid: str) -> None:
-        self.steps.goto_step(step_iid)
+    def step_goto(self, step_id: str) -> None:
+        self.steps.goto_step(step_id)
 
     @error_handling
     def step_set_outdated(self) -> int:
@@ -383,4 +383,4 @@ class Run:
 
     @property
     def current_step_ready_for_calculation(self) -> bool:
-        return self.steps.calc_dependencies_met_for_step(self.steps.current_selected_step_iid)
+        return self.steps.calc_dependencies_met_for_step(self.steps.current_selected_step_id)

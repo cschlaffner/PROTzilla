@@ -1,6 +1,5 @@
 from __future__ import annotations
-from gettext import install
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
@@ -9,9 +8,7 @@ from backend.protzilla.steps import Step, Section, Output
 from backend.protzilla.constants.data_types import Connection, StepID
 
 import networkx as nx
-
-from warnings import deprecated
-
+import logging
 
 class StepManager:
     """
@@ -24,7 +21,6 @@ class StepManager:
     :ivar current_selected_step_id: ID of the currently selected step
     :ivar _id_clock: logical clock used for instance identifier creation
     """
-    @override
     def __repr__(self):
         return f"StepManager with {str(len(self.all_steps))} steps: {str(self.all_step_ids_toposorted)}"
 
@@ -260,7 +256,7 @@ class StepManager:
                     self.disk_operator._write_output(self.current_step)
                 )
             next_step_id = self.recommended_next_step_id
-            self.current_selected_step_id = next_step_id
+            self._current_selected_step_id = next_step_id
         else:
             raise ValueError("Cannot go to the next step from a terminal step")
 
@@ -274,7 +270,7 @@ class StepManager:
         """
         if not self.is_at_source_step:
             prev_step_id = list(self.graph.predecessors(self.current_selected_step_id))[0]
-            self.current_selected_step_id = prev_step_id
+            self._current_selected_step_id = prev_step_id
         else:
             raise ValueError("Cannot go back from a step with no predecessors")
 
@@ -394,7 +390,7 @@ class StepManager:
 
         return target_instance
 
-    def remove_graph_connection(self, source_id: str, target_id: str) -> None:
+    def remove_graph_connection(self, source_id: StepID, target_id: StepID) -> None:
         """
         Removes a connection between two steps. If multiple connections between these
         steps existed (i.e. 2+ outputs of source mapping to inputs on target), 
@@ -449,7 +445,7 @@ class StepManager:
 
 
     ##
-    ## Other methods
+    ## Step ID clock management
     ##
 
     def next_id_number(self) -> int:
@@ -546,7 +542,6 @@ class StepManager:
         return default
 
     @property
-    @deprecated("Use the flat hierarchy .all_step_instances() instead")
     def sections(self) -> dict[Section, list[Step]]:
         """
         For front-end compatibility.
@@ -568,7 +563,6 @@ class StepManager:
 
     # TODO B179: make obsolete and delete
     # Left from old code and slightly adjusted to keep functionality as much as possible
-    @deprecated("cringe")
     def get_instance_identifiers(
         self, step_type: type[Step], output_key: str | list[str] | None = None
     ) -> list[str]:
@@ -592,7 +586,6 @@ class StepManager:
     # which is a stupid context that will be deprecated with B179.
     # Looking forward to it @Tarek
     @staticmethod
-    @deprecated("Using this is stupid")
     def check_instance_identifier(step: Step, instance_identifier: str | None):
         return (
             step.instance_identifier == instance_identifier
@@ -601,13 +594,11 @@ class StepManager:
 
     # TODO B179
     @property
-    @deprecated("Protein DF should be explicitly taken from another step's outputs")
     def protein_df(self) -> pd.DataFrame:
         return self.get_step_output(output_key="protein_df")
 
     # TODO B179
     @property
-    @deprecated("Meta DF should be explicitly taken from another step's outputs")
     def metadata_df(self) -> pd.DataFrame | None:
         return self.get_step_output(output_key="metadata_df")
 

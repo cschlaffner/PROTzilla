@@ -81,8 +81,8 @@ def get_displayed_steps(steps: StepManager) -> list[dict]:
     """
     displayed_steps = []
 
-    for step_iid in steps.all_step_iids_toposorted:
-        step = steps.all_steps[step_iid]
+    for step_id in steps.all_step_ids_toposorted:
+        step = steps.all_steps[step_id]
         displayed_steps.append(get_step(step))
 
     return displayed_steps

@@ -1,7 +1,7 @@
 import type { DefaultColoredIconType, IconType } from "@protzilla/core";
 import { ContentText, DefaultColoredIcon, Icon } from "@protzilla/core";
 import { defaultPalette } from "@protzilla/theme";
-import { type SectionIDs, type Step, type StepIID } from "@protzilla/utils";
+import { type SectionIDs, type Step, type StepID } from "@protzilla/utils";
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
@@ -20,7 +20,7 @@ export interface StepNodeData extends Record<string, unknown> {
   step: Step;
   section: SectionIDs;
   isSelected: boolean;
-  navigateOrRefreshSteps: (stepIID?: StepIID) => void;
+  navigateOrRefreshSteps: (stepID?: StepID) => void;
   setHoveredHandleMeta: React.Dispatch<React.SetStateAction<HoveredHandleMeta>>;
 }
 

@@ -16,7 +16,7 @@ import {
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  StepIID,
+  StepID,
   SwitchComponent,
   Table,
 } from "@protzilla/utils";
@@ -93,16 +93,16 @@ export const RunScreen: React.FC = () => {
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
-  const navigateOrRefreshSteps = (stepIID?: StepIID) => {
+  const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
       If a step is selected, navigate to that step.
       If no step is selected, just refresh the run data to update the run list.
     */
 
-    if (stepIID) {
+    if (stepID) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
-        step_iid: stepIID,
+        step_id: stepID,
       }).then(() => {
         void getRunData();
         void getStepPlots();

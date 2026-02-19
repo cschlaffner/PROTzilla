@@ -367,12 +367,12 @@ def delete_step(request):
 
     data = json.loads(request.body)
     run_name = data.get("run_name")
-    step_iid = data.get("step_iid")
+    step_id = data.get("step_id")
 
     run = Run(run_name)
 
     try:
-        run.step_remove(step_iid)
+        run.step_remove(step_id)
     except ValueError as e:
         return JsonResponse({"success": False, "message": "Cannot delete step: " + str(e)})
         
@@ -383,10 +383,10 @@ def navigate_to_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        step_iid = data.get("step_iid")
+        step_id = data.get("step_id")
 
         run = Run(run_name)
-        run.step_goto(step_iid)
+        run.step_goto(step_id)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
     else:
@@ -613,8 +613,8 @@ def get_run_data(request):
         if run.current_step is not None:
             run_data["displayed_steps"] = get_displayed_steps(run.steps)
             run_data["current_section"] = run.current_step.section
-            run_data["current_step_iid"] = run.steps.current_selected_step_iid
-            run_data["recommended_next_step_iid"] = run.steps.recommended_next_step_iid
+            run_data["current_step_id"] = run.steps.current_selected_step_id
+            run_data["recommended_next_step_id"] = run.steps.recommended_next_step_id
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = (
                 True if run.current_step.plot_method is not None else False
@@ -625,7 +625,7 @@ def get_run_data(request):
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
             run_data["current_step"] = None
-            run_data["current_step_iid"] = None
+            run_data["current_step_id"] = None
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = False
 
@@ -751,7 +751,7 @@ def calculate_step(request):
         run.step_calculate()
 
         calculation_data = {}
-        calculation_data["step_iid"] = run.current_step.instance_identifier
+        calculation_data["step_id"] = run.current_step.instance_identifier
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [
             message for message in run.current_messages.messages
