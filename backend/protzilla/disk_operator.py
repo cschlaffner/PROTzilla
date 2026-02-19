@@ -95,9 +95,9 @@ class KEYS:
     DF_MODE: str = "df_mode"
     INPUT_SOURCES: str = "input_sources"
     VISUAL_DATA: str = "visual_data"
-    CURRENT_STEP_IID: str = "current_step_iid"
+    CURRENT_STEP_ID: str = "current_step_id"
     GRAPH_EDGES: str = "graph_edges"
-    IID_CLOCK: str = "iid_clock"
+    ID_CLOCK: str = "id_clock"
 
 
 class DiskOperator:
@@ -124,9 +124,9 @@ class DiskOperator:
             if edges is not None:
                 step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])
 
-            iid_clock = run.get(KEYS.IID_CLOCK)
-            if iid_clock is not None:
-                step_manager.iid_clock = iid_clock
+            id_clock = run.get(KEYS.ID_CLOCK)
+            if id_clock is not None:
+                step_manager._id_clock = id_clock
 
             return step_manager
 
@@ -138,11 +138,11 @@ class DiskOperator:
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
             run = {}
-            run[KEYS.CURRENT_STEP_IID] = step_manager.current_selected_step_iid
+            run[KEYS.CURRENT_STEP_ID] = step_manager.current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
             run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
-            run[KEYS.IID_CLOCK] = step_manager.iid_clock
+            run[KEYS.ID_CLOCK] = step_manager._id_clock
             for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)

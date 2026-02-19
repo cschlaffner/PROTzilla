@@ -173,7 +173,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
       run_name: runName,
-      step_iid: runData.current_step_iid,
+      step_id: runData.current_step_id,
     }).then((response) => {
       notify({
         type: response.success ? "success" : "error",
@@ -186,7 +186,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const allSteps: Step[] = runData.displayed_steps;
   const currentSectionId = runData.current_section as SectionIDs;
   const currentSection = supportedSections.find((section) => section.id === currentSectionId);
-  const currentStep = allSteps.find((step) => step.id === runData.current_step_iid)
+  const currentStep = allSteps.find((step) => step.id === runData.current_step_id)
 
   const currentStepCalculationStatus = currentStep.status;
   const buttonText =
@@ -205,7 +205,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
       
       effectAllSteps.forEach((step: Step) => {
-        const isSelected = runData.current_step_iid === step.id
+        const isSelected = runData.current_step_id === step.id
 
         const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
         const savedPosition = step.visual_data?.node_position;
@@ -304,10 +304,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           buttonText={buttonText}
           previousStepCalculationStatus={"complete"}
           currentStepCalculationStatus={currentStepCalculationStatus}
-          current_step_iid={runData.current_step_iid}
-          isLastStep={(!runData.recommended_next_step_iid)}
+          current_step_id={runData.current_step_id}
+          isLastStep={(!runData.recommended_next_step_id)}
           onNext={() => {
-            navigateOrRefreshSteps(runData.recommended_next_step_iid);
+            navigateOrRefreshSteps(runData.recommended_next_step_id);
           }}
           onSubmit={onFormSubmit}
           onChange={() => {

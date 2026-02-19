@@ -9,7 +9,7 @@ export interface SelectedStep {
   index: number;
 }
 
-type StepIID = string;
+type StepID = string;
 
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 
@@ -75,7 +75,7 @@ export interface Run {
 
 export interface RunData {
   current_section: string;
-  current_step_iid: StepIID;
+  current_step_id: StepID;
   displayed_steps: Step[];
   memory_usage: string;
   current_step_has_plot: boolean;
@@ -83,7 +83,7 @@ export interface RunData {
 
 export const emptyRunData: RunData = {
   current_section: "",
-  current_step_iid: "",
+  current_step_id: "",
   displayed_steps: [],
   memory_usage: "",
   current_step_has_plot: false,
