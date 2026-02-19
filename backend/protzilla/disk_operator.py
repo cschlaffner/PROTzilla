@@ -205,6 +205,8 @@ class DiskOperator:
         workflow = {}
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
+        workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
+        workflow[KEYS.ID_CLOCK] = step_manager._id_clock
         with ErrorHandler():
             for step in step_manager.all_steps.values():
                 step_data = self._write_step(step, workflow_mode=True).copy()
@@ -293,13 +295,13 @@ class DiskOperator:
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
+            step_data[KEYS.VISUAL_DATA] = step.visual_data
+            step_data[KEYS.INPUT_SOURCES] = step.input_sources
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
-                step_data[KEYS.INPUT_SOURCES] = step.input_sources
-                step_data[KEYS.VISUAL_DATA] = step.visual_data
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
