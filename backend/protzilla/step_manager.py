@@ -229,7 +229,7 @@ class StepManager:
         Go to a specific step in the workflow.
         :param step_id: The ID of the step to navigate to
         """
-        if step_id not in self.all_steps.keys():
+        if step_id not in self.all_steps:
             raise ValueError(f"Step {step_id} not found")
 
         # TODO: We'll keep this for now, but I assume this is unneccessary

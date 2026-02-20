@@ -89,8 +89,8 @@ class Step(ABC):
             logging.warning(
                 f"No instance identifier provided for step {self.__class__.__name__}, defaulting to class name."
             )
-            instance_identifier = self.__class__.__name__
-        self.instance_identifier = instance_identifier
+            instance_identifier = StepID(self.__class__.__name__)
+        self.instance_identifier: StepID = instance_identifier
 
     def __repr__(self):
         return self.__class__.__name__

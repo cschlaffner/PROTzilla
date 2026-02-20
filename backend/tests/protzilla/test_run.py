@@ -1,4 +1,5 @@
 import logging
+import pytest
 
 from backend.protzilla.methods.data_preprocessing import (
     ImputationByKNN,
@@ -6,46 +7,48 @@ from backend.protzilla.methods.data_preprocessing import (
 )
 from backend.protzilla.methods.importing import MaxQuantImport
 
+from backend.protzilla.run import Run
+from pathlib import Path
 
 class TestRun:
-    def test_init_standard(self, run_standard):
+    def test_init_standard(self, run_standard: Run):
         assert run_standard.workflow_name == "standard"
         assert run_standard.steps is not None
         assert run_standard.current_step is not None
-        assert run_standard.steps.current_step_index == 0
+        assert run_standard.steps.current_selected_step_id == "s00001_MaxQuantImport"
         assert run_standard.steps.current_section == "importing"
 
-    def test_init_empty(self, run_empty):
+    def test_init_empty(self, run_empty: Run):
         assert run_empty.workflow_name == ".test-run-empty"
         assert run_empty.steps is not None
         assert len(run_empty.steps.all_steps) == 0
-        assert run_empty.current_step is None
-        assert run_empty.steps.current_step_index == 0
+        assert run_empty.steps._current_selected_step_id is None
 
-    def test_init_imported(self, run_imported):
+    def test_init_imported(self, run_imported: Run):
         assert run_imported.workflow_name == ".test-run-empty"
         assert run_imported.steps is not None and len(run_imported.steps.all_steps) == 1
+        assert run_imported.current_step is not None
         assert (
             run_imported.current_step.output["protein_df"] is not None
             and not run_imported.current_step.output["protein_df"].empty
         )
-        assert run_imported.steps.current_step_index == 0
+        assert run_imported.steps.current_selected_step_id == "teststep01_MXQ"
         assert run_imported.steps.current_section == "importing"
 
-    def test_step_add(self, run_imported):
+    def test_step_add(self, run_imported: Run):
         step = ImputationByKNN()
         length_before = len(run_imported.steps.all_steps)
         run_imported.step_add(step)
         assert len(run_imported.steps.all_steps) == length_before + 1
 
-    def test_step_remove(self, run_imported):
-        step = ImputationByKNN()
+    def test_step_remove(self, run_imported: Run):
+        step = ImputationByKNN("teststep01")
         run_imported.step_add(step)
         length_before = len(run_imported.steps.all_steps)
-        run_imported.step_remove(step)
+        run_imported.step_remove("teststep01")
         assert len(run_imported.steps.all_steps) == length_before - 1
 
-    def test_step_calculate(self, run_empty, maxquant_data_file):
+    def test_step_calculate(self, run_empty: Run, maxquant_data_file: Path):
         step = MaxQuantImport()
         run_empty.step_add(step)
         run_empty.current_form(
@@ -57,12 +60,19 @@ class TestRun:
             }
         )
         run_empty.step_calculate()
+        assert run_empty.current_step is not None
         assert run_empty.current_step.output["protein_df"] is not None
         assert not run_empty.current_step.output["protein_df"].empty
 
-    def test_step_plot(self, run_imported):
-        step = ImputationByKNN()
+    def test_step_plot(self, run_imported: Run):
+        step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
+        run_imported.steps.connect_steps({
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_kNN",
+            "targetHandle": "protein_df",
+            })
         run_imported.step_next()
         run_imported.current_form(
             {
@@ -74,50 +84,61 @@ class TestRun:
             }
         )
         run_imported.step_calculate()
+        assert run_imported.current_step is not None
         assert run_imported.current_step == step
         print(run_imported.current_step.plots)
         assert not run_imported.current_step.plots.empty
 
-    def test_step_next(self, run_imported):
-        step = ImputationByKNN()
+    def test_step_next(self, run_imported: Run):
+        step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
+        run_imported.steps.connect_steps({
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_kNN",
+            "targetHandle": "protein_df",
+            })
         assert run_imported.current_step != step
         run_imported.step_next()
         assert run_imported.current_step == step
 
-    def test_step_previous(self, run_imported):
-        step = ImputationByKNN()
+    def test_step_previous(self, run_imported: Run):
+        step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
+        run_imported.steps.connect_steps({
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_kNN",
+            "targetHandle": "protein_df",
+            })
         run_imported.step_next()
         assert run_imported.current_step == step
         run_imported.step_previous()
         assert run_imported.current_step != step
 
-    def test_step_goto(self, caplog, run_imported):
-        step = ImputationByKNN()
-        run_imported.step_add(step)
-        run_imported.step_goto(0, "data_preprocessing_wrong")
+    def test_step_goto(self, run_import_and_imputation: Run):
+        run_import_and_imputation.step_goto("definitelyAWrongStepID")
         assert any(
             message["level"] == logging.ERROR and "ValueError" in message["msg"]
-            for message in run_imported.current_messages
+            for message in run_import_and_imputation.current_messages
         ), "No error messages found in run.current_messages"
-        assert run_imported.current_step != step
-        run_imported.step_next()
-        assert run_imported.current_step == step
-        run_imported.step_goto(0, "importing")
-        assert run_imported.current_step == run_imported.steps.all_steps[0]
+        assert run_import_and_imputation.steps.current_selected_step_id != "teststep02_kNN"
+        run_import_and_imputation.step_next()
+        assert run_import_and_imputation.steps.current_selected_step_id == "teststep02_kNN"
+        run_import_and_imputation.step_goto("teststep01_MXQ")
+        assert run_import_and_imputation.steps.current_selected_step_id == "teststep01_MXQ"
 
-    def test_set_steps_outdated(self, run_imported):
-        step = ImputationByKNN()
-        run_imported.step_add(step)
-        run_imported.step_next()
-        assert run_imported.current_step.calculation_status == "incomplete"
-        run_imported.step_calculate()
-        assert run_imported.current_step.calculation_status == "complete"
-        run_imported.step_set_outdated()
-        assert run_imported.current_step.calculation_status == "outdated"
+    def test_set_steps_outdated(self, run_import_and_imputation: Run):
+        run_import_and_imputation.step_next()
+        assert run_import_and_imputation.current_step is not None
+        assert run_import_and_imputation.current_step.calculation_status == "incomplete"
+        run_import_and_imputation.step_calculate()
+        assert run_import_and_imputation.current_step.calculation_status == "complete"
+        run_import_and_imputation.step_set_outdated()
+        assert run_import_and_imputation.current_step.calculation_status == "outdated"
 
-    def test_step_finished(self, run_standard, maxquant_data_file, metadata_file):
+    def test_step_finished(self, run_standard: Run, maxquant_data_file: Path, metadata_file: Path):
+        assert run_standard.current_step is not None
         assert run_standard.current_step.calculation_status == "incomplete"
 
         parameters = {
