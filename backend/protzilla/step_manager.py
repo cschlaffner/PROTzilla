@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
 
 from backend.protzilla.steps import Step, Section, Output
-from backend.protzilla.constants.data_types import Connection, StepID
+from backend.protzilla.constants.data_types import Connection, OutputLocator, StepID
 
 import networkx as nx
 import logging
@@ -367,22 +367,22 @@ class StepManager:
 
         # do we allow these keys to differ?
         # TODO: yes, we need a compatibility matrix. ~ Joris
-        if sourceHandle != targetHandle:
-            raise ValueError(
-                f"The output key {sourceHandle} does not match the input key {targetHandle}"
-            )
+        # if sourceHandle != targetHandle:
+        #     raise ValueError(
+        #         f"The output key {sourceHandle} does not match the input key {targetHandle}"
+        #     )
         target_instance = self.all_steps[target]
 
         # Skip connection if already connected
-        if target_instance.input_sources.get(targetHandle) == source:
+        old_source = target_instance.input_sources.get(targetHandle) 
+        if old_source is not None and old_source["step_id"] == source:
             return target_instance
 
         # Delete old connection in graph if input source changes from existing connection
-        old_source = target_instance.input_sources.get(targetHandle) 
         if old_source is not None:
-            self.remove_graph_connection(old_source, target)
+            self.remove_graph_connection(old_source["step_id"], target)
 
-        target_instance.input_sources[targetHandle] = source
+        target_instance.input_sources[targetHandle] = {"step_id": source, "key": sourceHandle}
         if not self.graph.has_edge(source, target):
             self.graph.add_edge(source, target, n_connections=1)
         else:
@@ -420,7 +420,10 @@ class StepManager:
         if target_instance is None:
             raise ValueError(f"No step with id {target} found")
         existing_source = target_instance.input_sources.get(targetHandle)
-        if existing_source == source:
+        if existing_source is None:
+            raise ValueError("No connection to delete")
+
+        if existing_source["step_id"] == source:
             self.remove_graph_connection(source, target)
             del target_instance.input_sources[targetHandle]
         return target_instance
@@ -432,15 +435,15 @@ class StepManager:
         """
         return [
             {
-                "source": source,
-                "sourceHandle": key,
+                "source": locator["step_id"],
+                "sourceHandle": locator["key"],
                 "target": step.instance_identifier,
                 "targetHandle": key,
-                "key": f"{source}->{step.instance_identifier}: {key}",
-                "id": f"{source}->{step.instance_identifier}: {key}",
+                "key": f"{locator['step_id']}:{locator['key']}->{step.instance_identifier}: {key}",
+                "id": f"{locator['step_id']}:{locator['key']}->{step.instance_identifier}: {key}",
             }
             for step in self.all_steps.values()
-            for key, source in step.input_sources.items()
+            for key, locator in step.input_sources.items()
         ]
 
 

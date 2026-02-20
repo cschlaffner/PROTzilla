@@ -11,10 +11,11 @@ from pathlib import Path
 from types import MethodType
 from typing import Any, Literal
 
+from matplotlib.pyplot import locator_params
 import pandas as pd
 
 from backend.main import settings
-from backend.protzilla.constants.data_types import DataKeys, StepID
+from backend.protzilla.constants.data_types import DataKeys, OutputLocator, StepID
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -47,7 +48,7 @@ class Step(ABC):
     display_name: str = None
     operation: str = None
     method_description: str = None
-    input_sources: dict[DataKeys, str]  # maps to instance identifier
+    input_sources: dict[DataKeys, OutputLocator]
     visual_data: dict
     internal_inputs: set[str] = set[str]()
     output_keys: list[DataKeys] = (
@@ -210,9 +211,9 @@ class Step(ABC):
 
         :param steps: The relevant StepManager instance
         """
-        for key, instance_identifier in self.input_sources.items():
+        for key, locator in self.input_sources.items():
             output = steps.get_step_output(
-                output_key=key, instance_identifier=instance_identifier
+                output_key=locator["key"], instance_identifier=locator["step_id"]
             ).copy()
             if output is None:
                 raise ValueError(

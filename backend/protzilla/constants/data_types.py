@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import pandas as pd
 from enum import Enum
 from typing import NewType, TypedDict
@@ -14,6 +15,10 @@ PeptideDf = NewType("PeptideDf", pd.DataFrame)
 MetadataDf = NewType("MetadataDf", pd.DataFrame)
 
 StepID = NewType("StepID", str)
+
+class OutputLocator(TypedDict):
+    step_id: StepID
+    key: DataKeys
 
 class Connection(TypedDict):
     """
