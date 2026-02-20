@@ -17,23 +17,45 @@ from protzilla.constants.paths import (
 )
 
 
-def load_regions_from_csv(regions_file_path: Path) -> list:
-    regions = []
-    with open(regions_file_path, "r") as f:
-        csvreader = csv.DictReader(f, delimiter=",")
-        assert set(csvreader.fieldnames) >= {
-            "name",
-            "region_end",
-            "group",
-            "short_name",
-        }, (
-            "Regions file must contain at least the columns 'name', 'region_end', 'group' and 'short_name but got "
-            f"{csvreader.fieldnames}"
-        )
-        for row in csvreader:
-            regions.append(
-                (row["name"], int(row["region_end"]), row["group"], row["short_name"])
+def load_regions_from_csv(regions_file_path: Path) -> pd.DataFrame:
+    regions = pd.read_csv(regions_file_path)
+    # TODO: update again, if we add more
+    required_column_names = {"name", "region_end", "region_start", "group", "short_name"}
+    assert required_column_names.issubset(
+        set(regions.columns)
+    ), (
+        f"Regions file must contain at least the columns {sorted(list(required_column_names))} but got "
+        f"{sorted(regions.columns)}"
+    )
+    regions.sort_values(by=["region_start", "region_end"], inplace=True)
+
+    num_overlaps = 0
+    for i in range(1, len(regions)):
+        if regions.iloc[i]["region_start"] < regions.iloc[i - 1]["region_end"]:
+            num_overlaps += 1
+        if num_overlaps > 1:
+            # TODO: write test
+            raise ValueError(
+                f"Too many overlapping regions found. Currently, the tool only supports one exon (one overlapping region)"
             )
+
+    # TODO: remove
+    # regions = []
+    # with open(regions_file_path, "r") as f:
+    #     csvreader = csv.DictReader(f, delimiter=",")
+    #     assert set(csvreader.fieldnames) >= {
+    #         "name",
+    #         "region_end",
+    #         "group",
+    #         "short_name",
+    #     }, (
+    #         "Regions file must contain at least the columns 'name', 'region_end', 'group' and 'short_name but got "
+    #         f"{csvreader.fieldnames}"
+    #     )
+    #     for row in csvreader:
+    #         regions.append(
+    #             (row["name"], int(row["region_end"]), row["group"], row["short_name"])
+    #         )
     return regions
 
 
