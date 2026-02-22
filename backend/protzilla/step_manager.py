@@ -375,8 +375,14 @@ class StepManager:
 
         # Skip connection if already connected
         old_source = target_instance.input_sources.get(targetHandle) 
-        if old_source is not None and old_source["step_id"] == source:
+        if old_source is not None and old_source["step_id"] == source and old_source["key"] == sourceHandle:
             return target_instance
+
+        # Abort if connection creates cycle
+        probe_graph = self.graph.copy()
+        probe_graph.add_edge(source, target)
+        if not nx.is_directed_acyclic_graph(probe_graph):
+            raise ValueError("The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted.")
 
         # Delete old connection in graph if input source changes from existing connection
         if old_source is not None:
