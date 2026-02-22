@@ -192,6 +192,7 @@ def validate_with_angstrom_deviation(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
+    is_multimer: bool,
 ) -> dict:
     """
     Validates cross-links by comparing the cross-linker lengths with the distances between the linked
@@ -217,10 +218,13 @@ def validate_with_angstrom_deviation(
 
     all_crosslinks_df = crosslinking_df.copy()
 
-    # we are only interested in intra-crosslinks of the protein we want to validate
-    mask = (all_crosslinks_df.Protein_id1 == structure_to_validate) & (
-        all_crosslinks_df.Protein_id2 == structure_to_validate
-    )
+    if not is_multimer:
+        # we are only interested in intra-crosslinks of the protein we want to validate
+        mask = (all_crosslinks_df.Protein_id1 == structure_to_validate) & (
+            all_crosslinks_df.Protein_id2 == structure_to_validate
+        )
+    else:
+        mask = all_crosslinks_df.Protein_id1 == structure_to_validate
     relevant_crosslinks_df = all_crosslinks_df[mask].copy()
 
     relevant_crosslinks_df, messages = (

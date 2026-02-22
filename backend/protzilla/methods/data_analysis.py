@@ -69,6 +69,8 @@ from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (
     ImportMonomerStructurePredictionFromDisk,
     AlphaFoldPredictionLoad,
+    ImportMultimerStructurePredictionFromDisk,
+    UploadMultimerPredictions,
 )
 
 
@@ -2544,13 +2546,7 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
         )
 
 
-class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
-    display_name = "Ångström Deviation"
-    operation = "Cross Linking Validation"
-    method_description = "Validates cross links based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
-
-    output_keys = ["crosslinking_result_df"]
-
+class CrosslinkingValidation(DataAnalysisStep):
     @staticmethod
     def _get_crosslinker_names_from_crosslinker_df(steps: StepManager) -> list[str]:
         df = steps.get_step_output(Step, output_key="crosslinking_df")
@@ -2559,9 +2555,74 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         crosslinkers = df["Crosslinker"].dropna().unique()
         return list(crosslinkers)
 
+    def create_crosslink_input_fields(self, form: Form, run: Run):
+        crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
+        for crosslinker in crosslinkers:
+            field_name = f"{crosslinker}_length"
+            if field_name not in form:
+                crosslinker_length_field = FloatField(
+                    name=field_name,
+                    label=f"Length of {crosslinker} in Ångström",
+                    min=0,
+                )
+                upper_bound_length_deviation_field = FloatField(
+                    name=f"{crosslinker}_upper_accepted_deviation",
+                    label=f"Upper bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    min=0,
+                )
+                lower_bound_length_deviation_field = FloatField(
+                    name=f"{crosslinker}_lower_accepted_deviation",
+                    label=f"Lower bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    min=0,
+                )
+                form.add_field(crosslinker_length_field)
+                form.add_field(upper_bound_length_deviation_field)
+                form.add_field(lower_bound_length_deviation_field)
+
+    def collect_crosslinking_information(self, steps: StepManager, inputs) -> dict:
+        # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
+        crosslinker_to_length_and_deviation = {}
+        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
+            crosslinker_to_length_and_deviation[crosslinker] = [
+                inputs.get(f"{crosslinker}_length"),
+                inputs.get(f"{crosslinker}_upper_accepted_deviation"),
+                inputs.get(f"{crosslinker}_lower_accepted_deviation"),
+            ]
+        return crosslinker_to_length_and_deviation
+
+    def insert_dataframes_with_correct_input_step_id(
+        self, steps, inputs, correct_input_step_identifier: str
+    ) -> dict:
+        inputs["cif_df"] = steps.get_step_output(
+            Step, "cif_df", correct_input_step_identifier
+        )
+        inputs["amino_acid_sequences_df"] = steps.get_step_output(
+            Step, "amino_acid_sequences_df", correct_input_step_identifier
+        )
+        inputs["crosslinking_df"] = steps.get_step_output(
+            Step,
+            "crosslinking_df",
+        )
+        if inputs.get("crosslinking_df") is None:
+            raise ValueError("No cross linking data found.")
+
+        inputs["crosslinker_information"] = self.collect_crosslinking_information(
+            steps=steps, inputs=inputs
+        )
+
+        return inputs
+
+
+class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
+    display_name = "Ångström Deviation For Monomer Structures"
+    operation = "Cross Linking Validation"
+    method_description = "Validates cross links within the one protein structure based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+
+    output_keys = ["crosslinking_result_df"]
+
     def create_form(self):
         return Form(
-            label="Ångström Deviation",
+            label="Ångström Deviation - Monomer",
             input_fields=[
                 DropdownField(
                     name="structure_to_validate",
@@ -2586,28 +2647,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
             form_helper.to_choices(loaded_protein_entry_ids)
         )
         # create fields for every crosslink
-        crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
-        for crosslinker in crosslinkers:
-            field_name = f"{crosslinker}_length"
-            if field_name not in form:
-                crosslinker_length_field = FloatField(
-                    name=field_name,
-                    label=f"Length of {crosslinker} in Ångström",
-                    min=0,
-                )
-                upper_bound_length_deviation_field = FloatField(
-                    name=f"{crosslinker}_upper_accepted_deviation",
-                    label=f"Upper bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
-                    min=0,
-                )
-                lower_bound_length_deviation_field = FloatField(
-                    name=f"{crosslinker}_lower_accepted_deviation",
-                    label=f"Lower bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
-                    min=0,
-                )
-                form.add_field(crosslinker_length_field)
-                form.add_field(upper_bound_length_deviation_field)
-                form.add_field(lower_bound_length_deviation_field)
+        self.create_crosslink_input_fields(form=form, run=run)
 
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
     calc_method = staticmethod(validate_with_angstrom_deviation)
@@ -2619,27 +2659,64 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         ) or steps.get_step_identifier_of_step_with_input(
             AlphaFoldPredictionLoad, "uniprot_id", entry_id
         )
-        inputs["cif_df"] = steps.get_step_output(
-            Step, "cif_df", correct_input_step_identifier
-        )
-        inputs["amino_acid_sequences_df"] = steps.get_step_output(
-            Step, "amino_acid_sequences_df", correct_input_step_identifier
-        )
-        inputs["crosslinking_df"] = steps.get_step_output(
-            Step,
-            "crosslinking_df",
-        )
-        if inputs.get("crosslinking_df") is None:
-            raise ValueError("No cross linking data found.")
 
-        # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
-        crosslinker_to_length_and_deviation = {}
-        for crosslinker in self._get_crosslinker_names_from_crosslinker_df(steps):
-            crosslinker_to_length_and_deviation[crosslinker] = [
-                inputs.get(f"{crosslinker}_length"),
-                inputs.get(f"{crosslinker}_upper_accepted_deviation"),
-                inputs.get(f"{crosslinker}_lower_accepted_deviation"),
-            ]
-        inputs["crosslinker_information"] = crosslinker_to_length_and_deviation
+        inputs["is_multimer"] = False
+        return self.insert_dataframes_with_correct_input_step_id(
+            steps=steps,
+            inputs=inputs,
+            correct_input_step_identifier=correct_input_step_identifier,
+        )
 
-        return inputs
+
+class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidation):
+    display_name = "Ångström Deviation For Multimer Structures"
+    operation = "Cross Linking Validation"
+    method_description = "Validates cross links between proteins based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+
+    output_keys = ["crosslinking_result_df"]
+
+    def create_form(self):
+        return Form(
+            label="Ångström Deviation - Multimer",
+            input_fields=[
+                DropdownField(
+                    name="structure_to_validate",
+                    label="Multimer prediction that should be validated",
+                ),
+            ],
+        )
+
+    def modify_form(self, form: Form, run: Run) -> None:
+        # add all loaded protein entry ids to the dropdown of structure_to_validate_field
+        loaded_proteins_entry_ids = list(
+            set(
+                run.steps.get_inputs_of_step_type(
+                    ImportMultimerStructurePredictionFromDisk, "entry_id"
+                )
+                + run.steps.get_inputs_of_step_type(
+                    UploadMultimerPredictions, "entry_id"
+                )
+            )
+        )
+        form["structure_to_validate"].set_options(
+            form_helper.to_choices(loaded_proteins_entry_ids)
+        )
+        self.create_crosslink_input_fields(form=form, run=run)
+
+    plot_method = staticmethod(bar_plot_of_valid_crosslinks)
+    calc_method = staticmethod(validate_with_angstrom_deviation)
+
+    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
+        entry_id = inputs["structure_to_validate"]
+        correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
+            ImportMultimerStructurePredictionFromDisk, "entry_id", entry_id
+        ) or steps.get_step_identifier_of_step_with_input(
+            UploadMultimerPredictions, "entry_id", entry_id
+        )
+
+        inputs["is_multimer"] = False
+        return self.insert_dataframes_with_correct_input_step_id(
+            steps=steps,
+            inputs=inputs,
+            correct_input_step_identifier=correct_input_step_identifier,
+        )

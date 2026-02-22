@@ -9,7 +9,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     get_distance_between_two_amino_acids_in_angstrom,
     add_positions_of_amino_acid_where_crosslinker_bound_to_df,
 )
-from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
+from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDeviation
 
 
 @pytest.mark.parametrize(
@@ -75,7 +75,7 @@ def test_modify_form_creates_crosslinker_fields():
     run = MagicMock()
     run.steps = steps
 
-    step = CrossLinkingValidationWithAngstromDeviation()
+    step = CrosslinkingValidationWithAngstromDeviation()
     form = step.create_form()
 
     step.modify_form(form, run)
