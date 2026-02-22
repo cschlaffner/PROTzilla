@@ -2564,14 +2564,14 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
             label="Ångström Deviation",
             input_fields=[
                 DropdownField(
-                    name="protein_to_validate",
+                    name="structure_to_validate",
                     label="Protein prediction that should be validated",
                 ),
             ],
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        # add all loaded protein entry ids to the dropdown of protein_to_validate_field
+        # add all loaded protein entry ids to the dropdown of structure_to_validate_field
         loaded_protein_entry_ids = list(
             set(
                 run.steps.get_inputs_of_step_type(
@@ -2582,7 +2582,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
                 )
             )
         )
-        form["protein_to_validate"].set_options(
+        form["structure_to_validate"].set_options(
             form_helper.to_choices(loaded_protein_entry_ids)
         )
         # create fields for every crosslink
@@ -2613,7 +2613,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["protein_to_validate"]
+        entry_id = inputs["structure_to_validate"]
         correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
             ImportMonomerStructurePredictionFromDisk, "entry_id", entry_id
         ) or steps.get_step_identifier_of_step_with_input(
@@ -2622,8 +2622,8 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         inputs["cif_df"] = steps.get_step_output(
             Step, "cif_df", correct_input_step_identifier
         )
-        inputs["amino_acid_sequence_df"] = steps.get_step_output(
-            Step, "amino_acid_sequence_df", correct_input_step_identifier
+        inputs["amino_acid_sequences_df"] = steps.get_step_output(
+            Step, "amino_acid_sequences_df", correct_input_step_identifier
         )
         inputs["crosslinking_df"] = steps.get_step_output(
             Step,

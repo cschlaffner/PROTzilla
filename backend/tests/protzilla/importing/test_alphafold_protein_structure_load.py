@@ -18,7 +18,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     get_multimer_metadata_df,
     get_correct_af_directories,
     extend_metadata_csv,
-    get_amino_acid_sequence_df,
+    get_amino_acid_sequences_df,
     handle_alphafold_files,
     upload_multimer_prediction,
     check_and_get_metadata_df,
@@ -131,7 +131,7 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "amino_acid_sequence_df",
+        "amino_acid_sequences_df",
         "messages",
     }
 
@@ -203,7 +203,7 @@ def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
     assert isinstance(plddt_df, pd.DataFrame)
     assert not plddt_df.empty
 
-    seq_df = out["amino_acid_sequence_df"]
+    seq_df = out["amino_acid_sequences_df"]
     assert isinstance(seq_df, pd.DataFrame)
     assert not seq_df.empty
 
@@ -320,10 +320,10 @@ CA C 2.0
     assert out["plddt_df"]["residueNumber"].tolist() == [1]
     assert out["plddt_df"]["confidenceScore"].tolist() == [90]
 
-    assert isinstance(out["amino_acid_sequence_df"], pd.DataFrame)
-    assert not out["amino_acid_sequence_df"].empty
-    assert out["amino_acid_sequence_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
-    assert out["amino_acid_sequence_df"]["Protein Sequence"].tolist() == ["AAAA"]
+    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
+    assert not out["amino_acid_sequences_df"].empty
+    assert out["amino_acid_sequences_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
+    assert out["amino_acid_sequences_df"]["Protein Sequence"].tolist() == ["AAAA"]
 
     assert any(d.get("level") == logging.INFO for d in out["messages"]) or any(
         "Successfully loaded" in d.get("msg", "") for d in out["messages"]
@@ -400,12 +400,12 @@ def test_extend_metadata_csv_overwrite_and_new(tmp_path):
     assert out2.iloc[0]["entry_id"] == "C"
 
 
-def test_get_amino_acid_sequence_df_and_handle_files(tmp_path, monkeypatch):
-    # create a fasta and call get_amino_acid_sequence_df directly
+def test_get_amino_acid_sequences_df_and_handle_files(tmp_path, monkeypatch):
+    # create a fasta and call get_amino_acid_sequences_df directly
     fasta = tmp_path / "P.fasta"
     fasta.write_text(">alpha|P\nTESTSEQ\n")
     messages = []
-    seq_df = get_amino_acid_sequence_df(fasta, messages)
+    seq_df = get_amino_acid_sequences_df(fasta, messages)
     assert isinstance(seq_df, pd.DataFrame)
     assert not seq_df.empty
 
@@ -414,11 +414,11 @@ def test_get_amino_acid_sequence_df_and_handle_files(tmp_path, monkeypatch):
     out = handle_alphafold_files(
         {}, "P", "TESTSEQ", metadata_df, "P", persist_upload=False
     )
-    assert "amino_acid_sequence_df" in out
+    assert "amino_acid_sequences_df" in out
     assert isinstance(out["cif_df"], pd.DataFrame) and out["cif_df"].empty
     assert isinstance(out["pae_df"], pd.DataFrame) and out["pae_df"].empty
     assert isinstance(out["plddt_df"], pd.DataFrame) and out["plddt_df"].empty
-    assert isinstance(out["amino_acid_sequence_df"], pd.DataFrame)
+    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
 
 
 def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):

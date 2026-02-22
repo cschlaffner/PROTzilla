@@ -1,7 +1,6 @@
 import pandas as pd
 import pytest
 import logging
-from unittest.mock import patch
 from unittest.mock import MagicMock
 
 
@@ -34,7 +33,7 @@ def test_validate_with_angstrom_deviation(distance, expected):
         }
     )
 
-    amino_acid_sequence_df = pd.DataFrame({"Protein Sequence": ["AB"]})
+    amino_acid_sequences_df = pd.DataFrame({"Protein Sequence": ["AB"]})
 
     # Fake Crosslink Data
     crosslinking_df = pd.DataFrame(
@@ -53,9 +52,9 @@ def test_validate_with_angstrom_deviation(distance, expected):
 
     result = validate_with_angstrom_deviation(
         crosslinking_df,
-        protein_to_validate="P12345",
+        structure_to_validate="P12345",
         crosslinker_information=crosslinker_information,
-        amino_acid_sequence_df=amino_acid_sequence_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
     )
 
