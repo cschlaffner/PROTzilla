@@ -10,6 +10,7 @@ from backend.protzilla.constants.data_types import Connection, OutputLocator, St
 import networkx as nx
 import logging
 
+
 class StepManager:
     """
     Manages steps within a run.
@@ -21,6 +22,7 @@ class StepManager:
     :ivar current_selected_step_id: ID of the currently selected step
     :ivar _id_clock: logical clock used for instance identifier creation
     """
+
     def __repr__(self):
         return f"StepManager with {str(len(self.all_steps))} steps: {str(self.all_step_ids_toposorted)}"
 
@@ -99,7 +101,7 @@ class StepManager:
     ##
     ## Specific sets of steps/ids or step attributes by graph properties
     ##
-    
+
     def preceding_steps(self, step_id: StepID) -> list[Step]:
         """
         :param step_id: ID of step of interest
@@ -118,7 +120,7 @@ class StepManager:
 
     def step_is_terminal(self, step_id: StepID) -> bool:
         return int(self.graph.out_degree(step_id)) == 0
-    
+
     def step_is_source(self, step_id: StepID) -> bool:
         return int(self.graph.in_degree(step_id)) == 0
 
@@ -127,7 +129,12 @@ class StepManager:
         Checks calculation status of all preceding steps in the graph.
         :return: True iff all preceding steps have been calculated
         """
-        return all([step.calculation_status == "complete" for step in self.preceding_steps(step_id)])
+        return all(
+            [
+                step.calculation_status == "complete"
+                for step in self.preceding_steps(step_id)
+            ]
+        )
 
     ##
     ## Batch invalidation
@@ -136,7 +143,7 @@ class StepManager:
     def invalidate_current_and_following_steps(self) -> int:
         """
         Invalidates the current step and all dependent/following steps.
-        
+
         :return: the amount of invalidated steps
         """
         steps_to_remove = [self.current_step] + self.following_steps
@@ -151,6 +158,7 @@ class StepManager:
         """
         for step in self.succeeding_steps(step_id):
             step.clear_generated_artifacts()
+
     ##
     ## "Current step" management and navigation info
     ##
@@ -198,7 +206,6 @@ class StepManager:
     @property
     def is_at_source_step(self) -> bool:
         return self.step_is_source(self.current_selected_step_id)
-
 
     @property
     def fallback_step_id(self) -> StepID:
@@ -269,7 +276,9 @@ class StepManager:
         :return: None
         """
         if not self.is_at_source_step:
-            prev_step_id = list(self.graph.predecessors(self.current_selected_step_id))[0]
+            prev_step_id = list(self.graph.predecessors(self.current_selected_step_id))[
+                0
+            ]
             self._current_selected_step_id = prev_step_id
         else:
             raise ValueError("Cannot go back from a step with no predecessors")
@@ -298,7 +307,7 @@ class StepManager:
         # Reset current step if this is the only existing step
         if len(self.all_steps) == 1:
             self._current_selected_step_id = step.instance_identifier
-        
+
         self.graph.add_node(step.instance_identifier)
 
     def remove_step(self, step_id: StepID) -> None:
@@ -316,33 +325,29 @@ class StepManager:
         # Note: this reproduces the old approach
         # It's questionable whether or not we need this
         self._clear_succeeding_steps(step_id)
-        
+
         # Navigate to a predecessor if step was selected
-        mustNavigateToFallback = False
-        if self.current_selected_step_id == step_id:
-            try:
-                self.previous_step()
-            except ValueError: # No previous step
-                mustNavigateToFallback = True
-    
+        # Else navigate to a fallback option
+        try:
+            self.previous_step()
+        except ValueError:  # No previous step
+            self.goto_step(self.fallback_step_id)
+
         # Remove all dangling references
         for step in self.all_steps.values():
             step.input_sources = {
-                data_key: mapped_step_id 
-                for data_key, mapped_step_id 
-                in step.input_sources.items() 
+                data_key: mapped_step_id
+                for data_key, mapped_step_id in step.input_sources.items()
                 if mapped_step_id != step_id
             }
 
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
 
-        if mustNavigateToFallback:
-            self.goto_step(self.fallback_step_id)
-    
-    ## 
+
+    ##
     ## Connection management
-    ## 
+    ##
 
     def connect_steps(self, connection: Connection) -> Step:
         """
@@ -362,7 +367,8 @@ class StepManager:
             targetHandle = connection["targetHandle"]
         except KeyError as e:
             raise KeyError(
-                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle" + str(e)
+                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
+                + str(e)
             ) from e
 
         # do we allow these keys to differ?
@@ -374,21 +380,30 @@ class StepManager:
         target_instance = self.all_steps[target]
 
         # Skip connection if already connected
-        old_source = target_instance.input_sources.get(targetHandle) 
-        if old_source is not None and old_source["step_id"] == source and old_source["key"] == sourceHandle:
+        old_source = target_instance.input_sources.get(targetHandle)
+        if (
+            old_source is not None
+            and old_source["step_id"] == source
+            and old_source["key"] == sourceHandle
+        ):
             return target_instance
 
         # Abort if connection creates cycle
         probe_graph = self.graph.copy()
         probe_graph.add_edge(source, target)
         if not nx.is_directed_acyclic_graph(probe_graph):
-            raise ValueError("The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted.")
+            raise ValueError(
+                "The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted."
+            )
 
         # Delete old connection in graph if input source changes from existing connection
         if old_source is not None:
             self.remove_graph_connection(old_source["step_id"], target)
 
-        target_instance.input_sources[targetHandle] = {"step_id": source, "key": sourceHandle}
+        target_instance.input_sources[targetHandle] = {
+            "step_id": source,
+            "key": sourceHandle,
+        }
         if not self.graph.has_edge(source, target):
             self.graph.add_edge(source, target, n_connections=1)
         else:
@@ -399,7 +414,7 @@ class StepManager:
     def remove_graph_connection(self, source_id: StepID, target_id: StepID) -> None:
         """
         Removes a connection between two steps. If multiple connections between these
-        steps existed (i.e. 2+ outputs of source mapping to inputs on target), 
+        steps existed (i.e. 2+ outputs of source mapping to inputs on target),
         the connetion counter is decremented. If no more such connections exist,
         the edge is deleted from the graph.
 
@@ -451,7 +466,6 @@ class StepManager:
             for step in self.all_steps.values()
             for key, locator in step.input_sources.items()
         ]
-
 
     ##
     ## Step ID clock management
@@ -557,7 +571,12 @@ class StepManager:
 
         :return: Dict mapping section titles to lists of step objects
         """
-        return {section: [step for step in self.all_steps.values() if step.section == section] for section in Section}
+        return {
+            section: [
+                step for step in self.all_steps.values() if step.section == section
+            ]
+            for section in Section
+        }
 
     def all_steps_in_section(self, section: Section) -> list[Step]:
         """
@@ -614,5 +633,7 @@ class StepManager:
     def get_step_operation(self, step_id: str) -> str:
         try:
             return self.all_steps[step_id].operation
-        except KeyError: # TODO: Should really not happen and should be caught in a different way
+        except (
+            KeyError
+        ):  # TODO: Should really not happen and should be caught in a different way
             raise ValueError(f"No step associated with ID {step_id}")

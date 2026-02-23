@@ -22,6 +22,7 @@ from backend.protzilla.methods.data_preprocessing import (
     ImputationByKNN,
 )
 
+
 def pytest_addoption(parser):
     parser.addoption(
         "--show-figures",
@@ -84,6 +85,7 @@ def run_imported(run_name_and_cleanup, maxquant_data_file):
     run.step_calculate()
     yield run
 
+
 @pytest.fixture(scope="function")
 def run_import_and_imputation(run_name_and_cleanup, maxquant_data_file):
     run_name = run_name_and_cleanup
@@ -99,13 +101,16 @@ def run_import_and_imputation(run_name_and_cleanup, maxquant_data_file):
     )
     run.step_calculate()
     run.step_add(ImputationByKNN("teststep02_kNN"))
-    run.steps.connect_steps({
-        "source": "teststep01_MXQ",
-        "sourceHandle": "protein_df",
-        "target": "teststep02_kNN",
-        "targetHandle": "protein_df",
-        })
+    run.steps.connect_steps(
+        {
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_kNN",
+            "targetHandle": "protein_df",
+        }
+    )
     yield run
+
 
 @pytest.fixture(scope="session")
 def show_figures(request):
