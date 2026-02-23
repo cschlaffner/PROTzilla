@@ -356,6 +356,7 @@ def add_step(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+
 def delete_step(request):
     """
     API call. Deletes the step with the given instance identifier
@@ -374,10 +375,12 @@ def delete_step(request):
     try:
         run.step_remove(step_id)
     except ValueError as e:
-        return JsonResponse({"success": False, "message": "Cannot delete step: " + str(e)})
-        
+        return JsonResponse(
+            {"success": False, "message": "Cannot delete step: " + str(e)}
+        )
 
     return JsonResponse({"success": True, "message": "Deleted step"})
+
 
 def navigate_to_step(request):
     if request.method == "POST":
@@ -602,6 +605,8 @@ def delete_workflow(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+
 def get_run_data(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -742,10 +747,14 @@ def calculate_step(request):
 
         if not run.current_step_ready_for_calculation:
             return JsonResponse(
-            { 
-                "success": False,
-                "message": dict(level=logging.ERROR, msg="At least one dependent step has not been calculated yet")
-            })
+                {
+                    "success": False,
+                    "message": dict(
+                        level=logging.ERROR,
+                        msg="At least one dependent step has not been calculated yet",
+                    ),
+                }
+            )
 
         run.current_form(user_input)
         run.step_calculate()

@@ -301,8 +301,9 @@ class Run:
     @auto_save
     def step_remove(self, step_id: str) -> None:
         self.steps.remove_step(step_id)
-        self.update_metadata({"steps": [step.display_name for step in self.steps.all_steps.values()]})
-
+        self.update_metadata(
+            {"steps": [step.display_name for step in self.steps.all_steps.values()]}
+        )
 
     @auto_save
     def connect_steps(self, connection: Connection) -> None:
@@ -383,4 +384,6 @@ class Run:
 
     @property
     def current_step_ready_for_calculation(self) -> bool:
-        return self.steps.calc_dependencies_met_for_step(self.steps.current_selected_step_id)
+        return self.steps.calc_dependencies_met_for_step(
+            self.steps.current_selected_step_id
+        )

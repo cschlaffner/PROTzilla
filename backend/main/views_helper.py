@@ -57,6 +57,7 @@ def convert_str_if_possible(s):
             return numbers
         return s
 
+
 # TODO: Rename this
 def get_step(step: Step) -> dict:
     return {
@@ -86,7 +87,8 @@ def get_displayed_steps(steps: StepManager) -> list[dict]:
         displayed_steps.append(get_step(step))
 
     return displayed_steps
-        
+
+
 # TODO display_message, display_messages, clear_messages
 
 

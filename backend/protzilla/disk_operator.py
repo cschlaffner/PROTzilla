@@ -119,7 +119,7 @@ class DiskOperator:
                     logger.error(f"Error reading step: {e}")
                     continue
                 step_manager.add_step(step)
-            
+
             edges = run.get(KEYS.GRAPH_EDGES)
             if edges is not None:
                 step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])

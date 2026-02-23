@@ -10,6 +10,7 @@ from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 from pathlib import Path
 
+
 class TestRun:
     def test_init_standard(self, run_standard: Run):
         assert run_standard.workflow_name == "standard"
@@ -67,12 +68,14 @@ class TestRun:
     def test_step_plot(self, run_imported: Run):
         step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
-        run_imported.steps.connect_steps({
-            "source": "teststep01_MXQ",
-            "sourceHandle": "protein_df",
-            "target": "teststep02_kNN",
-            "targetHandle": "protein_df",
-            })
+        run_imported.steps.connect_steps(
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_kNN",
+                "targetHandle": "protein_df",
+            }
+        )
         run_imported.step_next()
         run_imported.current_form(
             {
@@ -92,12 +95,14 @@ class TestRun:
     def test_step_next(self, run_imported: Run):
         step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
-        run_imported.steps.connect_steps({
-            "source": "teststep01_MXQ",
-            "sourceHandle": "protein_df",
-            "target": "teststep02_kNN",
-            "targetHandle": "protein_df",
-            })
+        run_imported.steps.connect_steps(
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_kNN",
+                "targetHandle": "protein_df",
+            }
+        )
         assert run_imported.current_step != step
         run_imported.step_next()
         assert run_imported.current_step == step
@@ -105,12 +110,14 @@ class TestRun:
     def test_step_previous(self, run_imported: Run):
         step = ImputationByKNN("teststep02_kNN")
         run_imported.step_add(step)
-        run_imported.steps.connect_steps({
-            "source": "teststep01_MXQ",
-            "sourceHandle": "protein_df",
-            "target": "teststep02_kNN",
-            "targetHandle": "protein_df",
-            })
+        run_imported.steps.connect_steps(
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_kNN",
+                "targetHandle": "protein_df",
+            }
+        )
         run_imported.step_next()
         assert run_imported.current_step == step
         run_imported.step_previous()
@@ -122,11 +129,17 @@ class TestRun:
             message["level"] == logging.ERROR and "ValueError" in message["msg"]
             for message in run_import_and_imputation.current_messages
         ), "No error messages found in run.current_messages"
-        assert run_import_and_imputation.steps.current_selected_step_id != "teststep02_kNN"
+        assert (
+            run_import_and_imputation.steps.current_selected_step_id != "teststep02_kNN"
+        )
         run_import_and_imputation.step_next()
-        assert run_import_and_imputation.steps.current_selected_step_id == "teststep02_kNN"
+        assert (
+            run_import_and_imputation.steps.current_selected_step_id == "teststep02_kNN"
+        )
         run_import_and_imputation.step_goto("teststep01_MXQ")
-        assert run_import_and_imputation.steps.current_selected_step_id == "teststep01_MXQ"
+        assert (
+            run_import_and_imputation.steps.current_selected_step_id == "teststep01_MXQ"
+        )
 
     def test_set_steps_outdated(self, run_import_and_imputation: Run):
         run_import_and_imputation.step_next()
@@ -137,7 +150,9 @@ class TestRun:
         run_import_and_imputation.step_set_outdated()
         assert run_import_and_imputation.current_step.calculation_status == "outdated"
 
-    def test_step_finished(self, run_standard: Run, maxquant_data_file: Path, metadata_file: Path):
+    def test_step_finished(
+        self, run_standard: Run, maxquant_data_file: Path, metadata_file: Path
+    ):
         assert run_standard.current_step is not None
         assert run_standard.current_step.calculation_status == "incomplete"
 
@@ -183,30 +198,49 @@ class TestRun:
 
         assert run_standard.current_step.calculation_status == "complete"
 
-    def test_multiple_steps_calculate(self, run_imported):
-        step1 = FilterSamplesByProteinsMissing()
-        step2 = ImputationByKNN()
+    def test_multiple_steps_calculate(self, run_imported: Run):
+        step1 = FilterSamplesByProteinsMissing("teststep02_filter")
         run_imported.step_add(step1)
+        run_imported.steps.connect_steps(
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_filter",
+                "targetHandle": "protein_df",
+            }
+        )
+
+        step2 = ImputationByKNN("teststep03_kNN")
         run_imported.step_add(step2)
+        run_imported.steps.connect_steps(
+            {
+                "source": "teststep02_filter",
+                "sourceHandle": "protein_df",
+                "target": "teststep03_kNN",
+                "targetHandle": "protein_df",
+            }
+        )
+
         run_imported.step_next()
         run_imported.step_calculate()
+        assert run_imported.current_step is not None
         assert run_imported.current_step.calculation_status == "complete"
         step1_output = run_imported.current_step.output
         run_imported.step_next()
         run_imported.step_calculate()
         assert run_imported.current_step.calculation_status == "complete"
         step2_output = run_imported.current_step.output
-        run_imported.step_goto(0, "data_preprocessing")
+        run_imported.step_goto("teststep02_filter")
         run_imported.step_set_outdated()
         assert run_imported.current_step.calculation_status == "outdated"
-        run_imported.step_goto(1, "data_preprocessing")
+        run_imported.step_goto("teststep03_kNN")
         assert run_imported.current_step.calculation_status == "outdated"
         run_imported.step_calculate()
         assert run_imported.current_step.calculation_status == "complete"
         assert step2_output["protein_df"].equals(
             run_imported.current_step.output["protein_df"]
         )
-        run_imported.step_goto(0, "data_preprocessing")
+        run_imported.step_goto("teststep02_filter")
         assert run_imported.current_step.calculation_status == "complete"
         assert step1_output["protein_df"].equals(
             run_imported.current_step.output["protein_df"]

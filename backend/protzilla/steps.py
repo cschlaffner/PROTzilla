@@ -29,14 +29,17 @@ if TYPE_CHECKING:
 # To avoid race conditions when dumping to disk
 from threading import Lock
 
+
 class Section(str, Enum):
     """
     Supported sections for steps
     """
+
     IMPORTING = "importing"
     DATA_PREPROCESSING = "data_preprocessing"
     DATA_ANALYSIS = "data_analysis"
     DATA_INTEGRATION = "data_integration"
+    NOT_CATEGORIZED = "others"
 
 
 class Step(ABC):
@@ -44,7 +47,7 @@ class Step(ABC):
     Abstract base class for concrete step implementations
     """
 
-    section: Section
+    section: Section = Section.NOT_CATEGORIZED
     display_name: str = None
     operation: str = None
     method_description: str = None
@@ -54,9 +57,9 @@ class Step(ABC):
     output_keys: list[DataKeys] = (
         []
     )  # keys collections like this should probably be sets
-    calculation_status: Literal["complete", "outdated", "incomplete", "failed", "ongoing"] = (
-        "incomplete"
-    )
+    calculation_status: Literal[
+        "complete", "outdated", "incomplete", "failed", "ongoing"
+    ] = "incomplete"
 
     def __init__(
         self,
@@ -310,16 +313,17 @@ class Step(ABC):
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
-        for key in required_keys:
-            if key not in self.inputs:
-                raise ValueError(
-                    f"Missing required input '{key}' for the calculation method"
-                )
+        # for key in required_keys:
+        #     if key not in self.inputs:
+        #         raise ValueError(
+        #             f"Missing required input '{key}' for the calculation method"
+        #         )
 
         return {
-            key: self.inputs[key]
+            # key: self.inputs[key]
+            key: self.inputs.get(key)
             for key in input_parameters.keys()
-            if key in self.inputs
+            # if key in self.inputs
         }
 
     @property

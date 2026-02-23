@@ -3,6 +3,7 @@ import pandas as pd
 from enum import Enum
 from typing import NewType, TypedDict
 
+
 class DataKeys(str, Enum):
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
@@ -16,9 +17,11 @@ MetadataDf = NewType("MetadataDf", pd.DataFrame)
 
 StepID = NewType("StepID", str)
 
+
 class OutputLocator(TypedDict):
     step_id: StepID
     key: DataKeys
+
 
 class Connection(TypedDict):
     """
@@ -31,4 +34,3 @@ class Connection(TypedDict):
     targetHandle: DataKeys
     key: str
     id: str
-
