@@ -357,10 +357,6 @@ class Run:
         return self.steps.current_step.output
 
     @property
-    def current_filtered_data(self) -> dict:
-        return self.steps.current_step.filtered_datatable
-
-    @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
 
