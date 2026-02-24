@@ -53,8 +53,8 @@ class TestStepManager:
         step_manager.add_step(step2)
 
         assert len(step_manager.all_steps) == 2
-        assert step1 in step_manager.all_steps
-        assert step2 in step_manager.all_steps
+        assert step1.instance_identifier in step_manager.all_steps
+        assert step2.instance_identifier in step_manager.all_steps
 
     def test_all_steps_in_section(self, step_manager: StepManager):
         step1 = Step("teststep01_empty")
