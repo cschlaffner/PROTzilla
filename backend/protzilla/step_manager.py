@@ -366,14 +366,6 @@ class StepManager:
         except ValueError:  # No previous step
             self.goto_step(self.fallback_step_id)
 
-        # Remove all dangling references
-        for step in self.all_steps.values():
-            step.input_sources = {
-                data_key: mapped_step_id
-                for data_key, mapped_step_id in step.input_sources.items()
-                if mapped_step_id != step_id
-            }
-
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
 
@@ -439,15 +431,14 @@ class StepManager:
         """
         return [
             {
-                "source": locator["step_id"],
-                "sourceHandle": locator["key"],
-                "target": step.instance_identifier,
-                "targetHandle": key,
-                "key": f"{locator['step_id']}:{locator['key']}->{step.instance_identifier}: {key}",
-                "id": f"{locator['step_id']}:{locator['key']}->{step.instance_identifier}: {key}",
+                "source": source,
+                "sourceHandle": data["source_handle"],
+                "target": target,
+                "targetHandle": data["target_handle"],
+                "key": f"{source}:{data['source_handle']}->{target}: {data['target_handle']}",
+                "id": f"{source}:{data['source_handle']}->{target}: {data['target_handle']}",
             }
-            for step in self.all_steps.values()
-            for key, locator in step.input_sources.items()
+            for source, target, data in self.graph.edges(data=True)
         ]
 
     ##

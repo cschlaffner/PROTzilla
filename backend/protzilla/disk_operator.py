@@ -93,7 +93,6 @@ class KEYS:
     STEP_TYPE: str = "type"
     STEP_CALCULATION_STATUS: str = "calculation_status"
     DF_MODE: str = "df_mode"
-    INPUT_SOURCES: str = "input_sources"
     VISUAL_DATA: str = "visual_data"
     CURRENT_STEP_ID: str = "current_step_id"
     GRAPH_EDGES: str = "graph_edges"
@@ -269,7 +268,6 @@ class DiskOperator:
             step.inputs = step_data.get(KEYS.STEP_INPUTS, {})
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
-            step.input_sources = step_data.get(KEYS.INPUT_SOURCES, {})
             step.visual_data = step_data.get(
                 KEYS.VISUAL_DATA, {"node_position": {"x": 0, "y": 0}}
             )
@@ -296,7 +294,6 @@ class DiskOperator:
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
             step_data[KEYS.VISUAL_DATA] = step.visual_data
-            step_data[KEYS.INPUT_SOURCES] = step.input_sources
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
