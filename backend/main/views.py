@@ -428,10 +428,7 @@ def connect_steps(request) -> JsonResponse:
         connection: Connection = data.get("connection")
         run = Run(run_name)
         try:
-            # TODO: this would also modify the form:
-            # run.connect_steps(connection)
-            # however, currently the form isn't reloaded after connect_steps calls anyways, so we might as well just bypass the overhead until it is
-            _ = run.steps.connect_steps(connection)
+            run.steps.connect_steps(connection)
             return JsonResponse(
                 {
                     "success": True,
@@ -469,10 +466,7 @@ def disconnect_steps(request) -> JsonResponse:
         connection = data.get("connection")
         run = Run(run_name)
         try:
-            # TODO: this would also modify the form:
-            # run.disconnect_steps(connection)
-            # however, currently the form isn't reloaded after disconnect_steps calls anyways, so we might as well just bypass the overhead until it is
-            _ = run.steps.disconnect_steps(connection)
+            run.steps.disconnect_steps(connection)
             return JsonResponse(
                 {
                     "success": True,

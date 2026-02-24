@@ -305,24 +305,6 @@ class Run:
             {"steps": [step.display_name for step in self.steps.all_steps.values()]}
         )
 
-    @auto_save
-    def connect_steps(self, connection: Connection) -> None:
-        """
-        Currently not used. Applies the connection that is passed and reloads the target's form
-        :param connection: The connection to apply to the steps
-        """
-        target = self.steps.connect_steps(connection)
-        target.form.apply_modification(self)
-
-    @auto_save
-    def disconnect_steps(self, connection: Connection) -> None:
-        """
-        Currently not used. Removes the connection that is passed and reloads the target's form
-        :param connection: The connection to remove from the steps
-        """
-        target = self.steps.disconnect_steps(connection)
-        target.form.apply_modification(self)
-
     @error_handling
     @auto_save
     def step_calculate(self) -> None:
