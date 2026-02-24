@@ -140,7 +140,7 @@ class DiskOperator:
             run[KEYS.CURRENT_STEP_ID] = step_manager.current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
-            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
+            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
             run[KEYS.ID_CLOCK] = step_manager._id_clock
             for step in step_manager.all_steps.values():
                 run[KEYS.STEPS].append(self._write_step(step))
@@ -204,7 +204,7 @@ class DiskOperator:
         workflow = {}
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
-        workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges().data())
+        workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
         workflow[KEYS.ID_CLOCK] = step_manager._id_clock
         with ErrorHandler():
             for step in step_manager.all_steps.values():

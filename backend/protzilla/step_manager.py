@@ -376,8 +376,7 @@ class StepManager:
     def connect_steps(self, connection: Connection) -> None:
         """
         Connects an output of one source step to an input of another target step.
-        Creates/updates the corresponding link in the graph and
-        links the steps using the target's input_sources dict.
+        Creates/updates the corresponding link in the graph and sets the handles as edge data.
 
         :param connection: the connection to establish
         :return: the target step instance
