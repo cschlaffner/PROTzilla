@@ -240,7 +240,7 @@ class MetadataColumnAssignment(MetadataImportingStep):
         metadata_required_column = form["metadata_required_column"]
         metadata_unknown_column = form["metadata_unknown_column"]
 
-        metadata_source = self.input_sources.get(DataKeys.METADATA_DF, None)
+        metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
 
         if metadata_source is None:
             return

@@ -353,7 +353,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         group1_field: DropdownField = form["group1"]
         group2_field: DropdownField = form["group2"]
 
-        metadata_source = self.input_sources.get(DataKeys.METADATA_DF, None)
+        metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
 
         if metadata_source is None:
             return

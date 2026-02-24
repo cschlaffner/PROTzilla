@@ -64,7 +64,7 @@ class Step(ABC):
         self,
         instance_identifier: StepID | None = None,
     ):
-        self.inputs: dict[DataKeys, pd.DataFrame] = {}
+        self.inputs: dict[DataKeys, pd.DataFrame | FormInputType] = {}
         self.output: Output = Output()
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
@@ -222,6 +222,23 @@ class Step(ABC):
                     f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
             self.inputs[target_handle] = output.copy()
+
+    def input_source(self, steps: StepManager, input_key: DataKeys) -> StepID | None:
+        """
+        Retrieves the step ID that serves as the source for a specific input
+
+        :param steps: the StepManager object
+        :param input_key: the key for which to get the data
+        :returns: the output of the step which is currently specified as the input for this key
+        """
+
+        edges = steps.edges_with_exact_data(None, None, self.instance_identifier, input_key)
+        if not edges:
+            return None
+        if len(edges) > 1:
+            raise ValueError(f"Multiple inputs for key {input_key} of step {self.instance_identifier} found: {[edge[0] for edge in edges]}")
+        return edges[0][0]
+        
 
     @property
     def external_input_keys(self) -> list[DataKeys]:
