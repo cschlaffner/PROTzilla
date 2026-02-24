@@ -5,7 +5,7 @@ from backend.protzilla.methods.data_preprocessing import (
     ImputationByKNN,
     FilterSamplesByProteinsMissing,
 )
-from backend.protzilla.methods.importing import MaxQuantImport
+from backend.protzilla.methods.importing import MaxQuantImport, MetadataImport
 
 from backend.protzilla.run import Run
 from pathlib import Path
@@ -245,3 +245,23 @@ class TestRun:
         assert step1_output["protein_df"].equals(
             run_imported.current_step.output["protein_df"]
         )
+
+    def test_multiple_steps_connections(self, run_imported: Run):
+        step1 = FilterSamplesByProteinsMissing("teststep02_filter")
+        step2 = ImputationByKNN("teststep03_kNN")
+        step3 = MetadataImport("teststep04_metaimp")
+
+        run_imported.step_add(step1)
+        run_imported.step_add(step2)
+        run_imported.step_add(step3)
+
+        # Circular connections
+        with pytest.raises(ValueError):
+            run_imported.steps.connect_steps(
+                {
+                    "source": "teststep03_kNN",
+                    "sourceHandle": "protein_df",
+                    "target": "teststep03_kNN",
+                    "targetHandle": "protein_df",
+                }
+            )

@@ -5,7 +5,12 @@ if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
 
 from backend.protzilla.steps import Step, Section, Output
-from backend.protzilla.constants.data_types import Connection, OutputLocator, StepID
+from backend.protzilla.constants.data_types import (
+    Connection,
+    DataKeys,
+    OutputLocator,
+    StepID,
+)
 
 import networkx as nx
 import logging
@@ -18,7 +23,7 @@ class StepManager:
     :ivar df_mode: keep DFs in memory or write on disk (note: probably not even used correctly)
     :ivar disk_operator: disk operator to manage dumping step data to disk
     :ivar all_steps: main database for all step instances, addressed by their IDs
-    :ivar graph: DiGraph representing connections between steps for easier management
+    :ivar graph: MultiDiGraph representing connections between steps for easier management
     :ivar current_selected_step_id: ID of the currently selected step
     :ivar _id_clock: logical clock used for instance identifier creation
     """
@@ -43,7 +48,7 @@ class StepManager:
         # If an output of step X is connected to an input of step Y,
         # an edge with weight "n_connections"=1 is added. If multiple such links exist,
         # the edge's weight is incremented by 1 with every additional link
-        self.graph: nx.DiGraph[StepID] = nx.DiGraph()
+        self.graph: nx.MultiDiGraph[StepID] = nx.MultiDiGraph()
 
         # Instance identifier of the currently selected step
         self._current_selected_step_id: StepID | None = None
@@ -135,6 +140,20 @@ class StepManager:
                 for step in self.preceding_steps(step_id)
             ]
         )
+
+    def connection_exists(
+        self,
+        source: StepID,
+        source_handle: DataKeys,
+        target: StepID,
+        target_handle: DataKeys,
+    ) -> bool:
+        return not {
+            k: v
+            for k, v in self.graph.adj[source][target].items()
+            if v["source_handle"] == source_handle
+            and v["target_handle"] == target_handle
+        }
 
     ##
     ## Batch invalidation
@@ -344,7 +363,6 @@ class StepManager:
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
 
-
     ##
     ## Connection management
     ##
@@ -358,28 +376,26 @@ class StepManager:
         :param connection: the connection to establish
         :return: the target step instance
         :raises KeyError: if the connection parameters are incorrect
-        :raises ValueError: if the input/output keys do not match (TODO: remove this)
         """
         try:
             source = connection["source"]
-            sourceHandle = connection["sourceHandle"]
+            source_handle = connection["sourceHandle"]
             target = connection["target"]
-            targetHandle = connection["targetHandle"]
+            target_handle = connection["targetHandle"]
         except KeyError as e:
             raise KeyError(
                 "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
                 + str(e)
             ) from e
 
-        # do we allow these keys to differ?
-        # TODO: yes, we need a compatibility matrix. ~ Joris
-        # if sourceHandle != targetHandle:
-        #     raise ValueError(
-        #         f"The output key {sourceHandle} does not match the input key {targetHandle}"
-        #     )
-        target_instance = self.all_steps[target]
+        # TODO: We currently allow arbitrary connections between all kinds of input.
+        # Technical restrictions would make this cleaner
+        target_instance = self.get_step_by_id(source)
 
         # Skip connection if already connected
+        if self.connection_exists(source, source_handle, target, target_handle)
+            return target_instance
+
         old_source = target_instance.input_sources.get(targetHandle)
         if (
             old_source is not None
