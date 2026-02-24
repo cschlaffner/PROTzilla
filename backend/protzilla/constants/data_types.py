@@ -34,3 +34,11 @@ class Connection(TypedDict):
     targetHandle: DataKeys
     key: str
     id: str
+
+def parse_connection(connection: Connection) -> tuple[StepID, DataKeys, StepID, DataKeys]:
+    try:
+        return connection["source"], connection["sourceHandle"], connection["target"], connection["targetHandle"]
+    except KeyError as e:
+        raise KeyError(
+            "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
+        ) from e
