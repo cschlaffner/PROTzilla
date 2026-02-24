@@ -69,7 +69,6 @@ class Step(ABC):
         self.output: Output = Output()
         self.input_sources = {}
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
-        self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
         self.disk_write_mutex = Lock()
