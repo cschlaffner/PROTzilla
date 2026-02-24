@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
+import pandas as pd
 
 if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
@@ -10,6 +11,7 @@ from backend.protzilla.constants.data_types import (
     DataKeys,
     OutputLocator,
     StepID,
+    parse_connection,
 )
 
 import networkx as nx
@@ -141,19 +143,31 @@ class StepManager:
             ]
         )
 
-    def connection_exists(
+    def edges_with_exact_data(
         self,
-        source: StepID,
-        source_handle: DataKeys,
+        source: StepID | None,
+        source_handle: DataKeys | None,
         target: StepID,
         target_handle: DataKeys,
-    ) -> bool:
-        return not {
-            k: v
-            for k, v in self.graph.adj[source][target].items()
-            if v["source_handle"] == source_handle
-            and v["target_handle"] == target_handle
-        }
+    ) -> list[tuple[StepID, StepID, int, dict[str, str]]]:
+        """
+        Helper function that allows retrieving all incoming connections for a given target node and target_handle.
+        Allows optionally passing a source and source_handle for further filtering
+
+        :param source: ID of a source node (optional)
+        :param source_handle: handle of the source (optional)
+        :param target: ID of the target node
+        :param target_handle: the connection handle of the target
+        :return: list of edges (ebunch)
+        """
+        return [
+            edge
+            for edge in self.graph.in_edges(target, data=True, keys=True)
+            # edge is a 4-tuple in the format (u, v, key, data)
+            if edge[3]["target_handle"] == target_handle
+            and (source is None or source == edge[0])
+            and (source_handle is None or source_handle == edge[3]["source_handle"])
+        ]
 
     ##
     ## Batch invalidation
@@ -242,7 +256,7 @@ class StepManager:
     @property
     def recommended_next_step_id(self) -> StepID | None:
         """
-        Mainly for front-end. Instance identifier of the next step to naviagte to when pressing the "Next" button.
+        Mainly for front-end. Instance identifier of the next step to navigate to when pressing the "Next" button.
 
         :return: The recommended next step identifier or None if we are at a terminal step
         """
@@ -367,7 +381,7 @@ class StepManager:
     ## Connection management
     ##
 
-    def connect_steps(self, connection: Connection) -> Step:
+    def connect_steps(self, connection: Connection) -> None:
         """
         Connects an output of one source step to an input of another target step.
         Creates/updates the corresponding link in the graph and
@@ -377,32 +391,21 @@ class StepManager:
         :return: the target step instance
         :raises KeyError: if the connection parameters are incorrect
         """
-        try:
-            source = connection["source"]
-            source_handle = connection["sourceHandle"]
-            target = connection["target"]
-            target_handle = connection["targetHandle"]
-        except KeyError as e:
-            raise KeyError(
-                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
-                + str(e)
-            ) from e
+        source, source_handle, target, target_handle = parse_connection(connection)
 
         # TODO: We currently allow arbitrary connections between all kinds of input.
         # Technical restrictions would make this cleaner
-        target_instance = self.get_step_by_id(source)
 
-        # Skip connection if already connected
-        if self.connection_exists(source, source_handle, target, target_handle)
-            return target_instance
-
-        old_source = target_instance.input_sources.get(targetHandle)
-        if (
-            old_source is not None
-            and old_source["step_id"] == source
-            and old_source["key"] == sourceHandle
-        ):
-            return target_instance
+        # retrieve all incoming edges to the target
+        old_edges = self.edges_with_exact_data(None, None, target, target_handle)
+        # Abort if the exact connection is already present
+        for old_source, _, _, data in old_edges:
+            if (
+                old_source == source
+                and data["source_handle"] == source_handle
+                and data["target_handle"] == target_handle
+            ):
+                return
 
         # Abort if connection creates cycle
         probe_graph = self.graph.copy()
@@ -412,58 +415,22 @@ class StepManager:
                 "The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted."
             )
 
-        # Delete old connection in graph if input source changes from existing connection
-        if old_source is not None:
-            self.remove_graph_connection(old_source["step_id"], target)
+        # Delete any existing connection to the target handle that isn't equal to the current one
+        self.graph.remove_edges_from(old_edges)
 
-        target_instance.input_sources[targetHandle] = {
-            "step_id": source,
-            "key": sourceHandle,
-        }
-        if not self.graph.has_edge(source, target):
-            self.graph.add_edge(source, target, n_connections=1)
-        else:
-            self.graph[source][target]["n_connections"] += 1
+        self.graph.add_edge(
+            source, target, source_handle=source_handle, target_handle=target_handle
+        )
 
-        return target_instance
-
-    def remove_graph_connection(self, source_id: StepID, target_id: StepID) -> None:
-        """
-        Removes a connection between two steps. If multiple connections between these
-        steps existed (i.e. 2+ outputs of source mapping to inputs on target),
-        the connetion counter is decremented. If no more such connections exist,
-        the edge is deleted from the graph.
-
-        :param source_id: instance identifier of source step
-        :param target_id: instance identifier of target step
-        """
-        self.graph[source_id][target_id]["n_connections"] -= 1
-
-        # Remove edge if no more connections exist
-        if self.graph[source_id][target_id]["n_connections"] == 0:
-            self.graph.remove_edge(source_id, target_id)
-
-    def disconnect_steps(self, connection: Connection) -> Step:
-        try:
-            source = connection["source"]
-            target = connection["target"]
-            targetHandle = connection["targetHandle"]
-        except KeyError as e:
-            raise KeyError(
-                "The supplied connection parameter does not adhere to the specification. Expected keys are source, sourceHandle, target and targetHandle"
-            ) from e
-
-        target_instance = self.all_steps.get(target)
-        if target_instance is None:
-            raise ValueError(f"No step with id {target} found")
-        existing_source = target_instance.input_sources.get(targetHandle)
-        if existing_source is None:
-            raise ValueError("No connection to delete")
-
-        if existing_source["step_id"] == source:
-            self.remove_graph_connection(source, target)
-            del target_instance.input_sources[targetHandle]
-        return target_instance
+    def disconnect_steps(self, connection: Connection) -> None:
+        source, source_handle, target, target_handle = parse_connection(connection)
+        # retrieve edges that have exactly this combination of source, target and handles
+        edges = self.edges_with_exact_data(source, source_handle, target, target_handle)
+        if not edges:
+            raise ValueError(
+                f"No connection from {source}.{source_handle} to {target}.{target_handle} found"
+            )
+        self.graph.remove_edges_from(edges)
 
     def get_edges(self) -> list[Connection]:
         """
