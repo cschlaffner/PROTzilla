@@ -51,7 +51,6 @@ class Step(ABC):
     display_name: str = None
     operation: str = None
     method_description: str = None
-    input_sources: dict[DataKeys, OutputLocator]
     visual_data: dict
     internal_inputs: set[str] = set[str]()
     output_keys: list[DataKeys] = (
@@ -65,9 +64,8 @@ class Step(ABC):
         self,
         instance_identifier: StepID | None = None,
     ):
-        self.inputs: dict = {}
+        self.inputs: dict[DataKeys, pd.DataFrame] = {}
         self.output: Output = Output()
-        self.input_sources = {}
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
         self.messages: Messages = Messages([])
@@ -213,15 +211,17 @@ class Step(ABC):
 
         :param steps: The relevant StepManager instance
         """
-        for key, locator in self.input_sources.items():
+        for source, target, data in steps.graph.in_edges(self.instance_identifier, data=True):
+            source_handle: DataKeys = data["source_handle"]
+            target_handle: DataKeys = data["target_handle"]
             output = steps.get_step_output(
-                output_key=locator["key"], instance_identifier=locator["step_id"]
-            ).copy()
+                output_key=source_handle, instance_identifier=source
+            )
             if output is None:
                 raise ValueError(
-                    f"Step {instance_identifier} has no output with key {key}, but was set to be this key's input in {self.instance_identifier}"
+                    f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
-            self.inputs[key] = output.copy()
+            self.inputs[target_handle] = output.copy()
 
     @property
     def external_input_keys(self) -> list[DataKeys]:
