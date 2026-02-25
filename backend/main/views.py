@@ -619,7 +619,7 @@ def get_run_data(request):
                 True if run.current_step.plot_method is not None else False
             )
             run_data["__dbg_graph_nodes"] = list(run.steps.graph.nodes())
-            run_data["__dbg_graph_edges"] = list(run.steps.graph.edges().data())
+            run_data["__dbg_graph_edges"] = list(run.steps.graph.edges(data=True))
         else:
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
