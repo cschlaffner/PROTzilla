@@ -20,14 +20,10 @@ from protzilla.constants.paths import (
 def load_regions_from_csv(regions_file_path: Path) -> pd.DataFrame:
     regions = pd.read_csv(regions_file_path)
     # TODO: update again, if we add more
-    required_column_names = {
-        "name",
-        "region_end",
-        "region_start",
-        "group",
-        "short_name",
-    }
-    assert required_column_names.issubset(set(regions.columns)), (
+    required_column_names = {"name", "region_end", "region_start", "group", "short_name"}
+    assert required_column_names.issubset(
+        set(regions.columns)
+    ), (
         f"Regions file must contain at least the columns {sorted(list(required_column_names))} but got "
         f"{sorted(regions.columns)}"
     )

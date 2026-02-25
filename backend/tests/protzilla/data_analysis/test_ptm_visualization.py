@@ -625,9 +625,7 @@ class TestPTMVisualization:
 
         sequence = "MAEPRQEFEVMEDHAGTYGLGDRKDQGGYTMHQDQEGDTDAGLKESPLQTPTEDGSEEPGSETSDAKSTPTAEAEEAGIGDTPSLEDEAAGHVTQARMVSKSKDGTGSDDKKAKGADGKTKIATPRGAAPPGQKGQANATRIPAKTPPAPKTPPSSGEPPKSGDRSGYSSPGSPGTPGSRSRTPSLPTPPTREPKKVAVVRTPPKSPSSAKSRLQTAPVPMPDLKNVKSKIGSTENLKHQPGGGKVQIINKKLDLSNVQSKCGSKDNIKHVPGGGSVQIVYKPVDLSKVTSKCGSLGNIHHKPGGGQVEVKSEKLDFKDRVQSKIGSLDNITHVPGGGNKKIETHKLTFRENAKAKTDHGAEIVYKSPVVSGDTSPRHLSNVSSTGSIDMVDSPQLATLADEVSASLAKQGL"
         peptide_blueprint = kwargs["evidence_df"].iloc[93]
-        mock_peptides = mock_ptms_at_all_positions(
-            peptide_blueprint, sequence, protein_id="P10636-7"
-        )
+        mock_peptides = mock_ptms_at_all_positions(peptide_blueprint, sequence, protein_id="P10636-7")
 
         kwargs["evidence_df"] = pd.concat(
             [kwargs["evidence_df"], pd.DataFrame(mock_peptides)],
@@ -663,7 +661,9 @@ class TestPTMVisualization:
         exon = "GGKSTKDGENHKVTRYLKSLTIRVIPIQAHQIVNGTPPARG"
         peptide_blueprint = kwargs["evidence_df"].iloc[97]
 
-        mock_peptides = mock_ptms_at_all_positions(peptide_blueprint, sequence, exon)
+        mock_peptides = mock_ptms_at_all_positions(
+            peptide_blueprint, sequence, exon
+        )
 
         kwargs["evidence_df"] = pd.concat(
             [kwargs["evidence_df"], pd.DataFrame(mock_peptides)],
