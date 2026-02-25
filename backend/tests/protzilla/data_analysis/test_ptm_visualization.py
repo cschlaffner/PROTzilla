@@ -327,13 +327,8 @@ class TestPTMVisualization:
     # TODO: would our way of region files even work if alternative exons have the exact same length?
     @staticmethod
     def test_plotting_functions(plot_func, kwargs, gfap_config):
-        # TODO: remove
-        if plot_func != create_overview_ptm_visualization:
-            return
-
         #######################################
-        # TODO: length of sequence seems to short
-        # TODO: regions with out a name are currently named "nan"
+        # TODO: continue fixing the migration of the regions file. Currently, sth is broken
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
