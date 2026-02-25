@@ -60,6 +60,8 @@ def load_regions_from_csv(regions_file_path: Path) -> pd.DataFrame:
     #         regions.append(
     #             (row["name"], int(row["region_end"]), row["group"], row["short_name"])
     #         )
+    regions["name"] = regions["name"].fillna("")
+    regions["short_name"] = regions["short_name"].fillna("")
     return regions
 
 
