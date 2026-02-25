@@ -22,32 +22,11 @@ modifications:
     color: '#4682B4'
     name: Citrullination
     sites:
-    - A
-    - B
-    - C
-    - D
-    - E
-    - F
-    - G
-    - H
-    - I
-    - J
-    - K
-    - L
-    - M
-    - N
-    - O
-    - P
-    - Q
     - R
-    - S
-    - T
-    - U
-    - V
-    - W
-    - X
-    - Y
-    - Z
+    - M  # TODO: for testing only
+    - G  # TODO: for testing only
+    - E  # TODO: for testing only
+    - T  # TODO: for testing only - and to be removed
   Deamidated:
     above_below: A
     color: '#34AEEB'
@@ -62,9 +41,6 @@ modifications:
     name: Ubiquitination
     sites:
     - K
-    - R  # for test case only
-    - I  # for test case only TODO: maybe remove
-    - Q  # for test case only TODO: maybe remove
   GlyGly:
     above_below: B
     color: '#548056'

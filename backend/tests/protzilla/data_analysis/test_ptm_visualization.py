@@ -2,7 +2,7 @@ import shutil
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 from unittest import mock
 
 import pandas as pd
@@ -96,11 +96,7 @@ def pytest_generate_tests(metafunc):
             evidence_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=GFAP_FASTA_FILE_PATH,
-            # TODO
-            # regions_file_path=GFAP_REGIONS_FILE_PATH,
-            regions_file_path=Path(
-                "/home/hendraet/stud_sync/Studium/phd/proteomics/PROTzilla/backend/tests/test_data/ptm_visualization_data/P14136/regions_new.csv"
-            ),
+            regions_file_path=GFAP_REGIONS_FILE_PATH,
         )
         kwargs_with_meta = dict(
             **basic_kwargs,
@@ -173,7 +169,6 @@ def validate_plot_outputs(
     required_groups: set,
     validation_config: Optional[PlotValidationConfig],
 ):
-    # TODO: maybe we have to soften the set-constraint and check that soem strings only appear once
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -223,39 +218,6 @@ def mock_settings_file(new_settings_file_path: Path, tmp_dir: Path):
         ),
     ):
         yield
-
-
-def mock_ptms_at_all_positions(
-    peptide_blueprint: pd.Series,
-    sequence: str,
-    exon: str | None = None,
-    peptide_length: int = 7,
-    protein_id: str | None = None,
-) -> list[Any]:
-    peptides = []
-    for i in range(0, len(sequence), peptide_length):
-        peptide = sequence[i : i + peptide_length]
-        peptides.append(peptide)
-    if exon is not None:
-        for i in range(0, len(exon), peptide_length):
-            peptide = exon[i : i + peptide_length]
-            peptides.append(peptide)
-
-    mock_peptides = []
-    for peptide in peptides:
-        mod_seq = f"_{peptide}_"
-        for i in range(1, len(mod_seq) - 1):
-            mock_peptide = peptide_blueprint.copy()
-            mock_peptide["Sequence"] = peptide
-            mod_seq_start = mod_seq[: i + 1]
-            mod_seq_end = mod_seq[i + 1 :]
-            new_mod_seq = f"{mod_seq_start}(ci){mod_seq_end}"
-            mock_peptide["Modified sequence"] = new_mod_seq
-            mock_peptide["Modifications"] = "ci"
-            if protein_id is not None:
-                mock_peptide["Protein ID"] = protein_id
-            mock_peptides.append(mock_peptide)
-    return mock_peptides
 
 
 class TestPTMVisualization:
@@ -324,16 +286,11 @@ class TestPTMVisualization:
             required_cleavages=("1",),
         )
 
-    # TODO: would our way of region files even work if alternative exons have the exact same length?
     @staticmethod
     def test_plotting_functions(plot_func, kwargs, gfap_config):
-        #######################################
-        # TODO: continue fixing the migration of the regions file. Currently, sth is broken
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
-        # TODO: remove
-        plot.show()
 
         validate_plot_outputs(
             plot,
@@ -623,22 +580,10 @@ class TestPTMVisualization:
         kwargs["fasta_file_path"] = Path(TAU_PATH / "uniprotkb_P10636_7_8.fasta")
         kwargs["regions_file_path"] = TAU_REGIONS_FILE_PATH
 
-        sequence = "MAEPRQEFEVMEDHAGTYGLGDRKDQGGYTMHQDQEGDTDAGLKESPLQTPTEDGSEEPGSETSDAKSTPTAEAEEAGIGDTPSLEDEAAGHVTQARMVSKSKDGTGSDDKKAKGADGKTKIATPRGAAPPGQKGQANATRIPAKTPPAPKTPPSSGEPPKSGDRSGYSSPGSPGTPGSRSRTPSLPTPPTREPKKVAVVRTPPKSPSSAKSRLQTAPVPMPDLKNVKSKIGSTENLKHQPGGGKVQIINKKLDLSNVQSKCGSKDNIKHVPGGGSVQIVYKPVDLSKVTSKCGSLGNIHHKPGGGQVEVKSEKLDFKDRVQSKIGSLDNITHVPGGGNKKIETHKLTFRENAKAKTDHGAEIVYKSPVVSGDTSPRHLSNVSSTGSIDMVDSPQLATLADEVSASLAKQGL"
-        peptide_blueprint = kwargs["evidence_df"].iloc[93]
-        mock_peptides = mock_ptms_at_all_positions(peptide_blueprint, sequence, protein_id="P10636-7")
-
-        kwargs["evidence_df"] = pd.concat(
-            [kwargs["evidence_df"], pd.DataFrame(mock_peptides)],
-            ignore_index=True,
-        )
-
         result = plot_func(**kwargs)
         assert len(result["plots"]) == 1
         plot = result["plots"][0]
-        # TODO: remove
-        plot.show()
 
-        # TODO: we need more checks that we don't plot more regions than actually present
         all_groups = (
             set(kwargs["metadata_df"]["Group"].unique())
             if "metadata_df" in kwargs
@@ -656,102 +601,34 @@ class TestPTMVisualization:
     def test_modification_at_first_location(
         plot_func, kwargs, tmp_ptm_settings_dir, gfap_config
     ):
-        # TODO: reformat a bit.
-        sequence = "MERRRITSAARRSYVSSGEMMVGGLAPGRRLGPGTRLSLARMPPPLPTRVDFSLAGALNAGFKETRASERAEMMELNDRFASYIEKVRFLEQQNKALAAELNQLRAKEPTKLADVYQAELRELRLRLDQLTANSARLEVERDNLAQDLATVRQKLQDETNLRLEAENNLAAYRQEADEATLARLDLERKIESLEEEIRFLRKIHEEEVRELQEQLARQQVHVELDVAKPDLTAALKEIRTQYEAMASSNMHEAEEWYRSKFADLTDAAARNAELLRQAKHEANDYRRQLQSLTCDLESLRGTNESLERQMREQEERHVREAASYQEALARLEEEGQSLKDEMARHLQEYQDLLNVKLALDIEIATYRKLLEGEENRITIPVQTFSNLQIRETSLDTKSVSEGHLKRNIVVKTVEMRDGEVIKESKQEHKDVM"
-        exon = "GGKSTKDGENHKVTRYLKSLTIRVIPIQAHQIVNGTPPARG"
-        peptide_blueprint = kwargs["evidence_df"].iloc[97]
-
-        mock_peptides = mock_ptms_at_all_positions(
-            peptide_blueprint, sequence, exon
+        mock_start_peptide = kwargs["evidence_df"].iloc[97]
+        mock_start_peptide["Modified sequence"] = (
+            "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
         )
-
+        mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
         kwargs["evidence_df"] = pd.concat(
-            [kwargs["evidence_df"], pd.DataFrame(mock_peptides)],
+            [kwargs["evidence_df"], pd.DataFrame([mock_start_peptide])],
             ignore_index=True,
         )
 
-        # TODO: maybe go completely overboard and see what happens if we have modifications on all locations
-        # mock_start_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_start_peptide["Modified sequence"] = (
-        #     "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
-        # )
-        # mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_start_peptide])],
-        #     ignore_index=True,
-        # )
-        #
-        # mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon1_peptide["Sequence"] = "ETSLDT"
-        # mock_exon1_peptide["Modified sequence"] = "_E(ci)TSLDT_"
-        # mock_exon1_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])],
-        #     ignore_index=True,
-        # )
-        # # TODO: Maybe just export the final df instead of all this mocking
-        # mock_exon1_end_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon1_end_peptide["Sequence"] = "KQEHKDVM"
-        # mock_exon1_end_peptide["Modified sequence"] = "_KQEHKDVM(ci)_"
-        # mock_exon1_end_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon1_end_peptide])],
-        #     ignore_index=True,
-        # )
-        #
-        # mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon2_peptide["Sequence"] = "GGKST"
-        # mock_exon2_peptide["Modified sequence"] = "_G(ci)GKST_"
-        # mock_exon2_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])],
-        #     ignore_index=True,
-        # )
-        # mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon2_peptide["Sequence"] = "GGKST"
-        # mock_exon2_peptide["Modified sequence"] = "_GG(ci)KST_"
-        # mock_exon2_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])],
-        #     ignore_index=True,
-        # )
-        #
-        # # TODO: can we somehow test the locations or the visual soundness?
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQIR(GG (R))_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (R)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQI(GG (I))R_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (I)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQ(GG (Q))IR_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (Q)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
-        #
-        # mock_sequence_end_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_sequence_end_peptide["Sequence"] = "GTPPARG"
-        # mock_sequence_end_peptide["Modified sequence"] = "_GTPPARG(ci)_"
-        # mock_sequence_end_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_sequence_end_peptide])],
-        #     ignore_index=True,
-        # )
+        mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
+        mock_exon1_peptide["Sequence"] = "GGKST"
+        mock_exon1_peptide["Modified sequence"] = "_G(ci)GKST_"
+        mock_exon1_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])],
+            ignore_index=True,
+        )
 
-        # TODO: why do we have a split in Pre-Exon region?
+        mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
+        mock_exon2_peptide["Sequence"] = "ETSLDT"
+        mock_exon2_peptide["Modified sequence"] = "_E(ci)TSLDT_"
+        mock_exon2_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_exon2_peptide])],
+            ignore_index=True,
+        )
+
         with mock_settings_file(
             TEST_PTM_VISUALIZATION_PATH / "ptm_settings_mods_at_first_location.yaml",
             tmp_ptm_settings_dir,
@@ -759,8 +636,6 @@ class TestPTMVisualization:
             result = plot_func(**kwargs)
             assert len(result["plots"]) == 1
             plot = result["plots"][0]
-            # TODO: remove
-            plot.show()
 
             additional_required_ptms = ("M1", "G391", "E391")
             additional_excluded_strings = ("M0",)
@@ -768,18 +643,17 @@ class TestPTMVisualization:
             gfap_config.excluded_strings += additional_excluded_strings
             gfap_config.required_region_short_names += ("α",)
 
-            # TODO: reuse
-            # validate_plot_outputs(
-            #     plot,
-            #     plot_func,
-            #     all_groups=(
-            #         set(kwargs["metadata_df"]["Group"].unique())
-            #         if "metadata_df" in kwargs
-            #         else set()
-            #     ),
-            #     required_groups={"clean", "old", "exon"},
-            #     validation_config=gfap_config,
-            # )
+            validate_plot_outputs(
+                plot,
+                plot_func,
+                all_groups=(
+                    set(kwargs["metadata_df"]["Group"].unique())
+                    if "metadata_df" in kwargs
+                    else set()
+                ),
+                required_groups={"clean", "old", "exon"},
+                validation_config=gfap_config,
+            )
 
     @staticmethod
     def test_single_amino_acid_substitution_start_of_exon(
