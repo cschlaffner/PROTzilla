@@ -424,22 +424,6 @@ def fetch_alphafold_protein_structure(
     df_dict["messages"] = messages
     return df_dict
 
-def show_visualization_of_protein_structure(
-    protein_to_validate: str,
-    cif_df: pd.DataFrame,
-) -> dict:
-    """
-    Prepares protein structure visualization data for frontend (Mol*).
-    """
-    from backend.protzilla.constants import paths
-
-    cif_path = paths.ALPHAFOLD_PATH / protein_to_validate / f"{protein_to_validate}.cif"
-
-    if not cif_path.exists():
-        raise FileNotFoundError(f"CIF file not found for {protein_to_validate}")
-
-    return {
-        "type": "protein_structure",
-        "entry_id": protein_to_validate,
-        "cifUrl": f"/static/alphafold/{protein_to_validate}/{protein_to_validate}.cif",
-    }
+def visualization_of_protein_structure(df_dict):
+    #to be implemented 
+    return None

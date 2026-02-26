@@ -205,6 +205,19 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const visualizationComponent = (
+    <StyledContentContainer>
+      <SectionTitle baseComponent={"h4"} description="Placeholder while in development" />
+      {/*{structures && structures.length > 0 ? (
+        structures.map((s) => (
+          <MolstarViewer pdbUrl={s.pdb_url} key={s.name} />
+        ))
+      ) : (
+        <SectionTitle baseComponent={"h4"} description="No structures available for this step." />
+      )}*/}
+    </StyledContentContainer>
+  );
+
   const singleTableComponent = (table: Table) => (
     <StyledContentDiv>
       <DataTable data={table.table} />
@@ -277,6 +290,7 @@ export const RunScreen: React.FC = () => {
             <SwitchCard
               components={[
                 { name: "Plots", value: plotComponent },
+                { name: "Visualizations", value: visualizationComponent },
                 { name: "Tables", value: tableComponent },
                 { name: "Other Output", value: otherComponent },
               ]}

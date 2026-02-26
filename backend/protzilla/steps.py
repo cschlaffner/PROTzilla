@@ -136,6 +136,15 @@ class Step:
                 self.handle_plot_outputs(plot_output)
                 self.artifact_versions["plots"]["generated"] += 1
 
+            if self.visualization_method: 
+                print("Test: steps.py findet eine viz_method")
+                visualization_output = self.visualization_method(**self.visualization_input)
+                """
+                self.handle_visualization_outputs(visualization_output)
+                self.artifact_versions.setdefault("visualization", {"generated": 0, "dumped": 0})
+                self.artifact_versions["visualization"]["generated"] += 1
+                """
+
             self.calculation_status = "complete"
 
             # delete tempfiles
@@ -237,6 +246,7 @@ class Step:
 
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
+    visualization_method = None  
 
     @property
     def calculation_input(self) -> dict:
@@ -280,6 +290,11 @@ class Step:
         return {
             key: plot_input[key] for key in input_parameters.keys() if key in plot_input
         }
+    
+    @property
+    def visualization_input(self) -> dict:
+        #to be implemented 
+        return None 
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
