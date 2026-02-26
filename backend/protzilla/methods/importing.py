@@ -501,21 +501,3 @@ class ImportStructurePredictionFromDisk(ImportingStep):
         )
 
     calc_method = staticmethod(get_prot_structure_dfs)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["protein_to_validate"]
-
-        correct_input_step_identifier = (
-            steps.get_step_identifier_of_step_with_input(
-                ImportStructurePredictionFromDisk, "entry_id", entry_id
-            )
-            or steps.get_step_identifier_of_step_with_input(
-                AlphaFoldPredictionLoad, "uniprot_id", entry_id
-            )
-        )
-
-        inputs["cif_df"] = steps.get_step_output(
-            Step, "cif_df", correct_input_step_identifier
-        )
-
-        return inputs
