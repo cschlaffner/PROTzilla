@@ -229,7 +229,6 @@ def create_histograms(
     if one_bin_per_int:
         min_value = math.floor(min_value)
         max_value = math.ceil(max_value)
-        number_of_bins = max_value - min_value
         binsize_a = 1
         binsize_b = 1
     else:
@@ -283,6 +282,14 @@ def create_histograms(
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
     fig.update_yaxes(title=y_title, rangemode="tozero")
+
+    # Disable toggling of the visibility of the traces by clicking on the legend
+    fig.update_layout(
+        legend=dict(
+            itemclick=False,
+            itemdoubleclick=False
+        )
+    )
     return fig
 
 

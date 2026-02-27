@@ -179,7 +179,7 @@ def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend_multip
     vlines_x = [shape.x0 for shape in fig.layout.shapes]
     assert vlines_x == [1.0, 2.0]
     vlines_colors = [shape["line"]["color"] for shape in fig.layout.shapes]
-    assert vlines_colors == ["blue", "green"]
+    assert vlines_colors == [PLOT_PRIMARY_COLOR, "green"]
     vlines_dashes = [shape["line"]["dash"] for shape in fig.layout.shapes]
     assert vlines_dashes == ["dash", "dot"]
 
@@ -191,7 +191,7 @@ def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend_multip
     x_values = [trace.x for trace in fig.data]
     y_values = [trace.y for trace in fig.data]
     assert names == ["Line 1", "Line 2"]
-    assert colors == ["blue", "green"]
+    assert colors == [PLOT_PRIMARY_COLOR, "green"]
     assert dashes == ["dash", "dot"]
     assert x_values == [(None,), (None,)]
     assert y_values == [(None,), (None,)]
