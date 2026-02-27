@@ -102,8 +102,26 @@ def get_distance_between_two_amino_acids_in_angstrom(
     return float(np.linalg.norm(pos2 - pos1))
 
 
+def get_protein_sequence_from_df(
+    amino_acid_sequences_df: pd.DataFrame, protein_id: str
+) -> str:
+    # because protein ids like O43242 are saved as O43242-1 in amino_acid_sequences_df
+    if "-" not in protein_id:
+        protein_id = f"{protein_id}-1"
+
+    matches = amino_acid_sequences_df.loc[
+        amino_acid_sequences_df["Protein ID"] == protein_id, "Protein Sequence"
+    ]
+
+    if matches.empty:
+        return ""
+
+    return matches.iloc[0]
+
+
 def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-    input_crosslinking_df: pd.DataFrame, protein_sequence: str
+    input_crosslinking_df: pd.DataFrame,
+    amino_acid_sequences_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Adds for each crosslink the 1-based positions of amino acids where the crosslink bound to a crosslinking DataFrame.
@@ -116,7 +134,7 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
                            - 'Peptide2': second peptide sequence
                            - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
                            - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
-    :param protein_sequence: Full protein sequence in which the peptides are located.
+    :param protein_sequences: Full protein sequences in which the peptides are located.
     :return: tuple (updated_crosslinking_df, messages)
              - updated_crosslinking_df: input DataFrame with two new columns:
                  - 'crosslinker_position1': 1-based crosslinker position in Peptide1
@@ -130,34 +148,47 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
     rows_to_duplicate = {}
     rows_to_delete = []
     messages = []
+
+    def get_positions_for(
+        peptide: str, protein_id: str, cl_position_within_peptide: int
+    ) -> list:
+        protein_sequence = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
+        )
+        positions = [
+            m.start() + cl_position_within_peptide + 1
+            for m in re.finditer(f"(?={peptide})", protein_sequence)
+        ]
+        return positions
+
     for idx, crosslinker_row in crosslinking_df.iterrows():
-        peptide_sequence1 = crosslinker_row.Peptide1
-        peptide_sequence2 = crosslinker_row.Peptide2
-        peptide1_positions = [
-            m.start() + crosslinker_row.CL_position_within_peptide1 + 1
-            for m in re.finditer(f"(?={peptide_sequence1})", protein_sequence)
-        ]
-        peptide2_positions = [
-            m.start() + crosslinker_row.CL_position_within_peptide2 + 1
-            for m in re.finditer(f"(?={peptide_sequence2})", protein_sequence)
-        ]
+        peptide_sequence1 = re.escape(crosslinker_row.Peptide1)
+        peptide_sequence2 = re.escape(crosslinker_row.Peptide2)
+        protein_id1 = crosslinker_row.Protein_id1
+        protein_id2 = crosslinker_row.Protein_id2
+
+        peptide1_positions = get_positions_for(
+            peptide_sequence1, protein_id1, crosslinker_row.CL_position_within_peptide1
+        )
+        peptide2_positions = get_positions_for(
+            peptide_sequence2, protein_id2, crosslinker_row.CL_position_within_peptide2
+        )
+
         all_position_combinations = list(
             itertools.product(peptide1_positions, peptide2_positions)
         )
         if not all_position_combinations:
             if not peptide1_positions and not peptide2_positions:
-                msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequence. The entry was deleted."
+                msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequences. The entry was deleted."
             else:
-                msg = f"Peptide sequence {peptide_sequence1 if not peptide1_positions else peptide_sequence2} of crosslink entry {idx} was not found in the protein sequence. The entry was deleted."
+                msg = f"Peptide sequence {peptide_sequence1 if not peptide1_positions else peptide_sequence2} of crosslink entry {idx} was not found in the protein sequences. The entry was deleted."
             messages.append(dict(level=logging.WARNING, msg=msg))
             rows_to_delete.append(idx)
             continue
-        crosslinking_df.at[idx, "crosslinker_position1"] = all_position_combinations[0][
-            0
-        ]
-        crosslinking_df.at[idx, "crosslinker_position2"] = all_position_combinations[0][
-            1
-        ]
+        crosslinker_position1, crosslinker_position2 = all_position_combinations[0]
+
+        crosslinking_df.at[idx, "crosslinker_position1"] = crosslinker_position1
+        crosslinking_df.at[idx, "crosslinker_position2"] = crosslinker_position2
         if len(all_position_combinations) > 1:
             rows_to_duplicate[idx] = all_position_combinations[1:]
 
@@ -188,7 +219,7 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
 
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
-    structure_to_validate: str,
+    structures_to_validate: list[str],
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -201,44 +232,68 @@ def validate_with_angstrom_deviation(
     and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
     :param crosslinking_df: DataFrame containing cross-linking data.
-    :param structure_to_validate: UniProt ID of the protein to validate.
+    :param structures_to_validate: UniProt IDs of the proteins to validate.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
     :param amino_acid_sequences_df: DataFrame containing the protein sequence
+    :param is_multimer: Whether the structures we want to check are monomer or multimer
     :return: dict (crosslinking_df_result, messages), crosslinking_df_result contains the relevant rows (rows of intra-crosslinks within the
     protein to validate) of crosslinking_df and two more columns containing the distances in AlphaFold and whether the crosslink matches the
     AlphaFold data or not
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
-    protein_sequence = amino_acid_sequences_df.at[0, "Protein Sequence"]
 
     all_crosslinks_df = crosslinking_df.copy()
-
     if not is_multimer:
         # we are only interested in intra-crosslinks of the protein we want to validate
-        mask = (all_crosslinks_df.Protein_id1 == structure_to_validate) & (
-            all_crosslinks_df.Protein_id2 == structure_to_validate
+        mask = (all_crosslinks_df.Protein_id1 == structures_to_validate[0]) & (
+            all_crosslinks_df.Protein_id2 == structures_to_validate[0]
         )
     else:
-        mask = all_crosslinks_df.Protein_id1 == structure_to_validate
+        mask = (all_crosslinks_df["Protein_id1"].isin(structures_to_validate)) & (
+            all_crosslinks_df["Protein_id2"].isin(structures_to_validate)
+        )
+
     relevant_crosslinks_df = all_crosslinks_df[mask].copy()
+
+    # Check if dataframe is empty
+    if relevant_crosslinks_df.empty:
+        msg = "There are no cross links between the structures to validate."
+        messages = [dict(level=logging.WARNING, msg=msg)]
+        return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
     relevant_crosslinks_df, messages = (
         add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-            relevant_crosslinks_df, protein_sequence
+            relevant_crosslinks_df, amino_acid_sequences_df
         )
     )
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
+        protein_id1 = crosslink.Protein_id1
+        protein_id2 = crosslink.Protein_id1
+        protein_sequence1 = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id1
+        )
+        protein_sequence2 = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
+        )
+
+        relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[
+            "crosslinker_position1"
+        ].astype("Int64")
+
+        relevant_crosslinks_df["crosslinker_position2"] = relevant_crosslinks_df[
+            "crosslinker_position2"
+        ].astype("Int64")
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
             amino_acid_position2=crosslink.crosslinker_position2,
-            amino_acid_type1=protein_sequence[crosslink.crosslinker_position1 - 1],
-            amino_acid_type2=protein_sequence[crosslink.crosslinker_position2 - 1],
+            amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1],
+            amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1],
             cif_df=cif_df,
         )
         try:
@@ -296,10 +351,11 @@ def validate_with_angstrom_deviation(
 
 def bar_plot_of_valid_crosslinks(
     crosslinking_df: pd.DataFrame,
-    structure_to_validate: str,
+    structures_to_validate: list[str],
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
+    is_multimer: bool,
 ) -> list[Figure]:
     """
     Creates a bar plot summarizing the number of valid and invalid cross-links
@@ -307,29 +363,35 @@ def bar_plot_of_valid_crosslinks(
     lengths and allowed deviations.
 
     :param crosslinking_df: DataFrame containing cross-linking data.
-    :param structure_to_validate: UniProt ID of the protein to validate.
+    :param structures_to_validate: UniProt ID of the protein to validate.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
     :param amino_acid_sequences_df: DataFrame containing the protein sequence
+    :param is_multimer: Whether the structures we want to check are monomer or multimer
     :return: List containing a single bar plot object representing counts of
              valid and invalid cross-links.
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     """
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df,
-        structure_to_validate,
+        structures_to_validate,
         crosslinker_information,
         cif_df,
         amino_acid_sequences_df,
+        is_multimer,
     )["crosslinking_result_df"]
 
-    evaluated = validated_df["valid_crosslink"].dropna()
+    if validated_df.empty:
+        valid_crosslinks = 0
+        invalid_crosslinks = 0
+    else:
+        evaluated = validated_df["valid_crosslink"].dropna()
 
-    valid_crosslinks = (evaluated == True).sum()
-    invalid_crosslinks = (evaluated == False).sum()
+        valid_crosslinks = (evaluated == True).sum()
+        invalid_crosslinks = (evaluated == False).sum()
 
     return [
         create_bar_plot(

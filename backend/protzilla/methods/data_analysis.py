@@ -1,4 +1,5 @@
 import logging
+import ast
 
 from backend.protzilla import form_helper
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
@@ -2610,6 +2611,20 @@ class CrosslinkingValidation(DataAnalysisStep):
             steps=steps, inputs=inputs
         )
 
+        metadata_df = steps.get_step_output(
+            Step, "metadata_df", correct_input_step_identifier
+        )
+        if "uniprot_accession" in metadata_df.columns:
+            inputs["structures_to_validate"] = metadata_df["uniprot_accession"].tolist()
+        elif "uniprot_ids" in metadata_df.columns:
+            inputs["structures_to_validate"] = ast.literal_eval(
+                metadata_df["uniprot_ids"].iloc[0]
+            )
+            l = inputs["structures_to_validate"]
+        else:
+            raise ValueError(
+                "No correct metadata found. Metadata must contain 'uniprot_ids' or 'uniprot_accession'."
+            )
         return inputs
 
 
@@ -2625,14 +2640,14 @@ class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
             label="Ångström Deviation - Monomer",
             input_fields=[
                 DropdownField(
-                    name="structure_to_validate",
+                    name="entry_id",
                     label="Protein prediction that should be validated",
                 ),
             ],
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        # add all loaded protein entry ids to the dropdown of structure_to_validate_field
+        # add all loaded protein entry ids to the dropdown of structures_to_validate_field
         loaded_protein_entry_ids = list(
             set(
                 run.steps.get_inputs_of_step_type(
@@ -2643,9 +2658,7 @@ class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
                 )
             )
         )
-        form["structure_to_validate"].set_options(
-            form_helper.to_choices(loaded_protein_entry_ids)
-        )
+        form["entry_id"].set_options(form_helper.to_choices(loaded_protein_entry_ids))
         # create fields for every crosslink
         self.create_crosslink_input_fields(form=form, run=run)
 
@@ -2653,7 +2666,7 @@ class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["structure_to_validate"]
+        entry_id = inputs["entry_id"]
         correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
             ImportMonomerStructurePredictionFromDisk, "entry_id", entry_id
         ) or steps.get_step_identifier_of_step_with_input(
@@ -2680,14 +2693,14 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidat
             label="Ångström Deviation - Multimer",
             input_fields=[
                 DropdownField(
-                    name="structure_to_validate",
+                    name="entry_id",
                     label="Multimer prediction that should be validated",
                 ),
             ],
         )
 
     def modify_form(self, form: Form, run: Run) -> None:
-        # add all loaded protein entry ids to the dropdown of structure_to_validate_field
+        # add all loaded protein entry ids to the dropdown of structures_to_validate_field
         loaded_proteins_entry_ids = list(
             set(
                 run.steps.get_inputs_of_step_type(
@@ -2698,23 +2711,22 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidat
                 )
             )
         )
-        form["structure_to_validate"].set_options(
-            form_helper.to_choices(loaded_proteins_entry_ids)
-        )
+        form["entry_id"].set_options(form_helper.to_choices(loaded_proteins_entry_ids))
         self.create_crosslink_input_fields(form=form, run=run)
 
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["structure_to_validate"]
+        entry_id = inputs["entry_id"]
         correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
             ImportMultimerStructurePredictionFromDisk, "entry_id", entry_id
         ) or steps.get_step_identifier_of_step_with_input(
             UploadMultimerPredictions, "entry_id", entry_id
         )
 
-        inputs["is_multimer"] = False
+        inputs["is_multimer"] = True
+
         return self.insert_dataframes_with_correct_input_step_id(
             steps=steps,
             inputs=inputs,

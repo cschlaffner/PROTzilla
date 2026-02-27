@@ -756,7 +756,6 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         msg = f"Failed to read JSON files in {structure_dir}: {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
-
     df_dict = {
         "metadata_df": metadata_df,
         "amino_acid_sequences_df": amino_acid_sequences_df,
@@ -764,7 +763,6 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "confidence_df": confidence_df,
         "full_data_df": full_data_df,
     }
-
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
     return df_dict
@@ -772,7 +770,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
 
 def upload_multimer_prediction(
     entry_id: str,
-    uniprot_ids: list[str],
+    uniprot_ids: str,
     model_used: str,
     amino_acid_sequences: Path,
     cif_file: Path,
@@ -834,9 +832,11 @@ def upload_multimer_prediction(
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    uniprot_ids_as_list = uniprot_ids.split(", ")
+
     data: dict[str, Any] = {
         "entry_id": entry_id,
-        "uniprot_ids": uniprot_ids,
+        "uniprot_ids": uniprot_ids_as_list,
         "model_created_date": timestamp,
         "model_used": model_used,
     }

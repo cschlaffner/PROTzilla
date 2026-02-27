@@ -52,7 +52,7 @@ def test_validate_with_angstrom_deviation(distance, expected):
 
     result = validate_with_angstrom_deviation(
         crosslinking_df,
-        structure_to_validate="P12345",
+        structures_to_validate=["P12345"],
         crosslinker_information=crosslinker_information,
         amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
