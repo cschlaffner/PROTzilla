@@ -76,7 +76,6 @@ def by_local_outlier_factor(
     protein_df: pd.DataFrame,
     peptide_df: pd.DataFrame | None,
     number_of_neighbors: int = 20,
-    n_jobs: int = -1,
 ) -> dict:
     """
     This function filters out outliers using a clustering
@@ -90,9 +89,6 @@ def by_local_outlier_factor(
     :param number_of_neighbors: number of neighbors used by the
         algorithm, default: 20
     :type number_of_neighbors: int
-    :param n_jobs: Number kernels used by algorithm, default:
-        all kernels (-1)
-    :type n_jobs: int
 
     :return: returns a Dataframe containing all samples that are not outliers and a
         dict with list of outlier sample names
@@ -101,7 +97,7 @@ def by_local_outlier_factor(
     try:
         transformed_df = long_to_wide(protein_df)
 
-        clf = LocalOutlierFactor(n_neighbors=number_of_neighbors, n_jobs=n_jobs)
+        clf = LocalOutlierFactor(n_neighbors=number_of_neighbors, n_jobs=-1)
 
         df_lof_data = pd.DataFrame(index=transformed_df.index)
         df_lof_data["LOF Outlier"] = clf.fit_predict(
