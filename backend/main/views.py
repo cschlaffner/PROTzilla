@@ -625,6 +625,27 @@ def get_step_plots(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+    
+
+def get_step_visualizations(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+
+        run = Run(run_name)
+        if run.current_step is not None: #and hasattr(run.current_step, "visualizations"):
+            visualizations = [to_json(v) for v in run.current_step.visualizations]
+        else:
+            visualizations = []
+
+        return JsonResponse(
+            {"success": True, "message": "Got the visualization(s) for the step", "data": visualizations},
+            safe=False,
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 def get_step_table(request):

@@ -48,6 +48,7 @@ class Step:
         self.output: Output = Output()
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
+        self.visualizations: Visualizations = Visualizations()
         self.messages: Messages = Messages([])
         self.instance_identifier = instance_identifier
         self.disk_write_mutex = Lock()
@@ -139,8 +140,8 @@ class Step:
             if self.visualization_method: 
                 print("Test: steps.py findet eine viz_method")
                 visualization_output = self.visualization_method(**self.visualization_input)
-                """
                 self.handle_visualization_outputs(visualization_output)
+                """
                 self.artifact_versions.setdefault("visualization", {"generated": 0, "dumped": 0})
                 self.artifact_versions["visualization"]["generated"] += 1
                 """
@@ -234,6 +235,31 @@ class Step:
 
         self.plots = Plots(plots)
 
+    def handle_visualization_outputs(self, outputs):
+        #Types probably need to be changed: 
+        """
+        Handles the dictionary from the plot method and creates a Plots object from it.
+        Responsible for clearing and setting the plots attribute of the class.
+        :param outputs: A dictionary or a list received after the plot method
+        :return: None
+        """
+
+        if not isinstance(outputs, list) and not isinstance(outputs, dict):
+            raise TypeError(
+                "Output of visualization method is not a list or dictionary."
+            )
+
+        if isinstance(outputs, dict):
+            visualizations = outputs.get("visualizations", [])
+            self.output.output.update(
+                {k: v for k, v in outputs.items() if k != "visualizations"}
+            )
+            self.handle_messages(outputs)
+        else:
+            visualizations = outputs
+
+        self.visualizations = Visualizations(outputs)
+
     def handle_messages(self, outputs: dict) -> None:
         """
         Handles the messages from the calculation method and creates a Messages object from it.
@@ -293,8 +319,32 @@ class Step:
     
     @property
     def visualization_input(self) -> dict:
-        #to be implemented 
-        return None 
+        #Probably needs to be changed/ adjusted 
+        prefixed_output = {
+            "output_" + key: value for key, value in self.output.output.items()
+        }
+
+        visualization_input = self.inputs | prefixed_output
+
+        input_parameters = inspect.signature(self.visualization_method).parameters
+
+        required_keys = [
+            key
+            for key, param in input_parameters.items()
+            if param.default == inspect.Parameter.empty
+        ]
+
+        for key in required_keys:
+            if key not in visualization_input:
+                raise ValueError(
+                    f"Missing required input '{key}' for the visualization method"
+                )
+
+        return {
+            key: visualization_input[key]
+            for key in input_parameters.keys()
+            if key in visualization_input
+        }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
@@ -445,6 +495,23 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
+    
+
+class Visualizations:
+    def __init__(self, visualizations: list | None = None):
+        if visualizations is None:
+            visualizations = []
+        self.visualizations = visualizations
+
+    def __iter__(self):
+        return iter(self.visualizations)
+    
+    def __repr__(self):
+        return f"Visualizations: {len(self.visualizations)}"
+
+    @property
+    def empty(self) -> bool:
+        return len(self.visualizations) == 0
 
 
 class StepManager:

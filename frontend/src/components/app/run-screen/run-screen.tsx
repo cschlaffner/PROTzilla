@@ -88,6 +88,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
+  /*const [visualizations, setVisualizations] = useState<any[]>([]);*/
   const [tableData, setTableData] = useState<Table[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -106,6 +107,7 @@ export const RunScreen: React.FC = () => {
       }).then(() => {
         void getRunData();
         void getStepPlots();
+        void getStepVisualizations();
         void getStepTable();
       });
     } else {
@@ -140,6 +142,23 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
+  const getStepVisualizations = useCallback(async () => {
+    const response = await callApiWithParameters("get_step_visualizations/", {
+      run_name: runName,
+    });
+
+    if (response) {
+      const data = response.data;
+      const rawVisualizations = [];
+      if (data.length > 0) {
+        for (const viz of data) {
+          rawVisualizations.push(JSON.parse(viz)); // je nachdem wie serialisiert
+        }
+      }
+      setVisualizations(rawVisualizations);
+    }
+  }, [runName]);
+
   const getStepTable = useCallback(async () => {
     const response = await callApiWithParameters("get_step_table/", {
       run_name: runName,
@@ -152,15 +171,16 @@ export const RunScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([getRunData(), getStepPlots(), getStepTable()]);
+      await Promise.all([getRunData(), getStepPlots(), getStepVisualizations(), getStepTable()]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepTable]);
+  }, [getRunData, getStepPlots, getStepVisualizations, getStepTable]);
 
   const onFormSubmit = () => {
     void getRunData();
     void getStepPlots();
+    void getStepVisualizations();
     void getStepTable();
   };
 
@@ -208,12 +228,18 @@ export const RunScreen: React.FC = () => {
   const visualizationComponent = (
     <StyledContentContainer>
       <SectionTitle baseComponent={"h4"} description="Placeholder while in development" />
-      {/*{structures && structures.length > 0 ? (
-        structures.map((s) => (
-          <MolstarViewer pdbUrl={s.pdb_url} key={s.name} />
+      {/*{visualizations && visualizations.length > 0 ? (
+        visualizations.map((viz, index) => (
+          <StyledContentDiv key={index}>
+            {Hier ist dein Mol Viewer }
+            <MolstarViewer pdbUrl={viz.pdb_url} key={viz.name} />
+          </StyledContentDiv>
         ))
       ) : (
-        <SectionTitle baseComponent={"h4"} description="No structures available for this step." />
+        <SectionTitle
+          baseComponent={"h4"}
+          description="No visualizations available for this step."
+        />
       )}*/}
     </StyledContentContainer>
   );
