@@ -284,12 +284,7 @@ def create_histograms(
     fig.update_yaxes(title=y_title, rangemode="tozero")
 
     # Disable toggling of the visibility of the traces by clicking on the legend
-    fig.update_layout(
-        legend=dict(
-            itemclick=False,
-            itemdoubleclick=False
-        )
-    )
+    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False))
     return fig
 
 
