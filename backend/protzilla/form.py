@@ -55,6 +55,12 @@ class TextField(_baseField):
 
 
 @dataclass
+class ColorField(_baseField):
+    type: str = "color"
+    value: str = "#000000"
+
+
+@dataclass
 class NumberField(_baseField):
     type: str = "number"
     min: int | None = None

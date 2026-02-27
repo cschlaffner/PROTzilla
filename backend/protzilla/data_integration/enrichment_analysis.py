@@ -1,10 +1,10 @@
-from enum import Enum
 import logging
 import time
+from enum import Enum
 
 import gseapy
-import numpy as np
 import pandas as pd
+from pandas import DataFrame
 from restring import restring
 
 from backend.protzilla.constants.protzilla_logging import logger
@@ -28,6 +28,17 @@ def unused():
 
 last_call_time = None
 MIN_WAIT_TIME = 1  # Minimum wait time between STRING API calls in seconds
+
+
+def is_dataframe_valid(
+    proteins_df: DataFrame, differential_expression_col: str
+) -> bool:
+    return (
+        isinstance(proteins_df, pd.DataFrame)
+        and "Protein ID" in proteins_df.columns
+        and differential_expression_col in proteins_df.columns
+        and pd.api.types.is_numeric_dtype(proteins_df[differential_expression_col])
+    )
 
 
 def get_functional_enrichment_with_delay(protein_list, **string_params):
@@ -157,12 +168,7 @@ def GO_analysis_with_STRING(
     """
 
     out_messages = []
-    if (
-        not isinstance(protein_df, pd.DataFrame)
-        or "Protein ID" not in protein_df.columns
-        or differential_expression_col not in protein_df.columns
-        or not protein_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(proteins_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -540,12 +546,7 @@ def GO_analysis_with_Enrichr(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     out_messages = []
-    if (
-        not isinstance(protein_df, pd.DataFrame)
-        or not "Protein ID" in protein_df.columns
-        or not differential_expression_col in protein_df.columns
-        or not protein_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(proteins_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -780,12 +781,7 @@ def GO_analysis_offline(
     """
     # enhancement: make sure ID type for all inputs match
     out_messages = []
-    if (
-        not isinstance(protein_df, pd.DataFrame)
-        or not "Protein ID" in protein_df.columns
-        or not differential_expression_col in protein_df.columns
-        or not protein_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(proteins_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 

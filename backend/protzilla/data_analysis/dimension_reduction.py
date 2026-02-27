@@ -1,4 +1,4 @@
-import logging
+from enum import Enum
 
 import pandas as pd
 from sklearn.manifold import TSNE
@@ -6,15 +6,20 @@ from sklearn.manifold import TSNE
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 
 
+class TSNEMethod(Enum):
+    barnes_hut = "Barnes-Hut approximation"
+    exact = "exact"
+
+
 def t_sne(
     protein_df: pd.DataFrame,
+    method: str,
     n_components: int = 2,
     perplexity: float = 30.0,
     metric: str = "euclidean",
     random_state: int = 42,
     max_iter: int = 1000,
     n_iter_without_progress: int = 300,
-    method: str = "barnes_hut",
 ):
     """
     A function that uses t-SNE to reduce the dimension of a dataframe and returns a
@@ -48,62 +53,57 @@ def t_sne(
     :type method: str
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the t-SNE embedded data
-        with two columns, "Component1" and "Component2", and shares the same index as
-        the protein_df.
+        with two columns, "Component1" and "Component2" and assigns these to the
+        corresponding Sample.
     :rtype: dict
     """
-    protein_df_wide = (
-        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    
+    input_df = protein_df
+
+    intensity_df_wide = (
+        long_to_wide(input_df) if is_long_format(input_df) else input_df.copy()
     )
-    try:
-        embedded_data_model = TSNE(
-            n_components=n_components,
-            perplexity=perplexity,
-            random_state=random_state,
-            max_iter=max_iter,
-            n_iter_without_progress=n_iter_without_progress,
-            method=method,
-            metric=metric,
-        ).fit_transform(protein_df_wide)
-
-        embedded_data = pd.DataFrame(
-            embedded_data_model,
-            index=protein_df_wide.index,
-            columns=["Component1", "Component2"],
+    if intensity_df_wide.isnull().sum().any():
+        raise ValueError(
+            "T-SNE does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+            "values."
         )
-        return dict(embedded_data=embedded_data)
-
-    except ValueError as e:
-        if protein_df_wide.isnull().sum().any():
-            msg = (
-                "T-SNE does not accept missing values encoded as NaN. Consider"
-                "preprocessing your data to remove NaN values."
-            )
-        elif perplexity >= protein_df_wide.shape[0]:
-            msg = (
-                "Perplexity must be less than the number of samples. In the selected "
-                f"dataframe there is {protein_df_wide.shape[0]} samples"
-            )
-        elif (
-            min(protein_df_wide.shape[0], protein_df_wide.shape[1]) <= n_components
-            or n_components <= 1
-        ):
-            msg = (
-                f"n_components={n_components} must be between 1 and "
-                f"min(n_samples, n_features)"
-                f"={min(protein_df_wide.shape[0], protein_df_wide.shape[1])}"
-            )
-        elif n_components > 3 and method == "barnes_hut":
-            msg = (
-                "'n_components' should be inferior to 4 for the barnes_hut algorithm "
-                "as it relies on quad-tree or oct-tree."
-            )
-        else:
-            msg = ""
-        return dict(
-            embedded_data=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
+    if perplexity >= intensity_df_wide.shape[0]:
+        raise ValueError(
+            "Perplexity must be less than the number of samples. In the selected dataframe there "
+            f"is {intensity_df_wide.shape[0]} samples"
         )
+    if (
+        min(intensity_df_wide.shape[0], intensity_df_wide.shape[1]) <= n_components
+        or n_components <= 1
+    ):
+        raise ValueError(
+            "The number of dimensions of the embedded space must be between 1 and "
+            f"{min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])} (the smaller one of number of "
+            "samples/features). "
+        )
+    if n_components > 3 and method == TSNEMethod.barnes_hut.value:
+        raise ValueError(
+            "The number of dimensions should be smaller than 4 because the underlying algorithm does not"
+            " support a higher number of dimensions."
+        )
+
+    embedded_data_model = TSNE(
+        n_components=n_components,
+        perplexity=perplexity,
+        random_state=random_state,
+        max_iter=max_iter,
+        n_iter_without_progress=n_iter_without_progress,
+        method=TSNEMethod(method).name,
+        metric=metric,
+    ).fit_transform(intensity_df_wide)
+
+    embedded_data = pd.DataFrame(
+        embedded_data_model,
+        index=intensity_df_wide.index,
+        columns=[f"Component{i+1}" for i in range(n_components)],
+    ).reset_index()
+    return dict(embedded_data=embedded_data)
 
 
 def umap(
@@ -145,43 +145,35 @@ def umap(
     :type transform_seed: int
     :return: a dictionary with a single key, "embedded_data", which contains a new
         DataFrame in wide format. This DataFrame consists of the UMAP embedded data
-        with two columns, "Component1" and "Component2", and shares the same index as
-        the protein_df.
+        with two columns, "Component1" and "Component2", and assigns these to the
+        corresponding Sample.
     :rtype: dict
     """
 
     # umap import is slow, so it should only get imported when needed
     from umap import UMAP
+    
+    input_df = protein_df
 
-    protein_df_wide = (
-        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
-    )
-    try:
-        embedded_data_model = UMAP(
-            n_neighbors=n_neighbors,
-            n_components=n_components,
-            min_dist=min_dist,
-            metric=metric,
-            random_state=random_state,
-            transform_seed=transform_seed,
-        ).fit_transform(protein_df_wide)
-
-        embedded_data = pd.DataFrame(
-            embedded_data_model,
-            index=protein_df_wide.index,
-            columns=["Component1", "Component2"],
+    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    if intensity_df_wide.isnull().sum().any():
+        raise ValueError(
+            "UMAP does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "
+            "values."
         )
-        return dict(embedded_data=embedded_data)
+    embedded_data_model = UMAP(
+        n_neighbors=n_neighbors,
+        n_components=n_components,
+        min_dist=min_dist,
+        metric=metric,
+        random_state=random_state,
+        transform_seed=transform_seed,
+    ).fit_transform(intensity_df_wide)
 
-    except ValueError as e:
-        if protein_df_wide.isnull().sum().any():
-            msg = (
-                "UMAP does not accept missing values encoded as NaN. Consider "
-                "preprocessing your data to remove NaN values."
-            )
-        else:
-            msg = ""
-        return dict(
-            embedded_data=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
-        )
+    embedded_data = pd.DataFrame(
+        embedded_data_model,
+        index=intensity_df_wide.index,
+        columns=[f"Component{i+1}" for i in range(n_components)],
+    ).reset_index()
+
+    return dict(embedded_data=embedded_data)

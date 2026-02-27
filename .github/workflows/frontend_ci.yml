@@ -2,9 +2,12 @@ name: Frontend CI Pipeline
 
 on:
   push:
+    branches:
+      - 'dev'
     paths:
       - frontend/**
   pull_request:
+    types: ['opened', 'synchronize']
     paths:
       - frontend/**
 

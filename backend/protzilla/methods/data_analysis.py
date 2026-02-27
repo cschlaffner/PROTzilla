@@ -2,6 +2,7 @@ from abc import ABC
 import logging
 from typing_extensions import override
 
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.constants.data_types import DataKeys, StepID
@@ -25,7 +26,7 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
-from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap
+from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap, TSNEMethod
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
@@ -34,6 +35,10 @@ from backend.protzilla.data_analysis.plots import (
     create_volcano_plot,
     prot_quant_plot,
     scatter_plot,
+)
+from backend.protzilla.utilities.clustergram import (
+    HEATMAP_LOW_COLOR,
+    HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
@@ -66,6 +71,7 @@ from protzilla.data_analysis.ptm_visualization import (
 from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
+from protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -189,7 +195,6 @@ class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
     cosine = "cosine"
-    havensine = "havensine"
 
 
 class DataAnalysisStep(Step, ABC):
@@ -326,7 +331,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
     calc_method = staticmethod(anova)
 
-
 class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
@@ -405,7 +409,6 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         self.set_two_groups_options(run)
 
     calc_method = staticmethod(t_test)
-
 
 class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     display_name = "Linear Model"
@@ -893,6 +896,10 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                     name="color_df_field",
                     label="Choose dataframe to be used for coloring",
                 ),
+                DropdownField(
+                    name="metadata_column",
+                    label="Choose the column of the metadata dataframe that should be used for coloring",
+                ),
             ],
         )
 
@@ -934,6 +941,43 @@ class PlotClustergram(DataAnalysisPlotStep):
                     label="Flip axis",
                     text="Flip axes",
                 ),
+                DropdownField(
+                    name="imputation_strategy",
+                    label="Impute missing values per protein by:",
+                    value=SimpleImputerStrategyType.MEAN.value,
+                    options=SimpleImputerStrategyType,
+                ),
+                TextField(
+                    name="heatmap_legend_title",
+                    label="Heatmap legend title",
+                    value="Heatmap legend",
+                ),
+                CheckboxField(
+                    name="use_custom_color_scale",
+                    label="Use custom color scale",
+                ),
+                FloatField(
+                    name="heatmap_low_color_limit",
+                    label="Heatmap lower color limit",
+                    isVisible=False,
+                ),
+                ColorField(
+                    name="heatmap_low_color",
+                    label="Heatmap lower color",
+                    value=HEATMAP_LOW_COLOR,
+                    isVisible=False,
+                ),
+                FloatField(
+                    name="heatmap_high_color_limit",
+                    label="Heatmap upper color limit",
+                    isVisible=False,
+                ),
+                ColorField(
+                    name="heatmap_high_color",
+                    label="Heatmap upper color",
+                    value=HEATMAP_HIGH_COLOR,
+                    isVisible=False,
+                ),
             ],
         )
 
@@ -948,6 +992,11 @@ class PlotClustergram(DataAnalysisPlotStep):
                 )
             )
 
+        custom_scale_toggled = bool(self.form.values["use_custom_color_scale"])
+        self.form["heatmap_low_color_limit"].isVisible = custom_scale_toggled
+        self.form["heatmap_high_color_limit"].isVisible = custom_scale_toggled
+        self.form["heatmap_low_color"].isVisible = custom_scale_toggled
+        self.form["heatmap_high_color"].isVisible = custom_scale_toggled
 
 class PlotProtQuant(DataAnalysisPlotStep):
     display_name = "Protein Quantification Plot"
@@ -1598,10 +1647,15 @@ class DimensionReductionTSNE(DataAnalysisStep):
         return Form(
             label="t-SNE",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using t-SNE. To "
+                    "visualise the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 NumberField(
                     name="n_components",
                     label="Dimension of the embedded space",
                     min=1,
+                    max=3,
                     step=1,
                     value=2,
                 ),
@@ -1612,11 +1666,15 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     max=50.0,
                     value=30.0,
                 ),
-                MultiSelectField(
+                DropdownField(
+                    name="method",
+                    label="Gradient calculation method",
+                    options=TSNEMethod,
+                ),
+                DropdownField(
                     name="metric",
-                    label="Metric",
+                    label="Distance metric",
                     options=DimensionReductionMetric,
-                    value=DimensionReductionMetric.euclidean,
                 ),
                 NumberField(
                     name="random_state",
@@ -1657,6 +1715,10 @@ class DimensionReductionUMAP(DataAnalysisStep):
         return Form(
             label="UMAP",
             input_fields=[
+                HeaderInfoField(
+                    label="This step only performs the calculation for the dimension reduction using UMAP. To "
+                    "visualise the results, please use the 'Scatter Plot' step afterwards.",
+                ),
                 NumberField(
                     name="n_neighbors",
                     label="The size of local neighborhood (in terms of number of neighboring sample points) used for manifold "
