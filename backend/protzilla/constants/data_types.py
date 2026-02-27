@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 import pandas as pd
-from enum import Enum
+from enum import StrEnum
 from typing import NewType, TypedDict
 
 
-class DataKeys(str, Enum):
+class DataKeys(StrEnum):
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"

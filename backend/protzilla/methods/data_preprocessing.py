@@ -166,7 +166,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         peptide_df_field = form["peptide_df"]
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from enum import Enum
@@ -25,7 +26,7 @@ class Option:
     `value` is the value of the option, `label` is the label shown to the user.
     """
 
-    value: str
+    value: str | None
     label: str
 
     def __lt__(self, other):
@@ -194,11 +195,14 @@ InputField = (
 )
 StructuralField = FormDivider | InfoField | HeaderInfoField
 
+FormField = InputField | StructuralField
+
 
 @dataclass
 class Form:
     label: str
-    input_fields: list[InputField | StructuralField]
+    # Sequence is covariant, list isn't (see https://dev.to/meeshkan/covariance-and-contravariance-in-generic-types-3k63)
+    input_fields: Sequence[FormField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
@@ -210,21 +214,11 @@ class Form:
             if isinstance(field, _baseField)
         }
 
-    def modify_form(self, run: Run) -> None:
-        """
-        This method should be defined in Step classes to modify the form based on the current state of the run.
-        """
-
-        pass
-
     def update_values(self, values: dict[str, Any]) -> None:
         "insert new values into the form"
         if values:
             for fieldname, value in values.items():
                 self[fieldname].value = value
-
-    def apply_modification(self, run: Run) -> None:
-        self.modify_form(run)
 
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"

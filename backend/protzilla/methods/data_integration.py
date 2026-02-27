@@ -172,7 +172,7 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         protein_df_field = form["protein_df_field"]
         gene_sets_restring_field = form["gene_sets_restring"]
 
@@ -268,7 +268,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         protein_df_field = form["protein_df_field"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         gene_sets_field = form["gene_sets_field"]
@@ -404,7 +404,7 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         protein_df_field = form["protein_df_field"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         background_type_field = form["background_type"]
@@ -544,7 +544,7 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         protein_df_field = form["protein_df_field"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         gene_sets_field = form["gene_sets_type"]
@@ -575,7 +575,7 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
             gene_sets_path_field.isVisible = True
 
         grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
+            form_helper.get_choices_for_metadata(run, include_sample=False)
         )
 
         if not grouping_field.value:
@@ -688,7 +688,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisGSEAStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         protein_df_field = form["protein_df_field"]
         gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
         ranking_column_field = form["ranking_column"]
@@ -757,7 +757,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         form["database_names"].set_options(form_helper.to_choices(uniprot_databases()))
 
         form["dataframe"].set_options(
@@ -851,7 +851,7 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         form["input_df_field"].set_options(
             form_helper.get_choices(run, "enrichment_df")
         )
@@ -949,7 +949,7 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         form["gene_sets"].set_options(
             [
                 Option(el, el)
@@ -1027,7 +1027,7 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
+    def modify_form(self, run: Run):
         gsea_df_step_instance_field = form["gsea_df_step_instance"]
         gsea_df_step_instance_field.set_options(
             form_helper.get_choices(run, "enrichment_df")

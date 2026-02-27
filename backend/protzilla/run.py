@@ -341,7 +341,7 @@ class Run:
     @auto_save
     def current_form(self, new_form_values={}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
-        self.steps.current_step.form.apply_modification(self)
+        self.steps.current_step.modify_form(self)
         return self.steps.current_step.form
 
     @property

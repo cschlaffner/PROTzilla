@@ -460,7 +460,7 @@ class StepManager:
         self,
         step_type: Step | None = None,
         output_key: str = "",  # TODO remove step_type and default empty string
-        instance_identifier: str | None = None,
+        instance_identifier: StepID | None = None,
         include_current_step: bool = False,
     ) -> pd.DataFrame | Any | None:
         """
@@ -482,8 +482,11 @@ class StepManager:
         else:
             steps_to_search = self.previous_calculated_steps
 
-        # TODO: this is stupid. iterating over all steps should now only be necessary if for whatever reason the instance identifier is unknown
-        # if an instance identifier is present, self.all_steps should be used
+        if instance_identifier is not None:
+            step = self.get_step_by_id(instance_identifier)
+            return step.output[output_key]
+
+        # TODO: legacy - check if any calls without an explicit instance_identifier remain
         for step in reversed(steps_to_search):
             if (
                 StepManager.check_instance_identifier(step, instance_identifier)
@@ -492,6 +495,7 @@ class StepManager:
                 val = step.output[output_key]
                 if val is None:
                     continue
+                # TODO: when are outputs ever stored as paths?
                 if isinstance(val, str) and Path(val).exists():
                     if Path(val).suffix == ".csv":
                         from backend.protzilla.disk_operator import DataFrameOperator

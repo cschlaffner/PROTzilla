@@ -3,7 +3,8 @@ import logging
 from typing_extensions import override
 
 from backend.protzilla import form_helper
-from backend.protzilla.constants.data_types import DataKeys
+from backend.protzilla.run import Run
+from backend.protzilla.constants.data_types import DataKeys, StepID
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -73,6 +74,7 @@ class TTestType(Enum):
 
 
 class AnalysisLevel(Enum):
+    # TODO: what/why?
     protein = "Protein"
 
 
@@ -98,8 +100,8 @@ class DynamicProteinFill(Enum):
 
 
 class SimilarityMeasure(Enum):
-    euclidean_distance = "euclidean distance"
-    cosine_similarity = "cosine similarity"
+    euclidean_distance = "Euclidean Distance"
+    cosine_similarity = "Cosine Similarity"
 
 
 class ModelSelection(Enum):
@@ -193,6 +195,71 @@ class DimensionReductionMetric(Enum):
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
+    def set_protein_ids(self, run: Run, protein_ids_field_name: str, input_key: DataKeys) -> None:
+        protein_ids_field: DropdownField = self.form[protein_ids_field_name]
+
+        df = self.get_input(run.steps, input_key)
+
+        if df is not None:
+            protein_ids = df["Protein ID"].unique().tolist()
+            protein_ids_field.set_options(form_helper.to_choices(protein_ids))
+
+
+    def set_grouping_options(
+        self, run: Run, column_field_name: str = "grouping", include_sample: bool = False
+    ) -> None:
+        column_field: DropdownField = self.form[column_field_name]
+
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKeys.METADATA_DF
+        )
+
+        if metadata_source is not None:
+            grouping_choices = form_helper.get_choices_for_metadata(
+                run, metadata_source, source_handle, include_sample
+            )
+
+            column_field.set_options(grouping_choices)
+
+    def set_selected_groups_options(
+        self, run: Run, column_field: str, group_field: str, required: bool = True
+    ) -> None:
+        grouping: str | None = self.form[column_field].value
+        selected_groups_field: MultiSelectField | DropdownField = self.form[group_field]
+
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKeys.METADATA_DF
+        )
+
+        if metadata_source is not None and source_handle is not None and grouping is not None:
+            selected_groups_field.set_options(
+                form_helper.get_choices_for_groups(
+                    run, metadata_source, source_handle, grouping, required
+                )
+            )
+
+    def set_two_groups_options(self, run: Run) -> None:
+        group1_field: DropdownField = self.form["group1"]
+        group2_field: DropdownField = self.form["group2"]
+        grouping: str = self.form["grouping"].value
+
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKeys.METADATA_DF
+        )
+
+        if metadata_source is not None and source_handle is not None:
+            groups_choices = form_helper.get_choices_for_groups(
+                run, metadata_source, source_handle, grouping
+            )
+
+            # Set choices for group1 field based on selected grouping
+            group1_field.set_options(groups_choices)
+
+            # set choices for group2 field based on selected grouping and group1
+            group2_field.set_options(
+                [group for group in groups_choices if group.value != group1_field.value]
+            )
+
 
 class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
 
@@ -201,19 +268,14 @@ class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
+        # TODO: either make this an explicit output or find a different representation
+        # should definitely not be implicit
         self.inputs["log_base"] = steps.get_step_input(input_key="log_base")
 
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
 
     operation = "Peptide analysis"
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["ptm_df"] = steps.get_step_output(
-            output_key="ptm_df", instance_identifier=self.inputs["ptm_df_field"]
-        )
-        self.inputs["metadata_df"] = steps.metadata_df
 
 
 class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
@@ -233,10 +295,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
         return Form(
             label="ANOVA",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Step to use protein intensities from",
-                ),
                 DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
@@ -259,18 +317,11 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        grouping_field = form["grouping"]
-        selected_groups_field = form["selected_groups"]
-
-        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-        grouping = grouping_field.value
-        selected_groups_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_selected_groups_options(
+            run, column_field="grouping", group_field="selected_groups"
         )
 
     calc_method = staticmethod(anova)
@@ -348,49 +399,10 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        grouping_field: DropdownField = form["grouping"]
-        group1_field: DropdownField = form["group1"]
-        group2_field: DropdownField = form["group2"]
-
-        metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
-
-        if metadata_source is None:
-            return
-
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(
-                run, metadata_source
-            )
-        )
-
-        if grouping_field.options == []:
-            return
-
-        # TODO: everything below shold be moved somewhere else, at least into the parent class
-        # since setting the relevant groups is the same across all differential expression steps
-
-        grouping = grouping_field.value
-
-        metadata_df = run.steps.get_step_output(
-            output_key=DataKeys.METADATA_DF, instance_identifier=metadata_source
-        )
-
-        if metadata_df is None:
-            return
-
-        groups = metadata_df[grouping].unique()
-
-        # Set choices for group1 field based on selected grouping
-        group1_field.set_options(form_helper.to_choices(groups))
-
-        # set choices for group2 field based on selected grouping and group1
-        if group1_field.value in groups:
-            group2_field.set_options(
-                [Option(el, el) for el in groups if el != group1_field.value]
-            )
-        else:
-            group2_field.set_options(list(reversed(form_helper.to_choices(groups))))
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_two_groups_options(run)
 
     calc_method = staticmethod(t_test)
 
@@ -442,42 +454,10 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        grouping_field = form["grouping"]
-        group1_field = form["group1"]
-        group2_field = form["group2"]
-
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-
-        if grouping_field.options == []:
-            return
-
-        grouping = grouping_field.value
-
-        # Set choices for group1 field based on selected grouping
-        group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-        )
-
-        # set choices for group2 field based on selected grouping and group1
-        if group1_field.value in run.steps.metadata_df[grouping].unique():
-            group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in run.steps.metadata_df[grouping].unique()
-                    if el != group1_field.value
-                ]
-            )
-        else:
-            group2_field.set_options(
-                list(
-                    reversed(
-                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-                    )
-                )
-            )
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_two_groups_options(run)
 
     calc_method = staticmethod(linear_model)
 
@@ -503,10 +483,6 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
             label="Mann-Whitney Test",
             input_fields=[
                 DropdownField(
-                    name="protein_df",
-                    label="Step to use protein intensities from",
-                ),
-                DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     value=MultipleTestingCorrectionMethod.benjamini_hochberg,
@@ -542,44 +518,10 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_field = form["protein_df_field"]
-        grouping_field = form["grouping"]
-        group1_field = form["group1"]
-        group2_field = form["group2"]
-
-        protein_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-
-        if grouping_field.options == []:
-            return
-
-        grouping = grouping_field.value
-
-        # Set choices for group1 field based on selected grouping
-        group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-        )
-
-        # set choices for group2 field based on selected grouping and group1
-        if group1_field.value in run.steps.metadata_df[grouping].unique():
-            group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in run.steps.metadata_df[grouping].unique()
-                    if el != group1_field.value
-                ]
-            )
-        else:
-            group2_field.set_options(
-                list(
-                    reversed(
-                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-                    )
-                )
-            )
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_two_groups_options(run)
 
     calc_method = staticmethod(mann_whitney_test_on_intensity_data)
 
@@ -605,10 +547,6 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
             label="Mann-Whitney Test",
             input_fields=[
                 DropdownField(
-                    name="ptm_df_field",
-                    label="Step to use ptm data from",
-                ),
-                DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     value=MultipleTestingCorrectionMethod.benjamini_hochberg,
@@ -644,50 +582,10 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        ptm_df_field = form["ptm_df_field"]
-        grouping_field = form["grouping"]
-        group1_field = form["group1"]
-        group2_field = form["group2"]
-
-        ptm_df_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=PTMsPerSample, output_key="ptm_df"
-                )
-            )
-        )
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-
-        if grouping_field.options == []:
-            return
-
-        grouping = grouping_field.value
-
-        # Set choices for group1 field based on selected grouping
-        group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-        )
-
-        # set choices for group2 field based on selected grouping and group1
-        if group1_field.value in run.steps.metadata_df[grouping].unique():
-            group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in run.steps.metadata_df[grouping].unique()
-                    if el != group1_field.value
-                ]
-            )
-        else:
-            group2_field.set_options(
-                list(
-                    reversed(
-                        form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-                    )
-                )
-            )
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_two_groups_options(run)
 
     calc_method = staticmethod(mann_whitney_test_on_ptm_data)
 
@@ -713,9 +611,6 @@ class DifferentialExpressionKruskalWallisOnIntensity(
             label="Kruskal-Wallis Test",
             input_fields=[
                 DropdownField(
-                    name="protein_df_field", label="Step to use protein data from"
-                ),
-                DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     options=MultipleTestingCorrectionMethod,
@@ -738,17 +633,11 @@ class DifferentialExpressionKruskalWallisOnIntensity(
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        grouping_field = form["grouping"]
-        selected_groups_field = form["selected_groups"]
-        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-        grouping = grouping_field.value
-        selected_groups_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_selected_groups_options(
+            run, column_field="grouping", group_field="selected_groups"
         )
 
     calc_method = staticmethod(kruskal_wallis_test_on_intensity_data)
@@ -773,10 +662,6 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
             label="Kruskal-Wallis Test",
             input_fields=[
                 DropdownField(
-                    name="ptm_df",
-                    label="Step to use ptm data from. ('PTMs per Sample' step needed for preproceesing)",
-                ),
-                DropdownField(
                     name="multiple_testing_correction_method",
                     label="Multiple testing correction",
                     options=MultipleTestingCorrectionMethod,
@@ -799,22 +684,11 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        ptm_df_field = form["ptm_df_field"]
-        grouping_field = form["grouping"]
-        selected_groups_field = form["selected_groups"]
-
-        ptm_df_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(PTMsPerSample, "ptm_df")
-            )
-        )
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-        grouping = grouping_field.value
-        selected_groups_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run)
+        self.set_selected_groups_options(
+            run, column_field="grouping", group_field="selected_groups"
         )
 
     calc_method = staticmethod(kruskal_wallis_test_on_ptm_data)
@@ -825,6 +699,7 @@ class DataAnalysisPlotStep(DataAnalysisStep, ABC):
     operation = "plot"
 
 
+# TODO: broken - needs decision regarding inclusion as plot method for relevant steps
 class PlotVolcano(DataAnalysisPlotStep):
     display_name = "Volcano Plot"
     method_description = (
@@ -858,9 +733,10 @@ class PlotVolcano(DataAnalysisPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        input_dict_field = form["input_dict"]
-        items_of_interest_field = form["items_of_interest"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        input_dict_field = self.form["input_dict"]
+        items_of_interest_field = self.form["items_of_interest"]
 
         input_dict_field.set_options(
             form_helper.to_choices(
@@ -932,14 +808,6 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
             label="Protein Coverage Plot",
             input_fields=[
                 DropdownField(
-                    name="peptide_df_field",
-                    label="Step to use peptide data from",
-                ),
-                DropdownField(
-                    name="fasta_df_field",
-                    label="Step to use fasta protein data from",
-                ),
-                DropdownField(
                     name="protein_id",
                     label="Protein ID",
                 ),
@@ -960,65 +828,53 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df_field"]
-        fasta_df_field = form["fasta_df_field"]
-        protein_id_field = form["protein_id"]
-        grouping_field = form["grouping"]
-        selected_groups_field = form["selected_groups"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        protein_id_field: DropdownField = self.form["protein_id"]
+        selected_groups_field: MultiSelectField = self.form["selected_groups"]
 
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
-        fasta_df_field.set_options(form_helper.get_choices(run, "fasta_df"))
+        peptide_source, source_handle = self.input_source(
+            run.steps, DataKeys.PEPTIDE_DF
+        )
+        if peptide_source is not None and source_handle is not None:
+            peptide_df = run.steps.get_step_output(
+                output_key=source_handle, instance_identifier=peptide_source
+            )
+            proteins_from_peptide_df = (
+                set(peptide_df["Protein ID"].dropna().unique())
+                if peptide_df is not None
+                else set()
+            )
+            # Make sure that we have a unified representation of the canonical protein, which is sometimes given without
+            # the -1 suffix. Only important for getting the correct sequence from the fasta file, so we don't need to
+            # change it in the peptide_df
+            proteins_from_peptide_df = {
+                p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
+            }
 
-        peptide_df_instance_id = peptide_df_field.value
-        peptide_df = run.steps.get_step_output(
-            output_key="peptide_df", instance_identifier=peptide_df_instance_id
-        )
-        proteins_from_peptide_df = (
-            set(peptide_df["Protein ID"].dropna().unique())
-            if peptide_df is not None
-            else {}
-        )
-        # Make sure that we have a unified representation of the canonical protein, which is sometimes given without
-        # the -1 suffix. Only important for getting the correct sequence from the fasta file, so we don't need to
-        # change it in the peptide_df
-        proteins_from_peptide_df = {
-            p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
-        }
+            fasta_source, source_handle = self.input_source(run.steps, DataKeys.FASTA_DF)
+            fasta_df = run.steps.get_step_output(
+                output_key=source_handle, instance_identifier=fasta_source
+            )
+            proteins_from_fasta_df = (
+                set(fasta_df["Protein ID"].unique()) if fasta_df is not None else set()
+            )
 
-        fasta_df_instance_id = fasta_df_field.value
-        fasta_df = run.steps.get_step_output(
-            output_key="fasta_df", instance_identifier=fasta_df_instance_id
-        )
-        proteins_from_fasta_df = (
-            set(fasta_df["Protein ID"].unique()) if fasta_df is not None else {}
-        )
-
-        common_proteins = list(proteins_from_peptide_df & proteins_from_fasta_df)
-        protein_id_field.set_options(form_helper.to_choices(common_proteins))
+            common_proteins = list(proteins_from_peptide_df & proteins_from_fasta_df)
+            protein_id_field.set_options(form_helper.to_choices(common_proteins))
 
         # We specifically want to allow grouping by Sample here
-        grouping_field.set_options(form_helper.get_choices_for_metadata(run))
-        grouping = grouping_field.value
+        self.set_grouping_options(run, include_sample=True)
+        grouping = self.form["grouping"].value
         if grouping == "Sample":
             selected_groups_field.set_options(
                 form_helper.to_choices(peptide_df["Sample"].unique())
             )
-        else:
+        elif grouping is not None:
             selected_groups_field.set_options(
                 form_helper.to_choices(run.steps.metadata_df[grouping].unique())
             )
-        form["aggregation_method"].isVisible = grouping != "Sample"
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["fasta_df"] = steps.get_step_output(
-            output_key="fasta_df", instance_identifier=self.inputs["fasta_df_field"]
-        )
-        self.inputs["peptide_df"] = steps.get_step_output(
-            output_key="peptide_df", instance_identifier=self.inputs["peptide_df_field"]
-        )
-        self.inputs["metadata_df"] = steps.metadata_df
+        self.form["aggregation_method"].isVisible = grouping != "Sample"
 
 
 class PlotScatterPlot(DataAnalysisPlotStep):
@@ -1031,11 +887,8 @@ class PlotScatterPlot(DataAnalysisPlotStep):
         return Form(
             label="Scatter Plot",
             input_fields=[
-                DropdownField(
-                    name="input_df_field",
-                    label="Choose dataframe to be plotted",
-                ),
                 # TODO: handle isRequired
+                # TODO: is this supposed to be metadata?
                 DropdownField(
                     name="color_df_field",
                     label="Choose dataframe to be used for coloring",
@@ -1043,17 +896,9 @@ class PlotScatterPlot(DataAnalysisPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        input_df_field = form["input_df_field"]
-        color_field = form["color_df"]
-
-        input_df_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=DimensionReductionUMAP, output_key="embedded_data"
-                )
-            )
-        )
+    @override
+    def modify_form(self, run: Run) -> None:
+        color_field: DropdownField = self.form["color_df_field"]
 
         color_field.set_options(
             form_helper.to_choices(
@@ -1062,16 +907,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                 ),
                 required=False,
             )
-        )
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["input_df"] = steps.get_step_output(
-            output_key="embedded_data",
-            instance_identifier=self.inputs["input_df_field"],
-        )
-        self.inputs["color_df"] = steps.get_step_output(
-            output_key="color_df", instance_identifier=self.inputs["color_df_field"]
         )
 
 
@@ -1091,14 +926,6 @@ class PlotClustergram(DataAnalysisPlotStep):
             label="Clustergram",
             input_fields=[
                 DropdownField(
-                    name="protein_df_field",
-                    label="Choose dataframe to be plotted",
-                ),
-                DropdownField(
-                    name="metadata_df_field",
-                    label="Choose dataframe to be used for annotating sample metadata",
-                ),
-                DropdownField(
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for annotation",
                 ),
@@ -1110,51 +937,16 @@ class PlotClustergram(DataAnalysisPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        form["protein_df_field"].set_options(
-            form_helper.get_choices_for_protein_df_steps(
-                run,
-            )
-            + form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    Step,
-                    "significant_proteins_df",
+    @override
+    def modify_form(self, run: Run) -> None:
+        metadata_column_field: DropdownField = self.form["metadata_column"]
+        metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
+        if metadata_source is not None:
+            metadata_column_field.set_options(
+                form_helper.get_choices_for_metadata(
+                    run, instance_identifier=metadata_source, include_sample=False
                 )
             )
-        )
-        form["metadata_df_field"].set_options(
-            form_helper.get_choices(
-                run,
-                output_key="metadata_df",
-                required=True,
-            )
-        )
-        if form["metadata_df_field"].value is not None:
-            form["metadata_column"].set_options(
-                form_helper.get_choices_for_metadata_non_sample_columns(
-                    run, instance_identifier=form["metadata_df_field"].value
-                )
-            )
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        # Note: This is a hotfix that will be overridden anyway as soon
-        # as the node-based workflow has been finished.
-        # So the code is not top notch
-        selected_prot_df = steps.get_step_output(
-            output_key="significant_proteins_df",
-            instance_identifier=inputs["protein_df_field"],
-        )
-
-        if selected_prot_df is None:
-            selected_prot_df = steps.get_step_output(
-                output_key="protein_df", instance_identifier=inputs["protein_df_field"]
-            )
-
-        inputs["protein_df"] = selected_prot_df
-
-        inputs["metadata_df"] = steps.get_step_output(
-            output_key="metadata_df", instance_identifier=inputs["metadata_df_field"]
-        )
 
 
 class PlotProtQuant(DataAnalysisPlotStep):
@@ -1169,10 +961,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
         return Form(
             label="Protein Quantification Plot",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Choose dataframe to be plotted",
-                ),
                 DropdownField(
                     name="protein_group",
                     label="Protein group: choose highlighted protein group",
@@ -1195,28 +983,16 @@ class PlotProtQuant(DataAnalysisPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        form["protein_df_field"].set_options(
-            form_helper.get_choices_for_protein_df_steps(run)
-        )
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_protein_ids(run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF)
 
-        if form["protein_df_field"].options:
-            if not form["protein_df_field"].value:
-                form["protein_df_field"].value = (
-                    form["protein_df_field"].options[0].label
-                )
-
-            form["protein_group"].set_options(
-                form_helper.to_choices(
-                    run.steps.get_step_output(
-                        output_key="protein_df",
-                        instance_identifier=form["protein_df_field"].value,
-                    )["Protein ID"].unique()
-                )
-            )
-
-        if form["similarity_measure"].value == SimilarityMeasure.cosine_similarity:
-            form["similarity"] = FloatField(
+        if (
+            self.form["similarity_measure"].value
+            == SimilarityMeasure.cosine_similarity.value
+        ):
+            # TODO: at least the labels in the form do not change in the frontend
+            self.form["similarity"] = FloatField(
                 name="similarity",
                 label="Cosine Similarity",
                 value=0,
@@ -1225,7 +1001,7 @@ class PlotProtQuant(DataAnalysisPlotStep):
                 step=0.1,
             )
         else:
-            form["similarity"] = NumberField(
+            self.form["similarity"] = NumberField(
                 name="similarity",
                 label="Euclidean Distance",
                 value=1,
@@ -1233,14 +1009,9 @@ class PlotProtQuant(DataAnalysisPlotStep):
                 max=999,
                 step=1,
             )
+        pass
 
     plot_method = staticmethod(prot_quant_plot)
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.get_step_output(
-            output_key="protein_df", instance_identifier=self.inputs["protein_df_field"]
-        )
 
 
 class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
@@ -1251,7 +1022,7 @@ class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
 
     calc_method = staticmethod(evaluate_classification_model)
 
-    # TODO: insert_dataframes
+    # TODO: adapt method parameters
 
 
 class PlotROC(DataAnalysisStep):
@@ -1263,26 +1034,24 @@ class PlotROC(DataAnalysisStep):
 
     calc_method = staticmethod(evaluate_classification_model)
 
-    # TODO: insert_dataframes
+    # TODO: adapt method parameters
 
 
-class ClusteringStep(DataAnalysisStep):
+class PositiveLabelStep(DataAnalysisStep, ABC):
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run, column_field_name="labels_column")
+        self.set_selected_groups_options(
+            run,
+            column_field="labels_column",
+            group_field="positive_label",
+            required=False,
+        )
+
+
+class ClusteringStep(PositiveLabelStep, ABC):
     operation = "clustering"
-
-    def modify_form(self, form, run):
-        labels_field = form["labels_column"]
-        positive_label_field = form["positive_label"]
-
-        labels_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-
-        positive_label_field.set_options(
-            form_helper.to_choices(
-                run.steps.metadata_df[labels_field.value].dropna().unique(),
-                required=False,
-            )
-        )
 
 
 class ClusteringKMeans(ClusteringStep):
@@ -1302,7 +1071,6 @@ class ClusteringKMeans(ClusteringStep):
         return Form(
             label="kMeans",
             input_fields=[
-                # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
                     label="Choose labels column from metadata",
@@ -1472,7 +1240,6 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
         return Form(
             label="Hierarchical Agglomerative Clustering",
             input_fields=[
-                # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
                     label="Choose labels column from metadata",
@@ -1525,9 +1292,12 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
 
-class ClassificationRandomForest(DataAnalysisStep):
-    display_name = "Random Forest"
+class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
+
+
+class ClassificationRandomForest(ClassificationStep):
+    display_name = "Random Forest"
     method_description = "A random forest is a meta estimator that fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting."
 
     output_keys = [
@@ -1543,7 +1313,6 @@ class ClassificationRandomForest(DataAnalysisStep):
         return Form(
             label="Random Forest",
             input_fields=[
-                # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
                     label="Choose labels column from metadata",
@@ -1659,9 +1428,8 @@ class ClassificationRandomForest(DataAnalysisStep):
     calc_method = staticmethod(random_forest)
 
 
-class ClassificationSVM(DataAnalysisStep):
+class ClassificationSVM(ClassificationStep):
     display_name = "Support Vector Machine"
-    operation = "classification"
     method_description = "A support vector machine constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification."
 
     output_keys = [
@@ -1677,7 +1445,6 @@ class ClassificationSVM(DataAnalysisStep):
         return Form(
             label="Support Vector Machine",
             input_fields=[
-                # TODO: Add dynamic fill for labels_column & positive_label
                 DropdownField(
                     name="labels_column",
                     label="Choose labels column from metadata",
@@ -1878,10 +1645,6 @@ class DimensionReductionTSNE(DataAnalysisStep):
     # TODO: This method has the option to set a method (via a string), currently defaults to barnes_hut
     calc_method = staticmethod(t_sne)
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.protein_df
-
 
 class DimensionReductionUMAP(DataAnalysisStep):
     display_name = "UMAP"
@@ -1894,11 +1657,6 @@ class DimensionReductionUMAP(DataAnalysisStep):
         return Form(
             label="UMAP",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dimension reduction of a dataframe using UMAP",
-                    options=AnalysisLevel,
-                ),
                 NumberField(
                     name="n_neighbors",
                     label="The size of local neighborhood (in terms of number of neighboring sample points) used for manifold "
@@ -1939,17 +1697,7 @@ class DimensionReductionUMAP(DataAnalysisStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        protein_df_field.set_options(form_helper.get_choices_for_protein_df_steps(run))
-
     calc_method = staticmethod(umap)
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        inputs["protein_df"] = steps.get_step_output(
-            output_key="protein_df", instance_identifier=inputs["protein_df_field"]
-        )
 
 
 class BaseFLEXLF(DataAnalysisStep, ABC):
@@ -1957,28 +1705,15 @@ class BaseFLEXLF(DataAnalysisStep, ABC):
     A base class for FLEXIQuantLF and MultiFLEXLF to reduce code duplication.
     """
 
-    def modify_form(self, form, run):
-        grouping_field = form["grouping_column"]
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
-
-        if grouping_field.options == []:
-            return
-        grouping = grouping_field.value
-
-        reference_group_field = form["reference_group"]
-        reference_group_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-        )
-
     @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
-        inputs["metadata_df"] = steps.metadata_df
+    def modify_form(self, run: Run) -> None:
+        self.set_grouping_options(run, column_field_name="grouping_column")
+        self.set_selected_groups_options(
+            run, column_field="grouping_column", group_field="reference_group"
+        )
 
-    def get_base_form_fields(self) -> tuple:
-        return (
+    def get_base_form_fields(self) -> list[InputField]:
+        return [
             DropdownField(
                 name="grouping_column",
                 label="Grouping column in metadata",
@@ -1998,7 +1733,7 @@ class BaseFLEXLF(DataAnalysisStep, ABC):
             FloatField(
                 name="mod_cutoff", label="Modification cutoff", value=0.5, min=0, max=1
             ),
-        )
+        ]
 
 
 class FLEXIQuantLF(BaseFLEXLF):
@@ -2026,14 +1761,16 @@ class FLEXIQuantLF(BaseFLEXLF):
                 DropdownField(
                     name="protein_group",
                     label="Protein Group",
-                ),
-                *self.get_base_form_fields(),
-            ],
+                )
+            ]
+            + self.get_base_form_fields(),
         )
 
-    def modify_form(self, form, run):
-        super().modify_form(form, run)
-        form["protein_group"].options = form_helper.to_choices(
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+        protein_group_field: DropdownField = self.form["protein_group"]
+        protein_group_field.options = form_helper.to_choices(
             run.steps.get_step_output(
                 step_type=Step,
                 output_key="peptide_df",
@@ -2065,8 +1802,8 @@ class MultiFLEXLF(BaseFLEXLF):
     def create_form(self):
         return Form(
             label="multiFLEX-LF",
-            input_fields=[
-                *self.get_base_form_fields(),
+            input_fields=self.get_base_form_fields()
+            + [
                 FloatField(
                     name="imputation_cosine_similarity",
                     label="Cosine similarity for imputation",
@@ -2104,7 +1841,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
     output_keys = [
-        "peptide_df",
+        DataKeys.PEPTIDE_DF
     ]
 
     def create_form(self):
@@ -2138,12 +1875,13 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df_field"]
-        auto_select_field = form["auto_select"]
-        sort_proteins_field = form["sort_proteins"]
-        protein_list_field = form["protein_list"]
-        protein_ids_field = form["protein_ids"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        peptide_df_field: DropdownField = self.form["peptide_df_field"]
+        auto_select_field: DropdownField = self.form["auto_select"]
+        sort_proteins_field: DropdownField = self.form["sort_proteins"]
+        protein_list_field: DropdownField = self.form["protein_list"]
+        protein_ids_field: MultiSelectField = self.form["protein_ids"]
 
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df", Step))
         peptide_df_field.value = run.steps.get_instance_identifiers(
@@ -2244,8 +1982,9 @@ class PTMsPerSample(PeptideAnalysisStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df_field"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        peptide_df_field = self.form["peptide_df_field"]
 
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
@@ -2282,8 +2021,9 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        peptide_df_field = form["peptide_df_field"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        peptide_df_field = self.form["peptide_df_field"]
 
         peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
@@ -2332,8 +2072,9 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
             ),
         ]
 
-    def modify_form(self, form, run):
-        form["evidence_df_field"].set_options(
+    @override
+    def modify_form(self, run: Run) -> None:
+        self.form["evidence_df_field"].set_options(
             form_helper.get_choices(
                 run, output_key="peptide_df", step_type=Step, required=True
             )
