@@ -1,16 +1,25 @@
 import pandas as pd
 import pytest
 import logging
-from unittest.mock import patch
-from unittest.mock import MagicMock
+from unittest.mock import patch, MagicMock
+import plotly.graph_objects as go
+from plotly.graph_objects import Figure
+import pandas.testing as pdt
 
 
 from backend.protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     get_distance_between_two_amino_acids_in_angstrom,
     add_positions_of_amino_acid_where_crosslinker_bound_to_df,
+    diagrams_of_crosslinking_validation_data,
 )
-from protzilla.methods.data_analysis import CrossLinkingValidationWithAngstromDeviation
+from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
+from backend.protzilla.data_analysis.plots import (
+    add_vertical_line_with_annotation_in_legend,
+)
+from backend.protzilla.methods.data_analysis import (
+    CrossLinkingValidationWithAngstromDeviation,
+)
 
 
 @pytest.mark.parametrize(
@@ -247,3 +256,273 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
     expected_positions = {(1, 5), (2, 5)}
 
     assert observed_positions == expected_positions
+
+
+def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
+    fig = go.Figure()
+    add_vertical_line_with_annotation_in_legend(
+        fig=fig, dash="dash", annotation="Test Line", x_value=5.0
+    )
+
+    # add_vline internally adds a shape to layout.shapes
+    assert len(fig.layout.shapes) == 1
+    vline = fig.layout.shapes[0]
+    assert vline["x0"] == 5.0
+    assert vline["line"]["dash"] == "dash"
+    assert vline["line"]["color"] == PLOT_PRIMARY_COLOR
+
+    # There should be 1 scatter trace for the legend
+    assert len(fig.data) == 1
+    trace = fig.data[0]
+    assert trace.mode == "lines"
+    assert trace.name == "Test Line"
+    assert trace.line.dash == "dash"
+    assert trace.line.color == PLOT_PRIMARY_COLOR
+    assert trace.x == (None,)
+    assert trace.y == (None,)
+
+
+@pytest.fixture
+def sample_crosslinking_df():
+    return pd.DataFrame(
+        {
+            "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
+            "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
+            "valid_crosslink": [True, False, True, False],
+        }
+    )
+
+
+@pytest.fixture
+def sample_crosslinker_info():
+    return {
+        "CL1": [11.0, 2.0, 0.0],  # [length, upper_deviation, lower_deviation]
+        "CL2": [9.0, 0.0, 1.0],
+    }
+
+
+@patch("backend.protzilla.data_analysis.crosslinking_validation.create_histograms")
+@patch("backend.protzilla.data_analysis.crosslinking_validation.create_bar_plot")
+@patch(
+    "backend.protzilla.data_analysis.crosslinking_validation.add_vertical_line_with_annotation_in_legend"
+)
+@patch(
+    "backend.protzilla.data_analysis.crosslinking_validation.validate_with_angstrom_deviation"
+)
+def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_lines(
+    mock_validate,
+    mock_add_vline,
+    mock_create_bar,
+    mock_create_hist,
+    sample_crosslinking_df,
+    sample_crosslinker_info,
+):
+    validated_df = sample_crosslinking_df.copy()
+    mock_validate.return_value = {"crosslinking_result_df": validated_df}
+
+    hist_mock = Figure()
+    mock_create_hist.return_value = hist_mock
+    bar_mock = Figure()
+    mock_create_bar.return_value = bar_mock
+
+    figures = diagrams_of_crosslinking_validation_data(
+        crosslinking_df=sample_crosslinking_df,
+        protein_to_validate="P12345",
+        crosslinker_information=sample_crosslinker_info,
+        cif_df=pd.DataFrame(),
+        amino_acid_sequence_df=pd.DataFrame(),
+    )
+
+    # 2 histograms per crosslinker + 1 bar plot
+    assert len(figures) == 5
+    assert all(isinstance(f, Figure) for f in figures)
+
+    mock_validate.assert_called_once()
+
+    assert (
+        mock_add_vline.call_count == 8
+    )  # for both crosslinkers: 1 call for crosslinker length for each histogram and 1 call for bound on deviation for each histogram
+
+    # Check that create_histograms was called 4 times (2 per crosslinker)
+    assert mock_create_hist.call_count == 4
+
+    # Check that create_bar_plot was called once
+    mock_create_bar.assert_called_once()
+
+
+@pytest.fixture
+def sample_crosslinking_df_with_no_std():
+    return pd.DataFrame(
+        {
+            "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
+            "alphafold_distance": [10.5, 10.5, 10.5, 10.5],
+            "valid_crosslink": [True, False, True, False],
+        }
+    )
+
+
+@pytest.fixture
+def sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std():
+    return {
+        "CL1": [10.5, 1.0, 1.0],  # [length, upper_deviation, lower_deviation]
+        "CL2": [10.5, 0.5, 0.3],
+    }
+
+
+@patch("backend.protzilla.data_analysis.crosslinking_validation.create_histograms")
+@patch("backend.protzilla.data_analysis.crosslinking_validation.create_bar_plot")
+@patch(
+    "backend.protzilla.data_analysis.crosslinking_validation.add_vertical_line_with_annotation_in_legend"
+)
+@patch(
+    "backend.protzilla.data_analysis.crosslinking_validation.validate_with_angstrom_deviation"
+)
+def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_lines(
+    mock_validate,
+    mock_add_vline,
+    mock_create_bar,
+    mock_create_hist,
+    sample_crosslinking_df_with_no_std,
+    sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
+):
+    validated_df = sample_crosslinking_df_with_no_std.copy()
+    mock_validate.return_value = {"crosslinking_result_df": validated_df}
+
+    hist_mock = Figure()
+    mock_create_hist.return_value = hist_mock
+    bar_mock = Figure()
+    mock_create_bar.return_value = bar_mock
+
+    figures = diagrams_of_crosslinking_validation_data(
+        crosslinking_df=sample_crosslinking_df_with_no_std,
+        protein_to_validate="P12345",
+        crosslinker_information=sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
+        cif_df=pd.DataFrame(),
+        amino_acid_sequence_df=pd.DataFrame(),
+    )
+
+    # 2 histograms per crosslinker + 1 bar plot
+    assert len(figures) == 5
+    assert all(isinstance(f, Figure) for f in figures)
+
+    # CL1: all 3 lines are drawn for both histograms, CL2: only crosslinker_length ist drawn for both histograms,
+    # the bounds are only drawn for the histogram that is not limited to the range of +- 2 standard deviations
+    assert mock_add_vline.call_count == 10
+
+    # Check that create_histograms was called 4 times (2 per crosslinker)
+    assert mock_create_hist.call_count == 4
+
+    # Check that create_bar_plot was called once
+    mock_create_bar.assert_called_once()
+
+
+@pytest.fixture
+def sample_crosslinker_info_with_one_crosslinker():
+    return {
+        "CL1": [11.0, 2.0, 1.0],  # [length, upper_deviation, lower_deviation]
+    }
+
+
+@pytest.fixture
+def sample_crosslinking_df_with_one_crosslinker():
+    return pd.DataFrame(
+        {
+            "Crosslinker": ["CL1", "CL1", "CL1", "CL1"],
+            "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
+            "valid_crosslink": [True, False, True, False],
+        }
+    )
+
+
+def test_diagrams_calls_with_correct_parameters(
+    sample_crosslinking_df_with_one_crosslinker,
+    sample_crosslinker_info_with_one_crosslinker,
+):
+    with patch(
+        "backend.protzilla.data_analysis.crosslinking_validation.validate_with_angstrom_deviation"
+    ) as mock_validate, patch(
+        "backend.protzilla.data_analysis.crosslinking_validation.create_histograms"
+    ) as mock_hist, patch(
+        "backend.protzilla.data_analysis.crosslinking_validation.add_vertical_line_with_annotation_in_legend"
+    ) as mock_vline, patch(
+        "backend.protzilla.data_analysis.crosslinking_validation.create_bar_plot"
+    ) as mock_bar:
+
+        mock_validate.return_value = {
+            "crosslinking_result_df": sample_crosslinking_df_with_one_crosslinker
+        }
+
+        mock_hist.side_effect = lambda **kwargs: f"hist_{kwargs['heading']}"
+        mock_bar.return_value = "bar_fig"
+
+        figures = diagrams_of_crosslinking_validation_data(
+            crosslinking_df=sample_crosslinking_df_with_one_crosslinker,
+            protein_to_validate="P12345",
+            crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
+            cif_df=pd.DataFrame(),
+            amino_acid_sequence_df=pd.DataFrame(),
+        )
+
+        mock_validate.assert_called_once()
+
+        # There should be 2 histogram calls: 2 per crosslinker
+        assert mock_hist.call_count == 2
+
+        # Check histogram call parameters for crosslinker full-range
+        first_hist_call = mock_hist.call_args_list[0].kwargs
+        assert first_hist_call["name_a"] == "Valid Crosslinks"
+        assert first_hist_call["name_b"] == "Invalid Crosslinks"
+        assert (
+            first_hist_call["heading"]
+            == "Predicted distances for P12345 with crosslinker CL1"
+        )
+        assert first_hist_call["relevant_column_a"] == "alphafold_distance"
+        assert first_hist_call["relevant_column_b"] == "alphafold_distance"
+        assert first_hist_call["one_bin_per_int"] == True
+
+        valid_crosslinks = sample_crosslinking_df_with_one_crosslinker.loc[
+            sample_crosslinking_df_with_one_crosslinker["valid_crosslink"] == True,
+            "alphafold_distance",
+        ]
+        invalid_crosslinks = sample_crosslinking_df_with_one_crosslinker.loc[
+            sample_crosslinking_df_with_one_crosslinker["valid_crosslink"] == False,
+            "alphafold_distance",
+        ]
+        dataframe_a = pd.DataFrame({"alphafold_distance": valid_crosslinks})
+        dataframe_b = pd.DataFrame({"alphafold_distance": invalid_crosslinks})
+        pdt.assert_frame_equal(first_hist_call["dataframe_a"], dataframe_a)
+        pdt.assert_frame_equal(first_hist_call["dataframe_b"], dataframe_b)
+
+        # Check histogram call parameters for crosslinker ±2 std
+        second_hist_call = mock_hist.call_args_list[1].kwargs
+        assert (
+            second_hist_call["heading"]
+            == "Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ"
+        )
+        mean_predicted_lengths = sample_crosslinking_df_with_one_crosslinker[
+            "alphafold_distance"
+        ].mean()
+        standard_deviation_predicted_lengths = (
+            sample_crosslinking_df_with_one_crosslinker["alphafold_distance"].std()
+        )
+        mean_plus_minus_two_std_range = (
+            max(0, mean_predicted_lengths - 2 * standard_deviation_predicted_lengths),
+            mean_predicted_lengths + 2 * standard_deviation_predicted_lengths,
+        )
+        assert second_hist_call["min_value"] == mean_plus_minus_two_std_range[0]
+        assert second_hist_call["max_value"] == mean_plus_minus_two_std_range[1]
+
+        call_args_list = [call.kwargs for call in mock_vline.call_args_list]
+        assert any(
+            call["annotation"] == "CL1 length" and call["x_value"] == 11.0
+            for call in call_args_list
+        )
+
+        mock_bar.assert_called_once()
+
+        expected_figures = [
+            "hist_Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ",
+            "hist_Predicted distances for P12345 with crosslinker CL1",
+            "bar_fig",
+        ]
+        assert figures == expected_figures

@@ -3,6 +3,7 @@ import pytest
 
 from backend.protzilla.data_analysis.plots import *
 from backend.tests.protzilla.data_analysis.test_clustering import *
+from backend.protzilla.data_preprocessing.plots import create_histograms
 
 
 @pytest.fixture
