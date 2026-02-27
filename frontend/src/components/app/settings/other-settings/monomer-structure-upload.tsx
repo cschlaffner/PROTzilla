@@ -6,27 +6,27 @@ import { callApi, callApiWithParameters } from "@protzilla/utils";
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
-const ProteinStructureTitle = styled(SectionTitle)`
+const MonomerStructureTitle = styled(SectionTitle)`
   padding-top: ${spacing("large")};
   padding-bottom: ${spacing("small")};
 `;
 
-const ProtStructureList = styled.div`
+const MonomerStructureList = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing("verySmall")};
 `;
 
-interface ProtStructureProps {
+interface MonomerStructureProps {
   entry_id: string;
   uniprot_id: string;
   date_modified: string;
   gene: string;
-  af_version: string;
+  model_used: string;
   handleDelete?: () => void;
 }
 
-const ProtStructureContainer = styled.div`
+const MonomerStructureContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -36,7 +36,7 @@ const ProtStructureContainer = styled.div`
   padding-bottom: ${spacing("verySmall")};
 `;
 
-const ProtStructureInfo = styled.div`
+const MonomerStructureInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-content: center;
@@ -44,17 +44,17 @@ const ProtStructureInfo = styled.div`
   width: 90%;
 `;
 
-const ProtStructureEntry = ({
+const MonomerStructureEntry = ({
   entry_id,
   uniprot_id,
   date_modified,
   gene,
-  af_version,
+  model_used,
   handleDelete,
-}: ProtStructureProps) => {
+}: MonomerStructureProps) => {
   return (
-    <ProtStructureContainer>
-      <ProtStructureInfo>
+    <MonomerStructureContainer>
+      <MonomerStructureInfo>
         <SectionTitle baseComponent={"h6"} title={entry_id} />
         <Text
           text={
@@ -65,46 +65,46 @@ const ProtStructureEntry = ({
             "  |  " +
             gene +
             "  |  " +
-            af_version
+            model_used
           }
         />
-      </ProtStructureInfo>
+      </MonomerStructureInfo>
       <SecondaryButton icon={"trash"} isCautious={true} onPress={handleDelete} />
-    </ProtStructureContainer>
+    </MonomerStructureContainer>
   );
 };
 
-export const ProteinStructureUpload = () => {
+export const MonomerStructureUpload = () => {
   const notify = useNotification();
-  const [protStructureList, setProtStructureList] = useState<ProtStructureProps[]>([]);
+  const [monomerStructureList, setMonomerStructureList] = useState<MonomerStructureProps[]>([]);
   const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggleableState(false);
-  const [selectedProtStructure, setSelectedProtStructure] = useState<string>("");
+  const [selectedMonomerStructure, setSelectedMonomerStructure] = useState<string>("");
 
-  const fetchProtStructures = async () => {
-    const protStructures = await callApi("get_prot_structure");
-    if (protStructures) {
-      setProtStructureList(protStructures);
+  const fetchMonomerStructures = async () => {
+    const monomerStructures = await callApi("get_monomer_structure");
+    if (monomerStructures) {
+      setMonomerStructureList(monomerStructures);
     }
   };
 
   useEffect(() => {
-    void fetchProtStructures();
+    void fetchMonomerStructures();
   }, []);
 
-  const handleAddProteinStructure = async (
+  const handleAddMonomerStructure = async (
     uniprot_id: string,
     entry_id: string,
-    af_version: string,
+    model_used: string,
     gene: string,
     cif_file: string,
     confidence: string,
     pae: string,
     fasta_file: string,
   ) => {
-    const response = await callApiWithParameters("upload_prot_structure", {
+    const response = await callApiWithParameters("upload_monomer_structure", {
       uniprot_id: uniprot_id,
       entry_id: entry_id,
-      af_version: af_version,
+      model_used: model_used,
       gene: gene,
       cif_file: cif_file,
       confidence: confidence,
@@ -113,47 +113,47 @@ export const ProteinStructureUpload = () => {
     });
     if (response?.success) {
       notify({
-        title: "Predicted protein structure upload",
+        title: "Predicted monomer structure upload",
         message: response.message as string,
         type: "success",
         isClosingAutomatically: true,
       });
     } else {
       notify({
-        title: "Predicted protein structure upload failed",
+        title: "Predicted monomer structure upload failed",
         message: response.message ?? "Unknown error",
         type: "error",
         isClosingAutomatically: true,
       });
     }
-    void fetchProtStructures();
+    void fetchMonomerStructures();
   };
 
-  const onDeleteProtStructure = (entry_id: string) => {
+  const onDeleteMonomerStructure = (entry_id: string) => {
     openDeleteModal();
-    setSelectedProtStructure(entry_id);
+    setSelectedMonomerStructure(entry_id);
   };
 
-  const handleDeleteProtStructure = async (entry_id: string) => {
-    const response = await callApiWithParameters("delete_prot_structure", {
+  const handleDeleteMonomerStructure = async (entry_id: string) => {
+    const response = await callApiWithParameters("delete_monomer_structure", {
       entry_id: entry_id,
     });
     if (response?.success) {
       notify({
-        title: "Protein structure deleted",
+        title: "Monomer structure deleted",
         message: response.message as string,
         type: "success",
         isClosingAutomatically: true,
       });
     } else {
       notify({
-        title: "Protein structure deletion failed",
+        title: "Monomer structure deletion failed",
         message: response?.message ?? "Unknown error",
         type: "error",
         isClosingAutomatically: true,
       });
     }
-    void fetchProtStructures();
+    void fetchMonomerStructures();
     closeDeleteModal();
   };
 
@@ -161,13 +161,13 @@ export const ProteinStructureUpload = () => {
     <div>
       <SectionTitle
         baseComponent={"h2"}
-        title={"Add a new protein structure prediction"}
+        title={"Add a new monomer structure prediction"}
         style={{ paddingBottom: "4px" }}
       />
       <SectionTitle
         baseComponent={"h6"}
         description={
-          "Upload new protein structure predictions and delete previously uploaded structures here."
+          "Upload new monomer structure predictions and delete previously uploaded structures here."
         }
         style={{ paddingBottom: "8px" }}
       />
@@ -192,8 +192,14 @@ export const ProteinStructureUpload = () => {
               isVisible: true,
             },
             {
+              type: "info-field",
+              name: "entry_id_info",
+              label: "The entry ID should be a unique name given to the uploaded prediction.",
+              isVisible: true,
+            },
+            {
               type: "text",
-              name: "af_version",
+              name: "model_used",
               label: "Alphafold Version Number (required):",
               isVisible: true,
             },
@@ -234,10 +240,10 @@ export const ProteinStructureUpload = () => {
           ],
         }}
         onChange={(data) => {
-          void handleAddProteinStructure(
+          void handleAddMonomerStructure(
             data.uniprot_id as string,
             data.entry_id as string,
-            data.af_version as string,
+            data.model_used as string,
             data.gene as string,
             data.cif_file as string,
             data.confidence_file as string,
@@ -246,42 +252,42 @@ export const ProteinStructureUpload = () => {
           );
         }}
       />
-      <ProteinStructureTitle
+      <MonomerStructureTitle
         baseComponent={"h2"}
-        title={"Available Predicted Protein Structures"}
+        title={"Available Predicted Monomer Structures"}
       />
-      {protStructureList.length === 0 ? (
+      {monomerStructureList.length === 0 ? (
         <Text
           text={
-            "No predicted protein structures uploaded yet. Use the form above to upload a CIF file, confidence and PAE JSON files, and a FASTA sequence. " +
+            "No predicted monomer structures uploaded yet. Use the form above to upload a CIF file, confidence and PAE JSON files, and a FASTA sequence. " +
             "Provide Uniprot ID, Entry ID, Alphafold version and gene name, then click 'Upload Structure'. Else use the step in the workflow under 'Importing' " +
             "to directly fetch Alphafold predictions from the Alphafold Database."
           }
         />
       ) : (
-        <ProtStructureList>
-          {protStructureList.map((ps) => (
-            <ProtStructureEntry
+        <MonomerStructureList>
+          {monomerStructureList.map((ps) => (
+            <MonomerStructureEntry
               key={ps.entry_id}
               entry_id={ps.entry_id}
               uniprot_id={ps.uniprot_id}
               date_modified={ps.date_modified}
               gene={ps.gene}
-              af_version={ps.af_version}
+              model_used={ps.model_used}
               handleDelete={() => {
-                onDeleteProtStructure(ps.entry_id);
+                onDeleteMonomerStructure(ps.entry_id);
               }}
             />
           ))}
-        </ProtStructureList>
+        </MonomerStructureList>
       )}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
-        onConfirm={() => void handleDeleteProtStructure(selectedProtStructure)}
+        onConfirm={() => void handleDeleteMonomerStructure(selectedMonomerStructure)}
         title={
-          `The uploaded protein structure prediction with the entryID ` +
-          `"${selectedProtStructure}" will permanently be deleted. Would you like to proceed?`
+          `The uploaded monomer structure prediction with the entry ID ` +
+          `"${selectedMonomerStructure}" will permanently be deleted. Would you like to proceed?`
         }
       />
     </div>
