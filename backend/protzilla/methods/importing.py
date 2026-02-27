@@ -28,9 +28,9 @@ from backend.protzilla.constants.intensity_types import IntensityType, Intensity
 class ImportingStep(Step, ABC):
     section = Section.IMPORTING
 
-    def modify_form(self, form: Form, run: Run):
+    def modify_form(self, run: Run):
         if run.steps.current_step.calculation_status == "complete":
-            form.input_fields[self.index_of_file_input()].value = None
+            self.form.input_fields[self.index_of_file_input()].value = None
 
     def index_of_file_input(self):
         """
@@ -236,9 +236,9 @@ class MetadataColumnAssignment(MetadataImportingStep):
             ],
         )
 
-    def modify_form(self, form: Form, run: Run):
-        metadata_required_column = form["metadata_required_column"]
-        metadata_unknown_column = form["metadata_unknown_column"]
+    def modify_form(self, run: Run):
+        metadata_required_column = self.form["metadata_required_column"]
+        metadata_unknown_column = self.form["metadata_unknown_column"]
 
         metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
 
@@ -304,10 +304,10 @@ class PeptideImport(ImportingStep):
             ],
         )
 
-    def modify_form(self, form: Form, run: Run):
-        super().modify_form(self, form, run)
+    def modify_form(self, run: Run):
+        super().modify_form(run)
 
-        map_to_uniprot_field = form["map_to_uniprot"]
+        map_to_uniprot_field = self.form["map_to_uniprot"]
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport],
             "map_to_uniprot",
@@ -340,10 +340,10 @@ class EvidenceImport(ImportingStep):
             ],
         )
 
-    def modify_form(self, form: Form, run: Run):
-        super().modify_form(self, form, run)
+    def modify_form(self, run: Run):
+        super().modify_form(run)
 
-        map_to_uniprot_field = form["map_to_uniprot"]
+        map_to_uniprot_field = self.form["map_to_uniprot"]
 
         map_to_uniprot_field.value = run.steps.get_step_input(
             [MaxQuantImport, MsFraggerImport, DiannImport], "map_to_uniprot"
