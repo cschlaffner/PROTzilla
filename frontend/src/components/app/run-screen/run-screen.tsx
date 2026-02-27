@@ -17,7 +17,7 @@ import {
   emptyRunData,
   footerMessages,
   SelectedStep,
-  Table,
+  StepOutputInfo,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -89,7 +89,7 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   /*const [visualizations, setVisualizations] = useState<any[]>([]);*/
-  const [tableData, setTableData] = useState<Table[]>();
+  const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -108,7 +108,7 @@ export const RunScreen: React.FC = () => {
         void getRunData();
         void getStepPlots();
         void getStepVisualizations();
-        void getStepTable();
+        void getCurrentStepOutputLabels();
       });
     } else {
       void getRunData();
@@ -159,29 +159,34 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
-  const getStepTable = useCallback(async () => {
-    const response = await callApiWithParameters("get_step_table/", {
+  const getCurrentStepOutputLabels = useCallback(async () => {
+    const response = await callApiWithParameters("get_current_step_output_labels/", {
       run_name: runName,
     });
     if (response) {
-      const data = response.data;
-      setTableData(data);
+      const data = response.outputs;
+      setAvailableTables(data);
     }
   }, [runName]);
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([getRunData(), getStepPlots(), getStepVisualizations(), getStepTable()]);
+      await Promise.all([
+        getRunData(),
+        getStepPlots(),
+        getStepVisualizations(),
+        getCurrentStepOutputLabels(),
+      ]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepVisualizations, getStepTable]);
+  }, [getRunData, getStepPlots, getStepVisualizations, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
     void getRunData();
     void getStepPlots();
     void getStepVisualizations();
-    void getStepTable();
+    void getCurrentStepOutputLabels();
   };
 
   const handleDownloadPlot = (plot: Figure) => {
@@ -244,29 +249,27 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const singleTableComponent = (table: Table) => (
+  const singleTableComponent = (tableLabel: string) => (
     <StyledContentDiv>
-      <DataTable data={table.table} />
-      <StyledCSVButton data={table.table} />
+      <DataTable runName={runName} tableLabel={tableLabel} />
+      <StyledCSVButton runName={runName} tableLabel={tableLabel} fileName={tableLabel} />
     </StyledContentDiv>
   );
 
   const tableComponent = (
     <StyledContentContainer>
-      {tableData && tableData.length > 0 ? (
+      {availableTables && availableTables.length > 0 ? (
         <SwitchCard
           hasShadow={false}
-          components={tableData.map((table) => ({
-            value: singleTableComponent(table),
-            name: table.name,
+          components={availableTables.map((output_info) => ({
+            value: singleTableComponent(output_info.label),
+            name: output_info.display_name,
           }))}
         />
       ) : (
         <SectionTitle
           baseComponent={"h4"}
-          description={
-            "No data table available for this step (yet). With large datasets it may take a while for tables to be displayed."
-          }
+          description={"This step does not provide any tables as output."}
         />
       )}
     </StyledContentContainer>
@@ -314,6 +317,7 @@ export const RunScreen: React.FC = () => {
         <StyledFlexColumn style={{ flex: 1 }}>
           <StyledCol>
             <SwitchCard
+              styleProps={{ height: "calc(100% - 3em)" }}
               components={[
                 { name: "Plots", value: plotComponent },
                 { name: "Visualizations", value: visualizationComponent },

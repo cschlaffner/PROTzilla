@@ -1,6 +1,7 @@
 import logging
 
 from backend.protzilla import form_helper
+from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -66,7 +67,7 @@ from protzilla.data_analysis.crosslinking_validation import (
 )
 from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (
-    ImportStructurePredictionFromDisk,
+    ImportMonomerStructurePredictionFromDisk,
     AlphaFoldPredictionLoad,
 )
 
@@ -78,11 +79,6 @@ class TTestType(Enum):
 
 class AnalysisLevel(Enum):
     protein = "Protein"
-
-
-class MultipleTestingCorrectionMethod(Enum):
-    benjamini_hochberg = "Benjamini-Hochberg"
-    bonferroni = "Bonferroni"
 
 
 class PValueCalculationMethod(Enum):
@@ -124,14 +120,14 @@ class ClusteringCriterion(Enum):
 
 
 class ClusteringScoring(Enum):
-    adjusted_rand_score = "Adjusted Rand Score"
-    completeness_score = "Completeness Score"
-    fowlkes_mallows_score = "Fowlkes Mallows Score"
-    homogeneity_score = "Homogeneity Score"
-    mutual_info_score = "Mutual Info Score"
-    normalized_mutual_info_score = "Normalized Mutual Info Score"
-    rand_score = "Rand Score"
-    v_measure_score = "V Measure Score"
+    adjusted_rand_score = "adjusted_rand_score"
+    completeness_score = "completeness_score"
+    fowlkes_mallows_score = "fowlkes_mallows_score"
+    homogeneity_score = "homogeneity_score"
+    mutual_info_score = "mutual_info_score"
+    normalized_mutual_info_score = "normalized_mutual_info_score"
+    rand_score = "rand_score"
+    v_measure_score = "v_measure_score"
 
 
 class InitCentroidStrategy(Enum):
@@ -286,6 +282,9 @@ class DifferentialExpressionTTest(DataAnalysisStep):
         "t_statistic_df",
         "log2_fold_change_df",
         "corrected_alpha",
+        "fc_significance_df",
+        "fc_zscore_alpha",
+        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -328,6 +327,20 @@ class DifferentialExpressionTTest(DataAnalysisStep):
                 DropdownField(
                     name="group2",
                     label="Group 2",
+                ),
+                CheckboxField(
+                    name="fc_zscore_filter",
+                    label="Fold-change Z-score significance",
+                    value=False,
+                ),
+                FloatField(
+                    name="fc_zscore_alpha",
+                    label="Z-score tail cutoff",
+                    value=0.05,
+                    min=0,
+                    max=0.5,
+                    step=0.01,
+                    separatePrefix="p",
                 ),
             ],
         )
@@ -1129,7 +1142,14 @@ class PlotClustergram(DataAnalysisStep):
             form_helper.get_choices_for_protein_df_steps(
                 run,
             )
+            + form_helper.to_choices(
+                run.steps.get_instance_identifiers(
+                    Step,
+                    "significant_proteins_df",
+                )
+            )
         )
+
         form["metadata_df"].set_options(
             form_helper.get_choices(
                 run,
@@ -1145,9 +1165,20 @@ class PlotClustergram(DataAnalysisStep):
             )
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs["input_df"] = steps.get_step_output(
-            Step, "protein_df", inputs["input_df"]
+        # Note: This is a hotfix that will be overridden anyway as soon
+        # as the node-based workflow has been finished.
+        # So the code is not top notch
+        selected_prot_df = steps.get_step_output(
+            Step, "significant_proteins_df", inputs["input_df"]
         )
+
+        if selected_prot_df is None:
+            selected_prot_df = steps.get_step_output(
+                Step, "protein_df", inputs["input_df"]
+            )
+
+        inputs["input_df"] = selected_prot_df
+
         inputs["metadata_df"] = steps.get_step_output(
             Step, "metadata_df", inputs["metadata_df"]
         )
@@ -1360,9 +1391,24 @@ class ClusteringKMeans(DataAnalysisStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1454,9 +1500,24 @@ class ClusteringExpectationMaximisation(DataAnalysisStep):
             ],
         )
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1534,9 +1595,24 @@ class ClusteringHierarchicalAgglomerative(DataAnalysisStep):
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
+    def modify_form(self, form, run):
+        labels_field = form["labels_column"]
+        positive_label_field = form["positive_label"]
+
+        labels_field.set_options(
+            form_helper.get_choices_for_metadata_non_sample_columns(run)
+        )
+
+        positive_label_field.set_options(
+            form_helper.to_choices(
+                run.steps.metadata_df[labels_field.value].dropna().unique(),
+                required=False,
+            )
+        )
+
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1680,7 +1756,7 @@ class ClassificationRandomForest(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -1823,7 +1899,7 @@ class ClassificationSVM(DataAnalysisStep):
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         inputs["input_df"] = steps.protein_df
-        inputs["sample_group_df"] = steps.metadata_df
+        inputs["metadata_df"] = steps.metadata_df
         return inputs
 
 
@@ -2499,7 +2575,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
         loaded_protein_entry_ids = list(
             set(
                 run.steps.get_inputs_of_step_type(
-                    ImportStructurePredictionFromDisk, "entry_id"
+                    ImportMonomerStructurePredictionFromDisk, "entry_id"
                 )
                 + run.steps.get_inputs_of_step_type(
                     AlphaFoldPredictionLoad, "uniprot_id"
@@ -2539,7 +2615,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         entry_id = inputs["protein_to_validate"]
         correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
-            ImportStructurePredictionFromDisk, "entry_id", entry_id
+            ImportMonomerStructurePredictionFromDisk, "entry_id", entry_id
         ) or steps.get_step_identifier_of_step_with_input(
             AlphaFoldPredictionLoad, "uniprot_id", entry_id
         )

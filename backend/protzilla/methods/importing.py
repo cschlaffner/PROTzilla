@@ -14,8 +14,11 @@ from backend.protzilla.importing.ms_data_import import (
 )
 from backend.protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
-    get_all_available_entry_ids,
-    get_prot_structure_dfs,
+    get_all_available_entry_ids_of_monomer_metadata,
+    get_all_available_entry_ids_of_multimer_metadata,
+    get_monomer_structure_dfs,
+    upload_multimer_prediction,
+    get_multimer_structure_dfs,
     visualization_of_protein_structure,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
@@ -73,6 +76,11 @@ class MaxQuantImport(ImportingStep):
                     label="Intensity parameter",
                     value=IntensityType.IBAQ.value,
                     options=IntensityType,
+                ),
+                CheckboxField(
+                    name="ignore_only_identified_by_site",
+                    label="Ignore proteins only identified by site",
+                    value=False,
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
@@ -413,9 +421,9 @@ class ExampleDatasetImport(ImportingStep):
 
 
 class AlphaFoldPredictionLoad(ImportingStep):
-    display_name = "AlphaFold DB Prediction Load"
-    operation = "Protein Structure Import"
-    method_description = "Loads the predicted structure of the protein with the given protein ID out of the AlphaFold DB."
+    display_name = "AlphaFold DB Monomer Prediction Load"
+    operation = "Monomer Structure Import"
+    method_description = "Loads the predicted structure of the monomer with the given protein ID out of the AlphaFold DB."
 
     output_keys = [
         "metadata_df",
@@ -429,14 +437,14 @@ class AlphaFoldPredictionLoad(ImportingStep):
 
     def create_form(self):
         return Form(
-            label="AlphaFold DB Prediction Load",
+            label="AlphaFold DB Monomer Prediction Load",
             input_fields=[
                 TextField(
                     name="uniprot_id",
                     label="Protein ID",
                 ),
                 CheckboxField(
-                    name="persist_uploads",
+                    name="persist_upload",
                     label="Upload should be saved persistently across runs",
                     value=True,
                 ),
@@ -464,8 +472,12 @@ class CrosslinkingImport(ImportingStep):
                     value=None,
                 ),
                 TextField(
-                    name="organism_id",
-                    label="Organism ID",
+                    name="organism_ids",
+                    label="Organism IDs \n(only required when importing a CSM file)",
+                    value="",
+                ),
+                InfoField(
+                    label="Please list them in the order in which they should be applied, separated by a comma \n e.g.: 9606, 10090, 10116"
                 ),
             ],
         )
@@ -473,12 +485,10 @@ class CrosslinkingImport(ImportingStep):
     calc_method = staticmethod(crosslinking_import)
 
 
-class ImportStructurePredictionFromDisk(ImportingStep):
-    display_name = "Structure Prediction Import from Disk"
-    operation = "Protein Structure Import"
-    method_description = (
-        "Load already uploaded protein structure predictions from disk into current run"
-    )
+class ImportMonomerStructurePredictionFromDisk(ImportingStep):
+    display_name = "Monomer Structure Prediction Import from Disk"
+    operation = "Monomer Structure Import"
+    method_description = "Load an already uploaded monomer structure prediction from disk into current run"
 
     output_keys = [
         "metadata_df",
@@ -490,14 +500,112 @@ class ImportStructurePredictionFromDisk(ImportingStep):
 
     def create_form(self):
         return Form(
-            label="Structure Predictions Import from Disk",
+            label="Monomer Structure Predictions Import from Disk",
             input_fields=[
                 DropdownField(
                     name="entry_id",
-                    label="Entry ID of the prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
-                    options=form_helper.to_choices(get_all_available_entry_ids()),
+                    label="Entry ID of the monomer prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
+                    options=form_helper.to_choices(
+                        get_all_available_entry_ids_of_monomer_metadata()
+                    ),
                 )
             ],
         )
 
-    calc_method = staticmethod(get_prot_structure_dfs)
+    calc_method = staticmethod(get_monomer_structure_dfs)
+
+
+class UploadMultimerPredictions(ImportingStep):
+    display_name = "Multimer Structure Prediction Upload"
+    operation = "Multimer Structure Import"
+    method_description = "Upload a multimer protein prediction"
+
+    output_keys = [
+        "metadata_df",
+        "cif_df",
+        "confidence_df",
+        "full_data_df",
+        "amino_acid_sequences_df",
+    ]
+
+    def create_form(self):
+        return Form(
+            label="Multimer Structure Prediction Upload",
+            input_fields=[
+                TextField(
+                    name="entry_id",
+                    label="Entry ID of the prediction to be loaded into the run.",
+                ),
+                InfoField(
+                    label="The entry ID should be a unique name given to the uploaded prediction.",
+                ),
+                TextField(
+                    name="uniprot_ids",
+                    label="Protein IDs of all proteins used in the sequence.",
+                ),
+                InfoField(
+                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9"
+                ),
+                TextField(
+                    name="model_used",
+                    label="The AlphaFold Model used to predict the structure.",
+                ),
+                FileInput(
+                    name="amino_acid_sequences",
+                    label="Amino acid sequences of proteins in the prediction (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="cif_file",
+                    label="CIF file (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="confidence_file",
+                    label="Confidence summary json file (required)",
+                    value=None,
+                ),
+                FileInput(
+                    name="full_data_file",
+                    label="Full data json file (required)",
+                    value=None,
+                ),
+                CheckboxField(
+                    name="persist_upload",
+                    label="Upload should be saved persistently across runs",
+                    value=True,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(upload_multimer_prediction)
+
+
+class ImportMultimerStructurePredictionFromDisk(ImportingStep):
+    display_name = "Multimer Structure Prediction Import from Disk"
+    operation = "Multimer Structure Import"
+    method_description = "Load an already uploaded multimer structure prediction from disk into current run"
+
+    output_keys = [
+        "metadata_df",
+        "amino_acid_sequences_df",
+        "cif_df",
+        "confidence_df",
+        "full_data_df",
+    ]
+
+    def create_form(self):
+        return Form(
+            label="Multimer Structure Predictions Import from Disk",
+            input_fields=[
+                DropdownField(
+                    name="entry_id",
+                    label="Entry ID of the multimer prediction to be loaded into the run.",
+                    options=form_helper.to_choices(
+                        get_all_available_entry_ids_of_multimer_metadata()
+                    ),
+                )
+            ],
+        )
+
+    calc_method = staticmethod(get_multimer_structure_dfs)

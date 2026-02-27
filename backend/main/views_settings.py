@@ -3,10 +3,9 @@ import os
 import shutil
 from datetime import date, datetime, timezone
 from io import BytesIO
-from pathlib import Path
 
 
-import pandas
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from PIL import Image
@@ -17,9 +16,16 @@ from backend.main import settings
 from backend.main.views_helper import (
     sanitize_name,
     load_settings_from_file,
-    copy_file_to_directory,
 )
-from backend.protzilla.constants.paths import EXTERNAL_DATA_PATH, SETTINGS_PATH
+from backend.protzilla.utilities.utilities import copy_file_to_directory
+from backend.protzilla.constants.paths import (
+    EXTERNAL_DATA_PATH,
+    SETTINGS_PATH,
+    AF_MONOMER_METADATA_CSV_PATH,
+    AF_MULTIMER_METADATA_CSV_PATH,
+    ALPHAFOLD_MONOMER_PATH,
+    ALPHAFOLD_MULTIMER_PATH,
+)
 from backend.protzilla.data_integration.database_query import (
     uniprot_columns,
     uniprot_databases,
@@ -227,128 +233,48 @@ def save_ptm_settings(request, default_file_stem: str = DEFAULT_PTM_SETTINGS_FIL
     )
 
 
-# <--- Protein Structure Predictions --->
-
-AF_DICT_PATH = EXTERNAL_DATA_PATH / "alphafold"
-
-
-def get_metadata_df(csv_file_path: str) -> pandas.DataFrame:
-    expected_columns = [
-        "entryID",
-        "uniprotAccession",
-        "modelCreatedDate",
-        "gene",
-        "alphafold_version",
-    ]
-    if csv_file_path.exists():
-        df = pandas.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
+# <--- helper functions for monomer and multimer structure prediction --->
+def check_and_copy_files_to_directory(file_names: list, target_dir: str):
+    if target_dir.exists():
+        return (
+            False,
+            'Entry ID is not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.',
+        )
     else:
-        df = pandas.DataFrame(columns=expected_columns)
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+    for file_name in file_names:
+        source_file = settings.FILE_UPLOAD_TEMP_DIR / file_name
+        success, message = copy_file_to_directory(source_file, target_dir)
+        if not success:
+            return False, message
+    return True, "All files successfully uploaded"
+
+
+def get_metadata_df(csv_file_path: str, expected_columns: list[str]) -> pd.DataFrame:
+    if csv_file_path.exists():
+        df = pd.read_csv(csv_file_path, usecols=lambda c: c in expected_columns)
+    else:
+        df = pd.DataFrame(columns=expected_columns)
     return df
 
 
-def get_prot_structure(request):
-    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
-
-    df = get_metadata_df(metadata_csv)
-
-    df_infos = df.rename(
-        columns={
-            "entryID": "entry_id",
-            "uniprotAccession": "uniprot_id",
-            "modelCreatedDate": "date_modified",
-            "gene": "gene",
-            "alphafold_version": "af_version",
-        }
-    ).to_dict(orient="records")
-
-    return JsonResponse(df_infos, safe=False)
-
-
-def upload_prot_structure(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        uniprot_id = data.get("uniprot_id")
-        entry_id = data.get("entry_id")
-        af_version = data.get("af_version")
-        gene = data.get("gene")
-        cif_file = data.get("cif_file")
-        confidence = data.get("confidence")
-        pae = data.get("pae")
-        fasta_file = data.get("fasta_file")
-
-        #  Copy files to source directory out of temp directory
-
-        af_path = AF_DICT_PATH / entry_id.upper()
-        if af_path.exists():
-            return JsonResponse(
-                {"success": False, "message": "Entry ID is not unique."}, status=405
-            )
-        else:
-            af_path.mkdir(parents=True, exist_ok=True)
-
-        for file_name in [cif_file, confidence, pae, fasta_file]:
-            source_dir = settings.FILE_UPLOAD_TEMP_DIR / file_name
-            success, message = copy_file_to_directory(source_dir, af_path)
-            if not success:
-                return JsonResponse(
-                    {"success": False, "message": message},
-                    status=500,
-                )
-
-        # add row to metadata csv
-        AF_DICT_PATH.mkdir(parents=True, exist_ok=True)
-        metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
-
-        df = get_metadata_df(metadata_csv)
-
-        now_utc = datetime.now(timezone.utc)
-        formatted = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        new_row = {
-            "entryID": entry_id,
-            "uniprotAccession": uniprot_id,
-            "modelCreatedDate": formatted,
-            "gene": gene,
-            "alphafold_version": af_version,
-        }
-
-        df = pandas.concat([df, pandas.DataFrame([new_row])], ignore_index=True)
-        df.to_csv(metadata_csv, index=False)
-
-        return JsonResponse(
-            {
-                "success": True,
-                "message": (
-                    f"Predicted Protein Structure uploaded successfully. \n {message}"
-                    if len(message) > 0
-                    else "Predicted Protein Structure uploaded successfully."
-                ),
-            },
-            status=200,
-        )
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
-
-def delete_prot_structure(request):
+def delete_structure(dir_path: str, csv_file_path: str, request):
     if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
     data = json.loads(request.body)
-    entry_id = (data.get("entry_id") or "").strip()
+    entry_id = (str(data.get("entry_id") or "")).strip()
     if not entry_id:
         return JsonResponse(
             {"success": False, "message": "Missing entry_id"}, status=400
         )
 
-    # delete folder with files for the protein structure
-    target_dir = AF_DICT_PATH / entry_id.upper()
-    metadata_csv = AF_DICT_PATH / "alphafold_metadata.csv"
+    # delete folder with files for the monomer structure
+    target_dir = dir_path / entry_id.upper()
+    metadata_csv = csv_file_path
 
     if not target_dir.exists() or not target_dir.is_dir():
         return JsonResponse(
@@ -371,9 +297,9 @@ def delete_prot_structure(request):
         and metadata_csv.stat().st_size > 0
     ):
         try:
-            df = pandas.read_csv(metadata_csv, dtype=str)
+            df = pd.read_csv(metadata_csv, dtype=str)
             df = df[
-                df["entryID"].fillna("").str.strip().str.upper() != entry_id.upper()
+                (df["entry_id"].fillna("").str.strip().str).upper() != entry_id.upper()
             ]
             df.to_csv(metadata_csv, index=False)
 
@@ -388,6 +314,255 @@ def delete_prot_structure(request):
 
     return JsonResponse(
         {"success": True, "message": "Entry deleted successfully"}, status=200
+    )
+
+
+def extend_metadata_csv(
+    entry_id: str,
+    metadata_csv: str,
+    existing_metadata_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+) -> None:
+    try:
+        mask = (
+            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
+        )
+        if mask.any():
+            msg = f'Entry ID "{entry_id}" not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
+            return False, msg
+
+        combined = pd.concat([existing_metadata_df, metadata_df], ignore_index=True)
+        combined.to_csv(metadata_csv, index=False)
+        return True, f'"{metadata_csv}" updated successfully.'
+
+    except Exception:
+        msg = f'Failed to write AlphaFold metadata CSV to "{metadata_csv}".'
+        return False, msg
+
+
+# <--- Monomer Structure Predictions --->
+
+
+def get_monomer_structure(request):
+    metadata_csv = AF_MONOMER_METADATA_CSV_PATH
+    expected_columns = [
+        "entry_id",
+        "uniprot_accession",
+        "model_created_date",
+        "gene",
+        "model_used",
+    ]
+
+    df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+
+    df_infos = df.rename(
+        columns={
+            "entry_id": "entry_id",
+            "uniprot_accession": "uniprot_id",
+            "model_created_date": "date_modified",
+            "gene": "gene",
+            "model_used": "model_used",
+        }
+    ).to_dict(orient="records")
+
+    return JsonResponse(df_infos, safe=False)
+
+
+def upload_monomer_structure(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        uniprot_id = data.get("uniprot_id")
+        entry_id = data.get("entry_id")
+        model_used = data.get("model_used")
+        gene = data.get("gene")
+        cif_file = data.get("cif_file")
+        confidence = data.get("confidence")
+        pae = data.get("pae")
+        fasta_file = data.get("fasta_file")
+
+        # add row to metadata csv
+        ALPHAFOLD_MONOMER_PATH.mkdir(parents=True, exist_ok=True)
+        metadata_csv = AF_MONOMER_METADATA_CSV_PATH
+
+        expected_columns = [
+            "entry_id",
+            "uniprot_accession",
+            "model_created_date",
+            "gene",
+            "model_used",
+        ]
+
+        existing_metadata_df = get_metadata_df(
+            csv_file_path=metadata_csv, expected_columns=expected_columns
+        )
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        new_row = {
+            "entry_id": entry_id,
+            "uniprot_accession": uniprot_id,
+            "model_created_date": timestamp,
+            "gene": gene,
+            "model_used": model_used,
+        }
+
+        metadata_df = pd.DataFrame([new_row])
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        #  Copy files to source directory out of temp directory
+
+        target_dir = ALPHAFOLD_MONOMER_PATH / entry_id.upper()
+        file_names = [cif_file, confidence, pae, fasta_file]
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": (
+                    f"Predicted monomer structure uploaded successfully. \n {message}"
+                    if len(message) > 0
+                    else "Predicted monomer structure uploaded successfully."
+                ),
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def delete_monomer_structure(request):
+    return delete_structure(
+        dir_path=ALPHAFOLD_MONOMER_PATH,
+        csv_file_path=AF_MONOMER_METADATA_CSV_PATH,
+        request=request,
+    )
+
+
+# <--- Multimer Structure Predictions --->
+
+
+def get_multimer_structure(request):
+    metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
+    expected_columns = [
+        "entry_id",
+        "uniprot_ids",
+        "model_created_date",
+        "model_used",
+    ]
+    df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+
+    df_infos = df.rename(
+        columns={
+            "entry_id": "entry_id",
+            "uniprot_ids": "uniprot_ids",
+            "model_created_date": "date_modified",
+            "model_used": "model_used",
+        }
+    ).to_dict(orient="records")
+
+    return JsonResponse(df_infos, safe=False)
+
+
+def upload_multimer_structure(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        entry_id = data.get("entry_id")
+        uniprot_ids = data.get("uniprot_ids")
+        model_used = data.get("model_used")
+        fasta_file = data.get("fasta_file")
+        cif_file = data.get("cif_file")
+        confidence_file = data.get("confidence_file")
+        full_data_file = data.get("full_data_file")
+
+        # add row to metadata csv
+        metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
+        expected_columns = [
+            "entry_id",
+            "uniprot_ids",
+            "model_created_date",
+            "model_used",
+        ]
+
+        existing_metadata_df = get_metadata_df(
+            csv_file_path=metadata_csv, expected_columns=expected_columns
+        )
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        new_row = {
+            "entry_id": entry_id,
+            "uniprot_ids": uniprot_ids,
+            "model_created_date": timestamp,
+            "model_used": model_used,
+        }
+
+        metadata_df = pd.DataFrame([new_row])
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        #  Copy files to source directory out of temp directory
+
+        target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
+        file_names = [fasta_file, cif_file, confidence_file, full_data_file]
+        success, message = check_and_copy_files_to_directory(
+            file_names=file_names, target_dir=target_dir
+        )
+        if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": (
+                    f"Predicted multimer structure uploaded successfully. \n {message}"
+                    if len(message) > 0
+                    else "Predicted multimer structure uploaded successfully."
+                ),
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def delete_multimer_structure(request):
+    return delete_structure(
+        dir_path=ALPHAFOLD_MULTIMER_PATH,
+        csv_file_path=AF_MULTIMER_METADATA_CSV_PATH,
+        request=request,
     )
 
 
@@ -449,7 +624,7 @@ def database_upload(request):
                 return JsonResponse({"success": False, "message": msg}, status=400)
 
             try:
-                dataframe = pandas.read_csv(path, sep="\t")
+                dataframe = pd.read_csv(path, sep="\t")
             except UnicodeDecodeError:
                 msg = "File could not be decoded."
                 messages.add_message(request, messages.ERROR, msg, "alert-danger")
