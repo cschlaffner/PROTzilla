@@ -198,6 +198,7 @@ InputField = (
     | MultiSelectField
     | DropdownField
     | FileInput
+    | ColorField
 )
 StructuralField = FormDivider | InfoField | HeaderInfoField
 

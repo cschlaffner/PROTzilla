@@ -984,11 +984,11 @@ class PlotClustergram(DataAnalysisPlotStep):
     @override
     def modify_form(self, run: Run) -> None:
         metadata_column_field: DropdownField = self.form["metadata_column"]
-        metadata_source = self.input_source(run.steps, DataKeys.METADATA_DF)
+        metadata_source, source_handle = self.input_source(run.steps, DataKeys.METADATA_DF)
         if metadata_source is not None:
             metadata_column_field.set_options(
                 form_helper.get_choices_for_metadata(
-                    run, instance_identifier=metadata_source, include_sample=False
+                    run, instance_identifier=metadata_source, include_sample=False, output_key=source_handle
                 )
             )
 

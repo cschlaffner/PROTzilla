@@ -261,10 +261,10 @@ def clustergram_plot(
             assert metadata_column in metadata_df.columns
             # TODO: debatable if this filtering should be done here or in the filtering steps
             filtered_metadata_df = metadata_df[
-                metadata_df["Sample"].isin(protein_df_wide.index)
+                metadata_df["Sample"].isin(input_df_wide.index)
             ]
 
-            assert len(protein_df_wide) == len(filtered_metadata_df)
+            assert len(input_df_wide) == len(filtered_metadata_df)
             # In the clustergram each row represents a sample that can pertain to a
             # group. In the following code the necessary data structures are created
             # to assign each group to a unique color.
@@ -284,7 +284,7 @@ def clustergram_plot(
             )
             # dictionary that maps each color to a group for the colorbar (legend)
             color_label_dict = {v: k for k, v in group_to_color_dict.items()}
-            groups = [sample_group_dict[label] for label in protein_df_wide.index]
+            groups = [sample_group_dict[label] for label in input_df_wide.index]
             # maps each row (sample) to the corresponding color
             row_colors = [group_to_color_dict[g] for g in groups]
         else:
@@ -305,11 +305,11 @@ def clustergram_plot(
 
         clustergram = Clustergram(
             flip_axes=flip_axes,
-            data=protein_df_wide.values,
-            row_labels=protein_df_wide.index.values.tolist(),
+            data=input_df_wide.values,
+            row_labels=input_df_wide.index.values.tolist(),
             row_colors=row_colors,
             row_colors_to_label_dict=color_label_dict,
-            column_labels=protein_df_wide.columns.values.tolist(),
+            column_labels=input_df_wide.columns.values.tolist(),
             line_width=2,
             color_map=px.colors.diverging.RdBu_r,
             hidden_labels=["row", "col"],
