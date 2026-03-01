@@ -167,7 +167,7 @@ class TestRun:
 
         assert run_standard.current_step.calculation_status == "complete"
 
-        run_standard.step_next()
+        run_standard.step_goto("s00002_MetadataImport")
 
         assert run_standard.current_step.calculation_status == "incomplete"
 
@@ -233,6 +233,8 @@ class TestRun:
         run_imported.step_goto("teststep02_filter")
         run_imported.step_set_outdated()
         assert run_imported.current_step.calculation_status == "outdated"
+        run_imported.step_calculate()
+        assert run_imported.current_step.calculation_status == "complete"
         run_imported.step_goto("teststep03_kNN")
         assert run_imported.current_step.calculation_status == "outdated"
         run_imported.step_calculate()

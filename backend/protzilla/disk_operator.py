@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import os
 import shutil
+from sys import _current_exceptions
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -127,6 +128,9 @@ class DiskOperator:
             if id_clock is not None:
                 step_manager._id_clock = id_clock
 
+            current_step_id = run.get(KEYS.CURRENT_STEP_ID)
+            step_manager._current_selected_step_id = current_step_id
+
             return step_manager
 
     def write_run(self, step_manager: StepManager) -> None:
@@ -137,7 +141,7 @@ class DiskOperator:
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
             run = {}
-            run[KEYS.CURRENT_STEP_ID] = step_manager.current_selected_step_id
+            run[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
             run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
