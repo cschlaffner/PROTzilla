@@ -2,17 +2,16 @@ import "@xyflow/react/dist/style.css";
 import { useNotification } from "@protzilla/app";
 import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
-import type { Section, Step } from "@protzilla/utils";
+import type { Step } from "@protzilla/utils";
 import {
   callApiWithParameters,
   emptyRunData,
   SectionIDs,
   supportedSections,
-  translateGlobalToSectionIndex,
 } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
@@ -109,7 +108,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       },
     }));
 
-    setNodes(syncNodes);
+    setNodes(syncNodes as StepNodeType[]);
   }, [runData, navigateOrRefreshSteps]);
 
   const fetchEdges = useCallback(async () => {
@@ -227,7 +226,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const buttonText =
     currentStep.status === "complete"
       ? "Next"
-      : runData.current_section === SectionIDs.Importing
+      : runData.current_section as SectionIDs === SectionIDs.Importing
         ? "Import"
         : "Calculate";
 

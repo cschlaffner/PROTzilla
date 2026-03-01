@@ -113,7 +113,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
   section,
   //eslint-disable-next-line
-  index,
   isSmallButton = false,
   onAddStep,
   handlePosition = { top: 0, left: 0 },
@@ -186,7 +185,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
     await callApiWithParameters("add_step/", {
-      // TODO add index
       run_name: run_name,
       method: method_name,
     }).then(() => {
