@@ -455,7 +455,7 @@ N N
 
     out = upload_multimer_prediction(
         entry_id="M1",
-        uniprot_ids=["X"],
+        uniprot_ids="X",
         model_used="m",
         amino_acid_sequences=fasta,
         cif_file=cif,
@@ -584,7 +584,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
 
     out = upload_multimer_prediction(
         entry_id="M2",
-        uniprot_ids=["Y"],
+        uniprot_ids="Y",
         model_used="test",
         amino_acid_sequences=fasta,
         cif_file=cif,
