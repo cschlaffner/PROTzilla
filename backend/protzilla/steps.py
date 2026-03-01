@@ -48,6 +48,7 @@ class Step:
         self.output: Output = Output()
         self.filtered_datatable: dict = {}
         self.plots: Plots = Plots()
+        self.downloads: Downloads = Downloads()
         self.messages: Messages = Messages([])
         self.instance_identifier = instance_identifier
         self.disk_write_mutex = Lock()
@@ -62,6 +63,10 @@ class Step:
                 "dumped": 0,
             },
             "plots": {
+                "generated": 0,
+                "dumped": 0,
+            },
+            "downloads": {
                 "generated": 0,
                 "dumped": 0,
             },
@@ -135,6 +140,11 @@ class Step:
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
                 self.artifact_versions["plots"]["generated"] += 1
+
+            if self.download_method:
+                download_output = self.download_method(**self.download_input)
+                self.handle_download_outputs(download_output)
+                self.artifact_versions["downloads"]["generated"] += 1
 
             self.calculation_status = "complete"
 
@@ -225,6 +235,19 @@ class Step:
 
         self.plots = Plots(plots)
 
+    def handle_download_outputs(self, outputs: dict | list) -> None:
+        #ToDo: Docstring
+
+        if not isinstance(outputs, dict):
+            raise TypeError("Output of download method is not a dictionary.")
+
+        downloads = outputs.pop("downloads", {})
+        self.output.output.update(outputs)
+        self.handle_messages(outputs)
+
+
+        self.downloads = Downloads(downloads)
+
     def handle_messages(self, outputs: dict) -> None:
         """
         Handles the messages from the calculation method and creates a Messages object from it.
@@ -237,6 +260,7 @@ class Step:
 
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
+    download_method = None
 
     @property
     def calculation_input(self) -> dict:
@@ -249,7 +273,7 @@ class Step:
         for key in required_keys:
             if key not in self.inputs:
                 raise ValueError(
-                    f"Missing required input '{key}' for the calulation method"
+                    f"Missing required input '{key}' for the calculation method"
                 )
 
         return {
@@ -279,6 +303,26 @@ class Step:
 
         return {
             key: plot_input[key] for key in input_parameters.keys() if key in plot_input
+        }
+
+    @property
+    def download_input(self) -> dict:
+        input_parameters = inspect.signature(self.download_method).parameters
+        required_keys = [
+            key
+            for key, param in input_parameters.items()
+            if param.default == inspect.Parameter.empty
+        ]
+        for key in required_keys:
+            if key not in self.inputs:
+                raise ValueError(
+                    f"Missing required input '{key}' for the plot method"
+                )
+
+        return {
+            key: self.inputs[key]
+            for key in input_parameters.keys()
+            if key in self.inputs
         }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
@@ -433,6 +477,24 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
+
+
+class Downloads:
+    #  maps file name to file content (a string)
+    def __init__(self, downloads: dict[str, str] | None = None):
+        if downloads is None:
+            downloads: dict[str,str] = {}
+        self.downloads = downloads
+
+    def __iter__(self):
+        return iter(self.downloads)
+
+    def __repr__(self):
+        return f"Downloads: {len(self.downloads)}"
+
+    @property
+    def empty(self) -> bool:
+        return len(self.downloads) == 0
 
 
 class StepManager:

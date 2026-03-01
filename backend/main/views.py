@@ -623,6 +623,26 @@ def get_step_plots(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+def get_step_downloads(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+
+        run = Run(run_name)
+        if run.current_step is not None:
+            downloads = run.current_downloads.downloads
+        else:
+            downloads = {}
+
+        return JsonResponse(
+            {"success": True, "message": "Got the available download(s) for the step", "data": downloads},
+            safe=False,
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
 
 # TODO: Move somewhere else
 def _step_output_as_serialised_table(

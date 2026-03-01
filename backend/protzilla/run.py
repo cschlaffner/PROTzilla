@@ -355,6 +355,10 @@ class Run:
         return self.steps.current_step.plots
 
     @property
+    def current_downloads(self):  # ToDo: Type Hint
+        return self.steps.current_step.downloads
+
+    @property
     def current_outputs(self) -> Output:
         return self.steps.current_step.output
 
