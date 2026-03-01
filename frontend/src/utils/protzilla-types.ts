@@ -9,7 +9,7 @@ export interface SelectedStep {
   index: number;
 }
 
-type StepID = string;
+export type StepID = string;
 
 export interface StepOutputInfo {
   label: string;
@@ -87,6 +87,7 @@ export interface RunData {
   displayed_steps: Step[];
   memory_usage: string;
   current_step_has_plot: boolean;
+  recommended_next_step_id: StepID;
 }
 
 export const emptyRunData: RunData = {
@@ -95,6 +96,7 @@ export const emptyRunData: RunData = {
   displayed_steps: [],
   memory_usage: "",
   current_step_has_plot: false,
+  recommended_next_step_id: "",
 };
 
 export interface Table {
