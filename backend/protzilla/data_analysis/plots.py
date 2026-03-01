@@ -327,17 +327,12 @@ def clustergram_plot(
             msg = 'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
         elif not isinstance(metadata_df, pd.DataFrame) and metadata_df is not None:
             msg = 'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
-        elif protein_df_wide.isna().any(axis=None):
-            msg = (
-                "The selected input dataframe contains missing values. These should be filtered out or imputed before "
-                "creating a clustergram plot."
-            )
         elif (
             isinstance(metadata_df, pd.DataFrame)
             and metadata_column not in metadata_df.columns
         ):
             msg = "The column selected for annotation is not present in the corresponding metadata dataframe"
-        elif isinstance(metadata_df, pd.DataFrame) and len(protein_df_wide) != len(
+        elif isinstance(metadata_df, pd.DataFrame) and len(input_df_wide) != len(
             filtered_metadata_df
         ):
             msg = "The input dataframe and the grouping contain different samples"
