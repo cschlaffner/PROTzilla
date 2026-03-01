@@ -242,8 +242,8 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
     test_alpha = 0.05
 
     current_out = t_test(
-        test_intensity_df,
-        test_metadata_df,
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -278,8 +278,8 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Run Student's t-test
     student_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
         group1="Group1",
@@ -291,8 +291,8 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Run Welch's t-test
     welch_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -350,8 +350,8 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     test_alpha = 0.05
 
     current_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
         group1="Group1",
@@ -396,8 +396,8 @@ def test_differential_expression_t_test_with_silac_ratios():
     )
 
     out = t_test(
-        silac_ratio_df,
-        metadata_df,
+        protein_df=silac_ratio_df,
+        metadata_df=metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -456,7 +456,7 @@ def test_differential_expression_anova(show_figures):
 
     output_dict = anova(
         protein_df=test_protein_df,
-        sample_group_df=test_metadata_df,
+        metadata_df=test_metadata_df,
         grouping="Group",
         log_base="log2",
         selected_groups=test_metadata_df["Group"].unique().tolist(),
@@ -866,7 +866,7 @@ def test_differential_expression_t_test_empty_p_values():
     )
 
     current_out = t_test(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
@@ -916,7 +916,7 @@ def test_differential_expression_anova_empty_p_values():
     )
 
     current_out = anova(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         selected_groups=["Group1", "Group2"],
@@ -964,7 +964,7 @@ def test_differential_expression_linear_model_empty_p_values():
     )
 
     current_out = linear_model(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         group1="Group1",

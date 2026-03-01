@@ -158,11 +158,11 @@ def t_test(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),

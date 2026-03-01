@@ -136,11 +136,11 @@ def linear_model(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change"]
             ),
             corrected_p_values_df=pd.DataFrame(
