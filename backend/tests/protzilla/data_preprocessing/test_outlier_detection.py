@@ -93,7 +93,6 @@ def test_outlier_detection_by_local_outlier_factor(
         "protein_df": outlier_detection_df,
         "peptide_df": peptides_df,
         "number_of_neighbors": 35,
-        "n_jobs": -1,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
     fig = by_local_outlier_factor_plot(method_outputs["anomaly_df"])[0]
@@ -114,7 +113,6 @@ def test_outlier_detection_by_local_outlier_factor_and_nan(
         "protein_df": outlier_detection_df_with_nan,
         "peptide_df": None,
         "number_of_neighbors": 35,
-        "n_jobs": -1,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
 
