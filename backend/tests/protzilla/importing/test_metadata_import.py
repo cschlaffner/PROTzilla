@@ -11,7 +11,15 @@ from backend.protzilla.steps import Step
 
 
 def test_metadata_import(run_imported):
-    run_imported.step_add(MetadataImport())
+    run_imported.step_add(MetadataImport("teststep02_Meta"))
+    run_imported.steps.connect_steps(
+        {
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_Meta",
+            "targetHandle": "protein_df",
+        }
+    )
     run_imported.step_next()
     run_imported.current_form(
         {
@@ -27,7 +35,15 @@ def test_metadata_import(run_imported):
 
 
 def test_metadata_import_faulty_file(run_imported):
-    run_imported.step_add(MetadataImport())
+    run_imported.step_add(MetadataImport("teststep02_Meta"))
+    run_imported.steps.connect_steps(
+        {
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_Meta",
+            "targetHandle": "protein_df",
+        }
+    )
     run_imported.step_next()
     run_imported.current_form(
         {
