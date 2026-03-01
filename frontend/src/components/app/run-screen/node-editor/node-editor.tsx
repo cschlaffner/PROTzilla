@@ -268,9 +268,11 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           <Panel position="top-left">
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
-              <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
-                Remove current connection
-              </RedButton>
+              {selectedEdge && (
+                <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                  Remove selected connection
+                </RedButton>
+              )}
             </div>
           </Panel>
 
