@@ -57,7 +57,7 @@ def t_sne(
         corresponding Sample.
     :rtype: dict
     """
-    
+
     input_df = protein_df
 
     intensity_df_wide = (
@@ -152,7 +152,7 @@ def umap(
 
     # umap import is slow, so it should only get imported when needed
     from umap import UMAP
-    
+
     input_df = protein_df
 
     intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df

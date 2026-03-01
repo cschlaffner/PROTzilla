@@ -3,7 +3,13 @@ import { useNotification } from "@protzilla/app";
 import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import type { Section, Step } from "@protzilla/utils";
-import { callApiWithParameters, emptyRunData, SectionIDs, supportedSections, translateGlobalToSectionIndex } from "@protzilla/utils";
+import {
+  callApiWithParameters,
+  emptyRunData,
+  SectionIDs,
+  supportedSections,
+  translateGlobalToSectionIndex,
+} from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
 import { useCallback, useEffect, useState, useMemo } from "react";
@@ -182,9 +188,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       },
     }).then((response) => {
       notify({
-          type: response.success ? "success" : "error",
-          title: response.message.title,
-          message: response.message.msg,
+        type: response.success ? "success" : "error",
+        title: response.message.title,
+        message: response.message.msg,
       });
       setSelectedEdge(null);
       fetchEdges();
@@ -204,14 +210,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     });
   };
 
-
   //
   // Derived view state
   //
 
-  const currentStep = useMemo(() => 
-    runData.displayed_steps.find((s) => s.id === runData.current_step_id), 
-    [runData]
+  const currentStep = useMemo(
+    () => runData.displayed_steps.find((s) => s.id === runData.current_step_id),
+    [runData],
   );
 
   // Fallback
@@ -296,7 +301,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           previousStepCalculationStatus={"complete"}
           currentStepCalculationStatus={currentStep.status}
           current_step_id={runData.current_step_id}
-          isLastStep={(!runData.recommended_next_step_id)}
+          isLastStep={!runData.recommended_next_step_id}
           onNext={() => {
             navigateOrRefreshSteps(runData.recommended_next_step_id);
           }}

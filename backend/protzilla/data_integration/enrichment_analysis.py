@@ -30,9 +30,7 @@ last_call_time = None
 MIN_WAIT_TIME = 1  # Minimum wait time between STRING API calls in seconds
 
 
-def is_dataframe_valid(
-    protein_df: DataFrame, differential_expression_col: str
-) -> bool:
+def is_dataframe_valid(protein_df: DataFrame, differential_expression_col: str) -> bool:
     return (
         isinstance(protein_df, pd.DataFrame)
         and "Protein ID" in protein_df.columns
