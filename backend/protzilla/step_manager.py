@@ -47,9 +47,9 @@ class StepManager:
 
         # Graph saving connections between steps.
         # All steps are represented by their instance_identifiers as nodes.
-        # If an output of step X is connected to an input of step Y,
-        # an edge with weight "n_connections"=1 is added. If multiple such links exist,
-        # the edge's weight is incremented by 1 with every additional link
+        # The edges specify which source/target handles (or outputs/inputs)
+        # they refer to as a dict {"source_handle": <>, "target_handle": <>}
+        # in their data attribute
         self.graph: nx.MultiDiGraph[StepID] = nx.MultiDiGraph()
 
         # Instance identifier of the currently selected step
