@@ -246,32 +246,23 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  const __list_editor_temp_component = (
-    <StyledContentContainer>
-      <SectionTitle
-        baseComponent={"p"}
-        description={"The List Editor is broken and needs to be refactored"}
-      />
-    </StyledContentContainer>
-  )
-
-  const listEditorComponent = (
-    <ListEditor
-      onFormSubmit={onFormSubmit}
-      runName={runName}
-      navigateOrRefreshSteps={navigateOrRefreshSteps}
-      runData={runData}
-    />
-  );
+  // const listEditorComponent = (
+  //   <ListEditor
+  //     onFormSubmit={onFormSubmit}
+  //     runName={runName}
+  //     navigateOrRefreshSteps={navigateOrRefreshSteps}
+  //     runData={runData}
+  //   />
+  // );
 
   const editorModes = [
-    { name: "List", value: __list_editor_temp_component },
-    { name: "Node", value: nodeEditorComponent },
+    // { name: "List", value: listEditorComponent },
+    { name: "Flow", value: nodeEditorComponent },
   ];
 
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
-  const selectedEditorMode: SwitchComponent["name"] = "Node";
+  const selectedEditorMode: SwitchComponent["name"] = "Flow";
   // const selectedEditorMode = runData.editor_mode;
 
   const selectEditorMode = (mode: SwitchComponent) => {
