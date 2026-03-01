@@ -6,7 +6,7 @@ import type { Section, Step } from "@protzilla/utils";
 import { callApiWithParameters, emptyRunData, SectionIDs, supportedSections, translateGlobalToSectionIndex } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
@@ -61,12 +61,22 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   navigateOrRefreshSteps,
   runData,
 }) => {
-  // Fallback. Future TODO: Make this cleaner
-  if (runData == emptyRunData) {
-    return <h1>Node Editor Fallback</h1>
-  }
-
   const notify = useNotification();
+
+  //
+  // State
+  //
+
+  const [nodes, setNodes] = useState<StepNodeType[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+
+  // Mouse-Over info for each handle, displayed in the corner
+  const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
+    isActive: false,
+    direction: "Input",
+    type: "protein_df",
+  });
 
   const onAddStep = () => {
     notify({ type: "success", title: "Step added", message: "Successfully added step" });
@@ -74,18 +84,59 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   //
-  // ReactFlow initialisation
+  // Data syncing
   //
 
-  const [nodes, setNodes] = useState<StepNodeType[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
-  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  useEffect(() => {
+    if (runData === emptyRunData) return;
+
+    const syncNodes = runData.displayed_steps.map((step: Step) => ({
+      id: step.id,
+      type: "step",
+      position: step.visual_data?.node_position ?? { x: 0, y: 0 },
+      data: {
+        step: step,
+        section: step.section,
+        isSelected: runData.current_step_id === step.id,
+        navigateOrRefreshSteps,
+        setHoveredHandleMeta,
+      },
+    }));
+
+    setNodes(syncNodes);
+  }, [runData, navigateOrRefreshSteps]);
+
+  const fetchEdges = useCallback(async () => {
+    try {
+      const res = await callApiWithParameters("get_edges/", { run_name: runName });
+      if (res.data) setEdges(res.data as Edge[]);
+    } catch (err) {
+      console.error("Failed to fetch edges", err);
+    }
+  }, [runName]);
+
+  useEffect(() => {
+    fetchEdges();
+  }, [fetchEdges, runData.current_step_id]); // Refresh edges when step changes
+
+  //
+  // Handlers
+  //
 
   const onNodesChange = useCallback((changes: NodeChange<StepNodeType>[]) => {
     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
   }, []);
+
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+  }, []);
+
+  const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
+    setSelectedEdge(edge);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedEdge(null);
   }, []);
 
   const onNodeDragStop = useCallback(
@@ -102,18 +153,22 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [navigateOrRefreshSteps, runName],
   );
 
-  const getEdgesFromRunData = useCallback(async (): Promise<Edge[]> => {
-    const res = await callApiWithParameters("get_edges/", { run_name: runName });
-    return res.data as Edge[];
-  }, [runName]);
-
-  const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
-    setSelectedEdge(edge);
-  }, []);
-
-  const onPaneClick = useCallback(() => {
-    setSelectedEdge(null);
-  }, []);
+  const onConnect = useCallback(
+    (params: Connection) => {
+      void callApiWithParameters("connect_steps/", {
+        run_name: runName,
+        connection: params,
+      }).then((response) => {
+        notify({
+          type: response.success ? "success" : "error",
+          title: response.message.title,
+          message: response.message.msg,
+        });
+        fetchEdges();
+      });
+    },
+    [fetchEdges, notify, runName],
+  );
 
   const removeCurrentConnection = useCallback(() => {
     if (!selectedEdge) return;
@@ -132,43 +187,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           message: response.message.msg,
       });
       setSelectedEdge(null);
-      void getEdgesFromRunData().then((newEdges) => {
-        setEdges(newEdges);
-      });
+      fetchEdges();
     });
-  }, [getEdgesFromRunData, notify, runName, selectedEdge]);
-
-  const onConnect = useCallback(
-    (params: Connection) => {
-      console.log(params);
-      void callApiWithParameters("connect_steps/", {
-        run_name: runName,
-        connection: params,
-      }).then((response) => {
-        notify({
-          type: response.success ? "success" : "error",
-          title: response.message.title,
-          message: response.message.msg,
-        });
-        void getEdgesFromRunData().then((newEdges) => {
-          setEdges(newEdges);
-        });
-      });
-    },
-    [getEdgesFromRunData, navigateOrRefreshSteps, notify, runName],
-  );
-
-  // Mouse-Over info for each handle, displayed in the corner
-  const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
-    isActive: false,
-    direction: "Input",
-    type: "protein_df",
-  });
-
-  //
-  // Run data
-  //
-
+  }, [fetchEdges, notify, runName, selectedEdge]);
 
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
@@ -179,64 +200,31 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         type: response.success ? "success" : "error",
         title: response.message,
       });
+      navigateOrRefreshSteps();
     });
-    navigateOrRefreshSteps();
   };
 
-  const allSteps: Step[] = runData.displayed_steps;
-  const currentSectionId = runData.current_section as SectionIDs;
-  const currentSection = supportedSections.find((section) => section.id === currentSectionId);
-  const currentStep = allSteps.find((step) => step.id === runData.current_step_id)
 
-  const currentStepCalculationStatus = currentStep.status;
+  //
+  // Derived view state
+  //
+
+  const currentStep = useMemo(() => 
+    runData.displayed_steps.find((s) => s.id === runData.current_step_id), 
+    [runData]
+  );
+
+  // Fallback
+  if (runData === emptyRunData || !currentStep) {
+    return <h1>Node Editor Fallback</h1>;
+  }
+
   const buttonText =
-    currentStepCalculationStatus === "complete"
+    currentStep.status === "complete"
       ? "Next"
-      : currentSectionId === SectionIDs.Importing
+      : runData.current_section === SectionIDs.Importing
         ? "Import"
         : "Calculate";
-
-  useEffect(() => {
-    console.log("Run Data", runData);
-    const effectAllSteps = runData.displayed_steps;
-    setNodes((nodesSnapshot) => {
-      const newNodes: StepNodeType[] = [];
-      let yOffset = 0;
-
-      
-      effectAllSteps.forEach((step: Step) => {
-        const isSelected = runData.current_step_id === step.id
-
-        const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
-        const savedPosition = step.visual_data?.node_position;
-        const position = oldMatchingNode
-          ? oldMatchingNode.position
-          : savedPosition
-            ? { x: savedPosition.x, y: savedPosition.y }
-            : { x: 0, y: yOffset };
-
-        newNodes.push({
-          id: step.id,
-          type: "step",
-          position: position,
-          data: {
-            step: step,
-            section: step.section,
-            isSelected: isSelected,
-            navigateOrRefreshSteps: navigateOrRefreshSteps,
-            setHoveredHandleMeta: setHoveredHandleMeta,
-          },
-        });
-
-        yOffset += 60;
-      });
-      return newNodes;
-    });
-
-    void getEdgesFromRunData().then((newEdges) => {
-      setEdges(newEdges);
-    });
-  }, [currentSectionId, navigateOrRefreshSteps, runData]);
 
   const stepSelectionProps = {
     runName: runName,
@@ -265,6 +253,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         </StyledStepButtonsRow>
 
         <ReactFlow
+          key={runName}
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
@@ -303,7 +292,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           runName={runName}
           buttonText={buttonText}
           previousStepCalculationStatus={"complete"}
-          currentStepCalculationStatus={currentStepCalculationStatus}
+          currentStepCalculationStatus={currentStep.status}
           current_step_id={runData.current_step_id}
           isLastStep={(!runData.recommended_next_step_id)}
           onNext={() => {
