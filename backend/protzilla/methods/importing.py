@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pandas as pd
+
 from backend.protzilla.form import *
 from backend.protzilla import form_helper
 from backend.protzilla.importing.metadata_import import (
@@ -615,7 +617,7 @@ class AlphaFoldMultimerQueryJsonGeneration(ImportingStep):
     operation = "Query Generation"
     method_description = "Generate a JSON to upload to AlphaFold-Server to generate a prediction on a multimer."
 
-    output_keys = ["tmp_df"]
+    output_keys = ["downloads"]
 
     def create_form(self):
         return Form(
@@ -636,5 +638,5 @@ class AlphaFoldMultimerQueryJsonGeneration(ImportingStep):
                 ),
             ],
         )
-
-    calc_method = staticmethod(generate_alphafold_multimer_query_json)
+    calc_method = staticmethod(lambda: dict(downloads=pd.DataFrame()))
+    download_method = staticmethod(generate_alphafold_multimer_query_json)

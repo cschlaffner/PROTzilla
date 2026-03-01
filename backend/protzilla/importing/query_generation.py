@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import requests
 
@@ -13,7 +15,7 @@ def generate_alphafold_multimer_query_json(
         raise ValueError(
             "Invalid copies_per_id: please provide space-separated integers"
         )
-    if len(uniprot_ids) != len(number_copies):
+    if len(uniprot_ids) != len(copies_per_id):
         dict(messages={}, tmp_df=pd.DataFrame())
 
     data_for_query = {
@@ -43,4 +45,4 @@ def generate_alphafold_multimer_query_json(
             }
         )
 
-    return dict(messages={}, tmp_df=pd.DataFrame())
+    return dict(messages={}, downloads={f"prediction_query_{'_'.join(uniprot_ids)}" : f"[{json.dumps(data_for_query)}]"})

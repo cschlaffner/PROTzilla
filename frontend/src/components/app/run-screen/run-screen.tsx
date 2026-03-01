@@ -89,6 +89,7 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
+  const [downloads, setDownloads] = useState<Record<string, string> | undefined>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -106,6 +107,7 @@ export const RunScreen: React.FC = () => {
       }).then(() => {
         void getRunData();
         void getStepPlots();
+        void getStepDownloads();
         void getCurrentStepOutputLabels();
       });
     } else {
@@ -140,6 +142,16 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
+  const getStepDownloads = useCallback(async () => {
+    const response = await callApiWithParameters("get_step_downloads/", {
+      run_name: runName,
+    });
+    if (response) {
+      const downloads = response.data;
+      setDownloads(downloads);
+    }
+  }, [runName]);
+
   const getCurrentStepOutputLabels = useCallback(async () => {
     const response = await callApiWithParameters("get_current_step_output_labels/", {
       run_name: runName,
@@ -152,15 +164,21 @@ export const RunScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([getRunData(), getStepPlots(), getCurrentStepOutputLabels()]);
+      await Promise.all([
+        getRunData(),
+        getStepPlots(),
+        getStepDownloads(),
+        getCurrentStepOutputLabels(),
+      ]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
+  }, [getRunData, getStepPlots, getStepDownloads, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
     void getRunData();
     void getStepPlots();
+    void getStepDownloads();
     void getCurrentStepOutputLabels();
   };
 
@@ -235,8 +253,35 @@ export const RunScreen: React.FC = () => {
     <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
   );
 
+  const downloadJson = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   const downloadComponent = (
-    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
+    <StyledContentContainer>
+      {downloads && Object.keys(downloads).length > 0 ? (
+        Object.entries(downloads).map(([filename, content]) => (
+          <SecondaryButton
+            key={filename}
+            text={filename}
+            style={{ width: "fit-content" }}
+            onClick={() => {
+              downloadJson(filename, content);
+            }}
+          />
+        ))
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No downloads available for this step."} />
+      )}
+    </StyledContentContainer>
   );
 
   const listEditorComponent = (
