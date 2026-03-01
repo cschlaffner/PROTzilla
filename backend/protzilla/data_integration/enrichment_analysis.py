@@ -31,13 +31,13 @@ MIN_WAIT_TIME = 1  # Minimum wait time between STRING API calls in seconds
 
 
 def is_dataframe_valid(
-    proteins_df: DataFrame, differential_expression_col: str
+    protein_df: DataFrame, differential_expression_col: str
 ) -> bool:
     return (
-        isinstance(proteins_df, pd.DataFrame)
-        and "Protein ID" in proteins_df.columns
-        and differential_expression_col in proteins_df.columns
-        and pd.api.types.is_numeric_dtype(proteins_df[differential_expression_col])
+        isinstance(protein_df, pd.DataFrame)
+        and "Protein ID" in protein_df.columns
+        and differential_expression_col in protein_df.columns
+        and pd.api.types.is_numeric_dtype(protein_df[differential_expression_col])
     )
 
 
@@ -168,7 +168,7 @@ def GO_analysis_with_STRING(
     """
 
     out_messages = []
-    if not is_dataframe_valid(proteins_df, differential_expression_col):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -546,7 +546,7 @@ def GO_analysis_with_Enrichr(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     out_messages = []
-    if not is_dataframe_valid(proteins_df, differential_expression_col):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -781,7 +781,7 @@ def GO_analysis_offline(
     """
     # enhancement: make sure ID type for all inputs match
     out_messages = []
-    if not is_dataframe_valid(proteins_df, differential_expression_col):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
