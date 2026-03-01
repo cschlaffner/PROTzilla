@@ -59,9 +59,7 @@ def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
     return dict(protein_df=df, messages=messages)
 
 
-def by_knn(
-    protein_df: pd.DataFrame, number_of_neighbours: int = 5
-) -> dict:
+def by_knn(protein_df: pd.DataFrame, number_of_neighbours: int = 5) -> dict:
     """
     A function to perform value imputation based on KNN
     (k-nearest neighbors). Imputes missing values for each

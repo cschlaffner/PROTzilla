@@ -200,7 +200,9 @@ class DimensionReductionMetric(Enum):
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
-    def set_protein_ids(self, run: Run, protein_ids_field_name: str, input_key: DataKeys) -> None:
+    def set_protein_ids(
+        self, run: Run, protein_ids_field_name: str, input_key: DataKeys
+    ) -> None:
         protein_ids_field: DropdownField = self.form[protein_ids_field_name]
 
         df = self.get_input(run.steps, input_key)
@@ -209,9 +211,11 @@ class DataAnalysisStep(Step, ABC):
             protein_ids = df["Protein ID"].unique().tolist()
             protein_ids_field.set_options(form_helper.to_choices(protein_ids))
 
-
     def set_grouping_options(
-        self, run: Run, column_field_name: str = "grouping", include_sample: bool = False
+        self,
+        run: Run,
+        column_field_name: str = "grouping",
+        include_sample: bool = False,
     ) -> None:
         column_field: DropdownField = self.form[column_field_name]
 
@@ -236,7 +240,11 @@ class DataAnalysisStep(Step, ABC):
             run.steps, DataKeys.METADATA_DF
         )
 
-        if metadata_source is not None and source_handle is not None and grouping is not None:
+        if (
+            metadata_source is not None
+            and source_handle is not None
+            and grouping is not None
+        ):
             selected_groups_field.set_options(
                 form_helper.get_choices_for_groups(
                     run, metadata_source, source_handle, grouping, required
@@ -331,6 +339,7 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
     calc_method = staticmethod(anova)
 
+
 class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
@@ -409,6 +418,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         self.set_two_groups_options(run)
 
     calc_method = staticmethod(t_test)
+
 
 class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     display_name = "Linear Model"
@@ -855,7 +865,9 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
                 p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
             }
 
-            fasta_source, source_handle = self.input_source(run.steps, DataKeys.FASTA_DF)
+            fasta_source, source_handle = self.input_source(
+                run.steps, DataKeys.FASTA_DF
+            )
             fasta_df = run.steps.get_step_output(
                 output_key=source_handle, instance_identifier=fasta_source
             )
@@ -984,11 +996,16 @@ class PlotClustergram(DataAnalysisPlotStep):
     @override
     def modify_form(self, run: Run) -> None:
         metadata_column_field: DropdownField = self.form["metadata_column"]
-        metadata_source, source_handle = self.input_source(run.steps, DataKeys.METADATA_DF)
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKeys.METADATA_DF
+        )
         if metadata_source is not None:
             metadata_column_field.set_options(
                 form_helper.get_choices_for_metadata(
-                    run, instance_identifier=metadata_source, include_sample=False, output_key=source_handle
+                    run,
+                    instance_identifier=metadata_source,
+                    include_sample=False,
+                    output_key=source_handle,
                 )
             )
 
@@ -997,6 +1014,7 @@ class PlotClustergram(DataAnalysisPlotStep):
         self.form["heatmap_high_color_limit"].isVisible = custom_scale_toggled
         self.form["heatmap_low_color"].isVisible = custom_scale_toggled
         self.form["heatmap_high_color"].isVisible = custom_scale_toggled
+
 
 class PlotProtQuant(DataAnalysisPlotStep):
     display_name = "Protein Quantification Plot"
@@ -1034,7 +1052,9 @@ class PlotProtQuant(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        self.set_protein_ids(run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF)
+        self.set_protein_ids(
+            run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF
+        )
 
         if (
             self.form["similarity_measure"].value
@@ -1902,9 +1922,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     operation = "Peptide analysis"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
-    output_keys = [
-        DataKeys.PEPTIDE_DF
-    ]
+    output_keys = [DataKeys.PEPTIDE_DF]
 
     def create_form(self):
         return Form(

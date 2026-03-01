@@ -69,7 +69,7 @@ export const supportedSections: Section[] = [
 ];
 
 // TODO: remove with List editor refactoring
-export const emptySections: Section[] = supportedSections; 
+export const emptySections: Section[] = supportedSections;
 
 export interface Run {
   run_name: string;
