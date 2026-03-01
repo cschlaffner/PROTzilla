@@ -1,3 +1,4 @@
+current_step_id: s00001_MaxQuantImport
 df_mode: Standard
 graph_edges:
 - !!python/tuple
@@ -73,8 +74,8 @@ steps:
   type: MetadataImport
   visual_data:
     node_position:
-      x: 141.00962477530987
-      y: -317.67685581564075
+      x: 149.16189082791004
+      y: -290.50263564030695
 - form_inputs:
     graph_type: Pie chart
     percentage: 0.5

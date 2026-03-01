@@ -210,6 +210,7 @@ class DiskOperator:
         workflow[KEYS.DF_MODE] = step_manager.df_mode
         workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
         workflow[KEYS.ID_CLOCK] = step_manager._id_clock
+        workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
             for step in step_manager.all_steps.values():
                 step_data = self._write_step(step, workflow_mode=True).copy()
