@@ -51,6 +51,15 @@ def generate_alphafold_multimer_query_json(
         )
         return dict(messages=messages, downloads={})
 
+    if sum(copies_per_id) < 2:
+        messages.append(
+            dict(
+                level=logging.ERROR,
+                msg=f"Please use the monomer steps, for only validating one protein.",
+            )
+        )
+        return dict(messages=messages, downloads={})
+
     # create the json query for alphafold
     query = {
         "name": "_".join(protein_ids.split()) + "_prediction",
