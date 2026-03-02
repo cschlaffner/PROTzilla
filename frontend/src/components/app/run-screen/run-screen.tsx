@@ -88,7 +88,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  /*const [visualizations, setVisualizations] = useState<any[]>([]);*/
+  //const [visualizations, setVisualizations] = useState<any[]>([]);
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -152,10 +152,10 @@ export const RunScreen: React.FC = () => {
       const rawVisualizations = [];
       if (data.length > 0) {
         for (const viz of data) {
-          rawVisualizations.push(JSON.parse(viz)); // je nachdem wie serialisiert
+          rawVisualizations.push(JSON.parse(viz));
         }
       }
-      setVisualizations(rawVisualizations);
+      //setVisualizations(rawVisualizations);
     }
   }, [runName]);
 
@@ -236,7 +236,6 @@ export const RunScreen: React.FC = () => {
       {/*{visualizations && visualizations.length > 0 ? (
         visualizations.map((viz, index) => (
           <StyledContentDiv key={index}>
-            {Hier ist dein Mol Viewer }
             <MolstarViewer pdbUrl={viz.pdb_url} key={viz.name} />
           </StyledContentDiv>
         ))

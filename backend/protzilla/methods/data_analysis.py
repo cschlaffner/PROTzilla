@@ -64,6 +64,7 @@ from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
 from protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     bar_plot_of_valid_crosslinks,
+    visualization_of_protein_structure,
 )
 from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (
@@ -2611,6 +2612,7 @@ class CrossLinkingValidationWithAngstromDeviation(DataAnalysisStep):
 
     plot_method = staticmethod(bar_plot_of_valid_crosslinks)
     calc_method = staticmethod(validate_with_angstrom_deviation)
+    visualization_method = staticmethod(visualization_of_protein_structure)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
         entry_id = inputs["protein_to_validate"]

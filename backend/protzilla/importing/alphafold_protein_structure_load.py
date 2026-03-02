@@ -421,10 +421,6 @@ def fetch_alphafold_protein_structure(
     df_dict["messages"] = messages
     return df_dict
 
-def visualization_of_protein_structure(df_dict):
-    #to be implemented 
-    return None
-
 def get_all_available_entry_ids_of_monomer_metadata() -> list[str]:
     """ "
     Get the entry ids of all the protein structure predictions that can be found on disk.
@@ -910,3 +906,4 @@ def upload_multimer_prediction(
             shutil.rmtree(temp_dir, ignore_errors=True)
 
     return df_dict
+

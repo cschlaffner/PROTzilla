@@ -341,3 +341,40 @@ def bar_plot_of_valid_crosslinks(
             y_title="Number of Cross-Links",
         )
     ]
+
+def visualization_of_protein_structure(
+        #output_crosslinking_result_df: pd.DataFrame,
+        protein_to_validate: str,
+)-> dict:
+    """
+    protein_ids = (
+        output_crosslinking_result_df[["Protein_id1", "Protein_id2"]]
+        .stack()
+        .dropna()
+        .unique()
+        .tolist()
+    )
+    """
+    """
+    Returns the URL to the AlphaFold CIF/PDB file of the protein.
+    """
+    protein_folder = paths.USER_DATA_EXTERNAL_ALPHAFOLD_MONOMER_PATH / protein_to_validate.upper()
+    
+    if not protein_folder.exists():
+        raise FileNotFoundError(f"AlphaFold folder for protein '{protein_to_validate}' not found")
+    
+    cif_files = list(protein_folder.glob("*.cif"))
+    if not cif_files:
+        raise FileNotFoundError(f"No CIF file found in {protein_folder}")
+    cif_file = cif_files[0]
+    
+    relative_url = f"/user_data/external_data/alphafold/monomer/{protein_to_validate.upper()}/{cif_file.name}"
+
+    return {
+        "visualizations": [
+            {
+                "name": f"AlphaFold structure for {protein_to_validate}",
+                "pdb_url": relative_url
+            }
+        ]
+    }

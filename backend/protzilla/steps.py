@@ -138,7 +138,6 @@ class Step:
                 self.artifact_versions["plots"]["generated"] += 1
 
             if self.visualization_method: 
-                print("Test: steps.py findet eine viz_method")
                 visualization_output = self.visualization_method(**self.visualization_input)
                 self.handle_visualization_outputs(visualization_output)
                 """
@@ -319,7 +318,8 @@ class Step:
     
     @property
     def visualization_input(self) -> dict:
-        #Probably needs to be changed/ adjusted 
+        # if the visualization method uses the output of the calculation method, it should be prefixed with "output_"
+        """
         prefixed_output = {
             "output_" + key: value for key, value in self.output.output.items()
         }
@@ -344,6 +344,9 @@ class Step:
             key: visualization_input[key]
             for key in input_parameters.keys()
             if key in visualization_input
+        }"""
+        return {
+            "protein_to_validate": self.inputs["protein_to_validate"],
         }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:

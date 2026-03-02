@@ -19,7 +19,6 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     get_monomer_structure_dfs,
     upload_multimer_prediction,
     get_multimer_structure_dfs,
-    visualization_of_protein_structure,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, StepManager
@@ -452,7 +451,6 @@ class AlphaFoldPredictionLoad(ImportingStep):
         )
 
     calc_method = staticmethod(fetch_alphafold_protein_structure)
-    visualization_method = staticmethod(visualization_of_protein_structure)
 
 
 class CrosslinkingImport(ImportingStep):
