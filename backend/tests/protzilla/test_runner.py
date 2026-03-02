@@ -224,14 +224,12 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "protein_df_field": None,
             "protein_group": None,
             "similarity_measure": "euclidean distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
-            "protein_df_field": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
             "grouping": None,

@@ -77,7 +77,14 @@ class Runner:
 
     def compute_workflow(self):
         logging.info("------ computing workflow\n")
-        for i, step in enumerate(self.run.steps.all_step_instances):
+        for step in self.run.steps.all_step_instances:
+            if self.run.steps._current_selected_step_id is None:
+                self.run.steps._current_selected_step_id = step.instance_identifier
+            elif (
+                self.run.steps._current_selected_step_id
+                != step.instance_identifier
+            ):
+                self.run.steps.goto_step(step.instance_identifier)
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
@@ -91,10 +98,6 @@ class Runner:
 
             if step.calculation_status != "complete":
                 break
-
-            # Make sure to not call step_next() on the last step
-            if i + 1 < len(self.run.steps.all_steps):
-                self.run.step_next()
         logging.info("\n Saving run...\n")
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
