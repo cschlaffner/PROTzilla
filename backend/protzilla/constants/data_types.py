@@ -9,6 +9,8 @@ class DataKeys(StrEnum):
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
     FASTA_DF = "fasta_df"
+    SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
+    PTM_DF = "ptm_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)

@@ -5,7 +5,7 @@ from typing_extensions import override
 from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
-from backend.protzilla.constants.data_types import DataKeys, StepID
+from backend.protzilla.constants.data_types import DataKeys
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -200,7 +200,7 @@ class DimensionReductionMetric(Enum):
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
-    def set_protein_ids(
+    def set_protein_ids_options(
         self, run: Run, protein_ids_field_name: str, input_key: DataKeys
     ) -> None:
         protein_ids_field: DropdownField = self.form[protein_ids_field_name]
@@ -1052,7 +1052,7 @@ class PlotProtQuant(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        self.set_protein_ids(
+        self.set_protein_ids_options(
             run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF
         )
 
@@ -1851,13 +1851,7 @@ class FLEXIQuantLF(BaseFLEXLF):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        protein_group_field: DropdownField = self.form["protein_group"]
-        protein_group_field.options = form_helper.to_choices(
-            run.steps.get_step_output(
-                step_type=Step,
-                output_key="peptide_df",
-            )["Protein ID"].unique()
-        )
+        self.set_protein_ids_options(run, "protein_group", DataKeys.PEPTIDE_DF)
 
 
 class MultiFLEXLF(BaseFLEXLF):
@@ -1910,16 +1904,9 @@ class MultiFLEXLF(BaseFLEXLF):
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
     operation = "Peptide analysis"
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["peptide_df"] = steps.get_step_output(
-            output_key="peptide_df", instance_identifier=self.inputs["peptide_df_field"]
-        )
-
 
 class SelectPeptidesForProtein(PeptideAnalysisStep):
     display_name = "Select Peptides of Protein"
-    operation = "Peptide analysis"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
     output_keys = [DataKeys.PEPTIDE_DF]
@@ -1928,10 +1915,6 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
         return Form(
             label="Select Peptides of Protein",
             input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Step to use peptide dataframe from",
-                ),
                 DropdownField(
                     name="auto_select",
                     label="Automatically select most significant Protein",
@@ -1955,6 +1938,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             ],
         )
 
+    # TODO: unsure about what this step does/how it should be translated - leaving mostly as is ~T
     @override
     def modify_form(self, run: Run) -> None:
         peptide_df_field: DropdownField = self.form["peptide_df_field"]
@@ -1974,7 +1958,9 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             [] if selected_auto_select else ["all proteins"]
         )
         protein_list_options.extend(
-            form_helper.get_choices(run, "significant_proteins_df", DataAnalysisStep)
+            form_helper.get_choices(
+                run, DataKeys.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
+            )
         )
         protein_list_field.set_options(protein_list_options)
 
@@ -2047,33 +2033,14 @@ class PTMsPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        "ptm_df",
+        DataKeys.PTM_DF,
     ]
 
     def create_form(self):
         return Form(
             label="PTMs per Sample",
-            input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Peptide dataframe containing the peptides of a single protein including their modifications "
-                    "(e.g. from evidence.txt)",
-                )
-            ],
+            input_fields=[],
         )
-
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field = self.form["peptide_df_field"]
-
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
-
-        single_protein_peptides = run.steps.get_instance_identifiers(
-            SelectPeptidesForProtein, "peptide_df"
-        )
-
-        if single_protein_peptides:
-            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_sample)
 
@@ -2087,32 +2054,14 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        "ptm_df",
+        DataKeys.PTM_DF,
     ]
 
     def create_form(self):
         return Form(
             label="PTMs per Sample and Protein",
-            input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Peptide dataframe containing the peptides of a single protein",
-                )
-            ],
+            input_fields=[],
         )
-
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field = self.form["peptide_df_field"]
-
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
-
-        single_protein_peptides = run.steps.get_instance_identifiers(
-            SelectPeptidesForProtein, "peptide_df"
-        )
-
-        if single_protein_peptides:
-            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_protein_and_sample)
 
@@ -2121,12 +2070,8 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
 
     @classmethod
-    def get_form_fields(cls) -> list:
+    def get_form_fields(cls) -> list[FormField]:
         return [
-            DropdownField(
-                name="evidence_df_field",
-                label="Dataframe that contains the MaxQuant evidence data",
-            ),
             FloatField(
                 name="evidence_file_q_value_threshold",
                 label="MaxQuant Evidence file q-value threshold",
@@ -2152,20 +2097,6 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
             ),
         ]
 
-    @override
-    def modify_form(self, run: Run) -> None:
-        self.form["evidence_df_field"].set_options(
-            form_helper.get_choices(
-                run, output_key="peptide_df", step_type=Step, required=True
-            )
-        )
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        inputs["evidence_df"] = steps.get_step_output(
-            output_key="peptide_df", instance_identifier=inputs["evidence_df_field"]
-        )
-
 
 class PTMOverviewVisualization(_PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
@@ -2184,8 +2115,9 @@ class PTMOverviewVisualization(_PTMVisualizationStep):
 
 
 class _PTMVisualizationWithGroups(_PTMVisualizationStep):
+    @override
     @classmethod
-    def get_form_fields(cls) -> list:
+    def get_form_fields(cls) -> list[FormField]:
         return _PTMVisualizationStep.get_form_fields() + [
             FileInput(
                 name="groups_file_path",
