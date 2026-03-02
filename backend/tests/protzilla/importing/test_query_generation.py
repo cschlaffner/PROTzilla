@@ -75,12 +75,11 @@ def test_generate_alphafold_multimer_json_query_with_model_seed(mock_get):
     mock_resp.raise_for_status = Mock()
     mock_get.return_value = mock_resp
 
-    seed = 12345
-    result = generate_alphafold_multimer_query_json("P69905", "2", model_seed=seed)
+    result = generate_alphafold_multimer_query_json("P69905", "2", model_seed=12345)
     downloads = result["downloads"]
     key = list(downloads.keys())[0]
     parsed_json = json.loads(downloads[key][1:-1])
-    assert parsed_json["modelSeeds"] == seed
+    assert parsed_json["modelSeeds"] == [12345]
 
 
 def test_generate_alphafold_multimer_json_query_with_mismatched_number_of_ids_and_number_of_copies():
