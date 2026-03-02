@@ -6,7 +6,7 @@ import requests
 
 
 def generate_alphafold_multimer_query_json(
-    protein_ids: str, number_copies: str
+    protein_ids: str, number_copies: str, model_seed: int
 ) -> dict:
     """
     Generates an AlphaFold Multimer JSON query for a set of UniProt protein IDs.
@@ -14,24 +14,31 @@ def generate_alphafold_multimer_query_json(
     from the UniProt REST API and added to the query with the specified copy number.
     Format of the json is as defined here: https://github.com/google-deepmind/alphafold/blob/main/server/README.md
 
-    Protein IDs and copy numbers must be provided as space-separated strings and
+    Protein IDs and copy numbers must be provided as space- or comma-separated strings and
     must have the same length. If an invalid copy number is provided or if the
     lengths do not match, an error message is generated and an exception may be raised.
 
-    :param protein_ids: Space-separated list of UniProt protein IDs (e.g. "P69905 P68871").
-    :param number_copies: Space-separated list of integers specifying the number of copies
+    :param protein_ids: Space- or comma-separated list of UniProt protein IDs (e.g. "P69905 P68871").
+    :param number_copies: Space- or comma-separated list of integers specifying the number of copies
                           for each protein ID (e.g. "2 2").
+    :param model_seed: Model seed for the AlphaFold query. If -1 we want AlphaFold to use a random seed.
     :return: dict (messages, downloads), downloads contains a dictionary mapping a generated filename
              to the AlphaFold Multimer query JSON string (wrapped in square brackets as required by AlphaFold server)
-    :raises ValueError: If the number of copies cannot be parsed as integers.
+    :raises ValueError: If the number of copies or the model seeds cannot be parsed as integers.
     :raises requests.exceptions.HTTPError: If fetching a UniProt FASTA sequence fails.
     """
     messages = []
 
     # extract protein_ids and number of copies per id and make sure they have the same length
-    uniprot_ids = protein_ids.split()
+    if "," in protein_ids:
+        uniprot_ids = protein_ids.split(",")
+    else:
+        uniprot_ids = protein_ids.split()
     try:
-        copies_per_id = [int(input) for input in number_copies.split()]
+        if "," in number_copies:
+            copies_per_id = [int(input) for input in number_copies.split(",")]
+        else:
+            copies_per_id = [int(input) for input in number_copies.split()]
     except ValueError as e:
         messages.append(
             dict(
@@ -62,12 +69,15 @@ def generate_alphafold_multimer_query_json(
 
     # create the json query for alphafold
     query = {
-        "name": "_".join(protein_ids.split()) + "_prediction",
+        "name": "_".join(uniprot_ids) + "_prediction",
         "modelSeeds": [],
         "sequences": [],
         "dialect": "alphafoldserver",
         "version": 1,
     }
+
+    if model_seed != -1:
+        query["modelSeeds"] = [model_seed]
 
     for uniprot_id, copies in zip(uniprot_ids, copies_per_id):
         url = f"https://rest.uniprot.org/uniprotkb/{uniprot_id}.fasta"

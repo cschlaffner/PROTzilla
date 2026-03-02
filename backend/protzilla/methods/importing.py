@@ -626,16 +626,27 @@ class AlphaFoldMultimerQueryJsonGeneration(Step):
             input_fields=[
                 TextField(
                     name="protein_ids",
-                    label="Protein UniProt IDs",
+                    label="UniProt Protein IDs",
                 ),
-                InfoField(label="IDs should be separated by a space."),
+                InfoField(label="IDs should be space- or comma-separated."),
                 TextField(
                     name="number_copies",
-                    label="Number of copies for each protein ID",
+                    label="Number of copies of each protein monomer",
                 ),
                 InfoField(
                     label="For each entered ID a number should be entered.\n"
-                    "Numbers should be separated by a space."
+                    "Numbers should be should be space- or comma-separated."
+                ),
+                NumberField(
+                    name="model_seed",
+                    label="Model seed for AlphaFold",
+                    min=-1,
+                    max=4294967295,
+                    value=-1,
+                ),
+                InfoField(
+                    label="Leave -1 if you want to use a random seed.\n"
+                    "Otherwise enter a seed (=integer between 0 and 4294967295)"
                 ),
             ],
         )
