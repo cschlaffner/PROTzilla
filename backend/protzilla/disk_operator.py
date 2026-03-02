@@ -146,7 +146,7 @@ class DiskOperator:
             run[KEYS.STEPS] = []
             run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
             run[KEYS.ID_CLOCK] = step_manager._id_clock
-            for step in step_manager.all_steps.values():
+            for step in step_manager.all_step_instances:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
 
@@ -212,7 +212,7 @@ class DiskOperator:
         workflow[KEYS.ID_CLOCK] = step_manager._id_clock
         workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
-            for step in step_manager.all_steps.values():
+            for step in step_manager.all_step_instances:
                 step_data = self._write_step(step, workflow_mode=True).copy()
                 inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
                 inputs_to_write = {}
@@ -240,7 +240,7 @@ class DiskOperator:
         return any(
             step.instance_identifier in file.name
             and step.calculation_status != "incomplete"
-            for step in steps.all_steps.values()
+            for step in steps.all_step_instances
         )
 
     def clean_dataframes_dir(self, steps: StepManager) -> None:

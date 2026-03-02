@@ -35,12 +35,12 @@ class StepManager:
 
     def __init__(
         self,
-        steps: list[Step] | None = None,
+        *,
+        disk_operator: DiskOperator,
         df_mode: str = "disk",
-        disk_operator: DiskOperator | None = None,
     ):
         self.df_mode: str = df_mode
-        self.disk_operator: DiskOperator | None = disk_operator
+        self.disk_operator: DiskOperator = disk_operator
 
         # Saves all steps, accessible by their instance identifiers
         self.all_steps: dict[StepID, Step] = {}
@@ -58,10 +58,6 @@ class StepManager:
         # Logical clock for instance identifier creation.
         # May only be accessed via next_id_number
         self._id_clock: int = 0
-
-        if steps is not None:
-            for step in steps:
-                self.add_step(step)
 
     ##
     ## General accessors
@@ -123,7 +119,7 @@ class StepManager:
         :return: List of all successors of the given step
         """
         descendant_ids = list(nx.descendants(self.graph, step_id))
-        return [self.all_steps[id] for id in descendant_ids]
+        return [self.all_steps[step_id] for step_id in descendant_ids]
 
     def step_is_terminal(self, step_id: StepID) -> bool:
         return int(self.graph.out_degree(step_id)) == 0
@@ -332,9 +328,6 @@ class StepManager:
         if step.instance_identifier in self.all_steps:
             raise ValueError(f"Step with ID {step.instance_identifier} already exists")
 
-        if step.instance_identifier is None:
-            raise ValueError("The given step has no instance identifier")
-
         self.all_steps[step.instance_identifier] = step
 
         # Reset current step if this is the only existing step
@@ -434,8 +427,8 @@ class StepManager:
                 "sourceHandle": data["source_handle"],
                 "target": target,
                 "targetHandle": data["target_handle"],
-                "key": f"{source}:{data['source_handle']}->{target}: {data['target_handle']}",
-                "id": f"{source}:{data['source_handle']}->{target}: {data['target_handle']}",
+                "key": f"{source}:{data['source_handle']}->{target}:{data['target_handle']}",
+                "id": f"{source}:{data['source_handle']}->{target}:{data['target_handle']}",
             }
             for source, target, data in self.graph.edges(data=True)
         ]
@@ -478,7 +471,7 @@ class StepManager:
             raise NotImplementedError("Passing the step type is deprecated")
 
         if include_current_step:
-            steps_to_search = self.all_steps.values()
+            steps_to_search = self.all_step_instances
         else:
             steps_to_search = self.previous_calculated_steps
 
@@ -550,7 +543,7 @@ class StepManager:
         """
         return {
             section: [
-                step for step in self.all_steps.values() if step.section == section
+                step for step in self.all_step_instances if step.section == section
             ]
             for section in Section
         }
@@ -576,7 +569,7 @@ class StepManager:
 
         instance_identifiers = [
             step.instance_identifier
-            for step in self.all_steps.values()
+            for step in self.all_step_instances
             if isinstance(step, step_type)
             and (output_key is None or all(k in step.output for k in output_key))
         ]
