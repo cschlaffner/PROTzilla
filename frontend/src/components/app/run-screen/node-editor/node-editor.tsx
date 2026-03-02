@@ -121,7 +121,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   }, [runName]);
 
   useEffect(() => {
-    fetchEdges();
+    void fetchEdges();
   }, [fetchEdges, runData.current_step_id]); // Refresh edges when step changes
 
   //
@@ -169,7 +169,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           title: response.message.title,
           message: response.message.msg,
         });
-        fetchEdges();
+        void fetchEdges();
       });
     },
     [fetchEdges, notify, runName],
@@ -192,7 +192,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         message: response.message.msg,
       });
       setSelectedEdge(null);
-      fetchEdges();
+      void fetchEdges();
     });
   }, [fetchEdges, notify, runName, selectedEdge]);
 
