@@ -12,6 +12,7 @@ def generate_alphafold_multimer_query_json(
     Generates an AlphaFold Multimer JSON query for a set of UniProt protein IDs.
     For each provided UniProt ID, the corresponding amino acid sequence is fetched
     from the UniProt REST API and added to the query with the specified copy number.
+    Format of the json is as defined here: https://github.com/google-deepmind/alphafold/blob/main/server/README.md
 
     Protein IDs and copy numbers must be provided as space-separated strings and
     must have the same length. If an invalid copy number is provided or if the
