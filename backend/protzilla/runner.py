@@ -77,7 +77,7 @@ class Runner:
 
     def compute_workflow(self):
         logging.info("------ computing workflow\n")
-        for i, step in enumerate(self.run.steps.all_steps):
+        for i, step in enumerate(self.run.steps.all_step_instances):
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
