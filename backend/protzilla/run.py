@@ -277,7 +277,7 @@ class Run:
         self.update_metadata(
             {
                 "df_mode": self.steps.df_mode,
-                "steps": [step.display_name for step in self.steps.all_steps.values()],
+                "steps": [step.display_name for step in self.steps.all_step_instances],
             }
         )
 
@@ -293,7 +293,7 @@ class Run:
         self.steps.add_step(step)
         self.update_metadata(
             {
-                "steps": [step.display_name for step in self.steps.all_steps.values()],
+                "steps": [step.display_name for step in self.steps.all_step_instances],
             }
         )
 
@@ -302,7 +302,7 @@ class Run:
     def step_remove(self, step_id: str) -> None:
         self.steps.remove_step(step_id)
         self.update_metadata(
-            {"steps": [step.display_name for step in self.steps.all_steps.values()]}
+            {"steps": [step.display_name for step in self.steps.all_step_instances]}
         )
 
     @error_handling

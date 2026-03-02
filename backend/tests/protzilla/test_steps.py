@@ -15,11 +15,15 @@ class TestStepManager:
 
     def test_add_step(self, step_manager: StepManager):
         assert len(step_manager.sections[Section.IMPORTING]) == 0
-        step = Step()
+        step = Step("teststep01_empty")
         step.section = Section.IMPORTING
         step_manager.add_step(step)
         assert len(step_manager.all_step_ids) == 1
         assert step_manager.current_step == step
+
+        # Cannot add another step with the same ID
+        with pytest.raises(ValueError):
+            step_manager.add_step(Step("teststep01_empty"))
 
     def test_remove_step(self, step_manager: StepManager):
         step1 = MaxQuantImport("teststep01_MXQ")
@@ -30,6 +34,9 @@ class TestStepManager:
         step_manager.remove_step(step2.instance_identifier)
         assert len(step_manager.all_step_ids) == 1
         assert step_manager.current_selected_step_id != "teststep02_MXQ"
+
+        with pytest.raises(ValueError):
+            step_manager.remove_step("yeahno")
 
     def test_remove_last_step(self, step_manager: StepManager):
         step1 = MaxQuantImport("teststep01_MXQ")
@@ -99,3 +106,11 @@ class TestStepManager:
         step_manager.remove_step("teststep02_empty")
         with pytest.raises(ValueError):
             step_manager.goto_step("teststep02_empty")
+
+    def test_get_step_objects_by_id(self, step_manager: StepManager):
+        with pytest.raises(KeyError):
+            _ = step_manager.get_step_by_id("vultures")
+
+        step_manager.add_step(Step("teststep01_empty"))
+
+        _ = step_manager.get_step_by_id("teststep01_empty")
