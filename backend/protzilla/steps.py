@@ -7,7 +7,7 @@ import traceback
 from enum import Enum
 from pathlib import Path
 from types import MethodType
-from typing import Any, Literal
+from typing import Any, Literal, Callable
 
 import pandas as pd
 
@@ -235,8 +235,14 @@ class Step:
 
         self.plots = Plots(plots)
 
-    def handle_download_outputs(self, outputs: dict | list) -> None:
-        #ToDo: Docstring
+    def handle_download_outputs(self, outputs: dict) -> None:
+        """
+        Handles the dictionary from the download method and creates a Download object from it.
+        Responsible for validating that the output is a dictionary, handling any messages contained in the output
+        and setting the downloads attribute of the class.
+        :param outputs: A dictionary received after the download method
+        :return: None
+        """
 
         if not isinstance(outputs, dict):
             raise TypeError("Output of download method is not a dictionary.")
@@ -244,7 +250,6 @@ class Step:
         downloads = outputs.pop("downloads", {})
         self.output.output.update(outputs)
         self.handle_messages(outputs)
-
 
         self.downloads = Downloads(downloads)
 
@@ -262,25 +267,32 @@ class Step:
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
     download_method = None
 
-    @property
-    def calculation_input(self) -> dict:
-        input_parameters = inspect.signature(self.calc_method).parameters
+    def _get_input_parameters(
+        self, function: Callable[..., Any], relevant_inputs: dict | None = None
+    ) -> dict:
+        if relevant_inputs is None:
+            relevant_inputs = self.inputs
+        input_parameters = inspect.signature(function).parameters
         required_keys = [
             key
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
         for key in required_keys:
-            if key not in self.inputs:
+            if key not in relevant_inputs:
                 raise ValueError(
-                    f"Missing required input '{key}' for the calculation method"
+                    f"Missing required input '{key}' for the '{function.__name__}' method"
                 )
 
         return {
-            key: self.inputs[key]
+            key: relevant_inputs[key]
             for key in input_parameters.keys()
-            if key in self.inputs
+            if key in relevant_inputs
         }
+
+    @property
+    def calculation_input(self) -> dict:
+        return self._get_input_parameters(self.calc_method)
 
     @property
     def plot_input(self) -> dict:
@@ -289,41 +301,13 @@ class Step:
             "output_" + key: value for key, value in self.output.output.items()
         }
         plot_input = self.inputs | prefixed_output
-
-        input_parameters = inspect.signature(self.plot_method).parameters
-
-        required_keys = [
-            key
-            for key, param in input_parameters.items()
-            if param.default == inspect.Parameter.empty
-        ]
-        for key in required_keys:
-            if key not in plot_input:
-                raise ValueError(f"Missing required input '{key}' for the plot method")
-
-        return {
-            key: plot_input[key] for key in input_parameters.keys() if key in plot_input
-        }
+        return self._get_input_parameters(
+            function=self.plot_method, relevant_inputs=plot_input
+        )
 
     @property
     def download_input(self) -> dict:
-        input_parameters = inspect.signature(self.download_method).parameters
-        required_keys = [
-            key
-            for key, param in input_parameters.items()
-            if param.default == inspect.Parameter.empty
-        ]
-        for key in required_keys:
-            if key not in self.inputs:
-                raise ValueError(
-                    f"Missing required input '{key}' for the plot method"
-                )
-
-        return {
-            key: self.inputs[key]
-            for key in input_parameters.keys()
-            if key in self.inputs
-        }
+        return self._get_input_parameters(self.download_method)
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
@@ -483,7 +467,7 @@ class Downloads:
     #  maps file name to file content (a string)
     def __init__(self, downloads: dict[str, str] | None = None):
         if downloads is None:
-            downloads: dict[str,str] = {}
+            downloads: dict[str, str] = {}
         self.downloads = downloads
 
     def __iter__(self):

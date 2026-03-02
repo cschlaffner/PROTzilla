@@ -612,7 +612,8 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
     calc_method = staticmethod(get_multimer_structure_dfs)
 
 
-class AlphaFoldMultimerQueryJsonGeneration(ImportingStep):
+class AlphaFoldMultimerQueryJsonGeneration(Step):
+    section = "importing"
     display_name = "AlphaFold Multimer Query JSON Generation"
     operation = "Query Generation"
     method_description = "Generate a JSON to upload to AlphaFold-Server to generate a prediction on a multimer."
@@ -638,5 +639,5 @@ class AlphaFoldMultimerQueryJsonGeneration(ImportingStep):
                 ),
             ],
         )
-    calc_method = staticmethod(lambda: dict(downloads=pd.DataFrame()))
+
     download_method = staticmethod(generate_alphafold_multimer_query_json)

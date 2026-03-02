@@ -13,7 +13,14 @@ from typing import Any
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
-from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
+from backend.protzilla.steps import (
+    Messages,
+    Output,
+    Plots,
+    Downloads,
+    Step,
+    StepManager,
+)
 from backend.protzilla.utilities import format_trace
 
 
@@ -355,7 +362,7 @@ class Run:
         return self.steps.current_step.plots
 
     @property
-    def current_downloads(self):  # ToDo: Type Hint
+    def current_downloads(self) -> Downloads | None:
         return self.steps.current_step.downloads
 
     @property

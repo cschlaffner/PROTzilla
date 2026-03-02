@@ -623,6 +623,7 @@ def get_step_plots(request):
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+
 def get_step_downloads(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -635,7 +636,11 @@ def get_step_downloads(request):
             downloads = {}
 
         return JsonResponse(
-            {"success": True, "message": "Got the available download(s) for the step", "data": downloads},
+            {
+                "success": True,
+                "message": "Got the available download(s) for the step",
+                "data": downloads,
+            },
             safe=False,
         )
     else:

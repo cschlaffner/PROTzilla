@@ -1,4 +1,5 @@
 import json
+import logging
 
 import pandas as pd
 import requests
@@ -7,18 +8,50 @@ import requests
 def generate_alphafold_multimer_query_json(
     protein_ids: str, number_copies: str
 ) -> dict:
-    # extract contents and make sure they have the same length -> otherwise raise error
+    """
+    Generates an AlphaFold Multimer JSON query for a set of UniProt protein IDs.
+    For each provided UniProt ID, the corresponding amino acid sequence is fetched
+    from the UniProt REST API and added to the query with the specified copy number.
+
+    Protein IDs and copy numbers must be provided as space-separated strings and
+    must have the same length. If an invalid copy number is provided or if the
+    lengths do not match, an error message is generated and an exception may be raised.
+
+    :param protein_ids: Space-separated list of UniProt protein IDs (e.g. "P69905 P68871").
+    :param number_copies: Space-separated list of integers specifying the number of copies
+                          for each protein ID (e.g. "2 2").
+    :return: dict (messages, downloads), downloads contains a dictionary mapping a generated filename
+             to the AlphaFold Multimer query JSON string (wrapped in square brackets as required by AlphaFold server)
+    :raises ValueError: If the number of copies cannot be parsed as integers.
+    :raises requests.exceptions.HTTPError: If fetching a UniProt FASTA sequence fails.
+    """
+    messages = []
+
+    # extract protein_ids and number of copies per id and make sure they have the same length
     uniprot_ids = protein_ids.split()
     try:
         copies_per_id = [int(input) for input in number_copies.split()]
     except ValueError as e:
+        messages.append(
+            dict(
+                level=logging.ERROR,
+                msg=f"Invalid list of number of copies per id: please provide space-separated integers",
+            )
+        )
         raise ValueError(
-            "Invalid copies_per_id: please provide space-separated integers"
+            "Invalid list of number of copies per id: please provide space-separated integers"
         )
     if len(uniprot_ids) != len(copies_per_id):
-        dict(messages={}, tmp_df=pd.DataFrame())
+        messages.append(
+            dict(
+                level=logging.ERROR,
+                msg=f"For at least one protein id, the number of copies is missing in the input.",
+            )
+        )
+        return dict(messages=messages, downloads={})
 
-    data_for_query = {
+    # create the json query for alphafold
+    query = {
         "name": "_".join(protein_ids.split()) + "_prediction",
         "modelSeeds": [],
         "sequences": [],
@@ -29,14 +62,14 @@ def generate_alphafold_multimer_query_json(
     for uniprot_id, copies in zip(uniprot_ids, copies_per_id):
         url = f"https://rest.uniprot.org/uniprotkb/{uniprot_id}.fasta"
 
-        response = requests.get(url)
-        response.raise_for_status()  # TODO: was macht das?
+        response = requests.get(url, timeout=20)
+        response.raise_for_status()
 
         fasta = response.text
         amino_acid_sequence = "".join(
             line.strip() for line in fasta.splitlines() if not line.startswith(">")
         )
-        data_for_query["sequences"].append(
+        query["sequences"].append(
             {
                 "proteinChain": {
                     "sequence": amino_acid_sequence,
@@ -44,5 +77,8 @@ def generate_alphafold_multimer_query_json(
                 }
             }
         )
-
-    return dict(messages={}, downloads={f"prediction_query_{'_'.join(uniprot_ids)}" : f"[{json.dumps(data_for_query)}]"})
+    query_as_string = f"[{json.dumps(query)}]"
+    return dict(
+        messages={},
+        downloads={f"prediction_query_{'_'.join(uniprot_ids)}": query_as_string},
+    )

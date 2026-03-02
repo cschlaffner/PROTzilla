@@ -48,7 +48,9 @@ urlpatterns = [
     ),  # might function?
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
-    path("api/get_step_downloads/", views.get_step_downloads, name="get_step_downloads"),
+    path(
+        "api/get_step_downloads/", views.get_step_downloads, name="get_step_downloads"
+    ),
     path(
         "api/get_current_step_output_labels/",
         views.get_current_step_output_labels,
