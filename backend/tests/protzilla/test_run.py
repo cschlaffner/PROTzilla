@@ -14,6 +14,7 @@ from backend.protzilla.stepfactory import StepFactory
 
 import networkx as nx
 
+
 class TestRun:
     def test_init_standard(self, run_standard: Run):
         assert run_standard.workflow_name == "standard"
@@ -47,17 +48,17 @@ class TestRun:
         run_imported.step_add(step)
         assert len(run_imported.steps.all_steps) == length_before + 1
 
-
     def test_step_add_creation(self, run_empty: Run):
         run_empty.step_add(StepFactory.create_step("MaxQuantImport", run_empty.steps))
-        run_empty.step_add(StepFactory.create_step("FilterProteinsBySamplesMissing", run_empty.steps))
+        run_empty.step_add(
+            StepFactory.create_step("FilterProteinsBySamplesMissing", run_empty.steps)
+        )
         run_empty.step_add(StepFactory.create_step("ImputationByKNN", run_empty.steps))
 
         assert "s00001_MaxQuantImport" in run_empty.steps.all_step_ids
         assert "s00002_FilterProteinsBySamplesMissing" in run_empty.steps.all_step_ids
         assert "s00003_ImputationByKNN" in run_empty.steps.all_step_ids
         assert run_empty.steps._id_clock == 3
-
 
     def test_step_remove(self, run_imported: Run):
         step = ImputationByKNN("teststep01")
@@ -79,7 +80,11 @@ class TestRun:
         )
         run_empty.step_calculate()
         assert run_empty.current_step is not None
-        assert run_empty.steps.current_location == ("importing", "Protein Data Import", "teststep01_MXQ")
+        assert run_empty.steps.current_location == (
+            "importing",
+            "Protein Data Import",
+            "teststep01_MXQ",
+        )
         assert run_empty.current_step.output["protein_df"] is not None
         assert not run_empty.current_step.output["protein_df"].empty
 
@@ -268,14 +273,16 @@ class TestRun:
         assert step1_output["protein_df"].equals(
             run_imported.current_step.output["protein_df"]
         )
-        assert str(run_imported.steps) == "StepManager with 3 steps: ['teststep01_MXQ', 'teststep02_filter', 'teststep03_kNN']"
-
+        assert (
+            str(run_imported.steps)
+            == "StepManager with 3 steps: ['teststep01_MXQ', 'teststep02_filter', 'teststep03_kNN']"
+        )
 
         # Delete step in between and make sure back-navigation works and following step output is voided
         run_imported.step_remove("teststep02_filter")
         assert run_imported.steps.current_selected_step_id == "teststep01_MXQ"
         assert run_imported.current_step.calculation_status == "complete"
-        
+
         # This cannot work on a terminal step
         assert run_imported.steps.recommended_next_step_id is None
         with pytest.raises(ValueError):
@@ -306,70 +313,90 @@ class TestRun:
 
         # Regular connection
         run_imported.steps.connect_steps(
-                {
-                    "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
-                }
-            )
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_filter",
+                "targetHandle": "protein_df",
+            }
+        )
 
         run_imported.steps.connect_steps(
-                {
-                    "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep04_metaimp",
-                    "targetHandle": "protein_df",
-                }
-            )
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep04_metaimp",
+                "targetHandle": "protein_df",
+            }
+        )
 
         edges = run_imported.steps.get_edges()
 
         assert len(edges) == 2
         assert {
-                    "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep04_metaimp",
-                    "targetHandle": "protein_df",
-                    "key": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
-                    "id": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
-                } in edges
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep04_metaimp",
+            "targetHandle": "protein_df",
+            "key": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
+            "id": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
+        } in edges
         assert {
-                    "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
-                    "key": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
-                    "id": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
-                } in edges
+            "source": "teststep01_MXQ",
+            "sourceHandle": "protein_df",
+            "target": "teststep02_filter",
+            "targetHandle": "protein_df",
+            "key": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
+            "id": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
+        } in edges
 
         # Repeat same connection
         assert run_imported.steps.graph.has_edge("teststep01_MXQ", "teststep02_filter")
         run_imported.steps.connect_steps(
-                {
-                    "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
-                }
-            )
+            {
+                "source": "teststep01_MXQ",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_filter",
+                "targetHandle": "protein_df",
+            }
+        )
         assert run_imported.steps.graph.has_edge("teststep01_MXQ", "teststep02_filter")
 
         # Switch source for connected target
         run_imported.steps.connect_steps(
-                {
-                    "source": "teststep03_kNN",
-                    "sourceHandle": "protein_df",
-                    "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
-                }
-            )
+            {
+                "source": "teststep03_kNN",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_filter",
+                "targetHandle": "protein_df",
+            }
+        )
 
-        assert not run_imported.steps.graph.has_edge("teststep01_MXQ", "teststep02_filter")
+        assert not run_imported.steps.graph.has_edge(
+            "teststep01_MXQ", "teststep02_filter"
+        )
         assert run_imported.steps.graph.has_edge("teststep03_kNN", "teststep02_filter")
 
         # Disconnect
         run_imported.steps.disconnect_steps(
+            {
+                "source": "teststep03_kNN",
+                "sourceHandle": "protein_df",
+                "target": "teststep02_filter",
+                "targetHandle": "protein_df",
+            }
+        )
+
+        assert not run_imported.steps.graph.has_edge(
+            "teststep01_MXQ", "teststep02_filter"
+        )
+        assert not run_imported.steps.graph.has_edge(
+            "teststep03_kNN", "teststep02_filter"
+        )
+
+        # Disconnect again
+        with pytest.raises(ValueError):
+            run_imported.steps.disconnect_steps(
                 {
                     "source": "teststep03_kNN",
                     "sourceHandle": "protein_df",
@@ -377,17 +404,3 @@ class TestRun:
                     "targetHandle": "protein_df",
                 }
             )
-
-        assert not run_imported.steps.graph.has_edge("teststep01_MXQ", "teststep02_filter")
-        assert not run_imported.steps.graph.has_edge("teststep03_kNN", "teststep02_filter")
-
-        # Disconnect again
-        with pytest.raises(ValueError):
-            run_imported.steps.disconnect_steps(
-                    {
-                        "source": "teststep03_kNN",
-                        "sourceHandle": "protein_df",
-                        "target": "teststep02_filter",
-                        "targetHandle": "protein_df",
-                    }
-                )

@@ -80,10 +80,7 @@ class Runner:
         for step in self.run.steps.all_step_instances:
             if self.run.steps._current_selected_step_id is None:
                 self.run.steps._current_selected_step_id = step.instance_identifier
-            elif (
-                self.run.steps._current_selected_step_id
-                != step.instance_identifier
-            ):
+            elif self.run.steps._current_selected_step_id != step.instance_identifier:
                 self.run.steps.goto_step(step.instance_identifier)
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == Section.IMPORTING:
