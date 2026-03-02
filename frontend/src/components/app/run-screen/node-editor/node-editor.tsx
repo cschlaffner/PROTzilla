@@ -226,7 +226,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const buttonText =
     currentStep.status === "complete"
       ? "Next"
-      : runData.current_section as SectionIDs === SectionIDs.Importing
+      : (runData.current_section as SectionIDs) === SectionIDs.Importing
         ? "Import"
         : "Calculate";
 
