@@ -77,11 +77,13 @@ class Runner:
 
     def compute_workflow(self):
         logging.info("------ computing workflow\n")
-        for step in self.run.steps.all_step_instances:
+        ordered_ids = self.run.steps.all_step_ids_toposorted
+        for step_id in ordered_ids:
             if self.run.steps._current_selected_step_id is None:
-                self.run.steps._current_selected_step_id = step.instance_identifier
-            elif self.run.steps._current_selected_step_id != step.instance_identifier:
-                self.run.steps.goto_step(step.instance_identifier)
+                self.run.steps._current_selected_step_id = step_id
+            else:
+                self.run.steps.goto_step(step_id)
+            step = self.run.current_step
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
@@ -110,7 +112,7 @@ class Runner:
                     f" but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.meta_data_path
-        elif step.operation == "peptideimport":
+        elif step.operation == "peptide_import":
             if self.peptides_path is None:
                 raise ValueError(
                     f"peptide_path (--peptide_path=<path/to/data>) is not specified, "
