@@ -8,11 +8,9 @@ import plotly.express as px
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.utilities import fig_to_base64
 
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
-
 
 def GO_enrichment_bar_plot(
-    input_df,
+    enrichment_df,
     top_terms,
     cutoff,
     value,
@@ -26,8 +24,8 @@ def GO_enrichment_bar_plot(
     the adjusted p-value or FDR, whichever is available in the input data. A cutoff can be applied
     to the data to only show significant results or results with a low FDR.
 
-    :param input_df: GO enrichment results
-    :type input_df: pandas.DataFrame
+    :param enrichment_df: GO enrichment results
+    :type enrichment_df: pandas.DataFrame
     :param gene_sets: Categories/Sets from enrichment to plot with colors per category
     :type gene_sets: dict
     :param top_terms: Number of top enriched terms per category
@@ -46,7 +44,7 @@ def GO_enrichment_bar_plot(
     :rtype: bytes
     """
 
-    if input_df is None or len(input_df) == 0 or input_df.empty:
+    if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -57,14 +55,14 @@ def GO_enrichment_bar_plot(
     # columns with placeholder values (since they are not used in the plot).
     # Example files can be found in the tests/test_data/enrichment_data folder.
     restring_input = False
-    if "term" in input_df.columns:
+    if "term" in enrichment_df.columns:
         # df is a restring file
         restring_input = True
-        input_df = input_df.rename(
+        enrichment_df = enrichment_df.rename(
             columns={"description": "Term", "p_value": "P-value"}
         )
-        input_df["Overlap"] = "0/0"
-    elif not "Term" in input_df.columns:
+        enrichment_df["Overlap"] = "0/0"
+    elif not "Term" in enrichment_df.columns:
         msg = "Please choose an enrichment result dataframe to plot."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -80,7 +78,7 @@ def GO_enrichment_bar_plot(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all Gene_sets that are not in categories
-    df = input_df[input_df["Gene_set"].isin(gene_sets)]
+    df = enrichment_df[enrichment_df["Gene_set"].isin(gene_sets)]
 
     if value == "fdr":  # only available for restring result
         if restring_input:
@@ -126,7 +124,7 @@ def GO_enrichment_bar_plot(
 
 
 def GO_enrichment_dot_plot(
-    input_df,
+    enrichment_df,
     top_terms,
     cutoff,
     gene_sets=[],
@@ -142,8 +140,8 @@ def GO_enrichment_dot_plot(
     Only the top_terms that meet the cutoff are shown. The x axis can be used to compare multiple
     Gene Set Libraries or to display the Combined Score of one of them.
 
-    :param input_df: GO enrichment results (offline or Enrichr)
-    :type input_df: pandas.DataFrame
+    :param enrichment_df: GO enrichment results (offline or Enrichr)
+    :type enrichment_df: pandas.DataFrame
     :param gene_sets: Categories/Gene Set Libraries from enrichment to plot
     :type gene_sets: list
     :param top_terms: Number of top enriched terms per category
@@ -167,11 +165,14 @@ def GO_enrichment_dot_plot(
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    if not isinstance(input_df, pd.DataFrame) or not "Overlap" in input_df.columns:
+    if (
+        not isinstance(enrichment_df, pd.DataFrame)
+        or not "Overlap" in enrichment_df.columns
+    ):
         msg = "Please input a dataframe from offline GO enrichment analysis or GO enrichment analysis with Enrichr."
         return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
 
-    if input_df is None or len(input_df) == 0 or input_df.empty:
+    if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
         return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
 
@@ -186,7 +187,7 @@ def GO_enrichment_dot_plot(
         return [dict(messages=[dict(level=logging.WARNING, msg=msg)])]
 
     # remove all Gene_sets that are not in categories
-    df = input_df[input_df["Gene_set"].isin(gene_sets)]
+    df = enrichment_df[enrichment_df["Gene_set"].isin(gene_sets)]
 
     size_y = top_terms * len(gene_sets)
     xticklabels_rot = 45 if rotate_x_labels else 0
@@ -257,8 +258,8 @@ def gsea_dot_plot(
     Creates a dot plot from GSEA and pre-ranked GSEA results. The plot is created using the gseapy library.
     Only the top_terms that meet the cutoff are shown.
 
-    :param input_df: GSEA or pre-ranked GSEA results
-    :type input_df: pandas.DataFrame
+    :param gsea_df: GSEA or pre-ranked GSEA results
+    :type gsea_df: pandas.DataFrame
     :param cutoff: Cutoff for the dot_color_value. Only terms with
         dot_color_value < cutoff will be shown.
     :type cutoff: float

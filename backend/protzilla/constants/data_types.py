@@ -1,14 +1,18 @@
-from dataclasses import dataclass
 import pandas as pd
 from enum import StrEnum
 from typing import NewType, TypedDict
 
 
-class DataKeys(StrEnum):
+class DataKey(StrEnum):
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
     FASTA_DF = "fasta_df"
+    SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
+    PTM_DF = "ptm_df"
+    DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
+    ENRICHMENT_DF = "enrichment_df"
+    GENE_MAPPING_DF = "gene_mapping_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)
@@ -18,27 +22,22 @@ MetadataDf = NewType("MetadataDf", pd.DataFrame)
 StepID = NewType("StepID", str)
 
 
-class OutputLocator(TypedDict):
-    step_id: StepID
-    key: DataKeys
-
-
 class Connection(TypedDict):
     """
     Type for connections in the node viewer
     """
 
     source: StepID
-    sourceHandle: DataKeys
+    sourceHandle: DataKey
     target: StepID
-    targetHandle: DataKeys
+    targetHandle: DataKey
     key: str
     id: str
 
 
 def parse_connection(
     connection: Connection,
-) -> tuple[StepID, DataKeys, StepID, DataKeys]:
+) -> tuple[StepID, DataKey, StepID, DataKey]:
     try:
         return (
             connection["source"],

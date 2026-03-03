@@ -5,18 +5,23 @@ from unittest import mock
 import pandas as pd
 import pytest
 
-import main
-from protzilla.data_analysis.ptm_visualization import (
+from backend.protzilla.constants.data_types import DataKey
+from backend.main import views_helper
+from backend.protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_bar_ptm_visualization,
     create_details_ptm_visualization,
     ptm_vis_utils,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
-from protzilla.importing import peptide_import
-from tests.paths import TEST_PTM_VISUALIZATION_PATH, TEST_FASTA_PATH, TEST_PEPTIDES_PATH
+from backend.protzilla.importing import peptide_import
+from backend.tests.paths import (
+    TEST_PTM_VISUALIZATION_PATH,
+    TEST_FASTA_PATH,
+    TEST_PEPTIDES_PATH,
+)
 
 GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
 GFAP_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P14136.txt"
@@ -42,7 +47,7 @@ def tmp_ptm_settings_dir(tmp_path_factory):
 
 def get_evidence_df(path: Path):
     outputs = peptide_import.evidence_import(file_path=path, map_to_uniprot=False)
-    evidence_df = outputs["peptide_df"]
+    evidence_df = outputs[DataKey.PEPTIDE_DF]
     return evidence_df
 
 
@@ -282,7 +287,7 @@ class TestPTMVisualization:
 
         # Check that warnings are thrown when more modifications are present in the evidence file than in the settings
         shutil.copytree(
-            main.views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
+            views_helper.SETTINGS_PATH, tmp_ptm_settings_dir, dirs_exist_ok=True
         )
         settings_reduced_ptms_file = Path(
             TEST_PTM_VISUALIZATION_PATH / f"ptm_settings_fewer_ptms.yaml"
@@ -290,7 +295,7 @@ class TestPTMVisualization:
         shutil.copy(settings_reduced_ptms_file, tmp_ptm_settings_dir)
         with (
             mock.patch.object(
-                main.views_helper,
+                views_helper,
                 "SETTINGS_PATH",
                 tmp_ptm_settings_dir.resolve(),
             ),

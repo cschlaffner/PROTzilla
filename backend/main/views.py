@@ -1,16 +1,12 @@
 import json
-import io
 from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
-from pathlib import Path
 import re
 import logging
 from typing import Any
 
 import numpy as np
-from django.contrib import messages
-from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
@@ -38,7 +34,6 @@ from backend.protzilla.constants.paths import (
 )
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
-from backend.protzilla.steps import Step
 from backend.main.views_helper import (
     get_display_name,
     get_step,
@@ -46,7 +41,7 @@ from backend.main.views_helper import (
     parameters_from_post,
     sanitize_name,
 )
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 

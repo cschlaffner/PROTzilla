@@ -15,6 +15,7 @@ from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
 from backend.protzilla.constants.paths import RUNS_PATH
+from backend.protzilla.constants.data_types import DataKey
 from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH
 from backend.protzilla.utilities import random_string
 
@@ -104,9 +105,9 @@ def run_import_and_imputation(run_name_and_cleanup, maxquant_data_file):
     run.steps.connect_steps(
         {
             "source": "teststep01_MXQ",
-            "sourceHandle": "protein_df",
+            "sourceHandle": DataKey.PROTEIN_DF,
             "target": "teststep02_kNN",
-            "targetHandle": "protein_df",
+            "targetHandle": DataKey.PROTEIN_DF,
         }
     )
     yield run

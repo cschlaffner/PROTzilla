@@ -1,13 +1,14 @@
-from protzilla.constants.paths import (
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.paths import (
     EXAMPLE_DATASET_PROTEIN_FILE,
     EXAMPLE_DATASET_METADATA_FILE,
     EXAMPLE_DATASET_EVIDENCE_FILE,
 )
-from protzilla.importing.import_utils import FeatureOrientationType
-from protzilla.constants.intensity_types import IntensityType
-from protzilla.importing.metadata_import import metadata_import_method
-from protzilla.importing.ms_data_import import max_quant_import
-from protzilla.importing.peptide_import import evidence_import
+from backend.protzilla.importing.import_utils import FeatureOrientationType
+from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.importing.metadata_import import metadata_import_method
+from backend.protzilla.importing.ms_data_import import max_quant_import
+from backend.protzilla.importing.peptide_import import evidence_import
 
 
 def example_dataset_import():
@@ -18,11 +19,11 @@ def example_dataset_import():
         aggregation_method="Sum",
     )
     # Return messages
-    if "protein_df" not in protein_import_dict:
+    if DataKey.PROTEIN_DF not in protein_import_dict:
         return protein_import_dict
 
     metadata_import_dict = metadata_import_method(
-        protein_df=protein_import_dict["protein_df"],
+        protein_df=protein_import_dict[DataKey.PROTEIN_DF],
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )

@@ -1,23 +1,27 @@
 import pandas as pd
 import pytest
 
-from protzilla.data_analysis.protein_coverage import distribute_to_rows, PeptideMatch
-from protzilla.data_analysis.protein_coverage import (
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.data_analysis.protein_coverage import (
+    distribute_to_rows,
+    PeptideMatch,
+)
+from backend.protzilla.data_analysis.protein_coverage import (
     extract_peptide_from_slice,
     AggregationMethod,
 )
-from protzilla.data_analysis.protein_coverage import (
+from backend.protzilla.data_analysis.protein_coverage import (
     get_max_coverage,
 )
-from protzilla.data_analysis.protein_coverage import increment_coverage_inplace
-from protzilla.data_analysis.protein_coverage import (
+from backend.protzilla.data_analysis.protein_coverage import increment_coverage_inplace
+from backend.protzilla.data_analysis.protein_coverage import (
     match_peptide_to_protein_ids,
     ProteinHit,
 )
-from protzilla.data_analysis.protein_coverage import plot_protein_coverage
-from protzilla.importing.fasta_import import fasta_import
-from protzilla.importing.peptide_import import evidence_import
-from tests.paths import TEST_FASTA_PATH, TEST_PEPTIDES_PATH
+from backend.protzilla.data_analysis.protein_coverage import plot_protein_coverage
+from backend.protzilla.importing.fasta_import import fasta_import
+from backend.protzilla.importing.peptide_import import evidence_import
+from backend.tests.paths import TEST_FASTA_PATH, TEST_PEPTIDES_PATH
 
 
 def test_match_peptide_to_protein_ids_empty_peptide():
@@ -278,7 +282,7 @@ def test_get_max_coverage_empty():
 @pytest.fixture
 def fasta_df():
     fasta_path = TEST_FASTA_PATH / "uniprotkb_P10636.fasta"
-    return fasta_import(fasta_path)["fasta_df"]
+    return fasta_import(fasta_path)[DataKey.FASTA_DF]
 
 
 @pytest.fixture
@@ -287,7 +291,7 @@ def peptide_df():
         file_path=TEST_PEPTIDES_PATH / "evidence_P10636.txt",
         map_to_uniprot=False,
     )
-    evidence_df = outputs["peptide_df"]
+    evidence_df = outputs[DataKey.PEPTIDE_DF]
     return evidence_df
 
 

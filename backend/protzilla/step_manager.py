@@ -8,14 +8,12 @@ if TYPE_CHECKING:
 from backend.protzilla.steps import Step, Section, Output
 from backend.protzilla.constants.data_types import (
     Connection,
-    DataKeys,
-    OutputLocator,
+    DataKey,
     StepID,
     parse_connection,
 )
 
 import networkx as nx
-import logging
 
 
 class StepManager:
@@ -142,9 +140,9 @@ class StepManager:
     def edges_with_exact_data(
         self,
         source: StepID | None,
-        source_handle: DataKeys | None,
+        source_handle: DataKey | None,
         target: StepID,
-        target_handle: DataKeys,
+        target_handle: DataKey,
     ) -> list[tuple[StepID, StepID, int, dict[str, str]]]:
         """
         Helper function that allows retrieving all incoming connections for a given target node and target_handle.
@@ -446,66 +444,31 @@ class StepManager:
         return self._id_clock
 
     ##
-    ## Deprecated stuff largely unchanged (thus bad), TODO B179: delete these when rewrite is complete
+    ## Input/Output accessors
     ##
 
     def get_step_output(
         self,
-        step_type: Step | None = None,
-        output_key: str = "",  # TODO remove step_type and default empty string
-        instance_identifier: StepID | None = None,
-        include_current_step: bool = False,
+        output_key: str,
+        instance_identifier: StepID,
     ) -> pd.DataFrame | Any | None:
         """
         Get the specific output of the outputs of a specific step type. The step type can also a parent class of the
         step type, in which case the output of the most recent step of the specific type is returned.
 
-        :param step_type: The type of the step as a class object
         :param output_key: The key of the desired output in the output dictionary of the step
         :param instance_identifier: The instance identifier of the step to get the output from
-        :param include_current_step: Whether to include the current step in the search
         :return: The value of the output of the step or None
         """
 
-        if step_type is not None:
-            raise NotImplementedError("Passing the step type is deprecated")
-
-        if include_current_step:
-            steps_to_search = self.all_step_instances
-        else:
-            steps_to_search = self.previous_calculated_steps
-
-        if instance_identifier is not None:
-            step = self.get_step_by_id(instance_identifier)
+        step = self.get_step_by_id(instance_identifier)
+        try:
             return step.output[output_key]
+        # TODO: this is really ugly, but Output does not have a .get() method
+        except KeyError:
+            return None
 
-        # TODO: legacy - check if any calls without an explicit instance_identifier remain
-        for step in reversed(steps_to_search):
-            if (
-                StepManager.check_instance_identifier(step, instance_identifier)
-                and output_key in step.output
-            ):
-                val = step.output[output_key]
-                if val is None:
-                    continue
-                # TODO: when are outputs ever stored as paths?
-                if isinstance(val, str) and Path(val).exists():
-                    if Path(val).suffix == ".csv":
-                        from backend.protzilla.disk_operator import DataFrameOperator
-
-                        df_operator = DataFrameOperator()
-                        df = df_operator.read(Path(val))
-                        if df.empty:
-                            logging.warning(
-                                f"Could not read DataFrame from {val}, continuing"
-                            )
-                            continue
-                        return df
-                    else:
-                        raise ValueError(f"Unsupported file format {Path(str).suffix}")
-                return val
-        return None
-
+    # TODO: this should be adapted to at least only include a step's ancestry
     def get_step_input(
         self,
         step_type: Step | None = None,
@@ -528,77 +491,11 @@ class StepManager:
 
         for step in reversed(self.previous_calculated_steps):
             if (
-                StepManager.check_instance_identifier(step, instance_identifier)
-                and input_key in step.inputs
-            ):
+                step.instance_identifier == instance_identifier
+                or instance_identifier is None
+            ) and input_key in step.inputs:
                 return step.inputs[input_key]
         return default
-
-    @property
-    def sections(self) -> dict[Section, list[Step]]:
-        """
-        For front-end compatibility.
-
-        :return: Dict mapping section titles to lists of step objects
-        """
-        return {
-            section: [
-                step for step in self.all_step_instances if step.section == section
-            ]
-            for section in Section
-        }
-
-    def all_steps_in_section(self, section: Section) -> list[Step]:
-        """
-        Get all steps in a specific section via the section name
-        :param section: The section name
-        :return: A list of steps in the section
-        """
-        if section in self.sections:
-            return self.sections[section]
-        else:
-            raise ValueError(f"Unknown section {section}")
-
-    # TODO B179: make obsolete and delete
-    # Left from old code and slightly adjusted to keep functionality as much as possible
-    def get_instance_identifiers(
-        self, step_type: type[Step], output_key: str | list[str] | None = None
-    ) -> list[str]:
-        if isinstance(output_key, str):
-            output_key = [output_key]
-
-        instance_identifiers = [
-            step.instance_identifier
-            for step in self.all_step_instances
-            if isinstance(step, step_type)
-            and (output_key is None or all(k in step.output for k in output_key))
-        ]
-        if not instance_identifiers:
-            logging.warning(
-                f"No instance identifiers found with step type {step_type} and output_key{'s' if len(output_key) > 1 else ''} {output_key}"
-            )
-        return instance_identifiers
-
-    # TODO WTAF is this?
-    # It only makes sense in the context in which it is used,
-    # which is a stupid context that will be deprecated with B179.
-    # Looking forward to it @Tarek
-    @staticmethod
-    def check_instance_identifier(step: Step, instance_identifier: str | None):
-        return (
-            step.instance_identifier == instance_identifier
-            or instance_identifier is None
-        )
-
-    # TODO B179
-    @property
-    def protein_df(self) -> pd.DataFrame:
-        return self.get_step_output(output_key="protein_df")
-
-    # TODO B179
-    @property
-    def metadata_df(self) -> pd.DataFrame | None:
-        return self.get_step_output(output_key="metadata_df")
 
     def get_step_operation(self, step_id: str) -> str:
         try:

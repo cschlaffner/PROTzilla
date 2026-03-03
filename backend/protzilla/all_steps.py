@@ -2,7 +2,7 @@ import backend.protzilla.methods.data_analysis as data_analysis
 import backend.protzilla.methods.data_integration as data_integration
 import backend.protzilla.methods.data_preprocessing as data_preprocessing
 import backend.protzilla.methods.importing as importing
-from backend.protzilla.steps import Section, Step
+from backend.protzilla.steps import Step
 
 _forward_mapping: list[Step] = [
     importing.DiannImport,
