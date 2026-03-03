@@ -59,5 +59,7 @@ def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
     if show_figures:
         fig.show()
 
-    pd.testing.assert_frame_equal(method_outputs[DataKey.PEPTIDE_DF], leftover_peptide_df)
+    pd.testing.assert_frame_equal(
+        method_outputs[DataKey.PEPTIDE_DF], leftover_peptide_df
+    )
     assert method_outputs["filtered_peptides"] == filtered_peptides_list

@@ -11,6 +11,7 @@ def to_choices(choices: list[str], required: bool = True) -> list[Option]:
         else [Option(str(el), str(el)) for el in choices]
     )
 
+
 def get_choices_for_metadata(
     run: Run,
     instance_identifier: StepID,

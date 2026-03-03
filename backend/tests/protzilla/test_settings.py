@@ -83,12 +83,8 @@ def test_save_ptm_settings(
     shutil.copy(default_ptm_settings_file, tmp_settings_dir)
 
     with (
-        mock.patch.object(
-            views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()
-        ),
-        mock.patch.object(
-            settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()
-        ),
+        mock.patch.object(views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()),
+        mock.patch.object(settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()),
     ):
         save_response = save_ptm_settings(
             request_save_ptm_settings, default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM

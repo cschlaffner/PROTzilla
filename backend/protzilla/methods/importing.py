@@ -240,7 +240,9 @@ class MetadataColumnAssignment(MetadataImportingStep):
         metadata_required_column: DropdownField = self.form["metadata_required_column"]
         metadata_unknown_column: DropdownField = self.form["metadata_unknown_column"]
 
-        metadata_source, metadata_handle = self.input_source(run.steps, DataKey.METADATA_DF)
+        metadata_source, metadata_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
+        )
 
         if metadata_source is None or metadata_handle is None:
             return
