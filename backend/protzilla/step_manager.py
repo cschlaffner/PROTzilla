@@ -352,13 +352,18 @@ class StepManager:
 
         # Navigate to a predecessor if step was selected
         # Else navigate to a fallback option
+        must_goto_fallback = False
         try:
             self.previous_step()
         except ValueError:  # No previous step
-            self.goto_step(self.fallback_step_id)
+            must_goto_fallback = True
 
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
+
+        if must_goto_fallback:
+            self.goto_step(self.fallback_step_id)
+
 
     ##
     ## Connection management
