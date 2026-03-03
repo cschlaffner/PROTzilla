@@ -362,8 +362,8 @@ class Run:
         return self.steps.current_step.plots
 
     @property
-    def current_downloads(self) -> Downloads | None:
-        return self.steps.current_step.downloads
+    def current_downloads(self) -> dict[str, str] | None:
+        return self.steps.current_step.downloads.downloads
 
     @property
     def current_outputs(self) -> Output:

@@ -628,6 +628,9 @@ class AlphaFoldMultimerQueryJsonGeneration(Step):
                     name="name",
                     label="File name and AlphaFold job name for generated query",
                 ),
+                InfoField(
+                    label="Only enter file stem, '.json' will be added automatically."
+                ),
                 TextField(
                     name="protein_ids",
                     label="UniProt Protein IDs",

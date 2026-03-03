@@ -631,7 +631,7 @@ def get_step_downloads(request):
 
         run = Run(run_name)
         if run.current_step is not None:
-            downloads = run.current_downloads.downloads
+            downloads = run.current_downloads
         else:
             downloads = {}
 

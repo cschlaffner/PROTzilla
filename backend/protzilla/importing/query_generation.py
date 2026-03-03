@@ -46,7 +46,7 @@ def generate_alphafold_multimer_query_json(
         )
         raise ValueError(msg)
     if len(uniprot_ids) != len(copies_per_id):
-        msg = f"For at least one protein id, the number of copies is missing in the input."
+        msg = f"There are {len(uniprot_ids)} ids. However, there are {len(copies_per_id)} entries for number of copies. Please make sure that these numbers match."
         messages.append(
             dict(
                 level=logging.ERROR,

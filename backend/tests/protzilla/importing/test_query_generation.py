@@ -89,6 +89,15 @@ def test_generate_alphafold_multimer_json_query_with_mismatched_number_of_ids_an
         generate_alphafold_multimer_query_json("P69905 P68871", "2", -1, "name")
 
 
+def test_generate_alphafold_multimer_json_query_with_mismatched_number_of_ids_and_number_of_copies():
+    with pytest.raises(ValueError) as error:
+        generate_alphafold_multimer_query_json("P69905 P68871", "2", -1, "name")
+
+    msg = str(error.value)
+    assert "2 ids" in msg
+    assert "1 entries for number of copies" in msg
+
+
 def test_generate_alphafold_multimer_json_query_with_invalid_copy_number():
     with pytest.raises(ValueError, match="Invalid list of number of copies per id"):
         generate_alphafold_multimer_query_json("P69905", "abc", -1, "name")
