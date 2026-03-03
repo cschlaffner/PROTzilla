@@ -625,6 +625,10 @@ class AlphaFoldMultimerQueryJsonGeneration(Step):
             label="AlphaFold Multimer Query JSON Generation",
             input_fields=[
                 TextField(
+                    name="name",
+                    label="File name and AlphaFold job name for generated query",
+                ),
+                TextField(
                     name="protein_ids",
                     label="UniProt Protein IDs",
                 ),

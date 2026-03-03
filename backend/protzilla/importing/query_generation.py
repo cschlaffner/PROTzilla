@@ -6,7 +6,7 @@ import requests
 
 
 def generate_alphafold_multimer_query_json(
-    protein_ids: str, number_copies: str, model_seed: int
+    protein_ids: str, number_copies: str, model_seed: int, name: str
 ) -> dict:
     """
     Generates an AlphaFold Multimer JSON query for a set of UniProt protein IDs.
@@ -22,6 +22,7 @@ def generate_alphafold_multimer_query_json(
     :param number_copies: Space- or comma-separated list of integers specifying the number of copies
                           for each protein ID (e.g. "2 2").
     :param model_seed: Model seed for the AlphaFold query. If -1 we want AlphaFold to use a random seed.
+    :param name: How the AlphaFold job and the generated file should be named.
     :return: dict (messages, downloads), downloads contains a dictionary mapping a generated filename
              to the AlphaFold Multimer query JSON string (wrapped in square brackets as required by AlphaFold server)
     :raises ValueError: If the number of copies or the model seeds cannot be parsed as integers.
@@ -32,18 +33,18 @@ def generate_alphafold_multimer_query_json(
     # extract protein_ids and number of copies per id and make sure they have the same length
     uniprot_ids = protein_ids.replace(",", " ").split()
     try:
-        copies_per_id = [int(input) for input in number_copies.replace(",", " ").split()]
+        copies_per_id = [
+            int(input) for input in number_copies.replace(",", " ").split()
+        ]
     except ValueError as e:
-        msg=f"Invalid list of number of copies per id: please provide space-separated integers"
+        msg = f"Invalid list of number of copies per id: please provide space-separated integers"
         messages.append(
             dict(
                 level=logging.ERROR,
                 msg=msg,
             )
         )
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
     if len(uniprot_ids) != len(copies_per_id):
         messages.append(
             dict(
@@ -71,7 +72,7 @@ def generate_alphafold_multimer_query_json(
 
     # create the json query for alphafold
     query = {
-        "name": "_".join(uniprot_ids) + "_prediction",
+        "name": name,
         "modelSeeds": [],
         "sequences": [],
         "dialect": "alphafoldserver",
@@ -101,9 +102,11 @@ def generate_alphafold_multimer_query_json(
         )
     query_as_string = f"[{json.dumps(query)}]"
     messages.append(
-        dict(level=logging.INFO, msg=f"Successfully generated a json file for AlphaFold.")
+        dict(
+            level=logging.INFO, msg=f"Successfully generated a json file for AlphaFold."
+        )
     )
     return dict(
         messages=messages,
-        downloads={f"prediction_query_{'_'.join(uniprot_ids)}": query_as_string},
+        downloads={name: query_as_string},
     )
