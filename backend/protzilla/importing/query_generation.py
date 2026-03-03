@@ -30,24 +30,19 @@ def generate_alphafold_multimer_query_json(
     messages = []
 
     # extract protein_ids and number of copies per id and make sure they have the same length
-    if "," in protein_ids:
-        uniprot_ids = protein_ids.split(",")
-    else:
-        uniprot_ids = protein_ids.split()
+    uniprot_ids = protein_ids.replace(",", " ").split()
     try:
-        if "," in number_copies:
-            copies_per_id = [int(input) for input in number_copies.split(",")]
-        else:
-            copies_per_id = [int(input) for input in number_copies.split()]
+        copies_per_id = [int(input) for input in number_copies.replace(",", " ").split()]
     except ValueError as e:
+        msg=f"Invalid list of number of copies per id: please provide space-separated integers"
         messages.append(
             dict(
                 level=logging.ERROR,
-                msg=f"Invalid list of number of copies per id: please provide space-separated integers",
+                msg=msg,
             )
         )
         raise ValueError(
-            "Invalid list of number of copies per id: please provide space-separated integers"
+            msg
         )
     if len(uniprot_ids) != len(copies_per_id):
         messages.append(
@@ -57,12 +52,19 @@ def generate_alphafold_multimer_query_json(
             )
         )
         return dict(messages=messages, downloads={})
-
+    if min(copies_per_id) < 1:
+        messages.append(
+            dict(
+                level=logging.ERROR,
+                msg=f"There can't be a non-positive number of copies.",
+            )
+        )
+        return dict(messages=messages, downloads={})
     if sum(copies_per_id) < 2:
         messages.append(
             dict(
                 level=logging.ERROR,
-                msg=f"Please use the monomer steps, for only validating one protein.",
+                msg=f"Please use the monomer steps to validate only one protein.",
             )
         )
         return dict(messages=messages, downloads={})
@@ -98,7 +100,10 @@ def generate_alphafold_multimer_query_json(
             }
         )
     query_as_string = f"[{json.dumps(query)}]"
+    messages.append(
+        dict(level=logging.INFO, msg=f"Successfully generated a json file for AlphaFold.")
+    )
     return dict(
-        messages={},
+        messages=messages,
         downloads={f"prediction_query_{'_'.join(uniprot_ids)}": query_as_string},
     )

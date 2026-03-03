@@ -646,7 +646,7 @@ class AlphaFoldMultimerQueryJsonGeneration(Step):
                 ),
                 InfoField(
                     label="Leave -1 if you want to use a random seed.\n"
-                    "Otherwise enter a seed (=integer between 0 and 4294967295)"
+                    "Otherwise enter a seed (integer between 0 and 4294967295)"
                 ),
             ],
         )
