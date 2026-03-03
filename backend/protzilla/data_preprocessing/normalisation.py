@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler

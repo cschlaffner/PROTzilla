@@ -2,8 +2,6 @@
 This module contains the code to parse a fasta file containing protein sequences and their ids.
 """
 
-import logging
-
 import pandas as pd
 from Bio import SeqIO
 from pandas import DataFrame

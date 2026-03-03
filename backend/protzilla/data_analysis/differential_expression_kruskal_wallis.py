@@ -5,7 +5,6 @@ import pandas as pd
 from scipy import stats
 
 from backend.protzilla.data_analysis.differential_expression_helper import (
-    _map_log_base,
     apply_multiple_testing_correction,
     merge_differential_expression_and_significant_df,
     preprocess_grouping,

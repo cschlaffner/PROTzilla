@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import pandas as pd
 from enum import StrEnum
 from typing import NewType, TypedDict

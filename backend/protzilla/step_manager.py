@@ -14,7 +14,6 @@ from backend.protzilla.constants.data_types import (
 )
 
 import networkx as nx
-import logging
 
 
 class StepManager:

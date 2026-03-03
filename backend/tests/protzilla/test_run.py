@@ -1,5 +1,4 @@
 import logging
-from multiprocessing.sharedctypes import Value
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
@@ -12,8 +11,6 @@ from backend.protzilla.methods.importing import MaxQuantImport, MetadataImport
 from backend.protzilla.run import Run
 from pathlib import Path
 from backend.protzilla.stepfactory import StepFactory
-
-import networkx as nx
 
 
 class TestRun:

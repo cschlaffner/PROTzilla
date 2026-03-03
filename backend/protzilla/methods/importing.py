@@ -1,9 +1,16 @@
 from __future__ import annotations
 from abc import ABC
-from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.form import *
+from backend.protzilla.form import (
+    CheckboxField,
+    DropdownField,
+    FileInput,
+    Form,
+    HeaderInfoField,
+    Option,
+    Run,
+)
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
     metadata_import_method,
