@@ -268,9 +268,9 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
         )
         == 0.07
     )
-    assert list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique()) == [
-        "Protein1"
-    ]
+    assert list(
+        current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique()
+    ) == ["Protein1"]
 
 
 def test_differential_expression_t_test_types(diff_expr_test_data, show_figures):

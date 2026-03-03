@@ -2,7 +2,10 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.data_analysis.protein_coverage import distribute_to_rows, PeptideMatch
+from backend.protzilla.data_analysis.protein_coverage import (
+    distribute_to_rows,
+    PeptideMatch,
+)
 from backend.protzilla.data_analysis.protein_coverage import (
     extract_peptide_from_slice,
     AggregationMethod,

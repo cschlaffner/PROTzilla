@@ -76,7 +76,9 @@ def test_by_proteins_missing(filter_samples_df, show_figures, peptides_df):
     list_samples_excluded_3 = method_output3["filtered_samples"]
 
     fig = by_proteins_missing_plot(
-        method_output1[DataKey.PROTEIN_DF], method_output1["filtered_samples"], "Pie chart"
+        method_output1[DataKey.PROTEIN_DF],
+        method_output1["filtered_samples"],
+        "Pie chart",
     )[0]
     if show_figures:
         fig.show()
@@ -131,13 +133,17 @@ def test_filter_samples_by_protein_count(filter_samples_df, show_figures, peptid
     list_samples_excluded_2 = method_output2["filtered_samples"]
 
     fig = by_protein_count_plot(
-        method_output1[DataKey.PROTEIN_DF], method_output1["filtered_samples"], "Pie chart"
+        method_output1[DataKey.PROTEIN_DF],
+        method_output1["filtered_samples"],
+        "Pie chart",
     )[0]
     if show_figures:
         fig.show()
 
     fig = by_protein_count_plot(
-        method_output1[DataKey.PROTEIN_DF], method_output1["filtered_samples"], "Bar chart"
+        method_output1[DataKey.PROTEIN_DF],
+        method_output1["filtered_samples"],
+        "Bar chart",
     )[0]
     if show_figures:
         fig.show()
@@ -187,7 +193,9 @@ def test_filter_samples_by_protein_intensity_sum(
     list_samples_excluded_2 = method_output2["filtered_samples"]
 
     fig = by_protein_intensity_sum_plot(
-        method_output1[DataKey.PROTEIN_DF], method_output1["filtered_samples"], "Pie chart"
+        method_output1[DataKey.PROTEIN_DF],
+        method_output1["filtered_samples"],
+        "Pie chart",
     )[0]
     if show_figures:
         fig.show()

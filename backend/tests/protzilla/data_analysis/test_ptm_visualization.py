@@ -17,7 +17,11 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     get_detected_modifications,
 )
 from backend.protzilla.importing import peptide_import
-from backend.tests.paths import TEST_PTM_VISUALIZATION_PATH, TEST_FASTA_PATH, TEST_PEPTIDES_PATH
+from backend.tests.paths import (
+    TEST_PTM_VISUALIZATION_PATH,
+    TEST_FASTA_PATH,
+    TEST_PEPTIDES_PATH,
+)
 
 GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
 GFAP_EVIDENCE_FILE_PATH = TEST_PEPTIDES_PATH / "evidence_P14136.txt"

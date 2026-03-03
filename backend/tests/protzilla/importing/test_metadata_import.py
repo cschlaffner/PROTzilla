@@ -61,9 +61,8 @@ def test_metadata_import_faulty_file(run_imported):
         and "The metadata file must contain a column named 'Sample'" in messages["msg"]
     )
 
-@pytest.mark.skip(
-    reason="Formerly commented out, needs reevaluation"
-)
+
+@pytest.mark.skip(reason="Formerly commented out, needs reevaluation")
 def test_metadata_import_diann(run_empty):
     run_empty.step_add(DiannImport())
     run_empty.current_form(
@@ -89,17 +88,14 @@ def test_metadata_import_diann(run_empty):
         }
     )
     run_empty.step_calculate()
-    test_metadata = pd.read_csv(
-        f"{TEST_METADATA_PATH}/DIANN/meta.csv"
-    )
-    test_protein_df = pd.read_csv(
-        f"{TEST_METADATA_PATH}/DIANN/correct_protein_df.csv"
-    )
+    test_metadata = pd.read_csv(f"{TEST_METADATA_PATH}/DIANN/meta.csv")
+    test_protein_df = pd.read_csv(f"{TEST_METADATA_PATH}/DIANN/correct_protein_df.csv")
     pd.testing.assert_frame_equal(
         test_metadata, run_empty.current_outputs[DataKey.METADATA_DF]
     )
     pd.testing.assert_frame_equal(
-        test_protein_df, run_empty.steps.get_step_output(DiannImport, DataKey.PROTEIN_DF)
+        test_protein_df,
+        run_empty.steps.get_step_output(DiannImport, DataKey.PROTEIN_DF),
     )
 
 
@@ -126,9 +122,8 @@ def test_metadata_orientation(run_empty):
     assert metadata_df_a.columns.tolist() == metadata_df_b.columns.tolist()
     assert metadata_df_a.equals(metadata_df_b)
 
-@pytest.mark.skip(
-    reason="Formerly commented out, needs reevaluation"
-)
+
+@pytest.mark.skip(reason="Formerly commented out, needs reevaluation")
 def test_metadata_column_assignment(run_empty):
     run_empty.step_add(MetadataImport())
     run_empty.step_next()

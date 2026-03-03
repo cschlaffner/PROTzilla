@@ -314,7 +314,11 @@ def test_normalisation_by_z_score(
     method_outputs = by_z_score(normalisation_df)
 
     fig = by_z_score_plot(
-        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
+        normalisation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Sample",
+        "log10",
     )[0]
     if show_figures:
         fig.show()
@@ -333,7 +337,11 @@ def test_normalisation_by_median(
     method_outputs = by_median(normalisation_df)
 
     fig = by_median_plot(
-        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
+        normalisation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Sample",
+        "log10",
     )[0]
     if show_figures:
         fig.show()
@@ -360,7 +368,11 @@ def test_totalsum_normalisation(
     method_outputs = by_totalsum(normalisation_df)
 
     fig = by_totalsum_plot(
-        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
+        normalisation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Sample",
+        "log10",
     )[0]
     if show_figures:
         fig.show()
@@ -423,7 +435,11 @@ def test_width_adjustment_normalisation(normalisation_df, show_figures):
     method_outputs = by_width_adjustment(normalisation_df)
 
     fig = by_width_adjustment_plot(
-        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
+        normalisation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Sample",
+        "log10",
     )[0]
     if show_figures:
         fig.show()

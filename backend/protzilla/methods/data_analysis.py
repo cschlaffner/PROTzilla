@@ -1940,7 +1940,9 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
         protein_list_field: DropdownField = self.form["protein_list"]
         protein_ids_field: MultiSelectField = self.form["protein_ids"]
 
-        peptide_df_field.set_options(form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step))
+        peptide_df_field.set_options(
+            form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step)
+        )
         peptide_df_field.value = run.steps.get_instance_identifiers(
             DataPreprocessingStep, DataKey.PEPTIDE_DF
         )[-1]

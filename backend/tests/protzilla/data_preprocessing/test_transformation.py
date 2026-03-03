@@ -268,7 +268,10 @@ def test_log2_transformation(
     method_outputs = by_log(**method_inputs)
 
     fig = by_log_plot(
-        log2_transformation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Protein ID"
+        log2_transformation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Protein ID",
     )[0]
     if show_figures:
         fig.show()
