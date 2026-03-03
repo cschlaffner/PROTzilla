@@ -461,6 +461,8 @@ class NormalisationByWidthAdjustment(DataPreprocessingStep):
     operation = "normalisation"
     method_description = "Normalise data by asymmetric quartile width adjustment"
 
+    output_keys = [DataKey.PROTEIN_DF]
+
     def create_form(self):
         return Form(
             label="Normalisation by width adjustment",
