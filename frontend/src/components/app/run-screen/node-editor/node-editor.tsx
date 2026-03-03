@@ -70,6 +70,19 @@ const StyledStepButtonsRow = styled.div`
   margin-bottom: ${spacing("small")};
 `;
 
+const StyledFlowColumn = styled.div`
+  width: calc(25vw + 24px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+`;
+
+const StyledFlowCanvas = styled.div`
+  flex: 1;
+  min-height: 0;
+`;
+
 export const NodeEditor: React.FC<NodeEditorProps> = ({
   onFormSubmit,
   runName,
@@ -340,7 +353,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   return (
     <StyledRow>
-      <div style={{ width: "calc(25vw + 24px)", height: "100vh" }}>
+      <StyledFlowColumn>
         <StyledStepButtonsRow>
           {sections.map((section) => (
             <StepSelection
@@ -359,40 +372,43 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           ))}
         </StyledStepButtonsRow>
 
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onEdgeClick={onEdgeClick}
-          onPaneClick={onPaneClick}
-          onNodeDragStart={onNodeDragStart}
-          onNodeDragStop={onNodeDragStop}
-          onConnect={onConnect}
-          onInit={onReactFlowInit}
-          fitView
-        >
-          <Panel position="top-left">
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
-              <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
-              <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
-                Remove current connection
-              </RedButton>
-            </div>
-          </Panel>
-
-          <Panel position="top-right">
-            {hoveredHandleMeta.isActive && (
-              <div style={{ textAlign: "right" }}>
-                <p>{hoveredHandleMeta.direction}</p>
-                <p>{hoveredHandleMeta.type}</p>
+        <StyledFlowCanvas>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDragStop={onNodeDragStop}
+            onConnect={onConnect}
+            onInit={onReactFlowInit}
+            fitView
+            style={{ width: "100%", height: "100%" }}
+          >
+            <Panel position="top-left">
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
+                <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
+                <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                  Remove current connection
+                </RedButton>
               </div>
-            )}
-          </Panel>
-        </ReactFlow>
-      </div>
+            </Panel>
+
+            <Panel position="top-right">
+              {hoveredHandleMeta.isActive && (
+                <div style={{ textAlign: "right" }}>
+                  <p>{hoveredHandleMeta.direction}</p>
+                  <p>{hoveredHandleMeta.type}</p>
+                </div>
+              )}
+            </Panel>
+          </ReactFlow>
+        </StyledFlowCanvas>
+      </StyledFlowColumn>
 
       <StyledDivider />
 
