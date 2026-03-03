@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from backend.protzilla.utilities.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
