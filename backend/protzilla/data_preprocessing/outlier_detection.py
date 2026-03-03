@@ -16,7 +16,7 @@ from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 def by_isolation_forest(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: pd.DataFrame | None = None,
     n_estimators: int = 100,
     n_jobs: int = -1,
 ) -> dict:
@@ -74,7 +74,7 @@ def by_isolation_forest(
 
 def by_local_outlier_factor(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: pd.DataFrame | None = None,
     number_of_neighbors: int = 20,
 ) -> dict:
     """
@@ -136,7 +136,7 @@ def by_local_outlier_factor(
 
 def by_pca(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: pd.DataFrame | None = None,
     threshold: int = 2,
     number_of_components: int = 3,
 ) -> dict:
