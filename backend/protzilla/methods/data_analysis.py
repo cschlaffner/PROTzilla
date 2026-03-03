@@ -846,13 +846,9 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         protein_id_field: DropdownField = self.form["protein_id"]
         selected_groups_field: MultiSelectField = self.form["selected_groups"]
 
-        peptide_source, source_handle = self.input_source(
-            run.steps, DataKey.PEPTIDE_DF
-        )
-        if peptide_source is not None and source_handle is not None:
-            peptide_df = run.steps.get_step_output(
-                output_key=source_handle, instance_identifier=peptide_source
-            )
+        peptide_df = self.get_input(run.steps, DataKey.PEPTIDE_DF)
+
+        if peptide_df is not None:
             proteins_from_peptide_df = (
                 set(peptide_df["Protein ID"].dropna().unique())
                 if peptide_df is not None
@@ -865,12 +861,7 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
                 p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
             }
 
-            fasta_source, source_handle = self.input_source(
-                run.steps, DataKey.FASTA_DF
-            )
-            fasta_df = run.steps.get_step_output(
-                output_key=source_handle, instance_identifier=fasta_source
-            )
+            fasta_df = self.get_input(run.steps, DataKey.FASTA_DF)
             proteins_from_fasta_df = (
                 set(fasta_df["Protein ID"].unique()) if fasta_df is not None else set()
             )
@@ -881,14 +872,16 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         # We specifically want to allow grouping by Sample here
         self.set_grouping_options(run, include_sample=True)
         grouping = self.form["grouping"].value
-        if grouping == "Sample":
+        if grouping == "Sample" and peptide_df is not None:
             selected_groups_field.set_options(
-                form_helper.to_choices(peptide_df["Sample"].unique())
+                form_helper.to_choices(peptide_df["Sample"].unique().tolist())
             )
         elif grouping is not None:
-            selected_groups_field.set_options(
-                form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-            )
+            metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+            if metadata_df is not None:
+                selected_groups_field.set_options(
+                    form_helper.to_choices(metadata_df[grouping].unique().tolist())
+                )
         self.form["aggregation_method"].isVisible = grouping != "Sample"
 
 
