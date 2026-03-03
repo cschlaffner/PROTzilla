@@ -23,7 +23,7 @@ import {
   StepOutputInfo,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
@@ -94,6 +94,7 @@ export const RunScreen: React.FC = () => {
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
+  const runDataRequestID = useRef(0);
 
   const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
@@ -116,11 +117,14 @@ export const RunScreen: React.FC = () => {
   };
 
   const getRunData = useCallback(async () => {
+    const requestId = (runDataRequestID.current += 1);
     const response = await callApiWithParameters("get_run_data/", {
       run_name: runName,
     });
     if (response) {
-      setRunData(response.data);
+      if (requestId === runDataRequestID.current) {
+        setRunData(response.data);
+      }
     }
   }, [runName]);
 

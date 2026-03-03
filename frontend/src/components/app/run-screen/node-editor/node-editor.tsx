@@ -243,6 +243,53 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         ? "Import"
         : "Calculate";
 
+  useEffect(() => {
+    console.log("Run Data", runData);
+    const effectSections = runData.displayed_steps;
+    setNodes((nodesSnapshot) => {
+      const newNodes: StepNodeType[] = [];
+      let yOffset = 0;
+      let flatStepIndex = 0;
+
+      effectSections.forEach((section: Section) => {
+        section.steps.forEach((step: Step, index: number) => {
+          const isSelected =
+            currentSectionId === section.id && runData.current_step_index === flatStepIndex;
+
+          const oldMatchingNode = nodesSnapshot.find((node) => node.id == step.id);
+          const savedPosition = step.visual_data?.node_position;
+          const position = oldMatchingNode
+            ? oldMatchingNode.position
+            : savedPosition
+              ? { x: savedPosition.x, y: savedPosition.y }
+              : { x: 0, y: yOffset };
+
+          newNodes.push({
+            id: step.id,
+            type: "step",
+            position: position,
+            data: {
+              step: step,
+              step_index_within_section: index,
+              section: section.id,
+              isSelected: isSelected,
+              navigateOrRefreshSteps: navigateOrRefreshSteps,
+              setHoveredHandleMeta: setHoveredHandleMeta,
+            },
+          });
+
+          flatStepIndex += 1;
+          yOffset += 60;
+        });
+      });
+      return newNodes;
+    });
+
+    void getEdgesFromRunData().then((newEdges) => {
+      setEdges(newEdges);
+    });
+  }, [currentSectionId, getEdgesFromRunData, navigateOrRefreshSteps, runData]);
+
   const stepSelectionProps = {
     runName: runName,
     onAddStep: onAddStep,
@@ -313,9 +360,15 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           runName={runName}
           buttonText={buttonText}
           previousStepCalculationStatus={"complete"}
-          currentStepCalculationStatus={currentStep.status}
-          current_step_id={runData.current_step_id}
-          isLastStep={!runData.recommended_next_step_id}
+          currentStepCalculationStatus={currentStepCalculationStatus}
+          current_step_index={runData.current_step_index}
+          isLastStep={
+            runData.current_step_index >=
+            sections
+              .map((section) => section.steps.length)
+              .reduce((acc: number, val: number) => acc + val, 0) -
+              1
+          }
           onNext={() => {
             navigateOrRefreshSteps(runData.recommended_next_step_id);
           }}
