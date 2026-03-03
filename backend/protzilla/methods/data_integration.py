@@ -461,12 +461,12 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        gene_sets_field = self.form["gene_sets_type"]
-        gene_sets_enrichr_field = self.form["gene_sets_enrichr"]
-        gene_sets_path_field = self.form["gene_sets_path"]
-        grouping_field = self.form["grouping"]
-        group1_field = self.form["group1"]
-        group2_field = self.form["group2"]
+        gene_sets_field: DropdownField = self.form["gene_sets_type"]
+        gene_sets_enrichr_field: DropdownField = self.form["gene_sets_enrichr"]
+        gene_sets_path_field: FileInput = self.form["gene_sets_path"]
+        grouping_field: DropdownField = self.form["grouping"]
+        group1_field: DropdownField = self.form["group1"]
+        group2_field: DropdownField = self.form["group2"]
 
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
@@ -483,31 +483,23 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
 
         # TODO: transfer method for this from data_analysis to form_helper
 
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata(run, include_sample=False)
-        )
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
 
-        if not grouping_field.value:
-            return
-
-        group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping_field.value].unique())
-        )
-        if group1_field.value in run.steps.metadata_df[grouping_field.value].unique():
-            group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in run.steps.metadata_df[grouping_field.value].unique()
-                    if el != group1_field.value
-                ]
+        if metadata_df is not None:
+            grouping_field.set_options(
+                form_helper.to_choices(metadata_df.columns.unique().to_list())
             )
-        else:
+
+        grouping = grouping_field.value
+        if metadata_df is not None and grouping:
+
+            groups_choices = form_helper.to_choices(
+                metadata_df[grouping].unique().tolist()
+            )
+
+            group1_field.set_options(groups_choices)
             group2_field.set_options(
-                reversed(
-                    form_helper.to_choices(
-                        run.steps.metadata_df[grouping_field.value].unique()
-                    )
-                )
+                [group for group in groups_choices if group.value != group1_field.value]
             )
 
 
