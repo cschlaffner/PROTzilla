@@ -12,7 +12,7 @@ from backend.protzilla.data_analysis.classification_helper import (
     evaluate_clustering_with_scoring,
     perform_grid_search_cv,
 )
-from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+from backend.protzilla.utilities.utilities.transform_dfs import is_long_format, long_to_wide
 
 
 def k_means(

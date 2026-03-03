@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 
 
 def read_protein_or_gene_sets_file(path):

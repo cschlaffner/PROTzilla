@@ -15,7 +15,7 @@ from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
 from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.step_manager import StepManager
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities.utilities import format_trace
 
 
 def get_available_run_names() -> list[str]:

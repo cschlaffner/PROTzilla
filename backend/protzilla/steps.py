@@ -12,7 +12,7 @@ import pandas as pd
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
 from backend.protzilla.form import FormInputType, Form, InputField
-from backend.protzilla.utilities import format_trace, name_to_title
+from backend.protzilla.utilities.utilities import format_trace, name_to_title
 
 # to avoid circular imports
 from typing import TYPE_CHECKING

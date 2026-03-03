@@ -1,7 +1,7 @@
 import pandas as pd
 
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 
 def by_protein_intensity_sum(

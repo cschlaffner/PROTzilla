@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from backend.protzilla.data_integration.database_query import biomart_query
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities.utilities import format_trace
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 

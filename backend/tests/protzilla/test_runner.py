@@ -7,7 +7,7 @@ import pytest
 
 from backend.main import settings
 from backend.protzilla.runner import _serialize_graphs
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_METADATA_PATH,
