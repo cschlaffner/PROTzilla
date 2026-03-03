@@ -10,7 +10,10 @@ from backend.protzilla.constants.option_types import (
     LOG2_FOLD_CHANGE_COLUMNS,
     T_STATISTIC_COLUMNS,
 )
-from backend.protzilla.utilities.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
