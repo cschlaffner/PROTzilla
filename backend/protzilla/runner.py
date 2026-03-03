@@ -129,7 +129,7 @@ class Runner:
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):
-            plot_path = f"{self.plots_path}/{self.run.steps.current_step_id}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
+            plot_path = f"{self.plots_path}/{step.instance_identifier}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
             plot.write_html(plot_path)
 
     def _overwrite_run_prompt(self):
