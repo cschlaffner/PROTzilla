@@ -21,7 +21,7 @@ def test_enrichment_bar_plot_restring(show_figures, helpers):
     test_data_folder = f"{TEST_DATA_PATH}/enrichment_data"  # TODO S change this
     result = pd.read_csv(f"{test_data_folder}/merged_KEGG_process.csv", header=0)
     bar_base64 = GO_enrichment_bar_plot(
-        input_df=result,
+        enrichment_df=result,
         top_terms=10,
         cutoff=0.05,
         value="fdr",
@@ -31,7 +31,7 @@ def test_enrichment_bar_plot_restring(show_figures, helpers):
         helpers.open_graph_from_base64(bar_base64[0])
 
     bar_base64 = GO_enrichment_bar_plot(
-        input_df=result,
+        enrichment_df=result,
         top_terms=10,
         cutoff=0.05,
         value="p_value",
@@ -46,7 +46,7 @@ def test_enrichment_bar_plot(show_figures, helpers, data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", sep="\t"
     )
     bar_base64 = GO_enrichment_bar_plot(
-        input_df=enrichment_df,
+        enrichment_df=enrichment_df,
         top_terms=10,
         cutoff=0.05,
         value="p_value",
@@ -61,7 +61,7 @@ def test_enrichment_bar_plot_wrong_value(data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", sep="\t"
     )
     current_out = GO_enrichment_bar_plot(
-        input_df=enrichment_df,
+        enrichment_df=enrichment_df,
         top_terms=10,
         cutoff=0.05,
         value="fdr",
@@ -77,7 +77,7 @@ def test_enrichment_bar_plot_wrong_value(data_folder_tests):
 def test_enrichment_bar_plot_empty_df():
     empty_df = pd.DataFrame()
     current_out = GO_enrichment_bar_plot(
-        input_df=empty_df,
+        enrichment_df=empty_df,
         top_terms=10,
         cutoff=0.05,
         value="p_value",
@@ -94,7 +94,11 @@ def test_enrichment_bar_plot_no_category(data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", sep="\t"
     )
     current_out = GO_enrichment_bar_plot(
-        input_df=enrichment_df, top_terms=10, cutoff=0.05, value="p_value", gene_sets=[]
+        enrichment_df=enrichment_df,
+        top_terms=10,
+        cutoff=0.05,
+        value="p_value",
+        gene_sets=[],
     )
     assert "messages" in current_out
     assert any(
@@ -106,7 +110,7 @@ def test_enrichment_bar_plot_no_category(data_folder_tests):
 def test_enrichment_bar_plot_wrong_df():
     enrichment_df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
     current_out = GO_enrichment_bar_plot(
-        input_df=enrichment_df,
+        enrichment_df=enrichment_df,
         top_terms=10,
         cutoff=0.05,
         value="p_value",
@@ -122,7 +126,7 @@ def test_enrichment_bar_plot_wrong_df():
 def test_enrichment_bar_plot_cutoff(data_folder_tests):
     result = pd.read_csv(data_folder_tests / "merged_KEGG_process.csv", header=0)
     current_out = GO_enrichment_bar_plot(
-        input_df=result,
+        enrichment_df=result,
         top_terms=10,
         cutoff=0,
         value="fdr",
@@ -139,7 +143,7 @@ def test_enrichment_bar_plot_cutoff(data_folder_tests):
         data_folder_tests / "Reactome_enrichment_enrichr.csv", sep="\t"
     )
     current_out = GO_enrichment_bar_plot(
-        input_df=enrichment_df,
+        enrichment_df=enrichment_df,
         top_terms=10,
         cutoff=0,
         value="p-value",
@@ -158,7 +162,7 @@ def test_GO_enrichment_dot_plot(helpers, show_figures, x_axis_type, data_folder_
         data_folder_tests / "Reactome_enrichment_enrichr.csv", header=0, sep="\t"
     )
     dot_base64 = GO_enrichment_dot_plot(
-        input_df=enrichment_df,
+        enrichment_df=enrichment_df,
         top_terms=5,
         cutoff=0.05,
         gene_sets=["Reactome_2013"],
@@ -175,7 +179,7 @@ def test_GO_enrichment_dot_plot(helpers, show_figures, x_axis_type, data_folder_
 def test_enrichment_dot_plot_wrong_df(data_folder_tests):
     result = pd.read_csv(data_folder_tests / "merged_KEGG_process.csv", header=0)
     current_out = GO_enrichment_dot_plot(
-        input_df=result, top_terms=10, cutoff=0.05, gene_sets=["KEGG", "Process"]
+        enrichment_df=result, top_terms=10, cutoff=0.05, gene_sets=["KEGG", "Process"]
     )[0]
 
     assert "messages" in current_out
