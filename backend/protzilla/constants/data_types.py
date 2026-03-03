@@ -11,6 +11,9 @@ class DataKey(StrEnum):
     FASTA_DF = "fasta_df"
     SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
     PTM_DF = "ptm_df"
+    DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
+    ENRICHMENT_DF = "enrichment_df"
+    GENE_MAPPING_DF = "gene_mapping_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)

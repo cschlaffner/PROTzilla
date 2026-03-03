@@ -205,7 +205,7 @@ class Step(ABC):
 
     def insert_dataframes(self, steps: StepManager) -> None:
         """
-        Adds the necessary entries to self.inputs. Needs to be overridden in concrete classes.
+        Retrieves the dataframes that are connected in the graph editor and inserts them into self.inputs
 
         :param steps: The relevant StepManager instance
         """
@@ -343,11 +343,11 @@ class Step(ABC):
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
-        # for key in required_keys:
-        #     if key not in self.inputs:
-        #         raise ValueError(
-        #             f"Missing required input '{key}' for the calculation method"
-        #         )
+        for key in required_keys:
+            if key not in self.inputs:
+                raise ValueError(
+                    f"Missing required input '{key}' for the calculation method"
+                )
 
         return {
             # key: self.inputs[key]
