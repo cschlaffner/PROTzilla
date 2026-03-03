@@ -2,11 +2,11 @@ from __future__ import annotations
 from abc import ABC
 from typing_extensions import override
 
-import pandas as pd
 import restring
 import gseapy
 from backend.protzilla import form_helper
 from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_integration import (
     database_integration,
     di_plots,
@@ -17,16 +17,24 @@ from backend.protzilla.data_integration.database_query import (
     uniprot_databases,
 )
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
-from backend.protzilla.form import *
-from backend.protzilla.steps import Plots, Step, StepManager, Section
+from backend.protzilla.form import (
+    CheckboxField,
+    DropdownField,
+    Enum,
+    FileInput,
+    FloatField,
+    Form,
+    MultiSelectField,
+    NumberField,
+    TextField,
+)
+from backend.protzilla.run import Run
+from backend.protzilla.steps import Plots, Step, Section
+from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_integration.enrichment_analysis import (
     GOAnalysisOflineBackgroundType,
     GOAnalysisWithEnrichrBackgroundType,
 )
-import matplotlib.colors as mcolors
-
-PROTEIN_DF = "protein_df"
-DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
 
 
 class Direction(Enum):
@@ -100,29 +108,27 @@ class EnrichmentAnalysisStep(DataIntegrationStep, ABC):
 
 
 class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
-    output_keys = ["enrichment_df"]
+    output_keys = [DataKey.ENRICHMENT_DF]
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.get_step_output(
-            output_key=DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
-            instance_identifier=self.inputs["protein_df_field"],
-        )
+        super().insert_dataframes(steps)
+        self.inputs["differential_expression_col"] = "log2_fold_change"
         if (
-            self.inputs.get("protein_df") is None
-            or not "log2_fold_change" in self.inputs["protein_df"].columns
+            self.inputs.get(DataKey.PROTEIN_DF) is None
+            or not self.inputs["differential_expression_col"]
+            in self.inputs[DataKey.PROTEIN_DF].columns
         ):
             raise ValueError(
-                "No data found to be enriched. Please do a differential expression analysis first or select the corrent step"
+                "No data found to be enriched. Please do a differential expression analysis first or select the correct step"
             )
-        # TODO: this is broken, log fold changes are now returned in their own dataframes
-        self.inputs["differential_expression_col"] = "log2_fold_change"
 
 
 class DataIntegrationPlotStep(DataIntegrationStep, ABC):
     operation = "plot"
 
-    def handle_calc_outputs(self, outputs: dict):
+    @override
+    def handle_calc_outputs(self, outputs: dict) -> None:
         super().handle_calc_outputs(outputs)
         plots = outputs["plots"] if "plots" in outputs else []
         self.plots = Plots(plots)
@@ -136,10 +142,6 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis with STRING",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
-                ),
                 NumberField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
@@ -171,16 +173,12 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        gene_sets_restring_field = form["gene_sets_restring"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        gene_sets_restring_field: MultiSelectField = self.form["gene_sets_restring"]
 
-        protein_df_field.set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )
-
-        gene_sets_restring_field.options = form_helper.to_choices(
-            restring.settings.file_types
+        gene_sets_restring_field.set_options(
+            form_helper.to_choices(restring.settings.file_types)
         )
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_with_STRING)
@@ -196,10 +194,6 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis with Enrichr",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC). Maybe do a differential expression analysis first",
-                ),
                 NumberField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
@@ -207,10 +201,6 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     min=0,
                     max=4294967295,
                     value=0,
-                ),
-                DropdownField(
-                    name="gene_mapping_step_instance",
-                    label="Gene mapping",
                 ),
                 DropdownField(
                     name="direction",
@@ -267,23 +257,15 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        gene_sets_field = form["gene_sets_field"]
-        gene_sets_enricher_field = form["gene_sets_enrichr"]
-        gene_sets_path_field = form["gene_sets_path"]
-        background_type_field = form["background_type"]
-        background_biomart_field = form["background_biomart"]
-        background_path_field = form["background_path"]
-        background_number_field = form["background_number"]
-
-        protein_df_field.set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )
-        gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(run, "gene_mapping_df")
-        )
+    @override
+    def modify_form(self, run: Run) -> None:
+        gene_sets_field: DropdownField = self.form["gene_sets_field"]
+        gene_sets_enricher_field: DropdownField = self.form["gene_sets_enrichr"]
+        gene_sets_path_field: FileInput = self.form["gene_sets_path"]
+        background_type_field: DropdownField = self.form["background_type"]
+        background_biomart_field: DropdownField = self.form["background_biomart"]
+        background_path_field: FileInput = self.form["background_path"]
+        background_number_field: NumberField = self.form["background_number"]
 
         for field_name in [
             "gene_sets_enrichr",
@@ -292,7 +274,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
             "background_number",
             "background_biomart",
         ]:
-            form[field_name].isVisible = False
+            self.form[field_name].isVisible = False
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enricher_field.isVisible = True
@@ -329,15 +311,6 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         ):
             background_number_field.isVisible = True
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-
-        self.inputs["gene_mapping_df"] = steps.get_step_output(
-            output_key="gene_mapping_df",
-            instance_identifier=self.inputs["gene_mapping_step_instance"],
-        )
-
 
 class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
     display_name = "GO analysis offline"
@@ -350,10 +323,6 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis offline",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dataframe with protein IDs and direction of expression change column (e.g. log2FC)",
-                ),
                 NumberField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
@@ -363,10 +332,6 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
                     value=0,
                     min=0,
                     max=4294967295,
-                ),
-                DropdownField(
-                    name="gene_mapping_step_instance",
-                    label="Gene mapping",
                 ),
                 FileInput(
                     name="gene_sets_path",
@@ -403,19 +368,11 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        background_type_field = form["background_type"]
-        background_path_field = form["background_path"]
-        background_number_field = form["background_number"]
-
-        protein_df_field.set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )
-        gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(run, "gene_mapping_df")
-        )
+    @override
+    def modify_form(self, run: Run) -> None:
+        background_type_field: DropdownField = self.form["background_type"]
+        background_path_field: FileInput = self.form["background_path"]
+        background_number_field: NumberField = self.form["background_number"]
 
         background_path_field.isVisible = False
         background_number_field.isVisible = False
@@ -431,36 +388,12 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
         ):
             background_number_field.isVisible = True
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
 
-        self.inputs["gene_mapping_df"] = steps.get_step_output(
-            output_key="gene_mapping_df",
-            instance_identifier=self.inputs["gene_mapping_step_instance"],
-        )
-
-
-class EnrichmentAnalysisGSEAStep(EnrichmentAnalysisStep):
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.get_step_output(
-            output_key="differentially_expressed_proteins_df",
-            instance_identifier=self.inputs["protein_df_field"],
-        )
-        self.inputs["metadata_df"] = steps.metadata_df
-        self.inputs["gene_mapping_df"] = steps.get_step_output(
-            output_key="gene_mapping_df",
-            instance_identifier=self.inputs["gene_mapping_step_instance"],
-        )
-
-
-class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
+class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
     display_name = "GSEA"
     method_description = "Perform gene set enrichment analysis"
 
-    output_keys = ["enrichment_df", "ranking"]
+    output_keys = [DataKey.ENRICHMENT_DF, "ranking"]
 
     calc_method = staticmethod(enrichment_analysis.gsea)
 
@@ -468,14 +401,6 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
         return Form(
             label="GSEA",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dataframe with protein IDs, samples and intensities",
-                ),
-                DropdownField(
-                    name="gene_mapping_step_instance",
-                    label="Gene mapping",
-                ),
                 DropdownField(
                     # TODO: Dynamic parameters
                     name="gene_sets_type",
@@ -543,22 +468,14 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        gene_sets_field = form["gene_sets_type"]
-        gene_sets_enrichr_field = form["gene_sets_enrichr"]
-        gene_sets_path_field = form["gene_sets_path"]
-        grouping_field = form["grouping"]
-        group1_field = form["group1"]
-        group2_field = form["group2"]
-
-        protein_df_field.set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )
-        gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(run, "gene_mapping_df")
-        )
+    @override
+    def modify_form(self, run: Run) -> None:
+        gene_sets_field: DropdownField = self.form["gene_sets_type"]
+        gene_sets_enrichr_field: DropdownField = self.form["gene_sets_enrichr"]
+        gene_sets_path_field: FileInput = self.form["gene_sets_path"]
+        grouping_field: DropdownField = self.form["grouping"]
+        group1_field: DropdownField = self.form["group1"]
+        group2_field: DropdownField = self.form["group2"]
 
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
@@ -573,39 +490,33 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisGSEAStep):
         else:
             gene_sets_path_field.isVisible = True
 
-        grouping_field.set_options(
-            form_helper.get_choices_for_metadata_non_sample_columns(run)
-        )
+        # TODO: transfer method for this from data_analysis to form_helper
 
-        if not grouping_field.value:
-            return
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
 
-        group1_field.set_options(
-            form_helper.to_choices(run.steps.metadata_df[grouping_field.value].unique())
-        )
-        if group1_field.value in run.steps.metadata_df[grouping_field.value].unique():
-            group2_field.set_options(
-                [
-                    Option(el, el)
-                    for el in run.steps.metadata_df[grouping_field.value].unique()
-                    if el != group1_field.value
-                ]
+        if metadata_df is not None:
+            grouping_field.set_options(
+                form_helper.to_choices(metadata_df.columns.unique().to_list())
             )
-        else:
+
+        grouping = grouping_field.value
+        if metadata_df is not None and grouping:
+
+            groups_choices = form_helper.to_choices(
+                metadata_df[grouping].unique().tolist()
+            )
+
+            group1_field.set_options(groups_choices)
             group2_field.set_options(
-                reversed(
-                    form_helper.to_choices(
-                        run.steps.metadata_df[grouping_field.value].unique()
-                    )
-                )
+                [group for group in groups_choices if group.value != group1_field.value]
             )
 
 
-class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisGSEAStep):
+class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
     display_name = "GSEA preranked"
     method_description = "Maps proteins to genes and performs GSEA according using provided numerical column for ranking"
 
-    output_keys = ["enrichment_df", "ranking"]
+    output_keys = [DataKey.ENRICHMENT_DF, "ranking"]
 
     calc_method = staticmethod(enrichment_analysis.gsea_preranked)
 
@@ -613,14 +524,6 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisGSEAStep):
         return Form(
             label="GSEA preranked",
             input_fields=[
-                DropdownField(
-                    name="protein_df_field",
-                    label="Dataframe with protein IDs, samples and intensities",
-                ),
-                DropdownField(
-                    name="gene_mapping_step_instance",
-                    label="Gene mapping",
-                ),
                 DropdownField(
                     name="ranking_column",
                     label="Column to use for ranking",
@@ -687,33 +590,18 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisGSEAStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        protein_df_field = form["protein_df_field"]
-        gene_mapping_step_instance_field = form["gene_mapping_step_instance"]
-        ranking_column_field = form["ranking_column"]
+    @override
+    def modify_form(self, run: Run) -> None:
+        ranking_column_field: DropdownField = self.form["ranking_column"]
 
-        protein_df_field.set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )
+        protein_df = self.get_input(run.steps, DataKey.PROTEIN_DF)
+        if protein_df is not None:
+            columns = protein_df.columns.to_list()
+            ranking_column_field.set_options(form_helper.to_choices(columns))
 
-        gene_mapping_step_instance_field.set_options(
-            form_helper.get_choices(run, "gene_mapping_df")
-        )
-
-        if protein_df_field.value:
-            column_names = list(
-                run.steps.get_step_output(
-                    output_key="differentially_expressed_proteins_df",
-                    instance_identifier=protein_df_field.value,
-                )
-            )
-            ranking_column_field.set_options([Option(el, el) for el in column_names])
-        else:
-            ranking_column_field.set_options()
-
-        gene_sets_field = form["gene_sets_field"]
-        gene_sets_enrichr_field = form["gene_sets_enrichr"]
-        gene_sets_path_field = form["gene_sets_path"]
+        gene_sets_field: DropdownField = self.form["gene_sets_field"]
+        gene_sets_enrichr_field: DropdownField = self.form["gene_sets_enrichr"]
+        gene_sets_path_field: FileInput = self.form["gene_sets_path"]
 
         gene_sets_enrichr_field.isVisible = False
         gene_sets_path_field.isVisible = False
@@ -749,26 +637,13 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
                     label="Use Biomart after Uniprot databases (online)",
                     value=False,
                 ),
-                DropdownField(
-                    name="protein_df_field",
-                    label="Step to use",
-                ),
             ],
         )
 
-    def modify_form(self, form, run):
-        form["database_names"].set_options(form_helper.to_choices(uniprot_databases()))
-
-        form["dataframe"].set_options(
-            form_helper.get_choices(run, DIFFERENTIALLY_EXPRESSED_PROTEINS_DF)
-        )  # TODO this looks and sounds very generic, be more specific, maybe it needs diffexp step
-
     @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["protein_df"] = steps.get_step_output(
-            output_key="differentially_expressed_proteins_df",
-            instance_identifier=self.inputs["protein_df_field"],
-        )
+    def modify_form(self, run: Run) -> None:
+        database_names_field: MultiSelectField = self.form["database_names"]
+        database_names_field.set_options(form_helper.to_choices(uniprot_databases()))
 
 
 class DatabaseIntegrationByUniprot(DataIntegrationStep):
@@ -797,11 +672,6 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
             ],
         )
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        # TODO: there should probably be sth here?
-        pass
-
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
     display_name = "Bar plot for GO enrichment analysis"
@@ -813,10 +683,6 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
         return Form(
             label="Bar plot for GO enrichment analysis",
             input_fields=[
-                DropdownField(
-                    name="input_df_field",
-                    label="Choose dataframe to be plotted",
-                ),
                 DropdownField(
                     name="value",
                     label="Value (bars will be plotted as -log10(value)), fdr only for GO analysis with STRING, p_value is adjusted if available",
@@ -850,37 +716,18 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        form["input_df_field"].set_options(
-            form_helper.get_choices(run, "enrichment_df")
-        )
-        if (not form["input_df_field"].value) and form["input_df_field"].options:
-            form["input_df_field"].value = form["input_df_field"].options[0].label
+    @override
+    def modify_form(self, run: Run) -> None:
+        gene_sets_field: MultiSelectField = self.form["gene_sets"]
 
-        if form["input_df_field"].value:
-            enrichment_df = run.steps.get_step_output(
-                output_key="enrichment_df",
-                instance_identifier=form["input_df_field"].value,
+        enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
+
+        if enrichment_df is not None:
+            gene_sets_field.set_options(
+                form_helper.to_choices(enrichment_df["Gene_set"].unique().tolist())
             )
 
-            if isinstance(enrichment_df, pd.DataFrame):
-                form["gene_sets"].set_options(
-                    form_helper.to_choices(enrichment_df["Gene_set"].unique())
-                )
-            else:
-                form["gene_sets"].set_options([])
-
     plot_method = staticmethod(di_plots.GO_enrichment_bar_plot)
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["figsize"] = (
-            None  # TODO: this should not have to be done manually if the parameter is optional
-        )
-        self.inputs["input_df"] = steps.get_step_output(
-            output_key="enrichment_df",
-            instance_identifier=self.inputs["input_df_field"],
-        )
 
 
 class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
@@ -895,11 +742,6 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
         return Form(
             label="Dot plot for GO enrichment analysis",
             input_fields=[
-                DropdownField(
-                    # TODO: input_df fill dynamic with modify_form
-                    name="input_df",
-                    label="Choose Enrichment dataframe to be plotted",
-                ),
                 DropdownField(
                     name="x_axis_type",
                     label="Variable for x-axis: categorical scatter plot for one or multiple gene "
@@ -948,20 +790,21 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        form["gene_sets"].set_options(
-            [
-                Option(el, el)
-                for el in run.steps.protein_df.get(
-                    "enrichment_categories", pd.Series()
-                ).unique()
-            ]
-        )
-
     @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        # TODO: there should definitely be sth here
-        pass
+    def modify_form(self, run: Run) -> None:
+        gene_sets_field: MultiSelectField = self.form["gene_sets"]
+
+        enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
+
+        if (
+            enrichment_df is not None
+            and "enrichment_categories" in enrichment_df.columns
+        ):
+            gene_sets_field.set_options(
+                form_helper.to_choices(
+                    enrichment_df["enrichment_categories"].unique().tolist()
+                )
+            )
 
 
 class PlotGSEADotPlot(DataIntegrationPlotStep):
@@ -976,10 +819,6 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
-                DropdownField(
-                    name="gsea_df_step_instance",
-                    label="Choose enrichment dataframe to be plotted",
-                ),
                 MultiSelectField(
                     name="gene_sets",
                     label="Sets to be plotted",
@@ -1026,19 +865,6 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
             ],
         )
 
-    def modify_form(self, form, run):
-        gsea_df_step_instance_field = form["gsea_df_step_instance"]
-        gsea_df_step_instance_field.set_options(
-            form_helper.get_choices(run, "enrichment_df")
-        )
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["gsea_df"] = steps.get_step_output(
-            output_key="enrichment_df",
-            instance_identifier=self.inputs["gsea_df_step_instance"],
-        )
-
 
 class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
     display_name = "Enrichment plot for (pre-ranked) GSEA"
@@ -1074,8 +900,3 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
                 ),
             ],
         )
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        # TODO: missing data to plot
-        pass

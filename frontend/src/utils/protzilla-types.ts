@@ -9,11 +9,22 @@ export interface SelectedStep {
   index: number;
 }
 
+export type StepID = string;
+
+export interface StepOutputInfo {
+  label: string;
+  display_name: string;
+}
+
+// We assume these are the only data types we receive for tables
+export type TableRecord = Record<string, number | string | null>;
+
 export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 
 export interface Step {
   id: string;
   name: string;
+  section: SectionIDs;
   input_keys: string[];
   output_keys: string[];
   visual_data?: {
@@ -36,31 +47,29 @@ export const enum SectionIDs {
 export interface Section {
   id: SectionIDs;
   name: string;
-  steps: Step[];
 }
 
-export const emptySections: Section[] = [
+export const supportedSections: Section[] = [
   {
     id: SectionIDs.Importing,
     name: "Importing",
-    steps: [],
   },
   {
     id: SectionIDs.DataPreprocessing,
     name: "Data Preprocessing",
-    steps: [],
   },
   {
     id: SectionIDs.DataAnalysis,
     name: "Data Analysis",
-    steps: [],
   },
   {
     id: SectionIDs.DataIntegration,
     name: "Data Integration",
-    steps: [],
   },
 ];
+
+// TODO: remove with List editor refactoring
+export const emptySections: Section[] = supportedSections;
 
 export interface Run {
   run_name: string;
@@ -74,18 +83,20 @@ export interface Run {
 
 export interface RunData {
   current_section: string;
-  current_step_index: number;
-  displayed_steps: Section[];
+  current_step_id: StepID;
+  displayed_steps: Step[];
   memory_usage: string;
   current_step_has_plot: boolean;
+  recommended_next_step_id: StepID;
 }
 
 export const emptyRunData: RunData = {
   current_section: "",
-  current_step_index: 0,
-  displayed_steps: emptySections,
+  current_step_id: "",
+  displayed_steps: [],
   memory_usage: "",
   current_step_has_plot: false,
+  recommended_next_step_id: "",
 };
 
 export interface Table {

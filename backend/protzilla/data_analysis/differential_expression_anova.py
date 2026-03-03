@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from backend.protzilla.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
@@ -22,7 +25,6 @@ def anova(
     grouping: str,
     log_base: str = None,
     selected_groups: list = None,
-    intensity_name: str = None,
 ) -> dict:
     """
         A function that uses ANOVA to test the difference between two or more
@@ -37,7 +39,6 @@ def anova(
         :param multiple_testing_correction_method: the method for multiple testing correction
         :param alpha: the alpha value for anova
         :param log_base: in case the data was previously log transformed this parameter contains the base as a string
-        :param intensity_name: name of the column containing the protein group intensities
         :return: a dict containing
     - a df differentially_expressed_proteins_df in typical protzilla long format containing the anova results
                 corrected_p_value per non-filtered protein
@@ -52,7 +53,7 @@ def anova(
     protein_df, selected_groups, messages = preprocess_grouping(
         protein_df, metadata_df, grouping, selected_groups
     )
-    intensity_name = default_intensity_column(protein_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 

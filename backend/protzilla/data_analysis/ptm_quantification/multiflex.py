@@ -14,7 +14,7 @@ from scipy import stats
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import cdist
 
-from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
+from backend.protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
 
 
 class MultiFlexColorMaps(Enum):

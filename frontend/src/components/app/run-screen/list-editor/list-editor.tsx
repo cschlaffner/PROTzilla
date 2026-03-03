@@ -62,28 +62,19 @@ export const ListEditor: React.FC<ListEditorProps> = ({
     setSections(runData.displayed_steps);
   }, [runData]);
 
+  const previousStepCalculationStatus = "complete";
+
   const currentSection = sections.find(
     (section) => (section.id as string) === runData.current_section,
   );
-
-  const previousStep = translateGlobalToSectionIndex(
-    Math.max(runData.current_step_index - 1, 0),
-    sections,
-  );
-
-  const previousSection = sections.find((section) => section.id === previousStep.section);
 
   const stepSectionIndex = translateGlobalToSectionIndex(
     runData.current_step_index,
     sections,
   ).index;
 
-  const previousStepCalculationStatus =
-    runData.current_step_index === 0
-      ? "complete"
-      : previousSection?.steps[previousStep.index]?.status;
-
   const currentStepCalculationStatus = currentSection?.steps[stepSectionIndex]?.status;
+  // <<
 
   const buttonText =
     currentStepCalculationStatus === "complete"
@@ -93,7 +84,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({
         : "Calculate";
 
   const onNext = () => {
-    navigateOrRefreshSteps(translateGlobalToSectionIndex(runData.current_step_index + 1, sections));
+    console.error("Not implemented.");
   };
 
   const onFormChanged = useCallback(() => {

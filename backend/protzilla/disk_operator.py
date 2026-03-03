@@ -11,11 +11,13 @@ import pandas as pd
 import yaml
 from plotly.io import read_json, write_json
 
-import backend.protzilla.utilities as utilities
+from backend.protzilla.constants.data_types import DataKey
+import backend.protzilla.utilities.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
+from backend.protzilla.steps import Messages, Output, Plots, Step
+from backend.protzilla.step_manager import StepManager
 
 try:
     from django.conf import settings
@@ -47,7 +49,7 @@ class YamlOperator:
         with ErrorHandler():
             with open(file_path, "r") as file:
                 logger.info(f"Reading yaml from {file_path}")
-                return yaml.safe_load(file)
+                return yaml.full_load(file)
 
     @staticmethod
     def write(file_path: Path, data: dict):
@@ -82,19 +84,20 @@ RUN_FILE = "run.yaml"
 @dataclass
 class KEYS:
     # We add this here to avoid typos and signal to the developer that accessing the keys should be done through this class only
-    CURRENT_STEP_INDEX = "current_step_index"
-    STEPS = "steps"
-    STEP_OUTPUTS = "output"
-    STEP_FORM_INPUTS = "form_inputs"
-    STEP_INPUTS = "inputs"
-    STEP_MESSAGES = "messages"
-    STEP_PLOTS = "plots"
-    STEP_INSTANCE_IDENTIFIER = "instance_identifier"
-    STEP_TYPE = "type"
-    STEP_CALCULATION_STATUS = "calculation_status"
-    DF_MODE = "df_mode"
-    INPUT_SOURCES = "input_sources"
-    VISUAL_DATA = "visual_data"
+    STEPS: str = "steps"
+    STEP_OUTPUTS: str = "output"
+    STEP_FORM_INPUTS: str = "form_inputs"
+    STEP_INPUTS: str = "inputs"
+    STEP_MESSAGES: str = "messages"
+    STEP_PLOTS: str = "plots"
+    STEP_INSTANCE_IDENTIFIER: str = "instance_identifier"
+    STEP_TYPE: str = "type"
+    STEP_CALCULATION_STATUS: str = "calculation_status"
+    DF_MODE: str = "df_mode"
+    VISUAL_DATA: str = "visual_data"
+    CURRENT_STEP_ID: str = "current_step_id"
+    GRAPH_EDGES: str = "graph_edges"
+    ID_CLOCK: str = "id_clock"
 
 
 class DiskOperator:
@@ -117,13 +120,17 @@ class DiskOperator:
                     continue
                 step_manager.add_step(step)
 
-            # this expression ensures that the current step index is within the bounds of the steps list, and at least 0
-            step_manager.current_step_index = max(
-                0,
-                min(
-                    run.get(KEYS.CURRENT_STEP_INDEX, 0), len(step_manager.all_steps) - 1
-                ),
-            )
+            edges = run.get(KEYS.GRAPH_EDGES)
+            if edges is not None:
+                step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])
+
+            id_clock = run.get(KEYS.ID_CLOCK)
+            if id_clock is not None:
+                step_manager._id_clock = id_clock
+
+            current_step_id = run.get(KEYS.CURRENT_STEP_ID)
+            step_manager._current_selected_step_id = current_step_id
+
             return step_manager
 
     def write_run(self, step_manager: StepManager) -> None:
@@ -134,10 +141,12 @@ class DiskOperator:
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
             run = {}
-            run[KEYS.CURRENT_STEP_INDEX] = step_manager.current_step_index
+            run[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
-            for step in step_manager.all_steps:
+            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
+            run[KEYS.ID_CLOCK] = step_manager._id_clock
+            for step in step_manager.all_step_instances:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
 
@@ -199,8 +208,11 @@ class DiskOperator:
         workflow = {}
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
+        workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
+        workflow[KEYS.ID_CLOCK] = step_manager._id_clock
+        workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
-            for step in step_manager.all_steps:
+            for step in step_manager.all_step_instances:
                 step_data = self._write_step(step, workflow_mode=True).copy()
                 inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
                 inputs_to_write = {}
@@ -228,7 +240,7 @@ class DiskOperator:
         return any(
             step.instance_identifier in file.name
             and step.calculation_status != "incomplete"
-            for step in steps.all_steps
+            for step in steps.all_step_instances
         )
 
     def clean_dataframes_dir(self, steps: StepManager) -> None:
@@ -261,7 +273,6 @@ class DiskOperator:
             step.inputs = step_data.get(KEYS.STEP_INPUTS, {})
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
-            step.input_sources = step_data.get(KEYS.INPUT_SOURCES, {})
             step.visual_data = step_data.get(
                 KEYS.VISUAL_DATA, {"node_position": {"x": 0, "y": 0}}
             )
@@ -287,13 +298,12 @@ class DiskOperator:
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
+            step_data[KEYS.VISUAL_DATA] = step.visual_data
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
-                step_data[KEYS.INPUT_SOURCES] = step.input_sources
-                step_data[KEYS.VISUAL_DATA] = step.visual_data
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
@@ -410,5 +420,5 @@ def sanitize_inputs(inputs: dict) -> dict:
         for key, value in inputs.items()
         if type(value) != pd.DataFrame
         and not utilities.check_is_path(value)
-        and key != "peptide_df"
+        and key != DataKey.PEPTIDE_DF
     }

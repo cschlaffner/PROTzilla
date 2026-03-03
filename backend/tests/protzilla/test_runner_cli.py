@@ -1,11 +1,10 @@
 import logging
-import sys
 from unittest import mock
 
 import pytest
 import yaml
 
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 
 from backend.protzilla.runner import Runner
 from runner_cli import args_parser

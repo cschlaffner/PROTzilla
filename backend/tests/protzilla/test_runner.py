@@ -7,14 +7,14 @@ import pytest
 
 from backend.main import settings
 from backend.protzilla.runner import _serialize_graphs
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from protzilla import disk_operator
-from protzilla.runner import Runner
+from backend.protzilla import disk_operator
+from backend.protzilla.runner import Runner
 from runner_cli import args_parser
 
 

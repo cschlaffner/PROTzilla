@@ -10,7 +10,10 @@ from backend.protzilla.constants.option_types import (
     LOG2_FOLD_CHANGE_COLUMNS,
     T_STATISTIC_COLUMNS,
 )
-from backend.protzilla.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
@@ -33,7 +36,6 @@ def t_test(
     multiple_testing_correction_method: str,
     alpha: float,
     log_base: str = None,
-    intensity_name: str = None,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
 ) -> dict:
@@ -50,7 +52,6 @@ def t_test(
     :param multiple_testing_correction_method: the method for multiple testing correction
     :param alpha: the p-value cut-off before multiple testing correction
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
-    :param intensity_name: name of the column containing the protein group intensities
     :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
     :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
 
@@ -99,7 +100,7 @@ def t_test(
         copy=False,
     )
 
-    intensity_name = default_intensity_column(protein_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
@@ -160,11 +161,11 @@ def t_test(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),

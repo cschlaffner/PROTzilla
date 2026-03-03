@@ -42,6 +42,7 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   sectionName,
   sectionLength,
   index,
+  step_id,
   isSelected,
   navigateOrRefreshSteps,
   deleteStep,
@@ -95,15 +96,12 @@ export const SidebarStep: React.FC<SidebarStepProps> = ({
   };
 
   const handleClick = () => {
-    navigateOrRefreshSteps({
-      section: sectionName,
-      index: index,
-    });
+    navigateOrRefreshSteps(step_id);
   };
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    deleteStep(index);
+    deleteStep(step_id);
   };
 
   return (

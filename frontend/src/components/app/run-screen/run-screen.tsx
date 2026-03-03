@@ -16,9 +16,11 @@ import {
   dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  SelectedStep,
+  StepID,
   SwitchComponent,
   Table,
+  SelectedStep,
+  StepOutputInfo,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -89,26 +91,25 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [tableData, setTableData] = useState<Table[]>();
+  const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
   const runDataRequestID = useRef(0);
 
-  const navigateOrRefreshSteps = (selectedStep?: SelectedStep) => {
+  const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
       If a step is selected, navigate to that step.
       If no step is selected, just refresh the run data to update the run list.
     */
 
-    if (selectedStep) {
+    if (stepID) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
-        section: selectedStep.section,
-        index: String(selectedStep.index),
+        step_id: stepID,
       }).then(() => {
         void getRunData();
         void getStepPlots();
-        void getStepTable(); // Bloat :c
+        void getCurrentStepOutputLabels();
       });
     } else {
       void getRunData();
@@ -145,28 +146,28 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
-  const getStepTable = useCallback(async () => {
-    const response = await callApiWithParameters("get_step_table/", {
+  const getCurrentStepOutputLabels = useCallback(async () => {
+    const response = await callApiWithParameters("get_current_step_output_labels/", {
       run_name: runName,
     });
     if (response) {
-      const data = response.data;
-      setTableData(data);
+      const data = response.outputs;
+      setAvailableTables(data);
     }
   }, [runName]);
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([getRunData(), getStepPlots(), getStepTable()]);
+      await Promise.all([getRunData(), getStepPlots(), getCurrentStepOutputLabels()]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepTable]);
+  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
     void getRunData();
     void getStepPlots();
-    void getStepTable();
+    void getCurrentStepOutputLabels();
   };
 
   const handleDownloadPlot = (plot: Figure) => {
@@ -210,29 +211,27 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const singleTableComponent = (table: Table) => (
+  const singleTableComponent = (tableLabel: string) => (
     <StyledContentDiv>
-      <DataTable data={table.table} />
-      <StyledCSVButton data={table.table} fileName={table.name} />
+      <DataTable runName={runName} tableLabel={tableLabel} />
+      <StyledCSVButton runName={runName} tableLabel={tableLabel} fileName={tableLabel} />
     </StyledContentDiv>
   );
 
   const tableComponent = (
     <StyledContentContainer>
-      {tableData && tableData.length > 0 ? (
+      {availableTables && availableTables.length > 0 ? (
         <SwitchCard
           hasShadow={false}
-          components={tableData.map((table) => ({
-            value: singleTableComponent(table),
-            name: table.name,
+          components={availableTables.map((output_info) => ({
+            value: singleTableComponent(output_info.label),
+            name: output_info.display_name,
           }))}
         />
       ) : (
         <SectionTitle
           baseComponent={"h4"}
-          description={
-            "No data table available for this step (yet). With large datasets it may take a while for tables to be displayed."
-          }
+          description={"This step does not provide any tables as output."}
         />
       )}
     </StyledContentContainer>
@@ -251,23 +250,23 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  const listEditorComponent = (
-    <ListEditor
-      onFormSubmit={onFormSubmit}
-      runName={runName}
-      navigateOrRefreshSteps={navigateOrRefreshSteps}
-      runData={runData}
-    />
-  );
+  // const listEditorComponent = (
+  //   <ListEditor
+  //     onFormSubmit={onFormSubmit}
+  //     runName={runName}
+  //     navigateOrRefreshSteps={navigateOrRefreshSteps}
+  //     runData={runData}
+  //   />
+  // );
 
   const editorModes = [
-    { name: "List", value: listEditorComponent },
-    { name: "Node", value: nodeEditorComponent },
+    // { name: "List", value: listEditorComponent },
+    { name: "Flow", value: nodeEditorComponent },
   ];
 
   // TODO: Replace this with appropriate data from runData
   // Else it resets whenever the run data is reset
-  const selectedEditorMode: SwitchComponent["name"] = "Node";
+  const selectedEditorMode: SwitchComponent["name"] = "Flow";
   // const selectedEditorMode = runData.editor_mode;
 
   const selectEditorMode = (mode: SwitchComponent) => {

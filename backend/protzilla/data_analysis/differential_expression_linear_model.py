@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-from backend.protzilla.utilities import default_intensity_column, exists_message
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
@@ -22,7 +25,6 @@ def linear_model(
     multiple_testing_correction_method: str,
     alpha: float,
     log_base: str = None,
-    intensity_name: str = None,
 ) -> dict:
     """
     A function to fit a linear model using Ordinary Least Squares for each Protein.
@@ -38,7 +40,6 @@ def linear_model(
     :param multiple_testing_correction_method: the method for multiple testing correction
     :param alpha: the alpha value for the linear model
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
-    :param intensity_name: name of the column containing the protein group intensities
 
     :return: a dataframe in typical protzilla long format with the differentially expressed
         proteins and a dict, containing the corrected p-values and the log2 fold change (coefficients), the alpha used
@@ -71,7 +72,7 @@ def linear_model(
         on="Sample",
         copy=False,
     )
-    intensity_name = default_intensity_column(protein_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
@@ -138,11 +139,11 @@ def linear_model(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change"]
             ),
             corrected_p_values_df=pd.DataFrame(

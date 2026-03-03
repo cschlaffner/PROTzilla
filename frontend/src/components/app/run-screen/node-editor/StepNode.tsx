@@ -1,7 +1,7 @@
 import type { DefaultColoredIconType, IconType } from "@protzilla/core";
 import { ContentText, DefaultColoredIcon, Icon } from "@protzilla/core";
 import { defaultPalette } from "@protzilla/theme";
-import { type SectionIDs, type SelectedStep, type Step } from "@protzilla/utils";
+import { type SectionIDs, type Step, type StepID } from "@protzilla/utils";
 import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
@@ -18,10 +18,9 @@ export interface HoveredHandleMeta {
 
 export interface StepNodeData extends Record<string, unknown> {
   step: Step;
-  step_index_within_section: number;
   section: SectionIDs;
   isSelected: boolean;
-  navigateOrRefreshSteps: (selectedStep?: SelectedStep) => void;
+  navigateOrRefreshSteps: (stepID?: StepID) => void;
   setHoveredHandleMeta: React.Dispatch<React.SetStateAction<HoveredHandleMeta>>;
 }
 
@@ -76,10 +75,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
   const onElementClick = () => {
     console.log(data.step.name); // TODO: still required?
-    data.navigateOrRefreshSteps({
-      section: data.section,
-      index: data.step_index_within_section,
-    });
+    data.navigateOrRefreshSteps(data.step.id);
   };
 
   const icon: DefaultColoredIconType = data.step.status;

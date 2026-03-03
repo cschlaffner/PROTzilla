@@ -19,8 +19,8 @@ from backend.protzilla.data_integration.database_query import (
     uniprot_databases,
 )
 from backend.protzilla.disk_operator import YamlOperator
-from main.views_helper import load_yaml_from_file
-from protzilla.constants.paths import (
+from backend.main.views_helper import load_yaml_from_file
+from backend.protzilla.constants.paths import (
     CUSTOM_PLOT_SETTINGS_FILE_STEM,
     DEFAULT_PLOT_SETTINGS_FILE_STEM,
     DEFAULT_PTM_SETTINGS_FILE_STEM,

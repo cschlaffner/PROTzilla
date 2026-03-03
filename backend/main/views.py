@@ -1,15 +1,12 @@
 import json
-import io
 from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
-from pathlib import Path
 import re
-import traceback
+import logging
+from typing import Any
 
 import numpy as np
-from django.contrib import messages
-from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
@@ -35,9 +32,8 @@ from backend.protzilla.constants.paths import (
     RUNS_PATH,
     WORKFLOWS_PATH,
 )
-from backend.protzilla.utilities import format_trace, get_memory_usage
+from backend.protzilla.utilities.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
-from backend.protzilla.steps import Step
 from backend.main.views_helper import (
     get_display_name,
     get_step,
@@ -45,11 +41,12 @@ from backend.main.views_helper import (
     parameters_from_post,
     sanitize_name,
 )
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
-dataframes = ["protein_df", "metadata_df", "peptide_df", "modification_df"]
+# Labels of outputs not sent via the output tables API
+hidden_outputs = ["messages"]
 
 
 @ensure_csrf_cookie
@@ -358,68 +355,38 @@ def add_step(request):
 
 
 def delete_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
-
-        index = int(index)
-        run = Run(run_name)
-
-        if (
-            section == run.current_step.section
-            and index == run.steps.current_step_index_in_section
-        ):
-            # if the step to be deleted is the current step, we need to go to the next step first
-            if run.steps.current_step_index > 0:
-                run.step_previous()
-            else:
-                return JsonResponse(
-                    {"success": False, "message": "Cannot delete the first step"},
-                    status=405,
-                )
-
-        run.step_remove(step_index=index, section=section)
-
-        return JsonResponse({"success": True, "message": "Deleted step"})
-    else:
+    """
+    API call. Deletes the step with the given instance identifier
+    """
+    if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
 
-def update_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        method = data.get("method")
+    run = Run(run_name)
 
-        run = Run(run_name)
-
-        run.step_change_method(method)
-
-        return JsonResponse({"success": True, "message": "Updated step method"})
-    else:
+    try:
+        run.step_remove(step_id)
+    except ValueError as e:
         return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
+            {"success": False, "message": "Cannot delete step: " + str(e)}
         )
+
+    return JsonResponse({"success": True, "message": "Deleted step"})
 
 
 def navigate_to_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
+        step_id = data.get("step_id")
 
-        index = int(index)
         run = Run(run_name)
-        run.step_goto(index, section)
+        run.step_goto(step_id)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
     else:
@@ -458,10 +425,7 @@ def connect_steps(request) -> JsonResponse:
         connection: Connection = data.get("connection")
         run = Run(run_name)
         try:
-            # TODO: this would also modify the form:
-            # run.connect_steps(connection)
-            # however, currently the form isn't reloaded after connect_steps calls anyways, so we might as well just bypass the overhead until it is
-            _ = run.steps.connect_steps(connection)
+            run.steps.connect_steps(connection)
             return JsonResponse(
                 {
                     "success": True,
@@ -499,10 +463,7 @@ def disconnect_steps(request) -> JsonResponse:
         connection = data.get("connection")
         run = Run(run_name)
         try:
-            # TODO: this would also modify the form:
-            # run.disconnect_steps(connection)
-            # however, currently the form isn't reloaded after disconnect_steps calls anyways, so we might as well just bypass the overhead until it is
-            _ = run.steps.disconnect_steps(connection)
+            run.steps.disconnect_steps(connection)
             return JsonResponse(
                 {
                     "success": True,
@@ -637,32 +598,6 @@ def delete_workflow(request):
         )
 
 
-def download_table(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        index = data.get("index")
-        key = data.get("key")
-
-        run = Run(run_name)
-
-        instance_id = run.steps.all_steps[index].instance_identifier
-        buffer = io.StringIO()
-        df: pd.DataFrame = run.steps.get_step_output(
-            output_key=key, instance_identifier=instance_id, include_current_step=True
-        )
-        df.to_csv(buffer)
-
-        buffer.seek(0)
-        csv_bytes = buffer.getvalue()
-
-        return FileResponse(csv_bytes, content_type="text/csv")
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
-
 def get_run_data(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -674,15 +609,19 @@ def get_run_data(request):
         if run.current_step is not None:
             run_data["displayed_steps"] = get_displayed_steps(run.steps)
             run_data["current_section"] = run.current_step.section
-            run_data["current_step_index"] = run.steps.current_step_index
+            run_data["current_step_id"] = run.steps.current_selected_step_id
+            run_data["recommended_next_step_id"] = run.steps.recommended_next_step_id
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = (
                 True if run.current_step.plot_method is not None else False
             )
+            run_data["__dbg_graph_nodes"] = list(run.steps.graph.nodes())
+            run_data["__dbg_graph_edges"] = list(run.steps.graph.edges(data=True))
         else:
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
             run_data["current_step"] = None
+            run_data["current_step_id"] = None
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = False
 
@@ -705,7 +644,7 @@ def get_step_form(request):
         run = Run(run_name)
 
         if new_form_values != {}:
-            run.steps.set_steps_outdated()
+            run.steps.invalidate_current_and_following_steps()
 
         form = run.current_form(new_form_values)
 
@@ -741,52 +680,133 @@ def get_step_plots(request):
         )
 
 
-def get_step_table(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
+# TODO: Move somewhere else
+def _step_output_as_serialised_table(
+    label: str, _data: pd.DataFrame | Any, index_delims: tuple[int, int] = (None, None)
+) -> list[dict]:
+    """
+    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+    Also delimits the return according to index_delims.
+    If the output could not be serialised, None is returned
 
-        run = Run(run_name)
+    :param label: The label of the step output to serialise
+    :param _data: The data associated with the output
+    :param index_delims: tuple used as slice begin and end indices to delimit the output
+    """
+    start_index = index_delims[0]
+    end_index = index_delims[1]
 
-        json_data = []
+    # Note: using [None:None] as a slice returns the entire collection
+    if isinstance(_data, pd.DataFrame):
+        data = _data.iloc[start_index:end_index].copy()
 
-        if run.current_step is not None:
-            for key, value in run.current_outputs:
-                if isinstance(value, pd.DataFrame):
-                    data = value.copy()
-                    data["id"] = data.index
-                    cleaned_data = data.replace(np.nan, None)
-                    json_data.append(
-                        {
-                            "table": cleaned_data.to_dict(orient="records"),
-                            "name": get_display_name(key),
-                        }
-                    )  # TODO #49 this should be refactored to be stored somewhere and not be calculated on every get_step_table (can take a few seconds)
-                elif (
-                    ("_df" not in key)
-                    and (key != "messages")
-                    and (type(value) == list)
-                    and (len(value) > 0)
-                ):
-                    data = value
-                    data = pd.DataFrame({key: data})
-                    data["id"] = data.index
-                    cleaned_data = data.replace(np.nan, None)
-                    json_data.append(
-                        {"table": cleaned_data.to_dict(orient="records"), "name": key}
-                    )
-        return JsonResponse(
-            {
-                "success": True,
-                "message": "Got the tables for the step",
-                "data": json_data,
-            },
-            safe=False,
-        )
+        # Safer than just adding the new column. We assume __id_col is not
+        # a column name anyone would use
+        if "id" in data.columns:
+            data.rename(columns={"id": "__id_col"}, inplace=True)
+
+        data["id"] = data.index
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
+
+    # Serialise compatible lists
+    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
+    # Potential fix: Just do not use lists bro???
+    elif (
+        ("_df" not in label)
+        and (label not in hidden_outputs)
+        and (type(_data) == list)
+        and (len(_data) > 0)
+    ):
+        data = pd.DataFrame({label: _data[start_index:end_index]})
+        data["id"] = data.index
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
+
     else:
+        return None
+
+
+def get_current_step_table_data(request):
+    """
+    API call. Returns a specific delimited slice of data from a specified table
+    of the current step's outputs.
+    """
+    if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+    data = json.loads(request.body)
+
+    run_name = data.get("run_name")
+    table_label = data.get("table_label")
+    start_index = data.get("start_index")
+    end_index = data.get("end_index")
+    index_delims = (start_index, end_index)
+
+    response = {"success": False, "message": None, "rows": None, "total_row_count": 0}
+
+    run = Run(run_name)
+
+    if run.current_step is None:
+        response["message"] = "No step selected"
+        return JsonResponse(response, status=500)
+
+    step_output = run.current_outputs[table_label]
+    if step_output is None:
+        response["message"] = "Requested step output not found"
+        return JsonResponse(response, status=404)
+
+    serialised_output = _step_output_as_serialised_table(
+        table_label, step_output, index_delims
+    )
+
+    if serialised_output is None:
+        response["rows"] = [{"Info": "This step output cannot be displayed as a table"}]
+    else:
+        response["success"] = True
+        response["rows"] = serialised_output
+
+    response["total_row_count"] = len(step_output)
+
+    return JsonResponse(response)
+
+
+def get_current_step_output_labels(request):
+    """
+    API call. Returns all output labels of the current step and their respective visual labels
+    """
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+
+    run_name = data.get("run_name")
+    run = Run(run_name)
+
+    response = {
+        "success": False,
+        "message": None,
+        "outputs": [],
+    }
+
+    if run.current_step is None:
+        response["message"] = "No step selected"
+        return JsonResponse(response, status=500)
+
+    for label, data in run.current_outputs:
+        if label not in hidden_outputs:
+            response["outputs"].append(
+                {"label": label, "display_name": get_display_name(label)}
+            )
+
+    response["success"] = True
+    return JsonResponse(response)
 
 
 def calculate_step(request):
@@ -796,12 +816,23 @@ def calculate_step(request):
         user_input = data.get("data")
 
         run = Run(run_name)
+
+        if not run.current_step_ready_for_calculation:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        level=logging.ERROR,
+                        msg="At least one dependent step has not been calculated yet",
+                    ),
+                }
+            )
+
         run.current_form(user_input)
         run.step_calculate()
 
         calculation_data = {}
-        calculation_data["section"] = run.current_step.section
-        calculation_data["index"] = run.steps.current_step_index_in_section
+        calculation_data["step_id"] = run.current_step.instance_identifier
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [
             message for message in run.current_messages.messages

@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_types import IntensityType
-from backend.tests.paths import TEST_DATA_PATH
-from tests.paths import TEST_PEPTIDES_PATH
+from backend.tests.paths import TEST_PEPTIDES_PATH
 
 
 def peptide_df(intensity_name):
@@ -193,7 +193,7 @@ def test_peptide_import(intensity_name):
             if message["level"] == logging.ERROR:
                 assert False, message["msg"]
     pd.testing.assert_frame_equal(
-        outputs["peptide_df"], peptide_df(intensity_name), check_dtype=False
+        outputs[DataKey.PEPTIDE_DF], peptide_df(intensity_name), check_dtype=False
     )
 
 
@@ -209,14 +209,14 @@ def test_evidence_import():
                 assert False, message["msg"]
 
     assert np.allclose(
-        outputs["peptide_df"]["PEP"],
+        outputs[DataKey.PEPTIDE_DF]["PEP"],
         evidence_df()["PEP"],
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
     )
 
     pd.testing.assert_frame_equal(
-        outputs["peptide_df"].drop(columns=["PEP"]).sort_index(axis=1),
+        outputs[DataKey.PEPTIDE_DF].drop(columns=["PEP"]).sort_index(axis=1),
         evidence_df().drop(columns=["PEP"]).sort_index(axis=1),
         check_dtype=False,
     )

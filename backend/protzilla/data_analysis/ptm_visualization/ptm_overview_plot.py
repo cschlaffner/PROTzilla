@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from protein_sequencing.overview_plot import OverviewPlotter
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     preprocess_files,
     get_modification_groups_from_settings,
 )

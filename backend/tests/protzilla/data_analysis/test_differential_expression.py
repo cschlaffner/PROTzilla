@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression import (
     anova,
     linear_model,
@@ -175,7 +176,7 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     )
     assert current_out["corrected_alpha"] == test_alpha
     assert (
-        list(current_out["significant_proteins_df"]["Protein ID"].unique())
+        list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
     )
 
@@ -232,7 +233,7 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     )
     assert current_out["corrected_alpha"] == test_alpha
     assert (
-        list(current_out["significant_proteins_df"]["Protein ID"].unique())
+        list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
     )
 
@@ -242,8 +243,8 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
     test_alpha = 0.05
 
     current_out = t_test(
-        test_intensity_df,
-        test_metadata_df,
+        protein_df=test_intensity_df,
+        metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -267,9 +268,9 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
         )
         == 0.07
     )
-    assert list(current_out["significant_proteins_df"]["Protein ID"].unique()) == [
-        "Protein1"
-    ]
+    assert list(
+        current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique()
+    ) == ["Protein1"]
 
 
 def test_differential_expression_t_test_types(diff_expr_test_data, show_figures):
@@ -278,8 +279,8 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Run Student's t-test
     student_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
         group1="Group1",
@@ -291,8 +292,8 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Run Welch's t-test
     welch_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -350,8 +351,8 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     test_alpha = 0.05
 
     current_out = t_test(
-        test_protein_df,
-        test_metadata_df,
+        protein_df=test_protein_df,
+        metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
         group1="Group1",
@@ -396,8 +397,8 @@ def test_differential_expression_t_test_with_silac_ratios():
     )
 
     out = t_test(
-        silac_ratio_df,
-        metadata_df,
+        protein_df=silac_ratio_df,
+        metadata_df=metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
         group1="Group1",
@@ -456,7 +457,7 @@ def test_differential_expression_anova(show_figures):
 
     output_dict = anova(
         protein_df=test_protein_df,
-        sample_group_df=test_metadata_df,
+        metadata_df=test_metadata_df,
         grouping="Group",
         log_base="log2",
         selected_groups=test_metadata_df["Group"].unique().tolist(),
@@ -866,7 +867,7 @@ def test_differential_expression_t_test_empty_p_values():
     )
 
     current_out = t_test(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         ttest_type="Welch's t-Test",
         grouping="Group",
@@ -879,7 +880,7 @@ def test_differential_expression_t_test_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["t_statistic_df"].empty
     assert current_out["log2_fold_change_df"].empty
@@ -916,7 +917,7 @@ def test_differential_expression_anova_empty_p_values():
     )
 
     current_out = anova(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         selected_groups=["Group1", "Group2"],
@@ -927,7 +928,7 @@ def test_differential_expression_anova_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["sample_group_df"].empty
     assert current_out["corrected_alpha"] == 0.05
@@ -964,7 +965,7 @@ def test_differential_expression_linear_model_empty_p_values():
     )
 
     current_out = linear_model(
-        intensity_df=test_intensity_df,
+        protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
         grouping="Group",
         group1="Group1",
@@ -976,7 +977,7 @@ def test_differential_expression_linear_model_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["log2_fold_change_df"].empty
     assert current_out["corrected_alpha"] == 0.05
@@ -1025,7 +1026,7 @@ def test_differential_expression_mann_whitney_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["u_statistic_df"].empty
     assert current_out["log2_fold_change_df"].empty
@@ -1122,7 +1123,7 @@ def test_differential_expression_kruskal_wallis_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["h_statistic_df"].empty
     assert current_out["corrected_alpha"] == 0.05
