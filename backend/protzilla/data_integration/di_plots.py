@@ -167,7 +167,10 @@ def GO_enrichment_dot_plot(
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    if not isinstance(enrichment_df, pd.DataFrame) or not "Overlap" in enrichment_df.columns:
+    if (
+        not isinstance(enrichment_df, pd.DataFrame)
+        or not "Overlap" in enrichment_df.columns
+    ):
         msg = "Please input a dataframe from offline GO enrichment analysis or GO enrichment analysis with Enrichr."
         return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
 
