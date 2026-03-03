@@ -65,6 +65,11 @@ class Runner:
         )
         logging.info(f"Run {self.run_name} created at {self.run.run_path}")
 
+        if self.run.steps._current_selected_step_id is None and self.run.steps.all_steps:
+            self.run.steps._current_selected_step_id = (
+                self.run.steps.all_step_ids_toposorted[0]
+            )
+
         self.all_plots = all_plots
         self.plots_path = Path(f"{self.run.run_path}/plots")
         self.plots_path.mkdir(parents=True, exist_ok=True)
@@ -77,7 +82,13 @@ class Runner:
 
     def compute_workflow(self):
         logging.info("------ computing workflow\n")
-        for i, step in enumerate(self.run.steps.all_steps):
+        ordered_ids = self.run.steps.all_step_ids_toposorted
+        for step_id in ordered_ids:
+            if self.run.steps._current_selected_step_id is None:
+                self.run.steps._current_selected_step_id = step_id
+            else:
+                self.run.steps.goto_step(step_id)
+            step = self.run.current_step
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
@@ -91,10 +102,6 @@ class Runner:
 
             if step.calculation_status != "complete":
                 break
-
-            # Make sure to not call step_next() on the last step
-            if i + 1 < len(self.run.steps.all_steps):
-                self.run.step_next()
         logging.info("\n Saving run...\n")
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
@@ -110,10 +117,10 @@ class Runner:
                     f" but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.meta_data_path
-        elif step.operation == "peptideimport":
+        elif step.operation == "peptide_import":
             if self.peptides_path is None:
                 raise ValueError(
-                    f"peptide_path (--peptide_path=<path/to/data>) is not specified, "
+                    f"peptides_path (--peptides_path=<path/to/data>) is not specified, "
                     f"but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.peptides_path
@@ -130,7 +137,7 @@ class Runner:
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):
-            plot_path = f"{self.plots_path}/{self.run.steps.current_step_id}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
+            plot_path = f"{self.plots_path}/{step.instance_identifier}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
             plot.write_html(plot_path)
 
     def _overwrite_run_prompt(self):

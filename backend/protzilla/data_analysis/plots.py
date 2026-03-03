@@ -390,6 +390,8 @@ def prot_quant_plot(
         long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     )
 
+    if not protein_group:
+        protein_group = protein_wide_df.columns[0]
     if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")
     elif similarity_measure == "euclidean distance" and similarity < 0:
