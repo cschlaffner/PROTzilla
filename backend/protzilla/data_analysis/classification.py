@@ -14,7 +14,7 @@ from backend.protzilla.data_analysis.classification_helper import (
     perform_grid_search_cv,
     perform_train_test_split,
 )
-from backend.protzilla.utilities.utilities.transform_dfs import (
+from backend.protzilla.utilities.transform_dfs import (
     is_long_format,
     long_to_wide,
 )
