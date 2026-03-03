@@ -26,9 +26,9 @@ from backend.protzilla.form import (
     Form,
     MultiSelectField,
     NumberField,
-    Run,
     TextField,
 )
+from backend.protzilla.run import Run
 from backend.protzilla.steps import Plots, Step, Section
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_integration.enrichment_analysis import (
