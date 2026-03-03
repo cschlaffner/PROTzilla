@@ -7,13 +7,15 @@ import pytest
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.main import views_helper
-from backend.protzilla.data_analysis.ptm_visualization import (
-    create_overview_ptm_visualization,
+from backend.protzilla.data_analysis.ptm_visualization import ptm_vis_utils
+from backend.protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
     create_bar_ptm_visualization,
+)
+from backend.protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
     create_details_ptm_visualization,
-    ptm_vis_utils,
 )
 from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+    create_overview_ptm_visualization,
     get_detected_modifications,
 )
 from backend.protzilla.importing import peptide_import

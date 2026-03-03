@@ -45,7 +45,7 @@ from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
-from backend.protzilla.data_analysis.ptm_visualization import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
     create_bar_ptm_visualization,
 )
 from backend.protzilla.form import (
@@ -78,11 +78,11 @@ from backend.protzilla.data_analysis.ptm_quantification.multiflex import (
     multiflex_lf,
     MultiFlexColorMaps,
 )
-from backend.protzilla.data_analysis.ptm_visualization import (
-    create_overview_ptm_visualization,
+from backend.protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
     create_details_ptm_visualization,
 )
 from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+    create_overview_ptm_visualization,
     get_detected_modifications,
 )
 
