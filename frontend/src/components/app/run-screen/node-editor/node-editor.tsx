@@ -1,6 +1,13 @@
 import "@xyflow/react/dist/style.css";
 import { useNotification } from "@protzilla/app";
-import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
+import {
+  BackendForm,
+  FlexRow,
+  GrayButton,
+  Icon,
+  RedButton,
+  SecondaryButton,
+} from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import type { Step } from "@protzilla/utils";
 import {
@@ -11,12 +18,13 @@ import {
 } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
 import type { HoveredHandleMeta, StepNodeType } from "./StepNode";
 import StepNode from "./StepNode";
+import { layoutNodesWithDagre } from "./node-editor-layout";
 import { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
@@ -88,6 +96,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const dragStartPositionsRef = useRef<Record<string, { x: number; y: number } | undefined>>({});
 
   // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
@@ -157,8 +166,46 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     setSelectedEdge(null);
   }, []);
 
+  const getNodeRect = useCallback((node: StepNodeType) => {
+    const width = node.width ?? 260;
+    const height = node.height ?? 72;
+    return {
+      x: node.position.x,
+      y: node.position.y,
+      width,
+      height,
+    };
+  }, []);
+
+  const nodesOverlap = useCallback(
+    (node: StepNodeType, other: StepNodeType) => {
+      const a = getNodeRect(node);
+      const b = getNodeRect(other);
+      return (
+        a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
+      );
+    },
+    [getNodeRect],
+  );
+
+  const onNodeDragStart = useCallback((_event: unknown, node: StepNodeType) => {
+    dragStartPositionsRef.current[node.id] = { x: node.position.x, y: node.position.y };
+  }, []);
+
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
+      const isOverlapping = nodes.some(
+        (other) => other.id !== node.id && nodesOverlap(node, other),
+      );
+      if (isOverlapping) {
+        const originalPosition = dragStartPositionsRef.current[node.id];
+        if (originalPosition) {
+          setNodes((prev) =>
+            prev.map((n) => (n.id === node.id ? { ...n, position: originalPosition } : n)),
+          );
+        }
+        return;
+      }
       void callApiWithParameters("set_step_pos/", {
         run_name: runName,
         step_id: node.id,
@@ -168,7 +215,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         navigateOrRefreshSteps();
       });
     },
-    [navigateOrRefreshSteps, runName],
+    [navigateOrRefreshSteps, nodes, nodesOverlap, runName],
   );
 
   const onConnect = useCallback(
@@ -208,6 +255,29 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       void fetchEdges();
     });
   }, [fetchEdges, notify, runName, selectedEdge]);
+
+  const onAutoLayout = useCallback(() => {
+    const layoutedNodes = layoutNodesWithDagre(nodes, edges);
+    setNodes(layoutedNodes);
+
+    Promise.all(
+      layoutedNodes.map((node) =>
+        callApiWithParameters("set_step_pos/", {
+          run_name: runName,
+          step_id: node.id,
+          x: node.position.x,
+          y: node.position.y,
+        }),
+      ),
+    )
+      .then(() => {
+        notify({ type: "success", title: "Layout updated", message: "Node positions saved" });
+        navigateOrRefreshSteps();
+      })
+      .catch(() => {
+        notify({ type: "error", title: "Layout failed", message: "Could not save positions" });
+      });
+  }, [edges, navigateOrRefreshSteps, nodes, notify, runName]);
 
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
@@ -279,12 +349,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             onEdgesChange={onEdgesChange}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
+            onNodeDragStart={onNodeDragStart}
             onNodeDragStop={onNodeDragStop}
             onConnect={onConnect}
             fitView
           >
             <Panel position="top-left">
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
                 <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
                 {selectedEdge && (
                   <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
