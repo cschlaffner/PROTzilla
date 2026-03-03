@@ -1,7 +1,6 @@
 from backend.protzilla.constants.data_types import DataKey, StepID
 from backend.protzilla.form import Option
 from backend.protzilla.run import Run
-from backend.protzilla.steps import Step
 
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
@@ -43,4 +42,4 @@ def get_choices_for_groups(
     )
     if metadata_df is None:
         return []
-    return to_choices(metadata_df[groups_column].unique(), required)
+    return to_choices(metadata_df[groups_column].unique().tolist(), required)

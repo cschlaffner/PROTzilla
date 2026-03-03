@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime
 import os
 import shutil
-from sys import _current_exceptions
 import traceback
 from dataclasses import dataclass
 from pathlib import Path

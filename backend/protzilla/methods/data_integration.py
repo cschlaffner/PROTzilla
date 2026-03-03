@@ -2,7 +2,6 @@ from __future__ import annotations
 from abc import ABC
 from typing_extensions import override
 
-import pandas as pd
 import restring
 import gseapy
 from backend.protzilla import form_helper
@@ -18,14 +17,24 @@ from backend.protzilla.data_integration.database_query import (
     uniprot_databases,
 )
 from backend.protzilla.data_integration.enrichment_analysis_gsea import GeneSetsType
-from backend.protzilla.form import *
+from backend.protzilla.form import (
+    CheckboxField,
+    DropdownField,
+    Enum,
+    FileInput,
+    FloatField,
+    Form,
+    MultiSelectField,
+    NumberField,
+    Run,
+    TextField,
+)
 from backend.protzilla.steps import Plots, Step, Section
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_integration.enrichment_analysis import (
     GOAnalysisOflineBackgroundType,
     GOAnalysisWithEnrichrBackgroundType,
 )
-import matplotlib.colors as mcolors
 
 
 class Direction(Enum):

@@ -2,7 +2,6 @@ from enum import Enum
 import logging
 
 import gseapy
-import numpy as np
 import pandas as pd
 
 from backend.protzilla.constants.protzilla_logging import logger

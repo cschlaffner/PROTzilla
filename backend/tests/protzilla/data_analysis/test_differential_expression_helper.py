@@ -1,5 +1,3 @@
-import pytest
-
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression_helper import (
     normalize_ptm_df,

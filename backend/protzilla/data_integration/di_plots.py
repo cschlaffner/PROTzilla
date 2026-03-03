@@ -8,8 +8,6 @@ import plotly.express as px
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.utilities import fig_to_base64
 
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
-
 
 def GO_enrichment_bar_plot(
     enrichment_df,

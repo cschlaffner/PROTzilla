@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import asdict
 import inspect
 import logging
-from multiprocessing.sharedctypes import Value
 import traceback
 from enum import StrEnum
 from typing import Literal
 
-from matplotlib.pyplot import locator_params
 import pandas as pd
 
 from backend.main import settings
@@ -443,7 +440,6 @@ class Step(ABC):
 
         run can be used to access the current state of the run, e.g. the previous steps, the current section, etc.
         """
-        pass
 
     @property
     def finished(self) -> bool:

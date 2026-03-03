@@ -1,7 +1,6 @@
 import pytest
 
 from backend.protzilla.disk_operator import DiskOperator
-from backend.protzilla.methods.data_preprocessing import ImputationByMinPerProtein
 from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.steps import Section, Step
 from backend.protzilla.step_manager import StepManager

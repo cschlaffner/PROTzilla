@@ -1,5 +1,4 @@
 import pandas as pd
-import plotly.graph_objs
 import pytest
 from statsmodels.compat.pandas import assert_frame_equal
 

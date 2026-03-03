@@ -48,11 +48,25 @@ from backend.protzilla.data_analysis.ptm_analysis import (
 from backend.protzilla.data_analysis.ptm_visualization import (
     create_bar_ptm_visualization,
 )
-from backend.protzilla.form import *
+from backend.protzilla.form import (
+    CheckboxField,
+    ColorField,
+    DropdownField,
+    Enum,
+    FileInput,
+    FloatField,
+    Form,
+    FormField,
+    HeaderInfoField,
+    InfoField,
+    InputField,
+    MultiSelectField,
+    NumberField,
+    TextField,
+)
 from backend.protzilla.methods.data_preprocessing import (
     DataPreprocessingStep,
 )
-from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_analysis.protein_coverage import (
@@ -71,7 +85,6 @@ from backend.protzilla.data_analysis.ptm_visualization import (
 from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
-from backend.protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -1071,7 +1084,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
                 max=999,
                 step=1,
             )
-        pass
 
     plot_method = staticmethod(prot_quant_plot)
 
