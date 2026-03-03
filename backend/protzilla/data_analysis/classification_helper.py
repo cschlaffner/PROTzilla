@@ -32,7 +32,7 @@ from sklearn.model_selection import (
     train_test_split,
 )
 
-from backend.protzilla.utilities.utilities.dunn_score import dunn_score
+from backend.protzilla.utilities.dunn_score import dunn_score
 
 
 def encode_labels(labels_df, labels_column, positive_label=None):
