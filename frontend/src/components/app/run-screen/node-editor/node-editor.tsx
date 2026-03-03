@@ -233,7 +233,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   // Fallback
   if (runData === emptyRunData || !currentStep) {
-    return <h1>Node Editor Fallback</h1>;
+    return <h1>Loading editor...</h1>;
   }
 
   const buttonText =
