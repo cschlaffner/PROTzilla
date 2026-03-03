@@ -13,7 +13,6 @@ from pathlib import Path
 from backend.protzilla.stepfactory import StepFactory
 
 
-
 class TestRun:
     def test_init_standard(self, run_standard: Run):
         assert run_standard.workflow_name == "standard"
