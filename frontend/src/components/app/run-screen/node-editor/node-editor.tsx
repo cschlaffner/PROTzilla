@@ -122,20 +122,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     }));
 
     setNodes(syncNodes as StepNodeType[]);
+
+    const syncEdges = runData.graph_edges as Edge[];
+
+    setTimeout(() => {
+      setEdges(syncEdges);
+    }, 0);
+
   }, [runData, navigateOrRefreshSteps]);
-
-  const fetchEdges = useCallback(async () => {
-    try {
-      const res = await callApiWithParameters("get_edges/", { run_name: runName });
-      if (res.data) setEdges(res.data as Edge[]);
-    } catch (err) {
-      console.error("Failed to fetch edges", err);
-    }
-  }, [runName]);
-
-  useEffect(() => {
-    void fetchEdges();
-  }, [fetchEdges, runData.current_step_id]); // Refresh edges when step changes
 
   //
   // Handlers
@@ -146,7 +140,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   }, []);
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+    // setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
   }, []);
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
@@ -182,10 +176,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           title: response.message.title,
           message: response.message.msg,
         });
-        void fetchEdges();
+        navigateOrRefreshSteps();
       });
     },
-    [fetchEdges, notify, runName],
+    [notify, runName],
   );
 
   const removeCurrentConnection = useCallback(() => {
@@ -205,9 +199,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         message: response.message.msg,
       });
       setSelectedEdge(null);
-      void fetchEdges();
+      navigateOrRefreshSteps();
     });
-  }, [fetchEdges, notify, runName, selectedEdge]);
+  }, [notify, runName, selectedEdge]);
 
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
