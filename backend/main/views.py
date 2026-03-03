@@ -32,7 +32,7 @@ from backend.protzilla.constants.paths import (
     RUNS_PATH,
     WORKFLOWS_PATH,
 )
-from backend.protzilla.utilities import format_trace, get_memory_usage
+from backend.protzilla.utilities.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.main.views_helper import (
     get_display_name,

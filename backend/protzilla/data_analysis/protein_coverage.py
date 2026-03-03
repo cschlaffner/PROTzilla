@@ -11,7 +11,7 @@ from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
     interpolate_color,
 )
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 INTENSITY_COLORS = ["#FFFFFF", PLOT_COLOR_SEQUENCE[3]]
 SEQUENCE_DEPTH_PEPTIDE_SPACING = 1

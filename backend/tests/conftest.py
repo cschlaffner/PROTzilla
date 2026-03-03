@@ -17,7 +17,7 @@ from backend.protzilla.run import Run
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.constants.data_types import DataKey
 from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 
 from backend.protzilla.methods.data_preprocessing import (
     ImputationByKNN,

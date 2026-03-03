@@ -11,7 +11,7 @@ from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
     create_pie_plot,
 )
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 from backend.protzilla.constants.option_types import (
     SimpleImputerStrategyType,

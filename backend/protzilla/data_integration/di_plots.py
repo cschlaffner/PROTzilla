@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 
 from backend.protzilla.constants.protzilla_logging import logger
+from backend.protzilla.utilities.utilities import fig_to_base64
 
 
 def GO_enrichment_bar_plot(
