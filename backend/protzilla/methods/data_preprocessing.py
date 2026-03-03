@@ -19,7 +19,7 @@ from backend.protzilla.constants.option_types import *
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
-    output_keys = [DataKey.PROTEIN_DF, DataKey.PEPTIDE_DF]
+    output_keys = [DataKey.PROTEIN_DF]
 
     plot_input_names = [DataKey.PROTEIN_DF]
     plot_output_names = ["plots"]
