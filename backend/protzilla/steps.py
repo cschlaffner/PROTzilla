@@ -13,7 +13,7 @@ from matplotlib.pyplot import locator_params
 import pandas as pd
 
 from backend.main import settings
-from backend.protzilla.constants.data_types import DataKeys, OutputLocator, StepID
+from backend.protzilla.constants.data_types import DataKey, StepID
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities import format_trace, name_to_title
 
@@ -52,7 +52,7 @@ class Step(ABC):
     method_description: str = None
     visual_data: dict
     internal_inputs: set[str] = set[str]()
-    output_keys: list[DataKeys] = (
+    output_keys: list[DataKey] = (
         []
     )  # keys collections like this should probably be sets
     calculation_status: Literal[
@@ -63,7 +63,7 @@ class Step(ABC):
         self,
         instance_identifier: StepID | None = None,
     ):
-        self.inputs: dict[DataKeys, pd.DataFrame | FormInputType] = {}
+        self.inputs: dict[DataKey, pd.DataFrame | FormInputType] = {}
         self.output: Output = Output()
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
@@ -212,8 +212,8 @@ class Step(ABC):
         for source, target, data in steps.graph.in_edges(
             self.instance_identifier, data=True
         ):
-            source_handle: DataKeys = data["source_handle"]
-            target_handle: DataKeys = data["target_handle"]
+            source_handle: DataKey = data["source_handle"]
+            target_handle: DataKey = data["target_handle"]
             output = steps.get_step_output(
                 output_key=source_handle, instance_identifier=source
             )
@@ -224,8 +224,8 @@ class Step(ABC):
             self.inputs[target_handle] = output.copy()
 
     def input_source(
-        self, steps: StepManager, input_key: DataKeys
-    ) -> tuple[StepID | None, DataKeys | None]:
+        self, steps: StepManager, input_key: DataKey
+    ) -> tuple[StepID | None, DataKey | None]:
         """
         Retrieves the step ID and source handle that serve as the source for a specific input
 
@@ -244,9 +244,9 @@ class Step(ABC):
                 f"Multiple inputs for key {input_key} of step {self.instance_identifier} found: {[edge[0] for edge in edges]}"
             )
         source, _, _, data = edges[0]
-        return source, DataKeys(data["source_handle"])
+        return source, DataKey(data["source_handle"])
 
-    def get_input(self, steps: StepManager, input_key: DataKeys):
+    def get_input(self, steps: StepManager, input_key: DataKey):
         source_step, source_handle = self.input_source(steps, input_key)
         if source_step is None or source_handle is None:
             return None
@@ -255,8 +255,8 @@ class Step(ABC):
         )
 
     @property
-    def external_input_keys(self) -> list[DataKeys]:
-        keys: set[DataKeys] = set[DataKeys]()
+    def external_input_keys(self) -> list[DataKey]:
+        keys: set[DataKey] = set[DataKey]()
         form_keys = {
             field.name
             for field in self.form.input_fields

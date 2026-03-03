@@ -5,7 +5,7 @@ from typing_extensions import override
 from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
-from backend.protzilla.constants.data_types import DataKeys
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -55,23 +55,23 @@ from backend.protzilla.methods.data_preprocessing import (
 from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
-from protzilla.data_analysis.protein_coverage import (
+from backend.protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
     AggregationMethod as ProteinCoverageAggregationMethod,
 )
-from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
-from protzilla.data_analysis.ptm_quantification.multiflex import (
+from backend.protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
+from backend.protzilla.data_analysis.ptm_quantification.multiflex import (
     multiflex_lf,
     MultiFlexColorMaps,
 )
-from protzilla.data_analysis.ptm_visualization import (
+from backend.protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_details_ptm_visualization,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
-from protzilla.methods.importing import MetadataImport
+from backend.protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -201,7 +201,7 @@ class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
     def set_protein_ids_options(
-        self, run: Run, protein_ids_field_name: str, input_key: DataKeys
+        self, run: Run, protein_ids_field_name: str, input_key: DataKey
     ) -> None:
         protein_ids_field: DropdownField = self.form[protein_ids_field_name]
 
@@ -220,7 +220,7 @@ class DataAnalysisStep(Step, ABC):
         column_field: DropdownField = self.form[column_field_name]
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if metadata_source is not None:
@@ -237,7 +237,7 @@ class DataAnalysisStep(Step, ABC):
         selected_groups_field: MultiSelectField | DropdownField = self.form[group_field]
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if (
@@ -257,7 +257,7 @@ class DataAnalysisStep(Step, ABC):
         grouping: str = self.form["grouping"].value
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if metadata_source is not None and source_handle is not None:
@@ -297,9 +297,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "metadata_df",
+        DataKey.METADATA_DF,
         "corrected_alpha",
         "filtered_proteins",
     ]
@@ -348,7 +348,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "t_statistic_df",
         "log2_fold_change_df",
@@ -426,7 +426,7 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "log2_fold_change_df",
         "corrected_alpha",
@@ -484,7 +484,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
@@ -614,7 +614,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "corrected_alpha",
     ]
@@ -847,7 +847,7 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         selected_groups_field: MultiSelectField = self.form["selected_groups"]
 
         peptide_source, source_handle = self.input_source(
-            run.steps, DataKeys.PEPTIDE_DF
+            run.steps, DataKey.PEPTIDE_DF
         )
         if peptide_source is not None and source_handle is not None:
             peptide_df = run.steps.get_step_output(
@@ -866,7 +866,7 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
             }
 
             fasta_source, source_handle = self.input_source(
-                run.steps, DataKeys.FASTA_DF
+                run.steps, DataKey.FASTA_DF
             )
             fasta_df = run.steps.get_step_output(
                 output_key=source_handle, instance_identifier=fasta_source
@@ -997,9 +997,9 @@ class PlotClustergram(DataAnalysisPlotStep):
     def modify_form(self, run: Run) -> None:
         metadata_column_field: DropdownField = self.form["metadata_column"]
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
-        if metadata_source is not None:
+        if metadata_source is not None and source_handle is not None:
             metadata_column_field.set_options(
                 form_helper.get_choices_for_metadata(
                     run,
@@ -1053,7 +1053,7 @@ class PlotProtQuant(DataAnalysisPlotStep):
     @override
     def modify_form(self, run: Run) -> None:
         self.set_protein_ids_options(
-            run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF
+            run, protein_ids_field_name="protein_group", input_key=DataKey.PROTEIN_DF
         )
 
         if (
@@ -1851,7 +1851,7 @@ class FLEXIQuantLF(BaseFLEXLF):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        self.set_protein_ids_options(run, "protein_group", DataKeys.PEPTIDE_DF)
+        self.set_protein_ids_options(run, "protein_group", DataKey.PEPTIDE_DF)
 
 
 class MultiFLEXLF(BaseFLEXLF):
@@ -1909,7 +1909,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     display_name = "Select Peptides of Protein"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
-    output_keys = [DataKeys.PEPTIDE_DF]
+    output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
@@ -1947,9 +1947,9 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
         protein_list_field: DropdownField = self.form["protein_list"]
         protein_ids_field: MultiSelectField = self.form["protein_ids"]
 
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df", Step))
+        peptide_df_field.set_options(form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step))
         peptide_df_field.value = run.steps.get_instance_identifiers(
-            DataPreprocessingStep, "peptide_df"
+            DataPreprocessingStep, DataKey.PEPTIDE_DF
         )[-1]
 
         selected_auto_select = True if auto_select_field.value == YesNo.yes else False
@@ -1959,7 +1959,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
         )
         protein_list_options.extend(
             form_helper.get_choices(
-                run, DataKeys.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
+                run, DataKey.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
             )
         )
         protein_list_field.set_options(protein_list_options)
@@ -1976,7 +1976,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
                     protein_ids_field.set_options(
                         form_helper.to_choices(
                             run.steps.get_step_output(
-                                output_key="significant_proteins_df",
+                                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                                 instance_identifier=chosen_list,
                             )
                             .sort_values(by="corrected_p_value")["Protein ID"]
@@ -1985,7 +1985,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
                     )
                 else:
                     significant_proteins = run.steps.get_step_output(
-                        output_key="significant_proteins_df",
+                        output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                         instance_identifier=chosen_list,
                     )
                     if significant_proteins is not None:
@@ -2001,11 +2001,11 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
 
-        self.inputs["metadata_df"] = steps.metadata_df
+        self.inputs[DataKey.METADATA_DF] = steps.metadata_df
 
         if self.inputs["auto_select"]:
             significant_proteins = steps.get_step_output(
-                output_key="significant_proteins_df",
+                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                 instance_identifier=self.inputs["protein_list"],
             )
             index_of_most_significant_protein = significant_proteins[
@@ -2033,7 +2033,7 @@ class PTMsPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        DataKeys.PTM_DF,
+        DataKey.PTM_DF,
     ]
 
     def create_form(self):
@@ -2054,7 +2054,7 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        DataKeys.PTM_DF,
+        DataKey.PTM_DF,
     ]
 
     def create_form(self):

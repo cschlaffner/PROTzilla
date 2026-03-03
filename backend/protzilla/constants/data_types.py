@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import NewType, TypedDict
 
 
-class DataKeys(StrEnum):
+class DataKey(StrEnum):
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
@@ -20,27 +20,22 @@ MetadataDf = NewType("MetadataDf", pd.DataFrame)
 StepID = NewType("StepID", str)
 
 
-class OutputLocator(TypedDict):
-    step_id: StepID
-    key: DataKeys
-
-
 class Connection(TypedDict):
     """
     Type for connections in the node viewer
     """
 
     source: StepID
-    sourceHandle: DataKeys
+    sourceHandle: DataKey
     target: StepID
-    targetHandle: DataKeys
+    targetHandle: DataKey
     key: str
     id: str
 
 
 def parse_connection(
     connection: Connection,
-) -> tuple[StepID, DataKeys, StepID, DataKeys]:
+) -> tuple[StepID, DataKey, StepID, DataKey]:
     try:
         return (
             connection["source"],

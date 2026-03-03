@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from main.views_helper import load_settings_from_file
+from backend.main.views_helper import load_settings_from_file
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import (
     MaxQuantPreprocessor,
 )
-from protzilla.constants.paths import (
+from backend.protzilla.constants.paths import (
     CUSTOM_PLOT_SETTINGS_FILE_STEM,
     CUSTOM_PTM_SETTINGS_FILE_STEM,
     DEFAULT_PLOT_SETTINGS_FILE_STEM,

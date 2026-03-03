@@ -46,7 +46,7 @@ from backend.main.views_helper import (
     parameters_from_post,
     sanitize_name,
 )
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 

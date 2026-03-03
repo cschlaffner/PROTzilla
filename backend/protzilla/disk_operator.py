@@ -12,6 +12,7 @@ import pandas as pd
 import yaml
 from plotly.io import read_json, write_json
 
+from backend.protzilla.constants.data_types import DataKey
 import backend.protzilla.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
@@ -420,5 +421,5 @@ def sanitize_inputs(inputs: dict) -> dict:
         for key, value in inputs.items()
         if type(value) != pd.DataFrame
         and not utilities.check_is_path(value)
-        and key != "peptide_df"
+        and key != DataKey.PEPTIDE_DF
     }

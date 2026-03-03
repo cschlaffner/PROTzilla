@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.transformation import (
     by_inversion,
     by_log,
@@ -260,26 +261,26 @@ def test_log2_transformation(
     log2_transformation_expected_peptide_intensities,
 ):
     method_inputs = {
-        "protein_df": log2_transformation_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: log2_transformation_df,
+        DataKey.PEPTIDE_DF: peptides_df,
         "log_base": "log2",
     }
     method_outputs = by_log(**method_inputs)
 
     fig = by_log_plot(
-        log2_transformation_df, method_outputs["protein_df"], "Boxplot", "Protein ID"
+        log2_transformation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Protein ID"
     )[0]
     if show_figures:
         fig.show()
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         log2_transformation_expected_df
     ), f"The results of the transformation: {result_df} \
             are not equal to the expected result: {log2_transformation_expected_df}"
 
     assert np.allclose(
-        method_outputs["peptide_df"]["Intensity"],
+        method_outputs[DataKey.PEPTIDE_DF]["Intensity"],
         log2_transformation_expected_peptide_intensities,
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
@@ -294,12 +295,12 @@ def test_inversion_transformation(
     inversion_transformation_expected_peptide_intensities,
 ):
     method_inputs = {
-        "protein_df": inversion_transformation_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: inversion_transformation_df,
+        DataKey.PEPTIDE_DF: peptides_df,
     }
     method_outputs = by_inversion(**method_inputs)
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
 
     assert result_df.equals(
         inversion_transformation_expected_df
@@ -307,7 +308,7 @@ def test_inversion_transformation(
             are not equal to the expected result: {inversion_transformation_expected_df}"
 
     assert np.allclose(
-        method_outputs["peptide_df"]["Intensity"],
+        method_outputs[DataKey.PEPTIDE_DF]["Intensity"],
         inversion_transformation_expected_peptide_intensities,
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
@@ -323,29 +324,29 @@ def test_log10_transformation(
     log10_transformation_expected_peptide_intensities,
 ):
     method_inputs = {
-        "protein_df": log10_transformation_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: log10_transformation_df,
+        DataKey.PEPTIDE_DF: peptides_df,
         "log_base": "log10",
     }
     method_output = by_log(**method_inputs)
 
     fig = by_log_plot(
         log10_transformation_df,
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         "Boxplot",
         "Protein ID",
     )[0]
     if show_figures:
         fig.show()
 
-    result_df = method_output["protein_df"]
+    result_df = method_output[DataKey.PROTEIN_DF]
     assert result_df.equals(
         log10_transformation_expected_df
     ), f"The results of the transformation: {result_df} \
             are not equal to the expected result: {log10_transformation_expected_df}"
 
     assert np.allclose(
-        method_output["peptide_df"]["Intensity"],
+        method_output[DataKey.PEPTIDE_DF]["Intensity"],
         log10_transformation_expected_peptide_intensities,
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
@@ -357,7 +358,7 @@ def test_by_log_without_peptide_df(log2_transformation_df, log_base):
     method_outputs = by_log(log2_transformation_df, None, log_base=log_base)
 
     assert (
-        method_outputs["peptide_df"] is None
+        method_outputs[DataKey.PEPTIDE_DF] is None
     ), "The peptide DataFrame should be None, if no input peptide DataFrame is given."
 
 
@@ -373,8 +374,8 @@ def test_log_by_0_transformation():
 
 def test_inversion_transformation_div0(inversion_transformation_faulty_df):
     method_inputs = {
-        "protein_df": inversion_transformation_faulty_df,
-        "peptide_df": None,
+        DataKey.PROTEIN_DF: inversion_transformation_faulty_df,
+        DataKey.PEPTIDE_DF: None,
     }
 
     with pytest.raises(ValueError) as excinfo:
