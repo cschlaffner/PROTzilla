@@ -5,7 +5,7 @@ from typing_extensions import override
 from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
-from backend.protzilla.constants.data_types import DataKeys, StepID
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -48,30 +48,43 @@ from backend.protzilla.data_analysis.ptm_analysis import (
 from backend.protzilla.data_analysis.ptm_visualization import (
     create_bar_ptm_visualization,
 )
-from backend.protzilla.form import *
+from backend.protzilla.form import (
+    CheckboxField,
+    ColorField,
+    DropdownField,
+    Enum,
+    FileInput,
+    FloatField,
+    Form,
+    FormField,
+    HeaderInfoField,
+    InfoField,
+    InputField,
+    MultiSelectField,
+    NumberField,
+    TextField,
+)
 from backend.protzilla.methods.data_preprocessing import (
     DataPreprocessingStep,
 )
-from backend.protzilla.methods.data_preprocessing import TransformationLog
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
-from protzilla.data_analysis.protein_coverage import (
+from backend.protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
     AggregationMethod as ProteinCoverageAggregationMethod,
 )
-from protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
-from protzilla.data_analysis.ptm_quantification.multiflex import (
+from backend.protzilla.data_analysis.ptm_quantification.flexiquant import flexiquant_lf
+from backend.protzilla.data_analysis.ptm_quantification.multiflex import (
     multiflex_lf,
     MultiFlexColorMaps,
 )
-from protzilla.data_analysis.ptm_visualization import (
+from backend.protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
     create_details_ptm_visualization,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
 )
-from protzilla.methods.importing import MetadataImport
 
 
 class TTestType(Enum):
@@ -200,8 +213,8 @@ class DimensionReductionMetric(Enum):
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
-    def set_protein_ids(
-        self, run: Run, protein_ids_field_name: str, input_key: DataKeys
+    def set_protein_ids_options(
+        self, run: Run, protein_ids_field_name: str, input_key: DataKey
     ) -> None:
         protein_ids_field: DropdownField = self.form[protein_ids_field_name]
 
@@ -220,7 +233,7 @@ class DataAnalysisStep(Step, ABC):
         column_field: DropdownField = self.form[column_field_name]
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if metadata_source is not None:
@@ -237,7 +250,7 @@ class DataAnalysisStep(Step, ABC):
         selected_groups_field: MultiSelectField | DropdownField = self.form[group_field]
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if (
@@ -257,7 +270,7 @@ class DataAnalysisStep(Step, ABC):
         grouping: str = self.form["grouping"].value
 
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
 
         if metadata_source is not None and source_handle is not None:
@@ -297,9 +310,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "metadata_df",
+        DataKey.METADATA_DF,
         "corrected_alpha",
         "filtered_proteins",
     ]
@@ -348,7 +361,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "t_statistic_df",
         "log2_fold_change_df",
@@ -426,7 +439,7 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "log2_fold_change_df",
         "corrected_alpha",
@@ -484,7 +497,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
@@ -614,7 +627,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(
 
     output_keys = [
         "differentially_expressed_proteins_df",
-        "significant_proteins_df",
+        DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "corrected_alpha",
     ]
@@ -846,13 +859,9 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         protein_id_field: DropdownField = self.form["protein_id"]
         selected_groups_field: MultiSelectField = self.form["selected_groups"]
 
-        peptide_source, source_handle = self.input_source(
-            run.steps, DataKeys.PEPTIDE_DF
-        )
-        if peptide_source is not None and source_handle is not None:
-            peptide_df = run.steps.get_step_output(
-                output_key=source_handle, instance_identifier=peptide_source
-            )
+        peptide_df = self.get_input(run.steps, DataKey.PEPTIDE_DF)
+
+        if peptide_df is not None:
             proteins_from_peptide_df = (
                 set(peptide_df["Protein ID"].dropna().unique())
                 if peptide_df is not None
@@ -865,12 +874,7 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
                 p if "-" in p else f"{p}-1" for p in proteins_from_peptide_df
             }
 
-            fasta_source, source_handle = self.input_source(
-                run.steps, DataKeys.FASTA_DF
-            )
-            fasta_df = run.steps.get_step_output(
-                output_key=source_handle, instance_identifier=fasta_source
-            )
+            fasta_df = self.get_input(run.steps, DataKey.FASTA_DF)
             proteins_from_fasta_df = (
                 set(fasta_df["Protein ID"].unique()) if fasta_df is not None else set()
             )
@@ -881,14 +885,16 @@ class PlotProteinCoverage(DataAnalysisPlotStep):
         # We specifically want to allow grouping by Sample here
         self.set_grouping_options(run, include_sample=True)
         grouping = self.form["grouping"].value
-        if grouping == "Sample":
+        if grouping == "Sample" and peptide_df is not None:
             selected_groups_field.set_options(
-                form_helper.to_choices(peptide_df["Sample"].unique())
+                form_helper.to_choices(peptide_df["Sample"].unique().tolist())
             )
         elif grouping is not None:
-            selected_groups_field.set_options(
-                form_helper.to_choices(run.steps.metadata_df[grouping].unique())
-            )
+            metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+            if metadata_df is not None:
+                selected_groups_field.set_options(
+                    form_helper.to_choices(metadata_df[grouping].unique().tolist())
+                )
         self.form["aggregation_method"].isVisible = grouping != "Sample"
 
 
@@ -997,9 +1003,9 @@ class PlotClustergram(DataAnalysisPlotStep):
     def modify_form(self, run: Run) -> None:
         metadata_column_field: DropdownField = self.form["metadata_column"]
         metadata_source, source_handle = self.input_source(
-            run.steps, DataKeys.METADATA_DF
+            run.steps, DataKey.METADATA_DF
         )
-        if metadata_source is not None:
+        if metadata_source is not None and source_handle is not None:
             metadata_column_field.set_options(
                 form_helper.get_choices_for_metadata(
                     run,
@@ -1052,8 +1058,8 @@ class PlotProtQuant(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        self.set_protein_ids(
-            run, protein_ids_field_name="protein_group", input_key=DataKeys.PROTEIN_DF
+        self.set_protein_ids_options(
+            run, protein_ids_field_name="protein_group", input_key=DataKey.PROTEIN_DF
         )
 
         if (
@@ -1078,7 +1084,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
                 max=999,
                 step=1,
             )
-        pass
 
     plot_method = staticmethod(prot_quant_plot)
 
@@ -1851,13 +1856,7 @@ class FLEXIQuantLF(BaseFLEXLF):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        protein_group_field: DropdownField = self.form["protein_group"]
-        protein_group_field.options = form_helper.to_choices(
-            run.steps.get_step_output(
-                step_type=Step,
-                output_key="peptide_df",
-            )["Protein ID"].unique()
-        )
+        self.set_protein_ids_options(run, "protein_group", DataKey.PEPTIDE_DF)
 
 
 class MultiFLEXLF(BaseFLEXLF):
@@ -1910,28 +1909,17 @@ class MultiFLEXLF(BaseFLEXLF):
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
     operation = "Peptide analysis"
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        self.inputs["peptide_df"] = steps.get_step_output(
-            output_key="peptide_df", instance_identifier=self.inputs["peptide_df_field"]
-        )
-
 
 class SelectPeptidesForProtein(PeptideAnalysisStep):
     display_name = "Select Peptides of Protein"
-    operation = "Peptide analysis"
     method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
 
-    output_keys = [DataKeys.PEPTIDE_DF]
+    output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
             label="Select Peptides of Protein",
             input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Step to use peptide dataframe from",
-                ),
                 DropdownField(
                     name="auto_select",
                     label="Automatically select most significant Protein",
@@ -1955,6 +1943,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             ],
         )
 
+    # TODO: unsure about what this step does/how it should be translated - leaving mostly as is ~T
     @override
     def modify_form(self, run: Run) -> None:
         peptide_df_field: DropdownField = self.form["peptide_df_field"]
@@ -1963,9 +1952,11 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
         protein_list_field: DropdownField = self.form["protein_list"]
         protein_ids_field: MultiSelectField = self.form["protein_ids"]
 
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df", Step))
+        peptide_df_field.set_options(
+            form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step)
+        )
         peptide_df_field.value = run.steps.get_instance_identifiers(
-            DataPreprocessingStep, "peptide_df"
+            DataPreprocessingStep, DataKey.PEPTIDE_DF
         )[-1]
 
         selected_auto_select = True if auto_select_field.value == YesNo.yes else False
@@ -1974,7 +1965,9 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
             [] if selected_auto_select else ["all proteins"]
         )
         protein_list_options.extend(
-            form_helper.get_choices(run, "significant_proteins_df", DataAnalysisStep)
+            form_helper.get_choices(
+                run, DataKey.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
+            )
         )
         protein_list_field.set_options(protein_list_options)
 
@@ -1990,7 +1983,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
                     protein_ids_field.set_options(
                         form_helper.to_choices(
                             run.steps.get_step_output(
-                                output_key="significant_proteins_df",
+                                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                                 instance_identifier=chosen_list,
                             )
                             .sort_values(by="corrected_p_value")["Protein ID"]
@@ -1999,7 +1992,7 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
                     )
                 else:
                     significant_proteins = run.steps.get_step_output(
-                        output_key="significant_proteins_df",
+                        output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                         instance_identifier=chosen_list,
                     )
                     if significant_proteins is not None:
@@ -2015,11 +2008,11 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
 
-        self.inputs["metadata_df"] = steps.metadata_df
+        self.inputs[DataKey.METADATA_DF] = steps.metadata_df
 
         if self.inputs["auto_select"]:
             significant_proteins = steps.get_step_output(
-                output_key="significant_proteins_df",
+                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
                 instance_identifier=self.inputs["protein_list"],
             )
             index_of_most_significant_protein = significant_proteins[
@@ -2047,33 +2040,14 @@ class PTMsPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        "ptm_df",
+        DataKey.PTM_DF,
     ]
 
     def create_form(self):
         return Form(
             label="PTMs per Sample",
-            input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Peptide dataframe containing the peptides of a single protein including their modifications "
-                    "(e.g. from evidence.txt)",
-                )
-            ],
+            input_fields=[],
         )
-
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field = self.form["peptide_df_field"]
-
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
-
-        single_protein_peptides = run.steps.get_instance_identifiers(
-            SelectPeptidesForProtein, "peptide_df"
-        )
-
-        if single_protein_peptides:
-            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_sample)
 
@@ -2087,32 +2061,14 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
     )
 
     output_keys = [
-        "ptm_df",
+        DataKey.PTM_DF,
     ]
 
     def create_form(self):
         return Form(
             label="PTMs per Sample and Protein",
-            input_fields=[
-                DropdownField(
-                    name="peptide_df_field",
-                    label="Peptide dataframe containing the peptides of a single protein",
-                )
-            ],
+            input_fields=[],
         )
-
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field = self.form["peptide_df_field"]
-
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
-
-        single_protein_peptides = run.steps.get_instance_identifiers(
-            SelectPeptidesForProtein, "peptide_df"
-        )
-
-        if single_protein_peptides:
-            peptide_df_field.value = single_protein_peptides[0]
 
     calc_method = staticmethod(ptms_per_protein_and_sample)
 
@@ -2121,12 +2077,8 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
 
     @classmethod
-    def get_form_fields(cls) -> list:
+    def get_form_fields(cls) -> list[FormField]:
         return [
-            DropdownField(
-                name="evidence_df_field",
-                label="Dataframe that contains the MaxQuant evidence data",
-            ),
             FloatField(
                 name="evidence_file_q_value_threshold",
                 label="MaxQuant Evidence file q-value threshold",
@@ -2152,20 +2104,6 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
             ),
         ]
 
-    @override
-    def modify_form(self, run: Run) -> None:
-        self.form["evidence_df_field"].set_options(
-            form_helper.get_choices(
-                run, output_key="peptide_df", step_type=Step, required=True
-            )
-        )
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        inputs["evidence_df"] = steps.get_step_output(
-            output_key="peptide_df", instance_identifier=inputs["evidence_df_field"]
-        )
-
 
 class PTMOverviewVisualization(_PTMVisualizationStep):
     display_name = "PTM Visualization - Overview Plot"
@@ -2184,8 +2122,9 @@ class PTMOverviewVisualization(_PTMVisualizationStep):
 
 
 class _PTMVisualizationWithGroups(_PTMVisualizationStep):
+    @override
     @classmethod
-    def get_form_fields(cls) -> list:
+    def get_form_fields(cls) -> list[FormField]:
         return _PTMVisualizationStep.get_form_fields() + [
             FileInput(
                 name="groups_file_path",

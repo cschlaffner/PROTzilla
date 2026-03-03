@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.outlier_detection import (
     by_isolation_forest,
     by_isolation_forest_plot,
@@ -68,8 +69,8 @@ def test_outlier_detection_with_isolation_forest(
     show_figures, outlier_detection_df, peptides_df
 ):
     method_inputs = {
-        "protein_df": outlier_detection_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: outlier_detection_df,
+        DataKey.PEPTIDE_DF: peptides_df,
         "n_estimators": 50,
         "n_jobs": -1,
     }
@@ -79,9 +80,9 @@ def test_outlier_detection_with_isolation_forest(
         fig.show()
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         peptides_df,
-        method_outputs["peptide_df"],
+        method_outputs[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
@@ -90,8 +91,8 @@ def test_outlier_detection_by_local_outlier_factor(
     show_figures, outlier_detection_df, peptides_df
 ):
     method_inputs = {
-        "protein_df": outlier_detection_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: outlier_detection_df,
+        DataKey.PEPTIDE_DF: peptides_df,
         "number_of_neighbors": 35,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
@@ -99,9 +100,9 @@ def test_outlier_detection_by_local_outlier_factor(
     if show_figures:
         fig.show()
         assert_peptide_filtering_matches_protein_filtering(
-            method_outputs["protein_df"],
+            method_outputs[DataKey.PROTEIN_DF],
             peptides_df,
-            method_outputs["peptide_df"],
+            method_outputs[DataKey.PEPTIDE_DF],
             "Sample",
         )
 
@@ -110,8 +111,8 @@ def test_outlier_detection_by_local_outlier_factor_and_nan(
     outlier_detection_df_with_nan,
 ):
     method_inputs = {
-        "protein_df": outlier_detection_df_with_nan,
-        "peptide_df": None,
+        DataKey.PROTEIN_DF: outlier_detection_df_with_nan,
+        DataKey.PEPTIDE_DF: None,
         "number_of_neighbors": 35,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
@@ -122,8 +123,8 @@ def test_outlier_detection_by_local_outlier_factor_and_nan(
 
 def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides_df):
     method_inputs = {
-        "protein_df": outlier_detection_df,
-        "peptide_df": peptides_df,
+        DataKey.PROTEIN_DF: outlier_detection_df,
+        DataKey.PEPTIDE_DF: peptides_df,
         "threshold": 2,
         "number_of_components": 3,
     }
@@ -137,17 +138,17 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
         fig.show()
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         peptides_df,
-        method_outputs["peptide_df"],
+        method_outputs[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
 
 def test_outlier_detection_with_pca_and_nan(outlier_detection_df_with_nan):
     method_inputs = {
-        "protein_df": outlier_detection_df_with_nan,
-        "peptide_df": None,
+        DataKey.PROTEIN_DF: outlier_detection_df_with_nan,
+        DataKey.PEPTIDE_DF: None,
         "threshold": 2,
         "number_of_components": 3,
     }

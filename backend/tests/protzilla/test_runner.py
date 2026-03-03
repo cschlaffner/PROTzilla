@@ -13,8 +13,8 @@ from backend.tests.paths import (
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from protzilla import disk_operator
-from protzilla.runner import Runner
+from backend.protzilla import disk_operator
+from backend.protzilla.runner import Runner
 from runner_cli import args_parser
 
 

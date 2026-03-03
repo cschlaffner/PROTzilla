@@ -11,7 +11,7 @@ from string import ascii_letters
 import pandas as pd
 import psutil
 
-from protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
 
 # recipie from https://docs.python.org/3/library/itertools.html

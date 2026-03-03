@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression import (
     anova,
     linear_model,
@@ -175,7 +176,7 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     )
     assert current_out["corrected_alpha"] == test_alpha
     assert (
-        list(current_out["significant_proteins_df"]["Protein ID"].unique())
+        list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
     )
 
@@ -232,7 +233,7 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     )
     assert current_out["corrected_alpha"] == test_alpha
     assert (
-        list(current_out["significant_proteins_df"]["Protein ID"].unique())
+        list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
     )
 
@@ -267,9 +268,9 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
         )
         == 0.07
     )
-    assert list(current_out["significant_proteins_df"]["Protein ID"].unique()) == [
-        "Protein1"
-    ]
+    assert list(
+        current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique()
+    ) == ["Protein1"]
 
 
 def test_differential_expression_t_test_types(diff_expr_test_data, show_figures):
@@ -879,7 +880,7 @@ def test_differential_expression_t_test_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["t_statistic_df"].empty
     assert current_out["log2_fold_change_df"].empty
@@ -927,7 +928,7 @@ def test_differential_expression_anova_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["sample_group_df"].empty
     assert current_out["corrected_alpha"] == 0.05
@@ -976,7 +977,7 @@ def test_differential_expression_linear_model_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["log2_fold_change_df"].empty
     assert current_out["corrected_alpha"] == 0.05
@@ -1025,7 +1026,7 @@ def test_differential_expression_mann_whitney_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["u_statistic_df"].empty
     assert current_out["log2_fold_change_df"].empty
@@ -1122,7 +1123,7 @@ def test_differential_expression_kruskal_wallis_empty_p_values():
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
-    assert current_out["significant_proteins_df"].empty
+    assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
     assert current_out["h_statistic_df"].empty
     assert current_out["corrected_alpha"] == 0.05

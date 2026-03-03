@@ -1,19 +1,19 @@
 import pandas as pd
-import plotly.graph_objs
 import pytest
 from statsmodels.compat.pandas import assert_frame_equal
 
-from protzilla.data_analysis.ptm_quantification.flexiquant import (
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.data_analysis.ptm_quantification.flexiquant import (
     flexiquant_lf,
     calc_raw_scores,
     postprocess_raw_scores,
     normalize_t3median,
 )
-from protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
-from protzilla.importing.metadata_import import metadata_import_method
-from protzilla.importing.peptide_import import peptide_import
-from tests.paths import TEST_DATA_PATH, TEST_PEPTIDES_PATH
-from protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.data_analysis.ptm_quantification.multiflex import multiflex_lf
+from backend.protzilla.importing.metadata_import import metadata_import_method
+from backend.protzilla.importing.peptide_import import peptide_import
+from backend.tests.paths import TEST_DATA_PATH, TEST_PEPTIDES_PATH
+from backend.protzilla.constants.intensity_types import IntensityType
 
 
 @pytest.fixture(scope="module")
@@ -22,7 +22,7 @@ def peptide_df_AD_only() -> pd.DataFrame:
         file_path=TEST_PEPTIDES_PATH / "peptides_P10636_AD01.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
-    )["peptide_df"]
+    )[DataKey.PEPTIDE_DF]
     return df
 
 
@@ -48,7 +48,7 @@ def peptide_df_AD_CTR() -> pd.DataFrame:
         file_path=TEST_PEPTIDES_PATH / "peptides_P10636_AD01_CTR01.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
-    )["peptide_df"]
+    )[DataKey.PEPTIDE_DF]
     return df
 
 
@@ -84,7 +84,7 @@ def metadata_df():
         dummy_protein_df,
         TEST_DATA_PATH / "import_data/metadata/metadata_AD01_CTR01.csv",
         feature_orientation="Columns",
-    )["metadata_df"]
+    )[DataKey.METADATA_DF]
 
     return df
 

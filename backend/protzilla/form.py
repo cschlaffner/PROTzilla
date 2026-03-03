@@ -10,7 +10,7 @@ from backend.main import settings
 
 # to avoid circular imports
 if TYPE_CHECKING:
-    from backend.protzilla.run import Run
+    pass
 
 
 FormInputType = str | int | float | bool | list[str]

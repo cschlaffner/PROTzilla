@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
@@ -138,9 +139,9 @@ def test_filter_proteins_by_missing_samples(
     ]
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         None,
-        method_output["peptide_df"],
+        method_output[DataKey.PEPTIDE_DF],
         "Protein ID",
     )
 
@@ -159,9 +160,9 @@ def test_filter_proteins_by_missing_samples(
     assert method_output["filtered_proteins"] == []
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output["peptide_df"],
+        method_output[DataKey.PEPTIDE_DF],
         "Protein ID",
     )
 
@@ -214,8 +215,8 @@ def test_filter_proteins_by_silac_ratios(
     )
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output["peptide_df"],
+        method_output[DataKey.PEPTIDE_DF],
         "Protein ID",
     )

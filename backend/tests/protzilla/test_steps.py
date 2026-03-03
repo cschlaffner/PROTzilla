@@ -1,7 +1,6 @@
 import pytest
 
 from backend.protzilla.disk_operator import DiskOperator
-from backend.protzilla.methods.data_preprocessing import ImputationByMinPerProtein
 from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.steps import Section, Step
 from backend.protzilla.step_manager import StepManager
@@ -14,7 +13,7 @@ class TestStepManager:
         return StepManager(disk_operator=disk_operator)
 
     def test_add_step(self, step_manager: StepManager):
-        assert len(step_manager.sections[Section.IMPORTING]) == 0
+        assert len(step_manager.all_steps) == 0
         step = Step("teststep01_empty")
         step.section = Section.IMPORTING
         step_manager.add_step(step)
@@ -62,19 +61,6 @@ class TestStepManager:
         assert len(step_manager.all_steps) == 2
         assert step1.instance_identifier in step_manager.all_steps
         assert step2.instance_identifier in step_manager.all_steps
-
-    def test_all_steps_in_section(self, step_manager: StepManager):
-        step1 = Step("teststep01_empty")
-        step_manager.add_step(step1)
-
-        assert len(step_manager.all_steps_in_section(Section.IMPORTING)) == 0
-        step = MaxQuantImport("teststep02_MXQ")
-        step_manager.add_step(step)
-
-        assert len(step_manager.all_steps_in_section(Section.IMPORTING)) == 1
-        assert step_manager.all_steps_in_section(Section.IMPORTING)[0] == step
-        step_manager.remove_step(step.instance_identifier)
-        assert len(step_manager.all_steps_in_section(Section.IMPORTING)) == 0
 
     def test_goto_step(self, step_manager: StepManager):
         step1 = Step("teststep01_empty")
