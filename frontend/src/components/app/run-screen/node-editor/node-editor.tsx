@@ -91,6 +91,29 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const dragStartPositionsRef = useRef<Record<string, { x: number; y: number } | undefined>>({});
+
+  const getNodeRect = useCallback((node: StepNodeType) => {
+    const width = node.width ?? 260;
+    const height = node.height ?? 72;
+    return {
+      x: node.position.x,
+      y: node.position.y,
+      width,
+      height,
+    };
+  }, []);
+
+  const nodesOverlap = useCallback(
+    (node: StepNodeType, other: StepNodeType) => {
+      const a = getNodeRect(node);
+      const b = getNodeRect(other);
+      return (
+        a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
+      );
+    },
+    [getNodeRect],
+  );
 
   const onNodesChange = useCallback((changes: NodeChange<StepNodeType>[]) => {
     setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
@@ -102,8 +125,26 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     reactFlowInstanceRef.current = instance;
   }, []);
 
+  const onNodeDragStart = useCallback((_event: unknown, node: StepNodeType) => {
+    dragStartPositionsRef.current[node.id] = { x: node.position.x, y: node.position.y };
+  }, []);
+
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
+      const hasOverlap = nodes.some((other) => other.id !== node.id && nodesOverlap(node, other));
+      if (hasOverlap) {
+        const previousPosition = dragStartPositionsRef.current[node.id];
+        if (!previousPosition) return;
+        setNodes((nodesSnapshot) =>
+          nodesSnapshot.map((snapshotNode) =>
+            snapshotNode.id === node.id
+              ? { ...snapshotNode, position: previousPosition }
+              : snapshotNode,
+          ),
+        );
+        return;
+      }
+
       void callApiWithParameters("set_step_pos/", {
         run_name: runName,
         step_id: node.id,
@@ -113,7 +154,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         navigateOrRefreshSteps();
       });
     },
-    [navigateOrRefreshSteps, runName],
+    [navigateOrRefreshSteps, nodes, nodesOverlap, runName],
   );
 
   const getEdgesFromRunData = useCallback(async (): Promise<Edge[]> => {
@@ -326,6 +367,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           onEdgesChange={onEdgesChange}
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
+          onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onConnect={onConnect}
           onInit={onReactFlowInit}
