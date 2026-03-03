@@ -1,4 +1,4 @@
-from backend.protzilla.constants.data_types import DataKeys, StepID
+from backend.protzilla.constants.data_types import DataKey, StepID
 from backend.protzilla.form import Option
 from backend.protzilla.run import Run
 from backend.protzilla.steps import Step
@@ -13,15 +13,15 @@ def to_choices(choices: list[str], required: bool = True) -> list[Option]:
 
 
 def get_choices_for_protein_df_steps(run: Run) -> list[Option]:
-    options = to_choices(run.steps.get_instance_identifiers(Step, "protein_df"))
+    options = to_choices(run.steps.get_instance_identifiers(Step, DataKey.PROTEIN_DF))
     return list(reversed(options))
 
 
 def get_choices_for_protein_ids(
-    run: Run, instance_identifier: StepID, output_key: DataKeys
+    run: Run, instance_identifier: StepID, output_key: DataKey
 ) -> list[Option]:
     protein_df = run.steps.get_step_output(
-        output_key="protein_df",
+        output_key=output_key,
         instance_identifier=instance_identifier,
     )
     if protein_df is not None:
@@ -51,7 +51,7 @@ def get_choices(
 def get_choices_for_metadata(
     run: Run,
     instance_identifier: StepID,
-    output_key: DataKeys,
+    output_key: DataKey,
     include_sample: bool = True,
 ) -> list[Option]:
     metadata_df = run.steps.get_step_output(
@@ -70,7 +70,7 @@ def get_choices_for_metadata(
 def get_choices_for_groups(
     run: Run,
     instance_identifier: StepID,
-    output_key: DataKeys,
+    output_key: DataKey,
     groups_column: str,
     required: bool = True,
 ) -> list[Option]:

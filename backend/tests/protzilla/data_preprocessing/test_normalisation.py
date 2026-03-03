@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.normalisation import (
     by_median,
     by_median_plot,
@@ -313,13 +314,13 @@ def test_normalisation_by_z_score(
     method_outputs = by_z_score(normalisation_df)
 
     fig = by_z_score_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
+        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
     )[0]
     if show_figures:
         fig.show()
 
     # compare calculated data frame with correct answers
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.round(3).equals(
         expected_df_by_z_score_normalisation
     ), f"z scores do not match! Z scores should be \
@@ -332,12 +333,12 @@ def test_normalisation_by_median(
     method_outputs = by_median(normalisation_df)
 
     fig = by_median_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
+        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
     )[0]
     if show_figures:
         fig.show()
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.round(3).equals(
         expected_df_by_median_normalisation
     ), f"median normalisation does not match! Median normalisation should be \
@@ -359,12 +360,12 @@ def test_totalsum_normalisation(
     method_outputs = by_totalsum(normalisation_df)
 
     fig = by_totalsum_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
+        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
     )[0]
     if show_figures:
         fig.show()
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.round(3).equals(
         expected_df_by_totalsum_normalisation
     ), f"Total normalisation does not match! Total sum normalisation should be\
@@ -382,14 +383,14 @@ def test_ref_protein_normalisation(
     expected_dropped_samples = expected_df_by_ref_protein_normalisation[1]
 
     method_input = {
-        "protein_df": normalisation_by_ref_protein_df,
+        DataKey.PROTEIN_DF: normalisation_by_ref_protein_df,
         "reference_protein": "ABC32",
     }
     method_outputs = by_reference_protein(**method_input)
 
     fig = by_reference_protein_plot(
         normalisation_by_ref_protein_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Sample",
         "log10",
@@ -397,7 +398,7 @@ def test_ref_protein_normalisation(
     if show_figures:
         fig.show()
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     result_df_sorted = result_df.sort_values(
         by=["Sample", "Protein ID"], ignore_index=True
     )
@@ -422,12 +423,12 @@ def test_width_adjustment_normalisation(normalisation_df, show_figures):
     method_outputs = by_width_adjustment(normalisation_df)
 
     fig = by_width_adjustment_plot(
-        normalisation_df, method_outputs["protein_df"], "Boxplot", "Sample", "log10"
+        normalisation_df, method_outputs[DataKey.PROTEIN_DF], "Boxplot", "Sample", "log10"
     )[0]
     if show_figures:
         fig.show()
 
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     original_widths = {}
     for sample in normalisation_df["Sample"].unique():
         series = pd.to_numeric(
@@ -464,7 +465,7 @@ def test_width_adjustment_normalisation_for_ratio_columns(
     normalisation_ratio_df,
 ):
     method_outputs = by_width_adjustment(normalisation_ratio_df)
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
 
     original_widths = {}
     for sample in normalisation_ratio_df["Sample"].unique():

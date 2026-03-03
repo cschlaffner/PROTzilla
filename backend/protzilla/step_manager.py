@@ -8,8 +8,7 @@ if TYPE_CHECKING:
 from backend.protzilla.steps import Step, Section, Output
 from backend.protzilla.constants.data_types import (
     Connection,
-    DataKeys,
-    OutputLocator,
+    DataKey,
     StepID,
     parse_connection,
 )
@@ -142,9 +141,9 @@ class StepManager:
     def edges_with_exact_data(
         self,
         source: StepID | None,
-        source_handle: DataKeys | None,
+        source_handle: DataKey | None,
         target: StepID,
-        target_handle: DataKeys,
+        target_handle: DataKey,
     ) -> list[tuple[StepID, StepID, int, dict[str, str]]]:
         """
         Helper function that allows retrieving all incoming connections for a given target node and target_handle.

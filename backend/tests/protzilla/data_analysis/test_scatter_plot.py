@@ -1,5 +1,6 @@
 import itertools
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.plots import *
 from backend.tests.protzilla.data_analysis.test_clustering import *
 
@@ -83,11 +84,11 @@ def check_figure_output(
     "df_name,metadata_df_name,metadata_col",
     [
         ("wide_2d_df", None, None),
-        ("wide_2d_df", "metadata_df", "Group"),
-        ("wide_2d_df", "metadata_df", "Batch"),
+        ("wide_2d_df", DataKey.METADATA_DF, "Group"),
+        ("wide_2d_df", DataKey.METADATA_DF, "Batch"),
         ("wide_3d_df", None, None),
-        ("wide_3d_df", "metadata_df", "Group"),
-        ("wide_3d_df", "metadata_df", "Batch"),
+        ("wide_3d_df", DataKey.METADATA_DF, "Group"),
+        ("wide_3d_df", DataKey.METADATA_DF, "Batch"),
     ],
 )
 def test_scatter_plot(df_name, metadata_df_name, metadata_col, request):

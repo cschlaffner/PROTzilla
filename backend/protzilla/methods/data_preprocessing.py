@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing import (
     filter_proteins,
     filter_samples,
@@ -18,18 +19,14 @@ from backend.protzilla.constants.option_types import *
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
-    output_keys = ["protein_df"]
+    output_keys = [DataKey.PROTEIN_DF]
 
-    plot_input_names = ["protein_df"]
+    plot_input_names = [DataKey.PROTEIN_DF]
     plot_output_names = ["plots"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.plot_inputs: dict = {}
-
-    # def insert_dataframes(self, steps: StepManager) -> None:
-    #     self.inputs["protein_df"] = steps.protein_df
-    #     self.inputs["peptide_df"] = steps.get_step_output(output_key="peptide_df")
 
 
 class FilterProteinsBySamplesMissing(DataPreprocessingStep):
@@ -89,12 +86,6 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    # def insert_dataframes(self, steps: StepManager, inputs: dict) -> dict:
-    #     inputs["protein_df"] = steps.protein_df
-    #     inputs["peptide_df"] = steps.get_step_output(Step, "peptide_df")
-    #     inputs["metadata_df"] = steps.get_step_output(Step, "metadata_df")
-    #     return inputs
-
     calc_method = staticmethod(filter_proteins.by_silac_ratios)
     plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
 
@@ -134,7 +125,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
-    output_keys = ["peptide_df", "filtered_peptides"]
+    output_keys = [DataKey.PEPTIDE_DF, "filtered_peptides"]
 
     def create_form(self):
         return Form(
@@ -150,11 +141,6 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
                     hasStepButtons=True,
                 ),
                 DropdownField(
-                    name="peptide_df",
-                    label="peptide_df",
-                    options=EmptyEnum,
-                ),
-                DropdownField(
                     name="graph_type",
                     label="Graph type",
                     value=BarAndPieChart.PIE_CHART.value,
@@ -165,10 +151,6 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
-
-    def modify_form(self, run: Run):
-        peptide_df_field = form["peptide_df"]
-        peptide_df_field.set_options(form_helper.get_choices(run, "peptide_df"))
 
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):

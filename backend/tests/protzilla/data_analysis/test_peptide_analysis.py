@@ -1,5 +1,6 @@
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.ptm_analysis import (
     select_peptides_of_protein,
     ptms_per_sample,
@@ -12,7 +13,7 @@ def test_select_peptides_of_protein(peptides_df, evidence_peptide_df, df_num):
     peptide_df = [peptides_df, evidence_peptide_df][df_num]
 
     filtered_peptides_df = select_peptides_of_protein(peptide_df, ["Protein2"])[
-        "peptide_df"
+        DataKey.PEPTIDE_DF
     ]
 
     assert len(filtered_peptides_df) == 6
@@ -45,7 +46,7 @@ def test_ptms_per_sample(evidence_peptide_df):
 
 
 def test_ptms_per_protein_and_sample(evidence_peptide_df):
-    ptm_df = ptms_per_protein_and_sample(evidence_peptide_df)["ptm_df"]
+    ptm_df = ptms_per_protein_and_sample(evidence_peptide_df)[DataKey.PTM_DF]
 
     assert ptm_df.columns.tolist() == [
         "Sample",

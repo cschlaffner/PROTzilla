@@ -1,4 +1,4 @@
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 
 def test_get_all_possible_step_names():

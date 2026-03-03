@@ -2,6 +2,7 @@ import logging
 from multiprocessing.sharedctypes import Value
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.methods.data_preprocessing import (
     ImputationByKNN,
     FilterSamplesByProteinsMissing,
@@ -35,8 +36,8 @@ class TestRun:
         assert run_imported.steps is not None and len(run_imported.steps.all_steps) == 1
         assert run_imported.current_step is not None
         assert (
-            run_imported.current_step.output["protein_df"] is not None
-            and not run_imported.current_step.output["protein_df"].empty
+            run_imported.current_step.output[DataKey.PROTEIN_DF] is not None
+            and not run_imported.current_step.output[DataKey.PROTEIN_DF].empty
         )
         assert run_imported.steps.current_selected_step_id == "teststep01_MXQ"
         assert run_imported.steps.current_section == "importing"
@@ -80,8 +81,8 @@ class TestRun:
         run_empty.step_calculate()
         assert run_empty.current_step is not None
         assert run_empty.steps.current_location == ("importing", "Protein Data Import", "teststep01_MXQ")
-        assert run_empty.current_step.output["protein_df"] is not None
-        assert not run_empty.current_step.output["protein_df"].empty
+        assert run_empty.current_step.output[DataKey.PROTEIN_DF] is not None
+        assert not run_empty.current_step.output[DataKey.PROTEIN_DF].empty
 
     def test_step_plot(self, run_imported: Run):
         step = ImputationByKNN("teststep02_kNN")
@@ -89,9 +90,9 @@ class TestRun:
         run_imported.steps.connect_steps(
             {
                 "source": "teststep01_MXQ",
-                "sourceHandle": "protein_df",
+                "sourceHandle": DataKey.PROTEIN_DF,
                 "target": "teststep02_kNN",
-                "targetHandle": "protein_df",
+                "targetHandle": DataKey.PROTEIN_DF,
             }
         )
         run_imported.step_next()
@@ -116,9 +117,9 @@ class TestRun:
         run_imported.steps.connect_steps(
             {
                 "source": "teststep01_MXQ",
-                "sourceHandle": "protein_df",
+                "sourceHandle": DataKey.PROTEIN_DF,
                 "target": "teststep02_kNN",
-                "targetHandle": "protein_df",
+                "targetHandle": DataKey.PROTEIN_DF,
             }
         )
         assert run_imported.current_step != step
@@ -131,9 +132,9 @@ class TestRun:
         run_imported.steps.connect_steps(
             {
                 "source": "teststep01_MXQ",
-                "sourceHandle": "protein_df",
+                "sourceHandle": DataKey.PROTEIN_DF,
                 "target": "teststep02_kNN",
-                "targetHandle": "protein_df",
+                "targetHandle": DataKey.PROTEIN_DF,
             }
         )
         run_imported.step_next()
@@ -222,9 +223,9 @@ class TestRun:
         run_imported.steps.connect_steps(
             {
                 "source": "teststep01_MXQ",
-                "sourceHandle": "protein_df",
+                "sourceHandle": DataKey.PROTEIN_DF,
                 "target": "teststep02_filter",
-                "targetHandle": "protein_df",
+                "targetHandle": DataKey.PROTEIN_DF,
             }
         )
 
@@ -233,9 +234,9 @@ class TestRun:
         run_imported.steps.connect_steps(
             {
                 "source": "teststep02_filter",
-                "sourceHandle": "protein_df",
+                "sourceHandle": DataKey.PROTEIN_DF,
                 "target": "teststep03_kNN",
-                "targetHandle": "protein_df",
+                "targetHandle": DataKey.PROTEIN_DF,
             }
         )
 
@@ -259,14 +260,14 @@ class TestRun:
         assert run_imported.current_step.calculation_status == "outdated"
         run_imported.step_calculate()
         assert run_imported.current_step.calculation_status == "complete"
-        assert step2_output["protein_df"].equals(
-            run_imported.current_step.output["protein_df"]
+        assert step2_output[DataKey.PROTEIN_DF].equals(
+            run_imported.current_step.output[DataKey.PROTEIN_DF]
         )
 
         run_imported.step_goto("teststep02_filter")
         assert run_imported.current_step.calculation_status == "complete"
-        assert step1_output["protein_df"].equals(
-            run_imported.current_step.output["protein_df"]
+        assert step1_output[DataKey.PROTEIN_DF].equals(
+            run_imported.current_step.output[DataKey.PROTEIN_DF]
         )
         assert str(run_imported.steps) == "StepManager with 3 steps: ['teststep01_MXQ', 'teststep02_filter', 'teststep03_kNN']"
 
@@ -298,9 +299,9 @@ class TestRun:
             run_imported.steps.connect_steps(
                 {
                     "source": "teststep03_kNN",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep03_kNN",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
 
@@ -308,18 +309,18 @@ class TestRun:
         run_imported.steps.connect_steps(
                 {
                     "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
 
         run_imported.steps.connect_steps(
                 {
                     "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep04_metaimp",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
 
@@ -328,17 +329,17 @@ class TestRun:
         assert len(edges) == 2
         assert {
                     "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep04_metaimp",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                     "key": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
                     "id": "teststep01_MXQ:protein_df->teststep04_metaimp:protein_df",
                 } in edges
         assert {
                     "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                     "key": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
                     "id": "teststep01_MXQ:protein_df->teststep02_filter:protein_df",
                 } in edges
@@ -348,9 +349,9 @@ class TestRun:
         run_imported.steps.connect_steps(
                 {
                     "source": "teststep01_MXQ",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
         assert run_imported.steps.graph.has_edge("teststep01_MXQ", "teststep02_filter")
@@ -359,9 +360,9 @@ class TestRun:
         run_imported.steps.connect_steps(
                 {
                     "source": "teststep03_kNN",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
 
@@ -372,9 +373,9 @@ class TestRun:
         run_imported.steps.disconnect_steps(
                 {
                     "source": "teststep03_kNN",
-                    "sourceHandle": "protein_df",
+                    "sourceHandle": DataKey.PROTEIN_DF,
                     "target": "teststep02_filter",
-                    "targetHandle": "protein_df",
+                    "targetHandle": DataKey.PROTEIN_DF,
                 }
             )
 
@@ -386,8 +387,8 @@ class TestRun:
             run_imported.steps.disconnect_steps(
                     {
                         "source": "teststep03_kNN",
-                        "sourceHandle": "protein_df",
+                        "sourceHandle": DataKey.PROTEIN_DF,
                         "target": "teststep02_filter",
-                        "targetHandle": "protein_df",
+                        "targetHandle": DataKey.PROTEIN_DF,
                     }
                 )

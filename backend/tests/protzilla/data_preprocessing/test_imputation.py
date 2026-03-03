@@ -1,5 +1,6 @@
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.imputation import (
     by_knn,
     by_knn_plot,
@@ -153,14 +154,14 @@ def test_imputation_min_value_per_df(
 
     # perform imputation on test data frame
     method_inputs = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "shrinking_value": 0.1,
     }
     method_outputs = by_min_per_dataset(**method_inputs)
 
     fig1, fig2 = by_min_per_dataset_plot(
         input_imputation_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -171,7 +172,7 @@ def test_imputation_min_value_per_df(
         fig2.show()
 
     # test whether dataframes match
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         assertion_df
     ), f"Imputation by min value per df does not match!\
@@ -188,14 +189,14 @@ def test_imputation_min_value_per_sample(
 
     # perform imputation on test data frame
     method_inputs = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "shrinking_value": 0.2,
     }
     method_outputs = by_min_per_sample(**method_inputs)
 
     fig1, fig2 = by_min_per_sample_plot(
         input_imputation_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -206,7 +207,7 @@ def test_imputation_min_value_per_sample(
         fig2.show()
 
     # test whether dataframes match
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         assertion_df
     ), f"Imputation by min value per sample does not match!\
@@ -223,14 +224,14 @@ def test_imputation_min_value_per_protein(
 
     # perform imputation on test data frame
     method_inputs = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "shrinking_value": 1.0,
     }
     method_outputs = by_min_per_protein(**method_inputs)
 
     fig1, fig2 = by_min_per_protein_plot(
         input_imputation_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -241,7 +242,7 @@ def test_imputation_min_value_per_protein(
         fig2.show()
 
     # test whether dataframes match
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         assertion_df
     ), f"Imputation by min value per protein does not match!\
@@ -258,14 +259,14 @@ def test_imputation_mean_per_protein(
 
     # perform imputation on test data frame
     method_inputs = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "strategy": "mean",
     }
     method_outputs = by_simple_imputer(**method_inputs)
 
     fig1, fig2 = by_simple_imputer_plot(
         input_imputation_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -276,7 +277,7 @@ def test_imputation_mean_per_protein(
         fig2.show()
 
     # test whether dataframes match
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         assertion_df
     ), f"Imputation by simple median imputation per protein does not match!\
@@ -291,14 +292,14 @@ def test_imputation_knn(show_figures, input_imputation_df, assertion_df_knn):
 
     # perform imputation on test data frame
     method_inputs = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "number_of_neighbours": 2,
     }
     method_outputs = by_knn(**method_inputs)
 
     fig1, fig2 = by_knn_plot(
         input_imputation_df,
-        method_outputs["protein_df"],
+        method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -309,7 +310,7 @@ def test_imputation_knn(show_figures, input_imputation_df, assertion_df_knn):
         fig2.show()
 
     # test whether dataframes match
-    result_df = method_outputs["protein_df"]
+    result_df = method_outputs[DataKey.PROTEIN_DF]
     assert result_df.equals(
         assertion_df
     ), f"Imputation by simple median imputation per protein does not match!\n\
@@ -322,7 +323,7 @@ def test_imputation_knn(show_figures, input_imputation_df, assertion_df_knn):
 def test_imputation_normal_distribution_sampling(show_figures, input_imputation_df):
     # perform imputation on test data frame
     method_inputs_perProtein = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "strategy": "perProtein",
         "down_shift": -10,
     }
@@ -330,7 +331,7 @@ def test_imputation_normal_distribution_sampling(show_figures, input_imputation_
         **method_inputs_perProtein
     )
     method_inputs_perDataset = {
-        "protein_df": input_imputation_df,
+        DataKey.PROTEIN_DF: input_imputation_df,
         "strategy": "perDataset",
         "down_shift": -10,
     }
@@ -340,7 +341,7 @@ def test_imputation_normal_distribution_sampling(show_figures, input_imputation_
 
     fig1, fig2 = by_normal_distribution_sampling_plot(
         input_imputation_df,
-        method_outputs_perProtein["protein_df"],
+        method_outputs_perProtein[DataKey.PROTEIN_DF],
         "Boxplot",
         "Bar chart",
         "Sample",
@@ -350,8 +351,8 @@ def test_imputation_normal_distribution_sampling(show_figures, input_imputation_
         fig1.show()
         fig2.show()
 
-    result_df_perProtein = method_outputs_perProtein["protein_df"]
-    result_df_perDataset = method_outputs_perDataset["protein_df"]
+    result_df_perProtein = method_outputs_perProtein[DataKey.PROTEIN_DF]
+    result_df_perDataset = method_outputs_perDataset[DataKey.PROTEIN_DF]
     assert (
         result_df_perProtein["Intensity"].min() >= 0
     ), f"Imputation by normal distribution sampling should not have negative values!"
