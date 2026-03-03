@@ -27,6 +27,19 @@ const StyledRow = styled(FlexRow)`
   height: 100%;
 `;
 
+const StyledFlowColumn = styled.div`
+  width: calc(25vw + 24px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+`;
+
+const StyledFlowCanvas = styled.div`
+  flex: 1;
+  min-height: 0;
+`;
+
 const StyledDivider = styled.div`
   width: 1px;
   background-color: ${color("secondary")};
@@ -237,7 +250,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   return (
     <StyledRow>
-      <div style={{ width: "calc(25vw + 24px)", height: "100vh" }}>
+      <StyledFlowColumn>
         <StyledStepButtonsRow>
           {supportedSections.map((section) => (
             <StepSelection
@@ -256,40 +269,42 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           ))}
         </StyledStepButtonsRow>
 
-        <ReactFlow
-          key={runName}
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onEdgeClick={onEdgeClick}
-          onPaneClick={onPaneClick}
-          onNodeDragStop={onNodeDragStop}
-          onConnect={onConnect}
-          fitView
-        >
-          <Panel position="top-left">
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
-              {selectedEdge && (
-                <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
-                  Remove selected connection
-                </RedButton>
-              )}
-            </div>
-          </Panel>
-
-          <Panel position="top-right">
-            {hoveredHandleMeta.isActive && (
-              <div style={{ textAlign: "right" }}>
-                <p>{hoveredHandleMeta.direction}</p>
-                <p>{hoveredHandleMeta.type}</p>
+        <StyledFlowCanvas>
+          <ReactFlow
+            key={runName}
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
+            onNodeDragStop={onNodeDragStop}
+            onConnect={onConnect}
+            fitView
+          >
+            <Panel position="top-left">
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
+                {selectedEdge && (
+                  <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                    Remove selected connection
+                  </RedButton>
+                )}
               </div>
-            )}
-          </Panel>
-        </ReactFlow>
-      </div>
+            </Panel>
+
+            <Panel position="top-right">
+              {hoveredHandleMeta.isActive && (
+                <div style={{ textAlign: "right" }}>
+                  <p>{hoveredHandleMeta.direction}</p>
+                  <p>{hoveredHandleMeta.type}</p>
+                </div>
+              )}
+            </Panel>
+          </ReactFlow>
+        </StyledFlowCanvas>
+      </StyledFlowColumn>
 
       <StyledDivider />
 
