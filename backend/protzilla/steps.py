@@ -132,7 +132,6 @@ class Step:
                 self.validate_outputs()
                 self.artifact_versions["output"]["generated"] += 1
 
-            self.calculation_status = "complete"
             if steps.failed_step_index == stepIndex:
                 steps.failed_step_index = -1
 

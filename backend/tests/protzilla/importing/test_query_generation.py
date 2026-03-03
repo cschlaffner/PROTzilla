@@ -76,7 +76,7 @@ def test_generate_alphafold_multimer_json_query_with_model_seed(mock_get):
     mock_get.return_value = mock_resp
 
     result = generate_alphafold_multimer_query_json(
-        "P69905", "2", model_seed=12345, file_name="name"
+        "P69905", "2", model_seed=12345, name="name"
     )
     downloads = result["downloads"]
     key = list(downloads.keys())[0]
@@ -85,11 +85,8 @@ def test_generate_alphafold_multimer_json_query_with_model_seed(mock_get):
 
 
 def test_generate_alphafold_multimer_json_query_with_mismatched_number_of_ids_and_number_of_copies():
-    result = generate_alphafold_multimer_query_json("P69905 P68871", "2", -1, "name")
-    messages = result["messages"]
-    assert len(messages) >= 1
-    msg = messages[0]["msg"]
-    assert "number of copies is missing" in msg
+    with pytest.raises(ValueError, match="number of copies is missing"):
+        generate_alphafold_multimer_query_json("P69905 P68871", "2", -1, "name")
 
 
 def test_generate_alphafold_multimer_json_query_with_invalid_copy_number():

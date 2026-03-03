@@ -46,29 +46,32 @@ def generate_alphafold_multimer_query_json(
         )
         raise ValueError(msg)
     if len(uniprot_ids) != len(copies_per_id):
+        msg = f"For at least one protein id, the number of copies is missing in the input."
         messages.append(
             dict(
                 level=logging.ERROR,
-                msg=f"For at least one protein id, the number of copies is missing in the input.",
+                msg=msg,
             )
         )
-        return dict(messages=messages, downloads={})
+        raise ValueError(msg)
     if min(copies_per_id) < 1:
+        msg = f"There can't be a non-positive number of copies."
         messages.append(
             dict(
                 level=logging.ERROR,
-                msg=f"There can't be a non-positive number of copies.",
+                msg=msg,
             )
         )
-        return dict(messages=messages, downloads={})
+        raise ValueError(msg)
     if sum(copies_per_id) < 2:
+        msg = f"Please use the monomer steps to validate only one protein."
         messages.append(
             dict(
                 level=logging.ERROR,
-                msg=f"Please use the monomer steps to validate only one protein.",
+                msg=msg,
             )
         )
-        return dict(messages=messages, downloads={})
+        raise ValueError(msg)
 
     # create the json query for alphafold
     query = {
