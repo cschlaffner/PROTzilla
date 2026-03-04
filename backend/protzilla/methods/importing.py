@@ -226,7 +226,7 @@ class MetadataColumnAssignment(MetadataImportingStep):
         "Assign columns to metadata categories, repeatable for each category"
     )
 
-    output_keys = [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
+    output_keys = [DataKey.METADATA_DF]
 
     def create_form(self):
         return Form(
