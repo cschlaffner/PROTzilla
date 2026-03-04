@@ -5,11 +5,11 @@ import pandas as pd
 import requests
 
 
-def generate_alphafold_multimer_query_json(
+def generate_alphafold_query_json(
     protein_ids: str, number_copies: str, model_seed: int, name: str
 ) -> dict:
     """
-    Generates an AlphaFold Multimer JSON query for a set of UniProt protein IDs.
+    Generates an AlphaFold JSON query for a set of UniProt protein IDs.
     For each provided UniProt ID, the corresponding amino acid sequence is fetched
     from the UniProt REST API and added to the query with the specified copy number.
     Format of the json is as defined here: https://github.com/google-deepmind/alphafold/blob/main/server/README.md
@@ -24,7 +24,7 @@ def generate_alphafold_multimer_query_json(
     :param model_seed: Model seed for the AlphaFold query. If -1 we want AlphaFold to use a random seed.
     :param name: How the AlphaFold job and the generated file should be named.
     :return: dict (messages, downloads), downloads contains a dictionary mapping a generated filename
-             to the AlphaFold Multimer query JSON string (wrapped in square brackets as required by AlphaFold server)
+             to the AlphaFold query JSON string (wrapped in square brackets as required by AlphaFold server)
     :raises ValueError: If the number of copies or the model seeds cannot be parsed as integers.
     :raises requests.exceptions.HTTPError: If fetching a UniProt FASTA sequence fails.
     """
@@ -56,15 +56,6 @@ def generate_alphafold_multimer_query_json(
         raise ValueError(msg)
     if min(copies_per_id) < 1:
         msg = f"There can't be a non-positive number of copies."
-        messages.append(
-            dict(
-                level=logging.ERROR,
-                msg=msg,
-            )
-        )
-        raise ValueError(msg)
-    if sum(copies_per_id) < 2:
-        msg = f"Please use the monomer steps to validate only one protein."
         messages.append(
             dict(
                 level=logging.ERROR,

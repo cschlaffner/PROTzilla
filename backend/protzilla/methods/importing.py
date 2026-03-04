@@ -32,7 +32,7 @@ from protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
-from protzilla.importing.query_generation import generate_alphafold_multimer_query_json
+from protzilla.importing.query_generation import generate_alphafold_query_json
 
 
 class ImportingStep(Step):
@@ -612,17 +612,19 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
     calc_method = staticmethod(get_multimer_structure_dfs)
 
 
-class AlphaFoldMultimerQueryJsonGeneration(Step):
+class AlphaFoldQueryJsonGeneration(Step):
     section = "importing"
-    display_name = "AlphaFold Multimer Query JSON Generation"
+    display_name = "AlphaFold Query JSON Generation"
     operation = "Query Generation"
-    method_description = "Generate a JSON to upload to AlphaFold-Server to generate a prediction on a multimer."
+    method_description = (
+        "Generate a JSON to upload to AlphaFold-Server to generate a prediction."
+    )
 
     output_keys = ["downloads"]
 
     def create_form(self):
         return Form(
-            label="AlphaFold Multimer Query JSON Generation",
+            label="AlphaFold Query JSON Generation",
             input_fields=[
                 TextField(
                     name="name",
@@ -658,4 +660,4 @@ class AlphaFoldMultimerQueryJsonGeneration(Step):
             ],
         )
 
-    download_method = staticmethod(generate_alphafold_multimer_query_json)
+    download_method = staticmethod(generate_alphafold_query_json)

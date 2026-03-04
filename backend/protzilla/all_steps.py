@@ -16,7 +16,7 @@ _forward_mapping = [
     importing.FastaImport,
     importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
-    importing.AlphaFoldMultimerQueryJsonGeneration,
+    importing.AlphaFoldQueryJsonGeneration,
     importing.ImportMonomerStructurePredictionFromDisk,
     importing.UploadMultimerPredictions,
     importing.ImportMultimerStructurePredictionFromDisk,
