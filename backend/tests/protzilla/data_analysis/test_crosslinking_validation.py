@@ -483,6 +483,8 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
         ("duplicated" in str(m.get("msg", "")).lower()) and (m.get("level") is not None)
         for m in messages
     )
+
+
 def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
     fig = go.Figure()
     add_vertical_line_with_annotation_in_legend(
