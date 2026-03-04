@@ -64,7 +64,7 @@ from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
 )
 from protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
-    bar_plot_of_valid_crosslinks,
+    diagrams_of_crosslinking_validation_data,
 )
 from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (

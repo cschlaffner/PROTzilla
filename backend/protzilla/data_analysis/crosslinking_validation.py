@@ -1,12 +1,19 @@
 import itertools
 
+import math
+
 import pandas as pd
 import numpy as np
 import re
 import logging
+
 from plotly.graph_objects import Figure
 
-from protzilla.data_preprocessing.plots import create_bar_plot
+from backend.protzilla.data_preprocessing.plots import (
+    create_histograms,
+    create_bar_plot,
+)
+from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -349,7 +356,7 @@ def validate_with_angstrom_deviation(
     return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
 
 
-def bar_plot_of_valid_crosslinks(
+def diagrams_of_crosslinking_validation_data(
     crosslinking_df: pd.DataFrame,
     structures_to_validate: list[str],
     crosslinker_information: dict[str, list[float]],
@@ -358,22 +365,33 @@ def bar_plot_of_valid_crosslinks(
     is_multimer: bool,
 ) -> list[Figure]:
     """
-    Creates a bar plot summarizing the number of valid and invalid cross-links
-    based on their distances in the AlphaFold structure compared to cross-linker
-    lengths and allowed deviations.
+    Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
+    cross-links based on the (AlphaFold-)predicted distances compared to crosslinker lengths and
+    allowed deviations.
 
-    :param crosslinking_df: DataFrame containing cross-linking data.
-    :param structures_to_validate: UniProt ID of the protein to validate.
+    For each crosslinker, two histograms are generated:
+    - One covering the full distance range.
+    - One restricted to the range of mean ± 2 standard deviations of the predicted distances.
+
+    Both histograms include vertical reference lines indicating the
+    crosslinker length and, if applicable, the upper and/or lower accepted deviation bounds.
+
+    Additionally, a bar plot is created summarizing the total number of cross-links that match
+    or do not match the predicted structure across all analyzed crosslinkers.
+
+    :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
+                            distances, crosslinker identifiers, and validation results.
+    :param structures_to_validate: UniProt IDs of the proteins to validate.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
-    :param amino_acid_sequences_df: DataFrame containing the protein sequence
-    :param is_multimer: Whether the structures we want to check are monomer or multimer
-    :return: List containing a single bar plot object representing counts of
-             valid and invalid cross-links.
-    :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
+    :param amino_acid_sequence_df: DataFrame containing the protein sequence
+    :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
+             figures (mean ± 2 standard deviations first, full range second), followed by a final
+             bar plot summarizing valid and invalid cross-links across all crosslinkers.
+    :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df,
@@ -383,24 +401,136 @@ def bar_plot_of_valid_crosslinks(
         amino_acid_sequences_df,
         is_multimer,
     )["crosslinking_result_df"]
+    validated_df = validated_df.dropna(subset=["valid_crosslink"])
 
-    if validated_df.empty:
-        valid_crosslinks = 0
-        invalid_crosslinks = 0
-    else:
-        evaluated = validated_df["valid_crosslink"].dropna()
+    figures = []
 
-        valid_crosslinks = (evaluated == True).sum()
-        invalid_crosslinks = (evaluated == False).sum()
+    for crosslinker, crosslinker_df in validated_df.groupby("Crosslinker"):
+        distances_valid = crosslinker_df.loc[
+            crosslinker_df["valid_crosslink"] == True, "alphafold_distance"
+        ]
+        distances_invalid = crosslinker_df.loc[
+            crosslinker_df["valid_crosslink"] == False, "alphafold_distance"
+        ]
+        df_valid = pd.DataFrame({"alphafold_distance": distances_valid})
+        df_invalid = pd.DataFrame({"alphafold_distance": distances_invalid})
 
-    return [
-        create_bar_plot(
-            values_of_sectors=[
-                valid_crosslinks,
-                invalid_crosslinks,
-            ],
-            names_of_sectors=["Valid Cross-Links", "Invalid Cross-Links"],
-            heading="Cross-Links used for Validation",
-            y_title="Number of Cross-Links",
+        (
+            crosslinker_length,
+            accepted_deviation_upper_bound,
+            accepted_deviation_lower_bound,
+        ) = crosslinker_information[crosslinker]
+
+        histogram = create_histograms(
+            dataframe_a=df_valid,
+            dataframe_b=df_invalid,
+            name_a="Valid Crosslinks",
+            name_b="Invalid Crosslinks",
+            heading=f"Predicted distances for {structures_to_validate} with crosslinker {crosslinker}",
+            x_title="Distance (Å)",
+            y_title="Count",
+            overlay=True,
+            visual_transformation="linear",
+            relevant_column_a="alphafold_distance",
+            relevant_column_b="alphafold_distance",
+            one_bin_per_int=True,
         )
-    ]
+        add_vertical_line_with_annotation_in_legend(
+            fig=histogram,
+            dash="solid",
+            annotation=f"{crosslinker} length",
+            x_value=crosslinker_length,
+        )
+
+        mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
+        standard_deviation_predicted_lengths = crosslinker_df[
+            "alphafold_distance"
+        ].std()
+        mean_plus_two_std = (
+            mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
+        )
+        mean_minus_two_std = max(
+            0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
+        )
+
+        histogram_two_standard_deviations = create_histograms(
+            dataframe_a=df_valid,
+            dataframe_b=df_invalid,
+            name_a="Valid Crosslinks",
+            name_b="Invalid Crosslinks",
+            heading=f"Predicted distances for {structures_to_validate} with crosslinker {crosslinker}, mean +/- 2 σ",
+            x_title="Distance (Å)",
+            y_title="Count",
+            overlay=True,
+            visual_transformation="linear",
+            relevant_column_a="alphafold_distance",
+            relevant_column_b="alphafold_distance",
+            min_value=mean_minus_two_std,
+            max_value=mean_plus_two_std,
+            one_bin_per_int=True,
+        )
+        add_vertical_line_with_annotation_in_legend(
+            fig=histogram_two_standard_deviations,
+            dash="solid",
+            annotation=f"{crosslinker} length",
+            x_value=crosslinker_length,
+        )
+
+        if accepted_deviation_upper_bound != 0:
+            add_vertical_line_with_annotation_in_legend(
+                fig=histogram,
+                dash="dash",
+                annotation=f"allowed deviation upper bound",
+                x_value=crosslinker_length + accepted_deviation_upper_bound,
+            )
+            if (
+                math.floor(mean_minus_two_std)
+                <= crosslinker_length + accepted_deviation_upper_bound
+                <= math.ceil(mean_plus_two_std)
+            ):
+                add_vertical_line_with_annotation_in_legend(
+                    fig=histogram_two_standard_deviations,
+                    dash="dash",
+                    annotation=f"allowed deviation upper bound",
+                    x_value=crosslinker_length + accepted_deviation_upper_bound,
+                )
+        if accepted_deviation_lower_bound != 0:
+            add_vertical_line_with_annotation_in_legend(
+                fig=histogram,
+                dash="dash",
+                annotation=f"allowed deviation lower bound",
+                x_value=crosslinker_length - accepted_deviation_lower_bound,
+            )
+            if (
+                math.floor(mean_minus_two_std)
+                <= crosslinker_length - accepted_deviation_lower_bound
+                <= math.ceil(mean_plus_two_std)
+            ):
+                add_vertical_line_with_annotation_in_legend(
+                    fig=histogram_two_standard_deviations,
+                    dash="dash",
+                    annotation=f"allowed deviation lower bound",
+                    x_value=crosslinker_length - accepted_deviation_lower_bound,
+                )
+
+        figures.append(histogram_two_standard_deviations)
+        figures.append(histogram)
+
+    valid_crosslinks = (validated_df["valid_crosslink"] == True).sum()
+    invalid_crosslinks = (validated_df["valid_crosslink"] == False).sum()
+
+    bar_plot_over_all_checked_crosslinks = create_bar_plot(
+        values_of_sectors=[
+            valid_crosslinks,
+            invalid_crosslinks,
+        ],
+        names_of_sectors=[
+            "Cross-Links matching predicted data",
+            "Cross-Links not matching predicted data",
+        ],
+        heading=f"All Cross-Links used for validation of {structures_to_validate}",
+        y_title="Number of Cross-Links",
+    )
+    figures.append(bar_plot_over_all_checked_crosslinks)
+
+    return figures

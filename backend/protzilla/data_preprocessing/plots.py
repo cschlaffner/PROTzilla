@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -169,6 +171,11 @@ def create_histograms(
     x_title: str = "",
     visual_transformation: str = "linear",
     overlay: bool = False,
+    relevant_column_a: str = None,
+    relevant_column_b: str = None,
+    min_value: float = None,
+    max_value: float = None,
+    one_bin_per_int: bool = False,
 ) -> Figure:
     """
     A function to create a histogram for visualisation
@@ -188,47 +195,68 @@ def create_histograms(
     :param x_title: Optional x axis title for graphs.
     :param overlay: Specifies whether to draw one Histogram with overlay or two separate histograms
     :param visual_transformation: Visual transformation of the y-axis data.
+    :param relevant_column_a: Which column of dataframe_a should be used for the histogram. If None, the default_intensity_column will be used.
+    :param relevant_column_b: Which column of dataframe_b should be used for the histogram. If None, the default_intensity_column will be used.
+    :param min_value: Where the first bin should start. If None, will be set to the minimum value of the two dataframes.
+    :param max_value: Where the last bin should end. If None, will be set to the maximum value of the two dataframes.
+    :param one_bin_per_int: If set to True, min_value will be rounded down to the next int and max_value will be rounded up to the next int and there will\
+    be max_value-min_value many bins.
 
-    :return: returns a pie or bar chart of the data
+    :return: returns a histogram of the data
     """
     if visual_transformation not in {"linear", "log10"}:
         raise ValueError(
             f"""visual_transformation parameter  must be "linear" or
                 "log10" but is {visual_transformation}"""
         )
+    if relevant_column_a is None:
+        relevant_column_a = default_intensity_column(dataframe_a)
+    if relevant_column_b is None:
+        relevant_column_b = default_intensity_column(dataframe_b)
 
-    intensity_name_a = default_intensity_column(dataframe_a)
-    intensity_name_b = default_intensity_column(dataframe_b)
-
-    intensities_a = dataframe_a[intensity_name_a]
-    intensities_b = dataframe_b[intensity_name_b]
+    values_a = dataframe_a[relevant_column_a]
+    values_b = dataframe_b[relevant_column_b]
 
     if visual_transformation == "log10":
-        intensities_a = intensities_a.apply(np.log10)
-        intensities_b = intensities_b.apply(np.log10)
+        values_a = values_a.apply(np.log10)
+        values_b = values_b.apply(np.log10)
 
-    min_value = min(intensities_a.min(skipna=True), intensities_b.min(skipna=True))
-    max_value = max(intensities_a.max(skipna=True), intensities_b.max(skipna=True))
+    if min_value is None:
+        min_value = np.nanmin([values_a.min(), values_b.min()])
+    if max_value is None:
+        max_value = np.nanmax([values_a.max(), values_b.max()])
 
-    number_of_bins = 100
-    binsize_a = (
-        intensities_a.max(skipna=True) - intensities_a.min(skipna=True)
-    ) / number_of_bins
-    binsize_b = (
-        intensities_b.max(skipna=True) - intensities_b.min(skipna=True)
-    ) / number_of_bins
+    if one_bin_per_int:
+        min_value = math.floor(min_value)
+        max_value = math.ceil(max_value)
+        binsize_a = 1
+        binsize_b = 1
+    else:
+        number_of_bins = 100
+        if len(values_a) > 0:
+            binsize_a = (
+                values_a.max(skipna=True) - values_a.min(skipna=True)
+            ) / number_of_bins
+        else:
+            binsize_a = 1  # default value of 1 in case that values_a is empty
+        if len(values_b) > 0:
+            binsize_b = (
+                values_b.max(skipna=True) - values_b.min(skipna=True)
+            ) / number_of_bins
+        else:
+            binsize_b = 1  # default value of 1 in case that values_b is empty
 
-    if overlay:
+    if overlay and len(values_a) > 0 and len(values_b) > 0:
         binsize_a = binsize_b = max(binsize_a, binsize_b)
 
     trace0 = go.Histogram(
-        x=intensities_a,
+        x=values_a,
         marker_color=PLOT_PRIMARY_COLOR,
         name=name_a,
         xbins=dict(start=min_value, end=max_value, size=binsize_a),
     )
     trace1 = go.Histogram(
-        x=intensities_b,
+        x=values_b,
         marker_color=PLOT_SECONDARY_COLOR,
         name=name_b,
         xbins=dict(start=min_value, end=max_value, size=binsize_b),
@@ -254,6 +282,9 @@ def create_histograms(
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
     fig.update_xaxes(title=x_title)
     fig.update_yaxes(title=y_title, rangemode="tozero")
+
+    # Disable toggling of the visibility of the traces by clicking on the legend
+    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False))
     return fig
 
 
