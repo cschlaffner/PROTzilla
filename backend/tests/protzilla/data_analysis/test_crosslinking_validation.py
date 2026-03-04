@@ -551,7 +551,7 @@ def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_line
         structures_to_validate=["P12345"],
         crosslinker_information=sample_crosslinker_info,
         cif_df=pd.DataFrame(),
-        amino_acid_sequence_df=pd.DataFrame(),
+        amino_acid_sequences_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
@@ -619,7 +619,7 @@ def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_l
         structures_to_validate=["P12345"],
         crosslinker_information=sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
         cif_df=pd.DataFrame(),
-        amino_acid_sequence_df=pd.DataFrame(),
+        amino_acid_sequences_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
@@ -681,7 +681,7 @@ def test_diagrams_calls_with_correct_parameters(
             structures_to_validate=["P12345"],
             crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
             cif_df=pd.DataFrame(),
-            amino_acid_sequence_df=pd.DataFrame(),
+            amino_acid_sequences_df=pd.DataFrame(),
         )
 
         mock_validate.assert_called_once()

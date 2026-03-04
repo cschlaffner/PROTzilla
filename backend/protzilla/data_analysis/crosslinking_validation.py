@@ -409,7 +409,7 @@ def diagrams_of_crosslinking_validation_data(
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
-    :param amino_acid_sequence_df: DataFrame containing the protein sequence
+    :param amino_acid_sequences_df: DataFrame containing the protein sequence
     :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
              figures (mean ± 2 standard deviations first, full range second), followed by a final
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
