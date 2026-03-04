@@ -6,7 +6,7 @@ import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
 
-import { metadataIcon, peptidesIcon, proteinIcon } from "../../../core/shared/icon/icons";
+import { handleMetadataIcon, handleSequencesIcon, handlePeptidesIcon, handleProteinIcon } from "../../../core/shared/icon/icons";
 
 type HandleDirection = "Input" | "Output" | "None";
 
@@ -29,9 +29,10 @@ export type StepNodeType = Node<StepNodeData, "step">;
 type HandleIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
-  peptide_df: peptidesIcon,
-  protein_df: proteinIcon,
-  metadata_df: metadataIcon,
+  fasta_df: handleSequencesIcon,
+  peptide_df: handlePeptidesIcon,
+  protein_df: handleProteinIcon,
+  metadata_df: handleMetadataIcon,
 };
 
 const HANDLE_ICON_SIZE = 26;
