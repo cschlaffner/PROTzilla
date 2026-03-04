@@ -313,16 +313,6 @@ class PeptideImport(ImportingStep):
             ],
         )
 
-    def modify_form(self, run: Run):
-        super().modify_form(run)
-
-        map_to_uniprot_field: CheckboxField = self.form["map_to_uniprot"]
-        map_to_uniprot_field.value = run.steps.get_step_input(
-            [MaxQuantImport, MsFraggerImport, DiannImport],
-            "map_to_uniprot",
-            default=map_to_uniprot_field.value,
-        )
-
     calc_method = staticmethod(peptide_import)
 
 
