@@ -2662,7 +2662,7 @@ class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
         # create fields for every crosslink
         self.create_crosslink_input_fields(form=form, run=run)
 
-    plot_method = staticmethod(bar_plot_of_valid_crosslinks)
+    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -2673,7 +2673,6 @@ class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
             AlphaFoldPredictionLoad, "uniprot_id", entry_id
         )
 
-        inputs["is_multimer"] = False
         return self.insert_dataframes_with_correct_input_step_id(
             steps=steps,
             inputs=inputs,
@@ -2714,7 +2713,7 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidat
         form["entry_id"].set_options(form_helper.to_choices(loaded_proteins_entry_ids))
         self.create_crosslink_input_fields(form=form, run=run)
 
-    plot_method = staticmethod(bar_plot_of_valid_crosslinks)
+    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
     calc_method = staticmethod(validate_with_angstrom_deviation)
 
     def insert_dataframes(self, steps: StepManager, inputs) -> dict:
@@ -2724,8 +2723,6 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidat
         ) or steps.get_step_identifier_of_step_with_input(
             UploadMultimerPredictions, "entry_id", entry_id
         )
-
-        inputs["is_multimer"] = True
 
         return self.insert_dataframes_with_correct_input_step_id(
             steps=steps,

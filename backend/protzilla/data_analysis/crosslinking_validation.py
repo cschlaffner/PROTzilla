@@ -112,6 +112,18 @@ def get_distance_between_two_amino_acids_in_angstrom(
 def get_protein_sequence_from_df(
     amino_acid_sequences_df: pd.DataFrame, protein_id: str
 ) -> str:
+    """
+    Returns the amino acid sequence for a given protein ID from a DataFrame.
+
+    If the provided protein ID does not contain an isoform suffix, the default suffix "-1"
+    is appended to match the format used in the DataFrame (e.g. "O43242" becomes "O43242-1").
+
+    :param amino_acid_sequences_df: DataFrame containing at least the columns
+    "Protein ID" and "Protein Sequence"
+    :param protein_id: UniProt protein identifier, with or without isoform suffix
+    :return: the corresponding amino acid sequence as a string, or an empty string
+    if the protein ID is not found
+    """
     # because protein ids like O43242 are saved as O43242-1 in amino_acid_sequences_df
     if "-" not in protein_id:
         protein_id = f"{protein_id}-1"
@@ -156,9 +168,18 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
     rows_to_delete = []
     messages = []
 
-    def get_positions_for(
+    def get_crosslink_positions_in_protein(
         peptide: str, protein_id: str, cl_position_within_peptide: int
     ) -> list:
+        """
+        Returns the 1-based positions of the crosslinked residue within the full
+        protein sequence for all occurrences of a given peptide.
+
+        :param peptide: peptide sequence to search for in the protein
+        :param protein_id: UniProt protein identifier
+        :param cl_position_within_peptide: 1-based position of the crosslinked residue within the peptide
+        :return: list of 1-based residue positions in the protein sequence
+        """
         protein_sequence = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
         )
@@ -174,10 +195,10 @@ def add_positions_of_amino_acid_where_crosslinker_bound_to_df(
         protein_id1 = crosslinker_row.Protein_id1
         protein_id2 = crosslinker_row.Protein_id2
 
-        peptide1_positions = get_positions_for(
+        peptide1_positions = get_crosslink_positions_in_protein(
             peptide_sequence1, protein_id1, crosslinker_row.CL_position_within_peptide1
         )
-        peptide2_positions = get_positions_for(
+        peptide2_positions = get_crosslink_positions_in_protein(
             peptide_sequence2, protein_id2, crosslinker_row.CL_position_within_peptide2
         )
 
@@ -230,7 +251,6 @@ def validate_with_angstrom_deviation(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
-    is_multimer: bool,
 ) -> dict:
     """
     Validates cross-links by comparing the cross-linker lengths with the distances between the linked
@@ -246,7 +266,6 @@ def validate_with_angstrom_deviation(
                    - upper_accepted_deviation_for_<Crosslinker>: float
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
     :param amino_acid_sequences_df: DataFrame containing the protein sequence
-    :param is_multimer: Whether the structures we want to check are monomer or multimer
     :return: dict (crosslinking_df_result, messages), crosslinking_df_result contains the relevant rows (rows of intra-crosslinks within the
     protein to validate) of crosslinking_df and two more columns containing the distances in AlphaFold and whether the crosslink matches the
     AlphaFold data or not
@@ -255,6 +274,10 @@ def validate_with_angstrom_deviation(
     """
 
     all_crosslinks_df = crosslinking_df.copy()
+    if len(structures_to_validate) == 1:
+        is_multimer = False
+    else:
+        is_multimer = True
     if not is_multimer:
         # we are only interested in intra-crosslinks of the protein we want to validate
         mask = (all_crosslinks_df.Protein_id1 == structures_to_validate[0]) & (
@@ -281,7 +304,7 @@ def validate_with_angstrom_deviation(
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
         protein_id1 = crosslink.Protein_id1
-        protein_id2 = crosslink.Protein_id1
+        protein_id2 = crosslink.Protein_id2
         protein_sequence1 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id1
         )
@@ -362,7 +385,6 @@ def diagrams_of_crosslinking_validation_data(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
-    is_multimer: bool,
 ) -> list[Figure]:
     """
     Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
@@ -399,7 +421,6 @@ def diagrams_of_crosslinking_validation_data(
         crosslinker_information,
         cif_df,
         amino_acid_sequences_df,
-        is_multimer,
     )["crosslinking_result_df"]
     validated_df = validated_df.dropna(subset=["valid_crosslink"])
 
@@ -420,13 +441,13 @@ def diagrams_of_crosslinking_validation_data(
             accepted_deviation_upper_bound,
             accepted_deviation_lower_bound,
         ) = crosslinker_information[crosslinker]
-
+        structures_to_validate_str = ", ".join(structures_to_validate)
         histogram = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
             name_a="Valid Crosslinks",
             name_b="Invalid Crosslinks",
-            heading=f"Predicted distances for {structures_to_validate} with crosslinker {crosslinker}",
+            heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
             x_title="Distance (Å)",
             y_title="Count",
             overlay=True,
@@ -458,7 +479,7 @@ def diagrams_of_crosslinking_validation_data(
             dataframe_b=df_invalid,
             name_a="Valid Crosslinks",
             name_b="Invalid Crosslinks",
-            heading=f"Predicted distances for {structures_to_validate} with crosslinker {crosslinker}, mean +/- 2 σ",
+            heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
             x_title="Distance (Å)",
             y_title="Count",
             overlay=True,
@@ -528,7 +549,7 @@ def diagrams_of_crosslinking_validation_data(
             "Cross-Links matching predicted data",
             "Cross-Links not matching predicted data",
         ],
-        heading=f"All Cross-Links used for validation of {structures_to_validate}",
+        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
         y_title="Number of Cross-Links",
     )
     figures.append(bar_plot_over_all_checked_crosslinks)

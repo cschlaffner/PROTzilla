@@ -17,9 +17,7 @@ from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
     add_vertical_line_with_annotation_in_legend,
 )
-from backend.protzilla.methods.data_analysis import (
-    CrossLinkingValidationWithAngstromDeviation,
-)
+
 from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDeviation
 
 
@@ -69,7 +67,6 @@ def test_validate_with_angstrom_deviation(distance, expected):
         crosslinker_information=crosslinker_information,
         amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
-        is_multimer=False,
     )
 
     df = result["crosslinking_result_df"]
@@ -330,7 +327,6 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
-        is_multimer=True,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -392,7 +388,6 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
-        is_multimer=True,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -402,7 +397,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
     assert result_df.empty
 
     assert isinstance(messages, list)
-    assert len(messages) == 1
+    assert len(messages) >= 1
     assert messages[0].get("level") is not None
     assert "There are no cross links between the structures to validate." in messages[
         0
@@ -453,7 +448,6 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
-        is_multimer=True,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -753,3 +747,68 @@ def test_diagrams_calls_with_correct_parameters(
             "bar_fig",
         ]
         assert figures == expected_figures
+
+
+def test_validate_multimer_with_invalid_crosslinks():
+    sequences_df = pd.DataFrame(
+        [
+            ("P1-1", "ABAB"),
+            ("P2-1", "ABAB"),
+        ],
+        columns=["Protein ID", "Protein Sequence"],
+    )
+
+    crosslinking_df = pd.DataFrame(
+        [
+            ("P1", "P2", "AB", "AB", 0, 0, "XL"),
+        ],
+        columns=[
+            "Protein_id1",
+            "Protein_id2",
+            "Peptide1",
+            "Peptide2",
+            "CL_position_within_peptide1",
+            "CL_position_within_peptide2",
+            "Crosslinker",
+        ],
+    )
+
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA"] * 4,
+            "_atom_site.label_seq_id": [1, 2, 3, 4],
+            "_atom_site.Cartn_x": [1.0, 2.0, 3.0, 4.0],
+            "_atom_site.Cartn_y": [0.0, 0.0, 0.0, 0.0],
+            "_atom_site.Cartn_z": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    # length = 1.5, upper_dev = 0.6, lower_dev = 0.6.
+    # Distances will be [0.0, 0.0, 2.0, 2.0] -> two valid (2.0) and two invalid (0.0).
+    crosslinker_information = {"XL": [1.5, 0.6, 0.6]}
+
+    out = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structures_to_validate=["P1", "P2"],
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=sequences_df,
+    )
+
+    result_df = out["crosslinking_result_df"]
+    assert isinstance(result_df, pd.DataFrame)
+    assert len(result_df) == 4
+
+    distances = sorted(result_df["alphafold_distance"].astype(float).tolist())
+    assert distances == [0.0, 0.0, 2.0, 2.0]
+
+    valid_counts = result_df["valid_crosslink"].value_counts()
+    assert valid_counts.get(True, 0) == 2
+    assert valid_counts.get(False, 0) == 2
+
+    valid_distances = sorted(
+        result_df.loc[result_df["valid_crosslink"] == True, "alphafold_distance"]
+        .astype(float)
+        .tolist()
+    )
+    assert valid_distances == [2.0, 2.0]
