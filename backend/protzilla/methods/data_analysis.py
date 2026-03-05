@@ -1706,7 +1706,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     value=6,
                 ),
                 NumberField(
-                    name="n_iter",
+                    name="max_iter",
                     label="Maximum number of iterations for the optimization",
                     min=250,
                     value=1000,
