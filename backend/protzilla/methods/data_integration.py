@@ -600,6 +600,19 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
                     "0, 1, 1.5 or 2",
                     value=1,
                 ),
+                NumberField(
+                    name="threads",
+                    label="Number of CPU hardware threads to use for computation",
+                    value=4,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed used for random number generator",
+                    value=123,
+                    step=1,
+                ),
             ],
         )
 
