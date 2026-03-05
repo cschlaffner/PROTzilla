@@ -383,13 +383,6 @@ class Step(ABC):
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
-        if list(self.output.output.keys()) == ["messages"]:
-            message_string = ""
-            for message in self.messages.messages:
-                message_string += f"{message['msg']}\n"
-            raise ValueError(
-                f"Output validation failed: Output only contains messages: {message_string}."
-            )
         # for key in self.output_keys:
         #     if key not in self.output or self.output[key] is None:
         #         if not soft_check:
