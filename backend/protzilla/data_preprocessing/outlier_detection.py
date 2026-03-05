@@ -1,4 +1,5 @@
 import logging
+from typing import Literal
 
 import pandas as pd
 from sklearn.decomposition import PCA
@@ -136,9 +137,11 @@ def by_local_outlier_factor(
 
 def by_pca(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: (
+        pd.DataFrame | None
+    ) = None,  # necessary for the moment, to be fixed by 279
     threshold: int = 2,
-    number_of_components: int = 3,
+    number_of_components: Literal[2] | Literal[3] = 3,
 ) -> dict:
     """
     This function filters out outliers using a PCA
@@ -162,88 +165,68 @@ def by_pca(
     :return: returns a Dataframe containing all samples that are not outliers.
         A dict with list of inlier sample names, a DataFrame that contains the projection
         of the intensity_df on first principal components, a list that contains the
-        explained variation for each component and an int, the number of components
-        the calculations were executed with
-    :rtype: Tuple[pandas DataFrame, dict]
+        explained variation for each component and an int
     """
-    try:
-        assert number_of_components in {
-            2,
-            3,
-        }, f"Wrong number of components. \
-            Should be 2 or 3, but is {number_of_components}."
+    if number_of_components != 2 and number_of_components != 3:
+        raise ValueError(
+            f"Wrong number of components. Should be 2 or 3, but is {number_of_components}."
+        )
+    transformed_df = long_to_wide(protein_df)
+    if transformed_df.isnull().sum().any():
+        raise ValueError(
+            "Outlier Detection by PCA does not accept missing values \
+            encoded as NaN. Consider preprocessing your data to remove NaN values."
+        )
+    pca_model = PCA(n_components=number_of_components)
+    pca_model.fit(transformed_df)
+    df_transformed_pca_data = pd.DataFrame(
+        pca_model.transform(transformed_df),
+        index=transformed_df.index,
+        columns=[f"Component {i}" for i in range(1, number_of_components + 1)],
+    )
+    # Detect outliers in the transformed data.
+    medians = df_transformed_pca_data.median()
+    stdevs = df_transformed_pca_data.std()
 
-        transformed_df = long_to_wide(protein_df)
-        pca_model = PCA(n_components=number_of_components)
-        pca_model.fit(transformed_df)
-
-        if number_of_components == 2:
-            df_transformed_pca_data = pd.DataFrame(
-                pca_model.transform(transformed_df),
-                index=transformed_df.index,
-                columns=["Component 1", "Component 2"],
+    if number_of_components == 2:
+        df_transformed_pca_data["Outlier"] = [
+            (x - medians[0]) ** 2 / (threshold * stdevs[0]) ** 2
+            + (y - medians[1]) ** 2 / (threshold * stdevs[1]) ** 2
+            > 1
+            for x, y in zip(
+                df_transformed_pca_data["Component 1"],
+                df_transformed_pca_data["Component 2"],
             )
-        else:
-            df_transformed_pca_data = pd.DataFrame(
-                pca_model.transform(transformed_df),
-                index=transformed_df.index,
-                columns=["Component 1", "Component 2", "Component 3"],
+        ]
+    else:
+        df_transformed_pca_data["Outlier"] = [
+            (x - medians[0]) ** 2 / (threshold * stdevs[0]) ** 2
+            + (y - medians[1]) ** 2 / (threshold * stdevs[1]) ** 2
+            + (z - medians[2]) ** 2 / (threshold * stdevs[2]) ** 2
+            > 1
+            for x, y, z in zip(
+                df_transformed_pca_data["Component 1"],
+                df_transformed_pca_data["Component 2"],
+                df_transformed_pca_data["Component 3"],
             )
+        ]
+    outlier_list = df_transformed_pca_data[
+        df_transformed_pca_data["Outlier"]
+    ].index.tolist()
+    protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
+    peptide_df = (
+        None
+        if peptide_df is None
+        else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
+    )
 
-        # Detect outliers in the transformed data.
-        medians = df_transformed_pca_data.median()
-        stdevs = df_transformed_pca_data.std()
-
-        if number_of_components == 2:
-            df_transformed_pca_data["Outlier"] = [
-                (x - medians[0]) ** 2 / (threshold * stdevs[0]) ** 2
-                + (y - medians[1]) ** 2 / (threshold * stdevs[1]) ** 2
-                > 1
-                for x, y in zip(
-                    df_transformed_pca_data["Component 1"],
-                    df_transformed_pca_data["Component 2"],
-                )
-            ]
-        else:
-            df_transformed_pca_data["Outlier"] = [
-                (x - medians[0]) ** 2 / (threshold * stdevs[0]) ** 2
-                + (y - medians[1]) ** 2 / (threshold * stdevs[1]) ** 2
-                + (z - medians[2]) ** 2 / (threshold * stdevs[2]) ** 2
-                > 1
-                for x, y, z in zip(
-                    df_transformed_pca_data["Component 1"],
-                    df_transformed_pca_data["Component 2"],
-                    df_transformed_pca_data["Component 3"],
-                )
-            ]
-        outlier_list = df_transformed_pca_data[
-            df_transformed_pca_data["Outlier"]
-        ].index.tolist()
-        protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-        peptide_df = (
-            None
-            if peptide_df is None
-            else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-        )
-
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=outlier_list,
-            pca_df=df_transformed_pca_data,
-            explained_variance_ratio=(pca_model.explained_variance_ratio_).tolist(),
-            number_of_components=number_of_components,
-        )
-    except ValueError as e:
-        msg = "Outlier Detection by PCA does not accept missing values \
-        encoded as NaN. Consider preprocessing your data to remove NaN values."
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=None,
-            anomaly_df=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
-        )
+    return dict(
+        protein_df=protein_df,
+        peptide_df=peptide_df,
+        outlier_list=outlier_list,
+        pca_df=df_transformed_pca_data,
+        explained_variance_ratio=(pca_model.explained_variance_ratio_).tolist(),
+    )
 
 
 def by_isolation_forest_plot(output_anomaly_df):
@@ -254,14 +237,12 @@ def by_local_outlier_factor_plot(output_anomaly_df):
     return [create_anomaly_score_bar_plot(output_anomaly_df)]
 
 
-def by_pca_plot(
-    output_pca_df, output_number_of_components, output_explained_variance_ratio
-):
-    if output_number_of_components == 2:
+def by_pca_plot(output_pca_df, number_of_components, output_explained_variance_ratio):
+    if number_of_components == 2:
         return [
             create_pca_2d_scatter_plot(output_pca_df, output_explained_variance_ratio)
         ]
-    if output_number_of_components == 3:
+    if number_of_components == 3:
         return [
             create_pca_3d_scatter_plot(output_pca_df, output_explained_variance_ratio)
         ]
