@@ -17,9 +17,8 @@ from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 def by_isolation_forest(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: pd.DataFrame | None = None,
     n_estimators: int = 100,
-    n_jobs: int = -1,
 ) -> dict:
     """
     This function filters out outliers using a clustering
@@ -31,20 +30,18 @@ def by_isolation_forest(
     :param n_estimators: the number of estimators used by the algorithm,
         default: 100
     :type n_estimators: integer
-    :param n_jobs: Number kernels used by algorithm, default:
-        all kernels (-1)
-    :type n_jobs: integer
 
     :return: returns a Dataframe containing all samples that are not outliers and a
         dict with list of outlier sample names
-    :rtype: Tuple[pandas DataFrame, dict]
     """
     transformed_df = long_to_wide(protein_df)
 
     clf = IsolationForest(
         random_state=0,
+        # should this be a hardcoded factor of .5?
         max_samples=(len(transformed_df) // 2),
-        n_jobs=n_jobs,
+        # -1 means all available processors
+        n_jobs=-1,
         n_estimators=n_estimators,
     )
 
