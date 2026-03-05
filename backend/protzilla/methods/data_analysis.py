@@ -1777,6 +1777,14 @@ class DimensionReductionUMAP(DataAnalysisStep):
                     step=1,
                     value=42,
                 ),
+                NumberField(
+                    name="transform_seed",
+                    label="Seed for stochastic aspects of the transform operation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
             ],
         )
 
