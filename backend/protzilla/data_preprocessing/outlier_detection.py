@@ -75,7 +75,7 @@ def by_isolation_forest(
 
 def by_local_outlier_factor(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
+    peptide_df: pd.DataFrame | None = None,
     number_of_neighbors: int = 20,
 ) -> dict:
     """
@@ -93,46 +93,38 @@ def by_local_outlier_factor(
 
     :return: returns a Dataframe containing all samples that are not outliers and a
         dict with list of outlier sample names
-    :rtype: Tuple[pandas DataFrame, dict]
     """
-    try:
-        transformed_df = long_to_wide(protein_df)
-
-        clf = LocalOutlierFactor(n_neighbors=number_of_neighbors, n_jobs=-1)
-
-        df_lof_data = pd.DataFrame(index=transformed_df.index)
-        df_lof_data["LOF Outlier"] = clf.fit_predict(
-            transformed_df.loc[:, transformed_df.columns != "Sample"]
-        )
-        df_lof_data["Anomaly Score"] = clf.negative_outlier_factor_
-
-        df_lof_data["Outlier"] = df_lof_data["LOF Outlier"] == -1
-
-        outlier_list = df_lof_data[df_lof_data["Outlier"]].index.tolist()
-
-        protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-        peptide_df = (
-            None
-            if peptide_df is None
-            else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-        )
-
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=outlier_list,
-            anomaly_df=df_lof_data[["Anomaly Score", "Outlier"]],
-        )
-    except ValueError as e:
-        msg = f"Outlier Detection by LocalOutlierFactor does not accept missing values \
+    transformed_df = long_to_wide(protein_df)
+    if transformed_df.isnull().sum().any():
+        raise ValueError(
+            "Outlier Detection by LocalOutlierFactor does not accept missing values \
             encoded as NaN. Consider preprocessing your data to remove NaN values."
-        return dict(
-            protein_df=protein_df,
-            peptide_df=peptide_df,
-            outlier_list=None,
-            anomaly_df=None,
-            messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
         )
+    clf = LocalOutlierFactor(n_neighbors=number_of_neighbors, n_jobs=-1)
+
+    df_lof_data = pd.DataFrame(index=transformed_df.index)
+    df_lof_data["LOF Outlier"] = clf.fit_predict(
+        transformed_df.loc[:, transformed_df.columns != "Sample"]
+    )
+    df_lof_data["Anomaly Score"] = clf.negative_outlier_factor_
+
+    df_lof_data["Outlier"] = df_lof_data["LOF Outlier"] == -1
+
+    outlier_list = df_lof_data[df_lof_data["Outlier"]].index.tolist()
+
+    protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
+    peptide_df = (
+        None
+        if peptide_df is None
+        else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
+    )
+
+    return dict(
+        protein_df=protein_df,
+        peptide_df=peptide_df,
+        outlier_list=outlier_list,
+        anomaly_df=df_lof_data[["Anomaly Score", "Outlier"]],
+    )
 
 
 def by_pca(
