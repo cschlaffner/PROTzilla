@@ -72,7 +72,6 @@ def test_outlier_detection_with_isolation_forest(
         DataKey.PROTEIN_DF: outlier_detection_df,
         DataKey.PEPTIDE_DF: peptides_df,
         "n_estimators": 50,
-        "n_jobs": -1,
     }
     method_outputs = by_isolation_forest(**method_inputs)
     fig = by_isolation_forest_plot(method_outputs["anomaly_df"])[0]
