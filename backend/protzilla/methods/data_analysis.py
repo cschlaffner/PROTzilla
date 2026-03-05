@@ -908,12 +908,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
         return Form(
             label="Scatter Plot",
             input_fields=[
-                # TODO: handle isRequired
-                # TODO: is this supposed to be metadata?
-                DropdownField(
-                    name="color_df_field",
-                    label="Choose dataframe to be used for coloring",
-                ),
                 DropdownField(
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for coloring",
@@ -923,17 +917,19 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        color_field: DropdownField = self.form["color_df_field"]
-
-        color_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step, output_key="color_df"
-                ),
-                required=False,
-            )
+        metadata_column_field: DropdownField = self.form["metadata_column"]
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
         )
-
+        if metadata_source is not None and source_handle is not None:
+            metadata_column_field.set_options(
+                form_helper.get_choices_for_metadata(
+                    run,
+                    instance_identifier=metadata_source,
+                    include_sample=False,
+                    output_key=source_handle,
+                )
+            )
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
