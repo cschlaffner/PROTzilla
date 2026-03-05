@@ -1,49 +1,49 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 
 class EmptyEnum(Enum):
     pass
 
 
-class LogTransformationBaseType(Enum):
+class LogTransformationBaseType(StrEnum):
     LOG2 = "log2"
     LOG10 = "log10"
 
 
-class SimpleImputerStrategyType(Enum):
+class SimpleImputerStrategyType(StrEnum):
     MEAN = "mean"
     MEDIAN = "median"
     MOST_FREQUENT = "most_frequent"
 
 
-class ImputationByNormalDistributionSamplingStrategyType(Enum):
+class ImputationByNormalDistributionSamplingStrategyType(StrEnum):
     PER_PROTEIN = "perProtein"
     PER_DATASET = "perDataset"
 
 
-class BarAndPieChart(Enum):
+class BarAndPieChart(StrEnum):
     BAR_PLOT = "Bar chart"
     PIE_CHART = "Pie chart"
 
 
-class BoxAndHistogramGraph(Enum):
+class BoxAndHistogramGraph(StrEnum):
     BOXPLOT = "Boxplot"
     HISTOGRAM = "Histogram"
 
 
-class GroupBy(Enum):
+class GroupBy(StrEnum):
     NO_GROUPING = "None"
     SAMPLE = "Sample"
     PROTEIN_ID = "Protein ID"
 
 
-class MultipleTestingCorrectionMethod(Enum):
+class MultipleTestingCorrectionMethod(StrEnum):
     benjamini_hochberg = "Benjamini-Hochberg"
     bonferroni = "Bonferroni"
     none = "None"
 
 
-class VisualTransformations(Enum):
+class VisualTransformations(StrEnum):
     LOG10 = "log10"
     LINEAR = "linear"
 
