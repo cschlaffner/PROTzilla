@@ -18,6 +18,7 @@ from backend.protzilla.constants.option_types import *
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
+    # default output_keys for most preprocessing steps. adapt where necessary!
     output_keys = [DataKey.PROTEIN_DF, DataKey.PEPTIDE_DF]
 
     plot_input_names = [DataKey.PROTEIN_DF]
