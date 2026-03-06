@@ -2,7 +2,7 @@ from abc import ABC
 import logging
 from typing_extensions import override
 
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import LogBaseWithNoneType, SimpleImputerStrategyType
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.constants.data_types import DataKey
@@ -86,12 +86,6 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     create_overview_ptm_visualization,
     get_detected_modifications,
 )
-
-LOG_BASE_OPTIONS = [
-    Option(value="None", label="None"),
-    Option(value="log2", label="log2"),
-    Option(value="log10", label="log10"),
-]
 
 
 class TTestType(Enum):
@@ -333,12 +327,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
                     step=0.01,
                     separatePrefix="\u03b1",
                 ),
-                DropdownField(
-                    name="log_base",
-                    label="Data log base",
-                    value="None",
-                    options=LOG_BASE_OPTIONS,
-                ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
                     name="selected_groups", label="Select groups to perform ANOVA on"
@@ -397,8 +385,8 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                 DropdownField(
                     name="log_base",
                     label="Data log base",
-                    value="None",
-                    options=LOG_BASE_OPTIONS,
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="grouping",
@@ -470,8 +458,8 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
                 DropdownField(
                     name="log_base",
                     label="Data log base",
-                    value="None",
-                    options=LOG_BASE_OPTIONS,
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="grouping",
@@ -533,8 +521,8 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
                 DropdownField(
                     name="log_base",
                     label="Data log base",
-                    value="None",
-                    options=LOG_BASE_OPTIONS,
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -602,8 +590,8 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
                 DropdownField(
                     name="log_base",
                     label="Data log base",
-                    value="None",
-                    options=LOG_BASE_OPTIONS,
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
