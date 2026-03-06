@@ -191,7 +191,6 @@ def linear_model(
     ]
 
     filtered_proteins = list(set(proteins) - set(valid_protein_groups))
-
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
