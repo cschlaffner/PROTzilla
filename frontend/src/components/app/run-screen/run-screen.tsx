@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
+import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -17,10 +17,8 @@ import {
   emptyRunData,
   footerMessages,
   StepID,
-  SwitchComponent,
-  Table,
-  SelectedStep,
   StepOutputInfo,
+  SwitchComponent,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -246,9 +244,7 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  const editorModes = [
-    { name: "Flow", value: nodeEditorComponent },
-  ];
+  const editorModes = [{ name: "Flow", value: nodeEditorComponent }];
 
   const selectedEditorMode: SwitchComponent["name"] = "Flow";
 

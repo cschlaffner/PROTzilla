@@ -112,7 +112,6 @@ const StepDescriptionDropdown = styled.div`
 export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
   section,
-  //eslint-disable-next-line
   isSmallButton = false,
   onAddStep,
   handlePosition = { top: 0, left: 0 },
