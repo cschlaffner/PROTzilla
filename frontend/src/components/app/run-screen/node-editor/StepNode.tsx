@@ -6,7 +6,7 @@ import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
 
-import { handleMetadataIcon, handleSequencesIcon, handlePeptidesIcon, handleProteinIcon } from "../../../core/shared/icon/icons";
+import { handleDnaIcon, handleMetadataIcon, handleSequencesIcon, handlePeptidesIcon, handleProteinIcon } from "../../../core/shared/icon/icons";
 
 type HandleDirection = "Input" | "Output" | "None";
 
@@ -33,6 +33,7 @@ const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
   peptide_df: handlePeptidesIcon,
   protein_df: handleProteinIcon,
   metadata_df: handleMetadataIcon,
+  gene_mapping_df: handleDnaIcon,
 };
 
 const HANDLE_ICON_SIZE = 26;

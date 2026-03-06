@@ -646,7 +646,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Map protein groups to genes"
 
-    output_keys = ["gene_mapping_df", "filtered_protein_ids"]
+    output_keys = ["gene_mapping_df"]
 
     calc_method = staticmethod(database_integration.gene_mapping)
 
