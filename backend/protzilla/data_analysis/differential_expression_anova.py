@@ -89,7 +89,6 @@ def anova(
             corrected_p_values_df=pd.DataFrame(
                 columns=["Protein ID", "corrected_p_value"]
             ),
-            metadata_df=pd.DataFrame(columns=["Sample", grouping]),
             corrected_alpha=alpha,
             filtered_proteins=[],
             messages=messages,
@@ -123,16 +122,11 @@ def anova(
         differentially_expressed_proteins_df["corrected_p_value"] < corrected_alpha
     ]
 
-    # Create mapping from sample to group
-    sample_group_df = differentially_expressed_proteins_df[
-        ["Sample", grouping]
-    ].drop_duplicates()
     filtered_proteins = list(set(proteins) - set(valid_protein_groups))
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
         corrected_p_values_df=corrected_p_values_df,
-        metadata_df=sample_group_df,
         corrected_alpha=corrected_alpha,
         filtered_proteins=filtered_proteins,
         messages=messages,

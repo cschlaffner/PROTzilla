@@ -312,7 +312,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        DataKey.METADATA_DF,
         "corrected_alpha",
         "filtered_proteins",
     ]

@@ -928,7 +928,6 @@ def test_differential_expression_anova_empty_p_values():
     assert current_out["differentially_expressed_proteins_df"].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
-    assert current_out["metadata_df"].empty
     assert current_out["corrected_alpha"] == 0.05
     assert current_out["filtered_proteins"] == []
 
