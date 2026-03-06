@@ -66,6 +66,7 @@ def by_existing_proteins(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> 
         peptide_df=filtered_peptide_df,
     )
 
+
 def by_existing_samples(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> dict:
     """
     This function filters the peptide dataframe so that only peptides remain whose
@@ -76,9 +77,7 @@ def by_existing_samples(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> d
     :return: dict containing the peptide dataframe filtered to peptides whose
             Sample exists in the protein dataframe
     """
-    filtered_peptide_df = peptide_df[
-        peptide_df["Sample"].isin(protein_df["Sample"])
-    ]
+    filtered_peptide_df = peptide_df[peptide_df["Sample"].isin(protein_df["Sample"])]
     return dict(
         peptide_df=filtered_peptide_df,
     )
