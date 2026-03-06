@@ -1,4 +1,5 @@
 import pandas as pd
+from plotly.graph_objs import Figure
 
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
 
@@ -81,3 +82,17 @@ def by_existing_samples(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> d
     return dict(
         peptide_df=filtered_peptide_df,
     )
+
+
+def peptide_filtering_pie_plot(
+    peptide_df: pd.DataFrame, output_peptide_df: pd.DataFrame
+) -> list[Figure]:
+    fig = create_pie_plot(
+        values_of_sectors=[
+            len(output_peptide_df),
+            len(peptide_df) - len(output_peptide_df),
+        ],
+        names_of_sectors=["Peptides kept", "Peptides filtered"],
+        heading="Number of Filtered Peptides",
+    )
+    return [fig]
