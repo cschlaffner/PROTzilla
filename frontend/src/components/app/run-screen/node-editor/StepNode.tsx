@@ -6,7 +6,13 @@ import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import type React from "react";
 import { styled } from "styled-components";
 
-import { handleDnaIcon, handleMetadataIcon, handleSequencesIcon, handlePeptidesIcon, handleProteinIcon } from "../../../core/shared/icon/icons";
+import {
+  handleDnaIcon,
+  handleMetadataIcon,
+  handlePeptidesIcon,
+  handleProteinIcon,
+  handleSequencesIcon,
+} from "../../../core/shared/icon/icons";
 
 type HandleDirection = "Input" | "Output" | "None";
 
