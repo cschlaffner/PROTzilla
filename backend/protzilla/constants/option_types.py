@@ -48,7 +48,11 @@ class VisualTransformations(StrEnum):
     LINEAR = "linear"
 
 
+class PValueColumnName(StrEnum):
+    protein_id = "Protein ID"
+    ptm = "PTM"
+
 FC_SIGNIFICANCE_COLUMNS = ["Protein ID", "fc_z_score", "fc_significance"]
-CORRECTED_P_VALUES_COLUMNS = ["Protein ID", "corrected_p_value"]
-LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"]
+CORRECTED_P_VALUES_COLUMNS = ["Protein ID", "corrected_p_value"] # not true for PTM data
+LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"] # not true for PTM data
 T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
