@@ -36,6 +36,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.ImputationByKNN,
     data_preprocessing.ImputationByNormalDistributionSampling,
     data_preprocessing.FilterPeptidesByPEPThreshold,
+    data_preprocessing.FilterPeptidesByExistingProteins,
     data_analysis.DifferentialExpressionANOVA,
     data_analysis.DifferentialExpressionTTest,
     data_analysis.DifferentialExpressionLinearModel,

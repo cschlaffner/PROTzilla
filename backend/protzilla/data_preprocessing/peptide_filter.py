@@ -48,3 +48,12 @@ def by_pep_value_plot(output_peptide_df, output_filtered_peptides, graph_type):
     elif graph_type == "Bar chart":
         fig = create_bar_plot(**value_dict)
     return [fig]
+
+
+def by_existing_proteins(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> dict:
+    filtered_peptide_df = peptide_df[
+        (peptide_df["Protein ID"].isin(protein_df["Protein ID"]))
+    ]
+    return dict(
+        peptide_df=filtered_peptide_df,
+    )

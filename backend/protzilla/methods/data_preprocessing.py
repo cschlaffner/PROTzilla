@@ -28,7 +28,11 @@ class DataPreprocessingStep(Step, ABC):
         self.plot_inputs: dict = {}
 
 
-class FilterProteinsBySamplesMissing(DataPreprocessingStep):
+class ProteinFilteringStep(DataPreprocessingStep, ABC):
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class FilterProteinsBySamplesMissing(ProteinFilteringStep):
     display_name = "By samples missing"
     operation = "filter_proteins"
     method_description = (
@@ -150,6 +154,21 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_pep_value)
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+
+
+class FilterPeptidesByExistingProteins(DataPreprocessingStep):
+    display_name = "By existing proteins"
+    operation = "filter_peptides"
+    method_description = "Filter by existing proteins"
+    output_keys = [DataKey.PEPTIDE_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing proteins",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_proteins)
 
 
 class FilterSamplesByProteinsMissing(DataPreprocessingStep):

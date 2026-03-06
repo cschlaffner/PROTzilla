@@ -34,6 +34,7 @@ def test_get_all_possible_step_names():
         "ImputationByKNN",
         "ImputationByNormalDistributionSampling",
         "FilterPeptidesByPEPThreshold",
+        "FilterPeptidesByExistingProteins",
         "DifferentialExpressionANOVA",
         "DifferentialExpressionTTest",
         "DifferentialExpressionLinearModel",
