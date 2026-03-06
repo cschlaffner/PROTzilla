@@ -11,7 +11,6 @@ from backend.protzilla.utilities.utilities import (
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
-    _map_log_base,
     apply_multiple_testing_correction,
     preprocess_grouping,
 )
@@ -23,7 +22,6 @@ def anova(
     multiple_testing_correction_method: str,
     alpha: float,
     grouping: str,
-    log_base: str = None,
     selected_groups: list = None,
 ) -> dict:
     """
@@ -38,7 +36,6 @@ def anova(
         :param selected_groups: groups to test against each other
         :param multiple_testing_correction_method: the method for multiple testing correction
         :param alpha: the alpha value for anova
-        :param log_base: in case the data was previously log transformed this parameter contains the base as a string
         :return: a dict containing
     - a df differentially_expressed_proteins_df in typical protzilla long format containing the anova results
                 corrected_p_value per non-filtered protein
@@ -54,8 +51,6 @@ def anova(
         protein_df, metadata_df, grouping, selected_groups
     )
     intensity_name = default_intensity_column(protein_df)
-
-    log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
     # Perform ANOVA and calculate p-values for each protein
     proteins = protein_df["Protein ID"].unique()
@@ -86,15 +81,15 @@ def anova(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist() + ["corrected_p_values"]
+                columns=protein_df.columns.tolist() + ["corrected_p_value"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist() + ["corrected_p_values"]
+                columns=protein_df.columns.tolist() + ["corrected_p_value"]
             ),
             corrected_p_values_df=pd.DataFrame(
-                columns=["Protein ID", "corrected_p_values"]
+                columns=["Protein ID", "corrected_p_value"]
             ),
-            sample_group_df=pd.DataFrame(columns=["Sample", grouping]),
+            metadata_df=pd.DataFrame(columns=["Sample", grouping]),
             corrected_alpha=alpha,
             filtered_proteins=[],
             messages=messages,
@@ -106,7 +101,7 @@ def anova(
     )
     corrected_p_values_df = pd.DataFrame(
         list(zip(valid_protein_groups, corrected_p_values)),
-        columns=["Protein ID", "corrected_p_values"],
+        columns=["Protein ID", "corrected_p_value"],
     )
     if corrected_alpha is None:
         corrected_alpha = alpha
@@ -125,7 +120,7 @@ def anova(
     ]
 
     significant_proteins_df = differentially_expressed_proteins_df[
-        differentially_expressed_proteins_df["corrected_p_values"] < corrected_alpha
+        differentially_expressed_proteins_df["corrected_p_value"] < corrected_alpha
     ]
 
     # Create mapping from sample to group
