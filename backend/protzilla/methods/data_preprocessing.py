@@ -345,6 +345,7 @@ class TransformationInversion(DataPreprocessingStep):
 
     calc_method = staticmethod(transformation.by_inversion)
 
+
 class NormalisationStep(DataPreprocessingStep, ABC):
     operation = "normalisation"
     output_keys = [DataKey.PROTEIN_DF]
