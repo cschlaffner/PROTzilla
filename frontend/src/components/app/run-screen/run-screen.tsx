@@ -246,37 +246,11 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  // const listEditorComponent = (
-  //   <ListEditor
-  //     onFormSubmit={onFormSubmit}
-  //     runName={runName}
-  //     navigateOrRefreshSteps={navigateOrRefreshSteps}
-  //     runData={runData}
-  //   />
-  // );
-
   const editorModes = [
-    // { name: "List", value: listEditorComponent },
     { name: "Flow", value: nodeEditorComponent },
   ];
 
-  // TODO: Replace this with appropriate data from runData
-  // Else it resets whenever the run data is reset
   const selectedEditorMode: SwitchComponent["name"] = "Flow";
-  // const selectedEditorMode = runData.editor_mode;
-
-  const selectEditorMode = (mode: SwitchComponent) => {
-    console.log("Changed to", mode.name);
-    // TODO: This API call has not been implemented yet
-    // void callApiWithParameters("set_editor_mode/", {
-    //   run_name: runName,
-    //   mode: mode.name
-    // }).then(() => {
-    //   void getRunData();
-    //   void getStepPlots();
-    //   void getStepTable();
-    // });
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -294,7 +268,6 @@ export const RunScreen: React.FC = () => {
           <StyledListSwitchCard
             components={editorModes}
             selection={selectedEditorMode}
-            callback={selectEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
