@@ -13,6 +13,7 @@ from backend.protzilla.data_preprocessing.filter_samples import (
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
+from backend.protzilla.data_preprocessing.peptide_filter import by_existing_samples
 
 
 @pytest.fixture
@@ -54,19 +55,19 @@ def filter_samples_df():
 def test_by_proteins_missing(filter_samples_df, show_figures, peptides_df):
     method_input1 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: None,
         "percentage": 0.5,
     }
     method_output1 = by_proteins_missing(**method_input1)
     method_input2 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "percentage": 0.6,
     }
     method_output2 = by_proteins_missing(**method_input2)
+    method_peptide_filtering_output2 = by_existing_samples(
+        peptides_df, method_output2[DataKey.PROTEIN_DF]
+    )
     method_input3 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: None,
         "percentage": 0.65,
     }
     method_output3 = by_proteins_missing(**method_input3)
@@ -102,15 +103,9 @@ def test_by_proteins_missing(filter_samples_df, show_figures, peptides_df):
                     Sample2, Sampel3 and Sample4, but are {list_samples_excluded_3}"
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output1[DataKey.PROTEIN_DF],
-        None,
-        method_output1[DataKey.PEPTIDE_DF],
-        "Sample",
-    )
-    assert_peptide_filtering_matches_protein_filtering(
         method_output2[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output2[DataKey.PEPTIDE_DF],
+        method_peptide_filtering_output2[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
@@ -118,16 +113,17 @@ def test_by_proteins_missing(filter_samples_df, show_figures, peptides_df):
 def test_filter_samples_by_protein_count(filter_samples_df, show_figures, peptides_df):
     method_input1 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: None,
         "deviation_threshold": 0.3,
     }
     method_output1 = by_protein_count(**method_input1)
     method_input2 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "deviation_threshold": 1.0,
     }
     method_output2 = by_protein_count(**method_input2)
+    method_filtered_peptides_output2 = by_existing_samples(
+        peptides_df, method_output2[DataKey.PROTEIN_DF]
+    )
 
     list_samples_excluded_1 = method_output1["filtered_samples"]
     list_samples_excluded_2 = method_output2["filtered_samples"]
@@ -160,15 +156,9 @@ def test_filter_samples_by_protein_count(filter_samples_df, show_figures, peptid
             Sample1, but are {list_samples_excluded_2}"
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output1[DataKey.PROTEIN_DF],
-        None,
-        method_output1[DataKey.PEPTIDE_DF],
-        "Sample",
-    )
-    assert_peptide_filtering_matches_protein_filtering(
         method_output2[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output2[DataKey.PEPTIDE_DF],
+        method_filtered_peptides_output2[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
@@ -178,16 +168,17 @@ def test_filter_samples_by_protein_intensity_sum(
 ):
     method_input1 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: None,
         "deviation_threshold": 1.0,
     }
     method_output1 = by_protein_intensity_sum(**method_input1)
     method_input2 = {
         DataKey.PROTEIN_DF: filter_samples_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "deviation_threshold": 0.3,
     }
     method_output2 = by_protein_intensity_sum(**method_input2)
+    method_filtered_peptides_output2 = by_existing_samples(
+        peptides_df, method_output2[DataKey.PROTEIN_DF]
+    )
 
     list_samples_excluded_1 = method_output1["filtered_samples"]
     list_samples_excluded_2 = method_output2["filtered_samples"]
@@ -212,14 +203,8 @@ def test_filter_samples_by_protein_intensity_sum(
             Sample2 and Sample3, but are {list_samples_excluded_2}"
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output1[DataKey.PROTEIN_DF],
-        None,
-        method_output1[DataKey.PEPTIDE_DF],
-        "Sample",
-    )
-    assert_peptide_filtering_matches_protein_filtering(
         method_output2[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output2[DataKey.PEPTIDE_DF],
+        method_filtered_peptides_output2[DataKey.PEPTIDE_DF],
         "Sample",
     )
