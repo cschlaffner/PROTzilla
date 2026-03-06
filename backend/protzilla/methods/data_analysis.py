@@ -312,7 +312,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "filtered_proteins",
     ]
 
     def create_form(self):
@@ -447,7 +446,6 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "log2_fold_change_df",
-        "filtered_proteins",
     ]
 
     def create_form(self):
@@ -531,6 +529,12 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value="None",
+                    options=LOG_BASE_OPTIONS,
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
