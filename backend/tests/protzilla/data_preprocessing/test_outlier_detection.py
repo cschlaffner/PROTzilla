@@ -114,10 +114,8 @@ def test_outlier_detection_by_local_outlier_factor_and_nan(
         DataKey.PEPTIDE_DF: None,
         "number_of_neighbors": 35,
     }
-    method_outputs = by_local_outlier_factor(**method_inputs)
-
-    assert "messages" in method_outputs
-    assert "NaN values" in method_outputs["messages"][0]["msg"]
+    with pytest.raises(ValueError):
+        by_local_outlier_factor(**method_inputs)
 
 
 def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides_df):
@@ -130,7 +128,7 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
     method_outputs = by_pca(**method_inputs)
     fig = by_pca_plot(
         method_outputs["pca_df"],
-        method_outputs["number_of_components"],
+        method_inputs["number_of_components"],
         method_outputs["explained_variance_ratio"],
     )[0]
     if show_figures:
@@ -151,7 +149,5 @@ def test_outlier_detection_with_pca_and_nan(outlier_detection_df_with_nan):
         "threshold": 2,
         "number_of_components": 3,
     }
-    method_outputs = by_pca(**method_inputs)
-
-    assert "messages" in method_outputs
-    assert "NaN values" in method_outputs["messages"][0]["msg"]
+    with pytest.raises(ValueError):
+        by_pca(**method_inputs)
