@@ -711,7 +711,7 @@ def GO_analysis_offline(
     gene_mapping_df,
     differential_expression_threshold=0,
     direction="both",
-    backgorund_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
+    background_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
     background_path=None,
     background_number=None,
 ):
@@ -760,12 +760,12 @@ def GO_analysis_offline(
         - both: functional enrichment info is retrieved for upregulated and downregulated
         proteins separately, but the terms are aggregated for the resulting dataframe
     :type direction: str
-    :param backgorund_type: type of background to be used for the analysis.
+    :param background_type: type of background to be used for the analysis.
         Possible values:
         - "Upload a file (recommended)"
         - "Specify number of expressed genes (not recommended)"
         - "Use all genes in the gene set"
-    :type backgorund_type: GOAnalysisOflineBackgroundType
+    :type background_type: GOAnalysisOflineBackgroundType
     :param background_path: background genes to be used for the analysis.
         Should be provided as uppercase gene symbols. If no background is provided,
         all genes in gene sets are used. The background is defined by your experiment.
@@ -831,7 +831,7 @@ def GO_analysis_offline(
     ):  # file could not be read successfully
         return gene_sets
 
-    if backgorund_type == GOAnalysisOflineBackgroundType.upload_a_file.value:
+    if background_type == GOAnalysisOflineBackgroundType.upload_a_file.value:
         if not background_path:
             msg = "No background file provided. Please provide a file with background proteins."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -841,7 +841,7 @@ def GO_analysis_offline(
             return background
 
     elif (
-        backgorund_type
+        background_type
         == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
     ):
         if not background_number:
@@ -849,7 +849,7 @@ def GO_analysis_offline(
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
         background = background_number
-    elif backgorund_type == GOAnalysisOflineBackgroundType.all_genes.value:
+    elif background_type == GOAnalysisOflineBackgroundType.all_genes.value:
         background = None
     else:
         msg = "Invalid background type. Please select one of the available options."
