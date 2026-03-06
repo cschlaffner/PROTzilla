@@ -109,16 +109,22 @@ def test_differential_expression_linear_model(
     differentially_expressed_proteins = ["Protein1", "Protein2", "Protein3", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert log2fc_rounded == log2_fc
     assert (
-        list(current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -163,15 +169,21 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     significant_proteins = ["Protein1", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert (
-        list(current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -220,15 +232,21 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     significant_proteins = ["Protein1", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert (
-        list(current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -365,7 +383,8 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     log2_fc = [-1, -0.1]
     # because of the longer fc calculation the comparison does not work as accurately as on paper (inaccuracy due to multiple float operations)
     log2fc_rounded = [
-        round(x, 1) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 1)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert log2fc_rounded == log2_fc
@@ -410,8 +429,13 @@ def test_differential_expression_t_test_with_silac_ratios():
 
     assert not out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == ["Protein1"]
-    assert round(out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"].iloc[0], 4) == 0.0513
-    assert round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 2) == -0.44
+    assert (
+        round(out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"].iloc[0], 4)
+        == 0.0513
+    )
+    assert (
+        round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 2) == -0.44
+    )
 
 
 def test_differential_expression_anova(show_figures):
@@ -518,18 +542,24 @@ def test_differential_expression_mann_whitney_on_intensity(
     ]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     u_statistics = current_out["u_statistic_df"]["u_statistic"]
     log2fc_rounded = [
-        round(x, 4) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == expected_corrected_p_values
     assert all(u_statistics == expected_u_statistics)
     assert log2fc_rounded == expected_log2_fc
     assert (
-        list(current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == expected_differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -564,7 +594,8 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
     ]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     h_statistics_rounded = [
         round(x, 4) for x in current_out["h_statistic_df"]["h_statistic"]
@@ -573,7 +604,11 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
     assert p_values_rounded == expected_corrected_p_values
     assert h_statistics_rounded == expected_h_statistics
     assert (
-        list(current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == expected_differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -611,7 +646,8 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
 
     expected_corrected_p_values = [0.175, 0.33, 0.5712, 0.175]
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     assert p_values_rounded == expected_corrected_p_values
 
@@ -787,11 +823,13 @@ def test_differential_expression_mann_whitney_on_ptm(
     expected_significant_ptms = ["Oxidation", "GlyGly", "Phospho"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     u_statistics = current_out["u_statistic_df"]["u_statistic"]
     log2_fc_rounded = [
-        round(x, 4) for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == expected_corrected_p_values
@@ -826,7 +864,8 @@ def test_differential_expression_kruskal_wallis_on_ptm(
     expected_significant_ptms = ["Oxidation", "Acetyl", "GlyGly", "Phospho"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     h_statistics_rounded = [
         round(x, 4) for x in current_out["h_statistic_df"]["h_statistic"]

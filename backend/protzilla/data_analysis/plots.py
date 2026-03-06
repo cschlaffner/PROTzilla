@@ -1,6 +1,9 @@
 import logging
 
-from backend.protzilla.constants.option_types import PValueColumnName, SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import (
+    PValueColumnName,
+    SimpleImputerStrategyType,
+)
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -130,8 +133,12 @@ def create_volcano_plot(
     try:
         item_type = PValueColumnName(item_type)
     except ValueError:
-        raise ValueError(f"Unknown column for p-values. Accepted types are {[item for item in PValueColumnName]}")
-    plot_df = corrected_p_values_df.join(log2_fold_change_df.set_index(item_type), on=item_type)
+        raise ValueError(
+            f"Unknown column for p-values. Accepted types are {[item for item in PValueColumnName]}"
+        )
+    plot_df = corrected_p_values_df.join(
+        log2_fold_change_df.set_index(item_type), on=item_type
+    )
     fig = dashbio.VolcanoPlot(
         dataframe=plot_df,
         effect_size="log2_fold_change",
