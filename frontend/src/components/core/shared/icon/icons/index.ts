@@ -22,6 +22,7 @@ export { default as edit } from "./edit-icon.svg?react";
 export { default as eye } from "./eye.svg?react";
 export { default as failed } from "./failed.svg?react";
 export { default as github } from "./github.svg?react";
+export { default as handleDnaIcon } from "./handle_dna.svg?react";
 export { default as handleMetadataIcon } from "./handle_metadata.svg?react";
 export { default as handleSequencesIcon } from "./handle_sequences.svg?react";
 export { default as handlePeptidesIcon } from "./handle_peptides.svg?react";
