@@ -677,7 +677,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Add Uniprot data to a dataframe"
 
-    output_keys = ["results_df"]
+    output_keys = [DataKey.PROTEIN_DF]
 
     calc_method = staticmethod(database_integration.add_uniprot_data)
 
@@ -697,6 +697,11 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
                 ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        database_names_field: MultiSelectField = self.form["database_name"]
+        database_names_field.set_options(form_helper.to_choices(uniprot_databases()))
 
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
