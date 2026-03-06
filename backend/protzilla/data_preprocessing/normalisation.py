@@ -303,12 +303,7 @@ def by_reference_protein(
             reference_protein_group = group
             break
     else:
-        msg = "The protein was not found"
-        return dict(
-            protein_df=None,
-            dropped_samples=None,
-            messages=[dict(level=logging.ERROR, msg=msg)],
-        )
+        raise ValueError(f"The protein with ID {reference_protein} was not found")
 
     samples = protein_df["Sample"].unique().tolist()
     for sample in samples:
