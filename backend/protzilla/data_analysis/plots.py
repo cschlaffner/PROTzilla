@@ -136,6 +136,11 @@ def create_volcano_plot(
         raise ValueError(
             f"Unknown column for p-values. Accepted types are {[item for item in PValueColumnName]}"
         )
+    if item_type not in corrected_p_values_df.columns:
+        raise KeyError(
+            f"Column {item_type} not present in the data passed to this step. \
+            Available columns are {[column for column in corrected_p_values_df.columns]}."
+        )
     plot_df = corrected_p_values_df.join(
         log2_fold_change_df.set_index(item_type), on=item_type
     )
