@@ -60,6 +60,7 @@ from backend.protzilla.form import (
     HeaderInfoField,
     InfoField,
     InputField,
+    Option,
     MultiSelectField,
     NumberField,
     TextField,
@@ -85,6 +86,12 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     create_overview_ptm_visualization,
     get_detected_modifications,
 )
+
+LOG_BASE_OPTIONS = [
+    Option(value="None", label="None"),
+    Option(value="log2", label="log2"),
+    Option(value="log10", label="log10"),
+]
 
 
 class TTestType(Enum):
@@ -291,13 +298,6 @@ class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
 
     operation = "differential_expression"
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-        # TODO: either make this an explicit output or find a different representation
-        # should definitely not be implicit
-        self.inputs["log_base"] = steps.get_step_input(input_key="log_base")
-
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
 
@@ -334,6 +334,12 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
                     step=0.01,
                     separatePrefix="\u03b1",
                 ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value="None",
+                    options=LOG_BASE_OPTIONS,
+                ),
                 DropdownField(name="grouping", label="Grouping from metadata"),
                 MultiSelectField(
                     name="selected_groups", label="Select groups to perform ANOVA on"
@@ -354,8 +360,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
-
-    internal_inputs = {"log_base"}
 
     output_keys = [
         "differentially_expressed_proteins_df",
@@ -390,6 +394,12 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value="None",
+                    options=LOG_BASE_OPTIONS,
                 ),
                 DropdownField(
                     name="grouping",
@@ -458,6 +468,12 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value="None",
+                    options=LOG_BASE_OPTIONS,
                 ),
                 DropdownField(
                     name="grouping",

@@ -134,9 +134,9 @@ def t_test(
 
         if not np.isnan(p):
             if log_base:
-                log2_fold_change = np.median(group2_intensities) - np.median(
-                    group1_intensities
-                )
+                log2_fold_change = (
+                    np.median(group2_intensities) - np.median(group1_intensities)
+                ) * np.log2(log_base)
             else:
                 log2_fold_change = np.log2(
                     np.median(group2_intensities) / np.median(group1_intensities)
