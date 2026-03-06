@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import gemmi
 import pandas as pd
 import requests
+import re
 
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.protzilla_logging import logger
@@ -832,7 +833,7 @@ def upload_multimer_prediction(
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    uniprot_ids_as_list = uniprot_ids.split(", ")
+    uniprot_ids_as_list = re.split(r"\s*,\s*", uniprot_ids.strip())
 
     data: dict[str, Any] = {
         "entry_id": entry_id,

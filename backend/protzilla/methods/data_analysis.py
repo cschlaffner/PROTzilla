@@ -2617,10 +2617,12 @@ class CrosslinkingValidation(DataAnalysisStep):
         if "uniprot_accession" in metadata_df.columns:
             inputs["structures_to_validate"] = metadata_df["uniprot_accession"].tolist()
         elif "uniprot_ids" in metadata_df.columns:
-            inputs["structures_to_validate"] = ast.literal_eval(
-                metadata_df["uniprot_ids"].iloc[0]
-            )
-            l = inputs["structures_to_validate"]
+            value = metadata_df["uniprot_ids"].iloc[0]
+            if isinstance(value, str):
+                value = ast.literal_eval(value)
+
+            inputs["structures_to_validate"] = value
+
         else:
             raise ValueError(
                 "No correct metadata found. Metadata must contain 'uniprot_ids' or 'uniprot_accession'."
