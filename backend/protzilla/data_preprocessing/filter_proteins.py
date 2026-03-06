@@ -8,7 +8,6 @@ from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 def by_samples_missing(
     protein_df: pd.DataFrame | None,
-    peptide_df: pd.DataFrame | None = None,
     percentage: float = 0.5,
 ) -> dict:
     """
@@ -32,14 +31,8 @@ def by_samples_missing(
         transformed_df.drop(remaining_proteins_list, axis=1).columns.unique().tolist()
     )
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            (peptide_df["Protein ID"].isin(remaining_proteins_list))
-        ]
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_proteins=filtered_proteins_list,
         remaining_proteins=remaining_proteins_list,
     )
