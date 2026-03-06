@@ -6,7 +6,9 @@ from backend.protzilla.data_integration import database_query
 from backend.protzilla.utilities.utilities import clean_uniprot_id, unique_justseen
 
 
-def add_uniprot_data(protein_df: pd.DataFrame, database_name: str = None, fields: list[str] = None) -> dict:
+def add_uniprot_data(
+    protein_df: pd.DataFrame, database_name: str = None, fields: list[str] = None
+) -> dict:
     """
     Extend a protein dataframe with information from UniProt for each protein.
 

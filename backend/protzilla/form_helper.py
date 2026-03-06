@@ -10,6 +10,7 @@ def to_choices(choices: list[str], required: bool = True) -> list[Option]:
         else [Option(str(el), str(el)) for el in choices]
     )
 
+
 def get_choices_for_df_columns(
     run: Run,
     step_id: StepID,
@@ -22,8 +23,9 @@ def get_choices_for_df_columns(
     )
     if target_df is None:
         return to_choices([])
-    
+
     return to_choices(target_df.columns.unique().to_list(), required)
+
 
 def get_choices_for_metadata(
     run: Run,
