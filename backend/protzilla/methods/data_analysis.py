@@ -600,6 +600,12 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
                     separatePrefix="\u03b1",
                 ),
                 DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value="None",
+                    options=LOG_BASE_OPTIONS,
+                ),
+                DropdownField(
                     name="p_value_calculation_method",
                     label="P-value calculation method",
                     options=PValueCalculationMethod,
@@ -641,6 +647,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
+        "h_statistic_df",
     ]
 
     def create_form(self):
@@ -691,6 +698,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
         "differentially_expressed_ptm_df",
         "significant_ptm_df",
         "corrected_p_values_df",
+        "h_statistic_df",
     ]
 
     def create_form(self):

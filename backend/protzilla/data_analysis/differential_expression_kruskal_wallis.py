@@ -18,7 +18,6 @@ def kruskal_wallis_test_on_intensity_data(
     metadata_df: pd.DataFrame,
     grouping: str,
     selected_groups: list = None,
-    log_base: str = None,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
 ) -> dict:
@@ -30,7 +29,6 @@ def kruskal_wallis_test_on_intensity_data(
     @param grouping: The column name in the metadata data frame that contains the grouping information,
         that should be used.
     @param selected_groups: groups to test against each other
-    @param log_base: The base of the logarithm that was used to transform the data.
     @param alpha: The significance level for the test.
     @param multiple_testing_correction_method: The method for multiple testing correction.
 
@@ -51,7 +49,6 @@ def kruskal_wallis_test_on_intensity_data(
         metadata_df=metadata_df,
         grouping=grouping,
         selected_groups=selected_groups,
-        log_base=log_base,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="Protein ID",
@@ -111,7 +108,6 @@ def kruskal_wallis_test_on_ptm_data(
         metadata_df=metadata_df,
         grouping=grouping,
         selected_groups=selected_groups,
-        log_base=None,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="PTM",
@@ -132,7 +128,6 @@ def kruskal_wallis_test_on_columns(
     metadata_df: pd.DataFrame,
     grouping: str,
     selected_groups: list = None,
-    log_base: str = None,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     columns_name: str = "Protein ID",
@@ -146,7 +141,6 @@ def kruskal_wallis_test_on_columns(
     @param grouping: The column name in the metadata data frame that contains the grouping information,
     that should be used.
     @param selected_groups: groups to test against each other
-    @param log_base: The base of the logarithm that was used to transform the data.
     @param alpha: The significance level for the test.
     @param multiple_testing_correction_method: The method for multiple testing correction.
     @param columns_name: The semantics of the column names. This is used to name the columns in the output data frames.
