@@ -200,15 +200,10 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
         )
 
         if sample_series.isna().all():
-            msg = (
-                f"Width adjustment normalisation failed because all intensity values in sample {sample} "
-                f"are non-numeric."
+            raise ValueError(
+                f"Width adjustment normalisation failed because all intensity values in sample {sample} \
+                are non-numeric."
             )
-            return dict(
-                protein_df=None,
-                messages=[dict(level=logging.ERROR, msg=msg)],
-            )
-
         q1 = sample_series.quantile(0.25)
         q2 = sample_series.quantile(0.5)
         q3 = sample_series.quantile(0.75)
