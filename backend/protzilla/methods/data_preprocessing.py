@@ -28,11 +28,11 @@ class DataPreprocessingStep(Step, ABC):
         self.plot_inputs: dict = {}
 
 
-class ProteinFilteringStep(DataPreprocessingStep, ABC):
+class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
 
 
-class FilterProteinsBySamplesMissing(ProteinFilteringStep):
+class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     display_name = "By samples missing"
     operation = "filter_proteins"
     method_description = (
@@ -64,7 +64,7 @@ class FilterProteinsBySamplesMissing(ProteinFilteringStep):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
-class FilterProteinsByNumberOfValuesPerGroup(ProteinFilteringStep):
+class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
     display_name = "By number of values per group"
     operation = "filter_proteins"
     method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
@@ -93,7 +93,7 @@ class FilterProteinsByNumberOfValuesPerGroup(ProteinFilteringStep):
     plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
-class FilterByProteinsCount(ProteinFilteringStep):
+class FilterByProteinsCount(FilteringStepBasedOnProteins):
     display_name = "By protein count"
     operation = "filter_samples"
     method_description = "Filter by protein count per sample"
@@ -170,8 +170,21 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_existing_proteins)
 
+class FilterPeptidesByExistingSamples(DataPreprocessingStep):
+    display_name = "By existing samples"
+    operation = "filter_peptides"
+    method_description = "Filter by existing samples"
+    output_keys = [DataKey.PEPTIDE_DF]
 
-class FilterSamplesByProteinsMissing(DataPreprocessingStep):
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing samples",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_samples)
+
+class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     display_name = "By proteins missing"
     operation = "filter_samples"
     method_description = (
