@@ -312,7 +312,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "corrected_alpha",
         "filtered_proteins",
     ]
 
@@ -364,10 +363,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         "corrected_p_values_df",
         "t_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
         "fc_significance_df",
-        "fc_zscore_alpha",
-        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -441,7 +437,6 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "log2_fold_change_df",
-        "corrected_alpha",
         "filtered_proteins",
     ]
 
@@ -500,7 +495,6 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -564,7 +558,6 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -628,7 +621,6 @@ class DifferentialExpressionKruskalWallisOnIntensity(
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -679,7 +671,6 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
         "differentially_expressed_ptm_df",
         "significant_ptm_df",
         "corrected_p_values_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
