@@ -185,19 +185,16 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
             form_helper.to_choices(restring.settings.file_types)
         )
 
-        differential_expression_col_field: DropdownField = self.form["differential_expression_col"]
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
 
-        prot_source, source_handle = self.input_source(
-            run.steps, DataKey.PROTEIN_DF
-        )
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
 
         if prot_source is not None and source_handle is not None:
             differential_expression_col_field.set_options(
                 form_helper.get_choices_for_df_columns(
-                    run,
-                    step_id=prot_source,
-                    output_key=source_handle,
-                    required=True
+                    run, step_id=prot_source, output_key=source_handle, required=True
                 )
             )
 
@@ -335,19 +332,16 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         ):
             background_number_field.isVisible = True
 
-        differential_expression_col_field: DropdownField = self.form["differential_expression_col"]
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
 
-        prot_source, source_handle = self.input_source(
-            run.steps, DataKey.PROTEIN_DF
-        )
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
 
         if prot_source is not None and source_handle is not None:
             differential_expression_col_field.set_options(
                 form_helper.get_choices_for_df_columns(
-                    run,
-                    step_id=prot_source,
-                    output_key=source_handle,
-                    required=True
+                    run, step_id=prot_source, output_key=source_handle, required=True
                 )
             )
 
@@ -432,19 +426,16 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
         ):
             background_number_field.isVisible = True
 
-        differential_expression_col_field: DropdownField = self.form["differential_expression_col"]
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
 
-        prot_source, source_handle = self.input_source(
-            run.steps, DataKey.PROTEIN_DF
-        )
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
 
         if prot_source is not None and source_handle is not None:
             differential_expression_col_field.set_options(
                 form_helper.get_choices_for_df_columns(
-                    run,
-                    step_id=prot_source,
-                    output_key=source_handle,
-                    required=True
+                    run, step_id=prot_source, output_key=source_handle, required=True
                 )
             )
 
