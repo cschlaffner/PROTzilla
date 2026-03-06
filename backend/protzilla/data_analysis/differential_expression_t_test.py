@@ -173,8 +173,6 @@ def t_test(
             log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
             fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
             corrected_alpha=alpha,
-            fc_zscore_alpha=fc_zscore_alpha,
-            fc_zscore_filter=fc_zscore_filter,
             messages=messages,
         )
 
@@ -239,7 +237,5 @@ def t_test(
         log2_fold_change_df=log2_fold_change_df,
         fc_significance_df=fc_significance_df,
         corrected_alpha=corrected_alpha,
-        fc_zscore_alpha=fc_zscore_alpha,
-        fc_zscore_filter=fc_zscore_filter,
         messages=messages,
     )

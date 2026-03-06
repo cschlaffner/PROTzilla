@@ -306,7 +306,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
               <Panel position="top-right">
                 {hoveredHandleMeta.isActive && (
-                  <div style={{ textAlign: "right" }}>
+                  <div style={{ textAlign: "right", backgroundColor: "white", padding: "10px", border: "2px solid black" }}>
                     <p>{hoveredHandleMeta.direction}</p>
                     <p>{hoveredHandleMeta.type}</p>
                   </div>

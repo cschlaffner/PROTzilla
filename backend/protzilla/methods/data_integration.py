@@ -465,6 +465,19 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
                     "0, 1, 1.5 or 2",
                     value=1,
                 ),
+                NumberField(
+                    name="threads",
+                    label="Number of CPU hardware threads to use for computation",
+                    value=4,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed used for random number generator",
+                    value=123,
+                    step=1,
+                ),
             ],
         )
 
@@ -587,6 +600,19 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
                     "0, 1, 1.5 or 2",
                     value=1,
                 ),
+                NumberField(
+                    name="threads",
+                    label="Number of CPU hardware threads to use for computation",
+                    value=4,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed used for random number generator",
+                    value=123,
+                    step=1,
+                ),
             ],
         )
 
@@ -620,7 +646,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Map protein groups to genes"
 
-    output_keys = ["gene_mapping_df", "filtered_protein_ids"]
+    output_keys = ["gene_mapping_df"]
 
     calc_method = staticmethod(database_integration.gene_mapping)
 
@@ -651,7 +677,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Add Uniprot data to a dataframe"
 
-    output_keys = ["results_df"]
+    output_keys = [DataKey.PROTEIN_DF]
 
     calc_method = staticmethod(database_integration.add_uniprot_data)
 
@@ -672,12 +698,19 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
             ],
         )
 
+    @override
+    def modify_form(self, run: Run) -> None:
+        database_names_field: MultiSelectField = self.form["database_name"]
+        database_names_field.set_options(form_helper.to_choices(uniprot_databases()))
+
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
     display_name = "Bar plot for GO enrichment analysis"
     method_description = "Creates a bar plot from GO enrichment data"
 
     output_keys = []
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(
@@ -737,6 +770,8 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
     output_keys = []
 
     calc_method = staticmethod(di_plots.GO_enrichment_dot_plot)
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(
@@ -815,6 +850,8 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
+    internal_inputs = {"figsize"}
+
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
@@ -873,6 +910,8 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
     output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_enrichment_plot)
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(

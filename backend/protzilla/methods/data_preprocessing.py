@@ -18,6 +18,7 @@ from backend.protzilla.constants.option_types import *
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
+    # default output_keys for most preprocessing steps. adapt where necessary!
     output_keys = [DataKey.PROTEIN_DF, DataKey.PEPTIDE_DF]
 
     plot_input_names = [DataKey.PROTEIN_DF]
@@ -381,10 +382,13 @@ class TransformationInversion(DataPreprocessingStep):
 
     calc_method = staticmethod(transformation.by_inversion)
 
-
-class NormalisationByZScore(DataPreprocessingStep):
-    display_name = "Z-Score"
+class NormalisationStep(DataPreprocessingStep, ABC):
     operation = "normalisation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class NormalisationByZScore(NormalisationStep):
+    display_name = "Z-Score"
     method_description = "Normalise data by Z-Score"
 
     def create_form(self):
@@ -416,9 +420,8 @@ class NormalisationByZScore(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_z_score_plot)
 
 
-class NormalisationByTotalSum(DataPreprocessingStep):
+class NormalisationByTotalSum(NormalisationStep):
     display_name = "Total sum"
-    operation = "normalisation"
     method_description = "Normalise data by total sum"
 
     def create_form(self):
@@ -450,9 +453,8 @@ class NormalisationByTotalSum(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_totalsum_plot)
 
 
-class NormalisationByMedian(DataPreprocessingStep):
+class NormalisationByMedian(NormalisationStep):
     display_name = "Median"
-    operation = "normalisation"
     method_description = "Normalise data by median"
 
     def create_form(self):
@@ -493,9 +495,8 @@ class NormalisationByMedian(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_median_plot)
 
 
-class NormalisationByWidthAdjustment(DataPreprocessingStep):
+class NormalisationByWidthAdjustment(NormalisationStep):
     display_name = "Width adjustment"
-    operation = "normalisation"
     method_description = "Normalise data by asymmetric quartile width adjustment"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -529,9 +530,8 @@ class NormalisationByWidthAdjustment(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_width_adjustment_plot)
 
 
-class NormalisationByReferenceProtein(DataPreprocessingStep):
+class NormalisationByReferenceProtein(NormalisationStep):
     display_name = "Reference protein"
-    operation = "normalisation"
     method_description = "Normalise data by reference protein"
 
     def create_form(self):

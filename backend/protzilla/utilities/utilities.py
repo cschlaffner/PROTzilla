@@ -57,7 +57,7 @@ def fig_to_base64(fig):
 
 
 def default_intensity_column(
-    intensity_df: pd.DataFrame, intensity_column_name: str = None
+    intensity_df: pd.DataFrame, intensity_column_name: str | None = None
 ) -> str:
     """
     Returns the default intensity column name if no column name is provided.
@@ -73,6 +73,8 @@ def default_intensity_column(
 
     if intensity_column_name is not None:
         return intensity_column_name
+    if intensity_df.empty:
+        raise ValueError("The provided dataframe is empty")
     matched_columns = [
         col
         for col in intensity_df.columns
