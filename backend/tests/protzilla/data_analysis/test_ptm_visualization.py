@@ -1,8 +1,9 @@
 import shutil
+from collections import Counter
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 from unittest import mock
 
 import pandas as pd
@@ -162,6 +163,87 @@ class PlotValidationConfig:
     excluded_strings: tuple[str, ...] = ()
 
 
+def get_region_range_for_exon_coords(
+    exon_coords: list[tuple[float, float]], horizontal_orientation: bool
+) -> list[tuple[float, float]]:
+    # A bit of complicated logic to define the region range for the exon. The side of the exon that is longer, includes
+    # some buffer which is not actually part of the exon. Thus, we have to check which side is shorter and only include
+    # this one in the valid region ranges.
+
+    if not horizontal_orientation:
+        exon_coords = [(e[1], e[0]) for e in exon_coords]
+
+    new_regions = []
+    for x, y in exon_coords:
+        # figure out if the vertical line of the polygon is on the left or right side of the exon
+        # TODO: rename
+        blah = []
+        for i in range(len(y) - 1):
+            if y[i] != y[i + 1]:
+                blah.append(i)
+
+        if x[blah[0]] != x[blah[0] + 1]:
+            # vertical line at the beginning
+            new_regions.append(tuple(sorted(set(x))[:2]))
+        elif x[blah[1]] != x[blah[1] + 1]:
+            # vertical line at the end
+            new_regions.append(tuple(sorted(set(x))[1:]))
+        else:
+            assert False
+    return new_regions
+
+
+def validate_ptm_labels_in_bounds(plot):
+    # Does an alignment check of the PTMs to assert that they are not overflowing the sequence or are plotted in
+    # the exon gaps.
+    # We only do this for the overview plot, because in other plots we have way more shapes.
+    all_shapes = plot.layout.shapes
+    y_coords = {
+        tuple(sorted((shape.y0, shape.y1)))
+        for shape in all_shapes
+        if shape.type == "rect"
+    }
+    x_coords = {
+        tuple(sorted((shape.x0, shape.x1)))
+        for shape in all_shapes
+        if shape.type == "rect"
+    }
+    exon_coords = [
+        (el.x, el.y)
+        for el in plot.data
+        if el.text is None and len(el.x) == 5 and len(el.y) == 5
+    ]
+    if len(y_coords) == 1:
+        horizontal_orientation = True
+        valid_region_ranges = x_coords
+        valid_region_ranges.update(
+            get_region_range_for_exon_coords(exon_coords, horizontal_orientation)
+        )
+    elif len(x_coords) == 1:
+        horizontal_orientation = False
+        valid_region_ranges = y_coords
+        valid_region_ranges.update(
+            get_region_range_for_exon_coords(exon_coords, horizontal_orientation)
+        )
+    else:
+        raise AssertionError(
+            "Rects of the sequence have to be aligned in one of the dimensions"
+        )
+
+    label_lines = [
+        el
+        for el in plot.data
+        if el.text is None and len(el.x) == 2 and len(el.y) == 2
+    ]
+    for line in label_lines:
+        if horizontal_orientation:
+            assert len(set(line.x)) == 1
+            assert any(r[0] <= line.x[0] <= r[1] for r in valid_region_ranges)
+        else:
+            assert len(set(line.y)) == 1
+            assert any(r[0] <= line.y[0] <= r[1] for r in valid_region_ranges)
+
+
 def validate_plot_outputs(
     plot,
     plot_func,
@@ -169,6 +251,9 @@ def validate_plot_outputs(
     required_groups: set,
     validation_config: Optional[PlotValidationConfig],
 ):
+    if plot_func == create_overview_ptm_visualization:
+        validate_ptm_labels_in_bounds(plot)
+
     all_layout_strings = {anno.text for anno in plot.layout.annotations if anno.text}
     all_data_strings = {
         subplot.text
@@ -389,6 +474,7 @@ class TestPTMVisualization:
         ):
             plot_func(**kwargs)
 
+        # TODO: this file is basically the same as the shortened one
         kwargs["regions_file_path"] = GFAP_PATH / "regions_one_exon_missing.csv"
         with pytest.raises(
             ValueError,
@@ -601,9 +687,7 @@ class TestPTMVisualization:
     def test_modification_at_first_location(
         plot_func, kwargs, tmp_ptm_settings_dir, gfap_config
     ):
-        if plot_func != create_details_ptm_visualization:
-            return
-
+        # TODO: bar plot orders ptms in alternative exon by number and doesn't take exon into account
         mock_start_peptide = kwargs["evidence_df"].iloc[97]
         mock_start_peptide["Modified sequence"] = (
             "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
@@ -614,6 +698,7 @@ class TestPTMVisualization:
             ignore_index=True,
         )
 
+        # Beginning of exon 1
         mock_exon1_peptide = kwargs["evidence_df"].iloc[97]
         mock_exon1_peptide["Sequence"] = "ETSLDT"
         mock_exon1_peptide["Modified sequence"] = "_E(ci)TSLDT_"
@@ -622,18 +707,43 @@ class TestPTMVisualization:
             [kwargs["evidence_df"], pd.DataFrame([mock_exon1_peptide])],
             ignore_index=True,
         )
-        # TODO: Maybe just export the final df instead of all this mocking
-        # TODO: this peptide currently produces some kind of bug related to -- in the aligned sequence (at least
-        #  there's sth. off by two)
-        # mock_exon1_end_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_exon1_end_peptide["Sequence"] = "KQEHKDVM"
-        # mock_exon1_end_peptide["Modified sequence"] = "_KQEHKDVM(ci)_"
-        # mock_exon1_end_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_exon1_end_peptide])],
-        #     ignore_index=True,
-        # )
 
+        # End of exon 1
+        mock_exon1_end_peptide = kwargs["evidence_df"].iloc[97]
+        mock_exon1_end_peptide["Sequence"] = "KQEHKDVM"
+        mock_exon1_end_peptide["Modified sequence"] = "_KQEHKDVM(ci)_"
+        mock_exon1_end_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_exon1_end_peptide])],
+            ignore_index=True,
+        )
+
+        # Ensures that even though an aligned sequence has dashes in the alternative exon, the surrounding amino acids
+        # are still plotted next to each other
+        mock_peptide_exon_alignment_before_dash = kwargs["evidence_df"].iloc[97]
+        mock_peptide_exon_alignment_before_dash["Sequence"] = "DTKSVSEG"
+        mock_peptide_exon_alignment_before_dash["Modified sequence"] = "_DTKSVSEG(ci)_"
+        mock_peptide_exon_alignment_before_dash["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [
+                kwargs["evidence_df"],
+                pd.DataFrame([mock_peptide_exon_alignment_before_dash]),
+            ],
+            ignore_index=True,
+        )
+        mock_peptide_exon_alignment_after_dash = kwargs["evidence_df"].iloc[97]
+        mock_peptide_exon_alignment_after_dash["Sequence"] = "HLKRNIVVK"
+        mock_peptide_exon_alignment_after_dash["Modified sequence"] = "_H(ci)LKRNIVVK_"
+        mock_peptide_exon_alignment_after_dash["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [
+                kwargs["evidence_df"],
+                pd.DataFrame([mock_peptide_exon_alignment_after_dash]),
+            ],
+            ignore_index=True,
+        )
+
+        # First two pepitdes of Exon 2
         mock_exon2_peptide = kwargs["evidence_df"].iloc[97]
         mock_exon2_peptide["Sequence"] = "GGKST"
         mock_exon2_peptide["Modified sequence"] = "_G(ci)GKST_"
@@ -651,42 +761,41 @@ class TestPTMVisualization:
             ignore_index=True,
         )
 
-        # TODO: can we somehow test the locations or the visual soundness?
-        # TODO: last peptides before the exon - but would need a modification of the settings to allow for GG on Q, I, R
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQIR(GG (R))_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (R)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQI(GG (I))R_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (I)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
-        # mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
-        # mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQ(GG (Q))IR_"
-        # mock_pre_exon_peptide["Modifications"] = "GG (Q)"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
-        #     ignore_index=True,
-        # )
+        # Three peptides before alternative exon
+        mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
+        mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
+        mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQIR(GG (R))_"
+        mock_pre_exon_peptide["Modifications"] = "GG (R)"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
+            ignore_index=True,
+        )
+        mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
+        mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
+        mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQI(GG (I))R_"
+        mock_pre_exon_peptide["Modifications"] = "GG (I)"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
+            ignore_index=True,
+        )
+        mock_pre_exon_peptide = kwargs["evidence_df"].iloc[97]
+        mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
+        mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQ(GG (Q))IR_"
+        mock_pre_exon_peptide["Modifications"] = "GG (Q)"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_pre_exon_peptide])],
+            ignore_index=True,
+        )
 
-        # TODO: last sequence is currently not supported
-        # mock_sequence_end_peptide = kwargs["evidence_df"].iloc[97]
-        # mock_sequence_end_peptide["Sequence"] = "GTPPARG"
-        # mock_sequence_end_peptide["Modified sequence"] = "_GTPPARG(ci)_"
-        # mock_sequence_end_peptide["Modifications"] = "ci"
-        # kwargs["evidence_df"] = pd.concat(
-        #     [kwargs["evidence_df"], pd.DataFrame([mock_sequence_end_peptide])],
-        #     ignore_index=True,
-        # )
+        # End of sequence/exon 2
+        mock_sequence_end_peptide = kwargs["evidence_df"].iloc[97]
+        mock_sequence_end_peptide["Sequence"] = "GTPPARG"
+        mock_sequence_end_peptide["Modified sequence"] = "_GTPPARG(ci)_"
+        mock_sequence_end_peptide["Modifications"] = "ci"
+        kwargs["evidence_df"] = pd.concat(
+            [kwargs["evidence_df"], pd.DataFrame([mock_sequence_end_peptide])],
+            ignore_index=True,
+        )
 
         with mock_settings_file(
             TEST_PTM_VISUALIZATION_PATH / "ptm_settings_mods_at_first_location.yaml",
@@ -696,25 +805,35 @@ class TestPTMVisualization:
             assert len(result["plots"]) == 1
             plot = result["plots"][0]
 
-            plot.show()
+            additional_required_ptms = (
+                "M1",
+                "Q388",
+                "I389",
+                "R390",
+                "E391",
+                "G402",
+                "H403",
+                "M432",
+                "G391",
+                "G392",
+                "G431",
+            )
+            additional_excluded_strings = ("M0",)
+            gfap_config.required_ptms += additional_required_ptms
+            gfap_config.excluded_strings += additional_excluded_strings
+            gfap_config.required_region_short_names += ("α",)
 
-            # additional_required_ptms = ("M1", "G391", "E391")
-            # additional_excluded_strings = ("M0",)
-            # gfap_config.required_ptms += additional_required_ptms
-            # gfap_config.excluded_strings += additional_excluded_strings
-            # gfap_config.required_region_short_names += ("α",)
-            #
-            # validate_plot_outputs(
-            #     plot,
-            #     plot_func,
-            #     all_groups=(
-            #         set(kwargs["metadata_df"]["Group"].unique())
-            #         if "metadata_df" in kwargs
-            #         else set()
-            #     ),
-            #     required_groups={"clean", "old", "exon"},
-            #     validation_config=gfap_config,
-            # )
+            validate_plot_outputs(
+                plot,
+                plot_func,
+                all_groups=(
+                    set(kwargs["metadata_df"]["Group"].unique())
+                    if "metadata_df" in kwargs
+                    else set()
+                ),
+                required_groups={"clean", "old", "exon"},
+                validation_config=gfap_config,
+            )
 
     @staticmethod
     def test_single_amino_acid_substitution_start_of_exon(
