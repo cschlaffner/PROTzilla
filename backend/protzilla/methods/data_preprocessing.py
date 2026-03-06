@@ -93,14 +93,14 @@ class FilterProteinsByNumberOfValuesPerGroup(ProteinFilteringStep):
     plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
-class FilterByProteinsCount(DataPreprocessingStep):
-    display_name = "Protein Count"
+class FilterByProteinsCount(ProteinFilteringStep):
+    display_name = "By protein count"
     operation = "filter_samples"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Protein Count",
+            label="Filter samples by protein count",
             input_fields=[
                 FloatField(
                     name="deviation_threshold",
