@@ -255,6 +255,7 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     display_name = "PCA"
     operation = "outlier_detection"
     method_description = "Detect outliers using PCA"
+    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
