@@ -290,6 +290,7 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     display_name = "Local outlier factor"
     operation = "outlier_detection"
     method_description = "Detect outliers using the local outlier factor"
+    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -314,6 +315,7 @@ class OutlierDetectionByIsolationForest(DataPreprocessingStep):
     display_name = "Isolation Forest"
     operation = "outlier_detection"
     method_description = "Detect outliers using Isolation Forest"
+    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -381,6 +383,7 @@ class TransformationInversion(DataPreprocessingStep):
         )
 
     calc_method = staticmethod(transformation.by_inversion)
+
 
 class NormalisationStep(DataPreprocessingStep, ABC):
     operation = "normalisation"

@@ -921,6 +921,7 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                 )
             )
 
+
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
     operation = "plot"
