@@ -846,6 +846,8 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
+    internal_inputs = {"figsize"}
+
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
@@ -904,6 +906,8 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
     output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_enrichment_plot)
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(
