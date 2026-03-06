@@ -312,8 +312,6 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        DataKey.METADATA_DF,
-        "corrected_alpha",
         "filtered_proteins",
     ]
 
@@ -365,10 +363,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
         "corrected_p_values_df",
         "t_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
         "fc_significance_df",
-        "fc_zscore_alpha",
-        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -442,7 +437,6 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
         "log2_fold_change_df",
-        "corrected_alpha",
         "filtered_proteins",
     ]
 
@@ -501,7 +495,6 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -565,7 +558,6 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
         "corrected_p_values_df",
         "u_statistic_df",
         "log2_fold_change_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -629,7 +621,6 @@ class DifferentialExpressionKruskalWallisOnIntensity(
         "differentially_expressed_proteins_df",
         DataKey.SIGNIFICANT_PROTEINS_DF,
         "corrected_p_values_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -680,7 +671,6 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
         "differentially_expressed_ptm_df",
         "significant_ptm_df",
         "corrected_p_values_df",
-        "corrected_alpha",
     ]
 
     def create_form(self):
@@ -908,12 +898,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
         return Form(
             label="Scatter Plot",
             input_fields=[
-                # TODO: handle isRequired
-                # TODO: is this supposed to be metadata?
-                DropdownField(
-                    name="color_df_field",
-                    label="Choose dataframe to be used for coloring",
-                ),
                 DropdownField(
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for coloring",
@@ -923,17 +907,19 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        color_field: DropdownField = self.form["color_df_field"]
-
-        color_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step, output_key="color_df"
-                ),
-                required=False,
-            )
+        metadata_column_field: DropdownField = self.form["metadata_column"]
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
         )
-
+        if metadata_source is not None and source_handle is not None:
+            metadata_column_field.set_options(
+                form_helper.get_choices_for_metadata(
+                    run,
+                    instance_identifier=metadata_source,
+                    include_sample=False,
+                    output_key=source_handle,
+                )
+            )
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
@@ -1710,7 +1696,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     value=6,
                 ),
                 NumberField(
-                    name="n_iter",
+                    name="max_iter",
                     label="Maximum number of iterations for the optimization",
                     min=250,
                     value=1000,
@@ -1776,6 +1762,14 @@ class DimensionReductionUMAP(DataAnalysisStep):
                 NumberField(
                     name="random_state",
                     label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+                NumberField(
+                    name="transform_seed",
+                    label="Seed for stochastic aspects of the transform operation",
                     min=0,
                     max=4294967295,
                     step=1,

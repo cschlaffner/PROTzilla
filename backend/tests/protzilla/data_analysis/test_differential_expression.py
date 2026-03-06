@@ -459,7 +459,6 @@ def test_differential_expression_anova(show_figures):
         protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
-        log_base="log2",
         selected_groups=test_metadata_df["Group"].unique().tolist(),
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
@@ -467,7 +466,7 @@ def test_differential_expression_anova(show_figures):
     corrected_p_values_df = output_dict["corrected_p_values_df"]
 
     p_values_rounded = [
-        round(x, 4) for x in corrected_p_values_df["corrected_p_values"]
+        round(x, 4) for x in corrected_p_values_df["corrected_p_value"]
     ]
     assertion_p_values = [
         0.0054,
@@ -923,14 +922,12 @@ def test_differential_expression_anova_empty_p_values():
         selected_groups=["Group1", "Group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
-        log_base="None",
     )
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
-    assert current_out["sample_group_df"].empty
     assert current_out["corrected_alpha"] == 0.05
     assert current_out["filtered_proteins"] == []
 

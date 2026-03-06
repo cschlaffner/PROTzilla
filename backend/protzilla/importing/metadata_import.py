@@ -167,7 +167,6 @@ def metadata_import_method_diann(
 
 
 def metadata_column_assignment(
-    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     metadata_required_column: str = None,
     metadata_unknown_column: str = None,
@@ -175,8 +174,6 @@ def metadata_column_assignment(
     """
     This function renames a column in the metadata dataframe to the required column name.
 
-    :param protein_df: this is passed for consistency, but not used
-    :type protein_df: pandas DataFrame
     :param metadata_df: the metadata dataframe to be changed
     :type metadata_df: float
     :param metadata_required_column: the name of the column in the dataframe that is used for the metadata assignment
@@ -197,7 +194,6 @@ def metadata_column_assignment(
     ):
         msg = f"You can proceed, as there is nothing that needs to be changed."
         return dict(
-            protein_df=protein_df,
             metadata_df=metadata_df,
             messages=[dict(level=logging.INFO, msg=msg)],
         )
@@ -206,7 +202,6 @@ def metadata_column_assignment(
         msg = f"Metadata already contains column '{metadata_required_column}'. \
         Please rename the column or select another column."
         return dict(
-            protein_df=protein_df,
             metadata_df=metadata_df,
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
@@ -214,4 +209,4 @@ def metadata_column_assignment(
     renamed_metadata_df = metadata_df.rename(
         columns={metadata_unknown_column: metadata_required_column}
     )
-    return dict(protein_df=protein_df, metadata_df=renamed_metadata_df, messages=dict())
+    return dict(metadata_df=renamed_metadata_df, messages=dict())

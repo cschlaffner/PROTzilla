@@ -200,15 +200,10 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
         )
 
         if sample_series.isna().all():
-            msg = (
-                f"Width adjustment normalisation failed because all intensity values in sample {sample} "
-                f"are non-numeric."
+            raise ValueError(
+                f"Width adjustment normalisation failed because all intensity values in sample {sample} \
+                are non-numeric."
             )
-            return dict(
-                protein_df=None,
-                messages=[dict(level=logging.ERROR, msg=msg)],
-            )
-
         q1 = sample_series.quantile(0.25)
         q2 = sample_series.quantile(0.5)
         q3 = sample_series.quantile(0.75)
@@ -303,12 +298,7 @@ def by_reference_protein(
             reference_protein_group = group
             break
     else:
-        msg = "The protein was not found"
-        return dict(
-            protein_df=None,
-            dropped_samples=None,
-            messages=[dict(level=logging.ERROR, msg=msg)],
-        )
+        raise ValueError(f"The protein with ID {reference_protein} was not found")
 
     samples = protein_df["Sample"].unique().tolist()
     for sample in samples:
