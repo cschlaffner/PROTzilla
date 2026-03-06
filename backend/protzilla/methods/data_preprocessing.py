@@ -64,18 +64,18 @@ class FilterProteinsBySamplesMissing(ProteinFilteringStep):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
-class FilterProteinsBySilacRatios(DataPreprocessingStep):
-    display_name = "By SILAC ratios"
+class FilterProteinsByNumberOfValuesPerGroup(ProteinFilteringStep):
+    display_name = "By number of values per group"
     operation = "filter_proteins"
-    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
+    method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
         return Form(
-            label="Filter Proteins by SILAC ratios",
+            label="Filter Proteins by number of values per group",
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples per group with different SILAC ratios",
+                    label="Amount of minimum present samples per group with different values",
                     value=1,
                     min=0,
                     step=1,
@@ -89,8 +89,8 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(filter_proteins.by_silac_ratios)
-    plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
+    calc_method = staticmethod(filter_proteins.by_number_of_values_per_group)
+    plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
 class FilterByProteinsCount(DataPreprocessingStep):

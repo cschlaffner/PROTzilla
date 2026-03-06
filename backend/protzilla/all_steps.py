@@ -16,7 +16,7 @@ _forward_mapping: list[Step] = [
     importing.ExampleDatasetImport,
     importing.FastaImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
-    data_preprocessing.FilterProteinsBySilacRatios,
+    data_preprocessing.FilterProteinsByNumberOfValuesPerGroup,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
     data_preprocessing.FilterSamplesByProteinIntensitiesSum,
