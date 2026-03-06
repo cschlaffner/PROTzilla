@@ -143,23 +143,34 @@ def add_protein_crosslink_positions_to_df(
     amino_acid_sequences_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
-    For each crosslink the 1-based positions of amino acids where the crosslink bound to a crosslinking DataFrame.
-    If a peptide sequence occurs multiple times in the protein, the row is duplicated for each
-    additional combination of positions.
-    If a peptide sequence can't be matched the row will be deleted and a warning emitted.
+    Add protein-level crosslink residue positions to a crosslinking DataFrame.
 
-    :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
-                           - 'Peptide1': first peptide sequence
-                           - 'Peptide2': second peptide sequence
-                           - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
-                           - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
-    :param amino_acid_sequences_df: Dataframe that contains all amino acid sequences
-    :return: tuple (updated_crosslinking_df, messages)
-             - updated_crosslinking_df: input DataFrame with two new columns:
-                 - 'crosslinker_position1': 1-based crosslinker position in Peptide1
-                 - 'crosslinker_position2': 1-based crosslinker position in Peptide2
-                 Rows are duplicated for multiple peptide matches.
-             - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
+     For each row, this function finds the 1-based residue positions in the full protein
+     sequence(s) that correspond to the crosslinked residue within each peptide. The
+     protein-level positions are written to two new columns:
+
+     - 'crosslinker_position1': 1-based residue position in Protein_id1 for Peptide1.
+     - 'crosslinker_position2': 1-based residue position in Protein_id2 for Peptide2.
+
+     If a peptide occurs multiple times in the corresponding protein sequence, all
+     combinations of (position1, position2) are generated. The first combination is
+     kept in the original row and the row is duplicated for each additional combination.
+
+     If either peptide cannot be matched in its corresponding protein sequence, the row
+     is removed and a warning message is recorded.
+
+     :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+                            - 'Peptide1': first peptide sequence
+                            - 'Peptide2': second peptide sequence
+                            - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
+                            - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
+     :param amino_acid_sequences_df: Dataframe that contains all amino acid sequences
+     :return: tuple (updated_crosslinking_df, messages)
+              - updated_crosslinking_df: input DataFrame with two new columns:
+                  - 'crosslinker_position1': 1-based crosslinker position in Peptide1
+                  - 'crosslinker_position2': 1-based crosslinker position in Peptide2
+                  Rows are duplicated for multiple peptide matches.
+              - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
     """
     crosslinking_df = input_crosslinking_df.copy()
     crosslinking_df["crosslinker_position1"] = pd.Series(dtype="Int64")
