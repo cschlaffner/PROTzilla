@@ -364,7 +364,6 @@ class StepManager:
         if must_goto_fallback:
             self.goto_step(self.fallback_step_id)
 
-
     ##
     ## Connection management
     ##

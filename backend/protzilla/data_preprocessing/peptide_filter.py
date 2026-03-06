@@ -51,6 +51,14 @@ def by_pep_value_plot(output_peptide_df, output_filtered_peptides, graph_type):
 
 
 def by_existing_proteins(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> dict:
+    """
+    This function filters the peptide dataframe so that only peptides remain whose
+    Protein ID exists in the provided protein dataframe.
+    :param peptide_df: the pandas dataframe containing the peptide information
+    :param protein_df: the pandas dataframe containing the protein information
+    :return: dict containing the peptide dataframe filtered to peptides whose
+            Protein ID exists in the protein dataframe
+    """
     filtered_peptide_df = peptide_df[
         (peptide_df["Protein ID"].isin(protein_df["Protein ID"]))
     ]
