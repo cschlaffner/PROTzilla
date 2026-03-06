@@ -169,6 +169,7 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
         )
 
     calc_method = staticmethod(peptide_filter.by_existing_proteins)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
 
 
 class FilterPeptidesByExistingSamples(DataPreprocessingStep):
@@ -184,6 +185,7 @@ class FilterPeptidesByExistingSamples(DataPreprocessingStep):
         )
 
     calc_method = staticmethod(peptide_filter.by_existing_samples)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
 
 
 class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
