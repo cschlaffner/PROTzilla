@@ -99,6 +99,7 @@ def mann_whitney_test_on_ptm_data(
     grouping: str,
     group1: str,
     group2: str,
+    log_base: str = None,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     p_value_calculation_method: str = "auto",
@@ -113,6 +114,7 @@ def mann_whitney_test_on_ptm_data(
         that should be used.
     :param group1: The name of the first group for the Mann-Whitney U test.
     :param group2: The name of the second group for the Mann-Whitney U test.
+    :param log_base: The base of the logarithm that was used to transform the data.
     :param alpha: The significance level for the test.
     :param multiple_testing_correction_method: The method for multiple testing correction.
     :param p_value_calculation_method: The method for p-value calculation.
@@ -136,7 +138,7 @@ def mann_whitney_test_on_ptm_data(
         grouping=grouping,
         group1=group1,
         group2=group2,
-        log_base=None,
+        log_base=log_base,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="PTM",
