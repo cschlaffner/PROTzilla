@@ -684,7 +684,7 @@ def test_GO_analysis_offline_background(
         differential_expression_col="fold_change",
         differential_expression_threshold=1.0,  # all are downregulated
         direction="down",
-        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
+        background_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path=background_path,
         gene_mapping_df=offline_mock_mapping[0],
     )
@@ -763,7 +763,7 @@ def test_GO_analysis_offline_invalid_background_set_file():
         gene_sets_path="a_valid_filetype.gmt",
         differential_expression_col="fold_change",
         direction="up",
-        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
+        background_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path="an_invalid_filetype.png",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )
