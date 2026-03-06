@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression_helper import (
     _map_log_base,
     apply_multiple_testing_correction,
@@ -85,9 +86,9 @@ def mann_whitney_test_on_intensity_data(
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
-        corrected_p_values_df=outputs["corrected_p_values_df"],
+        corrected_p_values_df=outputs[DataKey.CORRECTED_P_VALUES_DF],
         u_statistic_df=outputs["u_statistic_df"],
-        log2_fold_change_df=outputs["log2_fold_change_df"],
+        log2_fold_change_df=outputs[DataKey.LOG2_FOLD_CHANGE_DF],
         corrected_alpha=outputs["corrected_alpha"],
         messages=outputs["messages"],
     )
@@ -148,9 +149,9 @@ def mann_whitney_test_on_ptm_data(
     return dict(
         differentially_expressed_ptm_df=output["differential_expressed_columns_df"],
         significant_ptm_df=output["significant_columns_df"],
-        corrected_p_values_df=output["corrected_p_values_df"],
+        corrected_p_values_df=output[DataKey.CORRECTED_P_VALUES_DF],
         u_statistic_df=output["u_statistic_df"],
-        log2_fold_change_df=output["log2_fold_change_df"],
+        log2_fold_change_df=output[DataKey.LOG2_FOLD_CHANGE_DF],
         corrected_alpha=output["corrected_alpha"],
         messages=output["messages"],
     )

@@ -312,9 +312,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
     ]
 
     def create_form(self):
@@ -364,11 +364,11 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "t_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
         "fc_significance_df",
     ]
 
@@ -445,10 +445,10 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        "log2_fold_change_df",
+        DataKey.CORRECTED_P_VALUES_DF,
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -507,11 +507,11 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -576,11 +576,11 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -647,9 +647,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
@@ -698,9 +698,9 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
