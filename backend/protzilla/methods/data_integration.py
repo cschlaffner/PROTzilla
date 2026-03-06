@@ -710,6 +710,8 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
     output_keys = []
 
+    internal_inputs = {"figsize"}
+
     def create_form(self):
         return Form(
             label="Bar plot for GO enrichment analysis",
@@ -768,6 +770,8 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
     output_keys = []
 
     calc_method = staticmethod(di_plots.GO_enrichment_dot_plot)
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(
