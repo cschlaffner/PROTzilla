@@ -6,8 +6,8 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
-    by_silac_ratios,
-    by_silac_ratios_plot,
+    by_number_of_values_per_group,
+    by_number_of_values_per_group_plot,
 )
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
@@ -174,14 +174,14 @@ def test_filter_proteins_by_silac_ratios(
     show_figures,
 ):
 
-    method_output = by_silac_ratios(
+    method_output = by_number_of_values_per_group(
         filter_proteins_by_silac_ratios_df,
         filter_proteins_by_silac_ratios_metadata_df,
         peptide_df=None,
         min_amount=2,
     )
 
-    fig = by_silac_ratios_plot(
+    fig = by_number_of_values_per_group_plot(
         method_output["remaining_proteins"],
         method_output["filtered_proteins"],
         "Pie chart",
@@ -192,7 +192,7 @@ def test_filter_proteins_by_silac_ratios(
     assert method_output["remaining_proteins"] == ["Protein3"]
     assert method_output["filtered_proteins"] == ["Protein1", "Protein2", "Protein4"]
 
-    method_output = by_silac_ratios(
+    method_output = by_number_of_values_per_group(
         filter_proteins_by_silac_ratios_df,
         filter_proteins_by_silac_ratios_metadata_df,
         peptide_df=None,
@@ -207,7 +207,7 @@ def test_filter_proteins_by_silac_ratios(
         "Protein4",
     ]
 
-    method_output = by_silac_ratios(
+    method_output = by_number_of_values_per_group(
         filter_proteins_by_silac_ratios_df,
         filter_proteins_by_silac_ratios_metadata_df,
         peptide_df=peptides_df,
