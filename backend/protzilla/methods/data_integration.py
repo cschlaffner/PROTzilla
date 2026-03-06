@@ -214,6 +214,10 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis with Enrichr",
             input_fields=[
+                DropdownField(
+                    name="differential_expression_col",
+                    label="Column in the protein table containing the values for direction of expression change",
+                ),
                 NumberField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
@@ -330,6 +334,22 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
             == GOAnalysisWithEnrichrBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
+
+        differential_expression_col_field: DropdownField = self.form["differential_expression_col"]
+
+        prot_source, source_handle = self.input_source(
+            run.steps, DataKey.PROTEIN_DF
+        )
+
+        if prot_source is not None and source_handle is not None:
+            differential_expression_col_field.set_options(
+                form_helper.get_choices_for_df_columns(
+                    run,
+                    step_id=prot_source,
+                    output_key=source_handle,
+                    required=True
+                )
+            )
 
 
 class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
