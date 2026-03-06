@@ -170,6 +170,7 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
 
     calc_method = staticmethod(peptide_filter.by_existing_proteins)
 
+
 class FilterPeptidesByExistingSamples(DataPreprocessingStep):
     display_name = "By existing samples"
     operation = "filter_peptides"
@@ -183,6 +184,7 @@ class FilterPeptidesByExistingSamples(DataPreprocessingStep):
         )
 
     calc_method = staticmethod(peptide_filter.by_existing_samples)
+
 
 class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     display_name = "By proteins missing"
@@ -216,8 +218,8 @@ class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     plot_method = staticmethod(filter_samples.by_proteins_missing_plot)
 
 
-class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
-    display_name = "Sum of intensities"
+class FilterSamplesByProteinIntensitiesSum(FilteringStepBasedOnProteins):
+    display_name = "By sum of intensities"
     operation = "filter_samples"
     method_description = "Filter by sum of protein intensities per sample"
 
