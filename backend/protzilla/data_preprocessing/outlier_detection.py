@@ -136,7 +136,6 @@ def by_local_outlier_factor(
 
 def by_pca(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None,
     threshold: int = 2,
     number_of_components: int = 3,
 ) -> dict:
@@ -220,15 +219,9 @@ def by_pca(
             df_transformed_pca_data["Outlier"]
         ].index.tolist()
         protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-        peptide_df = (
-            None
-            if peptide_df is None
-            else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-        )
 
         return dict(
             protein_df=protein_df,
-            peptide_df=peptide_df,
             outlier_list=outlier_list,
             pca_df=df_transformed_pca_data,
             explained_variance_ratio=(pca_model.explained_variance_ratio_).tolist(),
@@ -239,7 +232,6 @@ def by_pca(
         encoded as NaN. Consider preprocessing your data to remove NaN values."
         return dict(
             protein_df=protein_df,
-            peptide_df=peptide_df,
             outlier_list=None,
             anomaly_df=None,
             messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))],
