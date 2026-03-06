@@ -465,9 +465,7 @@ def test_differential_expression_anova(show_figures):
     )
     corrected_p_values_df = output_dict["corrected_p_values_df"]
 
-    p_values_rounded = [
-        round(x, 4) for x in corrected_p_values_df["corrected_p_value"]
-    ]
+    p_values_rounded = [round(x, 4) for x in corrected_p_values_df["corrected_p_value"]]
     assertion_p_values = [
         0.0054,
         0.0013,

@@ -17,7 +17,6 @@ from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 def by_isolation_forest(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None = None,
     n_estimators: int = 100,
 ) -> dict:
     """
@@ -56,15 +55,9 @@ def by_isolation_forest(
     ].index.tolist()
 
     protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-    peptide_df = (
-        None
-        if peptide_df is None
-        else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-    )
 
     return dict(
         protein_df=protein_df,
-        peptide_df=peptide_df,
         outlier_list=outlier_list,
         anomaly_df=df_isolation_forest_data[["Anomaly Score", "Outlier"]],
     )
@@ -72,7 +65,6 @@ def by_isolation_forest(
 
 def by_local_outlier_factor(
     protein_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None = None,
     number_of_neighbors: int = 20,
 ) -> dict:
     """
@@ -110,15 +102,9 @@ def by_local_outlier_factor(
     outlier_list = df_lof_data[df_lof_data["Outlier"]].index.tolist()
 
     protein_df = protein_df[~(protein_df["Sample"].isin(outlier_list))]
-    peptide_df = (
-        None
-        if peptide_df is None
-        else peptide_df[~(peptide_df["Sample"].isin(outlier_list))]
-    )
 
     return dict(
         protein_df=protein_df,
-        peptide_df=peptide_df,
         outlier_list=outlier_list,
         anomaly_df=df_lof_data[["Anomaly Score", "Outlier"]],
     )
