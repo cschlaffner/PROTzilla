@@ -10,7 +10,7 @@ import pandas.testing as pdt
 from backend.protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     get_distance_between_two_amino_acids_in_angstrom,
-    add_positions_of_amino_acid_where_crosslinker_bound_to_df,
+    add_protein_crosslink_positions_to_df,
     diagrams_of_crosslinking_validation_data,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
@@ -132,9 +132,7 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
         {"Protein ID": ["P1-1"], "Protein Sequence": ["XXABCYYYDEFZZ"]}
     )
 
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, amino_acid_sequences_df
-    )
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert messages == []
 
@@ -161,9 +159,7 @@ def test_add_crosslinker_positions_with_more_than_one_possible_position():
         {"Protein ID": ["P1-1"], "Protein Sequence": ["AAXXAAZZBBYYBB"]}
     )
 
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, amino_acid_sequences_df
-    )
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     # 2 AA matches × 2 BB matches = 4 combinations
     assert len(df) == 4
@@ -194,9 +190,7 @@ def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
         {"Protein ID": ["P1-1"], "Protein Sequence": ["XXXXXXXX"]}
     )
 
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, amino_acid_sequences_df
-    )
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert len(messages) == 1
     assert messages[0]["level"] == logging.WARNING
@@ -222,9 +216,7 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
         {"Protein ID": ["P1-1"], "Protein Sequence": ["ABCDEF"]}
     )
 
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, amino_acid_sequences_df
-    )
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert len(messages) == 2
     assert messages[0]["level"] == logging.WARNING
@@ -253,9 +245,7 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
         {"Protein ID": ["P1-1"], "Protein Sequence": ["AAAAB"]}
     )
 
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, amino_acid_sequences_df
-    )
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     # AAA -> positions 0, 1
     # B -> position 4
