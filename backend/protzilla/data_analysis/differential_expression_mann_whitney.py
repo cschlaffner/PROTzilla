@@ -5,6 +5,7 @@ import pandas as pd
 from scipy import stats
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import LogBaseWithNoneType
 from backend.protzilla.data_analysis.differential_expression_helper import (
     _map_log_base,
     apply_multiple_testing_correction,
@@ -19,7 +20,7 @@ def mann_whitney_test_on_intensity_data(
     grouping: str,
     group1: str,
     group2: str,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     p_value_calculation_method: str = "auto",
@@ -100,7 +101,7 @@ def mann_whitney_test_on_ptm_data(
     grouping: str,
     group1: str,
     group2: str,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     p_value_calculation_method: str = "auto",
@@ -163,7 +164,7 @@ def mann_whitney_test_on_columns(
     grouping: str,
     group1: str,
     group2: str,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     columns_name: str = "Protein ID",
