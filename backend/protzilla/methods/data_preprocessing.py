@@ -126,7 +126,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
-    output_keys = [DataKey.PEPTIDE_DF, "filtered_peptides"]
+    output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
