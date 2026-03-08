@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from collections.abc import Sequence
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing import (
@@ -537,9 +538,41 @@ class NormalisationByReferenceProtein(NormalisationStep):
     plot_method = staticmethod(normalisation.by_reference_protein_plot)
 
 
-class ImputationByMinPerDataset(DataPreprocessingStep):
-    display_name = "Min per dataset"
+class ImputationStep(DataPreprocessingStep, ABC):
     operation = "imputation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+    plot_input_fields: Sequence[FormField] = [
+        FormDivider("Plot settings"),
+        DropdownField(
+            name="graph_type",
+            label="Graph type",
+            value=BoxAndHistogramGraph.BOXPLOT.value,
+            options=BoxAndHistogramGraph,
+        ),
+        DropdownField(
+            name="group_by",
+            label="Group by",
+            value=GroupBy.NO_GROUPING.value,
+            options=GroupBy,
+        ),
+        DropdownField(
+            name="visual_transformation",
+            label="Visual transformation",
+            value=VisualTransformations.LOG10.value,
+            options=VisualTransformations,
+        ),
+        DropdownField(
+            name="graph_type_quantities",
+            label="Graph type - quantity of imputed values",
+            value=BarAndPieChart.PIE_CHART.value,
+            options=BarAndPieChart,
+        ),
+    ]
+
+
+class ImputationByMinPerDataset(ImputationStep):
+    display_name = "Min per dataset"
     method_description = "Impute missing values by the minimum per dataset"
 
     def create_form(self):
@@ -560,30 +593,9 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -591,9 +603,8 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_dataset_plot)
 
 
-class ImputationByMinPerProtein(DataPreprocessingStep):
+class ImputationByMinPerProtein(ImputationStep):
     display_name = "Min per protein"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per protein"
 
     def create_form(self):
@@ -614,30 +625,9 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -645,9 +635,8 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_protein_plot)
 
 
-class ImputationByMinPerSample(DataPreprocessingStep):
+class ImputationByMinPerSample(ImputationStep):
     display_name = "Min per sample"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per sample"
 
     def create_form(self):
@@ -665,30 +654,9 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -696,9 +664,8 @@ class ImputationByMinPerSample(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_sample_plot)
 
 
-class SimpleImputationPerProtein(DataPreprocessingStep):
+class SimpleImputationPerProtein(ImputationStep):
     display_name = "Protein"
-    operation = "imputation"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
@@ -714,30 +681,9 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                     value=SimpleImputerStrategyType.MEAN.value,
                     options=SimpleImputerStrategyType,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -745,9 +691,8 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_simple_imputer_plot)
 
 
-class ImputationByKNN(DataPreprocessingStep):
+class ImputationByKNN(ImputationStep):
     display_name = "kNN"
-    operation = "imputation"
     method_description = (
         "A function to perform value imputation based on KNN (k-nearest neighbors). Imputes missing "
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
@@ -766,31 +711,9 @@ class ImputationByKNN(DataPreprocessingStep):
                     step=1,
                     hasStepButtons=True,
                 ),
-                FormDivider("Plot settings"),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -798,9 +721,8 @@ class ImputationByKNN(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_knn_plot)
 
 
-class ImputationByNormalDistributionSampling(DataPreprocessingStep):
+class ImputationByNormalDistributionSampling(ImputationStep):
     display_name = "Normal distribution sampling"
-    operation = "imputation"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
     def create_form(self):
@@ -830,30 +752,9 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
