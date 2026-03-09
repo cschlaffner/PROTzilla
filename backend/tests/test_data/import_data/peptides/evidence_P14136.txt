@@ -93,16 +93,15 @@ AAAAVVEFQR	10	Acetyl (Protein N-term)	_(Acetyl (Protein N-term))AAAAVVEFQR_					
 AAAAVVEFQR	10	Acetyl (Protein N-term)	_(Acetyl (Protein N-term))AAAAVVEFQR_									0	1	0	0	0	0	O00231;O00231-2	O00231	O00231	PSMD11	26S proteasome non-ATPase regulatory subunit 11	MULTI-MATCH-MSMS	CTR38_BA39-Cohort1_INSOLUBLE_01	CTR38_C1_INSOLUBLE_01		2	552.29583	1102.57711	0.36247	0.00020019	4.3152	0.0023833	4.6777	0.0025835	552.29804325649	92.401	0.84231	106.2	105.74	106.58	13.795	0.4879	0.00037463	NaN	92.439	135	52	3	NaN	NaN	NaN	NaN	0		NaN	NaN	0	39281000			695	127	8	9							-1
 AAADALNR	8	Unmodified	_AAADALNR_									0	0	0	0	0	0	Q96JE9;Q96JE9-2	Q96JE9	Q96JE9	MAP6	Microtubule-associated protein 6	MULTI-MSMS	AD10_BA39-Cohort2_INSOLUBLE_01	AD10_C2_INSOLUBLE_01	401.213562011719	2	401.214309	800.414065	-1.6432	-0.00065927	0.39151	0.00015708	-1.2517	-0.0005022	401.214371222595	12.507	0.24366	20.215	20.094	20.338	7.7084					37	22	2	0	0	0	0.041623	1	5169	58.286	18.623	1	21662000			696	2284	9	10	767	767					-1
 AAADALNR	8	Unmodified	_AAADALNR_									0	0	0	0	0	0	Q96JE9;Q96JE9-2	Q96JE9	Q96JE9	MAP6	Microtubule-associated protein 6	MSMS	CTR13_BA39-Cohort2_INSOLUBLE_01	CTR13_C2_INSOLUBLE_01	401.212768554688	2	401.214309	800.414065	NaN	NaN	NaN	NaN	NaN	NaN	NaN	23.468	1	22.176	21.676	22.676	-1.2915								0	0	0	0.03549	1	7352	69.176	34.07	1				697	2284	9	10	768	768					-1
-RLGPGT		Phospho (T)	_RLGPGT(Phospho (T))_															P14136	P14136	P14136	P14136			test	clean_1																												0.001
-AARRSY		Phospho (Protein N-term); Phospho (S)	_(Phospho (Protein N-term))AARRS(Phospho (S))Y_															P14136	P14136	P14136	P14136			test	clean_1																												0.001
-MERRRIT		Oxidation (Protein N-term)	_(Oxidation (Protein N-term))MERRRIT_															P14136	P14136	P14136	P14136			test	clean_2																												0.001
-QKLQ		Acetyl (K)	_QK(Acetyl (K))LQ_															P14136	P14136	P14136	P14136			test	clean_1																												0.001
-QKLQ		GG (K)	_QK(GG (K))LQ_															P14136	P14136	P14136	P14136			test	clean_2																												0.001
-FADLTDAAAR		Unmodified	_FADLTDAAAR_															P14136	P14136	P14136	P14136			test	fail_3																												0.001
-LATVRQKLQ		ci	_LATVR(ci)QKLQ_															P14136	P14136	P14136	P14136			test	old_1																												0.001
-SAARRSY		Phospho (S); Phospho (S)	_S(ph)AARRS(ph)Y_															P14136	P14136	P14136	P14136			test	old_2																												0.001
-SLTIRVIPI		Phospho (S); Phospho (T); Deamidated (R)	_S(Phospho (S))LT(Phospho (T))IR(Deamidated (R))VIPI_															P14136	P14136	P14136	P14136			test	exon_1																												0.001
-
+RLGPGT		Phospho (T)	_RLGPGT(Phospho (T))_															P14136	P14136	P14136	GFAP			test	clean_1																												0.001
+AARRSY		Phospho (Protein N-term); Phospho (S)	_(Phospho (Protein N-term))AARRS(Phospho (S))Y_															P14136	P14136	P14136	GFAP			test	clean_1																												0.001
+MERRRIT		Oxidation (Protein N-term)	_(Oxidation (Protein N-term))MERRRIT_															P14136	P14136	P14136	GFAP			test	clean_2																												0.001
+QKLQ		Acetyl (K)	_QK(Acetyl (K))LQ_															P14136	P14136	P14136	GFAP			test	clean_1																												0.001
+QKLQ		GG (K)	_QK(GG (K))LQ_															P14136	P14136	P14136	GFAP			test	clean_2																												0.001
+FADLTDAAAR		Unmodified	_FADLTDAAAR_															P14136	P14136	P14136	GFAP			test	fail_3																												0.001
+LATVRQKLQ		ci	_LATVR(ci)QKLQ_															P14136	P14136	P14136	GFAP			test	old_1																												0.001
+SAARRSY		Phospho (S); Phospho (S)	_S(ph)AARRS(ph)Y_															P14136	P14136	P14136	GFAP			test	old_2																												0.001
+SLTIRVIPI		Phospho (S); Phospho (T); Deamidated (R)	_S(Phospho (S))LT(Phospho (T))IR(Deamidated (R))VIPI_															P14136;P14136-3	P14136-3	P14136-3	GFAP			test	exon_1																												0.001
 AAADALNR	8	Unmodified	_AAADALNR_									0	0	0	0	0	0	Q96JE9;Q96JE9-2	Q96JE9	Q96JE9	MAP6				test	old_3																												0.001
 AAADALNR	8	Unmodified	_AAADALNR_									0	0	0	0	0	0	Q96JE9;Q96JE9-2	Q96JE9	Q96JE9	MAP6				test	old_3																												0.001
 AAADALNR	8	Unmodified	_AAADALNR_									0	0	0	0	0	0	Q96JE9;Q96JE9-2	Q96JE9	Q96JE9	MAP6    			test	old_3																												0.001
