@@ -30,7 +30,16 @@ class DataPreprocessingStep(Step, ABC):
         self.plot_inputs: dict = {}
 
 
-class FilterProteinsBySamplesMissing(DataPreprocessingStep):
+class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class OutlierDetectionStep(DataPreprocessingStep, ABC):
+    operation = "outlier_detection"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     display_name = "By samples missing"
     operation = "filter_proteins"
     method_description = (
@@ -62,18 +71,18 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
-class FilterProteinsBySilacRatios(DataPreprocessingStep):
-    display_name = "By SILAC ratios"
+class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
+    display_name = "By number of values per group"
     operation = "filter_proteins"
-    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
+    method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
         return Form(
-            label="Filter Proteins by SILAC ratios",
+            label="Filter Proteins by number of values per group",
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples per group with different SILAC ratios",
+                    label="Amount of minimum present samples per group with different values",
                     value=1,
                     min=0,
                     step=1,
@@ -87,18 +96,18 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(filter_proteins.by_silac_ratios)
-    plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
+    calc_method = staticmethod(filter_proteins.by_number_of_values_per_group)
+    plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
-class FilterByProteinsCount(DataPreprocessingStep):
-    display_name = "Protein Count"
+class FilterByProteinsCount(FilteringStepBasedOnProteins):
+    display_name = "By protein count"
     operation = "filter_samples"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Protein Count",
+            label="Filter samples by protein count",
             input_fields=[
                 FloatField(
                     name="deviation_threshold",
@@ -154,7 +163,39 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
 
 
-class FilterSamplesByProteinsMissing(DataPreprocessingStep):
+class FilterPeptidesByExistingProteins(DataPreprocessingStep):
+    display_name = "By existing proteins"
+    operation = "filter_peptides"
+    method_description = "Filter by existing proteins"
+    output_keys = [DataKey.PEPTIDE_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing proteins",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_proteins)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+
+
+class FilterPeptidesByExistingSamples(DataPreprocessingStep):
+    display_name = "By existing samples"
+    operation = "filter_peptides"
+    method_description = "Filter by existing samples"
+    output_keys = [DataKey.PEPTIDE_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing samples",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_samples)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+
+
+class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     display_name = "By proteins missing"
     operation = "filter_samples"
     method_description = (
@@ -186,8 +227,8 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
     plot_method = staticmethod(filter_samples.by_proteins_missing_plot)
 
 
-class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
-    display_name = "Sum of intensities"
+class FilterSamplesByProteinIntensitiesSum(FilteringStepBasedOnProteins):
+    display_name = "By sum of intensities"
     operation = "filter_samples"
     method_description = "Filter by sum of protein intensities per sample"
 
@@ -217,9 +258,8 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     plot_method = staticmethod(filter_samples.by_protein_intensity_sum_plot)
 
 
-class OutlierDetectionByPCA(DataPreprocessingStep):
+class OutlierDetectionByPCA(OutlierDetectionStep):
     display_name = "PCA"
-    operation = "outlier_detection"
     method_description = "Detect outliers using PCA"
 
     def create_form(self):
@@ -250,9 +290,8 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_pca_plot)
 
 
-class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
+class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
     display_name = "Local outlier factor"
-    operation = "outlier_detection"
     method_description = "Detect outliers using the local outlier factor"
 
     def create_form(self):
@@ -274,9 +313,8 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_local_outlier_factor_plot)
 
 
-class OutlierDetectionByIsolationForest(DataPreprocessingStep):
+class OutlierDetectionByIsolationForest(OutlierDetectionStep):
     display_name = "Isolation Forest"
-    operation = "outlier_detection"
     method_description = "Detect outliers using Isolation Forest"
 
     def create_form(self):
