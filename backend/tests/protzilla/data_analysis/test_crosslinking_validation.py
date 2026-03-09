@@ -10,16 +10,15 @@ import pandas.testing as pdt
 from backend.protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     get_distance_between_two_amino_acids_in_angstrom,
-    add_positions_of_amino_acid_where_crosslinker_bound_to_df,
+    add_protein_crosslink_positions_to_df,
     diagrams_of_crosslinking_validation_data,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
     add_vertical_line_with_annotation_in_legend,
 )
-from backend.protzilla.methods.data_analysis import (
-    CrossLinkingValidationWithAngstromDeviation,
-)
+
+from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDeviation
 
 
 @pytest.mark.parametrize(
@@ -43,7 +42,9 @@ def test_validate_with_angstrom_deviation(distance, expected):
         }
     )
 
-    amino_acid_sequence_df = pd.DataFrame({"Protein Sequence": ["AB"]})
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P12345-1"], "Protein Sequence": ["AB"]}
+    )
 
     # Fake Crosslink Data
     crosslinking_df = pd.DataFrame(
@@ -62,9 +63,9 @@ def test_validate_with_angstrom_deviation(distance, expected):
 
     result = validate_with_angstrom_deviation(
         crosslinking_df,
-        protein_to_validate="P12345",
+        structures_to_validate=["P12345"],
         crosslinker_information=crosslinker_information,
-        amino_acid_sequence_df=amino_acid_sequence_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
     )
 
@@ -85,7 +86,7 @@ def test_modify_form_creates_crosslinker_fields():
     run = MagicMock()
     run.steps = steps
 
-    step = CrossLinkingValidationWithAngstromDeviation()
+    step = CrosslinkingValidationWithAngstromDeviation()
     form = step.create_form()
 
     step.modify_form(form, run)
@@ -118,6 +119,8 @@ def test_get_distance_between_two_amino_acids_in_angstrom():
 def test_add_crosslinker_positions_with_exactly_one_possible_position():
     df = pd.DataFrame(
         {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
             "Peptide1": ["ABC"],
             "Peptide2": ["DEF"],
             "CL_position_within_peptide1": [1],
@@ -125,11 +128,11 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
         }
     )
 
-    protein_sequence = "XXABCYYYDEFZZ"
-
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, protein_sequence
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P1-1"], "Protein Sequence": ["XXABCYYYDEFZZ"]}
     )
+
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert messages == []
 
@@ -143,6 +146,8 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
 def test_add_crosslinker_positions_with_more_than_one_possible_position():
     df = pd.DataFrame(
         {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
             "Peptide1": ["AA"],
             "Peptide2": ["BB"],
             "CL_position_within_peptide1": [0],
@@ -150,11 +155,11 @@ def test_add_crosslinker_positions_with_more_than_one_possible_position():
         }
     )
 
-    protein_sequence = "AAXXAAZZBBYYBB"
-
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, protein_sequence
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P1-1"], "Protein Sequence": ["AAXXAAZZBBYYBB"]}
     )
+
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     # 2 AA matches × 2 BB matches = 4 combinations
     assert len(df) == 4
@@ -172,6 +177,8 @@ def test_add_crosslinker_positions_with_more_than_one_possible_position():
 def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
     df = pd.DataFrame(
         {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
             "Peptide1": ["ABC"],
             "Peptide2": ["DEF"],
             "CL_position_within_peptide1": [0],
@@ -179,11 +186,11 @@ def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
         }
     )
 
-    protein_sequence = "XXXXXXXX"
-
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, protein_sequence
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P1-1"], "Protein Sequence": ["XXXXXXXX"]}
     )
+
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert len(messages) == 1
     assert messages[0]["level"] == logging.WARNING
@@ -196,6 +203,8 @@ def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
 def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
     df = pd.DataFrame(
         {
+            "Protein_id1": ["P1", "P1", "P1"],
+            "Protein_id2": ["P1", "P1", "P1"],
             "Peptide1": ["ABC", "XXX", "ABC"],
             "Peptide2": ["DEF", "DEF", "YYY"],
             "CL_position_within_peptide1": [0, 0, 0],
@@ -203,11 +212,11 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
         }
     )
 
-    protein_sequence = "ABCDEF"
-
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, protein_sequence
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P1-1"], "Protein Sequence": ["ABCDEF"]}
     )
+
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     assert len(messages) == 2
     assert messages[0]["level"] == logging.WARNING
@@ -223,6 +232,8 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
 def test_add_crosslinker_positions_with_overlapping_peptide_matches():
     df = pd.DataFrame(
         {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
             "Peptide1": ["AAA"],
             "Peptide2": ["B"],
             "CL_position_within_peptide1": [0],
@@ -230,11 +241,11 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
         }
     )
 
-    protein_sequence = "AAAAB"
-
-    df, messages = add_positions_of_amino_acid_where_crosslinker_bound_to_df(
-        df, protein_sequence
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P1-1"], "Protein Sequence": ["AAAAB"]}
     )
+
+    df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
     # AAA -> positions 0, 1
     # B -> position 4
@@ -256,6 +267,206 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
     expected_positions = {(1, 5), (2, 5)}
 
     assert observed_positions == expected_positions
+
+
+def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
+    rows = [
+        ("P1-1", "ABCDE"),
+        ("P2-1", "VWXYZ"),
+        ("P3-1", "KLMNO"),
+    ]
+    sequences_df = pd.DataFrame(rows, columns=["Protein ID", "Protein Sequence"])
+
+    crosslinking_df = pd.DataFrame(
+        [
+            # within set: P1-P2 (should be kept when validating ["P1","P2"])
+            ("P1", "P2", "BC", "WX", 0, 0, "XL"),
+            # within set: P2-P2
+            ("P2", "P2", "WX", "WX", 0, 0, "XL"),
+            # outside set: P1-P3 (should be filtered out)
+            ("P1", "P3", "BC", "LM", 0, 0, "XL"),
+        ],
+        columns=[
+            "Protein_id1",
+            "Protein_id2",
+            "Peptide1",
+            "Peptide2",
+            "CL_position_within_peptide1",
+            "CL_position_within_peptide2",
+            "Crosslinker",
+        ],
+    )
+
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA"] * 5,
+            "_atom_site.label_seq_id": list(range(1, 6)),
+            "_atom_site.Cartn_x": [float(i) for i in range(1, 6)],
+            "_atom_site.Cartn_y": [0.0] * 5,
+            "_atom_site.Cartn_z": [0.0] * 5,
+        }
+    )
+
+    # Very permissive bounds: always valid as long as distance is defined.
+    # Format is [length, upper_deviation, lower_deviation].
+    crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
+
+    out = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structures_to_validate=["P1", "P2"],
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=sequences_df,
+    )
+
+    result_df = out["crosslinking_result_df"]
+    assert isinstance(result_df, pd.DataFrame)
+    assert not result_df.empty
+
+    # Only the first two rows should remain after filtering.
+    assert len(result_df) == 2
+
+    assert set(result_df["Protein_id1"].unique()).issubset({"P1", "P2"})
+    assert set(result_df["Protein_id2"].unique()).issubset({"P1", "P2"})
+
+    assert "alphafold_distance" in result_df.columns
+    assert "valid_crosslink" in result_df.columns
+    assert "crosslinker_position1" in result_df.columns
+    assert "crosslinker_position2" in result_df.columns
+
+
+def test_validate_multimer_no_links_between_structures_returns_empty_and_warning():
+    sequences_df = pd.DataFrame(
+        [
+            ("P1-1", "ABCDE"),
+            ("P2-1", "VWXYZ"),
+            ("P3-1", "KLMNO"),
+        ],
+        columns=["Protein ID", "Protein Sequence"],
+    )
+
+    crosslinking_df = pd.DataFrame(
+        [
+            ("P1", "P3", "BC", "LM", 0, 0, "XL"),
+            ("P3", "P2", "LM", "WX", 0, 0, "XL"),
+        ],
+        columns=[
+            "Protein_id1",
+            "Protein_id2",
+            "Peptide1",
+            "Peptide2",
+            "CL_position_within_peptide1",
+            "CL_position_within_peptide2",
+            "Crosslinker",
+        ],
+    )
+
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA"] * 5,
+            "_atom_site.label_seq_id": list(range(1, 6)),
+            "_atom_site.Cartn_x": [float(i) for i in range(1, 6)],
+            "_atom_site.Cartn_y": [0.0] * 5,
+            "_atom_site.Cartn_z": [0.0] * 5,
+        }
+    )
+    crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
+
+    out = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structures_to_validate=["P1", "P2"],
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=sequences_df,
+    )
+
+    result_df = out["crosslinking_result_df"]
+    messages = out["messages"]
+
+    assert isinstance(result_df, pd.DataFrame)
+    assert result_df.empty
+
+    assert isinstance(messages, list)
+    assert len(messages) >= 1
+    assert messages[0].get("level") is not None
+    assert "There are no cross links between the structures to validate." in messages[
+        0
+    ].get("msg", "")
+
+
+def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_validates_all():
+    # AB occurs twice in ABAB: at positions 1 and 3 (1-based).
+    sequences_df = pd.DataFrame(
+        [
+            ("P1-1", "ABAB"),
+            ("P2-1", "ABAB"),
+        ],
+        columns=["Protein ID", "Protein Sequence"],
+    )
+
+    crosslinking_df = pd.DataFrame(
+        [
+            ("P1", "P2", "AB", "AB", 0, 0, "XL"),
+        ],
+        columns=[
+            "Protein_id1",
+            "Protein_id2",
+            "Peptide1",
+            "Peptide2",
+            "CL_position_within_peptide1",
+            "CL_position_within_peptide2",
+            "Crosslinker",
+        ],
+    )
+
+    cif_df = cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA"] * 4,
+            "_atom_site.label_seq_id": list(range(1, 5)),
+            "_atom_site.Cartn_x": [float(i) for i in range(1, 5)],
+            "_atom_site.Cartn_y": [0.0] * 4,
+            "_atom_site.Cartn_z": [0.0] * 4,
+        }
+    )
+
+    # Always-valid bounds so we focus on duplication and distance computation.
+    crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
+
+    out = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structures_to_validate=["P1", "P2"],
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=sequences_df,
+    )
+
+    result_df = out["crosslinking_result_df"]
+    messages = out["messages"]
+
+    assert isinstance(result_df, pd.DataFrame)
+    assert len(result_df) == 4
+
+    # Crosslinker positions should cover the product of {1,3} x {1,3}.
+    combos = set(
+        zip(
+            result_df["crosslinker_position1"].astype(int).tolist(),
+            result_df["crosslinker_position2"].astype(int).tolist(),
+        )
+    )
+    assert combos == {(1, 1), (1, 3), (3, 1), (3, 3)}
+
+    # Distances in our 1D coordinate system are abs(pos2 - pos1).
+    distances = sorted(result_df["alphafold_distance"].astype(float).tolist())
+    assert distances == [0.0, 0.0, 2.0, 2.0]
+
+    # With permissive bounds, all should be valid.
+    assert result_df["valid_crosslink"].dropna().all()
+
+    # Expect a duplication warning message.
+    assert any(
+        ("duplicated" in str(m.get("msg", "")).lower()) and (m.get("level") is not None)
+        for m in messages
+    )
 
 
 def test_add_vertical_line_with_annotation_in_legend_adds_line_and_legend():
@@ -327,10 +538,10 @@ def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_line
 
     figures = diagrams_of_crosslinking_validation_data(
         crosslinking_df=sample_crosslinking_df,
-        protein_to_validate="P12345",
+        structures_to_validate=["P12345"],
         crosslinker_information=sample_crosslinker_info,
         cif_df=pd.DataFrame(),
-        amino_acid_sequence_df=pd.DataFrame(),
+        amino_acid_sequences_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
@@ -395,10 +606,10 @@ def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_l
 
     figures = diagrams_of_crosslinking_validation_data(
         crosslinking_df=sample_crosslinking_df_with_no_std,
-        protein_to_validate="P12345",
+        structures_to_validate=["P12345"],
         crosslinker_information=sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
         cif_df=pd.DataFrame(),
-        amino_acid_sequence_df=pd.DataFrame(),
+        amino_acid_sequences_df=pd.DataFrame(),
     )
 
     # 2 histograms per crosslinker + 1 bar plot
@@ -457,10 +668,10 @@ def test_diagrams_calls_with_correct_parameters(
 
         figures = diagrams_of_crosslinking_validation_data(
             crosslinking_df=sample_crosslinking_df_with_one_crosslinker,
-            protein_to_validate="P12345",
+            structures_to_validate=["P12345"],
             crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
             cif_df=pd.DataFrame(),
-            amino_acid_sequence_df=pd.DataFrame(),
+            amino_acid_sequences_df=pd.DataFrame(),
         )
 
         mock_validate.assert_called_once()
@@ -526,3 +737,68 @@ def test_diagrams_calls_with_correct_parameters(
             "bar_fig",
         ]
         assert figures == expected_figures
+
+
+def test_validate_multimer_with_invalid_crosslinks():
+    sequences_df = pd.DataFrame(
+        [
+            ("P1-1", "ABAB"),
+            ("P2-1", "ABAB"),
+        ],
+        columns=["Protein ID", "Protein Sequence"],
+    )
+
+    crosslinking_df = pd.DataFrame(
+        [
+            ("P1", "P2", "AB", "AB", 0, 0, "XL"),
+        ],
+        columns=[
+            "Protein_id1",
+            "Protein_id2",
+            "Peptide1",
+            "Peptide2",
+            "CL_position_within_peptide1",
+            "CL_position_within_peptide2",
+            "Crosslinker",
+        ],
+    )
+
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA"] * 4,
+            "_atom_site.label_seq_id": [1, 2, 3, 4],
+            "_atom_site.Cartn_x": [1.0, 2.0, 3.0, 4.0],
+            "_atom_site.Cartn_y": [0.0, 0.0, 0.0, 0.0],
+            "_atom_site.Cartn_z": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    # length = 1.5, upper_dev = 0.6, lower_dev = 0.6.
+    # Distances will be [0.0, 0.0, 2.0, 2.0] -> two valid (2.0) and two invalid (0.0).
+    crosslinker_information = {"XL": [1.5, 0.6, 0.6]}
+
+    out = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structures_to_validate=["P1", "P2"],
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=sequences_df,
+    )
+
+    result_df = out["crosslinking_result_df"]
+    assert isinstance(result_df, pd.DataFrame)
+    assert len(result_df) == 4
+
+    distances = sorted(result_df["alphafold_distance"].astype(float).tolist())
+    assert distances == [0.0, 0.0, 2.0, 2.0]
+
+    valid_counts = result_df["valid_crosslink"].value_counts()
+    assert valid_counts.get(True, 0) == 2
+    assert valid_counts.get(False, 0) == 2
+
+    valid_distances = sorted(
+        result_df.loc[result_df["valid_crosslink"] == True, "alphafold_distance"]
+        .astype(float)
+        .tolist()
+    )
+    assert valid_distances == [2.0, 2.0]

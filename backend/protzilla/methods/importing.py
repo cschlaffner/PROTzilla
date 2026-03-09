@@ -429,7 +429,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "amino_acid_sequence_df",
+        "amino_acid_sequences_df",
     ]
 
     plot_method = None
@@ -493,7 +493,7 @@ class ImportMonomerStructurePredictionFromDisk(ImportingStep):
         "cif_df",
         "pae_df",
         "plddt_df",
-        "amino_acid_sequence_df",
+        "amino_acid_sequences_df",
     ]
 
     def create_form(self):

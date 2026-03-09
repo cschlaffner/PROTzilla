@@ -81,7 +81,8 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
-        "CrossLinkingValidationWithAngstromDeviation",
+        "CrosslinkingValidationWithAngstromDeviation",
+        "CrosslinkingValidationWithAngstromDeviationForMultimer",
     }
 
     steps = get_all_possible_steps()
