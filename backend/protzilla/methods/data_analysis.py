@@ -1169,11 +1169,13 @@ class ClusteringKMeans(ClusteringStep):
                     name="model_selection_scoring",
                     label="Select a scoring for identifying the best estimator following a grid search",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_clusters",
@@ -1282,6 +1284,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                     name="model_selection_scoring",
                     label="Select a scoring for identifying the best estimator following a grid search",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
@@ -1388,6 +1391,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                     name="model_selection_scoring",
                     label="Select a scoring for identifying the best estimator following a grid search",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
