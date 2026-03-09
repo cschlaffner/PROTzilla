@@ -170,7 +170,7 @@ def add_protein_crosslink_positions_to_df(
                   - 'crosslinker_position1': 1-based crosslinker position in Peptide1
                   - 'crosslinker_position2': 1-based crosslinker position in Peptide2
                   Rows are duplicated for multiple peptide matches.
-              - messages: list of warning dictionaries with if the peptide was not found or a row was duplicated
+              - messages: list of warning dictionaries if the peptide was not found or a row was duplicated
     """
     crosslinking_df = input_crosslinking_df.copy()
     crosslinking_df["crosslinker_position1"] = pd.Series(dtype="Int64")
