@@ -71,6 +71,10 @@ def perform_grid_search_cv(
     cv=None,
     n_iter=10,
 ):
+    #make sure refit is never None
+    if model_selection_scoring is None:
+        model_selection_scoring = False
+
     if grid_search_model == "Grid search":
         return GridSearchCV(
             model,
