@@ -1,4 +1,5 @@
 import pandas as pd
+from plotly.graph_objs import Figure
 
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
 
@@ -47,4 +48,51 @@ def by_pep_value_plot(output_peptide_df, output_filtered_peptides, graph_type):
         fig = create_pie_plot(**value_dict)
     elif graph_type == "Bar chart":
         fig = create_bar_plot(**value_dict)
+    return [fig]
+
+
+def by_existing_proteins(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> dict:
+    """
+    This function filters the peptide dataframe so that only peptides remain whose
+    Protein ID exists in the provided protein dataframe.
+    :param peptide_df: the pandas dataframe containing the peptide information
+    :param protein_df: the pandas dataframe containing the protein information
+    :return: dict containing the peptide dataframe filtered to peptides whose
+            Protein ID exists in the protein dataframe
+    """
+    filtered_peptide_df = peptide_df[
+        (peptide_df["Protein ID"].isin(protein_df["Protein ID"]))
+    ]
+    return dict(
+        peptide_df=filtered_peptide_df,
+    )
+
+
+def by_existing_samples(peptide_df: pd.DataFrame, protein_df: pd.DataFrame) -> dict:
+    """
+    This function filters the peptide dataframe so that only peptides remain whose
+    Sample exists in the provided protein dataframe.
+
+    :param peptide_df: the pandas dataframe containing the peptide information
+    :param protein_df: the pandas dataframe containing the protein information
+    :return: dict containing the peptide dataframe filtered to peptides whose
+            Sample exists in the protein dataframe
+    """
+    filtered_peptide_df = peptide_df[peptide_df["Sample"].isin(protein_df["Sample"])]
+    return dict(
+        peptide_df=filtered_peptide_df,
+    )
+
+
+def peptide_filtering_pie_plot(
+    peptide_df: pd.DataFrame, output_peptide_df: pd.DataFrame
+) -> list[Figure]:
+    fig = create_pie_plot(
+        values_of_sectors=[
+            len(output_peptide_df),
+            len(peptide_df) - len(output_peptide_df),
+        ],
+        names_of_sectors=["Peptides kept", "Peptides filtered"],
+        heading="Number of Filtered Peptides",
+    )
     return [fig]
