@@ -33,6 +33,11 @@ class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
 
 
+class OutlierDetectionStep(DataPreprocessingStep, ABC):
+    operation = "outlier_detection"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
 class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     display_name = "By samples missing"
     operation = "filter_proteins"
@@ -252,11 +257,9 @@ class FilterSamplesByProteinIntensitiesSum(FilteringStepBasedOnProteins):
     plot_method = staticmethod(filter_samples.by_protein_intensity_sum_plot)
 
 
-class OutlierDetectionByPCA(DataPreprocessingStep):
+class OutlierDetectionByPCA(OutlierDetectionStep):
     display_name = "PCA"
-    operation = "outlier_detection"
     method_description = "Detect outliers using PCA"
-    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -286,11 +289,9 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_pca_plot)
 
 
-class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
+class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
     display_name = "Local outlier factor"
-    operation = "outlier_detection"
     method_description = "Detect outliers using the local outlier factor"
-    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -311,11 +312,9 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_local_outlier_factor_plot)
 
 
-class OutlierDetectionByIsolationForest(DataPreprocessingStep):
+class OutlierDetectionByIsolationForest(OutlierDetectionStep):
     display_name = "Isolation Forest"
-    operation = "outlier_detection"
     method_description = "Detect outliers using Isolation Forest"
-    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
