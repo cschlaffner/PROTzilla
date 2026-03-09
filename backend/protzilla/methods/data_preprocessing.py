@@ -38,6 +38,11 @@ class OutlierDetectionStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
 
 
+class ImputationStep(DataPreprocessingStep, ABC):
+    operation = "imputation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
 class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     display_name = "By samples missing"
     operation = "filter_proteins"
@@ -575,9 +580,8 @@ class NormalisationByReferenceProtein(NormalisationStep):
     plot_method = staticmethod(normalisation.by_reference_protein_plot)
 
 
-class ImputationByMinPerDataset(DataPreprocessingStep):
+class ImputationByMinPerDataset(ImputationStep):
     display_name = "Min per dataset"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per dataset"
 
     def create_form(self):
@@ -629,9 +633,8 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_dataset_plot)
 
 
-class ImputationByMinPerProtein(DataPreprocessingStep):
+class ImputationByMinPerProtein(ImputationStep):
     display_name = "Min per protein"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per protein"
 
     def create_form(self):
@@ -683,9 +686,8 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_protein_plot)
 
 
-class ImputationByMinPerSample(DataPreprocessingStep):
+class ImputationByMinPerSample(ImputationStep):
     display_name = "Min per sample"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per sample"
 
     def create_form(self):
@@ -734,9 +736,8 @@ class ImputationByMinPerSample(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_sample_plot)
 
 
-class SimpleImputationPerProtein(DataPreprocessingStep):
+class SimpleImputationPerProtein(ImputationStep):
     display_name = "Protein"
-    operation = "imputation"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
@@ -783,9 +784,8 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_simple_imputer_plot)
 
 
-class ImputationByKNN(DataPreprocessingStep):
+class ImputationByKNN(ImputationStep):
     display_name = "kNN"
-    operation = "imputation"
     method_description = (
         "A function to perform value imputation based on KNN (k-nearest neighbors). Imputes missing "
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
@@ -836,9 +836,8 @@ class ImputationByKNN(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_knn_plot)
 
 
-class ImputationByNormalDistributionSampling(DataPreprocessingStep):
+class ImputationByNormalDistributionSampling(ImputationStep):
     display_name = "Normal distribution sampling"
-    operation = "imputation"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
     def create_form(self):
