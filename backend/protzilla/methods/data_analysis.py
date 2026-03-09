@@ -1499,28 +1499,28 @@ class ClassificationRandomForest(ClassificationStep):
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
                     value=0.20,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_splits",
                     label="Number of folds",
                     min=2,
                     value=5,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 DropdownField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
                     options=YesNo,
                     value=YesNo.yes,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_repeats",
                     label="Number of times cross-validator needs to be repeated",
                     min=1,
                     value=10,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="random_state_cv",
@@ -1534,7 +1534,7 @@ class ClassificationRandomForest(ClassificationStep):
                     name="p_samples",
                     label="Size of the test sets",
                     value=1,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 MultiSelectField(
                     name="scoring",
@@ -1593,20 +1593,28 @@ class ClassificationRandomForest(ClassificationStep):
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-
         if validation_strategy_field.value in [
             ClassificationValidationStrategy.k_fold.value,
             ClassificationValidationStrategy.stratified_k_fold.value,
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.repeated_k_fold.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.repeated_k_fold.value
+        ):
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.leave_p_out.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.leave_p_out.value
+        ):
             p_samples_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.manual.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.manual.value
+        ):
             train_val_split_field.isVisible = True
 
     calc_method = staticmethod(random_forest)
@@ -1660,28 +1668,28 @@ class ClassificationSVM(ClassificationStep):
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
                     value=0.20,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_splits",
                     label="Number of folds",
                     min=2,
                     value=5,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 DropdownField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
                     options=YesNo,
                     value=YesNo.yes,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_repeats",
                     label="Number of times cross-validator needs to be repeated",
                     min=1,
                     value=10,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="random_state_cv",
@@ -1695,7 +1703,7 @@ class ClassificationSVM(ClassificationStep):
                     name="p_samples",
                     label="Size of the test sets",
                     value=1,
-                    isVisible = False,
+                    isVisible=False,
                 ),
                 MultiSelectField(
                     name="scoring",
@@ -1759,13 +1767,22 @@ class ClassificationSVM(ClassificationStep):
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.repeated_k_fold.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.repeated_k_fold.value
+        ):
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.leave_p_out.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.leave_p_out.value
+        ):
             p_samples_field.isVisible = True
-        elif validation_strategy_field.value == ClassificationValidationStrategy.manual.value:
+        elif (
+            validation_strategy_field.value
+            == ClassificationValidationStrategy.manual.value
+        ):
             train_val_split_field.isVisible = True
 
     calc_method = staticmethod(svm)

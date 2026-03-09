@@ -6,7 +6,7 @@ import shutil
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-
+import joblib
 import pandas as pd
 import yaml
 from plotly.io import read_json, write_json
@@ -78,6 +78,22 @@ class DataFrameOperator:
             dataframe.to_csv(file_path, index=False)
 
 
+# for all non serializable data types
+class ArtifactOperator:
+    @staticmethod
+    def read(file_path: Path):
+        with ErrorHandler():
+            logger.info(f"Reading artifact from {file_path}")
+            return joblib.load(file_path)
+
+    @staticmethod
+    def write(file_path: Path, artifact):
+        with ErrorHandler():
+            logger.info(f"Writing artifact to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(artifact, file_path)
+
+
 RUN_FILE = "run.yaml"
 
 
@@ -106,6 +122,7 @@ class DiskOperator:
         self.workflow_name = workflow_name
         self.yaml_operator = YamlOperator()
         self.dataframe_operator = DataFrameOperator()
+        self.artifact_operator = ArtifactOperator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -135,11 +152,11 @@ class DiskOperator:
 
     def write_run(self, step_manager: StepManager) -> None:
         with ErrorHandler():
-            if not self.run_dir.exists():
-                self.run_dir.mkdir(parents=True, exist_ok=True)
-            if not self.dataframe_dir.exists():
-                self.dataframe_dir.mkdir(parents=True, exist_ok=True)
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+            self.dataframe_dir.mkdir(parents=True, exist_ok=True)
+            self.artifacts_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
+            self.clean_artifacts_dir(step_manager)
             run = {}
             run[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
@@ -246,9 +263,26 @@ class DiskOperator:
     def clean_dataframes_dir(self, steps: StepManager) -> None:
         with ErrorHandler():
             for file in self.dataframe_dir.iterdir():
+                if file.is_dir():
+                    continue
                 if not self.check_file_validity(file, steps):
                     logger.warning(f"Deleting dataframe {file}")
                     file.unlink()
+
+    def clean_artifacts_dir(self, steps: StepManager) -> None:
+        with ErrorHandler():
+            if not self.artifacts_dir.exists():
+                return
+            for file in self.artifacts_dir.iterdir():
+                if file.is_dir():
+                    continue
+                if not self.check_file_validity(file, steps):
+                    logger.warning(f"Deleting artifact {file}")
+                    file.unlink()
+
+    @property
+    def artifacts_dir(self) -> Path:
+        return self.run_dir / "artifacts"
 
     def clear_upload_dir(self) -> None:
         # TODO in general our way of handling file uploads is kind of non-straightforward, maybe we should switch
@@ -292,6 +326,13 @@ class DiskOperator:
     def _update_dump_state(self, step: Step, key: str) -> None:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
 
+    def is_yaml_serializable(self, value) -> bool:
+        try:
+            yaml.dump(value)
+            return True
+        except Exception:
+            return False
+
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
         with ErrorHandler():
             step_data = {}
@@ -321,11 +362,12 @@ class DiskOperator:
                 if Path(value).is_absolute():
                     base_path = Path()
 
-                if (base_path / Path(value)).exists():
-                    step_output[key] = self.dataframe_operator.read(
-                        base_path / Path(value)
-                    )
-
+                p = base_path / Path(value)
+                if p.exists() and p.suffix == ".csv":
+                    step_output[key] = self.dataframe_operator.read(p)
+                # For non df data types like sklearn models for example
+                elif p.exists() and p.suffix == ".joblib":
+                    step_output[key] = self.artifact_operator.read(p)
                 # Path does not exist, just use raw string provided.
                 else:
                     step_output[key] = value
@@ -344,8 +386,17 @@ class DiskOperator:
                         self.dataframe_operator.write(file_path, value)
                     output_data[key] = str(file_path.relative_to(self.run_dir))
                 else:
-                    output_data[key] = value
-
+                    # only write to yaml if possible, else use joblib as fallback
+                    if self.is_yaml_serializable(value):
+                        output_data[key] = value
+                    else:
+                        file_path = (
+                            self.artifacts_dir
+                            / f"{step.instance_identifier}_{key}.joblib"
+                        )
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, value)
+                        output_data[key] = str(file_path.relative_to(self.run_dir))
             self._update_dump_state(step, "output")
             return output_data
 
@@ -415,10 +466,23 @@ def sanitize_inputs(inputs: dict) -> dict:
     :param inputs: The inputs to sanitize
     :return: The sanitized inputs
     """
-    return {
-        key: value
-        for key, value in inputs.items()
-        if type(value) != pd.DataFrame
-        and not utilities.check_is_path(value)
-        and key != DataKey.PEPTIDE_DF
-    }
+    sanitized = {}
+
+    for key, value in inputs.items():
+        if isinstance(value, pd.DataFrame):
+            continue
+        if utilities.check_is_path(value):
+            continue
+        if key == DataKey.PEPTIDE_DF:
+            continue
+        try:
+            yaml.safe_dump(value)
+            sanitized[key] = value
+        except Exception:
+            # not yaml serialisable -> ignore it to prevent errors
+            logger.warning(
+                f"Dropping non-YAML-serializable input {key} of type {type(value)}"
+            )
+            continue
+
+    return sanitized
