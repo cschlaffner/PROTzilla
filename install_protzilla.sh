@@ -124,6 +124,11 @@ if ! npm list molstar >/dev/null 2>&1; then
     npm install molstar
 fi
 
+if ! npm list -D sass-embedded >/dev/null 2>&1; then
+    echo "Installing sass-embedded for SCSS compilation..."
+    npm install -D sass-embedded
+fi
+
 cd ..
 
 echo "done."

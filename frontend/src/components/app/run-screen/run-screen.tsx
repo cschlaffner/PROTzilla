@@ -4,6 +4,7 @@ import {
   DataTable,
   FlexColumn,
   FlexRow,
+  MolstarViewer,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
@@ -78,6 +79,12 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
+//TODO: Move somewhere else
+interface Visualization {
+  name: string;
+  cifUrl: string;
+}
+
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -88,7 +95,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  //const [visualizations, setVisualizations] = useState<any[]>([]);
+  const [visualizations, setVisualizations] = useState<Visualization[]>();
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -149,13 +156,19 @@ export const RunScreen: React.FC = () => {
 
     if (response) {
       const data = response.data;
-      const rawVisualizations = [];
+
+      const rawVisualizations: Visualization[] = [];
       if (data.length > 0) {
         for (const viz of data) {
-          rawVisualizations.push(JSON.parse(viz));
+          const parsed = JSON.parse(viz);
+          rawVisualizations.push({
+            name: parsed.name,
+            cifUrl: parsed.cif_url,
+          });
         }
       }
-      //setVisualizations(rawVisualizations);
+
+      setVisualizations(rawVisualizations);
     }
   }, [runName]);
 
@@ -232,19 +245,15 @@ export const RunScreen: React.FC = () => {
 
   const visualizationComponent = (
     <StyledContentContainer>
-      <SectionTitle baseComponent={"h4"} description="Placeholder while in development" />
-      {/*{visualizations && visualizations.length > 0 ? (
+      {visualizations && visualizations.length > 0 ? (
         visualizations.map((viz, index) => (
           <StyledContentDiv key={index}>
-            <MolstarViewer pdbUrl={viz.pdb_url} key={viz.name} />
+            <MolstarViewer cifUrl={viz.cifUrl} />
           </StyledContentDiv>
         ))
       ) : (
-        <SectionTitle
-          baseComponent={"h4"}
-          description="No visualizations available for this step."
-        />
-      )}*/}
+        <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
+      )}
     </StyledContentContainer>
   );
 

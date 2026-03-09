@@ -235,14 +235,6 @@ class Step:
         self.plots = Plots(plots)
 
     def handle_visualization_outputs(self, outputs):
-        #Types probably need to be changed: 
-        """
-        Handles the dictionary from the plot method and creates a Plots object from it.
-        Responsible for clearing and setting the plots attribute of the class.
-        :param outputs: A dictionary or a list received after the plot method
-        :return: None
-        """
-
         if not isinstance(outputs, list) and not isinstance(outputs, dict):
             raise TypeError(
                 "Output of visualization method is not a list or dictionary."
@@ -257,7 +249,7 @@ class Step:
         else:
             visualizations = outputs
 
-        self.visualizations = Visualizations(outputs)
+        self.visualizations = Visualizations(visualizations)
 
     def handle_messages(self, outputs: dict) -> None:
         """
@@ -318,33 +310,6 @@ class Step:
     
     @property
     def visualization_input(self) -> dict:
-        # if the visualization method uses the output of the calculation method, it should be prefixed with "output_"
-        """
-        prefixed_output = {
-            "output_" + key: value for key, value in self.output.output.items()
-        }
-
-        visualization_input = self.inputs | prefixed_output
-
-        input_parameters = inspect.signature(self.visualization_method).parameters
-
-        required_keys = [
-            key
-            for key, param in input_parameters.items()
-            if param.default == inspect.Parameter.empty
-        ]
-
-        for key in required_keys:
-            if key not in visualization_input:
-                raise ValueError(
-                    f"Missing required input '{key}' for the visualization method"
-                )
-
-        return {
-            key: visualization_input[key]
-            for key in input_parameters.keys()
-            if key in visualization_input
-        }"""
         return {
             "protein_to_validate": self.inputs["protein_to_validate"],
         }
@@ -505,9 +470,7 @@ class Plots:
 
 class Visualizations:
     def __init__(self, visualizations: list | None = None):
-        if visualizations is None:
-            visualizations = []
-        self.visualizations = visualizations
+        self.visualizations = visualizations or []
 
     def __iter__(self):
         return iter(self.visualizations)

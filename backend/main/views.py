@@ -630,7 +630,7 @@ def get_step_visualizations(request):
         run_name = data.get("run_name")
 
         run = Run(run_name)
-        if run.current_step is not None: #and hasattr(run.current_step, "visualizations"):
+        if run.current_step is not None: 
             visualizations = [to_json(v) for v in run.current_step.visualizations]
         else:
             visualizations = []

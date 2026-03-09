@@ -1,6 +1,6 @@
-import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { DefaultPluginUISpec } from "molstar/lib/mol-plugin-ui/spec";
+import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import React, { useEffect, useRef } from "react";
+import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
 interface MolstarViewerProps {
   cifUrl: string;
@@ -8,22 +8,35 @@ interface MolstarViewerProps {
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const pluginRef = useRef<PluginUIContext | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const plugin = new PluginUIContext(DefaultPluginUISpec());
-    pluginRef.current = plugin;
-    plugin.layout.setRoot(containerRef.current);
+    let plugin: Awaited<ReturnType<typeof createPluginUI>>;
+
+    const init = async (container: HTMLDivElement) => {
+      plugin = await createPluginUI(container);
+
+      const data = await plugin.builders.data.download(
+        { url: cifUrl, isBinary: false },
+        { state: { isGhost: true } },
+      );
+
+      const trajectory = await plugin.builders.structure.parseTrajectory(data, "mmcif");
+
+      await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
+    };
+
+    void init(containerRef.current);
 
     return () => {
-      pluginRef.current?.dispose();
-      pluginRef.current = null;
+      plugin.dispose();
     };
   }, [cifUrl]);
 
-  return <div ref={containerRef} style={{ width: "100%", height: "600px" }} />;
+  return (
+    <div ref={containerRef} style={{ width: "100%", height: "500px", position: "relative" }} />
+  );
 };
 
 export default MolstarViewer;

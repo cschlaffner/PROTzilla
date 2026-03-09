@@ -10,6 +10,7 @@ from protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
 )
 from protzilla.data_preprocessing.plots import create_bar_plot
+from backend.protzilla.constants import paths
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -343,22 +344,14 @@ def bar_plot_of_valid_crosslinks(
     ]
 
 def visualization_of_protein_structure(
-        #output_crosslinking_result_df: pd.DataFrame,
         protein_to_validate: str,
-)-> dict:
+) -> dict:
     """
-    protein_ids = (
-        output_crosslinking_result_df[["Protein_id1", "Protein_id2"]]
-        .stack()
-        .dropna()
-        .unique()
-        .tolist()
-    )
+    Returns the URL to the AlphaFold CIF file of the given protein.
+    Uses the server file system to locate the CIF file and converts
+    it to a relative URL for the frontend.
     """
-    """
-    Returns the URL to the AlphaFold CIF/PDB file of the protein.
-    """
-    protein_folder = paths.USER_DATA_EXTERNAL_ALPHAFOLD_MONOMER_PATH / protein_to_validate.upper()
+    protein_folder = paths.ALPHAFOLD_MONOMER_PATH / protein_to_validate.upper()
     
     if not protein_folder.exists():
         raise FileNotFoundError(f"AlphaFold folder for protein '{protein_to_validate}' not found")
@@ -367,14 +360,15 @@ def visualization_of_protein_structure(
     if not cif_files:
         raise FileNotFoundError(f"No CIF file found in {protein_folder}")
     cif_file = cif_files[0]
-    
-    relative_url = f"/user_data/external_data/alphafold/monomer/{protein_to_validate.upper()}/{cif_file.name}"
+
+    individual_url = cif_file.relative_to(paths.ALPHAFOLD_MONOMER_PATH.parent)
+    relative_url = f"/user_data/external_data/alphafold/{individual_url}"
 
     return {
         "visualizations": [
             {
                 "name": f"AlphaFold structure for {protein_to_validate}",
-                "pdb_url": relative_url
+                "cifUrl": str(relative_url),  
             }
         ]
     }
