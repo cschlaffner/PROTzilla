@@ -9,6 +9,7 @@ from backend.protzilla.constants.option_types import (
     FC_SIGNIFICANCE_COLUMNS,
     LOG2_FOLD_CHANGE_COLUMNS,
     T_STATISTIC_COLUMNS,
+    LogBaseWithNoneType,
 )
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
@@ -35,7 +36,7 @@ def t_test(
     group2: str,
     multiple_testing_correction_method: str,
     alpha: float,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
 ) -> dict:
@@ -134,9 +135,9 @@ def t_test(
 
         if not np.isnan(p):
             if log_base:
-                log2_fold_change = np.median(group2_intensities) - np.median(
-                    group1_intensities
-                )
+                log2_fold_change = (
+                    np.median(group2_intensities) - np.median(group1_intensities)
+                ) * np.log2(log_base)
             else:
                 log2_fold_change = np.log2(
                     np.median(group2_intensities) / np.median(group1_intensities)

@@ -69,6 +69,7 @@ def perform_grid_search_cv(
     scoring,
     model_selection_scoring,
     cv=None,
+    n_iter=10,
 ):
     if grid_search_model == "Grid search":
         return GridSearchCV(
@@ -84,6 +85,7 @@ def perform_grid_search_cv(
             param_distributions=param_grid,
             scoring=scoring,
             cv=cv,
+            n_iter=n_iter,
             refit=model_selection_scoring,
         )
 

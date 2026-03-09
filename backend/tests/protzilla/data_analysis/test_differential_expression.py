@@ -549,7 +549,6 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
         selected_groups=["Group1", "Group2", "Group3"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -593,7 +592,6 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
         selected_groups=["Group1", "wrong_group"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -636,7 +634,6 @@ def test_kruskal_wallis_too_few_groups(diff_expr_test_data):
         selected_groups=["wrong_group1", "wrong_group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     with pytest.raises(
         ValueError,
@@ -667,7 +664,6 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
         selected_groups=["Group1", "Group2", "Group4", "Group5"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -686,7 +682,6 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
         selected_groups=["Group4", "Group5"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -1113,7 +1108,6 @@ def test_differential_expression_kruskal_wallis_empty_p_values():
         selected_groups=["Group1", "Group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
-        log_base="None",
     )
 
     # Check that all dataframes are empty but with correct columns

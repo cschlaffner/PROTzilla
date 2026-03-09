@@ -10,6 +10,13 @@ class LogTransformationBaseType(StrEnum):
     LOG10 = "log10"
 
 
+class LogBaseWithNoneType(StrEnum):
+    LOG2 = "log2"
+    LOG10 = "log10"
+    # i hate this ~T
+    NONE = "None"
+
+
 class SimpleImputerStrategyType(StrEnum):
     MEAN = "mean"
     MEDIAN = "median"

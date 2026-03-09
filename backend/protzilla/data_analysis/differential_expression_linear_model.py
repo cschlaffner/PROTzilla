@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
+from backend.protzilla.constants.option_types import LogBaseWithNoneType
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
     exists_message,
@@ -24,7 +25,7 @@ def linear_model(
     group2: str,
     multiple_testing_correction_method: str,
     alpha: float,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
 ) -> dict:
     """
     A function to fit a linear model using Ordinary Least Squares for each Protein.
@@ -191,7 +192,6 @@ def linear_model(
     ]
 
     filtered_proteins = list(set(proteins) - set(valid_protein_groups))
-
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,

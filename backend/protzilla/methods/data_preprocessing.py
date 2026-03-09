@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from collections.abc import Sequence
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing import (
@@ -35,11 +36,6 @@ class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
 
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
     operation = "outlier_detection"
-    output_keys = [DataKey.PROTEIN_DF]
-
-
-class ImputationStep(DataPreprocessingStep, ABC):
-    operation = "imputation"
     output_keys = [DataKey.PROTEIN_DF]
 
 
@@ -139,7 +135,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
-    output_keys = [DataKey.PEPTIDE_DF, "filtered_peptides"]
+    output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
@@ -580,6 +576,39 @@ class NormalisationByReferenceProtein(NormalisationStep):
     plot_method = staticmethod(normalisation.by_reference_protein_plot)
 
 
+class ImputationStep(DataPreprocessingStep, ABC):
+    operation = "imputation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+    plot_input_fields: Sequence[FormField] = [
+        FormDivider("Plot settings"),
+        DropdownField(
+            name="graph_type",
+            label="Graph type",
+            value=BoxAndHistogramGraph.BOXPLOT.value,
+            options=BoxAndHistogramGraph,
+        ),
+        DropdownField(
+            name="group_by",
+            label="Group by",
+            value=GroupBy.NO_GROUPING.value,
+            options=GroupBy,
+        ),
+        DropdownField(
+            name="visual_transformation",
+            label="Visual transformation",
+            value=VisualTransformations.LOG10.value,
+            options=VisualTransformations,
+        ),
+        DropdownField(
+            name="graph_type_quantities",
+            label="Graph type - quantity of imputed values",
+            value=BarAndPieChart.PIE_CHART.value,
+            options=BarAndPieChart,
+        ),
+    ]
+
+
 class ImputationByMinPerDataset(ImputationStep):
     display_name = "Min per dataset"
     method_description = "Impute missing values by the minimum per dataset"
@@ -602,30 +631,9 @@ class ImputationByMinPerDataset(ImputationStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -655,30 +663,9 @@ class ImputationByMinPerProtein(ImputationStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -705,30 +692,9 @@ class ImputationByMinPerSample(ImputationStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -753,30 +719,9 @@ class SimpleImputationPerProtein(ImputationStep):
                     value=SimpleImputerStrategyType.MEAN.value,
                     options=SimpleImputerStrategyType,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -804,31 +749,9 @@ class ImputationByKNN(ImputationStep):
                     step=1,
                     hasStepButtons=True,
                 ),
-                FormDivider("Plot settings"),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -867,30 +790,9 @@ class ImputationByNormalDistributionSampling(ImputationStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
