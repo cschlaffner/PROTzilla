@@ -256,7 +256,7 @@ export const RunScreen: React.FC = () => {
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => void navigate("/")}
+        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
       />
 
       <StyledCardRow>
