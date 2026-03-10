@@ -9,6 +9,7 @@ from enum import Enum, StrEnum
 from typing import Any, Literal, NewType
 
 import pandas as pd
+import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
@@ -450,18 +451,34 @@ class Step(ABC):
     def invalidate(self) -> None:
         self.calculation_status = "outdated"
 
+
 class OutputType(StrEnum):
     DATAFRAME = "dataframe"
     LIST = "list"
     MESSAGES = "messages"
 
-@dataclass
-class OutputItem():
-    output_type: OutputType
-    value: Any
-    
+
+class OutputItem(yaml.YAMLObject):
+    """
+    Describes one output of a step.
+
+    :ivar output_type: type of output, required for proper serialization
+        and front-end display.
+    :ivar value: data associated with the output
+    """
+
+    yaml_tag: str = "!OutputItem"
+
+    def __init__(self, output_type: OutputType, value: Any) -> None:
+        self.output_type: OutputType = output_type
+        self.value: Any = value
+
+
 class Output:
-    def __init__(self, _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None = None):
+    def __init__(
+        self,
+        _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None = None,
+    ):
         if _output is None:
             _output = {}
 
@@ -470,16 +487,22 @@ class Output:
         for key, value in _output.items():
 
             if key == "messages":
-                self.output[key] = OutputItem(output_type=OutputType.MESSAGES, value=value)
+                self.output[key] = OutputItem(
+                    output_type=OutputType.MESSAGES, value=value
+                )
 
             elif isinstance(value, pd.DataFrame):
-                self.output[key] = OutputItem(output_type=OutputType.DATAFRAME, value=value)
+                self.output[key] = OutputItem(
+                    output_type=OutputType.DATAFRAME, value=value
+                )
 
             elif isinstance(value, OutputItem):
                 self.output[key] = value
 
             else:
-                raise ValueError("Outputs must be passed as messages, dataframes or OutputItems")
+                raise ValueError(
+                    "Outputs must be passed as messages, dataframes or OutputItems"
+                )
 
     def __iter__(self):
         return iter(self.output.items())
