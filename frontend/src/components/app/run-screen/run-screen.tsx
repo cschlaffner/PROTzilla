@@ -238,27 +238,6 @@ export const RunScreen: React.FC = () => {
   );
 
   const visualizationComponent = (
-    /*<StyledContentContainer>
-      {visualizations && visualizations.length > 0 ? (
-        visualizations.map((viz, index) => (
-          <StyledContentDiv key={index}>
-            <MolstarViewer cifUrl={viz.cifUrl} />
-          </StyledContentDiv>
-        ))
-      ) : (
-        <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
-      )}
-    </StyledContentContainer>*/
-    /*<StyledContentContainer>
-          <StyledContentDiv>
-            <MolstarViewer cifUrl="/AF-P62191-F1-model_v6.cif.txt" />
-          </StyledContentDiv>
-    </StyledContentContainer>*/
-    /*<StyledContentContainer>
-          <StyledContentDiv>
-            <MolstarViewer cifUrl="/api/get_monomer_cif_for_visualization/?protein_entry_id=P62191" />
-          </StyledContentDiv>
-    </StyledContentContainer>*/
     <StyledContentContainer>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (

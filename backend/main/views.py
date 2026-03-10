@@ -632,7 +632,7 @@ def get_step_visualizations(request):
 
         run = Run(run_name)
         if run.current_step is not None: 
-            visualizations = run.current_step.visualizations
+            visualizations = list(run.current_step.visualizations)
         else:
             visualizations = []
 

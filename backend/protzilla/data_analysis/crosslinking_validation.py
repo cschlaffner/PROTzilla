@@ -345,7 +345,7 @@ def bar_plot_of_valid_crosslinks(
 
 def visualization_of_protein_structure(
         protein_to_validate: str,
-) -> dict:
+) -> list[str]:
     """
     Returns the protein_entry_id for the protein that is supposed to be visualized.
     Only verifies that a CIF file exists for this protein, so visualization is possible.
@@ -359,4 +359,4 @@ def visualization_of_protein_structure(
     if not cif_files:
         raise FileNotFoundError(f"No CIF file found in {protein_folder}")
 
-    return {"protein_entry_id": protein_to_validate.upper()}
+    return [protein_to_validate.upper()]

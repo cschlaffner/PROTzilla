@@ -66,6 +66,10 @@ class Step:
                 "generated": 0,
                 "dumped": 0,
             },
+            "visualization": {
+                "generated": 0,
+                "dumped": 0,
+            },
         }
 
         if self.instance_identifier is None:
@@ -240,10 +244,11 @@ class Step:
         Expects outputs to already be a list of strings.
         """
         if not isinstance(outputs, list):
-            raise TypeError("Visualization outputs must be a list of strings.")
+            raise TypeError("Visualization outputs must be a list of strings")
 
-        self.visualizations = [str(protein_entry_id) for protein_entry_id in outputs]
-        
+        self.visualizations = Visualizations(
+            [str(protein_entry_id) for protein_entry_id in outputs]
+        )  
 
     def handle_messages(self, outputs: dict) -> None:
         """
@@ -461,6 +466,23 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
+    
+
+class Visualizations:
+    def __init__(self, visualizations: list | None = None):
+        if visualizations is None:
+            visualizations: list = []
+        self.visualizations = visualizations
+
+    def __iter__(self):
+        return iter(self.visualizations)
+
+    def __repr__(self):
+        return f"Visualizations: {len(self.visualizations)}"
+
+    @property
+    def empty(self) -> bool:
+        return len(self.visualizations) == 0
 
 
 class StepManager:
