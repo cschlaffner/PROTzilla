@@ -174,6 +174,7 @@ def diann_import(
             ]
         )
 
+
 def transform_and_clean(
     df: pd.DataFrame,
     intensity_name: str,
@@ -241,10 +242,11 @@ def transform_and_clean(
     return dict(
         protein_df=molten,
         contaminants=OutputItem(output_type=OutputType.LIST, value=contaminants),
-        filtered_proteins=OutputItem(output_type=OutputType.LIST, value=filtered_proteins),
+        filtered_proteins=OutputItem(
+            output_type=OutputType.LIST, value=filtered_proteins
+        ),
         messages=[dict(level=logging.INFO, msg=msg)],
     )
-
 
 
 def clean_protein_groups(protein_groups, map_to_uniprot=True):
