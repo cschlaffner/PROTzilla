@@ -137,7 +137,7 @@ class StepManager:
             ]
         )
 
-    def edges_with_exact_data(
+    def incoming_edges_for_handle(
         self,
         source: StepID | None,
         source_handle: DataKey | None,
@@ -152,7 +152,7 @@ class StepManager:
         :param source_handle: handle of the source (optional)
         :param target: ID of the target node
         :param target_handle: the connection handle of the target
-        :return: list of edges (ebunch)
+        :return: list of edges (ebunch) - should never be more than one, but we return a list just in case
         """
         return [
             edge
@@ -383,16 +383,9 @@ class StepManager:
         # TODO: We currently allow arbitrary connections between all kinds of input.
         # Technical restrictions would make this cleaner
 
-        # retrieve all incoming edges to the target
-        old_edges = self.edges_with_exact_data(None, None, target, target_handle)
         # Abort if the exact connection is already present
-        for old_source, _, _, data in old_edges:
-            if (
-                old_source == source
-                and data["source_handle"] == source_handle
-                and data["target_handle"] == target_handle
-            ):
-                return
+        if self.incoming_edges_for_handle(source, source_handle, target, target_handle):
+            return
 
         # Abort if connection creates cycle
         probe_graph = self.graph.copy()
@@ -402,8 +395,11 @@ class StepManager:
                 "The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted."
             )
 
+        # retrieve all incoming edges to the target
+        old_edges = self.incoming_edges_for_handle(None, None, target, target_handle)
+
         # Delete any existing connection to the target handle that isn't equal to the current one
-        self.graph.remove_edges_from(old_edges)
+        self.graph.remove_edges_from(old_edges)  # pyright: ignore[reportArgumentType].
 
         self.graph.add_edge(
             source, target, source_handle=source_handle, target_handle=target_handle
@@ -412,12 +408,16 @@ class StepManager:
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
         # retrieve edges that have exactly this combination of source, target and handles
-        edges = self.edges_with_exact_data(source, source_handle, target, target_handle)
+        edges = self.incoming_edges_for_handle(
+            source, source_handle, target, target_handle
+        )
         if not edges:
             raise ValueError(
                 f"No connection from {source}.{source_handle} to {target}.{target_handle} found"
             )
-        self.graph.remove_edges_from(edges)
+        # pyright is wrong here - it expects 3-tuples (u, v, data) like for a DiGraph
+        # but since we have a MultiDiGraph, our edges are of format (u, v, key, data)
+        self.graph.remove_edges_from(edges)  # pyright: ignore[reportArgumentType]
 
     def get_edges(self) -> list[Connection]:
         """
