@@ -145,8 +145,11 @@ export const RunScreen: React.FC = () => {
       run_name: runName,
     });
     if (response) {
-      const data = response.outputs;
-      setAvailableTables(data);
+      const tables = [];
+      for (const output of response.outputs) {
+        if (output.output_type === "table" || output.output_type === "list") tables.push(output);
+      }
+      setAvailableTables(tables);
     }
   }, [runName]);
 

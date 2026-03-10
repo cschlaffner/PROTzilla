@@ -754,7 +754,7 @@ def get_current_step_table_data(request):
         response["message"] = "No step selected"
         return JsonResponse(response, status=500)
 
-    step_output = run.current_outputs[table_label]
+    step_output = run.current_outputs[table_label].value
     if step_output is None:
         response["message"] = "Requested step output not found"
         return JsonResponse(response, status=404)
@@ -802,7 +802,11 @@ def get_current_step_output_labels(request):
     for label, data in run.current_outputs:
         if label not in hidden_outputs:
             response["outputs"].append(
-                {"label": label, "display_name": get_display_name(label), "output_type": data.output_type}
+                {
+                    "label": label,
+                    "display_name": get_display_name(label),
+                    "output_type": data.output_type,
+                }
             )
 
     response["success"] = True
