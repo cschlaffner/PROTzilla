@@ -461,7 +461,7 @@ class OutputItem():
     value: Any
     
 class Output:
-    def __init__(self, _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None):
+    def __init__(self, _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None = None):
         if _output is None:
             _output = {}
 

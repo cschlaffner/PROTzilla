@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from backend.protzilla.data_integration.database_query import biomart_query
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.utilities import format_trace
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
 
@@ -173,7 +174,6 @@ def diann_import(
             ]
         )
 
-
 def transform_and_clean(
     df: pd.DataFrame,
     intensity_name: str,
@@ -240,10 +240,11 @@ def transform_and_clean(
     msg = f"Successfully imported {len(df)} protein groups for {int(len(molten)/len(df))} samples. {len(contaminants)} contaminant groups were dropped. {len(filtered_proteins)} invalid proteins were filtered."
     return dict(
         protein_df=molten,
-        contaminants=contaminants,
-        filtered_proteins=filtered_proteins,
+        contaminants=OutputItem(output_type=OutputType.LIST, value=contaminants),
+        filtered_proteins=OutputItem(output_type=OutputType.LIST, value=filtered_proteins),
         messages=[dict(level=logging.INFO, msg=msg)],
     )
+
 
 
 def clean_protein_groups(protein_groups, map_to_uniprot=True):
