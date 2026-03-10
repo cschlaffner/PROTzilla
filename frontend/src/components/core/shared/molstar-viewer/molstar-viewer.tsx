@@ -67,94 +67,14 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl }) => {
   }, [cifUrl]);
 
   return (
-    <div style={{ width: "100%", height: "500px", position: "relative", border: "1px solid #ccc" }}>
+    <div style={{ width: "100%", height: "100%", position: "relative", border: "1px solid #ccc" }}>
       {isLoading && (
         <div style={{ position: "absolute", top: 0, left: 0 }}>Structure is loading...</div>
       )}
       {error && <div style={{ color: "red", position: "absolute", top: 0, left: 0 }}>{error}</div>}
-      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={containerRef} style={{ width: "100%", height: "100%", position: "relative" }} />
     </div>
   );
 };
 
 export default MolstarViewer;
-
-/* Erste funktionierende Version: 
-const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    let plugin: any;
-
-    const init = async () => {
-      plugin = await createPluginUI(containerRef.current!);
-
-      const response = await fetch(cifUrl);
-      const cifText = await response.text();
-
-      const data = await plugin.builders.data.rawData({
-        data: cifText,
-        label: "structure"
-      });
-
-      const trajectory = await plugin.builders.structure.parseTrajectory(data, "mmcif");
-
-      await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
-    };
-
-    init();
-
-    return () => {
-      if (plugin) {
-        try {
-          plugin.dispose();
-        } catch {}
-      }
-    };
-  }, [cifUrl]);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        height: "500px",
-        position: "relative",
-      }}
-    />
-  );
-};
-
-export default MolstarViewer;
-
-    /*alte Version: 
-    let plugin: Awaited<ReturnType<typeof createPluginUI>>;
-
-    const init = async (container: HTMLDivElement) => {
-      plugin = await createPluginUI(container);
-
-      const data = await plugin.builders.data.download(
-        { url: cifUrl, isBinary: false },
-        { state: { isGhost: true } },
-      );
-
-      const trajectory = await plugin.builders.structure.parseTrajectory(data, "mmcif");
-
-      await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
-    };
-
-    void init(containerRef.current);
-
-    return () => {
-      plugin.dispose();
-    };
-  }, [cifUrl]);
-
-  return (
-    <div ref={containerRef} style={{ width: "100%", height: "500px", position: "relative" }} />
-  );
-};
-
-export default MolstarViewer;*/

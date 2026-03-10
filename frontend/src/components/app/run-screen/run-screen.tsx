@@ -238,10 +238,11 @@ export const RunScreen: React.FC = () => {
   );
 
   const visualizationComponent = (
-    <StyledContentContainer>
+    <StyledContentContainer style={{ height: "100vh" }}>
+      <div style={{ height: "75px" }}></div>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
-          <StyledContentDiv key={viz.proteinEntryId}>
+          <StyledContentDiv key={viz.proteinEntryId} style={{ flex: 1 }}>
             <MolstarViewer cifUrl={viz.cifAccessUrl} />
           </StyledContentDiv>
         ))
