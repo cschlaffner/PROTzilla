@@ -479,24 +479,24 @@ class Output:
                 self.output[key] = value
 
             else:
-                raise ValueError("Outputs must be passed as dataframes or OutputItems")
+                raise ValueError("Outputs must be passed as messages, dataframes or OutputItems")
 
     def __iter__(self):
         return iter(self.output.items())
 
-    def __getitem__(self, key):
-        return self.output[key]
+    def __getitem__(self, key: str) -> Any:
+        return self.output[key].value
 
     def __repr__(self):
         return f"Output: {self.output}"
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         return key in self.output
 
     @property
     def is_empty(self) -> bool:
         return len(self.output) == 0 or all(
-            value is None for value in self.output.values()
+            item.value is None for item in self.output.values()
         )
 
 
