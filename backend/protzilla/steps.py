@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import inspect
 import logging
 import traceback
-from enum import StrEnum
-from typing import Literal
+from enum import Enum, StrEnum
+from typing import Any, Literal, NewType
 
 import pandas as pd
 
@@ -449,13 +450,36 @@ class Step(ABC):
     def invalidate(self) -> None:
         self.calculation_status = "outdated"
 
+class OutputType(StrEnum):
+    DATAFRAME = "dataframe"
+    LIST = "list"
+    MESSAGES = "messages"
 
+@dataclass
+class OutputItem():
+    output_type: OutputType
+    value: Any
+    
 class Output:
-    def __init__(self, output: dict = {}):
-        if output is None:
-            output = {}
+    def __init__(self, _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None):
+        if _output is None:
+            _output = {}
 
-        self.output = output
+        self.output: dict[str, OutputItem] = {}
+
+        for key, value in _output.items():
+
+            if key == "messages":
+                self.output[key] = OutputItem(output_type=OutputType.MESSAGES, value=value)
+
+            elif isinstance(value, pd.DataFrame):
+                self.output[key] = OutputItem(output_type=OutputType.DATAFRAME, value=value)
+
+            elif isinstance(value, OutputItem):
+                self.output[key] = value
+
+            else:
+                raise ValueError("Outputs must be passed as dataframes or OutputItems")
 
     def __iter__(self):
         return iter(self.output.items())
