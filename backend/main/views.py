@@ -754,7 +754,7 @@ def get_current_step_table_data(request):
         response["message"] = "No step selected"
         return JsonResponse(response, status=500)
 
-    step_output = run.current_outputs[table_label].value
+    step_output = run.current_outputs[table_label]
     if step_output is None:
         response["message"] = "Requested step output not found"
         return JsonResponse(response, status=404)
