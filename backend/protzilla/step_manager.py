@@ -375,7 +375,6 @@ class StepManager:
         Creates/updates the corresponding link in the graph and sets the handles as edge data.
 
         :param connection: the connection to establish
-        :return: the target step instance
         :raises KeyError: if the connection parameters are incorrect
         """
         source, source_handle, target, target_handle = parse_connection(connection)
