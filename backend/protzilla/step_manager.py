@@ -266,11 +266,12 @@ class StepManager:
         if step_id not in self.all_steps:
             raise ValueError(f"Step {step_id} not found")
 
+        self._current_selected_step_id = step_id
+
         # TODO: We'll keep this for now, but I assume this is unneccessary
         if self.df_mode == "disk":
             self.disk_operator._write_output(self.current_step)
 
-        self._current_selected_step_id = step_id
 
     def next_step(self) -> None:
         """

@@ -383,6 +383,15 @@ class Step(ABC):
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
+        # TODO: find a way of handling optional outputs
+        # or remove this method
+
+        # this is stupid - the steps should just raise the ValueError themselves.
+        if list(self.output.output.keys()) == ["messages"]:
+            raise ValueError(
+                f"Output validation failed: Output does not contain data."
+            )
+
         # for key in self.output_keys:
         #     if key not in self.output or self.output[key] is None:
         #         if not soft_check:
