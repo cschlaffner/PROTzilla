@@ -231,7 +231,7 @@ class Step(ABC):
         :returns: the output of the step which is currently specified as the input for this key
         """
 
-        edges = steps.edges_with_exact_data(
+        edges = steps.incoming_edges_for_handle(
             None, None, self.instance_identifier, input_key
         )
         if not edges:
