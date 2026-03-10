@@ -473,34 +473,22 @@ class StepManager:
         except KeyError:
             return None
 
-    # TODO: this should be adapted to at least only include a step's ancestry
     def get_step_input(
         self,
-        step_type: Step | None = None,
-        input_key: str = "",  # TODO same as get_step_output
-        instance_identifier: str | None = None,
-        default: Any = None,
+        input_key: DataKey,
+        instance_identifier: StepID,
     ):
         """
-        Get the specific input of the inputs of a specific step type. The step type can also a parent class of the
-        step type, in which case the input of the most recent step of the specific type is returned.
-        :param step_type: The type of the step as a class object
+        Get the specific input from the step with the given instance_identifier.
+
         :param input_key: The key of the desired input in the input dictionary of the step
         :param instance_identifier: The instance identifier of the step to get the input from
-        :param default: The default value to return if the input is not found
         :return: The value of the input of the step or None
         """
 
-        if step_type is not None:
-            raise NotImplementedError("Passing the step type is deprecated")
+        step = self.get_step_by_id(instance_identifier)
 
-        for step in reversed(self.previous_calculated_steps):
-            if (
-                step.instance_identifier == instance_identifier
-                or instance_identifier is None
-            ) and input_key in step.inputs:
-                return step.inputs[input_key]
-        return default
+        return step.inputs.get(input_key)
 
     def get_step_operation(self, step_id: str) -> str:
         try:
