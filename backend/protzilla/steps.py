@@ -359,7 +359,7 @@ class Step(ABC):
     def plot_input(self) -> dict:
         # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
         prefixed_output = {
-            "output_" + key: value for key, value in self.output.output.items()
+            "output_" + key: item.value for key, item in self.output
         }
         plot_input = self.inputs | prefixed_output
 
@@ -456,6 +456,7 @@ class OutputType(StrEnum):
     DATAFRAME = "dataframe"
     LIST = "list"
     MESSAGES = "messages"
+    FLOAT = "float"
 
 
 class OutputItem(yaml.YAMLObject):
@@ -496,12 +497,17 @@ class Output:
                     output_type=OutputType.DATAFRAME, value=value
                 )
 
+            elif isinstance(value, list):
+                self.output[key] = OutputItem(
+                    output_type=OutputType.LIST, value=value
+                )
+
             elif isinstance(value, OutputItem):
                 self.output[key] = value
 
             else:
                 raise ValueError(
-                    "Outputs must be passed as messages, dataframes or OutputItems"
+                    "Outputs must be passed as messages, dataframes, lists or OutputItems"
                 )
 
     def __iter__(self):
