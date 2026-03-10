@@ -140,10 +140,7 @@ class Step:
             if self.visualization_method: 
                 visualization_output = self.visualization_method(**self.visualization_input)
                 self.handle_visualization_outputs(visualization_output)
-                """
-                self.artifact_versions.setdefault("visualization", {"generated": 0, "dumped": 0})
                 self.artifact_versions["visualization"]["generated"] += 1
-                """
 
             self.calculation_status = "complete"
 
@@ -235,21 +232,18 @@ class Step:
         self.plots = Plots(plots)
 
     def handle_visualization_outputs(self, outputs):
-        if not isinstance(outputs, list) and not isinstance(outputs, dict):
-            raise TypeError(
-                "Output of visualization method is not a list or dictionary."
-            )
+        # could be extend to also be able to handle dicts or lists if needed later, 
+        # didn't see why that would be necessary for now
+        """
+        Stores the entry_ids of the proteins that should be visualized 
+        as a simple array of strings.
+        Expects outputs to already be a list of strings.
+        """
+        if not isinstance(outputs, list):
+            raise TypeError("Visualization outputs must be a list of strings.")
 
-        if isinstance(outputs, dict):
-            visualizations = outputs.get("visualizations", [])
-            self.output.output.update(
-                {k: v for k, v in outputs.items() if k != "visualizations"}
-            )
-            self.handle_messages(outputs)
-        else:
-            visualizations = outputs
-
-        self.visualizations = Visualizations(visualizations)
+        self.visualizations = [str(protein_entry_id) for protein_entry_id in outputs]
+        
 
     def handle_messages(self, outputs: dict) -> None:
         """
@@ -309,6 +303,7 @@ class Step:
         }
     
     @property
+    #TODO: needs to be extended when visualization is used in multiple steps 
     def visualization_input(self) -> dict:
         return {
             "protein_to_validate": self.inputs["protein_to_validate"],
@@ -466,21 +461,6 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
-    
-
-class Visualizations:
-    def __init__(self, visualizations: list | None = None):
-        self.visualizations = visualizations or []
-
-    def __iter__(self):
-        return iter(self.visualizations)
-    
-    def __repr__(self):
-        return f"Visualizations: {len(self.visualizations)}"
-
-    @property
-    def empty(self) -> bool:
-        return len(self.visualizations) == 0
 
 
 class StepManager:

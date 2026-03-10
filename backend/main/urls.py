@@ -50,6 +50,11 @@ urlpatterns = [
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path("api/get_step_visualizations/", views.get_step_visualizations, name="get_step_visualizations"),
     path(
+        "api/get_monomer_cif_for_visualization/", 
+        views.get_monomer_cif_for_visualization, 
+        name="get_monomer_cif_for_visualization",
+    ),
+    path(
         "api/get_current_step_output_labels/",
         views.get_current_step_output_labels,
         name="get_current_step_output_labels",

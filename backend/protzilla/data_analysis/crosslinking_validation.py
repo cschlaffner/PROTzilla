@@ -347,9 +347,8 @@ def visualization_of_protein_structure(
         protein_to_validate: str,
 ) -> dict:
     """
-    Returns the URL to the AlphaFold CIF file of the given protein.
-    Uses the server file system to locate the CIF file and converts
-    it to a relative URL for the frontend.
+    Returns the protein_entry_id for the protein that is supposed to be visualized.
+    Only verifies that a CIF file exists for this protein, so visualization is possible.
     """
     protein_folder = paths.ALPHAFOLD_MONOMER_PATH / protein_to_validate.upper()
     
@@ -359,16 +358,5 @@ def visualization_of_protein_structure(
     cif_files = list(protein_folder.glob("*.cif"))
     if not cif_files:
         raise FileNotFoundError(f"No CIF file found in {protein_folder}")
-    cif_file = cif_files[0]
 
-    individual_url = cif_file.relative_to(paths.ALPHAFOLD_MONOMER_PATH.parent)
-    relative_url = f"/user_data/external_data/alphafold/{individual_url}"
-
-    return {
-        "visualizations": [
-            {
-                "name": f"AlphaFold structure for {protein_to_validate}",
-                "cifUrl": str(relative_url),  
-            }
-        ]
-    }
+    return {"protein_entry_id": protein_to_validate.upper()}

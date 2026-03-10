@@ -34,6 +34,7 @@ from backend.protzilla.constants.paths import (
     EXTERNAL_DATA_PATH,
     RUNS_PATH,
     WORKFLOWS_PATH,
+    ALPHAFOLD_MONOMER_PATH,
 )
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
@@ -631,7 +632,7 @@ def get_step_visualizations(request):
 
         run = Run(run_name)
         if run.current_step is not None: 
-            visualizations = [to_json(v) for v in run.current_step.visualizations]
+            visualizations = run.current_step.visualizations
         else:
             visualizations = []
 
@@ -643,6 +644,23 @@ def get_step_visualizations(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+    
+
+def get_monomer_cif_for_visualization(request):
+    protein_entry_id = request.GET.get("protein_entry_id")
+    if not protein_entry_id:
+        return JsonResponse({"success": False, "message": "Missing protein_entry_id"}, status=400)
+
+    protein_dir = ALPHAFOLD_MONOMER_PATH / protein_entry_id.upper()
+    if not protein_dir.exists():
+        return JsonResponse({"success": False, "message": f"No data for {protein_entry_id}"}, status=404)
+
+    cif_files = list(protein_dir.glob("*.cif"))
+    if not cif_files:
+        return JsonResponse({"success": False, "message": f"No CIF file found for {protein_entry_id}"}, status=404)
+
+    cif_file = cif_files[0]
+    return FileResponse(open(cif_file, "rb"), as_attachment=True, filename=cif_file.name)
 
 
 # TODO: Move somewhere else

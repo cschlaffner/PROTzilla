@@ -79,10 +79,10 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
-//TODO: Move somewhere else
+//TODO: probably move somewhere else?
 interface Visualization {
-  name: string;
-  cifUrl: string;
+  proteinEntryId: string;
+  cifAccessUrl: string;
 }
 
 export const RunScreen: React.FC = () => {
@@ -95,7 +95,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [visualizations, setVisualizations] = useState<Visualization[]>();
+  const [visualizations, setVisualizations] = useState<Visualization[]>([]);
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
@@ -155,18 +155,12 @@ export const RunScreen: React.FC = () => {
     });
 
     if (response) {
-      const data = response.data;
+      const data: string[] = response.data;
 
-      const rawVisualizations: Visualization[] = [];
-      if (data.length > 0) {
-        for (const viz of data) {
-          const parsed = JSON.parse(viz);
-          rawVisualizations.push({
-            name: parsed.name,
-            cifUrl: parsed.cif_url,
-          });
-        }
-      }
+      const rawVisualizations = data.map((proteinEntryId) => ({
+        proteinEntryId,
+        cifAccessUrl: `/api/get_monomer_cif_for_visualization/?protein_entry_id=${proteinEntryId}`,
+      }));
 
       setVisualizations(rawVisualizations);
     }
@@ -244,11 +238,32 @@ export const RunScreen: React.FC = () => {
   );
 
   const visualizationComponent = (
-    <StyledContentContainer>
+    /*<StyledContentContainer>
       {visualizations && visualizations.length > 0 ? (
         visualizations.map((viz, index) => (
           <StyledContentDiv key={index}>
             <MolstarViewer cifUrl={viz.cifUrl} />
+          </StyledContentDiv>
+        ))
+      ) : (
+        <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
+      )}
+    </StyledContentContainer>*/
+    /*<StyledContentContainer>
+          <StyledContentDiv>
+            <MolstarViewer cifUrl="/AF-P62191-F1-model_v6.cif.txt" />
+          </StyledContentDiv>
+    </StyledContentContainer>*/
+    /*<StyledContentContainer>
+          <StyledContentDiv>
+            <MolstarViewer cifUrl="/api/get_monomer_cif_for_visualization/?protein_entry_id=P62191" />
+          </StyledContentDiv>
+    </StyledContentContainer>*/
+    <StyledContentContainer>
+      {visualizations.length > 0 ? (
+        visualizations.map((viz) => (
+          <StyledContentDiv key={viz.proteinEntryId}>
+            <MolstarViewer cifUrl={viz.cifAccessUrl} />
           </StyledContentDiv>
         ))
       ) : (
