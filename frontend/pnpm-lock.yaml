@@ -495,8 +495,6 @@ packages:
       {
         integrity: sha512-J6vCWTNpicHF4zFlZG1cS5DkGzMr9941gddYkakjrg3ZNev4bbqEgLHFTWiFrcJm7UCRu7olO3K6IRDd9gSGhA==,
       }
-    dependencies:
-      "@dagrejs/graphlib": 3.0.4
 
   "@dagrejs/graphlib@3.0.4":
     resolution:
@@ -7921,6 +7919,12 @@ snapshots:
       "@csstools/css-tokenizer": 3.0.4
 
   "@csstools/css-tokenizer@3.0.4": {}
+
+  "@dagrejs/dagre@2.0.4":
+    dependencies:
+      "@dagrejs/graphlib": 3.0.4
+
+  "@dagrejs/graphlib@3.0.4": {}
 
   "@emnapi/core@1.5.0":
     dependencies:
