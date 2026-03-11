@@ -280,6 +280,7 @@ export const RunScreen: React.FC = () => {
           {components.length ? (
             <StyledCol>
               <SwitchCard
+                key={runData.current_step_id}
                 styleProps={{ height: "calc(100% - 3em)" }}
                 components={components}
                 hasCardTitle={false}
