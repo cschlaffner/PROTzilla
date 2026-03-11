@@ -798,8 +798,14 @@ class PlotVolcano(DataAnalysisPlotStep):
         # also, the instance identifier is known here
         source_p_values_id, _ = self.input_source(steps, DataKey.CORRECTED_P_VALUES_DF)
         for input_key in self.internal_inputs:
-            self.inputs[input_key] = steps.get_step_input(
-                input_key=input_key, instance_identifier=source_p_values_id
+            if input_key == "alpha":
+                retrieval_method = steps.get_step_output
+                source_key = "corrected_alpha"
+            else:
+                retrieval_method = steps.get_step_input
+                source_key = input_key
+            self.inputs[input_key] = retrieval_method(
+                source_key, instance_identifier=source_p_values_id
             )
 
 
