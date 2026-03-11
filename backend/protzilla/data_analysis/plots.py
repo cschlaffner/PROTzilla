@@ -208,7 +208,7 @@ def create_volcano_plot(
         selector=dict(name=f"Not Significant {item_type}s"),
     )
 
-    return dict(plots=[fig])
+    return dict(plots=[fig], messages=[dict(level= logging.INFO, msg=f"Using possibly corrected alpha with value of {alpha}")])
 
 
 def clustergram_plot(
