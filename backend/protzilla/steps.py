@@ -457,6 +457,7 @@ class OutputType(StrEnum):
     LIST = "list"
     MESSAGES = "messages"
     FLOAT = "float"
+    INT = "int"
 
 
 class OutputItem(yaml.YAMLObject):
@@ -492,6 +493,9 @@ class Output:
                     output_type=OutputType.MESSAGES, value=value
                 )
 
+            # These checks are for backwards compatibility with existing
+            # calculation methods
+
             elif isinstance(value, pd.DataFrame):
                 self.output[key] = OutputItem(
                     output_type=OutputType.DATAFRAME, value=value
@@ -500,6 +504,16 @@ class Output:
             elif isinstance(value, list):
                 self.output[key] = OutputItem(
                     output_type=OutputType.LIST, value=value
+                )
+
+            elif isinstance(value, float):
+                self.output[key] = OutputItem(
+                    output_type=OutputType.FLOAT, value=value
+                )
+
+            elif isinstance(value, int):
+                self.output[key] = OutputItem(
+                    output_type=OutputType.INT, value=value
                 )
 
             elif isinstance(value, OutputItem):

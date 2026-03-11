@@ -34,7 +34,7 @@ def test_existing_workflow(tests_folder_name):
 
     assert runner.workflow == workflow_name
     with open(f"{runner.run.run_path}/run.yaml", "r") as f:
-        run_config = yaml.safe_load(f)
+        run_config = yaml.full_load(f)
 
     assert len(run_config["steps"]) == len(runner.run.steps.all_steps)
 
