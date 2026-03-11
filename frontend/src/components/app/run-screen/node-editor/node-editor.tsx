@@ -18,7 +18,7 @@ import {
   ReactFlowProvider,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelection } from "../step-selection";
@@ -27,6 +27,8 @@ import StepNode from "./StepNode";
 import { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
+
+const MIN_FLOW_WIDTH = 320;
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -48,11 +50,24 @@ const StyledFlowCanvas = styled.div`
 `;
 
 const StyledDivider = styled.div`
-  width: 1px;
-  background-color: ${color("secondary")};
-  flex-grow: 1;
+  width: 6px;
+  cursor: col-resize;
+  position: relative;
+  flex: 0 0 6px;
   align-self: stretch;
   margin-right: ${spacing("small")};
+  touch-action: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background-color: ${color("secondary")};
+  }
 `;
 
 const StyledFormColumn = styled.div`
@@ -99,6 +114,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   runData,
 }) => {
   const notify = useNotification();
+
+  const editorRowRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef(false);
+  const [flowWidth, setFlowWidth] = useState<number | null>(null);
 
   //
   // State
@@ -202,6 +221,25 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [navigateOrRefreshSteps, notify, runName],
   );
 
+  const onDividerPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    isResizingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }, []);
+
+  const onDividerPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizingRef.current || !editorRowRef.current) return;
+    const rowRect = editorRowRef.current.getBoundingClientRect();
+    const nextWidth = Math.max(event.clientX - rowRect.left, MIN_FLOW_WIDTH);
+    setFlowWidth(nextWidth);
+  }, []);
+
+  const onDividerPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizingRef.current) return;
+    isResizingRef.current = false;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  }, []);
+
   const removeCurrentConnection = useCallback(() => {
     if (!selectedEdge) return;
     void callApiWithParameters("disconnect_steps/", {
@@ -263,8 +301,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   return (
-    <StyledRow>
-      <StyledFlowColumn>
+    <StyledRow ref={editorRowRef}>
+      <StyledFlowColumn style={flowWidth ? { width: flowWidth } : undefined}>
         <StyledStepButtonsRow>
           {supportedSections.map((section) => (
             <StepSelection
@@ -332,7 +370,15 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         </StyledFlowCanvas>
       </StyledFlowColumn>
 
-      <StyledDivider />
+      <StyledDivider
+        onPointerDown={onDividerPointerDown}
+        onPointerMove={onDividerPointerMove}
+        onPointerUp={onDividerPointerUp}
+        onPointerCancel={onDividerPointerUp}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize node editor"
+      />
 
       <StyledFormColumn>
         <BackendForm
