@@ -1,5 +1,6 @@
 import csv
 import types
+from collections import OrderedDict
 from pathlib import Path
 
 import pandas as pd
@@ -144,7 +145,7 @@ def get_group_dict_from_df(df: pd.DataFrame, group_col: str) -> dict:
             f"Groups DataFrame must contain the column {group_col} but got {set(df.columns)}"
         )
 
-    groups = {}
+    groups = OrderedDict()
     # Seems weird. Is weird. But I wanted to keep it consistent with the original version
     for _, row in df.iterrows():
         groups[str(row[group_col])] = str(row[group_col])

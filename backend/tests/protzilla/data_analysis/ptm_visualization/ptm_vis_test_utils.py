@@ -8,6 +8,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 import main
+from main.views_helper import load_settings_from_file
 from protzilla.constants.intensity_types import IntensityType
 from protzilla.data_analysis.ptm_visualization import (
     create_overview_ptm_visualization,
@@ -25,6 +26,8 @@ from protzilla.importing.metadata_import import metadata_import_method
 def get_evidence_df(path: Path):
     outputs = peptide_import.evidence_import(
         file_path=path,
+        # It's not really important for downstream tasks which intensity type we use, as long as it is in the
+        # evidence df
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
@@ -39,14 +42,14 @@ def get_metadata_df(path: Path):
     return metadata_df
 
 
-def alter_ptm_settings(monkeypatch: MonkeyPatch, new_param_dict: dict):
-    def mock_figure_orientation(regions_file_path: Path, out_dir: Path):
+def alter_general_config(monkeypatch: MonkeyPatch, new_param_dict: dict):
+    def mock_update_settings(regions_file_path: Path, out_dir: Path):
         config_module = get_general_config_module(regions_file_path, out_dir)
         config_module.__dict__.update(new_param_dict)
         return config_module
 
     monkeypatch.setattr(
-        ptm_vis_utils, "get_general_config_module", mock_figure_orientation
+        ptm_vis_utils, "get_general_config_module", mock_update_settings
     )
 
 
@@ -75,7 +78,7 @@ def mock_settings_file(new_settings_file_path: Path, tmp_dir: Path):
 
 
 def get_region_range_for_exon_coords(
-        exon_coords: list[tuple[float, float]], horizontal_orientation: bool
+    exon_coords: list[tuple[float, float]], horizontal_orientation: bool
 ) -> list[tuple[float, float]]:
     # A bit of complicated logic to define the region range for the exon. The side of the exon that is longer, includes
     # some buffer which is not actually part of the exon. Thus, we have to check which side is shorter and only include
@@ -87,16 +90,15 @@ def get_region_range_for_exon_coords(
     new_regions = []
     for x, y in exon_coords:
         # figure out if the vertical line of the polygon is on the left or right side of the exon
-        # TODO: rename
-        blah = []
+        y_diff_indices = []
         for i in range(len(y) - 1):
             if y[i] != y[i + 1]:
-                blah.append(i)
+                y_diff_indices.append(i)
 
-        if x[blah[0]] != x[blah[0] + 1]:
+        if x[y_diff_indices[0]] != x[y_diff_indices[0] + 1]:
             # vertical line at the beginning
             new_regions.append(tuple(sorted(set(x))[:2]))
-        elif x[blah[1]] != x[blah[1] + 1]:
+        elif x[y_diff_indices[1]] != x[y_diff_indices[1] + 1]:
             # vertical line at the end
             new_regions.append(tuple(sorted(set(x))[1:]))
         else:
@@ -154,12 +156,13 @@ def validate_ptm_labels_in_bounds(plot):
 
 
 def validate_plot_outputs(
-        plot,
-        plot_func,
-        all_groups: set,
-        required_groups: set,
-        validation_config: Optional["PlotValidationConfig"],
+    plot,
+    plot_func,
+    all_groups: set,
+    required_groups: set,
+    validation_config: Optional["PlotValidationConfig"],
 ):
+    # TODO: technically it should be possible to export all plots and compare newly created plots to these references
     if plot_func == create_overview_ptm_visualization:
         validate_ptm_labels_in_bounds(plot)
 

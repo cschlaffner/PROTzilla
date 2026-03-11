@@ -22,10 +22,9 @@ from tests.paths import (
 from tests.protzilla.data_analysis.ptm_visualization.ptm_vis_test_utils import (
     get_evidence_df,
     get_metadata_df,
-    alter_ptm_settings,
-    validate_plot_outputs,
     mock_settings_file,
     run_plot_and_validate,
+    alter_general_config,
 )
 
 GFAP_PATH = TEST_PTM_VISUALIZATION_PATH / "P14136"
@@ -302,7 +301,7 @@ class TestPTMVisualization:
         new_param_dict = {
             "FIGURE_ORIENTATION": 1,
         }
-        alter_ptm_settings(monkeypatch, new_param_dict)
+        alter_general_config(monkeypatch, new_param_dict)
 
         run_plot_and_validate(
             plot_func, kwargs, gfap_config, {"clean", "old", "exon"}
