@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
+import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -17,10 +17,8 @@ import {
   emptyRunData,
   footerMessages,
   StepID,
-  SwitchComponent,
-  Table,
-  SelectedStep,
   StepOutputInfo,
+  SwitchComponent,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -246,37 +244,9 @@ export const RunScreen: React.FC = () => {
     />
   );
 
-  // const listEditorComponent = (
-  //   <ListEditor
-  //     onFormSubmit={onFormSubmit}
-  //     runName={runName}
-  //     navigateOrRefreshSteps={navigateOrRefreshSteps}
-  //     runData={runData}
-  //   />
-  // );
+  const editorModes = [{ name: "Flow", value: nodeEditorComponent }];
 
-  const editorModes = [
-    // { name: "List", value: listEditorComponent },
-    { name: "Flow", value: nodeEditorComponent },
-  ];
-
-  // TODO: Replace this with appropriate data from runData
-  // Else it resets whenever the run data is reset
   const selectedEditorMode: SwitchComponent["name"] = "Flow";
-  // const selectedEditorMode = runData.editor_mode;
-
-  const selectEditorMode = (mode: SwitchComponent) => {
-    console.log("Changed to", mode.name);
-    // TODO: This API call has not been implemented yet
-    // void callApiWithParameters("set_editor_mode/", {
-    //   run_name: runName,
-    //   mode: mode.name
-    // }).then(() => {
-    //   void getRunData();
-    //   void getStepPlots();
-    //   void getStepTable();
-    // });
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -286,7 +256,7 @@ export const RunScreen: React.FC = () => {
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => void navigate("/")}
+        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
       />
 
       <StyledCardRow>
@@ -294,7 +264,6 @@ export const RunScreen: React.FC = () => {
           <StyledListSwitchCard
             components={editorModes}
             selection={selectedEditorMode}
-            callback={selectEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",

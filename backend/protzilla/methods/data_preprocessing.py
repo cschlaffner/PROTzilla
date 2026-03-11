@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from collections.abc import Sequence
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing import (
@@ -18,7 +19,8 @@ from backend.protzilla.constants.option_types import *
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
-    output_keys = [DataKey.PROTEIN_DF]
+    # default output_keys for most preprocessing steps. adapt where necessary!
+    output_keys = [DataKey.PROTEIN_DF, DataKey.PEPTIDE_DF]
 
     plot_input_names = [DataKey.PROTEIN_DF]
     plot_output_names = ["plots"]
@@ -28,7 +30,16 @@ class DataPreprocessingStep(Step, ABC):
         self.plot_inputs: dict = {}
 
 
-class FilterProteinsBySamplesMissing(DataPreprocessingStep):
+class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class OutlierDetectionStep(DataPreprocessingStep, ABC):
+    operation = "outlier_detection"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     display_name = "By samples missing"
     operation = "filter_proteins"
     method_description = (
@@ -60,18 +71,18 @@ class FilterProteinsBySamplesMissing(DataPreprocessingStep):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
-class FilterProteinsBySilacRatios(DataPreprocessingStep):
-    display_name = "By SILAC ratios"
+class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
+    display_name = "By number of values per group"
     operation = "filter_proteins"
-    method_description = "Filter proteins based on the minimum amount of samples with different SILAC ratios in each group"
+    method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
         return Form(
-            label="Filter Proteins by SILAC ratios",
+            label="Filter Proteins by number of values per group",
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples per group with different SILAC ratios",
+                    label="Amount of minimum present samples per group with different values",
                     value=1,
                     min=0,
                     step=1,
@@ -85,18 +96,18 @@ class FilterProteinsBySilacRatios(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(filter_proteins.by_silac_ratios)
-    plot_method = staticmethod(filter_proteins.by_silac_ratios_plot)
+    calc_method = staticmethod(filter_proteins.by_number_of_values_per_group)
+    plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
-class FilterByProteinsCount(DataPreprocessingStep):
-    display_name = "Protein Count"
+class FilterByProteinsCount(FilteringStepBasedOnProteins):
+    display_name = "By protein count"
     operation = "filter_samples"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
         return Form(
-            label="Filter Samples by Protein Count",
+            label="Filter samples by protein count",
             input_fields=[
                 FloatField(
                     name="deviation_threshold",
@@ -124,7 +135,7 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
     method_description = "Filter by PEP-threshold"
-    output_keys = [DataKey.PEPTIDE_DF, "filtered_peptides"]
+    output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
         return Form(
@@ -152,7 +163,39 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     plot_method = staticmethod(peptide_filter.by_pep_value_plot)
 
 
-class FilterSamplesByProteinsMissing(DataPreprocessingStep):
+class FilterPeptidesByExistingProteins(DataPreprocessingStep):
+    display_name = "By existing proteins"
+    operation = "filter_peptides"
+    method_description = "Filter by existing proteins"
+    output_keys = [DataKey.PEPTIDE_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing proteins",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_proteins)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+
+
+class FilterPeptidesByExistingSamples(DataPreprocessingStep):
+    display_name = "By existing samples"
+    operation = "filter_peptides"
+    method_description = "Filter by existing samples"
+    output_keys = [DataKey.PEPTIDE_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing samples",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(peptide_filter.by_existing_samples)
+    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+
+
+class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     display_name = "By proteins missing"
     operation = "filter_samples"
     method_description = (
@@ -184,8 +227,8 @@ class FilterSamplesByProteinsMissing(DataPreprocessingStep):
     plot_method = staticmethod(filter_samples.by_proteins_missing_plot)
 
 
-class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
-    display_name = "Sum of intensities"
+class FilterSamplesByProteinIntensitiesSum(FilteringStepBasedOnProteins):
+    display_name = "By sum of intensities"
     operation = "filter_samples"
     method_description = "Filter by sum of protein intensities per sample"
 
@@ -215,9 +258,8 @@ class FilterSamplesByProteinIntensitiesSum(DataPreprocessingStep):
     plot_method = staticmethod(filter_samples.by_protein_intensity_sum_plot)
 
 
-class OutlierDetectionByPCA(DataPreprocessingStep):
+class OutlierDetectionByPCA(OutlierDetectionStep):
     display_name = "PCA"
-    operation = "outlier_detection"
     method_description = "Detect outliers using PCA"
 
     def create_form(self):
@@ -248,9 +290,8 @@ class OutlierDetectionByPCA(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_pca_plot)
 
 
-class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
+class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
     display_name = "Local outlier factor"
-    operation = "outlier_detection"
     method_description = "Detect outliers using the local outlier factor"
 
     def create_form(self):
@@ -272,9 +313,8 @@ class OutlierDetectionByLocalOutlierFactor(DataPreprocessingStep):
     plot_method = staticmethod(outlier_detection.by_local_outlier_factor_plot)
 
 
-class OutlierDetectionByIsolationForest(DataPreprocessingStep):
+class OutlierDetectionByIsolationForest(OutlierDetectionStep):
     display_name = "Isolation Forest"
-    operation = "outlier_detection"
     method_description = "Detect outliers using Isolation Forest"
 
     def create_form(self):
@@ -345,9 +385,13 @@ class TransformationInversion(DataPreprocessingStep):
     calc_method = staticmethod(transformation.by_inversion)
 
 
-class NormalisationByZScore(DataPreprocessingStep):
-    display_name = "Z-Score"
+class NormalisationStep(DataPreprocessingStep, ABC):
     operation = "normalisation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+
+class NormalisationByZScore(NormalisationStep):
+    display_name = "Z-Score"
     method_description = "Normalise data by Z-Score"
 
     def create_form(self):
@@ -379,9 +423,8 @@ class NormalisationByZScore(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_z_score_plot)
 
 
-class NormalisationByTotalSum(DataPreprocessingStep):
+class NormalisationByTotalSum(NormalisationStep):
     display_name = "Total sum"
-    operation = "normalisation"
     method_description = "Normalise data by total sum"
 
     def create_form(self):
@@ -413,9 +456,8 @@ class NormalisationByTotalSum(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_totalsum_plot)
 
 
-class NormalisationByMedian(DataPreprocessingStep):
+class NormalisationByMedian(NormalisationStep):
     display_name = "Median"
-    operation = "normalisation"
     method_description = "Normalise data by median"
 
     def create_form(self):
@@ -456,10 +498,11 @@ class NormalisationByMedian(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_median_plot)
 
 
-class NormalisationByWidthAdjustment(DataPreprocessingStep):
+class NormalisationByWidthAdjustment(NormalisationStep):
     display_name = "Width adjustment"
-    operation = "normalisation"
     method_description = "Normalise data by asymmetric quartile width adjustment"
+
+    output_keys = [DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -490,9 +533,8 @@ class NormalisationByWidthAdjustment(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_width_adjustment_plot)
 
 
-class NormalisationByReferenceProtein(DataPreprocessingStep):
+class NormalisationByReferenceProtein(NormalisationStep):
     display_name = "Reference protein"
-    operation = "normalisation"
     method_description = "Normalise data by reference protein"
 
     def create_form(self):
@@ -534,9 +576,41 @@ class NormalisationByReferenceProtein(DataPreprocessingStep):
     plot_method = staticmethod(normalisation.by_reference_protein_plot)
 
 
-class ImputationByMinPerDataset(DataPreprocessingStep):
-    display_name = "Min per dataset"
+class ImputationStep(DataPreprocessingStep, ABC):
     operation = "imputation"
+    output_keys = [DataKey.PROTEIN_DF]
+
+    plot_input_fields: Sequence[FormField] = [
+        FormDivider("Plot settings"),
+        DropdownField(
+            name="graph_type",
+            label="Graph type",
+            value=BoxAndHistogramGraph.BOXPLOT.value,
+            options=BoxAndHistogramGraph,
+        ),
+        DropdownField(
+            name="group_by",
+            label="Group by",
+            value=GroupBy.NO_GROUPING.value,
+            options=GroupBy,
+        ),
+        DropdownField(
+            name="visual_transformation",
+            label="Visual transformation",
+            value=VisualTransformations.LOG10.value,
+            options=VisualTransformations,
+        ),
+        DropdownField(
+            name="graph_type_quantities",
+            label="Graph type - quantity of imputed values",
+            value=BarAndPieChart.PIE_CHART.value,
+            options=BarAndPieChart,
+        ),
+    ]
+
+
+class ImputationByMinPerDataset(ImputationStep):
+    display_name = "Min per dataset"
     method_description = "Impute missing values by the minimum per dataset"
 
     def create_form(self):
@@ -557,30 +631,9 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -588,9 +641,8 @@ class ImputationByMinPerDataset(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_dataset_plot)
 
 
-class ImputationByMinPerProtein(DataPreprocessingStep):
+class ImputationByMinPerProtein(ImputationStep):
     display_name = "Min per protein"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per protein"
 
     def create_form(self):
@@ -611,30 +663,9 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -642,9 +673,8 @@ class ImputationByMinPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_protein_plot)
 
 
-class ImputationByMinPerSample(DataPreprocessingStep):
+class ImputationByMinPerSample(ImputationStep):
     display_name = "Min per sample"
-    operation = "imputation"
     method_description = "Impute missing values by the minimum per sample"
 
     def create_form(self):
@@ -662,30 +692,9 @@ class ImputationByMinPerSample(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -693,9 +702,8 @@ class ImputationByMinPerSample(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_min_per_sample_plot)
 
 
-class SimpleImputationPerProtein(DataPreprocessingStep):
+class SimpleImputationPerProtein(ImputationStep):
     display_name = "Protein"
-    operation = "imputation"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
@@ -711,30 +719,9 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
                     value=SimpleImputerStrategyType.MEAN.value,
                     options=SimpleImputerStrategyType,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -742,9 +729,8 @@ class SimpleImputationPerProtein(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_simple_imputer_plot)
 
 
-class ImputationByKNN(DataPreprocessingStep):
+class ImputationByKNN(ImputationStep):
     display_name = "kNN"
-    operation = "imputation"
     method_description = (
         "A function to perform value imputation based on KNN (k-nearest neighbors). Imputes missing "
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
@@ -763,31 +749,9 @@ class ImputationByKNN(DataPreprocessingStep):
                     step=1,
                     hasStepButtons=True,
                 ),
-                FormDivider("Plot settings"),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 
@@ -795,9 +759,8 @@ class ImputationByKNN(DataPreprocessingStep):
     plot_method = staticmethod(imputation.by_knn_plot)
 
 
-class ImputationByNormalDistributionSampling(DataPreprocessingStep):
+class ImputationByNormalDistributionSampling(ImputationStep):
     display_name = "Normal distribution sampling"
-    operation = "imputation"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
     def create_form(self):
@@ -827,30 +790,9 @@ class ImputationByNormalDistributionSampling(DataPreprocessingStep):
                     max=1,
                     step=0.1,
                 ),
-                DropdownField(
-                    name="graph_type",
-                    label="Graph type",
-                    value=BoxAndHistogramGraph.BOXPLOT.value,
-                    options=BoxAndHistogramGraph,
-                ),
-                DropdownField(
-                    name="group_by",
-                    label="Group by",
-                    value=GroupBy.NO_GROUPING.value,
-                    options=GroupBy,
-                ),
-                DropdownField(
-                    name="visual_transformation",
-                    label="Visual transformation",
-                    value=VisualTransformations.LOG10.value,
-                    options=VisualTransformations,
-                ),
-                DropdownField(
-                    name="graph_type_quantities",
-                    label="Graph type - quantity of imputed values",
-                    value=BarAndPieChart.PIE_CHART.value,
-                    options=BarAndPieChart,
-                ),
+                # pyright says + is not supported between Sequences
+                # but lists are not covariant
+                *self.plot_input_fields,
             ],
         )
 

@@ -459,16 +459,13 @@ def test_differential_expression_anova(show_figures):
         protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         grouping="Group",
-        log_base="log2",
         selected_groups=test_metadata_df["Group"].unique().tolist(),
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
     )
     corrected_p_values_df = output_dict["corrected_p_values_df"]
 
-    p_values_rounded = [
-        round(x, 4) for x in corrected_p_values_df["corrected_p_values"]
-    ]
+    p_values_rounded = [round(x, 4) for x in corrected_p_values_df["corrected_p_value"]]
     assertion_p_values = [
         0.0054,
         0.0013,
@@ -552,7 +549,6 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
         selected_groups=["Group1", "Group2", "Group3"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -596,7 +592,6 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
         selected_groups=["Group1", "wrong_group"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -639,7 +634,6 @@ def test_kruskal_wallis_too_few_groups(diff_expr_test_data):
         selected_groups=["wrong_group1", "wrong_group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     with pytest.raises(
         ValueError,
@@ -670,7 +664,6 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
         selected_groups=["Group1", "Group2", "Group4", "Group5"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -689,7 +682,6 @@ def test_kruskal_wallis_invalid_groups_selected(diff_expr_test_data):
         selected_groups=["Group4", "Group5"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
-        log_base="log2",
     )
     current_out = kruskal_wallis_test_on_intensity_data(**current_input)
 
@@ -923,14 +915,12 @@ def test_differential_expression_anova_empty_p_values():
         selected_groups=["Group1", "Group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
-        log_base="None",
     )
 
     # Check that all dataframes are empty but with correct columns
     assert current_out["differentially_expressed_proteins_df"].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
     assert current_out["corrected_p_values_df"].empty
-    assert current_out["sample_group_df"].empty
     assert current_out["corrected_alpha"] == 0.05
     assert current_out["filtered_proteins"] == []
 
@@ -1118,7 +1108,6 @@ def test_differential_expression_kruskal_wallis_empty_p_values():
         selected_groups=["Group1", "Group2"],
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
-        log_base="None",
     )
 
     # Check that all dataframes are empty but with correct columns

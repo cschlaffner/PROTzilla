@@ -14,6 +14,8 @@ from backend.protzilla.data_preprocessing.outlier_detection import (
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
+from protzilla.data_preprocessing.peptide_filter import by_existing_samples
+
 
 # TODO #21: implement actual tests for outlier detection
 
@@ -70,11 +72,12 @@ def test_outlier_detection_with_isolation_forest(
 ):
     method_inputs = {
         DataKey.PROTEIN_DF: outlier_detection_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "n_estimators": 50,
-        "n_jobs": -1,
     }
     method_outputs = by_isolation_forest(**method_inputs)
+    peptide_filtering_output = by_existing_samples(
+        peptides_df, method_outputs[DataKey.PROTEIN_DF]
+    )
     fig = by_isolation_forest_plot(method_outputs["anomaly_df"])[0]
     if show_figures:
         fig.show()
@@ -82,7 +85,7 @@ def test_outlier_detection_with_isolation_forest(
     assert_peptide_filtering_matches_protein_filtering(
         method_outputs[DataKey.PROTEIN_DF],
         peptides_df,
-        method_outputs[DataKey.PEPTIDE_DF],
+        peptide_filtering_output[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
@@ -92,17 +95,19 @@ def test_outlier_detection_by_local_outlier_factor(
 ):
     method_inputs = {
         DataKey.PROTEIN_DF: outlier_detection_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "number_of_neighbors": 35,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
+    peptide_filtering_outputs = by_existing_samples(
+        peptides_df, method_outputs[DataKey.PROTEIN_DF]
+    )
     fig = by_local_outlier_factor_plot(method_outputs["anomaly_df"])[0]
     if show_figures:
         fig.show()
         assert_peptide_filtering_matches_protein_filtering(
             method_outputs[DataKey.PROTEIN_DF],
             peptides_df,
-            method_outputs[DataKey.PEPTIDE_DF],
+            peptide_filtering_outputs[DataKey.PEPTIDE_DF],
             "Sample",
         )
 
@@ -112,26 +117,25 @@ def test_outlier_detection_by_local_outlier_factor_and_nan(
 ):
     method_inputs = {
         DataKey.PROTEIN_DF: outlier_detection_df_with_nan,
-        DataKey.PEPTIDE_DF: None,
         "number_of_neighbors": 35,
     }
-    method_outputs = by_local_outlier_factor(**method_inputs)
-
-    assert "messages" in method_outputs
-    assert "NaN values" in method_outputs["messages"][0]["msg"]
+    with pytest.raises(ValueError):
+        by_local_outlier_factor(**method_inputs)
 
 
 def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides_df):
     method_inputs = {
         DataKey.PROTEIN_DF: outlier_detection_df,
-        DataKey.PEPTIDE_DF: peptides_df,
         "threshold": 2,
         "number_of_components": 3,
     }
     method_outputs = by_pca(**method_inputs)
+    peptide_filtering_outputs = by_existing_samples(
+        peptides_df, method_outputs[DataKey.PROTEIN_DF]
+    )
     fig = by_pca_plot(
         method_outputs["pca_df"],
-        method_outputs["number_of_components"],
+        method_inputs["number_of_components"],
         method_outputs["explained_variance_ratio"],
     )[0]
     if show_figures:
@@ -140,7 +144,7 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
     assert_peptide_filtering_matches_protein_filtering(
         method_outputs[DataKey.PROTEIN_DF],
         peptides_df,
-        method_outputs[DataKey.PEPTIDE_DF],
+        peptide_filtering_outputs[DataKey.PEPTIDE_DF],
         "Sample",
     )
 
@@ -148,11 +152,8 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
 def test_outlier_detection_with_pca_and_nan(outlier_detection_df_with_nan):
     method_inputs = {
         DataKey.PROTEIN_DF: outlier_detection_df_with_nan,
-        DataKey.PEPTIDE_DF: None,
         "threshold": 2,
         "number_of_components": 3,
     }
-    method_outputs = by_pca(**method_inputs)
-
-    assert "messages" in method_outputs
-    assert "NaN values" in method_outputs["messages"][0]["msg"]
+    with pytest.raises(ValueError):
+        by_pca(**method_inputs)

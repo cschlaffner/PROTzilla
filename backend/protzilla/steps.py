@@ -231,7 +231,7 @@ class Step(ABC):
         :returns: the output of the step which is currently specified as the input for this key
         """
 
-        edges = steps.edges_with_exact_data(
+        edges = steps.incoming_edges_for_handle(
             None, None, self.instance_identifier, input_key
         )
         if not edges:
@@ -383,21 +383,23 @@ class Step(ABC):
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
+        # TODO: find a way of handling optional outputs
+        # or remove this method
+
+        # this is stupid - the steps should just raise the ValueError themselves.
         if list(self.output.output.keys()) == ["messages"]:
-            message_string = ""
-            for message in self.messages.messages:
-                message_string += f"{message['msg']}\n"
             raise ValueError(
-                f"Output validation failed: Output only contains messages: {message_string}."
+                f"Output validation failed: Output does not contain data."
             )
-        for key in self.output_keys:
-            if key not in self.output or self.output[key] is None:
-                if not soft_check:
-                    raise ValueError(
-                        f"Output validation failed: missing output {key} in outputs."
-                    )
-                else:
-                    return False
+
+        # for key in self.output_keys:
+        #     if key not in self.output or self.output[key] is None:
+        #         if not soft_check:
+        #             raise ValueError(
+        #                 f"Output validation failed: missing output {key} in outputs."
+        #             )
+        #         else:
+        #             return False
         return True
 
     def create_form(self) -> Form:
@@ -440,17 +442,6 @@ class Step(ABC):
 
         run can be used to access the current state of the run, e.g. the previous steps, the current section, etc.
         """
-
-    @property
-    def finished(self) -> bool:
-        """
-        Return whether the step has valid outputs and is therefore considered finished.
-        Plot steps without required outputs are considered finished if they have plots.
-        :return: True if the step is finished, False otherwise
-        """
-        if len(self.output_keys) == 0:
-            return not self.plots.empty
-        return self.validate_outputs(soft_check=True)
 
     @property
     def form_inputs(self) -> dict[str, FormInputType]:

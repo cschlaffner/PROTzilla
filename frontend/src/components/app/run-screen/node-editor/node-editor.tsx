@@ -10,7 +10,14 @@ import {
   supportedSections,
 } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
-import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  Panel,
+  ReactFlow,
+  ReactFlowProvider,
+  useUpdateNodeInternals,
+} from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { styled } from "styled-components";
 
@@ -73,6 +80,18 @@ const StyledStepButtonsRow = styled.div`
   margin-bottom: ${spacing("small")};
 `;
 
+// Warning: AI-generated stuff. Only way to (hopefully) prevent nodes from disappearing
+const NodeInternalsSync: React.FC<{ nodeIds: string[] }> = ({ nodeIds }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  useEffect(() => {
+    if (nodeIds.length === 0) return;
+    updateNodeInternals(nodeIds);
+  }, [nodeIds, updateNodeInternals]);
+
+  return null;
+};
+
 export const NodeEditor: React.FC<NodeEditorProps> = ({
   onFormSubmit,
   runName,
@@ -101,6 +120,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     navigateOrRefreshSteps();
   };
 
+  const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+
   //
   // Data syncing
   //
@@ -122,20 +143,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     }));
 
     setNodes(syncNodes as StepNodeType[]);
+
+    const syncEdges = runData.graph_edges;
+
+    setTimeout(() => {
+      setEdges(syncEdges);
+    }, 0);
   }, [runData, navigateOrRefreshSteps]);
-
-  const fetchEdges = useCallback(async () => {
-    try {
-      const res = await callApiWithParameters("get_edges/", { run_name: runName });
-      if (res.data) setEdges(res.data as Edge[]);
-    } catch (err) {
-      console.error("Failed to fetch edges", err);
-    }
-  }, [runName]);
-
-  useEffect(() => {
-    void fetchEdges();
-  }, [fetchEdges, runData.current_step_id]); // Refresh edges when step changes
 
   //
   // Handlers
@@ -182,10 +196,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           title: response.message.title,
           message: response.message.msg,
         });
-        void fetchEdges();
+        navigateOrRefreshSteps();
       });
     },
-    [fetchEdges, notify, runName],
+    [navigateOrRefreshSteps, notify, runName],
   );
 
   const removeCurrentConnection = useCallback(() => {
@@ -205,9 +219,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         message: response.message.msg,
       });
       setSelectedEdge(null);
-      void fetchEdges();
+      navigateOrRefreshSteps();
     });
-  }, [fetchEdges, notify, runName, selectedEdge]);
+  }, [navigateOrRefreshSteps, notify, runName, selectedEdge]);
 
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
@@ -270,39 +284,51 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         </StyledStepButtonsRow>
 
         <StyledFlowCanvas>
-          <ReactFlow
-            key={runName}
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onEdgeClick={onEdgeClick}
-            onPaneClick={onPaneClick}
-            onNodeDragStop={onNodeDragStop}
-            onConnect={onConnect}
-            fitView
-          >
-            <Panel position="top-left">
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
-                {selectedEdge && (
-                  <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
-                    Remove selected connection
+          <ReactFlowProvider>
+            <ReactFlow
+              key={runName}
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onEdgeClick={onEdgeClick}
+              onPaneClick={onPaneClick}
+              onNodeDragStop={onNodeDragStop}
+              onConnect={onConnect}
+              fitView
+            >
+              <NodeInternalsSync nodeIds={nodeIds} />
+              <Panel position="top-left">
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <RedButton onClick={() => void deleteCurrentStep()}>
+                    Remove current step
                   </RedButton>
-                )}
-              </div>
-            </Panel>
-
-            <Panel position="top-right">
-              {hoveredHandleMeta.isActive && (
-                <div style={{ textAlign: "right" }}>
-                  <p>{hoveredHandleMeta.direction}</p>
-                  <p>{hoveredHandleMeta.type}</p>
+                  {selectedEdge && (
+                    <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                      Remove selected connection
+                    </RedButton>
+                  )}
                 </div>
-              )}
-            </Panel>
-          </ReactFlow>
+              </Panel>
+
+              <Panel position="top-right">
+                {hoveredHandleMeta.isActive && (
+                  <div
+                    style={{
+                      textAlign: "right",
+                      backgroundColor: "white",
+                      padding: "10px",
+                      border: "2px solid black",
+                    }}
+                  >
+                    <p>{hoveredHandleMeta.direction}</p>
+                    <p>{hoveredHandleMeta.type}</p>
+                  </div>
+                )}
+              </Panel>
+            </ReactFlow>
+          </ReactFlowProvider>
         </StyledFlowCanvas>
       </StyledFlowColumn>
 

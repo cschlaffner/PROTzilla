@@ -13,7 +13,6 @@ def by_protein_intensity_sum(
     This function filters samples based on the sum of the protein intensities.
 
     :param protein_df: the intensity dataframe that should be filtered
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param deviation_threshold: defining the maximally allowed deviation from the median (in standard deviations)
         to keep a sample
     :return: the filtered df as a Dataframe and a dict with a list of Sample IDs that have been filtered
@@ -32,15 +31,9 @@ def by_protein_intensity_sum(
     ].index.tolist()
 
     filtered_df = protein_df[~(protein_df["Sample"].isin(filtered_samples_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            ~(peptide_df["Sample"].isin(filtered_samples_list))
-        ]
 
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_samples=filtered_samples_list,
     )
 
@@ -55,7 +48,6 @@ def by_protein_count(
     the median across all samples.
 
     :param protein_df: the intensity dataframe that should be filtered
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param deviation_threshold: float, defining the allowed deviation (in standard deviations) from the median number
         of non-nan values to keep a sample
     :return: the filtered df as a Dataframe and a dict with a list of Sample IDs that have been filtered
@@ -78,15 +70,9 @@ def by_protein_count(
     ].index.tolist()
 
     filtered_df = protein_df[~(protein_df["Sample"].isin(filtered_samples_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            ~(peptide_df["Sample"].isin(filtered_samples_list))
-        ]
 
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_samples=filtered_samples_list,
     )
 
@@ -101,7 +87,6 @@ def by_proteins_missing(
     is below a threshold (percentage).
 
     :param protein_df: the intensity dataframe that should be filtered
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param percentage: ranging from 0 to 1. Defining the relative share of proteins that were detected in the
         sample in inorder to be kept.
     :return: the filtered df as a Dataframe and a dict with a list of Sample IDs that have been filtered
@@ -120,15 +105,9 @@ def by_proteins_missing(
     ].index.tolist()
 
     filtered_df = protein_df[~(protein_df["Sample"].isin(filtered_samples_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            ~(peptide_df["Sample"].isin(filtered_samples_list))
-        ]
 
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_samples=filtered_samples_list,
     )
 

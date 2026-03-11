@@ -423,12 +423,10 @@ def test_ref_protein_normalisation(
 
 
 def test_ref_protein_missing(capsys, normalisation_by_ref_protein_df):
-    method_outpus = by_reference_protein(
-        normalisation_by_ref_protein_df, "non_existing_Protein"
-    )
-
-    assert "messages" in method_outpus
-    assert "The protein was not found" in method_outpus["messages"][0]["msg"]
+    with pytest.raises(ValueError):
+        method_outputs = by_reference_protein(
+            normalisation_by_ref_protein_df, "non_existing_Protein"
+        )
 
 
 def test_width_adjustment_normalisation(normalisation_df, show_figures):

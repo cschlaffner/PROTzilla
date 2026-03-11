@@ -10,6 +10,7 @@ services:
     # - '/home/www/.protzilla/user_data:./home/prot/zilla/backend/user_data:Z' # :Z is required for SELinux and should be ignored everywhere else
     # Use this for backend changes to reflect without rebuilding
     # - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+    # - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot:Z"
 
   django:
     image: ghcr.io/cschlaffner/protzilla-django
@@ -18,6 +19,7 @@ services:
       dockerfile: "backend/Dockerfile.dev"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+      - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
     networks:
@@ -58,6 +60,7 @@ services:
       - "6006:6006"
 
 volumes:
+  uniprot:
   node_modules:
   .pnpm-store:
 

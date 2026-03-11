@@ -137,7 +137,7 @@ class StepManager:
             ]
         )
 
-    def edges_with_exact_data(
+    def incoming_edges_for_handle(
         self,
         source: StepID | None,
         source_handle: DataKey | None,
@@ -152,7 +152,7 @@ class StepManager:
         :param source_handle: handle of the source (optional)
         :param target: ID of the target node
         :param target_handle: the connection handle of the target
-        :return: list of edges (ebunch)
+        :return: list of edges (ebunch) - should never be more than one, but we return a list just in case
         """
         return [
             edge
@@ -266,11 +266,12 @@ class StepManager:
         if step_id not in self.all_steps:
             raise ValueError(f"Step {step_id} not found")
 
+        self._current_selected_step_id = step_id
+
         # TODO: We'll keep this for now, but I assume this is unneccessary
         if self.df_mode == "disk":
             self.disk_operator._write_output(self.current_step)
 
-        self._current_selected_step_id = step_id
 
     def next_step(self) -> None:
         """
@@ -352,13 +353,17 @@ class StepManager:
 
         # Navigate to a predecessor if step was selected
         # Else navigate to a fallback option
+        must_goto_fallback = False
         try:
             self.previous_step()
         except ValueError:  # No previous step
-            self.goto_step(self.fallback_step_id)
+            must_goto_fallback = True
 
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
+
+        if must_goto_fallback:
+            self.goto_step(self.fallback_step_id)
 
     ##
     ## Connection management
@@ -370,7 +375,6 @@ class StepManager:
         Creates/updates the corresponding link in the graph and sets the handles as edge data.
 
         :param connection: the connection to establish
-        :return: the target step instance
         :raises KeyError: if the connection parameters are incorrect
         """
         source, source_handle, target, target_handle = parse_connection(connection)
@@ -378,16 +382,9 @@ class StepManager:
         # TODO: We currently allow arbitrary connections between all kinds of input.
         # Technical restrictions would make this cleaner
 
-        # retrieve all incoming edges to the target
-        old_edges = self.edges_with_exact_data(None, None, target, target_handle)
         # Abort if the exact connection is already present
-        for old_source, _, _, data in old_edges:
-            if (
-                old_source == source
-                and data["source_handle"] == source_handle
-                and data["target_handle"] == target_handle
-            ):
-                return
+        if self.incoming_edges_for_handle(source, source_handle, target, target_handle):
+            return
 
         # Abort if connection creates cycle
         probe_graph = self.graph.copy()
@@ -397,8 +394,11 @@ class StepManager:
                 "The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted."
             )
 
+        # retrieve all incoming edges to the target
+        old_edges = self.incoming_edges_for_handle(None, None, target, target_handle)
+
         # Delete any existing connection to the target handle that isn't equal to the current one
-        self.graph.remove_edges_from(old_edges)
+        self.graph.remove_edges_from(old_edges)  # pyright: ignore[reportArgumentType].
 
         self.graph.add_edge(
             source, target, source_handle=source_handle, target_handle=target_handle
@@ -407,12 +407,16 @@ class StepManager:
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
         # retrieve edges that have exactly this combination of source, target and handles
-        edges = self.edges_with_exact_data(source, source_handle, target, target_handle)
+        edges = self.incoming_edges_for_handle(
+            source, source_handle, target, target_handle
+        )
         if not edges:
             raise ValueError(
                 f"No connection from {source}.{source_handle} to {target}.{target_handle} found"
             )
-        self.graph.remove_edges_from(edges)
+        # pyright is wrong here - it expects 3-tuples (u, v, data) like for a DiGraph
+        # but since we have a MultiDiGraph, our edges are of format (u, v, key, data)
+        self.graph.remove_edges_from(edges)  # pyright: ignore[reportArgumentType]
 
     def get_edges(self) -> list[Connection]:
         """
@@ -468,34 +472,22 @@ class StepManager:
         except KeyError:
             return None
 
-    # TODO: this should be adapted to at least only include a step's ancestry
     def get_step_input(
         self,
-        step_type: Step | None = None,
-        input_key: str = "",  # TODO same as get_step_output
-        instance_identifier: str | None = None,
-        default: Any = None,
+        input_key: DataKey,
+        instance_identifier: StepID,
     ):
         """
-        Get the specific input of the inputs of a specific step type. The step type can also a parent class of the
-        step type, in which case the input of the most recent step of the specific type is returned.
-        :param step_type: The type of the step as a class object
+        Get the specific input from the step with the given instance_identifier.
+
         :param input_key: The key of the desired input in the input dictionary of the step
         :param instance_identifier: The instance identifier of the step to get the input from
-        :param default: The default value to return if the input is not found
         :return: The value of the input of the step or None
         """
 
-        if step_type is not None:
-            raise NotImplementedError("Passing the step type is deprecated")
+        step = self.get_step_by_id(instance_identifier)
 
-        for step in reversed(self.previous_calculated_steps):
-            if (
-                step.instance_identifier == instance_identifier
-                or instance_identifier is None
-            ) and input_key in step.inputs:
-                return step.inputs[input_key]
-        return default
+        return step.inputs.get(input_key)
 
     def get_step_operation(self, step_id: str) -> str:
         try:

@@ -24,6 +24,7 @@ def k_means(
     labels_column: str,
     positive_label: str = None,
     model_selection: str = "Grid search",
+    model_selection_scoring: str = "completeness_score",
     scoring: list[str] = ["completeness_score"],
     n_clusters: int = 8,
     random_state: int = 6,
@@ -31,6 +32,8 @@ def k_means(
     n_init: int = 10,
     max_iter: int = 300,
     tolerance: float = 1e-4,
+    cv: int = 5,
+    n_iter: int = 10,
 ):
     """
     A method that uses k-means to partition a number of samples in k clusters. The
@@ -113,6 +116,9 @@ def k_means(
             clf_parameters,
             scoring,
             labels_df=labels_df["Encoded Label"],
+            model_selection_scoring=model_selection_scoring,
+            cv=cv,
+            n_iter=n_iter,
         )
 
         # create dataframes for ouput dict
@@ -157,6 +163,7 @@ def expectation_maximisation(
     labels_column: str,
     positive_label: str = None,
     model_selection: str = "Grid search",
+    model_selection_scoring: str = "completeness_score",
     scoring: list[str] = ["completeness_score"],
     n_components: int = 1,
     covariance_type: str = "full",
@@ -164,7 +171,8 @@ def expectation_maximisation(
     init_params: str = "kmeans",
     max_iter: int = 100,
     random_state=42,
-    model_selection_scoring=None,
+    cv: int = 5,
+    n_iter: int = 10,
 ):
     """
     Performs expectation maximization clustering with a Gaussian Mixture Model, using
@@ -244,6 +252,8 @@ def expectation_maximisation(
         scoring,
         labels_df=labels_df["Encoded Label"],
         model_selection_scoring=model_selection_scoring,
+        cv=cv,
+        n_iter=n_iter,
     )
 
     cluster_labels_df = pd.DataFrame(
@@ -270,11 +280,13 @@ def hierarchical_agglomerative_clustering(
     labels_column: str,
     positive_label: str = None,
     model_selection: str = "Grid search",
+    model_selection_scoring: str = "completeness_score",
     scoring: list[str] = ["completeness_score"],
     n_clusters: int = 2,
     metric: str = "euclidean",
     linkage: str = "ward",
-    model_selection_scoring=None,
+    cv: int = 5,
+    n_iter: int = 10,
 ):
     """
     Performs Agglomerative Clustering by recursively merging a pair of clusters of
@@ -340,6 +352,8 @@ def hierarchical_agglomerative_clustering(
         scoring,
         labels_df=labels_df["Encoded Label"],
         model_selection_scoring=model_selection_scoring,
+        cv=cv,
+        n_iter=n_iter,
     )
 
     cluster_labels_df = pd.DataFrame(
@@ -360,6 +374,8 @@ def perform_clustering(
     scoring,
     labels_df=None,
     model_selection_scoring=None,
+    cv=5,
+    n_iter=10,
 ):
     if model_selection == "Manual":
         model = clf.set_params(**clf_parameters)
@@ -380,6 +396,8 @@ def perform_clustering(
             clf_parameters,
             scorer(scoring),
             model_selection_scoring,
+            cv=cv,
+            n_iter=n_iter,
         )
         model.fit(input_df, labels_df)
         model_evaluation_df = create_model_evaluation_df_grid_search(
