@@ -231,7 +231,7 @@ class Step(ABC):
         :returns: the output of the step which is currently specified as the input for this key
         """
 
-        edges = steps.edges_with_exact_data(
+        edges = steps.incoming_edges_for_handle(
             None, None, self.instance_identifier, input_key
         )
         if not edges:
@@ -383,6 +383,15 @@ class Step(ABC):
         :return: True if the outputs are valid, False otherwise
         :raises ValueError: If a required key is missing in the outputs
         """
+        # TODO: find a way of handling optional outputs
+        # or remove this method
+
+        # this is stupid - the steps should just raise the ValueError themselves.
+        if list(self.output.output.keys()) == ["messages"]:
+            raise ValueError(
+                f"Output validation failed: Output does not contain data."
+            )
+
         # for key in self.output_keys:
         #     if key not in self.output or self.output[key] is None:
         #         if not soft_check:
