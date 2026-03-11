@@ -45,7 +45,8 @@
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^7.6.2",
     "styled-components": "^6.1.18",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "molstar-viewer": "^3.0.0"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.27.1",
@@ -85,7 +86,8 @@
     "vite": "^6.3.5",
     "vite-plugin-svgr": "^4.3.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.3"
+    "vitest": "^3.2.3",
+    "sass-embedded": "^1.x.x"
   },
   "eslintConfig": {
     "extends": [
