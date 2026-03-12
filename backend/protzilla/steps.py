@@ -358,9 +358,7 @@ class Step(ABC):
     @property
     def plot_input(self) -> dict:
         # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
-        prefixed_output = {
-            "output_" + key: item.value for key, item in self.output
-        }
+        prefixed_output = {"output_" + key: item.value for key, item in self.output}
         plot_input = self.inputs | prefixed_output
 
         input_parameters = inspect.signature(self.plot_method).parameters
@@ -502,19 +500,13 @@ class Output:
                 )
 
             elif isinstance(value, list):
-                self.output[key] = OutputItem(
-                    output_type=OutputType.LIST, value=value
-                )
+                self.output[key] = OutputItem(output_type=OutputType.LIST, value=value)
 
             elif isinstance(value, float):
-                self.output[key] = OutputItem(
-                    output_type=OutputType.FLOAT, value=value
-                )
+                self.output[key] = OutputItem(output_type=OutputType.FLOAT, value=value)
 
             elif isinstance(value, int):
-                self.output[key] = OutputItem(
-                    output_type=OutputType.INT, value=value
-                )
+                self.output[key] = OutputItem(output_type=OutputType.INT, value=value)
 
             elif isinstance(value, OutputItem):
                 self.output[key] = value
