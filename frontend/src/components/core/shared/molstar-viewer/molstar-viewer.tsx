@@ -2,7 +2,8 @@ import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
-import "molstar/lib/mol-plugin-ui/skin/light.scss";
+//import "molstar/lib/mol-plugin-ui/skin/blue.scss";
+import "./molstar-theme.scss";
 
 interface MolstarViewerProps {
   cifUrl: string;

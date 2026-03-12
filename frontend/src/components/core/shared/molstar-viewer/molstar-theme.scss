@@ -1,0 +1,23 @@
+@use "molstar/lib/mol-plugin-ui/skin/base/colors" with (
+  $default-background: #4a536a,
+  //protzillaDarkBlue: "#4A536A"
+  $font-color: #ffffff,
+  //onPrimary: "#FFFFFF"
+  $hover-font-color: #ffffff,
+
+  //onPrimary: "#FFFFFF"
+  // Buttons
+  $msp-btn-commit-on-font-color: #3ca369,
+
+  //green: "#3ca369"
+  // Logs
+  $log-message: #3ca369,
+  //green: "#3ca369"
+  $log-info: #4a536a,
+  //protzillaDarkBlue: "#4A536A"
+  $log-warning: #4a536a,
+  //protzillaDarkBlue: "#4A536A"
+  $log-error: #ce5a5a //caution: "#CE5A5A"
+);
+
+@use "molstar/lib/mol-plugin-ui/skin/base/base";
