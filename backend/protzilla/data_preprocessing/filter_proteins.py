@@ -76,6 +76,11 @@ def by_number_of_values_per_group(
     )
 
 
+def by_protein_ids(protein_df: pd.DataFrame, protein_ids: list[str]) -> dict:
+    filtered_df = protein_df[(protein_df["Protein ID"].isin(protein_ids))]
+    return dict(protein_df=filtered_df)
+
+
 def by_samples_missing_plot(
     output_remaining_proteins, output_filtered_proteins, graph_type
 ):

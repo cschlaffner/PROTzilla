@@ -15,6 +15,8 @@ from backend.protzilla.data_preprocessing import (
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
+from backend.protzilla import form_helper
+from backend.protzilla.run import Run
 
 
 class DataPreprocessingStep(Step, ABC):
@@ -98,6 +100,37 @@ class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
 
     calc_method = staticmethod(filter_proteins.by_number_of_values_per_group)
     plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
+
+
+class FilterProteinsByProteinIDs(FilteringStepBasedOnProteins):
+    display_name = "By protein ids"
+    operation = "filter_proteins"
+    method_description = "Filter by protein ids entered by user"
+
+    def create_form(self):
+        return Form(
+            label="Filter proteins by protein ids",
+            input_fields=[
+                MultiSelectField(
+                    name="protein_ids",
+                    label="Protein IDs",
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(filter_proteins.by_protein_ids)
+
+    def modify_form(self, run: Run) -> None:
+        protein_ids_field: MultiSelectField = self.form["protein_ids"]
+        protein_df = self.get_input(run.steps, DataKey.PROTEIN_DF)
+        if protein_df is not None:
+            protein_ids_field.set_options(
+                form_helper.to_choices(
+                    protein_df["Protein ID"].dropna().sort_values().unique()
+                )
+            )
+        else:
+            protein_ids_field.set_options([])
 
 
 class FilterByProteinsCount(FilteringStepBasedOnProteins):

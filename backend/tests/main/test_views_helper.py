@@ -15,7 +15,7 @@ def test_get_all_possible_step_names():
         "FastaImport",
         "FilterProteinsBySamplesMissing",
         "FilterProteinsByNumberOfValuesPerGroup",
-        "FilterByProteinsCount",
+        "FilterProteinsByProteinIDs" "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",
         "OutlierDetectionByPCA",
