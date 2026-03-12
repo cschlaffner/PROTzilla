@@ -496,7 +496,6 @@ class Output:
 
         self.update(_output)
 
-
     def __iter__(self):
         return iter(self.output.items())
 
