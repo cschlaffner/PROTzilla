@@ -81,8 +81,10 @@ const FooterText = styled.div`
 
 //TODO: probably move somewhere else?
 interface Visualization {
-  proteinEntryId: string;
-  cifAccessUrl: string;
+  //proteinEntryId: string;
+  //cifAccessUrl: string;
+  name: string;
+  cifString: string;
 }
 
 export const RunScreen: React.FC = () => {
@@ -155,11 +157,15 @@ export const RunScreen: React.FC = () => {
     });
 
     if (response) {
-      const data: string[] = response.data;
+      //const data: string[] = response.data;
 
-      const rawVisualizations = data.map((proteinEntryId) => ({
+      /*const rawVisualizations = data.map((proteinEntryId) => ({
         proteinEntryId,
         cifAccessUrl: `/api/get_monomer_cif_for_visualization/?protein_entry_id=${proteinEntryId}`,
+      }));*/
+      const rawVisualizations = response.data.map((viz: { name: string; cifString: string }) => ({
+        name: viz.name,
+        cifString: viz.cifString,
       }));
 
       setVisualizations(rawVisualizations);
@@ -239,6 +245,18 @@ export const RunScreen: React.FC = () => {
 
   const visualizationComponent = (
     <StyledContentContainer style={{ height: "100vh" }}>
+      {visualizations.length > 0 ? (
+        visualizations.map((viz) => (
+          <StyledContentDiv key={viz.name} style={{ flex: 1 }}>
+            <div style={{ height: "75px" }}></div>
+            <MolstarViewer cifText={viz.cifString} />
+          </StyledContentDiv>
+        ))
+      ) : (
+        <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
+      )}
+    </StyledContentContainer>
+    /*<StyledContentContainer style={{ height: "100vh" }}>
       <div style={{ height: "75px" }}></div>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
@@ -249,7 +267,7 @@ export const RunScreen: React.FC = () => {
       ) : (
         <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
       )}
-    </StyledContentContainer>
+    </StyledContentContainer>*/
   );
 
   const singleTableComponent = (tableLabel: string) => (

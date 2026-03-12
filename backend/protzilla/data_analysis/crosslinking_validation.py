@@ -343,20 +343,22 @@ def bar_plot_of_valid_crosslinks(
         )
     ]
 
-def visualization_of_protein_structure(
-        protein_to_validate: str,
-) -> list[str]:
-    """
-    Returns the protein_entry_id for the protein that is supposed to be visualized.
-    Only verifies that a CIF file exists for this protein, so visualization is possible.
-    """
-    protein_folder = paths.ALPHAFOLD_MONOMER_PATH / protein_to_validate.upper()
-    
-    if not protein_folder.exists():
-        raise FileNotFoundError(f"AlphaFold folder for protein '{protein_to_validate}' not found")
-    
-    cif_files = list(protein_folder.glob("*.cif"))
-    if not cif_files:
-        raise FileNotFoundError(f"No CIF file found in {protein_folder}")
 
-    return [protein_to_validate.upper()]
+def visualization_of_protein_structure(
+    protein_to_validate: str,
+    cif_df: pd.DataFrame,
+) -> dict:
+    """
+    Returns a dict containing the protein entry_id and its CIF DataFrame.
+    
+    :param protein_to_validate: Entry_id of the protein to visualize
+    :param cif_df: CIF DataFrame for the protein
+    :return: Dict with 'protein' and 'cif_df'
+    """
+    if cif_df is None or cif_df.empty:
+        raise ValueError(f"No CIF dataframe provided for protein '{protein_to_validate}'.")
+
+    return {
+        "protein": protein_to_validate,
+        "cif_df": cif_df
+    }

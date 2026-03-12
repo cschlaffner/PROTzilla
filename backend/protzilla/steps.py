@@ -235,20 +235,20 @@ class Step:
 
         self.plots = Plots(plots)
 
-    def handle_visualization_outputs(self, outputs):
-        # could be extend to also be able to handle dicts or lists if needed later, 
-        # didn't see why that would be necessary for now
+    def handle_visualization_outputs(self, outputs: dict | list) -> None:
         """
-        Stores the entry_ids of the proteins that should be visualized 
-        as a simple array of strings.
-        Expects outputs to already be a list of strings.
+        Handles the output of the visualization method.
+        :param outputs: Must be a dict or a list of dicts
         """
-        if not isinstance(outputs, list):
-            raise TypeError("Visualization outputs must be a list of strings")
-
-        self.visualizations = Visualizations(
-            [str(protein_entry_id) for protein_entry_id in outputs]
-        )  
+        if not isinstance(outputs, dict) and not isinstance(outputs, list):
+            raise TypeError(f"Visualization outputs must be a dict or list, got {type(outputs)}.")
+        elif isinstance(outputs, dict):
+            self.visualizations = Visualizations([outputs])
+        elif isinstance(outputs, list):
+            for entry in outputs:
+                if not isinstance(entry, dict):
+                    raise TypeError(f"All entries must be dicts, got {type(entry)}")
+            self.visualizations = Visualizations(outputs)
 
     def handle_messages(self, outputs: dict) -> None:
         """
@@ -308,10 +308,11 @@ class Step:
         }
     
     @property
-    #TODO: needs to be extended when visualization is used in multiple steps 
+    #TODO: needs to be generalized
     def visualization_input(self) -> dict:
         return {
             "protein_to_validate": self.inputs["protein_to_validate"],
+            "cif_df": self.inputs.get("cif_df"),
         }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:

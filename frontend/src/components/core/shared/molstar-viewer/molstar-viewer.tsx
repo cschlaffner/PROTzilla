@@ -6,11 +6,12 @@ import React, { useEffect, useRef, useState } from "react";
 import "./molstar-theme.scss";
 
 interface MolstarViewerProps {
-  cifUrl: string;
+  cifUrl?: string;
+  cifText?: string;
 }
 
 //maybe the logic for loading the structure data from the .cif-file should be moved up e.g. into run-screen in the future
-const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl }) => {
+const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl, cifText }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,14 +32,21 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifUrl }) => {
           render: renderReact18,
         });
 
-        const response = await fetch(cifUrl);
-        if (!response.ok)
-          throw new Error(`Error when loading CIF-file: ${response.status.toString()}`);
+        let cifData: string;
 
-        const cifText = await response.text();
+        if (cifText) {
+          cifData = cifText;
+        } else if (cifUrl) {
+          const response = await fetch(cifUrl);
+          if (!response.ok)
+            throw new Error(`Error when loading CIF-file: ${response.status.toString()}`);
+          cifData = await response.text();
+        } else {
+          throw new Error("No CIF data provided");
+        }
 
         const data = await plugin.builders.data.rawData({
-          data: cifText,
+          data: cifData,
           label: "structure",
         });
 

@@ -631,10 +631,15 @@ def get_step_visualizations(request):
         run_name = data.get("run_name")
 
         run = Run(run_name)
-        if run.current_step is not None: 
-            visualizations = list(run.current_step.visualizations)
-        else:
-            visualizations = []
+        visualizations = []
+        if run.current_step is not None:
+            for viz in run.current_step.visualizations:
+                print(viz)
+                cif_str = viz["cif_df"].to_json(index=False)  
+                visualizations.append({
+                    "protein": viz["protein"],
+                    "cifString": cif_str
+                })
 
         return JsonResponse(
             {"success": True, "message": "Got the visualization(s) for the step", "data": visualizations},
@@ -644,23 +649,6 @@ def get_step_visualizations(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
-
-def get_monomer_cif_for_visualization(request):
-    protein_entry_id = request.GET.get("protein_entry_id")
-    if not protein_entry_id:
-        return JsonResponse({"success": False, "message": "Missing protein_entry_id"}, status=400)
-
-    protein_dir = ALPHAFOLD_MONOMER_PATH / protein_entry_id.upper()
-    if not protein_dir.exists():
-        return JsonResponse({"success": False, "message": f"No data for {protein_entry_id}"}, status=404)
-
-    cif_files = list(protein_dir.glob("*.cif"))
-    if not cif_files:
-        return JsonResponse({"success": False, "message": f"No CIF file found for {protein_entry_id}"}, status=404)
-
-    cif_file = cif_files[0]
-    return FileResponse(open(cif_file, "rb"), as_attachment=True, filename=cif_file.name)
 
 
 # TODO: Move somewhere else
