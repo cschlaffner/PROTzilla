@@ -3,26 +3,18 @@ name: Create and publish Docker images
 
 # Configures this workflow to run on pushes to `dev` and on pull requests.
 on:
-  pull_request:
-    types: ['opened', 'synchronize']
   push:
-    branches: ['dev']
+    tags:
+      - "*"
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: cschlaffner/protzilla
+  DOCKERFILE: Dockerfile
 
 jobs:
   build-and-push-image:
-    strategy:
-      matrix:
-        include:
-          - dockerfile: Dockerfile
-            image: cschlaffner/protzilla
-          - dockerfile: backend/Dockerfile.dev
-            image: cschlaffner/protzilla-django
-          - dockerfile: frontend/Dockerfile.dev
-            image: cschlaffner/protzilla-vite
     runs-on: ubuntu-latest
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -47,33 +39,31 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
+        # documentation for the metadata is here: https://github.com/docker/metadata-action?tab=readme-ov-file#usage
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/${{ matrix.image }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=tag
-            type=ref,event=pr
-            type=sha
+            type=semver,pattern={{version}},event=tag
       # Next two steps are necessary for using cache mounts in GHA
       - name: Cache
         uses: actions/cache@v4
         id: cache
         with:
           path: cache-mount
-          key: cache-mount-${{ hashFiles(matrix.dockerfile) }}
+          key: cache-mount-${{ hashFiles(env.DOCKERFILE) }}
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
           cache-dir: cache-mount
-          dockerfile: ${{ matrix.dockerfile }}
+          dockerfile: ${{ env.DOCKERFILE }}
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          file: ${{ matrix.dockerfile }}
+          file: ${{ env.DOCKERFILE }}
           context: .
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
