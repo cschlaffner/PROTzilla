@@ -452,7 +452,7 @@ class StepManager:
             source, target, source_handle=source_handle, target_handle=target_handle
         )
 
-        self.invalidate_step_and_following_steps_based_on_step_id(step_id=source)
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
 
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
