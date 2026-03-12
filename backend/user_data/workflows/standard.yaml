@@ -185,7 +185,6 @@ steps:
     direction: both
     gene_sets_restring: []
     organism: 9606
-    protein_df_field: null
   inputs: {}
   instance_identifier: s00012_EnrichmentAnalysisGOAnalysisWithString
   type: EnrichmentAnalysisGOAnalysisWithString
@@ -200,7 +199,6 @@ steps:
     - Component
     - Function
     - KEGG
-    input_df_field: null
     top_terms: 10
     value: p-value
   inputs: {}
