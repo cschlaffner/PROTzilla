@@ -213,14 +213,14 @@ class Step(ABC):
         ):
             source_handle: DataKey = data["source_handle"]
             target_handle: DataKey = data["target_handle"]
-            output = steps.get_step_output(
+            source_output = steps.get_step_output(
                 output_key=source_handle, instance_identifier=source
             )
-            if output is None:
+            if source_output is None:
                 raise ValueError(
                     f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
-            self.inputs[target_handle] = output.copy()
+            self.inputs[target_handle] = source_output.copy()
 
     def input_source(
         self, steps: StepManager, input_key: DataKey
@@ -292,6 +292,7 @@ class Step(ABC):
         :param outputs: A dictionary received after the calculation
         :return: None
         """
+        self.output = Output()
         if not isinstance(outputs, dict):
             raise TypeError("Output of calculation is not a dictionary.")
         outputs = {key: value for key, value in outputs.items() if value is not None}
@@ -314,7 +315,7 @@ class Step(ABC):
 
         if isinstance(outputs, dict):
             plots = outputs.pop("plots", [])
-            self.output.output.update(outputs)
+            self.output.update(outputs)
             self.handle_messages(outputs)
         else:
             plots = outputs
@@ -477,22 +478,39 @@ class OutputItem(yaml.YAMLObject):
 class Output:
     def __init__(
         self,
-        _output: dict[str, pd.DataFrame | Any] | dict[str, OutputItem] | None = None,
+        _output: dict[str, Any] | None = None,
     ):
         if _output is None:
             _output = {}
 
         self.output: dict[str, OutputItem] = {}
 
-        for key, value in _output.items():
+        self.update(_output)
 
+
+    def __iter__(self):
+        return iter(self.output.items())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.output[key].value
+
+    def __repr__(self):
+        return f"Output: {self.output}"
+
+    def __contains__(self, key: str):
+        return key in self.output
+
+    def update(self, source_dict: dict[str, Any]):
+        for key, value in source_dict.items():
             if key == "messages":
                 self.output[key] = OutputItem(
                     output_type=OutputType.MESSAGES, value=value
                 )
 
             # These checks are for backwards compatibility with existing
-            # calculation methods
+            # calculation methods.
+            # We automatically convert the most common data types
+            # to reasonable OutputItem representations
 
             elif isinstance(value, pd.DataFrame):
                 self.output[key] = OutputItem(
@@ -515,18 +533,6 @@ class Output:
                 raise ValueError(
                     "Outputs must be passed as messages, dataframes, lists or OutputItems"
                 )
-
-    def __iter__(self):
-        return iter(self.output.items())
-
-    def __getitem__(self, key: str) -> Any:
-        return self.output[key].value
-
-    def __repr__(self):
-        return f"Output: {self.output}"
-
-    def __contains__(self, key: str):
-        return key in self.output
 
     @property
     def is_empty(self) -> bool:
