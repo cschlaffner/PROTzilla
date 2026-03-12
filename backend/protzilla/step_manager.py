@@ -175,6 +175,17 @@ class StepManager:
     ## Batch invalidation
     ##
 
+    def invalidate_step_and_following_steps_based_on_step_id(
+        self, step_id: StepID
+    ) -> None:
+        """
+        Invalidates the step with the given step id and all dependent/following steps.
+        :return: the amount of invalidated steps
+        """
+        steps_to_invalidate = [self.all_steps[step_id]] + self.succeeding_steps(step_id)
+        for step in steps_to_invalidate:
+            step.invalidate()
+
     def invalidate_current_and_following_steps(self) -> int:
         """
         Invalidates the current step and all dependent/following steps.
@@ -310,7 +321,6 @@ class StepManager:
         if self.df_mode == "disk":
             self.disk_operator._write_output(self.current_step)
 
-
     def next_step(self) -> None:
         """
         Go to the next step in the workflow. Depending on the df_mode, the dataframes of the previous output are
@@ -441,6 +451,8 @@ class StepManager:
         self.graph.add_edge(
             source, target, source_handle=source_handle, target_handle=target_handle
         )
+
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=source)
 
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
