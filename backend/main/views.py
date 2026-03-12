@@ -425,7 +425,7 @@ def connect_steps(request) -> JsonResponse:
         connection: Connection = data.get("connection")
         run = Run(run_name)
         try:
-            run.steps.connect_steps(connection)
+            run.steps.connect_steps(connection, run)
             return JsonResponse(
                 {
                     "success": True,

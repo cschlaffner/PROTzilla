@@ -17,6 +17,7 @@ _forward_mapping: list[Step] = [
     importing.FastaImport,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterProteinsByNumberOfValuesPerGroup,
+    data_preprocessing.FilterProteinsByProteinIDs,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
     data_preprocessing.FilterSamplesByProteinIntensitiesSum,
