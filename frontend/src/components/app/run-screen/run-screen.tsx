@@ -103,6 +103,9 @@ export const RunScreen: React.FC = () => {
         run_name: runName,
         step_id: stepID,
       }).then(() => {
+        setAvailableTables(undefined);
+        setPlots(undefined);
+
         void getRunData();
         void getStepPlots();
         void getCurrentStepOutputLabels();
