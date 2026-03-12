@@ -294,6 +294,7 @@ class StepManager:
                     preceeding_step_of_child_step.instance_identifier
                 ):
                     return preceeding_step_of_child_step.instance_identifier
+        return None
 
     def goto_step(self, step_id: StepID) -> None:
         """
