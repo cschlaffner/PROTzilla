@@ -466,11 +466,7 @@ class StepManager:
         """
 
         step = self.get_step_by_id(instance_identifier)
-        try:
-            return step.output[output_key]
-        # TODO: this is really ugly, but Output does not have a .get() method
-        except KeyError:
-            return None
+        return step.output.get(output_key)
 
     # TODO: this should be adapted to at least only include a step's ancestry
     def get_step_input(

@@ -500,9 +500,15 @@ class Output:
     def __contains__(self, key: str):
         return key in self.output
 
+    def get(self, key: str) -> Any | None:
+        try:
+            return self.output[key].value
+        except KeyError:
+            return None
+
     def update(self, source_dict: dict[str, Any]):
         for key, value in source_dict.items():
-            if key == "messages":
+            if key == "messages" and isinstance(value, list):
                 self.output[key] = OutputItem(
                     output_type=OutputType.MESSAGES, value=value
                 )
