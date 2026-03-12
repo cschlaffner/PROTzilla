@@ -192,7 +192,9 @@ class StepManager:
 
         :return: the amount of invalidated steps
         """
-        self.invalidate_step_and_following_steps_based_on_step_id(self.current_selected_step_id)
+        self.invalidate_step_and_following_steps_based_on_step_id(
+            self.current_selected_step_id
+        )
 
     def _clear_succeeding_steps(self, step_id: StepID) -> None:
         """
