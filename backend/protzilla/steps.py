@@ -388,9 +388,7 @@ class Step(ABC):
 
         # this is stupid - the steps should just raise the ValueError themselves.
         if list(self.output.output.keys()) == ["messages"]:
-            raise ValueError(
-                f"Output validation failed: Output does not contain data."
-            )
+            raise ValueError(f"Output validation failed: Output does not contain data.")
 
         # for key in self.output_keys:
         #     if key not in self.output or self.output[key] is None:
