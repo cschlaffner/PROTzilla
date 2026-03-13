@@ -119,6 +119,14 @@ class StepManager:
         descendant_ids = list(nx.descendants(self.graph, step_id))
         return [self.all_steps[step_id] for step_id in descendant_ids]
 
+    def immediate_succeeding_steps(self, step_id: StepID) -> list[Step]:
+        """
+        :param step_id: ID of step of interest
+        :return: List of all immediate successors of the given step (all the child nodes in the graph)
+        """
+        child_ids = list(self.graph.successors(step_id))
+        return [self.all_steps[step_id] for step_id in child_ids]
+
     def step_is_terminal(self, step_id: StepID) -> bool:
         return int(self.graph.out_degree(step_id)) == 0
 
@@ -167,16 +175,26 @@ class StepManager:
     ## Batch invalidation
     ##
 
-    def invalidate_current_and_following_steps(self) -> int:
+    def invalidate_step_and_following_steps_based_on_step_id(
+        self, step_id: StepID
+    ) -> None:
+        """
+        Invalidates the step with the given step id and all dependent/following steps.
+        :return: the amount of invalidated steps
+        """
+        steps_to_invalidate = [self.all_steps[step_id]] + self.succeeding_steps(step_id)
+        for step in steps_to_invalidate:
+            step.invalidate()
+
+    def invalidate_current_and_following_steps(self) -> None:
         """
         Invalidates the current step and all dependent/following steps.
 
         :return: the amount of invalidated steps
         """
-        steps_to_remove = [self.current_step] + self.following_steps
-        for step in steps_to_remove:
-            step.invalidate()
-        return len(steps_to_remove)
+        self.invalidate_step_and_following_steps_based_on_step_id(
+            self.current_selected_step_id
+        )
 
     def _clear_succeeding_steps(self, step_id: StepID) -> None:
         """
@@ -251,12 +269,42 @@ class StepManager:
     def recommended_next_step_id(self) -> StepID | None:
         """
         Mainly for front-end. Instance identifier of the next step to navigate to when pressing the "Next" button.
-
-        :return: The recommended next step identifier or None if we are at a terminal step
+        If the step is a terminal step, the next step is an arbitrary computable step.
+        Otherwise, if there is a computable immediate successor step, that step is picked as the next step.
+        Otherwise, the next step is a computable preceding step of one of the immediate successors.
+        :return: The recommended next step identifier or None if all steps are already calculated.
         """
+
+        def _possible_next_step(step_id: StepID) -> bool:
+            return (
+                self.calc_dependencies_met_for_step(step_id)
+                and self.all_steps[step_id].calculation_status != "complete"
+            )
+
         if self.is_at_terminal_step:
+            for step_id in self.all_step_ids:
+                if _possible_next_step(step_id):
+                    return step_id
+            # all steps are calculated
             return None
-        return list(self.graph.successors(self.current_selected_step_id))[0]
+        else:
+            for arbitrary_child_step in self.immediate_succeeding_steps(
+                self.current_selected_step_id
+            ):
+                if _possible_next_step(arbitrary_child_step.instance_identifier):
+                    return arbitrary_child_step.instance_identifier
+            # none of the child steps can be calculated right now
+            arbitrary_child_step = self.immediate_succeeding_steps(
+                self.current_selected_step_id
+            )[0]
+            for preceeding_step_of_child_step in self.preceding_steps(
+                arbitrary_child_step.instance_identifier
+            ):
+                if _possible_next_step(
+                    preceeding_step_of_child_step.instance_identifier
+                ):
+                    return preceeding_step_of_child_step.instance_identifier
+        return None
 
     def goto_step(self, step_id: StepID) -> None:
         """
@@ -402,6 +450,8 @@ class StepManager:
         self.graph.add_edge(
             source, target, source_handle=source_handle, target_handle=target_handle
         )
+
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
 
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
