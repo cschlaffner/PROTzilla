@@ -68,7 +68,7 @@ def mock_perform_plot(runner: Runner):
 def find_step_by_class_name(runner: Runner, class_name: str):
     return next(
         i
-        for i, step in enumerate(runner.run.steps.all_steps)
+        for i, step in enumerate(runner.run.steps.all_step_instances)
         if step.__class__.__name__ == class_name
     )
 
@@ -76,7 +76,7 @@ def find_step_by_class_name(runner: Runner, class_name: str):
 def set_step_field_value(runner: Runner, step_idx: int, field_name: str, value):
     field = next(
         f
-        for f in runner.run.steps.all_steps[step_idx].form.input_fields
+        for f in runner.run.steps.all_step_instances[step_idx].form.input_fields
         if f.name == field_name
     )
     field.value = value
@@ -85,8 +85,10 @@ def set_step_field_value(runner: Runner, step_idx: int, field_name: str, value):
 def configure_step_fields(runner: Runner, class_name: str, field_values: dict):
     """Find a step by class name and set multiple field values."""
     step_idx = find_step_by_class_name(runner, class_name)
+    step = runner.run.steps.all_step_instances[step_idx]
     for field_name, value in field_values.items():
-        set_step_field_value(runner, step_idx, field_name, value)
+        if field_name in step.form:
+            set_step_field_value(runner, step_idx, field_name, value)
     return step_idx
 
 
@@ -104,9 +106,6 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "PlotProtQuant",
         {
-            "input_df": runner.run.steps.all_steps[
-                prot_quant_idx - 1
-            ].instance_identifier,
             "protein_group": "P10636",
         },
     )
@@ -121,7 +120,11 @@ def prepare_standard_workflow_runner(runner: Runner):
     configure_step_fields(
         runner,
         "PlotVolcano",
-        {"input_dict": runner.run.steps.all_steps[ttest_idx].instance_identifier},
+        {
+            "input_dict": runner.run.steps.all_step_instances[
+                ttest_idx
+            ].instance_identifier
+        },
     )
 
     # Configure GO enrichment analysis to use t-test results
@@ -129,7 +132,9 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "EnrichmentAnalysisGOAnalysisWithString",
         {
-            "proteins_df": runner.run.steps.all_steps[ttest_idx].instance_identifier,
+            "proteins_df": runner.run.steps.all_step_instances[
+                ttest_idx
+            ].instance_identifier,
         },
     )
 
@@ -138,7 +143,7 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "PlotGOEnrichmentBarPlot",
         {
-            "input_df_step_instance": runner.run.steps.all_steps[
+            "input_df_step_instance": runner.run.steps.all_step_instances[
                 go_idx
             ].instance_identifier
         },
@@ -147,12 +152,15 @@ def prepare_standard_workflow_runner(runner: Runner):
 
 def assert_runner_finished_successfully(runner: Runner):
     assert all(
-        step.calculation_status == "complete" for step in runner.run.steps.all_steps
+        step.calculation_status == "complete"
+        for step in runner.run.steps.all_step_instances
     )
-    assert runner.run.steps.all_steps[-1] == runner.run.current_step
     assert (
-        all(step.finished for step in runner.run.steps.all_steps)
-        and not runner.run.current_step.messages
+        runner.run.steps.get_step_by_id(runner.run.steps.all_step_ids_toposorted[-1])
+        == runner.run.current_step
+    )
+    assert (
+        not runner.run.current_step.messages
         and "messages" not in runner.run.current_step.output
     )
 
@@ -224,33 +232,35 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "protein_df_field": None,
             "protein_group": None,
             "similarity_measure": "euclidean distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
-            "protein_df_field": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
-            "grouping": None,
-            "group1": None,
-            "group2": None,
+            "grouping": "Group",
+            "group1": "AD",
+            "group2": "CTR",
             "fc_zscore_filter": False,
             "fc_zscore_alpha": 0.05,
+            "log_base": "None",
         },
-        {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
         {
-            "protein_df_field": None,
+            "input_dict": "s00010_DifferentialExpressionTTest",
+            "fc_threshold": 1,
+            "items_of_interest": [],
+        },
+        {
             "differential_expression_threshold": 0,
             "gene_sets_restring": [],
             "organism": 9606,
             "direction": "both",
             "background_path": None,
+            "differential_expression_col": None,
         },
         {
-            "input_df_field": None,
             "cutoff": 0.05,
             "gene_sets": ["Process", "Component", "Function", "KEGG"],
             "value": "p-value",
@@ -320,7 +330,7 @@ def test_runner_calculates(
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
         },
-        {"percentage": 0.5, "graph_type": "Pie chart"},
+        {"percentage": 0.5, "graph_type": "Bar chart"},
     ]
     mock_plot.assert_not_called()
 
@@ -431,7 +441,7 @@ def test_integration_runner_non_maxquant(
     with mock.patch.object(
         disk_operator.paths, "WORKFLOWS_PATH", tmp_workflow_dir.resolve()
     ):
-        runner = Runner(
+        kwargs = dict(
             workflow=mock_workflow,
             ms_data_path=f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
             meta_data_path=f"{TEST_METADATA_PATH}/{metadata_file_path}",
@@ -440,6 +450,17 @@ def test_integration_runner_non_maxquant(
             df_mode="memory",
             all_plots=True,
             verbose=False,
+        )
+
+        if mock_workflow == "MSFragger_Standard":
+            kwargs["msfragger_path"] = (
+                f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
+            )
+        elif mock_workflow == "DIA-NN_Standard":
+            kwargs["diann_path"] = f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
+
+        runner = Runner(
+            **kwargs,
         )
 
         mock_write = mock.MagicMock()

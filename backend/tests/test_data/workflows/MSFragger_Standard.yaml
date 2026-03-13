@@ -1,4 +1,72 @@
+current_step_id: MsFraggerImport_1
 df_mode: Standard
+graph_edges:
+- !!python/tuple
+  - MsFraggerImport_1
+  - MetadataImport_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - MsFraggerImport_1
+  - FilterProteinsBySamplesMissing_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - MetadataImport_1
+  - DifferentialExpressionTTest_1
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - FilterProteinsBySamplesMissing_1
+  - FilterSamplesByProteinIntensitiesSum_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - FilterSamplesByProteinIntensitiesSum_1
+  - ImputationByKNN_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - ImputationByKNN_1
+  - OutlierDetectionByLocalOutlierFactor_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - OutlierDetectionByLocalOutlierFactor_1
+  - TransformationLog_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - TransformationLog_1
+  - NormalisationByMedian_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - NormalisationByMedian_1
+  - PlotProtQuant_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - NormalisationByMedian_1
+  - DifferentialExpressionTTest_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - DifferentialExpressionTTest_1
+  - PlotVolcano_1
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - DifferentialExpressionTTest_1
+  - EnrichmentAnalysisGOAnalysisWithString_1
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - EnrichmentAnalysisGOAnalysisWithString_1
+  - PlotGOEnrichmentBarPlot_1
+  - source_handle: enrichment_df
+    target_handle: enrichment_df
+id_clock: 0
 steps:
 - form_inputs:
     aggregation_method: Sum
@@ -54,7 +122,6 @@ steps:
   instance_identifier: NormalisationByMedian_1
   type: NormalisationByMedian
 - form_inputs:
-    input_df: NormalisationByMedian_1
     protein_group: A0A024R4E5
     similarity: 1
     similarity_measure: euclidean distance
@@ -67,7 +134,6 @@ steps:
     group2: MFB
     grouping: Group
     multiple_testing_correction_method: Benjamini-Hochberg
-    protein_df: NormalisationByMedian_1
     ttest_type: Welch's t-Test
   inputs: {}
   instance_identifier: DifferentialExpressionTTest_1
@@ -86,7 +152,6 @@ steps:
     direction: both
     gene_sets_restring: []
     organism: 9606
-    proteins_df: DifferentialExpressionTTest_1
   inputs: {}
   instance_identifier: EnrichmentAnalysisGOAnalysisWithString_1
   type: EnrichmentAnalysisGOAnalysisWithString
@@ -95,7 +160,6 @@ steps:
     gene_sets:
     - Component
     - Process
-    input_df_step_instance: EnrichmentAnalysisGOAnalysisWithString_1
     top_terms: 10
     value: p-value
   inputs: {}
