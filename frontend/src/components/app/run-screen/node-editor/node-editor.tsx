@@ -396,6 +396,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             // Quite a radical solution, but sadly works
             navigateOrRefreshSteps();
           }}
+          runData={runData}
         />
       </StyledFormColumn>
     </StyledRow>

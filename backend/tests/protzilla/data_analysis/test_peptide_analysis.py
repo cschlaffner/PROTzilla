@@ -2,30 +2,9 @@ import pytest
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.ptm_analysis import (
-    select_peptides_of_protein,
     ptms_per_sample,
     ptms_per_protein_and_sample,
 )
-
-
-@pytest.mark.parametrize("df_num", [0, 1])
-def test_select_peptides_of_protein(peptides_df, evidence_peptide_df, df_num):
-    peptide_df = [peptides_df, evidence_peptide_df][df_num]
-
-    filtered_peptides_df = select_peptides_of_protein(peptide_df, ["Protein2"])[
-        DataKey.PEPTIDE_DF
-    ]
-
-    assert len(filtered_peptides_df) == 6
-    assert filtered_peptides_df["Sequence"].tolist() == [
-        "SEQB",
-        "SEQC",
-        "SEQD",
-        "SEQK",
-        "SEQP",
-        "SEQU",
-    ]
-    assert (filtered_peptides_df["Protein ID"] == "Protein2").all()
 
 
 def test_ptms_per_sample(evidence_peptide_df):
