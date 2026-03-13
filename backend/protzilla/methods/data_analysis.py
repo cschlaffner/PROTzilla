@@ -1492,11 +1492,15 @@ class ClassificationRandomForest(ClassificationStep):
                     min=0,
                     value=0.20,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
+                ),
+                CheckboxField(
+                    name="bootstrap",
+                    label="Boolstrap data should be used when building trees.",
+                    value=True,
                 ),
                 DropdownField(
                     name="validation_strategy",
@@ -1518,11 +1522,10 @@ class ClassificationRandomForest(ClassificationStep):
                     value=5,
                     isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                     isVisible=False,
                 ),
                 NumberField(
@@ -1697,11 +1700,10 @@ class ClassificationSVM(ClassificationStep):
                     min=0,
                     value=0.20,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                 ),
                 DropdownField(
                     name="validation_strategy",
@@ -1723,11 +1725,10 @@ class ClassificationSVM(ClassificationStep):
                     value=5,
                     isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                     isVisible=False,
                 ),
                 NumberField(
