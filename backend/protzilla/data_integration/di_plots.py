@@ -170,21 +170,21 @@ def GO_enrichment_dot_plot(
         or not "Overlap" in enrichment_df.columns
     ):
         msg = "Please input a dataframe from offline GO enrichment analysis or GO enrichment analysis with Enrichr."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if not gene_sets:
         msg = "Please select at least one category to plot."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
     if not isinstance(gene_sets, list):
         gene_sets = [gene_sets]
 
     if len(gene_sets) > 1 and x_axis_type == "Combined Score":
         msg = "Combined Score is only available for one category. Choose only one category or Gene Sets as x-axis."
-        return [dict(messages=[dict(level=logging.WARNING, msg=msg)])]
+        return dict(messages=[dict(level=logging.WARNING, msg=msg)])
 
     # remove all Gene_sets that are not in categories
     df = enrichment_df[enrichment_df["Gene_set"].isin(gene_sets)]
@@ -206,15 +206,14 @@ def GO_enrichment_dot_plot(
                 xticklabels_rot=xticklabels_rot,
                 show_ring=show_ring,
             )
-            return [
-                dict(
-                    plot_base64=fig_to_base64(ax.get_figure()),
-                    key="go_enrichment_dot_plot_img",
-                )
-            ]
+            return dict(
+                plot_base64=fig_to_base64(ax.get_figure()),
+                key="go_enrichment_dot_plot_img",
+            )
+
         except ValueError as e:
             msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-            return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+            return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
 
     elif x_axis_type == "Combined Score":
         try:
@@ -228,18 +227,17 @@ def GO_enrichment_dot_plot(
                 xticklabels_rot=xticklabels_rot,
                 show_ring=show_ring,
             )
-            return [
-                dict(
-                    plot_base64=fig_to_base64(ax.get_figure()),
-                    key="go_enrichment_dot_plot_img",
-                )
-            ]
+            return dict(
+                plot_base64=fig_to_base64(ax.get_figure()),
+                key="go_enrichment_dot_plot_img",
+            )
+
         except ValueError as e:
             msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-            return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+            return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
     else:
         msg = "Invalid x_axis_type value"
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
 
 def gsea_dot_plot(
