@@ -16,7 +16,14 @@ import backend.protzilla.utilities.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.steps import Messages, Output, Plots, Step
+from backend.protzilla.steps import (
+    Messages,
+    Output,
+    OutputItem,
+    OutputType,
+    Plots,
+    Step,
+)
 from backend.protzilla.step_manager import StepManager
 
 try:
@@ -41,6 +48,24 @@ class ErrorHandler:
                 traceback.print_exception(exc_type, exc_val, exc_tb)
             return False
         return True
+
+
+##
+## Custom PyYAML representers/constructors
+##
+
+
+def output_type_representer(dumper, data):
+    return dumper.represent_scalar("!OutputType", str(data.value))
+
+
+def output_type_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return OutputType(value)
+
+
+yaml.add_representer(OutputType, output_type_representer)
+yaml.add_constructor("!OutputType", output_type_constructor)
 
 
 class YamlOperator:
@@ -293,6 +318,15 @@ class DiskOperator:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
+        """
+        Serializes a step to a dictionary for the YamlOperator to dump
+
+        :param step: the step to serialize
+        :param workflow_mode: whether or not to save all data or only metadata
+            (e.g. when dumping workflows)
+
+        :return: Serializable dictionary
+        """
         with ErrorHandler():
             step_data = {}
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
@@ -307,44 +341,50 @@ class DiskOperator:
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
-    def _read_outputs(self, output: dict) -> Output:
+    def _read_outputs(self, _output: dict[str, OutputItem]) -> Output:
+        step_output = {}
         with ErrorHandler():
-            step_output = {}
-            for key, value in output.items():
-                # Non-string values get used directly as output
-                if not isinstance(value, str):
-                    step_output[key] = value
-                    continue
+            for key, item in _output.items():
+                match item.output_type:
+                    # Load Dataframes from disk
+                    case OutputType.DATAFRAME:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=self.dataframe_operator.read(self.run_dir / path),
+                        )
 
-                # Make sure this works for old run saves which use absolute directories
-                base_path = self.run_dir
-                if Path(value).is_absolute():
-                    base_path = Path()
+                    case _:
+                        step_output[key] = item
 
-                if (base_path / Path(value)).exists():
-                    step_output[key] = self.dataframe_operator.read(
-                        base_path / Path(value)
-                    )
-
-                # Path does not exist, just use raw string provided.
-                else:
-                    step_output[key] = value
             return Output(step_output)
 
     def _write_output(self, step: Step) -> dict:
+        """
+        Writes the outputs of a step to disk and returns a dictionary describing the outputs
+        to then be serialized.
+
+        :param step: the step whose outputs to dump
+        :return: serialized output
+        """
         with ErrorHandler(), step.disk_write_mutex:
-            output_data = {}
-            for key, value in step.output:
-                if isinstance(value, pd.DataFrame):
-                    file_path = (
-                        self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
-                    )
-                    # Only dump if outdated version
-                    if self._dump_is_outdated(step, "output"):
-                        self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path.relative_to(self.run_dir))
-                else:
-                    output_data[key] = value
+            output_data: dict[str, OutputItem] = {}
+            for key, item in step.output:
+                match item.output_type:
+                    case OutputType.DATAFRAME:
+                        assert isinstance(item.value, pd.DataFrame)
+                        file_path = (
+                            self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.dataframe_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case _:
+                        output_data[key] = item
 
             self._update_dump_state(step, "output")
             return output_data

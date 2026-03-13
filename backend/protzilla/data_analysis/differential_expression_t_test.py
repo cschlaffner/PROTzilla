@@ -11,6 +11,7 @@ from backend.protzilla.constants.option_types import (
     T_STATISTIC_COLUMNS,
     LogBaseWithNoneType,
 )
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
     exists_message,
@@ -237,6 +238,6 @@ def t_test(
         t_statistic_df=t_statistic_df,
         log2_fold_change_df=log2_fold_change_df,
         fc_significance_df=fc_significance_df,
-        corrected_alpha=corrected_alpha,
+        corrected_alpha=OutputItem(output_type=OutputType.FLOAT, value=corrected_alpha),
         messages=messages,
     )

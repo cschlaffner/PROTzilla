@@ -802,7 +802,11 @@ def get_current_step_output_labels(request):
     for label, data in run.current_outputs:
         if label not in hidden_outputs:
             response["outputs"].append(
-                {"label": label, "display_name": get_display_name(label)}
+                {
+                    "label": label,
+                    "display_name": get_display_name(label),
+                    "output_type": data.output_type,
+                }
             )
 
     response["success"] = True
