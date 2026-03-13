@@ -308,11 +308,25 @@ class Step:
         }
     
     @property
-    #TODO: needs to be generalized
     def visualization_input(self) -> dict:
+        input_parameters = inspect.signature(self.visualization_method).parameters
+
+        required_keys = [
+            key
+            for key, param in input_parameters.items()
+            if param.default == inspect.Parameter.empty
+        ]
+
+        for key in required_keys:
+            if key not in self.inputs:
+                raise ValueError(
+                    f"Missing required input '{key}' for the visualization method"
+                )
+
         return {
-            "protein_to_validate": self.inputs["protein_to_validate"],
-            "cif_df": self.inputs.get("cif_df"),
+            key: self.inputs[key]
+            for key in input_parameters.keys()
+            if key in self.inputs
         }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:

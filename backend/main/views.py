@@ -14,6 +14,7 @@ from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
+import gemmi
 from django.http import JsonResponse, FileResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -633,14 +634,32 @@ def get_step_visualizations(request):
         run = Run(run_name)
         visualizations = []
         if run.current_step is not None:
-            for viz in run.current_step.visualizations:
-                print(viz)
-                cif_str = viz["cif_df"].to_json(index=False)  
-                visualizations.append({
-                    "protein": viz["protein"],
-                    "cifString": cif_str
-                })
-
+            if run.current_step.visualizations and not run.current_step.visualizations.empty:
+                for viz in run.current_step.visualizations:
+                    protein_entry_id = viz.get("protein_entry_id", "unknown protein")
+                    cif_df = viz.get("cif_df")
+                    try:
+                        cif_string = convert_df_to_mmcif_for_visualization(cif_df)
+                    except (ValueError, TypeError):
+                        cif_string = ""
+                    visualizations.append({
+                        "proteinEntryId": protein_entry_id,
+                        "cifString": cif_string
+                    })
+            else:
+                cif_df = run.current_step.output.output.get("cif_df") if run.current_step.output else None
+                if cif_df is not None:
+                    inputs = run.current_step.inputs if run.current_step.inputs else {}
+                    protein_entry_id = inputs.get("entry_id") or inputs.get("uniprot_id") or "unknown protein"
+                    try:
+                        cif_string = convert_df_to_mmcif_for_visualization(cif_df)
+                    except (ValueError, TypeError):
+                        cif_string = ""
+                    visualizations.append({
+                        "proteinEntryId": protein_entry_id,
+                        "cifString": cif_string
+                    })
+        
         return JsonResponse(
             {"success": True, "message": "Got the visualization(s) for the step", "data": visualizations},
             safe=False,
@@ -649,6 +668,74 @@ def get_step_visualizations(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+    
+
+def convert_df_to_mmcif_for_visualization(df: pd.DataFrame) -> str:
+    """
+    Convert a DataFrame representing an mmCIF _atom_site table to a mmCIF string.
+
+    :param df: DataFrame containing the atom site information
+    :return: String containing the mmCIF content
+    """
+    if df is None or df.empty:
+        raise ValueError("DataFrame is empty, cannot create mmCIF content.")
+
+    standard_cols = [
+        "_atom_site.group_PDB",
+        "_atom_site.id",
+        "_atom_site.type_symbol",
+        "_atom_site.label_atom_id",
+        "_atom_site.label_alt_id",
+        "_atom_site.label_comp_id",
+        "_atom_site.label_asym_id",
+        "_atom_site.label_entity_id",
+        "_atom_site.label_seq_id",
+        "_atom_site.Cartn_x",
+        "_atom_site.Cartn_y",
+        "_atom_site.Cartn_z",
+        "_atom_site.occupancy",
+        "_atom_site.B_iso_or_equiv"
+    ]
+
+    missing = [c for c in standard_cols if c not in df.columns]
+    if missing:
+        raise ValueError(f"DataFrame is missing required columns for Mol*Star: {missing}")
+
+    doc = gemmi.cif.Document()
+    block = doc.add_new_block('data_test')
+    block.set_pair("_entry.id", 'data_test')
+    block.set_pair("_struct_keywords.pdbx_keywords", "AlphaFold predicted model")
+
+    loop_cols = [c.replace("_atom_site.", "") for c in standard_cols]
+    loop = block.init_mmcif_loop("_atom_site.", loop_cols)
+
+    for idx, row in df.iterrows():
+        values = []
+        for col in standard_cols:
+            val = row[col]
+            col_short = col.replace("_atom_site.", "")
+            if pd.isna(val) or val is None or (isinstance(val, str) and val.strip() == ""):
+                if col == "_atom_site.group_PDB":
+                    values.append("ATOM")
+                elif col in ["_atom_site.id", "_atom_site.label_seq_id", "_atom_site.label_entity_id"]:
+                    values.append(str(idx + 1))
+                elif col in ["_atom_site.Cartn_x", "_atom_site.Cartn_y", "_atom_site.Cartn_z",
+                             "_atom_site.occupancy", "_atom_site.B_iso_or_equiv"]:
+                    values.append("0.0")
+                else:
+                    values.append("?")
+            else:
+                if col in ["_atom_site.Cartn_x", "_atom_site.Cartn_y", "_atom_site.Cartn_z",
+                           "_atom_site.occupancy", "_atom_site.B_iso_or_equiv"]:
+                    values.append(f"{float(val):.3f}")
+                else:
+                    values.append(str(val))
+        loop.add_row(values)
+
+    test = doc.as_string()
+    print(test)
+
+    return doc.as_string()
 
 
 # TODO: Move somewhere else
