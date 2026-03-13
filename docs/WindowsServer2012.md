@@ -39,6 +39,6 @@ You can download the latest compatible version of `git-for-windows` [here](https
 PROTzilla gets hosted on port 8000 via HTTP and listens to requests from all IPv4 IPs. By default, 
 Windows Server 2012 does not allow inbound traffic on that port. When in doubt, open your firewall configuration and add a new inbound rule
 that allows traffic to/from port 8000 using TCP.
-If everything is configured correctly, access PROTzilla via [http://ip.of.your.server:8000]. Configuring a reverse proxy
+If everything is configured correctly, access PROTzilla via `http://ip.of.your.server:8000`. Configuring a reverse proxy
 for production environments is recommended.
 
