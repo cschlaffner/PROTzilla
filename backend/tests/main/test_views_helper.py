@@ -78,6 +78,7 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
+        "ArbitraryCSVImport",
     }
 
     steps = get_all_possible_steps()

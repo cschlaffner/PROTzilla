@@ -5,6 +5,7 @@ import backend.protzilla.methods.importing as importing
 from backend.protzilla.steps import Step
 
 _forward_mapping: list[Step] = [
+    importing.ArbitraryCSVImport,
     importing.DiannImport,
     importing.MaxQuantImport,
     importing.MsFraggerImport,
