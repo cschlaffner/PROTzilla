@@ -347,10 +347,11 @@ class Step(ABC):
                 )
 
         return {
-            # key: self.inputs[key]
-            key: self.inputs.get(key)
-            for key in input_parameters.keys()
-            # if key in self.inputs
+            # if there is a default value, we want to use it
+            key: self.inputs.get(key, param.default)
+            if param.default != inspect.Parameter.empty
+            else self.inputs.get(key)
+            for key, param in input_parameters.items()
         }
 
     @property
