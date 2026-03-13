@@ -29,10 +29,31 @@ def args_parser():
         help='path to the dataset you want to compute, provide like "<path>"',
     )
     parser.add_argument(
+        "--msfragger_path",
+        action="store",
+        help="path to the MSFragger combined_proteins.tsv file",
+    )
+    parser.add_argument(
+        "--diann_path",
+        action="store",
+        help="path to the DIA-NN intensities file (*.pg_matrix.tsv)",
+    )
+    parser.add_argument(
+        "--diann_meta_data_path",
+        action="store",
+        help="path to the DIA-NN run-relationship metadata file",
+    )
+    parser.add_argument(
         "--meta_data_path", action="store", help="path to the metadata for your dataset"
     )
     parser.add_argument(
         "--peptides_path", action="store", help="path to the peptides-dataset"
+    )
+    parser.add_argument(
+        "--evidence_path", action="store", help="path to the MaxQuant evidence file"
+    )
+    parser.add_argument(
+        "--fasta_path", action="store", help="path to the fasta protein sequence file"
     )
     parser.add_argument(
         "-n",

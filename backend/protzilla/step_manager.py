@@ -272,7 +272,6 @@ class StepManager:
         if self.df_mode == "disk":
             self.disk_operator._write_output(self.current_step)
 
-
     def next_step(self) -> None:
         """
         Go to the next step in the workflow. Depending on the df_mode, the dataframes of the previous output are
@@ -450,6 +449,18 @@ class StepManager:
     ##
     ## Input/Output accessors
     ##
+
+    @property
+    def metadata_df(self):
+        for step_id in reversed(self.all_step_ids_toposorted):
+            step = self.all_steps.get(step_id)
+            if step is None:
+                continue
+            try:
+                return step.output[DataKey.METADATA_DF]
+            except KeyError:
+                continue
+        return None
 
     def get_step_output(
         self,
