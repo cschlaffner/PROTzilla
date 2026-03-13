@@ -61,7 +61,6 @@ _forward_mapping: list[Step] = [
     data_analysis.ModelEvaluationClassificationModel,
     data_analysis.DimensionReductionTSNE,
     data_analysis.DimensionReductionUMAP,
-    data_analysis.SelectPeptidesForProtein,
     data_analysis.FLEXIQuantLF,
     data_analysis.MultiFLEXLF,
     data_analysis.PTMsPerSample,
