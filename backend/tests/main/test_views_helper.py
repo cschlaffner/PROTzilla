@@ -59,7 +59,6 @@ def test_get_all_possible_step_names():
         "ModelEvaluationClassificationModel",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
-        "SelectPeptidesForProtein",
         "FLEXIQuantLF",
         "MultiFLEXLF",
         "PTMsPerSample",
