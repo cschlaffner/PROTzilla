@@ -440,7 +440,9 @@ def gseapy_enrichment(
                 dict(level=logging.ERROR, msg=error_msg, trace=str(e)),
             )
 
-    print(enriched, type(enriched))
+    if isinstance(enriched, list) and len(enriched) == 0:
+        return (None, None, dict(level=logging.ERROR, msg="GSEAPY error: No hits returned for all input gene sets"))
+
     enriched["Proteins"] = enriched["Genes"].apply(
         lambda x: ";".join(
             ";".join(gene_to_protein_groups[gene]) for gene in x.split(";")

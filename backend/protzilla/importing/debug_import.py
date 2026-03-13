@@ -7,9 +7,9 @@ from backend.protzilla.steps import OutputItem, OutputType
 
 def arbitrary_csv_import(
     file_path: Path,
-) -> dict[DataKey, OutputItem]:
+) -> dict[str, OutputItem]:
     return {
-        DataKey.DEBUG: OutputItem(
+        DataKey.DEBUG.value: OutputItem(
             output_type=OutputType.DATAFRAME, value=pd.read_csv(file_path)
         )
     }

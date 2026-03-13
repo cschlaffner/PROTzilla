@@ -113,7 +113,6 @@ class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
-        self.inputs["differential_expression_col"] = "log2_fold_change"
         if (
             self.inputs.get(DataKey.PROTEIN_DF) is None
             or not self.inputs["differential_expression_col"]
