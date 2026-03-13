@@ -215,13 +215,11 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     name="differential_expression_col",
                     label="Column in the protein table containing the values for direction of expression change",
                 ),
-                NumberField(
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
                     "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    min=0,
-                    max=4294967295,
-                    value=0,
+                    value=0.0,
                 ),
                 DropdownField(
                     name="direction",
