@@ -516,10 +516,21 @@ class Output:
 
     def update(self, source_dict: dict[str, Any]):
         for key, value in source_dict.items():
-            if key == "messages" and isinstance(value, list):
-                self.output[key] = OutputItem(
-                    output_type=OutputType.MESSAGES, value=value
-                )
+            if key == "messages":
+                if isinstance(value, list):
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=value
+                    )
+                elif isinstance(value, dict) and len(value) == 0:
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=[]
+                    )
+                elif isinstance(value, dict) and len(value) > 0:
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=[value]
+                    )
+                else:
+                    raise ValueError("Messages should be lists or dicts.")
 
             # These checks are for backwards compatibility with existing
             # calculation methods.
