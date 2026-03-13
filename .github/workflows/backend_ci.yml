@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - 'dev'
-    paths:
-      - backend/**
+      - '248-verify-runner-works'
   pull_request:
     types: ['opened', 'synchronize']
     paths:

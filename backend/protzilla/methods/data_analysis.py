@@ -2171,8 +2171,6 @@ class SelectPeptidesForProtein(PeptideAnalysisStep):
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
 
-        self.inputs[DataKey.METADATA_DF] = steps.metadata_df
-
         if self.inputs["auto_select"] == YesNo.yes:
             significant_proteins = steps.get_step_output(
                 output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
