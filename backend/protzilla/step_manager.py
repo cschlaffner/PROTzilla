@@ -330,13 +330,12 @@ class StepManager:
         """
         if not self.is_at_terminal_step:
             self.disk_operator.clear_upload_dir()  # TODO this could be a problem when using protzilla for multiple users
-            if self.df_mode == "disk":
-                # TODO maybe this doesnt really need to be written to disk anymore,
-                # as it is preceeded by a calculation, after which everything is written to
-                # disk anyway. Better would be if it would just replace the dfs with their respective paths
-                self.current_step.output = Output(
-                    self.disk_operator._write_output(self.current_step)
-                )
+            # TODO: This never worked and will never work.
+            # There needs to be a complete overhaul of the df_mode handling.
+            # if self.df_mode == "disk":
+            #     self.current_step.output = Output(
+            #         self.disk_operator._write_output(self.current_step)
+            #     )
             next_step_id = self.recommended_next_step_id
             self._current_selected_step_id = next_step_id
         else:
@@ -515,11 +514,7 @@ class StepManager:
         """
 
         step = self.get_step_by_id(instance_identifier)
-        try:
-            return step.output[output_key]
-        # TODO: this is really ugly, but Output does not have a .get() method
-        except KeyError:
-            return None
+        return step.output.get(output_key)
 
     def get_step_input(
         self,

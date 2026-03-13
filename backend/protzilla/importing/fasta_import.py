@@ -60,4 +60,4 @@ def fasta_import(
     fasta_sequences = pd.DataFrame(
         {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
     )
-    return {DataKey.FASTA_DF: fasta_sequences}
+    return {DataKey.FASTA_DF.value: fasta_sequences}
