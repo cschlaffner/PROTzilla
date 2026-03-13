@@ -1167,7 +1167,7 @@ class ClusteringKMeans(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1238,16 +1238,17 @@ class ClusteringKMeans(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
 
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 class ClusteringExpectationMaximisation(ClusteringStep):
     display_name = "Expectation-maximization (EM)"
@@ -1282,7 +1283,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1290,7 +1291,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_components",
@@ -1346,15 +1347,17 @@ class ClusteringExpectationMaximisation(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
@@ -1389,7 +1392,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1397,7 +1400,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_clusters",
@@ -1438,15 +1441,17 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
