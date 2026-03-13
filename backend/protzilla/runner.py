@@ -19,6 +19,9 @@ class Runner:
     :ivar workflow: str, name of workflow in user_data/workflows
     :ivar ms_data_path: str, path to MS-Data
     :ivar meta_data_path: str, path to Meta-Data
+    :ivar msfragger_path: str, path to MSFragger combined_proteins.tsv
+    :ivar diann_path: str, path to DIA-NN intensities file (*.pg_matrix.tsv)
+    :ivar diann_meta_data_path: str, path to DIA-NN run-relationship metadata
     :ivar run_name: str, name of run to be created
     :ivar df_mode: str, keep DFs in memory or write on disk, default: disk
     :ivar all_plots: bool, if set all plots will be generated and save in the
@@ -35,6 +38,11 @@ class Runner:
         df_mode: str | None = "disk",
         all_plots: bool = False,
         verbose: bool = False,
+        msfragger_path: str | None = None,
+        diann_path: str | None = None,
+        diann_meta_data_path: str | None = None,
+        evidence_path: str | None = None,
+        fasta_path: str | None = None,
     ):
         logging.basicConfig(level=logging.INFO)
 
@@ -45,6 +53,11 @@ class Runner:
         self.ms_data_path = ms_data_path
         self.meta_data_path = meta_data_path
         self.peptides_path = peptides_path
+        self.msfragger_path = msfragger_path
+        self.diann_path = diann_path
+        self.diann_meta_data_path = diann_meta_data_path
+        self.evidence_path = evidence_path
+        self.fasta_path = fasta_path
         self.df_mode = df_mode if df_mode is not None else "disk"
         self.workflow = workflow
 
@@ -65,7 +78,10 @@ class Runner:
         )
         logging.info(f"Run {self.run_name} created at {self.run.run_path}")
 
-        if self.run.steps._current_selected_step_id is None and self.run.steps.all_steps:
+        if (
+            self.run.steps._current_selected_step_id is None
+            and self.run.steps.all_steps
+        ):
             self.run.steps._current_selected_step_id = (
                 self.run.steps.all_step_ids_toposorted[0]
             )
@@ -107,26 +123,72 @@ class Runner:
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
     def _insert_commandline_inputs(self, step: Step):
-        if step.operation == "Protein Data Import":
+        step_type = step.__class__.__name__
+        if step_type == "MaxQuantImport":
             step.form["file_path"].value = self.ms_data_path
+            return
+        if step_type == "MsFraggerImport":
+            if self.msfragger_path is None:
+                raise ValueError(
+                    "msfragger_path (--msfragger_path=<path/to/combined_proteins.tsv>) "
+                    f"is not specified, but is required for {step.operation} with {step.display_name}"
+                )
+            step.form["file_path"].value = self.msfragger_path
+            return
+        if step_type == "DiannImport":
+            if self.diann_path is None:
+                raise ValueError(
+                    "diann_path (--diann_path=<path/to/pg_matrix.tsv>) "
+                    f"is not specified, but is required for {step.operation} with {step.display_name}"
+                )
+            step.form["file_path"].value = self.diann_path
+            return
 
-        elif step.operation == "metadataimport":
+        if step_type == "MetadataImport":
             if self.meta_data_path is None:
                 raise ValueError(
                     f"meta_data_path (--meta_data_path=<path/to/data) is not specified,"
                     f" but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.meta_data_path
-        elif step.operation == "peptide_import":
+            return
+        if step_type == "MetadataImportMethodDiann":
+            if self.diann_meta_data_path is None:
+                raise ValueError(
+                    "diann_meta_data_path (--diann_meta_data_path=<path/to/data>) "
+                    f"is not specified, but is required for {step.operation} with {step.display_name}"
+                )
+            step.form["file_path"].value = self.diann_meta_data_path
+            return
+
+        if step_type == "PeptideImport":
             if self.peptides_path is None:
                 raise ValueError(
                     f"peptides_path (--peptides_path=<path/to/data>) is not specified, "
                     f"but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.peptides_path
-        elif step.operation == "example_import":
-            # Nothing to insert here
-            pass
+            return
+        if step_type == "EvidenceImport":
+            if self.evidence_path is None:
+                raise ValueError(
+                    "evidence_path (--evidence_path=<path/to/evidence.txt>) "
+                    f"is not specified, but is required for {step.operation} with {step.display_name}"
+                )
+            step.form["file_path"].value = self.evidence_path
+            return
+        if step_type == "FastaImport":
+            if self.fasta_path is None:
+                raise ValueError(
+                    "fasta_path (--fasta_path=<path/to/file.fasta>) "
+                    f"is not specified, but is required for {step.operation} with {step.display_name}"
+                )
+            step.form["file_path"].value = self.fasta_path
+            return
+        if step_type == "ExampleDatasetImport":
+            return
+        if step_type == "MetadataColumnAssignment":
+            return
         else:
             raise ValueError(
                 f"Cannot find step with name {step.operation} with {step.display_name} in importing"

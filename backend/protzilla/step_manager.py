@@ -499,6 +499,18 @@ class StepManager:
     ## Input/Output accessors
     ##
 
+    @property
+    def metadata_df(self):
+        for step_id in reversed(self.all_step_ids_toposorted):
+            step = self.all_steps.get(step_id)
+            if step is None:
+                continue
+            try:
+                return step.output[DataKey.METADATA_DF]
+            except KeyError:
+                continue
+        return None
+
     def get_step_output(
         self,
         output_key: str,
