@@ -454,7 +454,9 @@ class Step(ABC):
         self.plots = Plots()
 
     def invalidate(self) -> None:
-        self.calculation_status = "outdated"
+        # step should not show as outdated if it's never been calculated
+        if self.calculation_status != "incomplete":
+            self.calculation_status = "outdated"
 
 
 class Output:

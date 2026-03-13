@@ -183,16 +183,15 @@ class StepManager:
         for step in steps_to_invalidate:
             step.invalidate()
 
-    def invalidate_current_and_following_steps(self) -> int:
+    def invalidate_current_and_following_steps(self) -> None:
         """
         Invalidates the current step and all dependent/following steps.
 
         :return: the amount of invalidated steps
         """
-        steps_to_remove = [self.current_step] + self.following_steps
-        for step in steps_to_remove:
-            step.invalidate()
-        return len(steps_to_remove)
+        self.invalidate_step_and_following_steps_based_on_step_id(
+            self.current_selected_step_id
+        )
 
     def _clear_succeeding_steps(self, step_id: StepID) -> None:
         """
