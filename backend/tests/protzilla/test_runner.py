@@ -453,9 +453,7 @@ def test_integration_runner_non_maxquant(
         )
 
         if mock_workflow == "MSFragger_Standard":
-            kwargs["msfragger_path"] = (
-                f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
-            )
+            kwargs["msfragger_path"] = f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
         elif mock_workflow == "DIA-NN_Standard":
             kwargs["diann_path"] = f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
 
