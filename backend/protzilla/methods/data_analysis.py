@@ -1559,7 +1559,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
                 ),
@@ -1595,36 +1595,62 @@ class ClassificationRandomForest(ClassificationStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        validation_strategy_field: DropdownField = self.form["validation_strategy"]
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
         train_val_split_field: NumberField = self.form["train_val_split"]
         n_splits_field: NumberField = self.form["n_splits"]
         shuffle_field: DropdownField = self.form["shuffle"]
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        if validation_strategy_field.value in [
+        cv_field: NumberField = self.form.get("cv")
+        n_iter_field: NumberField = self.form.get("n_iter")
+        model_selection_scoring_field: DropdownField = self.form.get("model_selection_scoring")
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        if cv_field is not None:
+            cv_field.isVisible = False
+        if n_iter_field is not None:
+            n_iter_field.isVisible = False
+        if model_selection_scoring_field is not None:
+            model_selection_scoring_field.isVisible = False
+
+        if validation in [
             ClassificationValidationStrategy.k_fold.value,
             ClassificationValidationStrategy.stratified_k_fold.value,
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.repeated_k_fold.value
-        ):
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.leave_p_out.value
-        ):
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
             p_samples_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.manual.value
-        ):
+        elif validation == ClassificationValidationStrategy.manual.value:
             train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        if cv_field is not None:
+            cv_field.isVisible = is_grid
+        if n_iter_field is not None:
+            n_iter_field.isVisible = is_random
+        if model_selection_scoring_field is not None:
+            model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(random_forest)
 
@@ -1728,7 +1754,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
                 ),
@@ -1763,36 +1789,62 @@ class ClassificationSVM(ClassificationStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        validation_strategy_field: DropdownField = self.form["validation_strategy"]
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
         train_val_split_field: NumberField = self.form["train_val_split"]
         n_splits_field: NumberField = self.form["n_splits"]
         shuffle_field: DropdownField = self.form["shuffle"]
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        if validation_strategy_field.value in [
+        cv_field: NumberField = self.form.get("cv")
+        n_iter_field: NumberField = self.form.get("n_iter")
+        model_selection_scoring_field: DropdownField = self.form.get("model_selection_scoring")
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        if cv_field is not None:
+            cv_field.isVisible = False
+        if n_iter_field is not None:
+            n_iter_field.isVisible = False
+        if model_selection_scoring_field is not None:
+            model_selection_scoring_field.isVisible = False
+
+        if validation in [
             ClassificationValidationStrategy.k_fold.value,
             ClassificationValidationStrategy.stratified_k_fold.value,
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.repeated_k_fold.value
-        ):
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.leave_p_out.value
-        ):
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
             p_samples_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.manual.value
-        ):
+        elif validation == ClassificationValidationStrategy.manual.value:
             train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        if cv_field is not None:
+            cv_field.isVisible = is_grid
+        if n_iter_field is not None:
+            n_iter_field.isVisible = is_random
+        if model_selection_scoring_field is not None:
+            model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(svm)
 
