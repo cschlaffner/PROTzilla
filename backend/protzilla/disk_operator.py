@@ -51,7 +51,7 @@ class ErrorHandler:
 
 
 ##
-## Custom PyYAML representers/consturctors
+## Custom PyYAML representers/constructors
 ##
 
 
