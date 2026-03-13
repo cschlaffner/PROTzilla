@@ -1250,6 +1250,7 @@ class ClusteringKMeans(ClusteringStep):
         self.form["n_iter"].isVisible = is_random
         self.form["model_selection_scoring"].isVisible = is_search
 
+
 class ClusteringExpectationMaximisation(ClusteringStep):
     display_name = "Expectation-maximization (EM)"
     method_description = "A clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
@@ -1564,6 +1565,20 @@ class ClassificationRandomForest(ClassificationStep):
                     value=ClassificationScoring.accuracy,
                 ),
                 NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
+                ),
+                NumberField(
                     name="n_estimators",
                     label="The number of trees in the forest",
                     min=1,
@@ -1609,9 +1624,11 @@ class ClassificationRandomForest(ClassificationStep):
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        cv_field: NumberField = self.form.get("cv")
-        n_iter_field: NumberField = self.form.get("n_iter")
-        model_selection_scoring_field: DropdownField = self.form.get("model_selection_scoring")
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
 
         train_val_split_field.isVisible = False
         n_splits_field.isVisible = False
@@ -1619,12 +1636,9 @@ class ClassificationRandomForest(ClassificationStep):
         n_repeats_field.isVisible = False
         p_samples_field.isVisible = False
 
-        if cv_field is not None:
-            cv_field.isVisible = False
-        if n_iter_field is not None:
-            n_iter_field.isVisible = False
-        if model_selection_scoring_field is not None:
-            model_selection_scoring_field.isVisible = False
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
 
         if validation in [
             ClassificationValidationStrategy.k_fold.value,
@@ -1645,12 +1659,9 @@ class ClassificationRandomForest(ClassificationStep):
         is_random = model_sel == ModelSelection.randomized_search.value
         is_search = is_grid or is_random
 
-        if cv_field is not None:
-            cv_field.isVisible = is_grid
-        if n_iter_field is not None:
-            n_iter_field.isVisible = is_random
-        if model_selection_scoring_field is not None:
-            model_selection_scoring_field.isVisible = is_search
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(random_forest)
 
@@ -1759,6 +1770,20 @@ class ClassificationSVM(ClassificationStep):
                     value=ClassificationScoring.accuracy,
                 ),
                 NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
+                ),
+                NumberField(
                     name="C",
                     label="C: regularization parameter (the strength of the regularization is inversely proportional to C)",
                     min=0.0,
@@ -1803,9 +1828,11 @@ class ClassificationSVM(ClassificationStep):
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        cv_field: NumberField = self.form.get("cv")
-        n_iter_field: NumberField = self.form.get("n_iter")
-        model_selection_scoring_field: DropdownField = self.form.get("model_selection_scoring")
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
 
         train_val_split_field.isVisible = False
         n_splits_field.isVisible = False
@@ -1813,12 +1840,9 @@ class ClassificationSVM(ClassificationStep):
         n_repeats_field.isVisible = False
         p_samples_field.isVisible = False
 
-        if cv_field is not None:
-            cv_field.isVisible = False
-        if n_iter_field is not None:
-            n_iter_field.isVisible = False
-        if model_selection_scoring_field is not None:
-            model_selection_scoring_field.isVisible = False
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
 
         if validation in [
             ClassificationValidationStrategy.k_fold.value,
@@ -1839,12 +1863,9 @@ class ClassificationSVM(ClassificationStep):
         is_random = model_sel == ModelSelection.randomized_search.value
         is_search = is_grid or is_random
 
-        if cv_field is not None:
-            cv_field.isVisible = is_grid
-        if n_iter_field is not None:
-            n_iter_field.isVisible = is_random
-        if model_selection_scoring_field is not None:
-            model_selection_scoring_field.isVisible = is_search
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(svm)
 
