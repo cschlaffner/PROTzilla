@@ -44,7 +44,6 @@ from backend.protzilla.utilities.clustergram import (
     HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
-    select_peptides_of_protein,
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
@@ -1167,7 +1166,7 @@ class ClusteringKMeans(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1238,15 +1237,17 @@ class ClusteringKMeans(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 
 class ClusteringExpectationMaximisation(ClusteringStep):
@@ -1282,7 +1283,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1290,7 +1291,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_components",
@@ -1346,15 +1347,17 @@ class ClusteringExpectationMaximisation(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
@@ -1389,7 +1392,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
                     value=ClusteringScoring.completeness_score,
                 ),
@@ -1397,7 +1400,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_clusters",
@@ -1438,15 +1441,17 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
-        model_selection = self.form["model_selection"].value
-        self.form["cv"].isVisible = model_selection == ModelSelection.grid_search.value
-        self.form["n_iter"].isVisible = (
-            model_selection == ModelSelection.randomized_search.value
-        )
-        self.form["model_selection_scoring"].isVisible = model_selection in [
-            ModelSelection.grid_search.value,
-            ModelSelection.randomized_search.value,
-        ]
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
@@ -1486,11 +1491,15 @@ class ClassificationRandomForest(ClassificationStep):
                     min=0,
                     value=0.20,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
+                ),
+                CheckboxField(
+                    name="bootstrap",
+                    label="Boolstrap data should be used when building trees.",
+                    value=True,
                 ),
                 DropdownField(
                     name="validation_strategy",
@@ -1512,11 +1521,10 @@ class ClassificationRandomForest(ClassificationStep):
                     value=5,
                     isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                     isVisible=False,
                 ),
                 NumberField(
@@ -1554,9 +1562,23 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_estimators",
@@ -1590,36 +1612,58 @@ class ClassificationRandomForest(ClassificationStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        validation_strategy_field: DropdownField = self.form["validation_strategy"]
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
         train_val_split_field: NumberField = self.form["train_val_split"]
         n_splits_field: NumberField = self.form["n_splits"]
         shuffle_field: DropdownField = self.form["shuffle"]
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        if validation_strategy_field.value in [
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
+
+        if validation in [
             ClassificationValidationStrategy.k_fold.value,
             ClassificationValidationStrategy.stratified_k_fold.value,
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.repeated_k_fold.value
-        ):
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.leave_p_out.value
-        ):
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
             p_samples_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.manual.value
-        ):
+        elif validation == ClassificationValidationStrategy.manual.value:
             train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(random_forest)
 
@@ -1655,11 +1699,10 @@ class ClassificationSVM(ClassificationStep):
                     min=0,
                     value=0.20,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                 ),
                 DropdownField(
                     name="validation_strategy",
@@ -1681,11 +1724,10 @@ class ClassificationSVM(ClassificationStep):
                     value=5,
                     isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                     isVisible=False,
                 ),
                 NumberField(
@@ -1723,9 +1765,23 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="C",
@@ -1758,36 +1814,58 @@ class ClassificationSVM(ClassificationStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        validation_strategy_field: DropdownField = self.form["validation_strategy"]
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
         train_val_split_field: NumberField = self.form["train_val_split"]
         n_splits_field: NumberField = self.form["n_splits"]
         shuffle_field: DropdownField = self.form["shuffle"]
         n_repeats_field: NumberField = self.form["n_repeats"]
         p_samples_field: NumberField = self.form["p_samples"]
 
-        if validation_strategy_field.value in [
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
+
+        if validation in [
             ClassificationValidationStrategy.k_fold.value,
             ClassificationValidationStrategy.stratified_k_fold.value,
         ]:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.repeated_k_fold.value
-        ):
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
             n_splits_field.isVisible = True
             shuffle_field.isVisible = True
             n_repeats_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.leave_p_out.value
-        ):
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
             p_samples_field.isVisible = True
-        elif (
-            validation_strategy_field.value
-            == ClassificationValidationStrategy.manual.value
-        ):
+        elif validation == ClassificationValidationStrategy.manual.value:
             train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(svm)
 
@@ -2071,127 +2149,6 @@ class MultiFLEXLF(BaseFLEXLF):
 
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
     operation = "Peptide analysis"
-
-
-class SelectPeptidesForProtein(PeptideAnalysisStep):
-    display_name = "Select Peptides of Protein"
-    method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
-
-    output_keys = [DataKey.PEPTIDE_DF]
-
-    def create_form(self):
-        return Form(
-            label="Select Peptides of Protein",
-            input_fields=[
-                DropdownField(
-                    name="auto_select",
-                    label="Automatically select most significant Protein",
-                    options=YesNo,
-                    value=YesNo.no,
-                ),
-                DropdownField(
-                    name="protein_list",
-                    label="Select a list of Proteins from which you want to choose your Proteins of Interest",
-                ),
-                DropdownField(
-                    name="sort_proteins",
-                    label="Sort Proteins by p-value (requires a list of Proteins from a Differential Expression Analysis to be selected)",
-                    options=YesNo,
-                    value=YesNo.no,
-                ),
-                MultiSelectField(
-                    name="protein_ids",
-                    label="Protein IDs",
-                ),
-            ],
-        )
-
-    # TODO: unsure about what this step does/how it should be translated - leaving mostly as is ~T
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field: DropdownField = self.form["peptide_df_field"]
-        auto_select_field: DropdownField = self.form["auto_select"]
-        sort_proteins_field: DropdownField = self.form["sort_proteins"]
-        protein_list_field: DropdownField = self.form["protein_list"]
-        protein_ids_field: MultiSelectField = self.form["protein_ids"]
-
-        peptide_df_field.set_options(
-            form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step)
-        )
-        peptide_df_field.value = run.steps.get_instance_identifiers(
-            DataPreprocessingStep, DataKey.PEPTIDE_DF
-        )[-1]
-
-        selected_auto_select = True if auto_select_field.value == YesNo.yes else False
-
-        protein_list_options = form_helper.to_choices(
-            [] if selected_auto_select else ["all proteins"]
-        )
-        protein_list_options.extend(
-            form_helper.get_choices(
-                run, DataKey.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
-            )
-        )
-        protein_list_field.set_options(protein_list_options)
-
-        chosen_list = protein_list_field.value
-        if not selected_auto_select:
-            # TODO: Enable toggling
-            if chosen_list == "all_proteins":
-                protein_ids_field.set_options(
-                    form_helper.to_choices(run.steps.protein_df["Protein ID"].unique())
-                )
-            else:
-                if sort_proteins_field.value == YesNo.yes:
-                    protein_ids_field.set_options(
-                        form_helper.to_choices(
-                            run.steps.get_step_output(
-                                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                                instance_identifier=chosen_list,
-                            )
-                            .sort_values(by="corrected_p_value")["Protein ID"]
-                            .unique()
-                        )
-                    )
-                else:
-                    significant_proteins = run.steps.get_step_output(
-                        output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                        instance_identifier=chosen_list,
-                    )
-                    if significant_proteins is not None:
-                        protein_ids_field.set_options(
-                            form_helper.to_choices(
-                                significant_proteins["Protein ID"].unique()
-                            )
-                        )
-
-    calc_method = staticmethod(select_peptides_of_protein)
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-
-        self.inputs[DataKey.METADATA_DF] = steps.metadata_df
-
-        if self.inputs["auto_select"]:
-            significant_proteins = steps.get_step_output(
-                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                instance_identifier=self.inputs["protein_list"],
-            )
-            index_of_most_significant_protein = significant_proteins[
-                "corrected_p_value"
-            ].idxmin()
-            most_significant_protein = significant_proteins.loc[
-                index_of_most_significant_protein
-            ]
-            self.inputs["protein_id"] = [most_significant_protein["Protein ID"]]
-            self.messages.append(
-                {
-                    "level": logging.INFO,
-                    "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {self.inputs['protein_list']}",
-                }
-            )
 
 
 class PTMsPerSample(PeptideAnalysisStep):

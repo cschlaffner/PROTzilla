@@ -165,6 +165,8 @@ export const RunScreen: React.FC = () => {
   }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
+    setAvailableTables(undefined);
+    setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
