@@ -56,6 +56,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   onNext,
   onSubmit,
   onChange,
+  runData,
 }) {
   const notify = useNotification();
   const theme = useTheme();
@@ -79,7 +80,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
 
   useEffect(() => {
     void getStepForm();
-  }, [current_step_id, getStepForm]);
+  }, [current_step_id, getStepForm, runData]);
 
   const handleChange = (name: string, value: BackendInputValueType) => {
     void getStepForm({ [name]: value });
