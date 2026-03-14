@@ -9,6 +9,7 @@ from backend.protzilla.data_analysis.model_evaluation_plots import (
     precision_recall_curve_plot,
     roc_curve_plot,
 )
+from backend.protzilla.data_analysis.plots import precision_recall_plot
 
 
 @pytest.fixture
@@ -129,6 +130,11 @@ def test_random_forest_score(random_forest_out, validation_strategy, model_selec
 
 
 def test_model_evaluation_plots(show_figures, random_forest_out, helpers):
+    recall_curve_plotly = precision_recall_plot(
+        random_forest_out["model"],
+        random_forest_out["X_test_df"],
+        random_forest_out["y_test_df"],
+    )["plots"]
     recall_curve_base64 = precision_recall_curve_plot(
         random_forest_out["model"],
         random_forest_out["X_test_df"],
@@ -141,6 +147,7 @@ def test_model_evaluation_plots(show_figures, random_forest_out, helpers):
     )
 
     if show_figures:
+        recall_curve_plotly[0].show()
         helpers.open_graph_from_base64(recall_curve_base64[0])
         helpers.open_graph_from_base64(roc_curve_base64[0])
 
