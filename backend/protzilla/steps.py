@@ -218,6 +218,8 @@ class Step(ABC):
                 raise ValueError(
                     f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
+            # TODO: temporary measure while support for model outputs isn't properly finished
+            # the model instances don't implement a .copy() method
             self.inputs[target_handle] = (
                 output.copy() if isinstance(output, (pd.DataFrame, list)) else output
             )
