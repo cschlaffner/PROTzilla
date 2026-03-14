@@ -1696,6 +1696,9 @@ class ClassificationSVM(ClassificationStep):
         "y_test_df",
     ]
 
+    # TODO: should either be set via form_inputs or removed from the method's parameters
+    internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
+
     def create_form(self):
         return Form(
             label="Support Vector Machine",
