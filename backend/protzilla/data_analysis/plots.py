@@ -521,13 +521,12 @@ def prot_quant_plot(
 
 def precision_recall_plot(
     model: ClassificationType,
-    X_test: pd.DataFrame,
-    y_test: pd.DataFrame,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
 ):
-    # X_test.set_index("Sample", inplace=True)
-    y_score = model.predict_proba(X_test)[:, 1]
+    y_score = model.predict_proba(X_test_df)[:, 1]
     precision, recall, thresholds = precision_recall_curve(
-        y_test, y_score
+        y_test_df, y_score
     )
     fig = go.Figure()
     fig.add_shape(
@@ -535,16 +534,9 @@ def precision_recall_plot(
         x0=0, x1=1, y0=1, y1=0
     )
     fig.add_trace(go.Scatter(x=recall, y=precision, mode='lines'))
-    # fig = px.area(
-    #     x=recall,
-    #     y=precision,
-    #     title=f"Precision-Recall Curve (AUC={auc(recall, precision):.4f})",
-    #     labels=dict(x="Recall", y="Precision"),
-    #     width=700,
-    #     height=500,
-    # )
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     fig.update_xaxes(constrain="domain")
+    fig.update_layout(title=f"Precision-Recall Curve (AUC={auc(recall, precision):.4f})",)
 
     return dict(plots=[fig])
 
