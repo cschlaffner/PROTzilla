@@ -146,7 +146,7 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
         current_out["corrected_p_values_df"],
         current_out["log2_fold_change_df"],
         test_fc_threshold,
-        current_out["corrected_alpha"],
+        current_out["corrected_alpha"].value,
         current_input["group1"],
         current_input["group2"],
     )
@@ -174,7 +174,7 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
         list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
         == differentially_expressed_proteins
     )
-    assert current_out["corrected_alpha"] == test_alpha
+    assert current_out["corrected_alpha"].value == test_alpha
     assert (
         list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
@@ -203,7 +203,7 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
         current_out["corrected_p_values_df"],
         current_out["log2_fold_change_df"],
         test_fc_threshold,
-        current_out["corrected_alpha"],
+        current_out["corrected_alpha"].value,
         current_input["group1"],
         current_input["group2"],
     )
@@ -231,7 +231,7 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
         list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
         == differentially_expressed_proteins
     )
-    assert current_out["corrected_alpha"] == test_alpha
+    assert current_out["corrected_alpha"].value == test_alpha
     assert (
         list(current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique())
         == significant_proteins
