@@ -25,6 +25,7 @@ StepID = NewType("StepID", str)
 
 ClassificationType = SVC | RandomForestClassifier
 
+
 class Connection(TypedDict):
     """
     Type for connections in the node viewer
