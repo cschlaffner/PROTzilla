@@ -238,10 +238,6 @@ def random_forest(
         p_samples,
     )
 
-    # X_test.reset_index(inplace=True)
-    # X_train.reset_index(inplace=True)
-    # y_test = decode_labels(encoding_mapping, y_test)
-    # y_train = decode_labels(encoding_mapping, y_train)
     return dict(
         model=model,
         model_evaluation_df=model_evaluation_df,
@@ -404,10 +400,6 @@ def svm(
         p_samples,
     )
 
-    # X_test.reset_index(inplace=True)
-    # X_train.reset_index(inplace=True)
-    # y_test = decode_labels(encoding_mapping, y_test)
-    # y_train = decode_labels(encoding_mapping, y_train)
     return dict(
         model=model,
         model_evaluation_df=model_evaluation_df,
