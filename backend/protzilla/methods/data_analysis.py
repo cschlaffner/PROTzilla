@@ -38,6 +38,7 @@ from backend.protzilla.data_analysis.plots import (
     create_volcano_plot,
     precision_recall_plot,
     prot_quant_plot,
+    roc_plot,
     scatter_plot,
 )
 from backend.protzilla.utilities.clustergram import (
@@ -1095,18 +1096,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
     plot_method = staticmethod(prot_quant_plot)
 
 
-class PlotROC(DataAnalysisStep):
-    display_name = "Receiver Operating Characteristic curve"
-    operation = "plot"
-    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
 class PositiveLabelStep(DataAnalysisStep, ABC):
 
     positive_label_is_required: bool = False
@@ -1119,6 +1108,19 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
             column_field="labels_column",
             group_field="positive_label",
             required=self.positive_label_is_required,
+        )
+
+
+class PlotROC(DataAnalysisPlotStep):
+    display_name = "Receiver Operating Characteristic curve"
+    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
+
+    plot_method = staticmethod(roc_plot)
+
+    def create_form(self):
+        return Form(
+            label="ROC Curve",
+            input_fields=[],
         )
 
 

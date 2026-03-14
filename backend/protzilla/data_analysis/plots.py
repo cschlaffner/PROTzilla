@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy import stats
-from sklearn.metrics import precision_recall_curve, auc
+from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 from backend.protzilla.constants.colors import (
@@ -525,9 +525,10 @@ def precision_recall_plot(
     y_test_df: pd.DataFrame,
 ):
     y_score = model.predict_proba(X_test_df)[:, 1]
-    precision, recall, thresholds = precision_recall_curve(
+    precision, recall, _ = precision_recall_curve(
         y_test_df, y_score
     )
+    auc_score = auc(recall, precision)
     fig = go.Figure()
     fig.add_shape(
         type='line', line=dict(dash='dash'),
@@ -536,7 +537,26 @@ def precision_recall_plot(
     fig.add_trace(go.Scatter(x=recall, y=precision, mode='lines'))
     fig.update_yaxes(scaleanchor="x", scaleratio=1)
     fig.update_xaxes(constrain="domain")
-    fig.update_layout(title=f"Precision-Recall Curve (AUC={auc(recall, precision):.4f})",)
+    fig.update_layout(title=f"Precision-Recall Curve (AUC={auc_score:.4f})",)
 
     return dict(plots=[fig])
 
+def roc_plot(
+    model: ClassificationType,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
+):
+    y_score = model.predict_proba(X_test_df)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test_df, y_score)
+    auc_score = auc(fpr, tpr)
+    fig = go.Figure()
+    fig.add_shape(
+        type='line', line=dict(dash='dash'),
+        x0=0, x1=1, y0=0, y1=1
+    )
+    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines'))
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+    fig.update_layout(title=f"ROC Curve (AUC={auc_score:.4f})",)
+
+    return dict(plots=[fig])
