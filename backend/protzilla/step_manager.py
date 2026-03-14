@@ -4,6 +4,7 @@ import pandas as pd
 
 if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
+    from backend.protzilla.run import Run
 
 from backend.protzilla.steps import Step, Section, Output
 from backend.protzilla.constants.data_types import (
@@ -12,6 +13,7 @@ from backend.protzilla.constants.data_types import (
     StepID,
     parse_connection,
 )
+
 
 import networkx as nx
 
@@ -31,12 +33,7 @@ class StepManager:
     def __repr__(self):
         return f"StepManager with {str(len(self.all_steps))} steps: {str(self.all_step_ids_toposorted)}"
 
-    def __init__(
-        self,
-        *,
-        disk_operator: DiskOperator,
-        df_mode: str = "disk",
-    ):
+    def __init__(self, *, disk_operator: DiskOperator, df_mode: str = "disk"):
         self.df_mode: str = df_mode
         self.disk_operator: DiskOperator = disk_operator
 
@@ -330,13 +327,12 @@ class StepManager:
         """
         if not self.is_at_terminal_step:
             self.disk_operator.clear_upload_dir()  # TODO this could be a problem when using protzilla for multiple users
-            if self.df_mode == "disk":
-                # TODO maybe this doesnt really need to be written to disk anymore,
-                # as it is preceeded by a calculation, after which everything is written to
-                # disk anyway. Better would be if it would just replace the dfs with their respective paths
-                self.current_step.output = Output(
-                    self.disk_operator._write_output(self.current_step)
-                )
+            # TODO: This never worked and will never work.
+            # There needs to be a complete overhaul of the df_mode handling.
+            # if self.df_mode == "disk":
+            #     self.current_step.output = Output(
+            #         self.disk_operator._write_output(self.current_step)
+            #     )
             next_step_id = self.recommended_next_step_id
             self._current_selected_step_id = next_step_id
         else:
@@ -416,7 +412,7 @@ class StepManager:
     ## Connection management
     ##
 
-    def connect_steps(self, connection: Connection) -> None:
+    def connect_steps(self, connection: Connection, run: Run | None = None) -> None:
         """
         Connects an output of one source step to an input of another target step.
         Creates/updates the corresponding link in the graph and sets the handles as edge data.
@@ -452,6 +448,8 @@ class StepManager:
         )
 
         self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
+        if run is not None:
+            self.all_steps[target].modify_form(run)
 
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
@@ -466,6 +464,7 @@ class StepManager:
         # pyright is wrong here - it expects 3-tuples (u, v, data) like for a DiGraph
         # but since we have a MultiDiGraph, our edges are of format (u, v, key, data)
         self.graph.remove_edges_from(edges)  # pyright: ignore[reportArgumentType]
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
 
     def get_edges(self) -> list[Connection]:
         """
@@ -515,11 +514,7 @@ class StepManager:
         """
 
         step = self.get_step_by_id(instance_identifier)
-        try:
-            return step.output[output_key]
-        # TODO: this is really ugly, but Output does not have a .get() method
-        except KeyError:
-            return None
+        return step.output.get(output_key)
 
     def get_step_input(
         self,
