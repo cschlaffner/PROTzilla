@@ -1119,6 +1119,8 @@ class PlotROC(DataAnalysisStep):
 
 class PositiveLabelStep(DataAnalysisStep, ABC):
 
+    positive_label_is_required: bool = False
+
     @override
     def modify_form(self, run: Run) -> None:
         self.set_grouping_options(run, column_field_name="labels_column")
@@ -1460,6 +1462,8 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
 
+    positive_label_is_required: bool = True
+
 
 class ClassificationRandomForest(ClassificationStep):
     display_name = "Random Forest"
@@ -1486,11 +1490,13 @@ class ClassificationRandomForest(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1508,12 +1514,15 @@ class ClassificationRandomForest(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1537,7 +1546,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1602,7 +1611,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1694,11 +1703,13 @@ class ClassificationSVM(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1711,12 +1722,15 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1740,7 +1754,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1796,7 +1810,7 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationKernel,
                     value=ClassificationKernel.linear,
                 ),
-                NumberField(
+                FloatField(
                     name="tolerance",
                     label="Tolerance for stopping criterion",
                     min=0.0,
@@ -1804,7 +1818,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0.0,
                     max=4294967295,
                     step=1,
