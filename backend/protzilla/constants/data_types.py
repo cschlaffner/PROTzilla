@@ -1,6 +1,8 @@
 import pandas as pd
 from enum import StrEnum
 from typing import NewType, TypedDict
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
 class DataKey(StrEnum):
@@ -21,6 +23,7 @@ MetadataDf = NewType("MetadataDf", pd.DataFrame)
 
 StepID = NewType("StepID", str)
 
+ClassificationType = SVC | RandomForestClassifier
 
 class Connection(TypedDict):
     """

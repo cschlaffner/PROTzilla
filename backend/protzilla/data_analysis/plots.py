@@ -1,12 +1,14 @@
 import logging
 
 from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.data_types import ClassificationType
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy import stats
+from sklearn.metrics import precision_recall_curve, auc
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 from backend.protzilla.constants.colors import (
@@ -515,3 +517,34 @@ def prot_quant_plot(
     )
 
     return dict(plots=[fig])
+
+
+def precision_recall_plot(
+    model: ClassificationType,
+    X_test: pd.DataFrame,
+    y_test: pd.DataFrame,
+):
+    # X_test.set_index("Sample", inplace=True)
+    y_score = model.predict_proba(X_test)[:, 1]
+    precision, recall, thresholds = precision_recall_curve(
+        y_test, y_score
+    )
+    fig = go.Figure()
+    fig.add_shape(
+        type='line', line=dict(dash='dash'),
+        x0=0, x1=1, y0=1, y1=0
+    )
+    fig.add_trace(go.Scatter(x=recall, y=precision, mode='lines'))
+    # fig = px.area(
+    #     x=recall,
+    #     y=precision,
+    #     title=f"Precision-Recall Curve (AUC={auc(recall, precision):.4f})",
+    #     labels=dict(x="Recall", y="Precision"),
+    #     width=700,
+    #     height=500,
+    # )
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+
+    return dict(plots=[fig])
+

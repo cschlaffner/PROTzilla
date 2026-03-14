@@ -36,6 +36,7 @@ from backend.protzilla.data_analysis.model_evaluation import (
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
+    precision_recall_plot,
     prot_quant_plot,
     scatter_plot,
 )
@@ -1094,17 +1095,6 @@ class PlotProtQuant(DataAnalysisPlotStep):
     plot_method = staticmethod(prot_quant_plot)
 
 
-class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
-    display_name = "Precision Recall"
-    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
 class PlotROC(DataAnalysisStep):
     display_name = "Receiver Operating Characteristic curve"
     operation = "plot"
@@ -1128,7 +1118,20 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
             run,
             column_field="labels_column",
             group_field="positive_label",
-            required=False,
+            required=self.positive_label_is_required,
+        )
+
+
+class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
+    display_name = "Precision Recall"
+    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
+
+    plot_method = staticmethod(precision_recall_plot)
+
+    def create_form(self):
+        return Form(
+            label="Precision Recall Curve",
+            input_fields=[],
         )
 
 
