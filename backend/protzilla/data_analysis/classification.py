@@ -244,8 +244,8 @@ def random_forest(
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )
 
 
@@ -406,6 +406,6 @@ def svm(
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )
