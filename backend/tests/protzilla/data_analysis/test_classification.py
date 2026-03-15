@@ -129,13 +129,14 @@ def test_random_forest_score(random_forest_out, validation_strategy, model_selec
 
 
 def test_model_evaluation_plots(show_figures, random_forest_out, helpers):
+    model = random_forest_out["model"].value
     recall_curve_base64 = precision_recall_curve_plot(
-        random_forest_out["model"],
+        model,
         random_forest_out["X_test_df"],
         random_forest_out["y_test_df"],
     )
     roc_curve_base64 = roc_curve_plot(
-        random_forest_out["model"],
+        model,
         random_forest_out["X_test_df"],
         random_forest_out["y_test_df"],
     )
@@ -147,7 +148,7 @@ def test_model_evaluation_plots(show_figures, random_forest_out, helpers):
 
 def test_evaluate_classification_model(show_figures, random_forest_out):
     evaluation_out = evaluate_classification_model(
-        random_forest_out["model"],
+        random_forest_out["model"].value,
         random_forest_out["X_test_df"],
         random_forest_out["y_test_df"],
         ["accuracy", "precision", "recall", "matthews_corrcoef"],
