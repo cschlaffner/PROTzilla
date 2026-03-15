@@ -15,7 +15,6 @@ def by_samples_missing(
     is below a threshold (percentage).
 
     :param protein_df: the protein dataframe that should be filtered
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param percentage: ranging from 0 to 1. Defining the relative share of samples the proteins need to be present in,
         in order for the protein to be kept.
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
@@ -74,6 +73,11 @@ def by_number_of_values_per_group(
         filtered_proteins=filtered_proteins_list,
         remaining_proteins=remaining_proteins_list,
     )
+
+
+def by_protein_ids(protein_df: pd.DataFrame, protein_ids: list[str]) -> dict:
+    filtered_df = protein_df[(protein_df["Protein ID"].isin(protein_ids))]
+    return dict(protein_df=filtered_df)
 
 
 def by_samples_missing_plot(
