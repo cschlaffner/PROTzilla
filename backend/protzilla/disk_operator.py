@@ -117,7 +117,7 @@ class ArtifactOperator:
         with ErrorHandler():
             logger.info(f"Writing artifact to {file_path}")
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            joblib.dump(artifact, file_path)
+            joblib.dump(artifact, file_path, compress=("gzip", 3))
 
 
 RUN_FILE = "run.yaml"
@@ -293,7 +293,7 @@ class DiskOperator:
                     logger.warning(f"Deleting dataframe {file}")
                     file.unlink()
 
-    def clean_artifacts_dir(self, steps: StepManager) -> None:
+    def clean_artifact_dir(self, steps: StepManager) -> None:
         with ErrorHandler():
             if not self.artifact_dir.exists():
                 return
@@ -419,7 +419,8 @@ class DiskOperator:
                         )
                     case OutputType.JOBLIB_ARTIFACT:
                         file_path = (
-                            self.artifact_dir / f"{step.instance_identifier}_{key}.csv"
+                            self.artifact_dir
+                            / f"{step.instance_identifier}_{key}.joblib.gz"
                         )
                         # Only dump if outdated version
                         if self._dump_is_outdated(step, "output"):
@@ -511,16 +512,6 @@ def sanitize_inputs(inputs: dict) -> dict:
             continue
         if utilities.check_is_path(value):
             continue
-        if key == DataKey.PEPTIDE_DF:
-            continue
-        try:
-            yaml.safe_dump(value)
-            sanitized[key] = value
-        except Exception:
-            # not yaml serialisable -> ignore it to prevent errors
-            logger.warning(
-                f"Dropping non-YAML-serializable input {key} of type {type(value)}"
-            )
-            continue
+        sanitized[key] = value
 
     return sanitized
