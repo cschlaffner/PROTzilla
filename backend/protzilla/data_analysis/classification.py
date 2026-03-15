@@ -14,6 +14,7 @@ from backend.protzilla.data_analysis.classification_helper import (
     perform_grid_search_cv,
     perform_train_test_split,
 )
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.transform_dfs import (
     is_long_format,
     long_to_wide,
@@ -243,7 +244,7 @@ def random_forest(
     y_test = decode_labels(encoding_mapping, y_test)
     y_train = decode_labels(encoding_mapping, y_train)
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
@@ -409,7 +410,7 @@ def svm(
     y_test = decode_labels(encoding_mapping, y_test)
     y_train = decode_labels(encoding_mapping, y_train)
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
