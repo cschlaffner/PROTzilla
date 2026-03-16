@@ -466,6 +466,8 @@ class OutputType(StrEnum):
     MESSAGES = "messages"
     FLOAT = "float"
     INT = "int"
+    # for every data type that is not yaml serializable
+    JOBLIB_ARTIFACT = "joblib_artifact"
 
 
 class OutputItem(yaml.YAMLObject):
