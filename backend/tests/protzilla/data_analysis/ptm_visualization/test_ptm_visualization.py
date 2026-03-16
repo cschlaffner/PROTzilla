@@ -289,9 +289,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_plotting_functions(plot_func, kwargs, gfap_config):
-        run_plot_and_validate(
-            plot_func, kwargs, gfap_config, {"clean", "old", "exon"}
-        )
+        run_plot_and_validate(plot_func, kwargs, gfap_config, {"clean", "old", "exon"})
 
     @staticmethod
     def test_plotting_functions_vertical_orientation(
@@ -303,9 +301,7 @@ class TestPTMVisualization:
         }
         alter_general_config(monkeypatch, new_param_dict)
 
-        run_plot_and_validate(
-            plot_func, kwargs, gfap_config, {"clean", "old", "exon"}
-        )
+        run_plot_and_validate(plot_func, kwargs, gfap_config, {"clean", "old", "exon"})
 
     @staticmethod
     def test_fasta_non_matching_isoform_ids(plot_func, kwargs):
@@ -708,14 +704,10 @@ class TestPTMVisualization:
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(EXAMPLE_DATASET_METADATA_FILE)
 
-        run_plot_and_validate(
-            plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"}
-        )
+        run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
 
     @staticmethod
-    def test_csk2_protein(
-            plot_func, kwargs, satb1_config, monkeypatch
-    ):
+    def test_csk2_protein(plot_func, kwargs, satb1_config, monkeypatch):
         # TODO: maybe convert this into a function that tests overly large figures and fails (before changing width
         #  and make it working again)
         # TODO: remove
@@ -734,14 +726,26 @@ class TestPTMVisualization:
         # TODO: Also order Bar Plot
         # TODO: improve performance of bar plot?
         # TODO: Remove N-Term cleavage
-        kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/evidence_P46013.txt"))
-        kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013.fasta")
-        kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013_regions.txt")
+        kwargs["evidence_df"] = get_evidence_df(
+            Path(
+                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/evidence_P46013.txt"
+            )
+        )
+        kwargs["fasta_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013.fasta"
+        )
+        kwargs["regions_file_path"] = Path(
+            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013_regions.txt"
+        )
 
         alter_general_config(monkeypatch, {"FIGURE_WIDTH": 4000})
 
         if "metadata_df" in kwargs:
-            kwargs["metadata_df"] = get_metadata_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/meta.csv"))
+            kwargs["metadata_df"] = get_metadata_df(
+                Path(
+                    "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/meta.csv"
+                )
+            )
 
         run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
 
@@ -756,9 +760,7 @@ class TestPTMVisualization:
         kwargs["fasta_file_path"] = TAU_PATH / "uniprotkb_P10636_5_8.fasta"
         kwargs["regions_file_path"] = TAU_REGIONS_FILE_PATH
 
-        run_plot_and_validate(
-            plot_func, kwargs, tau_substitution_config, {"AD", "CTR"}
-        )
+        run_plot_and_validate(plot_func, kwargs, tau_substitution_config, {"AD", "CTR"})
 
     @staticmethod
     def test_fasta_with_single_sequence(plot_func, kwargs, tau_8_config, tau_5_config):

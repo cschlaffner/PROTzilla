@@ -193,9 +193,7 @@ def validate_plot_outputs(
     assert all(s not in all_plot_strings for s in validation_config.excluded_strings)
 
 
-def run_plot_and_validate(
-        plot_func, kwargs, validation_config, required_groups
-):
+def run_plot_and_validate(plot_func, kwargs, validation_config, required_groups):
     result = plot_func(**kwargs)
     assert len(result["plots"]) == 1
     plot = result["plots"][0]
