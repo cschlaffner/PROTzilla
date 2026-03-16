@@ -100,7 +100,7 @@ def test_k_means(clustering_df, meta_df):
         check_dtype=False,
     )
 
-    np.array_equal(centroids_assertion, current_out["model"].cluster_centers_)
+    np.array_equal(centroids_assertion, current_out["model"].value.cluster_centers_)
 
 
 def test_k_means_nan_handling(df_with_nan, meta_df):

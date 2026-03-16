@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
+import joblib
 from plotly.io import read_json, write_json
 
 from backend.protzilla.constants.data_types import DataKey
@@ -103,6 +104,22 @@ class DataFrameOperator:
             dataframe.to_csv(file_path, index=False)
 
 
+# for all non serializable data types
+class ArtifactOperator:
+    @staticmethod
+    def read(file_path: Path):
+        with ErrorHandler():
+            logger.info(f"Reading artifact from {file_path}")
+            return joblib.load(file_path)
+
+    @staticmethod
+    def write(file_path: Path, artifact):
+        with ErrorHandler():
+            logger.info(f"Writing artifact to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(artifact, file_path, compress=("gzip", 3))
+
+
 RUN_FILE = "run.yaml"
 
 
@@ -131,6 +148,7 @@ class DiskOperator:
         self.workflow_name = workflow_name
         self.yaml_operator = YamlOperator()
         self.dataframe_operator = DataFrameOperator()
+        self.artifact_operator = ArtifactOperator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -275,6 +293,17 @@ class DiskOperator:
                     logger.warning(f"Deleting dataframe {file}")
                     file.unlink()
 
+    def clean_artifact_dir(self, steps: StepManager) -> None:
+        with ErrorHandler():
+            if not self.artifact_dir.exists():
+                return
+            for file in self.artifact_dir.iterdir():
+                if file.is_dir():
+                    continue
+                if not self.check_file_validity(file, steps):
+                    logger.warning(f"Deleting artifact {file}")
+                    file.unlink()
+
     def clear_upload_dir(self) -> None:
         # TODO in general our way of handling file uploads is kind of non-straightforward, maybe we should switch
         # to directly using the FileUpload provided by Django instead of the work-around with the path of the upload as a str
@@ -353,7 +382,12 @@ class DiskOperator:
                             output_type=OutputType.DATAFRAME,
                             value=self.dataframe_operator.read(self.run_dir / path),
                         )
-
+                    case OutputType.JOBLIB_ARTIFACT:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=self.artifact_operator.read(self.run_dir / path),
+                        )
                     case _:
                         step_output[key] = item
 
@@ -381,6 +415,18 @@ class DiskOperator:
                             self.dataframe_operator.write(file_path, item.value)
                         output_data[key] = OutputItem(
                             output_type=OutputType.DATAFRAME,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.JOBLIB_ARTIFACT:
+                        file_path = (
+                            self.artifact_dir
+                            / f"{step.instance_identifier}_{key}.joblib.gz"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
                             value=str(file_path.relative_to(self.run_dir)),
                         )
                     case _:
@@ -444,6 +490,10 @@ class DiskOperator:
         return self.run_dir / "dataframes"
 
     @property
+    def artifact_dir(self) -> Path:
+        return self.run_dir / "artifacts"
+
+    @property
     def plot_dir(self) -> Path:
         return self.run_dir / "plots"
 
@@ -455,10 +505,13 @@ def sanitize_inputs(inputs: dict) -> dict:
     :param inputs: The inputs to sanitize
     :return: The sanitized inputs
     """
-    return {
-        key: value
-        for key, value in inputs.items()
-        if type(value) != pd.DataFrame
-        and not utilities.check_is_path(value)
-        and key != DataKey.PEPTIDE_DF
-    }
+    sanitized = {}
+
+    for key, value in inputs.items():
+        if isinstance(value, pd.DataFrame):
+            continue
+        if utilities.check_is_path(value):
+            continue
+        sanitized[key] = value
+
+    return sanitized

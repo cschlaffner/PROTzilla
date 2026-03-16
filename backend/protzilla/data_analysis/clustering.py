@@ -12,6 +12,7 @@ from backend.protzilla.data_analysis.classification_helper import (
     evaluate_clustering_with_scoring,
     perform_grid_search_cv,
 )
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.transform_dfs import (
     is_long_format,
     long_to_wide,
@@ -131,7 +132,7 @@ def k_means(
             .reset_index()
         )
         return dict(
-            model=model,
+            model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
             model_evaluation_df=model_evaluation_df,
             cluster_labels_df=cluster_labels_df,
             cluster_centers_df=cluster_centers_df,
@@ -267,7 +268,7 @@ def expectation_maximisation(
     )
     cluster_labels_probabilities_df.insert(0, "Sample", protein_df_wide.index)
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         cluster_labels_df=cluster_labels_df,
         cluster_labels_probabilities_df=cluster_labels_probabilities_df,
@@ -360,7 +361,7 @@ def hierarchical_agglomerative_clustering(
         {"Sample": protein_df_wide.index, "Cluster Labels": model.labels_}
     )
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         cluster_labels_df=cluster_labels_df,
     )
