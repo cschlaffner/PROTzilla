@@ -22,7 +22,7 @@ def download_example_data(
 ) -> None:
     archive_file_path = EXAMPLE_DATASET_DIR / filename
     if not archive_file_path.exists():
-        logger.info(f"Downloading file %s from PRIDE project %s", filename, accession)
+        logger.info("Downloading file %s from PRIDE project %s", filename, accession)
         try:
             raw_files = pridepy.Files()
             raw_files.download_file_by_name(
@@ -39,9 +39,9 @@ def download_example_data(
         except Exception as e:
             raise RuntimeError(
                 f"Error downloading file {filename} from PRIDE project {accession}. "
-                f"This is likely and issue with PRIDE.\nOriginal error: {e}\n"
+                f"This is likely an issue with PRIDE.\nOriginal error: {e}\n"
             )
-        logger.info(f"Completed download of file %s", filename)
+        logger.info("Completed download of file %s", filename)
 
     required_file_names = []
     if not EXAMPLE_DATASET_PROTEIN_FILE.exists():

@@ -5,9 +5,13 @@ from unittest import mock
 
 import pytest
 
-from protzilla import importing
-from protzilla.importing.example_dataset_import import example_dataset_import
-from tests.paths import (
+from backend.protzilla import importing
+from backend.protzilla.constants.paths import (
+    EXAMPLE_DATASET_PROTEIN_FILE,
+    EXAMPLE_DATASET_EVIDENCE_FILE,
+)
+from backend.protzilla.importing.example_dataset_import import example_dataset_import
+from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_PEPTIDES_PATH,
     TEST_METADATA_PATH,
@@ -23,13 +27,22 @@ def tmp_example_data_dir(tmp_path_factory):
 
 @pytest.fixture()
 def example_data_paths(tmp_example_data_dir):
-    tmp_protein_path = (
-        tmp_example_data_dir.resolve() / "txt_REL_FREE-REPASE/proteinGroups.txt"
+    example_protein_file_path_ending = EXAMPLE_DATASET_PROTEIN_FILE.relative_to(
+        importing.example_dataset_import.EXAMPLE_DATASET_DIR
+    )
+    tmp_protein_path = tmp_example_data_dir.resolve() / example_protein_file_path_ending
+    example_evidence_file_path_ending = EXAMPLE_DATASET_EVIDENCE_FILE.relative_to(
+        importing.example_dataset_import.EXAMPLE_DATASET_DIR
     )
     tmp_evidence_path = (
-        tmp_example_data_dir.resolve() / "txt_REL_FREE-REPASE/evidence.txt"
+        tmp_example_data_dir.resolve() / example_evidence_file_path_ending
     )
-    tmp_meta_path = tmp_example_data_dir.resolve() / "meta.csv"
+    example_meta_file_path_ending = (
+        importing.example_dataset_import.EXAMPLE_DATASET_METADATA_FILE.relative_to(
+            importing.example_dataset_import.EXAMPLE_DATASET_DIR
+        )
+    )
+    tmp_meta_path = tmp_example_data_dir.resolve() / example_meta_file_path_ending
     return tmp_protein_path, tmp_evidence_path, tmp_meta_path
 
 

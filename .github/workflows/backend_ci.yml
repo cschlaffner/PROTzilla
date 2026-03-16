@@ -54,7 +54,7 @@ jobs:
       - name: Run tests and build coverage file
         run: |
           export PYTHONPATH=. pytest 
-          pytest --cache-clear --cov=. --cov-report term-missing backend/tests/ --deselect=backend/tests/protzilla/test_runner.py::test_example_dataset_runner
+          pytest --cache-clear --cov=. --cov-report term-missing backend/tests/
 
       - name: Coverage comment
         id: coverage_comment

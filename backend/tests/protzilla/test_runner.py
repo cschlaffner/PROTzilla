@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 from pathlib import Path
 from unittest import mock
@@ -7,7 +8,12 @@ import pandas as pd
 import pytest
 
 from backend.main import settings
+from backend.protzilla.constants.paths import (
+    EXAMPLE_DATASET_METADATA_FILE,
+    EXAMPLE_DATASET_PROTEIN_FILE,
+)
 from backend.protzilla.runner import _serialize_graphs
+from backend.protzilla.steps import Step
 from backend.protzilla.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
@@ -15,9 +21,7 @@ from backend.tests.paths import (
     TEST_WORKFLOWS_PATH,
 )
 from protzilla import disk_operator
-from protzilla.constants.paths import EXAMPLE_DATASET_DIR
 from protzilla.runner import Runner
-from backend.protzilla.steps import Step
 from runner_cli import args_parser
 from tests.paths import TEST_AML_DATA_PATH
 
@@ -406,10 +410,14 @@ def test_integration_runner(
     assert_runner_finished_successfully(runner)
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Avoid downloading the example dataset files every time CI is run",
+)
 def test_example_dataset_runner(tests_folder_name, monkeypatch):
-    protein_file = EXAMPLE_DATASET_DIR / "txt_REL_FREE-REPASE/proteinGroups.txt"
-    metadata_file = EXAMPLE_DATASET_DIR / "meta.csv"
-    assert metadata_file.exists() and protein_file.exists()
+    assert (
+        EXAMPLE_DATASET_METADATA_FILE.exists() and EXAMPLE_DATASET_PROTEIN_FILE.exists()
+    )
 
     name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
     runner = Runner(
