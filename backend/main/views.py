@@ -75,7 +75,7 @@ def run_information_list(request):
 
 
 def all_steps(request):
-    steps = get_all_possible_steps()
+    steps = get_all_possible_steps(exclude_hidden=True)
     return JsonResponse(steps, safe=False)
 
 

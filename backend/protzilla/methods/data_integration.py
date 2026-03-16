@@ -113,7 +113,6 @@ class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
-        self.inputs["differential_expression_col"] = "log2_fold_change"
         if (
             self.inputs.get(DataKey.PROTEIN_DF) is None
             or not self.inputs["differential_expression_col"]
@@ -215,13 +214,11 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     name="differential_expression_col",
                     label="Column in the protein table containing the values for direction of expression change",
                 ),
-                NumberField(
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
                     "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    min=0,
-                    max=4294967295,
-                    value=0,
+                    value=0.0,
                 ),
                 DropdownField(
                     name="direction",
@@ -351,7 +348,6 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
     method_description = "Offline GO Analysis using a hypergeometric test"
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_offline)
-    # TODO: gene_mapping - adjust this method to use the gene_mapping_df from gene_mapping
 
     def create_form(self):
         return Form(
@@ -361,15 +357,13 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
                     name="differential_expression_col",
                     label="Column in the protein table containing the values for direction of expression change",
                 ),
-                NumberField(
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
                     'values < threshold downregulated. If "log" is in the name of differential_expression_col, '
                     "threshold is applied symmetrically: e.g. log2_fold_change > threshold is upregulated, "
                     "if log2_fold_change < -threshold downregulated",
-                    value=0,
-                    min=0,
-                    max=4294967295,
+                    value=0.0,
                 ),
                 FileInput(
                     name="gene_sets_path",
