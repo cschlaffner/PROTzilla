@@ -1,12 +1,19 @@
 import json
+import os
 import shutil
 from pathlib import Path
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 from backend.main import settings
+from backend.protzilla.constants.paths import (
+    EXAMPLE_DATASET_METADATA_FILE,
+    EXAMPLE_DATASET_PROTEIN_FILE,
+)
 from backend.protzilla.runner import _serialize_graphs
+from backend.protzilla.steps import Step
 from backend.protzilla.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
@@ -16,6 +23,7 @@ from backend.tests.paths import (
 from protzilla import disk_operator
 from protzilla.runner import Runner
 from runner_cli import args_parser
+from tests.paths import TEST_AML_DATA_PATH
 
 
 @pytest.fixture
@@ -153,7 +161,7 @@ def assert_runner_finished_successfully(runner: Runner):
     assert (
         all(step.finished for step in runner.run.steps.all_steps)
         and not runner.run.current_step.messages
-        and "messages" not in runner.run.current_step.output
+        and not (getattr(runner.run.current_step.output, "messages", []))
     )
 
 
@@ -234,6 +242,8 @@ def test_runner_imports(
             "protein_df": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
+            "fc_zscore_alpha": 0.05,
+            "fc_zscore_filter": False,
             "grouping": None,
             "group1": None,
             "group2": None,
@@ -378,7 +388,6 @@ def test_integration_runner(
     metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch
 ):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
-    print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
     runner = Runner(
         **{
             "workflow": "standard",
@@ -399,6 +408,61 @@ def test_integration_runner(
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
     assert_runner_finished_successfully(runner)
+
+
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Avoid downloading the example dataset files every time CI is run",
+)
+def test_example_dataset_runner(tests_folder_name, monkeypatch):
+    assert (
+        EXAMPLE_DATASET_METADATA_FILE.exists() and EXAMPLE_DATASET_PROTEIN_FILE.exists()
+    )
+
+    name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
+    runner = Runner(
+        **{
+            "workflow": "example_dataset",
+            "ms_data_path": None,
+            "meta_data_path": None,
+            "peptides_path": None,
+            "run_name": name,
+            "df_mode": "memory",
+            "all_plots": True,
+            "verbose": False,
+        }
+    )
+
+    mock_write = mock.MagicMock()
+    monkeypatch.setattr(runner.run, "_run_write", mock_write)
+    mock_plot_safe = mock.MagicMock()
+    monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
+    runner.compute_workflow()
+    assert_runner_finished_successfully(runner)
+
+    preprocessing_output_df = runner.run.steps.get_step_output(
+        step_type=Step,
+        output_key="protein_df",
+        instance_identifier="FilterProteinsBySilacRatios_2",
+    )
+
+    assert len(preprocessing_output_df["Protein ID"].unique()) == 5309
+
+    protein_list = pd.read_csv(TEST_AML_DATA_PATH / "preprocessed_protein_list.csv")
+
+    # Do some preprocessing to account for differences in additional protein ids
+    protein_list_1 = protein_list["Protein IDs"].str.split(";").str[0]
+    preprocessing_output_df_1 = (
+        preprocessing_output_df["Protein ID"].str.split(";").str[0].unique()
+    )
+    assert set(protein_list_1) == set(preprocessing_output_df_1)
+
+    significant_protein_df = runner.run.steps.get_step_output(
+        step_type=Step,
+        output_key="significant_proteins_df",
+        instance_identifier="DifferentialExpressionTTest_1",
+    )
+    assert significant_protein_df["Protein ID"].nunique() == 359
 
 
 @pytest.mark.parametrize(

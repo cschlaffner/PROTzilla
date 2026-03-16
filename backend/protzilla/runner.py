@@ -117,6 +117,9 @@ class Runner:
                     f"but is required for {step.operation} with {step.display_name}"
                 )
             step.form["file_path"].value = self.peptides_path
+        elif step.operation == "example_import":
+            # Nothing to insert here
+            pass
         else:
             raise ValueError(
                 f"Cannot find step with name {step.operation} with {step.display_name} in importing"
