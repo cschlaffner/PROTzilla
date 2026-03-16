@@ -672,10 +672,11 @@ def get_step_visualizations(request):
 
 def convert_df_to_mmcif_for_visualization(df: pd.DataFrame, entry_id: str) -> str:
     """
-    Convert a DataFrame representing an mmCIF _atom_site table to a mmCIF string.
+    Convert a DataFrame containing mmCIF atom_site information back into a mmCIF string.
 
-    :param df: DataFrame containing the atom site information
-    :return: String containing the mmCIF content
+    :param df: DataFrame with CIF columns 
+    :param entry_id: Optional entry ID for the CIF block
+    :return: A string representing the mmCIF file
     """
     if df is None or df.empty:
         raise ValueError("DataFrame is empty, cannot create mmCIF content.")

@@ -359,6 +359,6 @@ def visualization_of_protein_structure(
         raise ValueError(f"No CIF dataframe provided for protein '{protein_to_validate}'.")
 
     return {
-        "protein": protein_to_validate,
+        "protein_entry_id": protein_to_validate,
         "cif_df": cif_df
     }
