@@ -165,14 +165,14 @@ def test_evaluate_classification_model(
     classification_df,
     meta_df,
 ):
-    test_samples = random_forest_out["X_test_df"]["Sample"].tolist()
+    test_samples = random_forest_out["X_test_df"].index.tolist()
 
     test_meta_df = meta_df.set_index("Sample").loc[test_samples].reset_index()
 
     evaluation_out = evaluate_classification_model(
         random_forest_out["model"].value,
         random_forest_out["X_test_df"],
-        test_meta_df,
+        random_forest_out["y_test_df"],
         ["accuracy", "precision", "recall", "matthews_corrcoef"],
     )
     scores_df = evaluation_out["scores_df"]
