@@ -9,13 +9,23 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
+import joblib
 from plotly.io import read_json, write_json
 
-import backend.protzilla.utilities as utilities
+from backend.protzilla.constants.data_types import DataKey
+import backend.protzilla.utilities.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.steps import Messages, Output, Plots, Step, StepManager
+from backend.protzilla.steps import (
+    Messages,
+    Output,
+    OutputItem,
+    OutputType,
+    Plots,
+    Step,
+)
+from backend.protzilla.step_manager import StepManager
 
 try:
     from django.conf import settings
@@ -41,13 +51,31 @@ class ErrorHandler:
         return True
 
 
+##
+## Custom PyYAML representers/constructors
+##
+
+
+def output_type_representer(dumper, data):
+    return dumper.represent_scalar("!OutputType", str(data.value))
+
+
+def output_type_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return OutputType(value)
+
+
+yaml.add_representer(OutputType, output_type_representer)
+yaml.add_constructor("!OutputType", output_type_constructor)
+
+
 class YamlOperator:
     @staticmethod
     def read(file_path: Path):
         with ErrorHandler():
             with open(file_path, "r") as file:
                 logger.info(f"Reading yaml from {file_path}")
-                return yaml.safe_load(file)
+                return yaml.full_load(file)
 
     @staticmethod
     def write(file_path: Path, data: dict):
@@ -76,23 +104,42 @@ class DataFrameOperator:
             dataframe.to_csv(file_path, index=False)
 
 
+# for all non serializable data types
+class ArtifactOperator:
+    @staticmethod
+    def read(file_path: Path):
+        with ErrorHandler():
+            logger.info(f"Reading artifact from {file_path}")
+            return joblib.load(file_path)
+
+    @staticmethod
+    def write(file_path: Path, artifact):
+        with ErrorHandler():
+            logger.info(f"Writing artifact to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(artifact, file_path, compress=("gzip", 3))
+
+
 RUN_FILE = "run.yaml"
 
 
 @dataclass
 class KEYS:
     # We add this here to avoid typos and signal to the developer that accessing the keys should be done through this class only
-    CURRENT_STEP_INDEX = "current_step_index"
-    STEPS = "steps"
-    STEP_OUTPUTS = "output"
-    STEP_FORM_INPUTS = "form_inputs"
-    STEP_INPUTS = "inputs"
-    STEP_MESSAGES = "messages"
-    STEP_PLOTS = "plots"
-    STEP_INSTANCE_IDENTIFIER = "instance_identifier"
-    STEP_TYPE = "type"
-    STEP_CALCULATION_STATUS = "calculation_status"
-    DF_MODE = "df_mode"
+    STEPS: str = "steps"
+    STEP_OUTPUTS: str = "output"
+    STEP_FORM_INPUTS: str = "form_inputs"
+    STEP_INPUTS: str = "inputs"
+    STEP_MESSAGES: str = "messages"
+    STEP_PLOTS: str = "plots"
+    STEP_INSTANCE_IDENTIFIER: str = "instance_identifier"
+    STEP_TYPE: str = "type"
+    STEP_CALCULATION_STATUS: str = "calculation_status"
+    DF_MODE: str = "df_mode"
+    VISUAL_DATA: str = "visual_data"
+    CURRENT_STEP_ID: str = "current_step_id"
+    GRAPH_EDGES: str = "graph_edges"
+    ID_CLOCK: str = "id_clock"
 
 
 class DiskOperator:
@@ -101,6 +148,7 @@ class DiskOperator:
         self.workflow_name = workflow_name
         self.yaml_operator = YamlOperator()
         self.dataframe_operator = DataFrameOperator()
+        self.artifact_operator = ArtifactOperator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -115,13 +163,17 @@ class DiskOperator:
                     continue
                 step_manager.add_step(step)
 
-            # this expression ensures that the current step index is within the bounds of the steps list, and at least 0
-            step_manager.current_step_index = max(
-                0,
-                min(
-                    run.get(KEYS.CURRENT_STEP_INDEX, 0), len(step_manager.all_steps) - 1
-                ),
-            )
+            edges = run.get(KEYS.GRAPH_EDGES)
+            if edges is not None:
+                step_manager.graph.add_edges_from(run[KEYS.GRAPH_EDGES])
+
+            id_clock = run.get(KEYS.ID_CLOCK)
+            if id_clock is not None:
+                step_manager._id_clock = id_clock
+
+            current_step_id = run.get(KEYS.CURRENT_STEP_ID)
+            step_manager._current_selected_step_id = current_step_id
+
             return step_manager
 
     def write_run(self, step_manager: StepManager) -> None:
@@ -132,10 +184,12 @@ class DiskOperator:
                 self.dataframe_dir.mkdir(parents=True, exist_ok=True)
             self.clean_dataframes_dir(step_manager)
             run = {}
-            run[KEYS.CURRENT_STEP_INDEX] = step_manager.current_step_index
+            run[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
             run[KEYS.DF_MODE] = step_manager.df_mode
             run[KEYS.STEPS] = []
-            for step in step_manager.all_steps:
+            run[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
+            run[KEYS.ID_CLOCK] = step_manager._id_clock
+            for step in step_manager.all_step_instances:
                 run[KEYS.STEPS].append(self._write_step(step))
             self.yaml_operator.write(self.run_file, run)
 
@@ -197,8 +251,11 @@ class DiskOperator:
         workflow = {}
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
+        workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
+        workflow[KEYS.ID_CLOCK] = step_manager._id_clock
+        workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
-            for step in step_manager.all_steps:
+            for step in step_manager.all_step_instances:
                 step_data = self._write_step(step, workflow_mode=True).copy()
                 inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
                 inputs_to_write = {}
@@ -226,7 +283,7 @@ class DiskOperator:
         return any(
             step.instance_identifier in file.name
             and step.calculation_status != "incomplete"
-            for step in steps.all_steps
+            for step in steps.all_step_instances
         )
 
     def clean_dataframes_dir(self, steps: StepManager) -> None:
@@ -234,6 +291,17 @@ class DiskOperator:
             for file in self.dataframe_dir.iterdir():
                 if not self.check_file_validity(file, steps):
                     logger.warning(f"Deleting dataframe {file}")
+                    file.unlink()
+
+    def clean_artifact_dir(self, steps: StepManager) -> None:
+        with ErrorHandler():
+            if not self.artifact_dir.exists():
+                return
+            for file in self.artifact_dir.iterdir():
+                if file.is_dir():
+                    continue
+                if not self.check_file_validity(file, steps):
+                    logger.warning(f"Deleting artifact {file}")
                     file.unlink()
 
     def clear_upload_dir(self) -> None:
@@ -259,6 +327,9 @@ class DiskOperator:
             step.inputs = step_data.get(KEYS.STEP_INPUTS, {})
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
+            step.visual_data = step_data.get(
+                KEYS.VISUAL_DATA, {"node_position": {"x": 0, "y": 0}}
+            )
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
             step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
             step.calculation_status = step_data.get(
@@ -276,11 +347,21 @@ class DiskOperator:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
+        """
+        Serializes a step to a dictionary for the YamlOperator to dump
+
+        :param step: the step to serialize
+        :param workflow_mode: whether or not to save all data or only metadata
+            (e.g. when dumping workflows)
+
+        :return: Serializable dictionary
+        """
         with ErrorHandler():
             step_data = {}
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
             step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
+            step_data[KEYS.VISUAL_DATA] = step.visual_data
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
@@ -289,44 +370,67 @@ class DiskOperator:
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
-    def _read_outputs(self, output: dict) -> Output:
+    def _read_outputs(self, _output: dict[str, OutputItem]) -> Output:
+        step_output = {}
         with ErrorHandler():
-            step_output = {}
-            for key, value in output.items():
-                # Non-string values get used directly as output
-                if not isinstance(value, str):
-                    step_output[key] = value
-                    continue
+            for key, item in _output.items():
+                match item.output_type:
+                    # Load Dataframes from disk
+                    case OutputType.DATAFRAME:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=self.dataframe_operator.read(self.run_dir / path),
+                        )
+                    case OutputType.JOBLIB_ARTIFACT:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=self.artifact_operator.read(self.run_dir / path),
+                        )
+                    case _:
+                        step_output[key] = item
 
-                # Make sure this works for old run saves which use absolute directories
-                base_path = self.run_dir
-                if Path(value).is_absolute():
-                    base_path = Path()
-
-                if (base_path / Path(value)).exists():
-                    step_output[key] = self.dataframe_operator.read(
-                        base_path / Path(value)
-                    )
-
-                # Path does not exist, just use raw string provided.
-                else:
-                    step_output[key] = value
             return Output(step_output)
 
     def _write_output(self, step: Step) -> dict:
+        """
+        Writes the outputs of a step to disk and returns a dictionary describing the outputs
+        to then be serialized.
+
+        :param step: the step whose outputs to dump
+        :return: serialized output
+        """
         with ErrorHandler(), step.disk_write_mutex:
-            output_data = {}
-            for key, value in step.output:
-                if isinstance(value, pd.DataFrame):
-                    file_path = (
-                        self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
-                    )
-                    # Only dump if outdated version
-                    if self._dump_is_outdated(step, "output"):
-                        self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path.relative_to(self.run_dir))
-                else:
-                    output_data[key] = value
+            output_data: dict[str, OutputItem] = {}
+            for key, item in step.output:
+                match item.output_type:
+                    case OutputType.DATAFRAME:
+                        assert isinstance(item.value, pd.DataFrame)
+                        file_path = (
+                            self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.dataframe_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.JOBLIB_ARTIFACT:
+                        file_path = (
+                            self.artifact_dir
+                            / f"{step.instance_identifier}_{key}.joblib.gz"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case _:
+                        output_data[key] = item
 
             self._update_dump_state(step, "output")
             return output_data
@@ -386,6 +490,10 @@ class DiskOperator:
         return self.run_dir / "dataframes"
 
     @property
+    def artifact_dir(self) -> Path:
+        return self.run_dir / "artifacts"
+
+    @property
     def plot_dir(self) -> Path:
         return self.run_dir / "plots"
 
@@ -397,10 +505,13 @@ def sanitize_inputs(inputs: dict) -> dict:
     :param inputs: The inputs to sanitize
     :return: The sanitized inputs
     """
-    return {
-        key: value
-        for key, value in inputs.items()
-        if type(value) != pd.DataFrame
-        and not utilities.check_is_path(value)
-        and key != "peptide_df"
-    }
+    sanitized = {}
+
+    for key, value in inputs.items():
+        if isinstance(value, pd.DataFrame):
+            continue
+        if utilities.check_is_path(value):
+            continue
+        sanitized[key] = value
+
+    return sanitized

@@ -1,4 +1,5 @@
 import { GridValidRowModel } from "@mui/x-data-grid";
+import type { Edge } from "@xyflow/react";
 
 export interface UIStateProps {
   isDisabled?: boolean;
@@ -8,6 +9,8 @@ export interface SelectedStep {
   section: SectionIDs;
   index: number;
 }
+
+export type StepID = string;
 
 export interface StepOutputInfo {
   label: string;
@@ -22,6 +25,15 @@ export type StepStatus = "complete" | "outdated" | "incomplete" | "failed";
 export interface Step {
   id: string;
   name: string;
+  section: SectionIDs;
+  input_keys: string[];
+  output_keys: string[];
+  visual_data?: {
+    node_position?: {
+      x: number;
+      y: number;
+    };
+  };
   method_name: string;
   status: StepStatus;
 }
@@ -36,31 +48,29 @@ export const enum SectionIDs {
 export interface Section {
   id: SectionIDs;
   name: string;
-  steps: Step[];
 }
 
-export const emptySections: Section[] = [
+export const supportedSections: Section[] = [
   {
     id: SectionIDs.Importing,
     name: "Importing",
-    steps: [],
   },
   {
     id: SectionIDs.DataPreprocessing,
     name: "Data Preprocessing",
-    steps: [],
   },
   {
     id: SectionIDs.DataAnalysis,
     name: "Data Analysis",
-    steps: [],
   },
   {
     id: SectionIDs.DataIntegration,
     name: "Data Integration",
-    steps: [],
   },
 ];
+
+// TODO: remove with List editor refactoring
+export const emptySections: Section[] = supportedSections;
 
 export interface Run {
   run_name: string;
@@ -74,18 +84,22 @@ export interface Run {
 
 export interface RunData {
   current_section: string;
-  current_step_index: number;
-  displayed_steps: Section[];
+  current_step_id: StepID;
+  displayed_steps: Step[];
   memory_usage: string;
   current_step_has_plot: boolean;
+  recommended_next_step_id: StepID;
+  graph_edges: Edge[];
 }
 
 export const emptyRunData: RunData = {
   current_section: "",
-  current_step_index: 0,
-  displayed_steps: emptySections,
+  current_step_id: "",
+  displayed_steps: [],
   memory_usage: "",
   current_step_has_plot: false,
+  recommended_next_step_id: "",
+  graph_edges: [],
 };
 
 export interface Table {

@@ -1,5 +1,6 @@
 import logging
 
+from backend.protzilla.constants.option_types import SimpleImputerStrategyType
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -13,7 +14,10 @@ from backend.protzilla.constants.colors import (
     PLOT_PRIMARY_COLOR,
     PLOT_SECONDARY_COLOR,
 )
-from backend.protzilla.utilities.clustergram import Clustergram
+from backend.protzilla.utilities.clustergram import (
+    Clustergram,
+    AXIS_PROTEIN,
+)
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 
 colors = {
@@ -27,67 +31,75 @@ colors = {
 
 def scatter_plot(
     input_df: pd.DataFrame,
-    color_df: pd.DataFrame | None = None,
+    metadata_df: pd.DataFrame | None = None,
+    metadata_column: str | None = None,
 ) -> dict:
     """
     Function to create a scatter plot from data.
 
     :param input_df: the dataframe that should be plotted. It should have either 2
         or 3 dimensions
-    :param color_df: the Dataframe with one column according to which the marks should
+    :param metadata_df: the Dataframe with one column according to which the marks should
         be colored. This is an optional parameter
+    :param metadata_column: the name of the column in `metadata_df` that contains the
+        group information for each sample. This parameter is required if `metadata_df`
+        is provided.
 
     :return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
-
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-    try:
-        color_df = (
-            pd.DataFrame() if not isinstance(color_df, pd.DataFrame) else color_df
-        )
-
-        if color_df.shape[1] > 1:
-            raise ValueError("The color dataframe should have 1 dimension only")
-
-        if intensity_df_wide.shape[1] == 2:
-            intensity_df_wide = pd.concat([intensity_df_wide, color_df], axis=1)
-            x_name, y_name = intensity_df_wide.columns[:2]
-            color_name = color_df.columns[0] if not color_df.empty else None
-            fig = px.scatter(intensity_df_wide, x=x_name, y=y_name, color=color_name)
-            fig.update_traces(
-                marker=dict(color=colors["annotation_proteins_of_interest"])
-            )
-        elif intensity_df_wide.shape[1] == 3:
-            intensity_df_wide = pd.concat([intensity_df_wide, color_df], axis=1)
-            x_name, y_name, z_name = intensity_df_wide.columns[:3]
-            color_name = color_df.columns[0] if not color_df.empty else None
-            fig = px.scatter_3d(
-                intensity_df_wide, x=x_name, y=y_name, z=z_name, color=color_name
-            )
-            fig.update_traces(marker_color=colors["annotation_proteins_of_interest"])
-        else:
+    if isinstance(metadata_df, pd.DataFrame):
+        if metadata_column not in metadata_df.columns:
             raise ValueError(
-                "The dimensions of the DataFrame are either too high or too low."
+                "The column selected for annotation is not present in the corresponding metadata dataframe.",
             )
-        fig.update_layout(plot_bgcolor=colors["plot_bgcolor"])
-        fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
-        fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
-        return dict(plots=[fig])
-    except ValueError as e:
-        msg = ""
-        if intensity_df_wide.shape[1] < 2:
-            msg = (
-                f"The input dataframe has {intensity_df_wide.shape[1]} feature. "
-                f"Consider using another plot to visualize your data"
+
+    intensity_df = input_df.copy()
+    if isinstance(metadata_df, pd.DataFrame):
+        intensity_df = pd.merge(
+            intensity_df,
+            metadata_df[["Sample", metadata_column]],
+            on="Sample",
+            how="left",
+        )
+    else:
+        # Mock a metadata column here so that we can treat dfs with and without metadata the same way
+        metadata_column = "mock_metadata_column"
+        intensity_df[metadata_column] = None
+    intensity_df = intensity_df.drop(columns="Sample")
+
+    color_col = (
+        metadata_column if intensity_df[metadata_column].notnull().any() else None
+    )
+    if intensity_df.shape[1] - 1 == 2:
+        x_name, y_name = intensity_df.drop(columns=metadata_column).columns[:2]
+        if not (
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
+        ):
+            raise ValueError(
+                "All columns used for the 2D scatter plot must be numeric."
             )
-        elif intensity_df_wide.shape[1] > 3:
-            msg = (
-                f"The input dataframe has {intensity_df_wide.shape[1]} features. "
-                f"Consider reducing the dimensionality of your data"
+        fig = px.scatter(intensity_df, x=x_name, y=y_name, color=color_col)
+    elif intensity_df.shape[1] - 1 == 3:
+        x_name, y_name, z_name = intensity_df.drop(columns=metadata_column).columns[:3]
+        if not (
+            pd.api.types.is_numeric_dtype(intensity_df[x_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[y_name])
+            and pd.api.types.is_numeric_dtype(intensity_df[z_name])
+        ):
+            raise ValueError(
+                "All columns used for the 3D scatter plot must be numeric."
             )
-        elif color_df.shape[1] != 1:
-            msg = "The color dataframe should have 1 dimension only"
-        return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
+        fig = px.scatter_3d(intensity_df, x=x_name, y=y_name, z=z_name, color=color_col)
+    else:
+        raise ValueError(
+            f"The provided DataFrame has {intensity_df.shape[1] - 1} dimensions, but only 2D or 3D data can "
+            "be plotted."
+        )
+    fig.update_layout(plot_bgcolor=colors["plot_bgcolor"])
+    fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    return dict(plots=[fig])
 
 
 def create_volcano_plot(
@@ -187,7 +199,7 @@ def create_volcano_plot(
 
 
 def clustergram_plot(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None,
     flip_axes: bool,
     metadata_column: str | None = None,
@@ -197,6 +209,7 @@ def clustergram_plot(
     heatmap_low_color: str | None = None,
     heatmap_high_color_limit: float | None = None,
     heatmap_high_color: str | None = None,
+    imputation_strategy: SimpleImputerStrategyType = SimpleImputerStrategyType.MEAN.value,
 ) -> dict:
     """
     Creates a clustergram plot from a dataframe in protzilla wide format. The rows or
@@ -229,11 +242,20 @@ def clustergram_plot(
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
     try:
-        assert isinstance(input_df, pd.DataFrame) and not input_df.empty
+        assert isinstance(protein_df, pd.DataFrame) and not protein_df.empty
         assert isinstance(metadata_df, pd.DataFrame) or not metadata_df
 
+        input_df = protein_df
+
+        messages = []
         input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
-        assert not input_df_wide.isna().any(axis=None)
+        if input_df_wide.isna().any(axis=None):
+            messages.append(
+                dict(
+                    level=logging.WARNING,
+                    msg="The selected input dataframe contains missing values. The clustergram thus includes imputed values.",
+                )
+            )
 
         if isinstance(metadata_df, pd.DataFrame):
             assert metadata_column in metadata_df.columns
@@ -277,6 +299,10 @@ def clustergram_plot(
         else:
             custom_color_scale = None
 
+        imputer_parameters = dict(
+            axis=AXIS_PROTEIN, missing_values="nan", strategy=imputation_strategy
+        )
+
         clustergram = Clustergram(
             flip_axes=flip_axes,
             data=input_df_wide.values,
@@ -289,22 +315,18 @@ def clustergram_plot(
             hidden_labels=["row", "col"],
             custom_color_scale=custom_color_scale,
             heatmap_legend_title=heatmap_legend_title,
+            imputer_parameters=imputer_parameters,
         )
 
         clustergram.update_layout(
             autosize=True,
         )
-        return dict(plots=[clustergram])
+        return dict(plots=[clustergram], messages=messages)
     except AssertionError as e:
-        if not isinstance(input_df, pd.DataFrame):
+        if not isinstance(protein_df, pd.DataFrame):
             msg = 'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
         elif not isinstance(metadata_df, pd.DataFrame) and metadata_df is not None:
             msg = 'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
-        elif input_df_wide.isna().any(axis=None):
-            msg = (
-                "The selected input dataframe contains missing values. These should be filtered out or imputed before "
-                "creating a clustergram plot."
-            )
         elif (
             isinstance(metadata_df, pd.DataFrame)
             and metadata_column not in metadata_df.columns
@@ -320,7 +342,7 @@ def clustergram_plot(
 
 
 def prot_quant_plot(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     protein_group: str,
     similarity: float = 1.0,
     similarity_measure: str = "euclidean distance",
@@ -341,9 +363,11 @@ def prot_quant_plot(
     :return: returns a dictionary containing a list with a plotly figure
     """
 
-    wide_df = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_wide_df = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
-    if protein_group not in wide_df.columns:
+    if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")
     elif similarity_measure == "euclidean distance" and similarity < 0:
         raise ValueError(
@@ -364,14 +388,14 @@ def prot_quant_plot(
     lower_upper_x = []
     lower_upper_y = []
 
-    lower_upper_x.append(wide_df.index[0])
-    lower_upper_y.append(wide_df.iloc[0].min())
+    lower_upper_x.append(protein_wide_df.index[0])
+    lower_upper_y.append(protein_wide_df.iloc[0].min())
 
-    for index, row in wide_df.iterrows():
+    for index, row in protein_wide_df.iterrows():
         lower_upper_x.append(index)
         lower_upper_y.append(row.max())
 
-    for index, row in reversed(list(wide_df.iterrows())):
+    for index, row in reversed(list(protein_wide_df.iterrows())):
         lower_upper_x.append(index)
         lower_upper_y.append(row.min())
 
@@ -386,17 +410,17 @@ def prot_quant_plot(
     )
 
     similar_groups = []
-    for group_to_compare in wide_df.columns:
+    for group_to_compare in protein_wide_df.columns:
         if group_to_compare != protein_group:
             if similarity_measure == "euclidean distance":
                 distance = euclidean_distances(
-                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             else:
                 distance = cosine_similarity(
-                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             if similarity_measure == "euclidean distance":
                 if distance <= similarity:
@@ -408,8 +432,8 @@ def prot_quant_plot(
     for group in similar_groups:
         fig.add_trace(
             go.Scatter(
-                x=wide_df.index,
-                y=wide_df[group],
+                x=protein_wide_df.index,
+                y=protein_wide_df[group],
                 mode="lines",
                 name=group[:15] + "..." if len(group) > 15 else group,
                 line=dict(color=PLOT_COLOR_SEQUENCE[2]),
@@ -433,8 +457,8 @@ def prot_quant_plot(
     )
     fig.add_trace(
         go.Scatter(
-            x=wide_df.index,
-            y=wide_df[protein_group],
+            x=protein_wide_df.index,
+            y=protein_wide_df[protein_group],
             mode="lines",
             name=formatted_protein_name,
             line=dict(color=PLOT_SECONDARY_COLOR),
@@ -474,10 +498,10 @@ def prot_quant_plot(
         xaxis=dict(
             tickmode="array",
             tickangle=0,
-            tickvals=wide_df.index,
+            tickvals=protein_wide_df.index,
             ticktext=[
                 f"<span style='font-size: 10px; color:{color_mapping.get(label[0], 'black')}'><b>•</b></span>"
-                for label in wide_df.index
+                for label in protein_wide_df.index
             ],
         ),
         autosize=True,

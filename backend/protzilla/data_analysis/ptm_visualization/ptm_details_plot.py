@@ -4,17 +4,17 @@ from pathlib import Path
 
 import pandas as pd
 
-from main.views_helper import load_settings_from_file
-from protein_sequencing.details_plot import DetailsPlotter
-from protzilla.constants.colors import PLOT_COLOR_SEQUENCE
-from protzilla.constants.paths import (
+from backend.main.views_helper import load_settings_from_file
+from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
+from backend.protzilla.constants.paths import (
     CUSTOM_PTM_SETTINGS_FILE_STEM,
     DEFAULT_PTM_SETTINGS_FILE_STEM,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     preprocess_files,
     get_group_dict_from_df,
 )
+from protein_sequencing.details_plot import DetailsPlotter
 
 
 def get_details_plot_config_module(

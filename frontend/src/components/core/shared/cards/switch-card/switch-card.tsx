@@ -18,18 +18,42 @@ const StyledCard = styled(Card)<{ hasShadow: boolean }>`
   box-shadow: ${({ hasShadow }) => (hasShadow ? shadow("box_shadow") : "none")};
 `;
 
+const FALLBACK_COMPONENT: SwitchComponent = { name: "Error", value: <></> };
+
+const getSelectedName = (items: SwitchComponent[], selectedName?: string) => {
+  if (selectedName) {
+    const selectedComponent = items.find((component) => component.name === selectedName);
+    if (selectedComponent) return selectedComponent.name;
+  }
+  return items.length > 0 ? items[0].name : FALLBACK_COMPONENT.name;
+};
+
 export const SwitchCard: React.FC<SwitchCardProps> = ({
   components,
   hasSwitchAlignStart = true,
   hasCardTitle = true,
   hasShadow = true,
   styleProps,
+  selection = undefined,
+  callback = undefined,
 }) => {
-  const [switchState, setSwitchState] = useState<SwitchComponent>({ name: "Error", value: <></> });
+  const [switchStateName, setSwitchStateName] = useState<string>(() =>
+    getSelectedName(components, selection),
+  );
 
   useEffect(() => {
-    setSwitchState(components[0]);
-  }, [components]);
+    setSwitchStateName(getSelectedName(components, selection));
+  }, [components, selection]);
+
+  const setSwitchStateWrapper = (newSelectionName: SwitchComponent["name"]) => {
+    const selectedComponent = components.find((component) => component.name === newSelectionName);
+    if (selectedComponent && callback) callback(selectedComponent);
+    setSwitchStateName(newSelectionName);
+  };
+
+  const activeComponent =
+    components.find((component) => component.name === switchStateName) ??
+    (components.length > 0 ? components[0] : FALLBACK_COMPONENT);
 
   return (
     <div
@@ -42,20 +66,23 @@ export const SwitchCard: React.FC<SwitchCardProps> = ({
     >
       <SwitchDiv hasSwitchAlignStart={hasSwitchAlignStart}>
         <Switch
-          options={components.map((component) => ({ value: component, label: component.name }))}
-          value={switchState}
-          onChange={setSwitchState}
+          options={components.map((component) => ({
+            value: component.name,
+            label: component.name,
+          }))}
+          value={switchStateName}
+          onChange={setSwitchStateWrapper}
         />
       </SwitchDiv>
       <StyledCard
         hasShadow={hasShadow}
         {...(hasCardTitle
           ? {
-              title: switchState.name,
+              title: activeComponent.name,
             }
           : {})}
       >
-        {switchState.value}
+        {activeComponent.value}
       </StyledCard>
     </div>
   );

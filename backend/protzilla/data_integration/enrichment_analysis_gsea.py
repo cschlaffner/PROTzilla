@@ -2,11 +2,10 @@ from enum import Enum
 import logging
 
 import gseapy
-import numpy as np
 import pandas as pd
 
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import is_intensity_df, long_to_wide
 
 from .enrichment_analysis_helper import read_protein_or_gene_sets_file

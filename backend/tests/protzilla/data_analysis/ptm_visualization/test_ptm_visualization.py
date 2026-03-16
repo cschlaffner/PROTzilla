@@ -4,14 +4,16 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from protzilla.constants.paths import EXAMPLE_DATASET_METADATA_FILE
-from protzilla.data_analysis.ptm_visualization import (
-    create_overview_ptm_visualization,
-    create_bar_ptm_visualization,
-    create_details_ptm_visualization,
-)
-from protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+from backend.protzilla.constants.paths import EXAMPLE_DATASET_METADATA_FILE
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     get_detected_modifications,
+    create_overview_ptm_visualization,
+)
+from protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
+    create_bar_ptm_visualization,
+)
+from protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
+    create_details_ptm_visualization,
 )
 from tests.paths import (
     TEST_PTM_VISUALIZATION_PATH,
@@ -706,48 +708,49 @@ class TestPTMVisualization:
 
         run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
 
-    @staticmethod
-    def test_csk2_protein(plot_func, kwargs, satb1_config, monkeypatch):
-        # TODO: maybe convert this into a function that tests overly large figures and fails (before changing width
-        #  and make it working again)
-        # TODO: remove
-        # if plot_func != create_details_ptm_visualization:
-        #     return
-
-        # TODO: remove this function again?
-        # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/kinases/evidence_P67870_CSK2.txt"))
-        # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2.fasta")
-        # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2_regions.csv")
-
-        # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q9H165_BCL11A.txt"))
-        # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1.fasta")
-        # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1_regions.csv")
-
-        # TODO: Also order Bar Plot
-        # TODO: improve performance of bar plot?
-        # TODO: Remove N-Term cleavage
-        kwargs["evidence_df"] = get_evidence_df(
-            Path(
-                "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/evidence_P46013.txt"
-            )
-        )
-        kwargs["fasta_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013.fasta"
-        )
-        kwargs["regions_file_path"] = Path(
-            "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013_regions.txt"
-        )
-
-        alter_general_config(monkeypatch, {"FIGURE_WIDTH": 4000})
-
-        if "metadata_df" in kwargs:
-            kwargs["metadata_df"] = get_metadata_df(
-                Path(
-                    "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/meta.csv"
-                )
-            )
-
-        run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
+    # @staticmethod
+    # def test_csk2_protein(plot_func, kwargs, satb1_config, monkeypatch):
+    #     # TODO: maybe convert this into a function that tests overly large figures and fails (before changing width
+    #     #  and make it working again), also check the other configurations as they seem to be affected by plot size
+    #     #  as well
+    #     # TODO: remove
+    #     # if plot_func != create_details_ptm_visualization:
+    #     #     return
+    #
+    #     # TODO: remove this function again?
+    #     # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/kinases/evidence_P67870_CSK2.txt"))
+    #     # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2.fasta")
+    #     # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2_regions.csv")
+    #
+    #     # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q9H165_BCL11A.txt"))
+    #     # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1.fasta")
+    #     # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1_regions.csv")
+    #
+    #     # TODO: Also order Bar Plot
+    #     # TODO: improve performance of bar plot?
+    #     # TODO: Remove N-Term cleavage
+    #     kwargs["evidence_df"] = get_evidence_df(
+    #         Path(
+    #             "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/evidence_P46013.txt"
+    #         )
+    #     )
+    #     kwargs["fasta_file_path"] = Path(
+    #         "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013.fasta"
+    #     )
+    #     kwargs["regions_file_path"] = Path(
+    #         "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013_regions.txt"
+    #     )
+    #
+    #     alter_general_config(monkeypatch, {"FIGURE_WIDTH": 4000})
+    #
+    #     if "metadata_df" in kwargs:
+    #         kwargs["metadata_df"] = get_metadata_df(
+    #             Path(
+    #                 "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/meta.csv"
+    #             )
+    #         )
+    #
+    #     run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
 
     @staticmethod
     def test_single_amino_acid_substitution_end_of_exon(

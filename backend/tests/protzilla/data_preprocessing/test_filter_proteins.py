@@ -2,12 +2,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
-    by_silac_ratios,
-    by_silac_ratios_plot,
+    by_number_of_values_per_group,
+    by_number_of_values_per_group_plot,
+    by_protein_ids,
 )
+from backend.protzilla.data_preprocessing.peptide_filter import by_existing_proteins
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
@@ -76,7 +79,7 @@ def filter_proteins_by_samples_missing_df():
 
 
 @pytest.fixture
-def filter_proteins_by_silac_ratios_df():
+def filter_proteins_by_number_of_values_per_group_df():
     filter_proteins_df = pd.DataFrame(
         (
             ["Sample2", "Protein2", "Gene2", 0.5],
@@ -107,7 +110,7 @@ def filter_proteins_by_silac_ratios_df():
 
 
 @pytest.fixture
-def filter_proteins_by_silac_ratios_metadata_df():
+def filter_proteins_by_number_of_values_per_group_metadata_df():
     return pd.DataFrame(
         {
             "Group": ["POS", "NEG", "NEG", "POS"],
@@ -120,7 +123,7 @@ def test_filter_proteins_by_missing_samples(
     filter_proteins_by_samples_missing_df, peptides_df, show_figures
 ):
     method_output = by_samples_missing(
-        filter_proteins_by_samples_missing_df, peptide_df=None, percentage=1.0
+        filter_proteins_by_samples_missing_df, percentage=1.0
     )
 
     fig = by_samples_missing_plot(
@@ -137,50 +140,44 @@ def test_filter_proteins_by_missing_samples(
         "Protein5",
     ]
 
-    assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
-        None,
-        method_output["peptide_df"],
-        "Protein ID",
-    )
-
     method_output = by_samples_missing(
-        filter_proteins_by_samples_missing_df, None, percentage=0.5
+        filter_proteins_by_samples_missing_df, percentage=0.5
     )
-    method_output["filtered_proteins"]
 
     assert method_output["filtered_proteins"] == ["Protein4", "Protein5"]
 
     method_output = by_samples_missing(
-        filter_proteins_by_samples_missing_df, peptides_df, percentage=0.0
+        filter_proteins_by_samples_missing_df, percentage=0.0
     )
-    method_output["filtered_proteins"]
+
+    peptide_filtering_output = by_existing_proteins(
+        peptides_df, method_output["protein_df"]
+    )
 
     assert method_output["filtered_proteins"] == []
 
     assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output["peptide_df"],
+        peptide_filtering_output[DataKey.PEPTIDE_DF],
         "Protein ID",
     )
 
 
-def test_filter_proteins_by_silac_ratios(
-    filter_proteins_by_silac_ratios_df,
-    filter_proteins_by_silac_ratios_metadata_df,
+def test_filter_proteins_by_values_per_group(
+    filter_proteins_by_number_of_values_per_group_df,
+    filter_proteins_by_number_of_values_per_group_metadata_df,
     peptides_df,
     show_figures,
 ):
 
-    method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df,
-        filter_proteins_by_silac_ratios_metadata_df,
-        peptide_df=None,
+    method_output = by_number_of_values_per_group(
+        filter_proteins_by_number_of_values_per_group_df,
+        filter_proteins_by_number_of_values_per_group_metadata_df,
         min_amount=2,
     )
 
-    fig = by_silac_ratios_plot(
+    fig = by_number_of_values_per_group_plot(
         method_output["remaining_proteins"],
         method_output["filtered_proteins"],
         "Pie chart",
@@ -191,10 +188,9 @@ def test_filter_proteins_by_silac_ratios(
     assert method_output["remaining_proteins"] == ["Protein3"]
     assert method_output["filtered_proteins"] == ["Protein1", "Protein2", "Protein4"]
 
-    method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df,
-        filter_proteins_by_silac_ratios_metadata_df,
-        peptide_df=None,
+    method_output = by_number_of_values_per_group(
+        filter_proteins_by_number_of_values_per_group_df,
+        filter_proteins_by_number_of_values_per_group_metadata_df,
         min_amount=4,
     )
 
@@ -206,16 +202,35 @@ def test_filter_proteins_by_silac_ratios(
         "Protein4",
     ]
 
-    method_output = by_silac_ratios(
-        filter_proteins_by_silac_ratios_df,
-        filter_proteins_by_silac_ratios_metadata_df,
-        peptide_df=peptides_df,
+    method_output = by_number_of_values_per_group(
+        filter_proteins_by_number_of_values_per_group_df,
+        filter_proteins_by_number_of_values_per_group_metadata_df,
         min_amount=4,
     )
 
+    peptide_filtering_output = by_existing_proteins(
+        peptides_df, method_output["protein_df"]
+    )
+
     assert_peptide_filtering_matches_protein_filtering(
-        method_output["protein_df"],
+        method_output[DataKey.PROTEIN_DF],
         peptides_df,
-        method_output["peptide_df"],
+        peptide_filtering_output[DataKey.PEPTIDE_DF],
         "Protein ID",
+    )
+
+
+def test_filter_proteins_by_protein_ids_filters_correctly(filter_proteins_df):
+    protein_ids = ["Protein1", "Protein3"]
+    result = by_protein_ids(filter_proteins_df, protein_ids)
+
+    filtered_protein_df = result["protein_df"]
+
+    expected_protein_df = filter_proteins_df[
+        filter_proteins_df["Protein ID"].isin(protein_ids)
+    ]
+
+    pd.testing.assert_frame_equal(
+        filtered_protein_df.reset_index(drop=True),
+        expected_protein_df.reset_index(drop=True),
     )

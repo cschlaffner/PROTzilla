@@ -27,6 +27,10 @@ from backend.protzilla.utilities.utilities import lerp
 HEATMAP_LOW_COLOR = "#053061"
 HEATMAP_HIGH_COLOR = "#67001f"
 
+# Default axis configuration used for calculation
+AXIS_SAMPLE: int = 0  # Rows
+AXIS_PROTEIN: int = 1  # Columns
+
 
 # pylint: disable=assignment-from-no-return, no-self-use
 def Clustergram(
@@ -270,7 +274,7 @@ class _Clustergram:
                 strategy=self._imputer_parameters["strategy"],
             )
 
-            if self._imputer_parameters["axis"] == 0:
+            if self._imputer_parameters["axis"] == AXIS_SAMPLE:
                 self._data = imp.fit_transform(self._data.T).T
             else:
                 self._data = imp.fit_transform(self._data)

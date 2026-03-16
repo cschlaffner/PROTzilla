@@ -5,8 +5,8 @@ from pathlib import Path
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.run import Run, delete_run_folder
 from backend.protzilla.run_helper import log_messages
-from backend.protzilla.steps import Step
-from backend.protzilla.utilities import random_string
+from backend.protzilla.steps import Step, Section
+from backend.protzilla.utilities.utilities import random_string
 
 
 class Runner:
@@ -79,7 +79,7 @@ class Runner:
         logging.info("------ computing workflow\n")
         for i, step in enumerate(self.run.steps.all_steps):
             logging.info(f"performing step: {*self.run.steps.current_location,}")
-            if step.section == "importing":
+            if step.section == Section.IMPORTING:
                 self._insert_commandline_inputs(step)
             self._perform_current_step()
 
@@ -127,7 +127,7 @@ class Runner:
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):
-            plot_path = f"{self.plots_path}/{self.run.steps.current_step_index}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
+            plot_path = f"{self.plots_path}/{self.run.steps.current_step_id}-{step.section}-{step.operation}-{step.display_name}-{i}.html"
             plot.write_html(plot_path)
 
     def _overwrite_run_prompt(self):

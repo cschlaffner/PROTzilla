@@ -1,4 +1,4 @@
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 
 def test_get_all_possible_step_names():
@@ -14,7 +14,8 @@ def test_get_all_possible_step_names():
         "ExampleDatasetImport",
         "FastaImport",
         "FilterProteinsBySamplesMissing",
-        "FilterProteinsBySilacRatios",
+        "FilterProteinsByNumberOfValuesPerGroup",
+        "FilterProteinsByProteinIDs",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",
@@ -34,6 +35,8 @@ def test_get_all_possible_step_names():
         "ImputationByKNN",
         "ImputationByNormalDistributionSampling",
         "FilterPeptidesByPEPThreshold",
+        "FilterPeptidesByExistingProteins",
+        "FilterPeptidesByExistingSamples",
         "DifferentialExpressionANOVA",
         "DifferentialExpressionTTest",
         "DifferentialExpressionLinearModel",
@@ -56,7 +59,6 @@ def test_get_all_possible_step_names():
         "ModelEvaluationClassificationModel",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
-        "SelectPeptidesForProtein",
         "FLEXIQuantLF",
         "MultiFLEXLF",
         "PTMsPerSample",
@@ -76,6 +78,7 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
+        "ArbitraryCSVImport",
     }
 
     steps = get_all_possible_steps()

@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
+import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -13,11 +13,11 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
-  dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  SelectedStep,
+  StepID,
   StepOutputInfo,
+  SwitchComponent,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -66,7 +66,7 @@ const StyledContentDiv = styled.div`
 
 const StyledCSVButton = styled(CSVButton)`
   width: auto;
-  align-telf: flex-end;
+  align-self: flex-end;
   margin-top: ${spacing("buttonGap")};
 `;
 
@@ -92,18 +92,20 @@ export const RunScreen: React.FC = () => {
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
-  const navigateOrRefreshSteps = (selectedStep?: SelectedStep) => {
+  const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
       If a step is selected, navigate to that step.
       If no step is selected, just refresh the run data to update the run list.
     */
 
-    if (selectedStep) {
+    if (stepID) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
-        section: selectedStep.section,
-        index: String(selectedStep.index),
+        step_id: stepID,
       }).then(() => {
+        setAvailableTables(undefined);
+        setPlots(undefined);
+
         void getRunData();
         void getStepPlots();
         void getCurrentStepOutputLabels();
@@ -145,8 +147,12 @@ export const RunScreen: React.FC = () => {
       run_name: runName,
     });
     if (response) {
-      const data = response.outputs;
-      setAvailableTables(data);
+      const tables = [];
+      for (const output of response.outputs) {
+        if (output.output_type === "dataframe" || output.output_type === "list")
+          tables.push(output);
+      }
+      setAvailableTables(tables);
     }
   }, [runName]);
 
@@ -159,6 +165,8 @@ export const RunScreen: React.FC = () => {
   }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
+    setAvailableTables(undefined);
+    setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
@@ -231,18 +239,23 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const otherComponent = (
-    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
-  );
-
-  const listEditorComponent = (
-    <ListEditor
+  const nodeEditorComponent = (
+    <NodeEditor
       onFormSubmit={onFormSubmit}
       runName={runName}
       navigateOrRefreshSteps={navigateOrRefreshSteps}
       runData={runData}
     />
   );
+
+  const editorModes = [{ name: "Flow", value: nodeEditorComponent }];
+
+  const selectedEditorMode: SwitchComponent["name"] = "Flow";
+
+  const components = [
+    plots && plots.length > 0 && { name: "Plots", value: plotComponent },
+    availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
+  ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -252,16 +265,14 @@ export const RunScreen: React.FC = () => {
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => void navigate("/")}
+        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
       />
 
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            components={[
-              { name: "List", value: listEditorComponent },
-              { name: "Node", value: dummyTextComponent1 },
-            ]}
+            components={editorModes}
+            selection={selectedEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
@@ -271,17 +282,16 @@ export const RunScreen: React.FC = () => {
           />
         </StyledFlexColumn>
         <StyledFlexColumn style={{ flex: 1 }}>
-          <StyledCol>
-            <SwitchCard
-              styleProps={{ height: "calc(100% - 3em)" }}
-              components={[
-                { name: "Plots", value: plotComponent },
-                { name: "Tables", value: tableComponent },
-                { name: "Other Output", value: otherComponent },
-              ]}
-              hasCardTitle={false}
-            />
-          </StyledCol>
+          {components.length ? (
+            <StyledCol>
+              <SwitchCard
+                key={runData.current_step_id}
+                styleProps={{ height: "calc(100% - 3em)" }}
+                components={components}
+                hasCardTitle={false}
+              />
+            </StyledCol>
+          ) : null}
           <FooterText>{randomMessage}</FooterText>
         </StyledFlexColumn>
       </StyledCardRow>

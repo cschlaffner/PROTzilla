@@ -31,7 +31,7 @@ def ttest_input():
         ["Sample7", "Protein3", "Gene1", 3],
     )
 
-    test_intensity_df = pd.DataFrame(
+    test_protein_df = pd.DataFrame(
         data=test_intensity_list,
         columns=["Sample", "Protein ID", "Gene", "Intensity"],
     )
@@ -54,7 +54,7 @@ def ttest_input():
     test_alpha = 0.05
 
     return dict(
-        intensity_df=test_intensity_df,
+        protein_df=test_protein_df,
         metadata_df=test_metadata_df,
         ttest_type="Student's t-Test",
         grouping="Group",
@@ -75,7 +75,7 @@ def test_plots_volcano_plot_no_annotation(ttest_input, ttest_output, show_figure
         p_values=ttest_output["corrected_p_values_df"],
         log2_fc=ttest_output["log2_fold_change_df"],
         fc_threshold=0,
-        alpha=ttest_output["corrected_alpha"],
+        alpha=ttest_output["corrected_alpha"].value,
         group1=ttest_input["group1"],
         group2=ttest_input["group2"],
     )

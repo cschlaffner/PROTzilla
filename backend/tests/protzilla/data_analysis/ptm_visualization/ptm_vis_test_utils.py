@@ -4,23 +4,26 @@ from pathlib import Path
 from typing import Optional
 from unittest import mock
 
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-import main
-from main.views_helper import load_settings_from_file
-from protzilla.constants.intensity_types import IntensityType
-from protzilla.data_analysis.ptm_visualization import (
-    create_overview_ptm_visualization,
+from backend.main.views_helper import load_settings_from_file
+from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.constants.paths import SETTINGS_PATH
+from backend.protzilla.data_analysis.ptm_visualization import ptm_vis_utils
+from backend.protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
     create_bar_ptm_visualization,
-    create_details_ptm_visualization,
-    ptm_vis_utils,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
+    create_details_ptm_visualization,
+)
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+    create_overview_ptm_visualization,
+)
+from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     get_general_config_module,
 )
-from protzilla.importing import peptide_import
-from protzilla.importing.metadata_import import metadata_import_method
+from backend.protzilla.importing import peptide_import
+from backend.protzilla.importing.metadata_import import metadata_import_method
 
 
 def get_evidence_df(path: Path):
@@ -55,16 +58,16 @@ def alter_general_config(monkeypatch: MonkeyPatch, new_param_dict: dict):
 
 @contextmanager
 def mock_settings_file(new_settings_file_path: Path, tmp_dir: Path):
-    shutil.copytree(main.views_helper.SETTINGS_PATH, tmp_dir, dirs_exist_ok=True)
+    shutil.copytree(SETTINGS_PATH, tmp_dir, dirs_exist_ok=True)
     shutil.copy(new_settings_file_path, tmp_dir)
     with (
         # Mocking is a bit more difficult because the values of default arguments are not overwritten once a function
         # is imported, so it would not be enough just to overwrite SETTINGS_PATH
         mock.patch.object(
-            main.views_helper.load_settings_from_file,
+            load_settings_from_file,
             "__defaults__",
             (
-                main.views_helper.load_settings_from_file.__defaults__[0],
+                load_settings_from_file.__defaults__[0],
                 tmp_dir.resolve(),
             ),
         ),

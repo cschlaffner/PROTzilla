@@ -1,15 +1,22 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from enum import Enum
-from typing import Any, List, Dict, Union, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from backend.main import settings
 
 # to avoid circular imports
 if TYPE_CHECKING:
-    from backend.protzilla.run import Run
+    pass
+
+
+FormInputType = str | int | float | bool | list[str]
+
+# Backwards compatibility for older imports that expect `inputs` from this module.
+inputs = FormInputType
 
 
 @dataclass
@@ -19,7 +26,7 @@ class Option:
     `value` is the value of the option, `label` is the label shown to the user.
     """
 
-    value: str
+    value: str | None
     label: str
 
     def __lt__(self, other):
@@ -110,7 +117,7 @@ class CheckboxMultiSelectField(_baseField):
 @dataclass
 class MultiSelectField(_baseField):
     type: str = "multi-select"
-    options: List[Option] = field(default_factory=list)
+    options: list[Option] = field(default_factory=list)
     value: list[str] = field(default_factory=list)
 
     def set_options(self, options: list[Option] | Enum) -> None:
@@ -140,7 +147,7 @@ class MultiSelectWithDropdownsField(_baseField):
     type: str = "multi-select-dropdown"
     value: list[str] = field(default_factory=list)
     options: list[Option] | Enum = field(default_factory=list)
-    dropdown_options: List[str] = field(default_factory=list)
+    dropdown_options: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -181,23 +188,28 @@ class HeaderInfoField:
     type: str = "header-info-field"
 
 
-InputField = Union[
-    TextField,
-    NumberField,
-    SearchField,
-    RadioSelectField,
-    CheckboxField,
-    MultiSelectField,
-    DropdownField,
-    FileInput,
-]
-StructuralField = Union[FormDivider, InfoField, HeaderInfoField]
+InputField = (
+    TextField
+    | NumberField
+    | FloatField
+    | SearchField
+    | RadioSelectField
+    | CheckboxField
+    | MultiSelectField
+    | DropdownField
+    | FileInput
+    | ColorField
+)
+StructuralField = FormDivider | InfoField | HeaderInfoField
+
+FormField = InputField | StructuralField
 
 
 @dataclass
 class Form:
     label: str
-    input_fields: List[InputField | StructuralField]
+    # Sequence is covariant, list isn't (see https://dev.to/meeshkan/covariance-and-contravariance-in-generic-types-3k63)
+    input_fields: Sequence[FormField]
     isAutoSubmit: bool = True
 
     def __post_init__(self):
@@ -209,21 +221,11 @@ class Form:
             if isinstance(field, _baseField)
         }
 
-    def modify_form(self, run: Run) -> None:
-        """
-        This method should be defined in Step classes to modify the form based on the current state of the run.
-        """
-
-        pass
-
-    def update_values(self, values: Dict[str, Any]) -> None:
+    def update_values(self, values: dict[str, Any]) -> None:
         "insert new values into the form"
         if values:
             for fieldname, value in values.items():
                 self[fieldname].value = value
-
-    def apply_modification(self, run: Run) -> None:
-        self.modify_form(run)
 
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
@@ -248,7 +250,7 @@ class Form:
         return self.input_fields
 
     @property
-    def values(self) -> Dict[str, str]:
+    def values(self) -> dict[str, FormInputType]:
         """
         Returns a dictionary with the values of the form fields.
         The keys are the field names and the values are the field values.

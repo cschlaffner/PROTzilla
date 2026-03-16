@@ -7,14 +7,14 @@ import pytest
 
 from backend.main import settings
 from backend.protzilla.runner import _serialize_graphs
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from protzilla import disk_operator
-from protzilla.runner import Runner
+from backend.protzilla import disk_operator
+from backend.protzilla.runner import Runner
 from runner_cli import args_parser
 
 
@@ -224,14 +224,14 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "input_df": None,
+            "protein_df_field": None,
             "protein_group": None,
             "similarity_measure": "euclidean distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
-            "protein_df": None,
+            "protein_df_field": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
             "fc_zscore_alpha": 0.05,
@@ -244,7 +244,7 @@ def test_runner_imports(
         },
         {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
         {
-            "proteins_df": None,
+            "protein_df_field": None,
             "differential_expression_threshold": 0,
             "gene_sets_restring": [],
             "organism": 9606,
@@ -252,7 +252,7 @@ def test_runner_imports(
             "background_path": None,
         },
         {
-            "input_df_step_instance": None,
+            "input_df_field": None,
             "cutoff": 0.05,
             "gene_sets": ["Process", "Component", "Function", "KEGG"],
             "value": "p-value",

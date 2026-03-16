@@ -1,8 +1,4 @@
 # PROTzilla
-
-> [!NOTE]
-> This repository is still a work-in-progress version.<br> Please refer to the previous PROTzilla at https://github.com/cschlaffner/PROTzilla2.
-
 [![backend](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/backend_ci.yml)
 [![frontend](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml/badge.svg)](https://github.com/cschlaffner/PROTzilla/actions/workflows/frontend_ci.yml)
 [![coverage badge](https://github.com/cschlaffner/PROTzilla/blob/python-coverage-comment-action-data/badge.svg)](https://github.com/cschlaffner/PROTzilla/tree/python-coverage-comment-action-data) 
@@ -11,9 +7,10 @@ PROTzilla is an open-source and browser-based tool for downstream proteomics MS 
 
 ## :gear: Deploy PROTzilla
 
-### Regular setup
+### Regular setup (production deployment)
 
-We have prepared guides for [Windows](./docs/Windows.md), [MacOS](./docs/MacOS.md) and [Linux](./docs/Linux.md).
+We have prepared user guides for [Windows](./docs/Windows.md), [macOS](./docs/MacOS.md) and [Linux](./docs/Linux.md).
+We have also prepared a guide for [Windows Server 2012](./docs/WindowsServer2012.md).
 
 ### Development (Docker)
 
@@ -26,27 +23,8 @@ Before running, make sure you have [Docker](https://www.docker.com/) and Docker 
 2. (optional) If you want persistent user data storage, uncomment the volume specification in the `docker-compose.yml` and adjust for your system. Make sure to copy the repo contents in `/backend/user_data` over to your desired persistent directory first.
 3. Go to [the web UI](http://localhost:5173)
 4. Hack away and see the changes reflected instantly!
-5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debuggin in your IDE!
+5. (optional) In VS Code, go to the debugging tab and select Python Debugger: Remote Attach to enable listening for easy debugging in your IDE!
     For other setups, `debugpy` is listening on its default port 5678
-
-
-### Windows native
-> [!NOTE]
-> We ensure native compatibility with Windows Server 2012. If you can run Docker on your system, please use Docker.
-
-1. Double-click `run_protzilla.bat` or execute `.\run_protzilla.bat` in terminal <br>
-
-### Linux/macOS native
-> [!NOTE]
-> This deployment script is kept for legacy reasons and might not work well on every kind of system. We strongly encourage you to use docker instead.
-
-1. Execute `./install_protzilla.sh` to install dependencies and set up the environment. Might take up to 15 minutes. 
-2. Execute `./run_protzilla.sh` to run PROTzilla. <br>
-
-If this script does not work, you can try to use the docker scripts natively:
-1. Execute `./install_scripts/install_dependencies.sh` once <br>
-2. Execute `./install_scripts/build_frontend.sh` for every frontend change <br>
-3. Execute `./run_protzilla.sh` to run. <br>
 
 ## &#x1F996; Start & use PROTzilla
 If your deployment was successful, open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;

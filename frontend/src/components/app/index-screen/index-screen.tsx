@@ -400,7 +400,7 @@ export const IndexScreen: React.FC = () => {
         showRunInformation={false}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => void navigate("/")}
+        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
       />
 
       <StyledContainer>

@@ -7,7 +7,7 @@ import pandas as pd
 
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
 from backend.protzilla.constants.intensity_types import IntensityType
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities.utilities import format_trace
 
 
 def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict:

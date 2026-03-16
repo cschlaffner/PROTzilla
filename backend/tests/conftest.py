@@ -15,8 +15,13 @@ from backend.protzilla.methods.importing import MaxQuantImport
 from backend.protzilla.run import Run
 
 from backend.protzilla.constants.paths import RUNS_PATH
+from backend.protzilla.constants.data_types import DataKey
 from backend.tests.paths import TEST_METADATA_PATH, TEST_MSDATA_PATH
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
+
+from backend.protzilla.methods.data_preprocessing import (
+    ImputationByKNN,
+)
 
 
 def pytest_addoption(parser):
@@ -69,7 +74,7 @@ def run_empty(run_name_and_cleanup):
 def run_imported(run_name_and_cleanup, maxquant_data_file):
     run_name = run_name_and_cleanup
     run = Run(run_name=run_name, workflow_name=".test-run-empty", df_mode="memory")
-    run.step_add(MaxQuantImport())
+    run.step_add(MaxQuantImport("teststep01_MXQ"))
     run.current_form(
         {
             "file_path": str(maxquant_data_file),
@@ -79,6 +84,32 @@ def run_imported(run_name_and_cleanup, maxquant_data_file):
         }
     )
     run.step_calculate()
+    yield run
+
+
+@pytest.fixture(scope="function")
+def run_import_and_imputation(run_name_and_cleanup, maxquant_data_file):
+    run_name = run_name_and_cleanup
+    run = Run(run_name=run_name, workflow_name=".test-run-empty", df_mode="memory")
+    run.step_add(MaxQuantImport("teststep01_MXQ"))
+    run.current_form(
+        {
+            "file_path": str(maxquant_data_file),
+            "intensity_name": "iBAQ",
+            "map_to_uniprot": False,
+            "aggregation_method": "Sum",
+        }
+    )
+    run.step_calculate()
+    run.step_add(ImputationByKNN("teststep02_kNN"))
+    run.steps.connect_steps(
+        {
+            "source": "teststep01_MXQ",
+            "sourceHandle": DataKey.PROTEIN_DF,
+            "target": "teststep02_kNN",
+            "targetHandle": DataKey.PROTEIN_DF,
+        }
+    )
     yield run
 
 

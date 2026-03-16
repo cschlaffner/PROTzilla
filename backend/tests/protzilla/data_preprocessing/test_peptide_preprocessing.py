@@ -1,12 +1,13 @@
 import pandas as pd
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.peptide_filter import (
     by_pep_value,
     by_pep_value_plot,
 )
 from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_types import IntensityType
-from tests.paths import TEST_PEPTIDES_PATH
+from backend.tests.paths import TEST_PEPTIDES_PATH
 
 
 def assert_peptide_filtering_matches_protein_filtering(
@@ -49,7 +50,7 @@ def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
     )
 
     method_inputs = {
-        "peptide_df": import_outputs["peptide_df"],
+        DataKey.PEPTIDE_DF: import_outputs[DataKey.PEPTIDE_DF],
         "threshold": 0.0014,
     }
     method_outputs = by_pep_value(**method_inputs)
@@ -58,5 +59,7 @@ def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
     if show_figures:
         fig.show()
 
-    pd.testing.assert_frame_equal(method_outputs["peptide_df"], leftover_peptide_df)
+    pd.testing.assert_frame_equal(
+        method_outputs[DataKey.PEPTIDE_DF], leftover_peptide_df
+    )
     assert method_outputs["filtered_peptides"] == filtered_peptides_list

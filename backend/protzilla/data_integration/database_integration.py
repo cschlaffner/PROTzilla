@@ -3,15 +3,17 @@ import logging
 import pandas as pd
 
 from backend.protzilla.data_integration import database_query
-from backend.protzilla.utilities import clean_uniprot_id, unique_justseen
+from backend.protzilla.utilities.utilities import clean_uniprot_id, unique_justseen
 
 
-def add_uniprot_data(dataframe, database_name=None, fields=None):
+def add_uniprot_data(
+    protein_df: pd.DataFrame, database_name: str = None, fields: list[str] = None
+) -> dict:
     """
     Extend a protein dataframe with information from UniProt for each protein.
 
-    :param dataframe: the protein dataframe to be extendet
-    :type dataframe: pd.DataFrame
+    :param protein_df: the protein dataframe to be extendet
+    :type protein_df: pd.DataFrame
     :param database_name: name of the database file that will be queried
     :type database_name: str
     :param fields: the fields of the database that will be added to the dataframe
@@ -23,12 +25,12 @@ def add_uniprot_data(dataframe, database_name=None, fields=None):
     if not fields:
         msg = "No fields that should be added specified."
         return dict(
-            results_df=dataframe,
+            protein_df=protein_df,
             messages=[dict(level=logging.INFO, msg=msg)],
         )
     if isinstance(fields, str):
         fields = [fields]
-    groups = dataframe["Protein ID"].tolist()
+    groups = protein_df["Protein ID"].tolist()
     clean_groups = []
     all_proteins = set()
 
@@ -51,10 +53,10 @@ def add_uniprot_data(dataframe, database_name=None, fields=None):
                 f"https://uniprot.org/uniprotkb/{protein}" for protein in group
             ]
             links.append(" ".join(group_links))
-        dataframe["Links"] = links
+        protein_df["Links"] = links
     database_fields = [field for field in fields if field != "Links"]
     if not database_fields:
-        return {"results_df": dataframe}
+        return {"protein_df": protein_df}
     res: pd.DataFrame = database_query.uniprot_query_dataframe(
         database_name, list(all_proteins), database_fields
     )
@@ -77,19 +79,19 @@ def add_uniprot_data(dataframe, database_name=None, fields=None):
                 new_column.append(group_values[0])
             else:
                 new_column.append(";".join(map(str, group_values)))
-        dataframe[field] = new_column
-    return {"results_df": dataframe}
+        protein_df[field] = new_column
+    return {"protein_df": protein_df}
 
 
 def gene_mapping(
-    dataframe: pd.DataFrame, database_names: list[str] | str, use_biomart: bool = False
+    protein_df: pd.DataFrame, database_names: list[str] | str, use_biomart: bool = False
 ):
     """
     Maps the protein ID groups to HGNC gene symbols, filtering out ones that are not
     found.
 
-    :param dataframe: the dataframe of which the protein groups will be mapped.
-    :type dataframe: pd.DataFrame
+    :param protein_df: the dataframe of which the protein groups will be mapped.
+    :type protein_df: pd.DataFrame
     :param database_names: names of the database files that will be queried
     :type database_names: list[str] | str
     :param use_biomart: should biomart be used to map ids that could not be mapped with databases
@@ -99,7 +101,7 @@ def gene_mapping(
     :rtype: dict
     """
     try:
-        protein_groups = dataframe["Protein ID"].unique().tolist()
+        protein_groups = protein_df["Protein ID"].unique().tolist()
     except KeyError:
         msg = "No Protein ID column found."
         return dict(

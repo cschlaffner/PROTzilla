@@ -9,8 +9,13 @@ from backend.protzilla.constants.option_types import (
     FC_SIGNIFICANCE_COLUMNS,
     LOG2_FOLD_CHANGE_COLUMNS,
     T_STATISTIC_COLUMNS,
+    LogBaseWithNoneType,
 )
-from backend.protzilla.utilities import default_intensity_column, exists_message
+from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    exists_message,
+)
 
 from .differential_expression_helper import (
     INVALID_PROTEINGROUP_DATA_MSG,
@@ -24,7 +29,7 @@ def _is_valid(value):
 
 
 def t_test(
-    intensity_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     ttest_type: str,
     grouping: str,
@@ -32,8 +37,7 @@ def t_test(
     group2: str,
     multiple_testing_correction_method: str,
     alpha: float,
-    log_base: str = None,
-    intensity_name: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
 ) -> dict:
@@ -42,7 +46,7 @@ def t_test(
     clinical data. The t-test is conducted on the level of each protein.
     The p-values are corrected for multiple testing.
     :param ttest_type: the type of t-test to be used. Either "Student's t-Test" or "Welch's t-Test"
-    :param intensity_df: the dataframe that should be tested in long format
+    :param protein_df: the dataframe that should be tested in long format
     :param metadata_df: the dataframe that contains the clinical data
     :param grouping: the column name of the grouping variable in the metadata_df
     :param group1: the name of the first group for the t-test
@@ -50,7 +54,6 @@ def t_test(
     :param multiple_testing_correction_method: the method for multiple testing correction
     :param alpha: the p-value cut-off before multiple testing correction
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
-    :param intensity_name: name of the column containing the protein group intensities
     :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
     :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
 
@@ -92,27 +95,31 @@ def t_test(
             }
         )
 
-    intensity_df = pd.merge(
-        left=intensity_df,
+    protein_df = pd.merge(
+        left=protein_df,
         right=metadata_df[["Sample", grouping]],
         on="Sample",
         copy=False,
     )
 
-    intensity_name = default_intensity_column(intensity_df, intensity_name)
+    intensity_name = default_intensity_column(protein_df)
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
-    proteins = intensity_df["Protein ID"].unique()
+    proteins = protein_df["Protein ID"].unique()
     p_values = []
     valid_protein_groups = []
     log2_fold_changes = []
     t_statistic = []
     fc_significance_df = pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS)
     for protein in proteins:
-        protein_df = intensity_df[intensity_df["Protein ID"] == protein]
-        group1_intensities = protein_df[protein_df[grouping] == group1][intensity_name]
-        group2_intensities = protein_df[protein_df[grouping] == group2][intensity_name]
+        single_protein_df = protein_df[protein_df["Protein ID"] == protein]
+        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][
+            intensity_name
+        ]
+        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][
+            intensity_name
+        ]
 
         group1_intensities = group1_intensities.dropna()
         group2_intensities = group2_intensities.dropna()
@@ -129,9 +136,9 @@ def t_test(
 
         if not np.isnan(p):
             if log_base:
-                log2_fold_change = np.median(group2_intensities) - np.median(
-                    group1_intensities
-                )
+                log2_fold_change = (
+                    np.median(group2_intensities) - np.median(group1_intensities)
+                ) * np.log2(log_base)
             else:
                 log2_fold_change = np.log2(
                     np.median(group2_intensities) / np.median(group1_intensities)
@@ -156,11 +163,11 @@ def t_test(
         )
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             significant_proteins_df=pd.DataFrame(
-                columns=intensity_df.columns.tolist()
+                columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
             corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
@@ -168,8 +175,6 @@ def t_test(
             log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
             fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
             corrected_alpha=alpha,
-            fc_zscore_alpha=fc_zscore_alpha,
-            fc_zscore_filter=fc_zscore_filter,
             messages=messages,
         )
 
@@ -212,10 +217,10 @@ def t_test(
     ]
 
     for df in dataframes:
-        intensity_df = pd.merge(intensity_df, df, on="Protein ID", how="left")
+        protein_df = pd.merge(protein_df, df, on="Protein ID", how="left")
 
-    differentially_expressed_proteins_df = intensity_df.loc[
-        intensity_df["Protein ID"].isin(valid_protein_groups)
+    differentially_expressed_proteins_df = protein_df.loc[
+        protein_df["Protein ID"].isin(valid_protein_groups)
     ]
 
     significant_proteins_df = differentially_expressed_proteins_df[
@@ -233,8 +238,6 @@ def t_test(
         t_statistic_df=t_statistic_df,
         log2_fold_change_df=log2_fold_change_df,
         fc_significance_df=fc_significance_df,
-        corrected_alpha=corrected_alpha,
-        fc_zscore_alpha=fc_zscore_alpha,
-        fc_zscore_filter=fc_zscore_filter,
+        corrected_alpha=OutputItem(output_type=OutputType.FLOAT, value=corrected_alpha),
         messages=messages,
     )

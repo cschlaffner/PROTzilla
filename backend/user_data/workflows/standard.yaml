@@ -1,82 +1,210 @@
+current_step_id: s00001_MaxQuantImport
+df_mode: Standard
+graph_edges:
+- !!python/tuple
+  - s00001_MaxQuantImport
+  - s00002_MetadataImport
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00001_MaxQuantImport
+  - s00003_FilterProteinsBySamplesMissing
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MetadataImport
+  - s00010_DifferentialExpressionTTest
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00003_FilterProteinsBySamplesMissing
+  - s00004_FilterSamplesByProteinIntensitiesSum
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00004_FilterSamplesByProteinIntensitiesSum
+  - s00005_ImputationByKNN
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00005_ImputationByKNN
+  - s00006_OutlierDetectionByLocalOutlierFactor
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00006_OutlierDetectionByLocalOutlierFactor
+  - s00007_TransformationLog
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00007_TransformationLog
+  - s00008_NormalisationByMedian
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00008_NormalisationByMedian
+  - s00009_PlotProtQuant
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00008_NormalisationByMedian
+  - s00010_DifferentialExpressionTTest
+  - source_handle: protein_df
+    target_handle: protein_df
+id_clock: 13
 steps:
-  - form_inputs:
-      intensity_name: iBAQ
-      map_to_uniprot: false
-      aggregation_method: Sum
-    inputs: { }
-    type: MaxQuantImport
-  - form_inputs:
-      feature_orientation: Columns (samples in rows, features in columns)
-    inputs: { }
-    type: MetadataImport
-  - form_inputs:
-      percentage: 0.5
-    inputs: { }
-    plot_inputs:
-      graph_type: Bar chart
-    type: FilterProteinsBySamplesMissing
-  - form_inputs:
-      deviation_threshold: 2.0
-    inputs: { }
-    plot_inputs:
-      graph_type: Bar chart
-    type: FilterSamplesByProteinIntensitiesSum
-  - form_inputs:
-      number_of_neighbours: 5
-    inputs: { }
-    plot_inputs:
-      graph_type: Boxplot
-      graph_type_quantities: Bar chart
-      group_by: None
-      visual_transformation: log10
-    type: ImputationByKNN
-  - form_inputs:
-      number_of_neighbors: 20
-    inputs: { }
-    plot_inputs: { }
-    type: OutlierDetectionByLocalOutlierFactor
-  - form_inputs:
-      log_base: log2
-    inputs: { }
-    plot_inputs:
-      graph_type: Histogram
-      group_by: None
-    type: TransformationLog
-  - form_inputs:
-      percentile: 0.5
-    inputs: { }
-    plot_inputs:
-      graph_type: Boxplot
-      group_by: None
-      visual_transformation: log10
-    type: NormalisationByMedian
-  - form_inputs:
-      similarity_measure: euclidean distance
-    inputs: { }
-    type: PlotProtQuant
-  - form_inputs:
-      alpha: 0.05
-    inputs: { }
-    type: DifferentialExpressionTTest
-  - form_inputs:
-      fc_threshold: 1
-    inputs: { }
-    type: PlotVolcano
-  - form_inputs:
-      differential_expression_threshold: 0
-      direction: both
-      gene_sets_restring: [ ]
-      organism: 9606
-    inputs: { }
-    type: EnrichmentAnalysisGOAnalysisWithString
-  - form_inputs:
-      cutoff: 0.05
-      gene_sets:
-        - Process
-        - Component
-        - Function
-        - KEGG
-      top_terms: 10
-      value: p-value
-    inputs: { }
-    type: PlotGOEnrichmentBarPlot
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    ignore_only_identified_by_site: false
+    intensity_name: iBAQ
+    map_to_uniprot: false
+  inputs: {}
+  instance_identifier: s00001_MaxQuantImport
+  type: MaxQuantImport
+  visual_data:
+    node_position:
+      x: -171.80483018600978
+      y: -442.4784777432139
+- form_inputs:
+    feature_orientation: Columns (samples in rows, features in columns)
+    file_path: null
+  inputs: {}
+  instance_identifier: s00002_MetadataImport
+  type: MetadataImport
+  visual_data:
+    node_position:
+      x: 149.16189082791004
+      y: -290.50263564030695
+- form_inputs:
+    graph_type: Pie chart
+    percentage: 0.5
+  inputs: {}
+  instance_identifier: s00003_FilterProteinsBySamplesMissing
+  type: FilterProteinsBySamplesMissing
+  visual_data:
+    node_position:
+      x: -256.05225879191096
+      y: -298.2342679234283
+- form_inputs:
+    deviation_threshold: 2.0
+    graph_type: Pie chart
+  inputs: {}
+  instance_identifier: s00004_FilterSamplesByProteinIntensitiesSum
+  type: FilterSamplesByProteinIntensitiesSum
+  visual_data:
+    node_position:
+      x: -258.4061406572516
+      y: -206.40850235635807
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    number_of_neighbours: 5
+    visual_transformation: log10
+  inputs: {}
+  instance_identifier: s00005_ImputationByKNN
+  type: ImputationByKNN
+  visual_data:
+    node_position:
+      x: -227.14923058621144
+      y: -108.12102049010066
+- form_inputs:
+    number_of_neighbors: 20
+  inputs: {}
+  instance_identifier: s00006_OutlierDetectionByLocalOutlierFactor
+  type: OutlierDetectionByLocalOutlierFactor
+  visual_data:
+    node_position:
+      x: -227.68865543232792
+      y: -2.9187973620849945
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    log_base: log2
+  inputs: {}
+  instance_identifier: s00007_TransformationLog
+  type: TransformationLog
+  visual_data:
+    node_position:
+      x: -142.49525545517554
+      y: 116.67611231198052
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    percentile: 0.5
+    visual_transformation: log10
+  inputs: {}
+  instance_identifier: s00008_NormalisationByMedian
+  type: NormalisationByMedian
+  visual_data:
+    node_position:
+      x: -220.30289590432085
+      y: 223.5847262805539
+- form_inputs:
+    protein_group: null
+    similarity: 1
+    similarity_measure: euclidean distance
+  inputs: {}
+  instance_identifier: s00009_PlotProtQuant
+  type: PlotProtQuant
+  visual_data:
+    node_position:
+      x: -317.46018184070726
+      y: 330.88994431768435
+- form_inputs:
+    alpha: 0.05
+    fc_zscore_alpha: 0.05
+    fc_zscore_filter: false
+    group1: null
+    group2: null
+    grouping: null
+    multiple_testing_correction_method: Benjamini-Hochberg
+    ttest_type: Welch's t-Test
+  inputs: {}
+  instance_identifier: s00010_DifferentialExpressionTTest
+  type: DifferentialExpressionTTest
+  visual_data:
+    node_position:
+      x: -14.499581956240348
+      y: 353.3920334195707
+- form_inputs:
+    fc_threshold: 1
+    input_dict: null
+    items_of_interest: []
+  inputs: {}
+  instance_identifier: s00011_PlotVolcano
+  type: PlotVolcano
+  visual_data:
+    node_position:
+      x: 306.1251344280747
+      y: 347.675883152843
+- form_inputs:
+    background_path: null
+    differential_expression_threshold: 0
+    direction: both
+    gene_sets_restring: []
+    organism: 9606
+  inputs: {}
+  instance_identifier: s00012_EnrichmentAnalysisGOAnalysisWithString
+  type: EnrichmentAnalysisGOAnalysisWithString
+  visual_data:
+    node_position:
+      x: -293.68486194886
+      y: 484.6400996262349
+- form_inputs:
+    cutoff: 0.05
+    gene_sets:
+    - Process
+    - Component
+    - Function
+    - KEGG
+    top_terms: 10
+    value: p-value
+  inputs: {}
+  instance_identifier: s00013_PlotGOEnrichmentBarPlot
+  type: PlotGOEnrichmentBarPlot
+  visual_data:
+    node_position:
+      x: 72.99420317314207
+      y: 490.2744286280802
