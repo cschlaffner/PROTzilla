@@ -171,7 +171,7 @@ def test_GO_enrichment_dot_plot(helpers, show_figures, x_axis_type, data_folder_
         rotate_x_labels=False,
         show_ring=False,
         dot_size=40,
-    )[0]
+    )
     if show_figures:
         helpers.open_graph_from_base64(dot_base64["plot_base64"])
 
@@ -180,7 +180,7 @@ def test_enrichment_dot_plot_wrong_df(data_folder_tests):
     result = pd.read_csv(data_folder_tests / "merged_KEGG_process.csv", header=0)
     current_out = GO_enrichment_dot_plot(
         enrichment_df=result, top_terms=10, cutoff=0.05, gene_sets=["KEGG", "Process"]
-    )[0]
+    )
 
     assert "messages" in current_out
     assert "Please input a dataframe from" in current_out["messages"][0]["msg"]
