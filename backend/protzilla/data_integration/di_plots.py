@@ -292,17 +292,18 @@ def gsea_dot_plot(
     if not dot_size:
         dot_size = 5
 
-    if not gene_sets or gene_sets == "all":
+    if gene_sets == [] or gene_sets == "all":
         logger.info("Plotting for all gene set libraries.")
-    if not isinstance(gene_sets, list):
-        gene_sets = [gene_sets]
     else:  # remove all Gene_sets that were not selected
+        if not isinstance(gene_sets, list):
+            gene_sets = [gene_sets]
         gsea_df = gsea_df[gsea_df["Term"].str.startswith(tuple(gene_sets))]
 
     if remove_library_names:
         gsea_df["Term"] = gsea_df["Term"].apply(lambda x: x.split("__")[1])
 
     size_y = max((gsea_df[dot_color_value] < cutoff).sum(), 5)
+    print(gsea_df)
     try:
         ax = gseapy.dotplot(
             gsea_df,
@@ -315,8 +316,7 @@ def gsea_dot_plot(
             show_ring=show_ring,
         )
         return dict(
-            plot_base64=fig_to_base64(ax.get_figure()),
-            key="gsea_dot_plot_img",
+            plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
         )
 
     except ValueError as e:
@@ -375,8 +375,7 @@ def gsea_enrichment_plot(
             figsize=figsize if figsize else (6, 5.5),
         )
         return dict(
-            plot_base64=fig_to_base64(enrichment_plot_axes[0].get_figure()),
-            key="gsea_enrichment_plot_img",
+            plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(enrichment_plot_axes[0].get_figure())),
         )
 
     except Exception as e:

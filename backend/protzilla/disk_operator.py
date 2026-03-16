@@ -127,12 +127,12 @@ class Base64Operator:
     easier front-end handling
     """
     @staticmethod
-    def read(file_path: Path) -> str:
+    def read(file_path: Path) -> bytes:
         with ErrorHandler():
             logger.info(f"Reading {file_path} into base64")
             with open(file_path, 'rb') as file:
                 file_content = file.read()
-                encoded = base64.b64encode(file_content).decode()
+                encoded = base64.b64encode(file_content)
                 return encoded
 
     @staticmethod
