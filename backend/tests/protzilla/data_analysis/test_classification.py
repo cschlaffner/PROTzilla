@@ -154,11 +154,7 @@ def test_evaluate_classification_model(
 ):
     test_samples = random_forest_out["X_test_df"]["Sample"].tolist()
 
-    test_meta_df = (
-        meta_df.set_index("Sample")
-        .loc[test_samples]
-        .reset_index()
-    )
+    test_meta_df = meta_df.set_index("Sample").loc[test_samples].reset_index()
 
     evaluation_out = evaluate_classification_model(
         random_forest_out["model"].value,
