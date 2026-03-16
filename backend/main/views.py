@@ -639,7 +639,7 @@ def get_step_visualizations(request):
                     protein_entry_id = viz.get("protein_entry_id", "unknown protein")
                     cif_df = viz.get("cif_df")
                     try:
-                        cif_string = convert_df_to_mmcif_for_visualization(cif_df)
+                        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
                     except (ValueError, TypeError):
                         cif_string = ""
                     visualizations.append({
@@ -652,7 +652,7 @@ def get_step_visualizations(request):
                     inputs = run.current_step.inputs if run.current_step.inputs else {}
                     protein_entry_id = inputs.get("entry_id") or inputs.get("uniprot_id") or "unknown protein"
                     try:
-                        cif_string = convert_df_to_mmcif_for_visualization(cif_df)
+                        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
                     except (ValueError, TypeError):
                         cif_string = ""
                     visualizations.append({
@@ -670,7 +670,7 @@ def get_step_visualizations(request):
         )
     
 
-def convert_df_to_mmcif_for_visualization(df: pd.DataFrame) -> str:
+def convert_df_to_mmcif_for_visualization(df: pd.DataFrame, entry_id: str) -> str:
     """
     Convert a DataFrame representing an mmCIF _atom_site table to a mmCIF string.
 
@@ -680,62 +680,26 @@ def convert_df_to_mmcif_for_visualization(df: pd.DataFrame) -> str:
     if df is None or df.empty:
         raise ValueError("DataFrame is empty, cannot create mmCIF content.")
 
-    standard_cols = [
-        "_atom_site.group_PDB",
-        "_atom_site.id",
-        "_atom_site.type_symbol",
-        "_atom_site.label_atom_id",
-        "_atom_site.label_alt_id",
-        "_atom_site.label_comp_id",
-        "_atom_site.label_asym_id",
-        "_atom_site.label_entity_id",
-        "_atom_site.label_seq_id",
-        "_atom_site.Cartn_x",
-        "_atom_site.Cartn_y",
-        "_atom_site.Cartn_z",
-        "_atom_site.occupancy",
-        "_atom_site.B_iso_or_equiv"
-    ]
+    lines = [f"data_{entry_id}", "#", f"_entry.id {entry_id}", "#", "loop_"]
 
-    missing = [c for c in standard_cols if c not in df.columns]
-    if missing:
-        raise ValueError(f"DataFrame is missing required columns for Mol*Star: {missing}")
+    for col in df.columns:
+        lines.append(col)
 
-    doc = gemmi.cif.Document()
-    block = doc.add_new_block('data_test')
-    block.set_pair("_entry.id", 'data_test')
-    block.set_pair("_struct_keywords.pdbx_keywords", "AlphaFold predicted model")
-
-    loop_cols = [c.replace("_atom_site.", "") for c in standard_cols]
-    loop = block.init_mmcif_loop("_atom_site.", loop_cols)
-
-    for idx, row in df.iterrows():
-        values = []
-        for col in standard_cols:
+    for _, row in df.iterrows():
+        row_items = []
+        for col in df.columns:
             val = row[col]
-            col_short = col.replace("_atom_site.", "")
-            if pd.isna(val) or val is None or (isinstance(val, str) and val.strip() == ""):
-                if col == "_atom_site.group_PDB":
-                    values.append("ATOM")
-                elif col in ["_atom_site.id", "_atom_site.label_seq_id", "_atom_site.label_entity_id"]:
-                    values.append(str(idx + 1))
-                elif col in ["_atom_site.Cartn_x", "_atom_site.Cartn_y", "_atom_site.Cartn_z",
-                             "_atom_site.occupancy", "_atom_site.B_iso_or_equiv"]:
-                    values.append("0.0")
-                else:
-                    values.append("?")
+            if val is None:
+                val_str = "."
             else:
-                if col in ["_atom_site.Cartn_x", "_atom_site.Cartn_y", "_atom_site.Cartn_z",
-                           "_atom_site.occupancy", "_atom_site.B_iso_or_equiv"]:
-                    values.append(f"{float(val):.3f}")
-                else:
-                    values.append(str(val))
-        loop.add_row(values)
+                val_str = str(val)
+                if " " in val_str or any(c in val_str for c in '();,' ):
+                    val_str = f"'{val_str}'"
+            row_items.append(val_str)
+        lines.append(" ".join(row_items))
 
-    test = doc.as_string()
-    print(test)
-
-    return doc.as_string()
+    cif_string = "\n".join(lines)
+    return cif_string
 
 
 # TODO: Move somewhere else
