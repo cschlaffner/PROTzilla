@@ -10,6 +10,7 @@ from backend.protzilla.form import (
     HeaderInfoField,
     Option,
 )
+from backend.protzilla.importing.debug_import import arbitrary_csv_import
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
     metadata_import_method,
@@ -45,6 +46,28 @@ class ImportingStep(Step, ABC):
         must be overridden if the FileInput is not index 0.
         """
         return 0
+
+
+class ArbitraryCSVImport(ImportingStep):
+    display_name: str = "Arbitrary CSV import"
+    operation: str = "(DEBUG)"
+    method_description: str = "For debugging purposes. Imports any CSV as a dataframe"
+
+    output_keys: list[DataKey] = [DataKey.DEBUG]
+
+    def create_form(self) -> Form:
+        return Form(
+            label="Arbitrary CSV Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="CSV file",
+                    value=None,
+                )
+            ],
+        )
+
+    calc_method = staticmethod(arbitrary_csv_import)
 
 
 class MetadataImportingStep(ImportingStep, ABC):
