@@ -83,12 +83,18 @@ _forward_mapping: list[Step] = [
     data_integration.PlotGSEAEnrichmentPlot,
 ]
 
+# Steps excluded from UI, i.e. users cannot instantiate them
+_hidden_steps: list[Step] = [
+    importing.ArbitraryCSVImport,
+    data_integration.DatabaseIntegrationByUniprot
+]
+
 
 def get_all_methods() -> list[Step]:
     return _forward_mapping
 
 
-def get_all_possible_steps() -> list[dict[str, str]]:
+def get_all_possible_steps(exclude_hidden: bool = False) -> list[dict[str, str]]:
     """
     Returns a list of dictionaries of all step classes and their fields. Allows spreading of information about these steps.
 
@@ -98,5 +104,7 @@ def get_all_possible_steps() -> list[dict[str, str]]:
     steps: list[Step] = get_all_methods()
     step_list: list[dict[str, str]] = []
     for step in steps:
+        if exclude_hidden and step in _hidden_steps:
+            continue
         step_list.append(step.to_dict())
     return step_list
