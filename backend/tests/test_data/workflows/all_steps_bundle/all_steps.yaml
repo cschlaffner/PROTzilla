@@ -1,0 +1,1411 @@
+current_step_id: s00010_FastaImport
+df_mode: Standard
+graph_edges:
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00004_MetadataImport
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00011_FilterProteinsBySamplesMissing
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00027_ImputationByMinPerProtein
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00015_FilterSamplesByProteinIntensitiesSum
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00029_ImputationByKNN
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00017_OutlierDetectionByLocalOutlierFactor
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00019_TransformationLog
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00001_DiannImport
+  - s00020_TransformationInversion
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00023_NormalisationByMedian
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00011_FilterProteinsBySamplesMissing
+  - s00044_PlotProtQuant
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00035_DifferentialExpressionTTest
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00024_NormalisationByWidthAdjustment
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00013_FilterByProteinsCount
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00014_FilterSamplesByProteinsMissing
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00018_OutlierDetectionByIsolationForest
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00028_SimpleImputationPerProtein
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00021_NormalisationByZScore
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00022_NormalisationByTotalSum
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00025_NormalisationByReferenceProtein
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00026_ImputationByMinPerDataset
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00032_FilterPeptidesByExistingProteins
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00030_ImputationByNormalDistributionSampling
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00036_DifferentialExpressionLinearModel
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00034_DifferentialExpressionANOVA
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00033_FilterPeptidesByExistingSamples
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00065_EnrichmentAnalysisGOAnalysisWithString
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00037_DifferentialExpressionMannWhitneyOnIntensity
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00039_DifferentialExpressionKruskalWallisOnIntensity
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00012_FilterProteinsByNumberOfValuesPerGroup
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00041_PlotClustergram
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00048_ClusteringKMeans
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00055_DimensionReductionUMAP
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00064_ImputationByMinPerSample
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00055_DimensionReductionUMAP
+  - s00046_PlotScatterPlot
+  - source_handle: embedded_data
+    target_handle: input_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00050_ClusteringHierarchicalAgglomerative
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00070_DatabaseIntegrationByGeneMapping
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00066_EnrichmentAnalysisGOAnalysisWithEnrichr
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00054_DimensionReductionTSNE
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00068_EnrichmentAnalysisWithGSEA
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00071_DatabaseIntegrationByUniprot
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00067_EnrichmentAnalysisGOAnalysisOffline
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00002_MaxQuantImport
+  - s00005_MetadataImportMethodDiann
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00049_ClusteringExpectationMaximisation
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00051_ClassificationRandomForest
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00004_MetadataImport
+  - s00006_MetadataColumnAssignment
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00069_EnrichmentAnalysisWithPrerankedGSEA
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00047_PlotVolcano
+  - source_handle: corrected_p_values_df
+    target_handle: p_values
+- !!python/tuple
+  - s00035_DifferentialExpressionTTest
+  - s00047_PlotVolcano
+  - source_handle: log2_fold_change_df
+    target_handle: log2_fc
+- !!python/tuple
+  - s00065_EnrichmentAnalysisGOAnalysisWithString
+  - s00072_PlotGOEnrichmentBarPlot
+  - source_handle: enrichment_df
+    target_handle: enrichment_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00035_DifferentialExpressionTTest
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00036_DifferentialExpressionLinearModel
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00034_DifferentialExpressionANOVA
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00037_DifferentialExpressionMannWhitneyOnIntensity
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00039_DifferentialExpressionKruskalWallisOnIntensity
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00012_FilterProteinsByNumberOfValuesPerGroup
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00041_PlotClustergram
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00048_ClusteringKMeans
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00046_PlotScatterPlot
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00050_ClusteringHierarchicalAgglomerative
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00068_EnrichmentAnalysisWithGSEA
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00058_MultiFLEXLF
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00057_FLEXIQuantLF
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00038_DifferentialExpressionMannWhitneyOnPTM
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00040_DifferentialExpressionKruskalWallisOnPTM
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00043_PlotProteinCoverage
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00049_ClusteringExpectationMaximisation
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00051_ClassificationRandomForest
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00015_FilterSamplesByProteinIntensitiesSum
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00019_TransformationLog
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00013_FilterByProteinsCount
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00032_FilterPeptidesByExistingProteins
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00031_FilterPeptidesByPEPThreshold
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00033_FilterPeptidesByExistingSamples
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00059_PTMsPerSample
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00060_PTMsProteinAndPerSample
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00058_MultiFLEXLF
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00057_FLEXIQuantLF
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00043_PlotProteinCoverage
+  - source_handle: peptide_df
+    target_handle: peptide_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00061_PTMOverviewVisualization
+  - source_handle: peptide_df
+    target_handle: evidence_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00062_PTMBarVisualization
+  - source_handle: peptide_df
+    target_handle: evidence_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00063_PTMDetailsVisualization
+  - source_handle: peptide_df
+    target_handle: evidence_df
+- !!python/tuple
+  - s00059_PTMsPerSample
+  - s00038_DifferentialExpressionMannWhitneyOnPTM
+  - source_handle: ptm_df
+    target_handle: ptm_df
+- !!python/tuple
+  - s00059_PTMsPerSample
+  - s00040_DifferentialExpressionKruskalWallisOnPTM
+  - source_handle: ptm_df
+    target_handle: ptm_df
+- !!python/tuple
+  - s00070_DatabaseIntegrationByGeneMapping
+  - s00066_EnrichmentAnalysisGOAnalysisWithEnrichr
+  - source_handle: gene_mapping_df
+    target_handle: gene_mapping_df
+- !!python/tuple
+  - s00070_DatabaseIntegrationByGeneMapping
+  - s00068_EnrichmentAnalysisWithGSEA
+  - source_handle: gene_mapping_df
+    target_handle: gene_mapping_df
+- !!python/tuple
+  - s00070_DatabaseIntegrationByGeneMapping
+  - s00067_EnrichmentAnalysisGOAnalysisOffline
+  - source_handle: gene_mapping_df
+    target_handle: gene_mapping_df
+- !!python/tuple
+  - s00070_DatabaseIntegrationByGeneMapping
+  - s00069_EnrichmentAnalysisWithPrerankedGSEA
+  - source_handle: gene_mapping_df
+    target_handle: gene_mapping_df
+- !!python/tuple
+  - s00010_FastaImport
+  - s00043_PlotProteinCoverage
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00027_ImputationByMinPerProtein
+  - s00016_OutlierDetectionByPCA
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00029_ImputationByKNN
+  - s00052_ClassificationSVM
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00006_MetadataColumnAssignment
+  - s00052_ClassificationSVM
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00053_ModelEvaluationClassificationModel
+  - source_handle: model
+    target_handle: model
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00053_ModelEvaluationClassificationModel
+  - source_handle: X_test_df
+    target_handle: input_test_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00053_ModelEvaluationClassificationModel
+  - source_handle: y_test_df
+    target_handle: labels_test_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00042_PlotPrecisionRecallCurve
+  - source_handle: model
+    target_handle: model
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00042_PlotPrecisionRecallCurve
+  - source_handle: X_test_df
+    target_handle: input_test_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00042_PlotPrecisionRecallCurve
+  - source_handle: y_test_df
+    target_handle: labels_test_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00045_PlotROC
+  - source_handle: model
+    target_handle: model
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00045_PlotROC
+  - source_handle: X_test_df
+    target_handle: input_test_df
+- !!python/tuple
+  - s00051_ClassificationRandomForest
+  - s00045_PlotROC
+  - source_handle: y_test_df
+    target_handle: labels_test_df
+- !!python/tuple
+  - s00069_EnrichmentAnalysisWithPrerankedGSEA
+  - s00074_PlotGSEADotPlot
+  - source_handle: enrichment_df
+    target_handle: gsea_df
+- !!python/tuple
+  - s00069_EnrichmentAnalysisWithPrerankedGSEA
+  - s00075_PlotGSEAEnrichmentPlot
+  - source_handle: ranking
+    target_handle: ranking
+- !!python/tuple
+  - s00066_EnrichmentAnalysisGOAnalysisWithEnrichr
+  - s00073_PlotGOEnrichmentDotPlot
+  - source_handle: enrichment_df
+    target_handle: enrichment_df
+- !!python/tuple
+  - s00008_EvidenceImport
+  - s00056_SelectPeptidesForProtein
+  - source_handle: peptide_df
+    target_handle: peptide_df
+id_clock: 75
+steps:
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    map_to_uniprot: false
+  instance_identifier: s00001_DiannImport
+  type: DiannImport
+  visual_data:
+    node_position:
+      x: 143.27038151280485
+      y: -166.1648896707128
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    ignore_only_identified_by_site: false
+    intensity_name: iBAQ
+    map_to_uniprot: false
+  instance_identifier: s00002_MaxQuantImport
+  type: MaxQuantImport
+  visual_data:
+    node_position:
+      x: 1383.7081256367796
+      y: -176.88029735155388
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    intensity_name: Intensity
+    map_to_uniprot: false
+  instance_identifier: s00003_MsFraggerImport
+  type: MsFraggerImport
+  visual_data:
+    node_position:
+      x: 141.12344245747988
+      y: -262.1238241681991
+- form_inputs:
+    feature_orientation: Columns (samples in rows, features in columns)
+    file_path: null
+  instance_identifier: s00004_MetadataImport
+  type: MetadataImport
+  visual_data:
+    node_position:
+      x: 1526.7933808137584
+      y: 56.29112343698285
+- form_inputs:
+    file_path: null
+    groupby_sample: false
+  instance_identifier: s00005_MetadataImportMethodDiann
+  type: MetadataImportMethodDiann
+  visual_data:
+    node_position:
+      x: 2044.1486906843195
+      y: 959.6838494419983
+- form_inputs:
+    metadata_required_column: null
+    metadata_unknown_column: null
+  instance_identifier: s00006_MetadataColumnAssignment
+  type: MetadataColumnAssignment
+  visual_data:
+    node_position:
+      x: 1054.466135512024
+      y: -171.42079441596582
+- form_inputs:
+    file_path: null
+    intensity_name: Intensity
+    map_to_uniprot: false
+  instance_identifier: s00007_PeptideImport
+  type: PeptideImport
+  visual_data:
+    node_position:
+      x: -189.52019449885125
+      y: -267.16788013290864
+- form_inputs:
+    file_path: null
+    map_to_uniprot: false
+  instance_identifier: s00008_EvidenceImport
+  type: EvidenceImport
+  visual_data:
+    node_position:
+      x: 1846.1135306003926
+      y: -164.7451754820879
+- form_inputs: {}
+  instance_identifier: s00009_ExampleDatasetImport
+  type: ExampleDatasetImport
+  visual_data:
+    node_position:
+      x: -189.2432341761512
+      y: -171.46612518499464
+- form_inputs:
+    file_path: null
+  instance_identifier: s00010_FastaImport
+  type: FastaImport
+  visual_data:
+    node_position:
+      x: 699.2856465999816
+      y: -182.64933887735307
+- form_inputs:
+    graph_type: Pie chart
+    percentage: 1.0
+  instance_identifier: s00011_FilterProteinsBySamplesMissing
+  type: FilterProteinsBySamplesMissing
+  visual_data:
+    node_position:
+      x: 1189.3237218160739
+      y: 55.00877613298128
+- form_inputs:
+    graph_type: Pie chart
+    min_amount: 1
+  instance_identifier: s00012_FilterProteinsByNumberOfValuesPerGroup
+  type: FilterProteinsByNumberOfValuesPerGroup
+  visual_data:
+    node_position:
+      x: 891.4052314835592
+      y: 759.2596908746139
+- form_inputs:
+    deviation_threshold: 2
+    graph_type: Pie chart
+  instance_identifier: s00013_FilterByProteinsCount
+  type: FilterByProteinsCount
+  visual_data:
+    node_position:
+      x: 1740.9268051839483
+      y: 263.91927240502616
+- form_inputs:
+    graph_type: Pie chart
+    percentage: 0.5
+  instance_identifier: s00014_FilterSamplesByProteinsMissing
+  type: FilterSamplesByProteinsMissing
+  visual_data:
+    node_position:
+      x: 1204.9730055939017
+      y: 353.2124067041023
+- form_inputs:
+    deviation_threshold: 2
+    graph_type: Pie chart
+  instance_identifier: s00015_FilterSamplesByProteinIntensitiesSum
+  type: FilterSamplesByProteinIntensitiesSum
+  visual_data:
+    node_position:
+      x: 1849.4309437574386
+      y: 51.1383825476878
+- form_inputs:
+    number_of_components: 3
+    threshold: 2
+  instance_identifier: s00016_OutlierDetectionByPCA
+  type: OutlierDetectionByPCA
+  visual_data:
+    node_position:
+      x: 920.9828416346118
+      y: 157.31328477653958
+- form_inputs:
+    number_of_neighbors: 20
+  instance_identifier: s00017_OutlierDetectionByLocalOutlierFactor
+  type: OutlierDetectionByLocalOutlierFactor
+  visual_data:
+    node_position:
+      x: 1374.367620509944
+      y: 156.91721853392545
+- form_inputs:
+    n_estimators: 100
+  instance_identifier: s00018_OutlierDetectionByIsolationForest
+  type: OutlierDetectionByIsolationForest
+  visual_data:
+    node_position:
+      x: 1540.4887425511029
+      y: 354.4636550722554
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    log_base: log2
+  instance_identifier: s00019_TransformationLog
+  type: TransformationLog
+  visual_data:
+    node_position:
+      x: 1705.8801464855633
+      y: 166.90929023974996
+- form_inputs: {}
+  instance_identifier: s00020_TransformationInversion
+  type: TransformationInversion
+  visual_data:
+    node_position:
+      x: 1934.9059561394452
+      y: 165.93296668729488
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    visual_transformation: log10
+  instance_identifier: s00021_NormalisationByZScore
+  type: NormalisationByZScore
+  visual_data:
+    node_position:
+      x: 910.6149058245405
+      y: 456.03410915506623
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    visual_transformation: log10
+  instance_identifier: s00022_NormalisationByTotalSum
+  type: NormalisationByTotalSum
+  visual_data:
+    node_position:
+      x: 1167.4014883470395
+      y: 456.0341091550662
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    percentile: 0.5
+    visual_transformation: log10
+  instance_identifier: s00023_NormalisationByMedian
+  type: NormalisationByMedian
+  visual_data:
+    node_position:
+      x: 917.3830979048057
+      y: 262.98496323971466
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    visual_transformation: log10
+  instance_identifier: s00024_NormalisationByWidthAdjustment
+  type: NormalisationByWidthAdjustment
+  visual_data:
+    node_position:
+      x: 883.0774093718193
+      y: 357.9192724050261
+- form_inputs:
+    graph_type: Boxplot
+    group_by: None
+    reference_protein: A0A075B6I0
+    visual_transformation: log10
+  instance_identifier: s00025_NormalisationByReferenceProtein
+  type: NormalisationByReferenceProtein
+  visual_data:
+    node_position:
+      x: 1421.4476578724534
+      y: 453.2750401411456
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    shrinking_value: 0.5
+    visual_transformation: log10
+  instance_identifier: s00026_ImputationByMinPerDataset
+  type: ImputationByMinPerDataset
+  visual_data:
+    node_position:
+      x: 1727.7798919313723
+      y: 454.9835108837808
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    shrinking_value: 0.5
+    visual_transformation: log10
+  instance_identifier: s00027_ImputationByMinPerProtein
+  type: ImputationByMinPerProtein
+  visual_data:
+    node_position:
+      x: 908.8989924535881
+      y: 54.857509718931794
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    strategy: mean
+    visual_transformation: log10
+  instance_identifier: s00028_SimpleImputationPerProtein
+  type: SimpleImputationPerProtein
+  visual_data:
+    node_position:
+      x: 1853.2955340716794
+      y: 362.0339576028835
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    number_of_neighbours: 5
+    visual_transformation: log10
+  instance_identifier: s00029_ImputationByKNN
+  type: ImputationByKNN
+  visual_data:
+    node_position:
+      x: 1170.7265685462007
+      y: 157.1096014654215
+- form_inputs:
+    down_shift: -1
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    scaling_factor: 0.5
+    strategy: perProtein
+    visual_transformation: log10
+  instance_identifier: s00030_ImputationByNormalDistributionSampling
+  type: ImputationByNormalDistributionSampling
+  visual_data:
+    node_position:
+      x: 902.5885232385897
+      y: 549.6072742000644
+- form_inputs:
+    graph_type: Pie chart
+    threshold: 0
+  instance_identifier: s00031_FilterPeptidesByPEPThreshold
+  type: FilterPeptidesByPEPThreshold
+  visual_data:
+    node_position:
+      x: 2049.4883626740075
+      y: 266.00113092262774
+- form_inputs: {}
+  instance_identifier: s00032_FilterPeptidesByExistingProteins
+  type: FilterPeptidesByExistingProteins
+  visual_data:
+    node_position:
+      x: 1995.6511818802228
+      y: 455.5258645969566
+- form_inputs: {}
+  instance_identifier: s00033_FilterPeptidesByExistingSamples
+  type: FilterPeptidesByExistingSamples
+  visual_data:
+    node_position:
+      x: 1556.416846540631
+      y: 553.6820881566844
+- form_inputs:
+    alpha: 0.05
+    grouping: Group
+    multiple_testing_correction_method: Benjamini-Hochberg
+    selected_groups:
+    - AD
+    - CTR
+  instance_identifier: s00034_DifferentialExpressionANOVA
+  type: DifferentialExpressionANOVA
+  visual_data:
+    node_position:
+      x: 906.0054647238599
+      y: 656.190332714794
+- form_inputs:
+    alpha: 0.05
+    fc_zscore_alpha: 0.05
+    fc_zscore_filter: false
+    group1: AD
+    group2: CTR
+    grouping: Group
+    log_base: None
+    multiple_testing_correction_method: Benjamini-Hochberg
+    ttest_type: Welch's t-Test
+  instance_identifier: s00035_DifferentialExpressionTTest
+  type: DifferentialExpressionTTest
+  visual_data:
+    node_position:
+      x: 1464.3226522898092
+      y: 266.69594878728867
+- form_inputs:
+    alpha: 0.05
+    group1: AD
+    group2: CTR
+    grouping: Group
+    log_base: None
+    multiple_testing_correction_method: Benjamini-Hochberg
+  instance_identifier: s00036_DifferentialExpressionLinearModel
+  type: DifferentialExpressionLinearModel
+  visual_data:
+    node_position:
+      x: 1231.1715817533193
+      y: 550.7260907814821
+- form_inputs:
+    alpha: 0.05
+    group1: AD
+    group2: CTR
+    grouping: Group
+    log_base: None
+    multiple_testing_correction_method: Benjamini-Hochberg
+    p_value_calculation_method: Auto
+  instance_identifier: s00037_DifferentialExpressionMannWhitneyOnIntensity
+  type: DifferentialExpressionMannWhitneyOnIntensity
+  visual_data:
+    node_position:
+      x: 1213.014227270964
+      y: 656.8482051861437
+- form_inputs:
+    alpha: 0.05
+    group1: AD
+    group2: CTR
+    grouping: Group
+    log_base: None
+    multiple_testing_correction_method: Benjamini-Hochberg
+    p_value_calculation_method: Auto
+  instance_identifier: s00038_DifferentialExpressionMannWhitneyOnPTM
+  type: DifferentialExpressionMannWhitneyOnPTM
+  visual_data:
+    node_position:
+      x: 2504.924804691636
+      y: 748.9934701515256
+- form_inputs:
+    alpha: 0.05
+    grouping: Group
+    multiple_testing_correction_method: Benjamini-Hochberg
+    selected_groups:
+    - AD
+    - CTR
+  instance_identifier: s00039_DifferentialExpressionKruskalWallisOnIntensity
+  type: DifferentialExpressionKruskalWallisOnIntensity
+  visual_data:
+    node_position:
+      x: 1222.5885232385897
+      y: 761.0649204868885
+- form_inputs:
+    alpha: 0.05
+    grouping: Group
+    multiple_testing_correction_method: Benjamini-Hochberg
+    selected_groups:
+    - AD
+    - CTR
+  instance_identifier: s00040_DifferentialExpressionKruskalWallisOnPTM
+  type: DifferentialExpressionKruskalWallisOnPTM
+  visual_data:
+    node_position:
+      x: 2165.1931125490437
+      y: 750.2860645335047
+- form_inputs:
+    flip_axes: false
+    heatmap_high_color: '#67001f'
+    heatmap_high_color_limit: 0.0
+    heatmap_legend_title: Heatmap legend
+    heatmap_low_color: '#053061'
+    heatmap_low_color_limit: 0.0
+    imputation_strategy: mean
+    metadata_column: Group
+    use_custom_color_scale: false
+  instance_identifier: s00041_PlotClustergram
+  type: PlotClustergram
+  visual_data:
+    node_position:
+      x: 1881.0262876413121
+      y: 553.2893623567486
+- form_inputs: {}
+  instance_identifier: s00042_PlotPrecisionRecallCurve
+  type: PlotPrecisionRecallCurve
+  visual_data:
+    node_position:
+      x: 197.227739693104
+      y: 1033.7030060187749
+- form_inputs:
+    aggregation_method: median
+    grouping: Group
+    protein_id: P10636-1
+    selected_groups:
+    - AD
+    - CTR
+  instance_identifier: s00043_PlotProteinCoverage
+  type: PlotProteinCoverage
+  visual_data:
+    node_position:
+      x: 1111.0860081626558
+      y: 1188.2142881104141
+- form_inputs:
+    protein_group: null
+    similarity: 1
+    similarity_measure: Euclidean Distance
+  instance_identifier: s00044_PlotProtQuant
+  type: PlotProtQuant
+  visual_data:
+    node_position:
+      x: 1163.3633404674083
+      y: 266.7086931719331
+- form_inputs: {}
+  instance_identifier: s00045_PlotROC
+  type: PlotROC
+  visual_data:
+    node_position:
+      x: 456.0
+      y: 1024.0
+- form_inputs:
+    metadata_column: Group
+  instance_identifier: s00046_PlotScatterPlot
+  type: PlotScatterPlot
+  visual_data:
+    node_position:
+      x: 1189.5867065361363
+      y: 878.3510553539188
+- form_inputs:
+    fc_threshold: 0
+    input_dict: s00035_DifferentialExpressionTTest
+    items_of_interest: []
+  instance_identifier: s00047_PlotVolcano
+  type: PlotVolcano
+  visual_data:
+    node_position:
+      x: 1378.935730011849
+      y: 1191.1741407583263
+- form_inputs:
+    cv: 5
+    init_centroid_strategy: random
+    labels_column: Group
+    max_iter: 30
+    model_selection: Grid search
+    model_selection_scoring: completeness_score
+    n_clusters: 8
+    n_init: 10
+    n_iter: 10
+    positive_label: AD
+    random_state: 0
+    scoring: completeness_score
+    tolerance: 0.0001
+  instance_identifier: s00048_ClusteringKMeans
+  type: ClusteringKMeans
+  visual_data:
+    node_position:
+      x: 1882.5742010229865
+      y: 649.6215964156673
+- form_inputs:
+    covariance_type: diag
+    cv: 5
+    init_params: kmeans
+    labels_column: Group
+    max_iter: 100
+    model_selection: Manual
+    model_selection_scoring: completeness_score
+    n_components: 2
+    n_iter: 10
+    positive_label: AD
+    random_state: 0
+    reg_covar: 0.001
+    scoring: completeness_score
+  instance_identifier: s00049_ClusteringExpectationMaximisation
+  type: ClusteringExpectationMaximisation
+  visual_data:
+    node_position:
+      x: 1826.75
+      y: 1066.0
+- form_inputs:
+    cv: 5
+    labels_column: Group
+    linkage: ward
+    metric: euclidean
+    model_selection: Manual
+    model_selection_scoring: completeness_score
+    n_clusters: 2
+    n_iter: 10
+    positive_label: AD
+    scoring: adjusted_rand_score
+  instance_identifier: s00050_ClusteringHierarchicalAgglomerative
+  type: ClusteringHierarchicalAgglomerative
+  visual_data:
+    node_position:
+      x: 1406.9833831701703
+      y: 864.5777650075343
+- form_inputs:
+    criterion: gini
+    labels_column: Group
+    max_depth: 1
+    model_selection: Grid search
+    model_selection_scoring: accuracy
+    n_estimators: 100
+    n_repeats: 10
+    n_splits: 5
+    p_samples: 1
+    positive_label: AD
+    random_state: 6
+    random_state_cv: 42
+    scoring: accuracy
+    shuffle: true
+    split_stratify: 'yes'
+    test_size: 0.2
+    train_val_split: 0.2
+    validation_strategy: KFold
+  instance_identifier: s00051_ClassificationRandomForest
+  type: ClassificationRandomForest
+  visual_data:
+    node_position:
+      x: 477.10428277861934
+      y: 866.3437716114508
+- form_inputs:
+    C: 1.0
+    cv: 5
+    kernel: linear
+    labels_column: Group
+    model_selection: Grid search
+    model_selection_scoring: accuracy
+    n_iter: 10
+    n_repeats: 10
+    n_splits: 5
+    p_samples: 1
+    positive_label: AD
+    random_state: 6
+    random_state_cv: 42
+    scoring: accuracy
+    shuffle: true
+    split_stratify: 'yes'
+    test_size: 0.2
+    tolerance: 0.0001
+    train_val_split: 0.2
+    validation_strategy: KFold
+  instance_identifier: s00052_ClassificationSVM
+  type: ClassificationSVM
+  visual_data:
+    node_position:
+      x: 1158.826456408141
+      y: 1060.0055933264375
+- form_inputs:
+    scoring: accuracy
+  instance_identifier: s00053_ModelEvaluationClassificationModel
+  type: ModelEvaluationClassificationModel
+  visual_data:
+    node_position:
+      x: -134.0
+      y: 1022.0
+- form_inputs:
+    max_iter: 1000
+    method: Barnes-Hut approximation
+    metric: euclidean
+    n_components: 2
+    n_iter_without_progress: 300
+    perplexity: 30.0
+    random_state: 6
+  instance_identifier: s00054_DimensionReductionTSNE
+  type: DimensionReductionTSNE
+  visual_data:
+    node_position:
+      x: 1427.612264894568
+      y: 971.4040908960886
+- form_inputs:
+    metric: euclidean
+    min_dist: 0.1
+    n_components: 2
+    n_neighbors: 15
+    random_state: 42
+    transform_seed: 42
+  instance_identifier: s00055_DimensionReductionUMAP
+  type: DimensionReductionUMAP
+  visual_data:
+    node_position:
+      x: 1872.9723922966753
+      y: 761.941599540669
+- form_inputs:
+    auto_select: 'No'
+    protein_ids: []
+    protein_list: null
+    sort_proteins: 'No'
+  instance_identifier: s00056_SelectPeptidesForProtein
+  type: SelectPeptidesForProtein
+  visual_data:
+    node_position:
+      x: 2072.2144534554895
+      y: 350.2464906545786
+- form_inputs:
+    grouping_column: Group
+    mod_cutoff: 0.5
+    num_init: 30
+    protein_group: P10636
+    reference_group: CTR
+  instance_identifier: s00057_FLEXIQuantLF
+  type: FLEXIQuantLF
+  visual_data:
+    node_position:
+      x: 2084.0
+      y: 858.0
+- form_inputs:
+    colormap: null
+    deseq2_normalization: false
+    grouping_column: Group
+    imputation_cosine_similarity: 0.98
+    mod_cutoff: 0.5
+    num_init: 30
+    reference_group: CTR
+  instance_identifier: s00058_MultiFLEXLF
+  type: MultiFLEXLF
+  visual_data:
+    node_position:
+      x: 2310.0
+      y: 448.0
+- form_inputs: {}
+  instance_identifier: s00059_PTMsPerSample
+  type: PTMsPerSample
+  visual_data:
+    node_position:
+      x: 2093.5427430421555
+      y: 541.8794919503106
+- form_inputs: {}
+  instance_identifier: s00060_PTMsProteinAndPerSample
+  type: PTMsProteinAndPerSample
+  visual_data:
+    node_position:
+      x: 2113.630539510532
+      y: 635.8003980793023
+- form_inputs:
+    evidence_file_q_value_threshold: 0.01
+    fasta_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/uniprotkb_P10636.fasta
+    regions_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/regions_P10636.csv
+  instance_identifier: s00061_PTMOverviewVisualization
+  type: PTMOverviewVisualization
+  visual_data:
+    node_position:
+      x: 2415.625
+      y: 858.0
+- form_inputs:
+    evidence_file_q_value_threshold: 0.01
+    fasta_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/uniprotkb_P10636.fasta
+    groups_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/groups_max_quant_AD.csv
+    regions_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/regions_P10636.csv
+  instance_identifier: s00062_PTMBarVisualization
+  type: PTMBarVisualization
+  visual_data:
+    node_position:
+      x: 2374.0
+      y: 964.0
+- form_inputs:
+    evidence_file_q_value_threshold: 0.01
+    fasta_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/uniprotkb_P10636.fasta
+    groups_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/groups_max_quant_AD.csv
+    regions_file_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/regions_P10636.csv
+  instance_identifier: s00063_PTMDetailsVisualization
+  type: PTMDetailsVisualization
+  visual_data:
+    node_position:
+      x: 2168.0
+      y: 1068.0
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    shrinking_value: 0.5
+    visual_transformation: log10
+  instance_identifier: s00064_ImputationByMinPerSample
+  type: ImputationByMinPerSample
+  visual_data:
+    node_position:
+      x: 918.7422365512052
+      y: 874.0366797515134
+- form_inputs:
+    background_path: null
+    differential_expression_col: null
+    differential_expression_threshold: 0
+    direction: both
+    gene_sets_restring: []
+    organism: 9606
+  instance_identifier: s00065_EnrichmentAnalysisGOAnalysisWithString
+  type: EnrichmentAnalysisGOAnalysisWithString
+  visual_data:
+    node_position:
+      x: 1550.6209638486207
+      y: 644.2828408676219
+- form_inputs:
+    background_biomart: null
+    background_number: 1
+    background_path: null
+    background_type: Use all genes in the gene set
+    differential_expression_col: null
+    differential_expression_threshold: 0
+    direction: both
+    gene_sets_enrichr:
+    - KEGG_2019_Human
+    gene_sets_field: Choose from Enrichr options
+    gene_sets_path: null
+    organism: Human
+  instance_identifier: s00066_EnrichmentAnalysisGOAnalysisWithEnrichr
+  type: EnrichmentAnalysisGOAnalysisWithEnrichr
+  visual_data:
+    node_position:
+      x: 1738.6323278162517
+      y: 860.2633894051289
+- form_inputs:
+    background_number: 1
+    background_path: null
+    background_type: Use all genes in the gene set
+    differential_expression_col: null
+    differential_expression_threshold: 0
+    direction: both
+    gene_sets_path: /home/prot/zilla/backend/tests/test_data/workflows/all_steps_bundle/imports/Reactome_2022.txt
+  instance_identifier: s00067_EnrichmentAnalysisGOAnalysisOffline
+  type: EnrichmentAnalysisGOAnalysisOffline
+  visual_data:
+    node_position:
+      x: 810.0
+      y: 962.0
+- form_inputs:
+    gene_sets_enrichr:
+    - KEGG_2019_Human
+    gene_sets_path: null
+    gene_sets_type: Choose from Enrichr options
+    group1: AD
+    group2: CTR
+    grouping: Group
+    max_size: 500
+    min_size: 1
+    number_of_permutations: 1000
+    permutation_type: phenotype
+    ranking_method: signal_to_noise
+    seed: 123
+    threads: 4
+    weighted_score: 1
+  instance_identifier: s00068_EnrichmentAnalysisWithGSEA
+  type: EnrichmentAnalysisWithGSEA
+  visual_data:
+    node_position:
+      x: 1751.8316908057154
+      y: 974.6148226265528
+- form_inputs:
+    gene_sets_enrichr:
+    - KEGG_2019_Human
+    gene_sets_field: Choose from Enrichr options
+    gene_sets_path: null
+    max_size: 500
+    min_size: 1
+    number_of_permutations: 1000
+    permutation_type: phenotype
+    ranking_column: log2_fold_change
+    ranking_direction: ascending
+    ranking_method: signal_to_noise
+    seed: 123
+    threads: 4
+    weighted_score: 1
+  instance_identifier: s00069_EnrichmentAnalysisWithPrerankedGSEA
+  type: EnrichmentAnalysisWithPrerankedGSEA
+  visual_data:
+    node_position:
+      x: 830.3400644804234
+      y: 1058.950802108444
+- form_inputs:
+    database_names:
+    - human_reviewed
+    use_biomart: false
+  instance_identifier: s00070_DatabaseIntegrationByGeneMapping
+  type: DatabaseIntegrationByGeneMapping
+  visual_data:
+    node_position:
+      x: 472.33635734939605
+      y: 89.56882347893252
+- form_inputs:
+    database_name: null
+    fields: []
+  instance_identifier: s00071_DatabaseIntegrationByUniprot
+  type: DatabaseIntegrationByUniprot
+  visual_data:
+    node_position:
+      x: 1132.0
+      y: 968.0
+- form_inputs:
+    cutoff: 0.05
+    gene_sets:
+    - Component
+    - Function
+    - KEGG
+    - RCTM
+    top_terms: 10
+    value: p-value
+  instance_identifier: s00072_PlotGOEnrichmentBarPlot
+  type: PlotGOEnrichmentBarPlot
+  visual_data:
+    node_position:
+      x: 1550.4875264139716
+      y: 756.9217215275761
+- form_inputs:
+    cutoff: 0.05
+    dot_size: 5
+    gene_sets:
+    - KEGG_2019_Human
+    rotate_x_labels: true
+    show_ring: false
+    top_terms: 5
+    x_axis_type: Gene Sets
+  instance_identifier: s00073_PlotGOEnrichmentDotPlot
+  type: PlotGOEnrichmentDotPlot
+  visual_data:
+    node_position:
+      x: 1488.375
+      y: 1058.0
+- form_inputs:
+    cutoff: 0.5
+    dot_color_value: FDR q-val
+    dot_size: 5
+    gene_sets:
+    - KEGG_2019_Human
+    remove_library_names: false
+    show_ring: false
+    x_axis_value: NES
+  instance_identifier: s00074_PlotGSEADotPlot
+  type: PlotGSEADotPlot
+  visual_data:
+    node_position:
+      x: 778.0
+      y: 1182.0
+- form_inputs:
+    ranking: null
+    term_dict: null
+  instance_identifier: s00075_PlotGSEAEnrichmentPlot
+  type: PlotGSEAEnrichmentPlot
+  visual_data:
+    node_position:
+      x: -25.946843235644366
+      y: 84.4728707012069
