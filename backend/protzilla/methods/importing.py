@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.form import (
@@ -7,6 +8,7 @@ from backend.protzilla.form import (
     DropdownField,
     FileInput,
     Form,
+    FormDivider,
     HeaderInfoField,
     Option,
 )
@@ -405,7 +407,7 @@ class ExampleDatasetImport(ImportingStep):
         "If you run this step for the first time, the data will be downloaded from PRIDE, which may take a few minutes."
     )
 
-    output_keys = [DataKey.METADATA_DF, DataKey.PEPTIDE_DF, DataKey.PROTEIN_DF]
+    output_keys = [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
@@ -423,13 +425,15 @@ class ExampleDatasetImport(ImportingStep):
 
     calc_method = staticmethod(example_dataset_import)
 
-    def modify_form(self, form, run):
-        import_peptide_data_field = form["import_peptide_data"]
-        if import_peptide_data_field.value is False:
-            run.steps.current_step.output_keys = ["metadata_df", "protein_df"]
-        else:
-            run.steps.current_step.output_keys = [
-                "metadata_df",
-                "peptide_df",
-                "protein_df",
+    @override
+    def modify_form(self, run: Run) -> None:
+        import_peptide_data_field = self.form["import_peptide_data"]
+        self.output_keys = self.output_keys = (
+            [
+                DataKey.METADATA_DF,
+                DataKey.PEPTIDE_DF,
+                DataKey.PROTEIN_DF,
             ]
+            if import_peptide_data_field.value
+            else [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
+        )
