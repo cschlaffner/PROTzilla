@@ -748,15 +748,16 @@ def get_png_from_step(request: HttpRequest):
     output = step.output.get(output_key)
     if not isinstance(output, bytes):
         return JsonResponse(
-            {"success": False, "message": f"Requested output must be bytes object, is {str(type(output))}"}, status=405
+            {
+                "success": False,
+                "message": f"Requested output must be bytes object, is {str(type(output))}",
+            },
+            status=405,
         )
 
     content = output.decode("utf-8")
-    return JsonResponse({
-        "success": True,
-        "message": "OK",
-        "data": content
-    })
+    return JsonResponse({"success": True, "message": "OK", "data": content})
+
 
 def get_current_step_table_data(request):
     """

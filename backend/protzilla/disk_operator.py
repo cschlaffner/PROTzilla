@@ -120,17 +120,19 @@ class ArtifactOperator:
             file_path.parent.mkdir(parents=True, exist_ok=True)
             joblib.dump(artifact, file_path, compress=("gzip", 3))
 
+
 class Base64Operator:
     """
     Handles dumping and loading of files encoded in base64, e.g. PNG images.
     Files are dumped in binary format and loaded as base64 strings for
     easier front-end handling
     """
+
     @staticmethod
     def read(file_path: Path) -> bytes:
         with ErrorHandler():
             logger.info(f"Reading {file_path} into base64")
-            with open(file_path, 'rb') as file:
+            with open(file_path, "rb") as file:
                 file_content = file.read()
                 encoded = base64.b64encode(file_content)
                 return encoded
@@ -141,7 +143,7 @@ class Base64Operator:
             logger.info(f"Writing base64 to {file_path}")
             file_path.parent.mkdir(parents=True, exist_ok=True)
             data = base64.b64decode(base64_string)
-            with open(file_path, 'wb') as file:
+            with open(file_path, "wb") as file:
                 file.write(data)
 
 
@@ -463,7 +465,8 @@ class DiskOperator:
                         )
                     case OutputType.PNG_BASE64:
                         file_path = (
-                            self.plot_dir / f"{step.instance_identifier}_{key}_image.png"
+                            self.plot_dir
+                            / f"{step.instance_identifier}_{key}_image.png"
                         )
                         if self._dump_is_outdated(step, "output"):
                             self.base64_operator.write(file_path, item.value)

@@ -874,14 +874,9 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
         enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
 
-        if (
-            enrichment_df is not None
-            and "Gene_set" in enrichment_df.columns
-        ):
+        if enrichment_df is not None and "Gene_set" in enrichment_df.columns:
             gene_sets_field.set_options(
-                form_helper.to_choices(
-                    enrichment_df["Gene_set"].unique().tolist()
-                )
+                form_helper.to_choices(enrichment_df["Gene_set"].unique().tolist())
             )
 
 

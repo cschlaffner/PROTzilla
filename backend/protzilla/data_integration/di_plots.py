@@ -375,7 +375,10 @@ def gsea_enrichment_plot(
             figsize=figsize if figsize else (6, 5.5),
         )
         return dict(
-            plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(enrichment_plot_axes[0].get_figure())),
+            plot=OutputItem(
+                OutputType.PNG_BASE64,
+                fig_to_base64(enrichment_plot_axes[0].get_figure()),
+            ),
         )
 
     except Exception as e:
