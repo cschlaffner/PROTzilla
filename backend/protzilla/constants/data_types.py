@@ -4,6 +4,7 @@ from typing import NewType, TypedDict
 
 
 class DataKey(StrEnum):
+    DEBUG = "debug_data"
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
