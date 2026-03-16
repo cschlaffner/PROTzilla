@@ -86,7 +86,7 @@ _forward_mapping: list[Step] = [
 # Steps excluded from UI, i.e. users cannot instantiate them
 _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
-    data_integration.DatabaseIntegrationByUniprot
+    data_integration.DatabaseIntegrationByUniprot,
 ]
 
 

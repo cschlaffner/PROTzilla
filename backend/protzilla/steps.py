@@ -223,7 +223,9 @@ class Step(ABC):
             # TODO: temporary measure while support for model outputs isn't properly finished
             # the model instances don't implement a .copy() method
             self.inputs[target_handle] = (
-                source_output.copy() if isinstance(source_output, (pd.DataFrame, list)) else source_output
+                source_output.copy()
+                if isinstance(source_output, (pd.DataFrame, list))
+                else source_output
             )
 
     def input_source(
