@@ -8,6 +8,7 @@ from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing_plot,
     by_number_of_values_per_group,
     by_number_of_values_per_group_plot,
+    by_protein_ids,
 )
 from backend.protzilla.data_preprocessing.peptide_filter import by_existing_proteins
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
@@ -216,4 +217,20 @@ def test_filter_proteins_by_values_per_group(
         peptides_df,
         peptide_filtering_output[DataKey.PEPTIDE_DF],
         "Protein ID",
+    )
+
+
+def test_filter_proteins_by_protein_ids_filters_correctly(filter_proteins_df):
+    protein_ids = ["Protein1", "Protein3"]
+    result = by_protein_ids(filter_proteins_df, protein_ids)
+
+    filtered_protein_df = result["protein_df"]
+
+    expected_protein_df = filter_proteins_df[
+        filter_proteins_df["Protein ID"].isin(protein_ids)
+    ]
+
+    pd.testing.assert_frame_equal(
+        filtered_protein_df.reset_index(drop=True),
+        expected_protein_df.reset_index(drop=True),
     )

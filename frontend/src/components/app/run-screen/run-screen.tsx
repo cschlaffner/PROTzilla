@@ -13,7 +13,6 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
-  dummyTextComponent1,
   emptyRunData,
   footerMessages,
   StepID,
@@ -67,7 +66,7 @@ const StyledContentDiv = styled.div`
 
 const StyledCSVButton = styled(CSVButton)`
   width: auto;
-  align-telf: flex-end;
+  align-self: flex-end;
   margin-top: ${spacing("buttonGap")};
 `;
 
@@ -104,6 +103,9 @@ export const RunScreen: React.FC = () => {
         run_name: runName,
         step_id: stepID,
       }).then(() => {
+        setAvailableTables(undefined);
+        setPlots(undefined);
+
         void getRunData();
         void getStepPlots();
         void getCurrentStepOutputLabels();
@@ -145,8 +147,12 @@ export const RunScreen: React.FC = () => {
       run_name: runName,
     });
     if (response) {
-      const data = response.outputs;
-      setAvailableTables(data);
+      const tables = [];
+      for (const output of response.outputs) {
+        if (output.output_type === "dataframe" || output.output_type === "list")
+          tables.push(output);
+      }
+      setAvailableTables(tables);
     }
   }, [runName]);
 
@@ -159,6 +165,8 @@ export const RunScreen: React.FC = () => {
   }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
+    setAvailableTables(undefined);
+    setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
@@ -231,10 +239,6 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const otherComponent = (
-    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
-  );
-
   const nodeEditorComponent = (
     <NodeEditor
       onFormSubmit={onFormSubmit}
@@ -247,6 +251,11 @@ export const RunScreen: React.FC = () => {
   const editorModes = [{ name: "Flow", value: nodeEditorComponent }];
 
   const selectedEditorMode: SwitchComponent["name"] = "Flow";
+
+  const components = [
+    plots && plots.length > 0 && { name: "Plots", value: plotComponent },
+    availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
+  ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -273,17 +282,16 @@ export const RunScreen: React.FC = () => {
           />
         </StyledFlexColumn>
         <StyledFlexColumn style={{ flex: 1 }}>
-          <StyledCol>
-            <SwitchCard
-              styleProps={{ height: "calc(100% - 3em)" }}
-              components={[
-                { name: "Plots", value: plotComponent },
-                { name: "Tables", value: tableComponent },
-                { name: "Other Output", value: otherComponent },
-              ]}
-              hasCardTitle={false}
-            />
-          </StyledCol>
+          {components.length ? (
+            <StyledCol>
+              <SwitchCard
+                key={runData.current_step_id}
+                styleProps={{ height: "calc(100% - 3em)" }}
+                components={components}
+                hasCardTitle={false}
+              />
+            </StyledCol>
+          ) : null}
           <FooterText>{randomMessage}</FooterText>
         </StyledFlexColumn>
       </StyledCardRow>
