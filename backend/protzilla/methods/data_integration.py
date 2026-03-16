@@ -755,8 +755,6 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
     output_keys = []
 
-    internal_inputs = {"figsize"}
-
     def create_form(self):
         return Form(
             label="Bar plot for GO enrichment analysis",
@@ -878,11 +876,11 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
         if (
             enrichment_df is not None
-            and "enrichment_categories" in enrichment_df.columns
+            and "Gene_set" in enrichment_df.columns
         ):
             gene_sets_field.set_options(
                 form_helper.to_choices(
-                    enrichment_df["enrichment_categories"].unique().tolist()
+                    enrichment_df["Gene_set"].unique().tolist()
                 )
             )
 

@@ -4,8 +4,10 @@ import gseapy
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from plotly.graph_objs import Figure
 
 from backend.protzilla.constants.protzilla_logging import logger
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.utilities import fig_to_base64
 
 
@@ -16,8 +18,7 @@ def GO_enrichment_bar_plot(
     value,
     gene_sets={},
     title="",
-    figsize=None,
-):
+) -> list[Figure]:
     """
     Create a bar plot for the GO enrichment results. The plot is created using the gseapy library.
     Groups the bars by the enrichment categories (e.g. KEGG, Reactome, etc.) and sorts the bars by
@@ -37,11 +38,8 @@ def GO_enrichment_bar_plot(
     :type value: str
     :param title: Title of the plot, defaults to ""
     :type title: str, optional
-    :param figsize: Size of the plot, defaults to None and is calculated dynamically if not provided.
-    :type figsize: tuple, optional
 
-    :return: Base64 encoded image of the plot
-    :rtype: bytes
+    :return: the figure as a plotly graph object
     """
 
     if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
@@ -207,8 +205,7 @@ def GO_enrichment_dot_plot(
                 show_ring=show_ring,
             )
             return dict(
-                plot_base64=fig_to_base64(ax.get_figure()),
-                key="go_enrichment_dot_plot_img",
+                plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
             )
 
         except ValueError as e:
@@ -228,8 +225,7 @@ def GO_enrichment_dot_plot(
                 show_ring=show_ring,
             )
             return dict(
-                plot_base64=fig_to_base64(ax.get_figure()),
-                key="go_enrichment_dot_plot_img",
+                plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
             )
 
         except ValueError as e:

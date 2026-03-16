@@ -58,6 +58,11 @@ urlpatterns = [
         views.get_current_step_table_data,
         name="get_current_step_table_data",
     ),
+    path(
+        "api/get_png_from_step/",
+        views.get_png_from_step,
+        name="get_png_from_step",
+    ),
     path("api/get_run_data/", views.get_run_data, name="get_run_data"),
     path("api/upload_file/", views.upload_file, name="upload_file"),
     path("api/calculate_step/", views.calculate_step, name="calculate_step"),
