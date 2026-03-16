@@ -10,7 +10,6 @@ from protzilla.importing.alphafold_protein_structure_load import (
     fetch_alphafold_protein_structure,
 )
 from protzilla.data_preprocessing.plots import create_bar_plot
-from backend.protzilla.constants import paths
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -349,16 +348,15 @@ def visualization_of_protein_structure(
     cif_df: pd.DataFrame,
 ) -> dict:
     """
-    Returns a dict containing the protein entry_id and its CIF DataFrame.
-    
+    Returns a dict containing the protein entry_id and its CIF-DataFrame.
+
     :param protein_to_validate: Entry_id of the protein to visualize
     :param cif_df: CIF DataFrame for the protein
     :return: Dict with 'protein' and 'cif_df'
     """
     if cif_df is None or cif_df.empty:
-        raise ValueError(f"No CIF dataframe provided for protein '{protein_to_validate}'.")
+        raise ValueError(
+            f"No CIF dataframe provided for protein '{protein_to_validate}'."
+        )
 
-    return {
-        "protein_entry_id": protein_to_validate,
-        "cif_df": cif_df
-    }
+    return {"protein_entry_id": protein_to_validate, "cif_df": cif_df}

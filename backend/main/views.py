@@ -14,7 +14,6 @@ from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
-import gemmi
 from django.http import JsonResponse, FileResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -35,7 +34,6 @@ from backend.protzilla.constants.paths import (
     EXTERNAL_DATA_PATH,
     RUNS_PATH,
     WORKFLOWS_PATH,
-    ALPHAFOLD_MONOMER_PATH,
 )
 from backend.protzilla.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
@@ -624,7 +622,7 @@ def get_step_plots(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
+
 
 def get_step_visualizations(request):
     if request.method == "POST":
@@ -634,69 +632,101 @@ def get_step_visualizations(request):
         run = Run(run_name)
         visualizations = []
         if run.current_step is not None:
-            if run.current_step.visualizations and not run.current_step.visualizations.empty:
+            if (
+                run.current_step.visualizations
+                and not run.current_step.visualizations.empty
+            ):
                 for viz in run.current_step.visualizations:
                     protein_entry_id = viz.get("protein_entry_id", "unknown protein")
                     cif_df = viz.get("cif_df")
-                    try:
-                        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
-                    except (ValueError, TypeError):
-                        cif_string = ""
-                    visualizations.append({
-                        "proteinEntryId": protein_entry_id,
-                        "cifString": cif_string
-                    })
+                    visualizations.append(
+                        create_visualization(cif_df, protein_entry_id)
+                    )
             else:
-                cif_df = run.current_step.output.output.get("cif_df") if run.current_step.output else None
+                cif_df = (
+                    run.current_step.output.output.get("cif_df")
+                    if run.current_step.output
+                    else None
+                )
                 if cif_df is not None:
                     inputs = run.current_step.inputs if run.current_step.inputs else {}
-                    protein_entry_id = inputs.get("entry_id") or inputs.get("uniprot_id") or "unknown protein"
-                    try:
-                        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
-                    except (ValueError, TypeError):
-                        cif_string = ""
-                    visualizations.append({
-                        "proteinEntryId": protein_entry_id,
-                        "cifString": cif_string
-                    })
-        
+                    protein_entry_id = (
+                        inputs.get("entry_id")
+                        or inputs.get("uniprot_id")
+                        or "unknown protein"
+                    )
+                    visualizations.append(
+                        create_visualization(cif_df, protein_entry_id)
+                    )
+
         return JsonResponse(
-            {"success": True, "message": "Got the visualization(s) for the step", "data": visualizations},
+            {
+                "success": True,
+                "message": "Got the visualization(s) for the step",
+                "data": visualizations,
+            },
             safe=False,
         )
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-    
 
-def convert_df_to_mmcif_for_visualization(df: pd.DataFrame, entry_id: str) -> str:
+
+# TODO: move helper functions somewhere else?
+def create_visualization(cif_df: pd.DataFrame, protein_entry_id: str) -> dict:
+    """
+    Convert a CIF DataFrame to a mmCIF string and package it with its protein entry ID.
+
+    :param cif_df: DataFrame containing mmCIF atom_site information.
+    :param protein_entry_id: Protein identifier to include in the mmCIF header.
+    :return: Dictionary containing:
+             - "proteinEntryId" (str): The given protein entry ID.
+             - "cifString" (str): The generated mmCIF string. Empty if conversion fails.
+    """
+    try:
+        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
+    except (ValueError, TypeError):
+        cif_string = ""
+    return {"proteinEntryId": protein_entry_id, "cifString": cif_string}
+
+
+# TODO: move helper functions somewhere else?
+def convert_df_to_mmcif_for_visualization(
+    cif_df: pd.DataFrame, protein_entry_id: str
+) -> str:
     """
     Convert a DataFrame containing mmCIF atom_site information back into a mmCIF string.
 
-    :param df: DataFrame with CIF columns 
-    :param entry_id: Optional entry ID for the CIF block
+    :param cif_df: DataFrame with CIF columns
+    :param protein_entry_id: Optional entry ID for the CIF block
     :return: A string representing the mmCIF file
     """
-    if df is None or df.empty:
-        raise ValueError("DataFrame is empty, cannot create mmCIF content.")
+    if cif_df is None or cif_df.empty:
+        raise ValueError("CIF-DataFrame is empty, cannot create mmCIF content.")
 
-    lines = [f"data_{entry_id}", "#", f"_entry.id {entry_id}", "#", "loop_"]
+    lines = [
+        f"data_{protein_entry_id}",
+        "#",
+        f"_entry.id {protein_entry_id}",
+        "#",
+        "loop_",
+    ]
 
-    for col in df.columns:
-        lines.append(col)
+    for column in cif_df.columns:
+        lines.append(column)
 
-    for _, row in df.iterrows():
+    for _, row in cif_df.iterrows():
         row_items = []
-        for col in df.columns:
-            val = row[col]
-            if val is None:
-                val_str = "."
+        for column in cif_df.columns:
+            value = row[column]
+            if value is None:
+                value_str = "."
             else:
-                val_str = str(val)
-                if " " in val_str or any(c in val_str for c in '();,' ):
-                    val_str = f"'{val_str}'"
-            row_items.append(val_str)
+                value_str = str(value)
+                if " " in value_str or any(char in value_str for char in "();,"):
+                    value_str = f"'{value_str}'"
+            row_items.append(value_str)
         lines.append(" ".join(row_items))
 
     cif_string = "\n".join(lines)

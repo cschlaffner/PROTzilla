@@ -49,8 +49,8 @@ urlpatterns = [
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path(
-        "api/get_step_visualizations/", 
-        views.get_step_visualizations, 
+        "api/get_step_visualizations/",
+        views.get_step_visualizations,
         name="get_step_visualizations",
     ),
     path(

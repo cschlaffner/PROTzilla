@@ -141,8 +141,10 @@ class Step:
                 self.handle_plot_outputs(plot_output)
                 self.artifact_versions["plots"]["generated"] += 1
 
-            if self.visualization_method: 
-                visualization_output = self.visualization_method(**self.visualization_input)
+            if self.visualization_method:
+                visualization_output = self.visualization_method(
+                    **self.visualization_input
+                )
                 self.handle_visualization_outputs(visualization_output)
                 self.artifact_versions["visualization"]["generated"] += 1
 
@@ -237,11 +239,13 @@ class Step:
 
     def handle_visualization_outputs(self, outputs: dict | list) -> None:
         """
-        Handles the output of the visualization method.
+        Handles the output of the visualization method and creates a Visualizations object from it.
         :param outputs: Must be a dict or a list of dicts
         """
         if not isinstance(outputs, dict) and not isinstance(outputs, list):
-            raise TypeError(f"Visualization outputs must be a dict or list, got {type(outputs)}.")
+            raise TypeError(
+                f"Visualization outputs must be a dict or list, got {type(outputs)}."
+            )
         elif isinstance(outputs, dict):
             self.visualizations = Visualizations([outputs])
         elif isinstance(outputs, list):
@@ -262,7 +266,7 @@ class Step:
 
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
-    visualization_method = None  
+    visualization_method = None
 
     @property
     def calculation_input(self) -> dict:
@@ -306,7 +310,7 @@ class Step:
         return {
             key: plot_input[key] for key in input_parameters.keys() if key in plot_input
         }
-    
+
     @property
     def visualization_input(self) -> dict:
         input_parameters = inspect.signature(self.visualization_method).parameters
@@ -316,7 +320,6 @@ class Step:
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
-
         for key in required_keys:
             if key not in self.inputs:
                 raise ValueError(
@@ -481,7 +484,7 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
-    
+
 
 class Visualizations:
     def __init__(self, visualizations: list | None = None):

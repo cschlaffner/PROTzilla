@@ -153,7 +153,6 @@ export const RunScreen: React.FC = () => {
     const response = await callApiWithParameters("get_step_visualizations/", {
       run_name: runName,
     });
-
     if (response) {
       const rawVisualizations = response.data.map(
         (viz: { proteinEntryId: string; cifString: string }) => ({
@@ -163,7 +162,6 @@ export const RunScreen: React.FC = () => {
       );
 
       setVisualizations(rawVisualizations);
-      //console.log(visualizations)
     }
   }, [runName]);
 
@@ -239,11 +237,10 @@ export const RunScreen: React.FC = () => {
   );
 
   const visualizationComponent = (
-    <StyledContentContainer style={{ height: "100vh" }}>
+    <StyledContentContainer>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
-          <StyledContentDiv key={viz.proteinEntryId} style={{ flex: 1 }}>
-            <div style={{ height: "100px" }}></div>
+          <StyledContentDiv key={viz.proteinEntryId}>
             <MolstarViewer cifText={viz.cifString} />
           </StyledContentDiv>
         ))
