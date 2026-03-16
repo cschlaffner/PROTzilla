@@ -518,7 +518,10 @@ class Output:
 
     def update(self, source_dict: dict[str, Any]):
         for key, value in source_dict.items():
-            if key == "messages":
+            if isinstance(value, OutputItem):
+                self.output[key] = value
+
+            elif key == "messages":
                 if isinstance(value, list):
                     self.output[key] = OutputItem(
                         output_type=OutputType.MESSAGES, value=value
@@ -553,12 +556,9 @@ class Output:
             elif isinstance(value, int):
                 self.output[key] = OutputItem(output_type=OutputType.INT, value=value)
 
-            elif isinstance(value, OutputItem):
-                self.output[key] = value
-
             else:
                 raise ValueError(
-                    "Outputs must be passed as messages, dataframes, lists or OutputItems"
+                    "Outputs must be passed as messages, dataframes, lists, scalars or OutputItems"
                 )
 
     @property
