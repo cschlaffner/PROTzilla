@@ -54,8 +54,13 @@ graph_edges:
 - !!python/tuple
   - DifferentialExpressionTTest_1
   - PlotVolcano_1
-  - source_handle: protein_df
-    target_handle: protein_df
+  - source_handle: corrected_p_values_df
+    target_handle: corrected_p_values_df
+- !!python/tuple
+  - DifferentialExpressionTTest_1
+  - PlotVolcano_1
+  - source_handle: log2_fold_change_df
+    target_handle: log2_fold_change_df
 - !!python/tuple
   - DifferentialExpressionTTest_1
   - EnrichmentAnalysisGOAnalysisWithString_1
@@ -141,7 +146,6 @@ steps:
   type: DifferentialExpressionTTest
 - form_inputs:
     fc_threshold: 1
-    input_dict: DifferentialExpressionTTest_1
     items_of_interest:
     - A0A0U1RQV3
   inputs: {}

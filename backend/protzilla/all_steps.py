@@ -5,7 +5,6 @@ import backend.protzilla.methods.importing as importing
 from backend.protzilla.steps import Step
 
 _forward_mapping: list[Step] = [
-    importing.ArbitraryCSVImport,
     importing.DiannImport,
     importing.MaxQuantImport,
     importing.MsFraggerImport,
@@ -85,7 +84,6 @@ _forward_mapping: list[Step] = [
 
 # Steps excluded from UI, i.e. users cannot instantiate them
 _hidden_steps: list[Step] = [
-    importing.ArbitraryCSVImport,
     data_integration.DatabaseIntegrationByUniprot,
     data_integration.PlotGSEAEnrichmentPlot,
 ]
