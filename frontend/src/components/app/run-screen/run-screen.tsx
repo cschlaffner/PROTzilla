@@ -15,6 +15,7 @@ import {
   callApiWithParameters,
   emptyRunData,
   footerMessages,
+  Image,
   StepID,
   StepOutputInfo,
   SwitchComponent,
@@ -24,6 +25,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+
+import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -90,6 +93,10 @@ export const RunScreen: React.FC = () => {
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
+  // Static PNGs sent as base64
+  const [images, setImages] = useState<Image[]>([]);
+  const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
+
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
   const navigateOrRefreshSteps = (stepID?: StepID) => {
@@ -105,6 +112,7 @@ export const RunScreen: React.FC = () => {
       }).then(() => {
         setAvailableTables(undefined);
         setPlots(undefined);
+        setAvailableImages([]);
 
         void getRunData();
         void getStepPlots();
@@ -147,12 +155,15 @@ export const RunScreen: React.FC = () => {
       run_name: runName,
     });
     if (response) {
-      const tables = [];
+      const tableOutputs = [];
+      const imageOutputs = [];
       for (const output of response.outputs) {
         if (output.output_type === "dataframe" || output.output_type === "list")
-          tables.push(output);
+          tableOutputs.push(output);
+        else if (output.output_type === "png_base64") imageOutputs.push(output);
       }
-      setAvailableTables(tables);
+      setAvailableTables(tableOutputs);
+      setAvailableImages(imageOutputs);
     }
   }, [runName]);
 
@@ -166,6 +177,7 @@ export const RunScreen: React.FC = () => {
 
   const onFormSubmit = () => {
     setAvailableTables(undefined);
+    setAvailableImages([]);
     setPlots(undefined);
     void getRunData();
     void getStepPlots();
@@ -183,6 +195,36 @@ export const RunScreen: React.FC = () => {
   } else {
     plotPlaceholderMessage = "No plot available for this step.";
   }
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const imagePromises = availableImages.map(async (output_info) => {
+        const response = await callApiWithParameters("get_png_from_step/", {
+          run_name: runName,
+          step_id: runData.current_step_id,
+          output_key: output_info.label,
+        });
+        return {
+          title: output_info.label,
+          alt: output_info.label,
+          data: "data:image/png;base64,".concat(response.data),
+        };
+      });
+
+      try {
+        const resolvedImages = await Promise.all(imagePromises);
+        setImages(resolvedImages);
+      } catch (error) {
+        console.error("Failed to fetch image data:", error);
+      }
+    };
+
+    if (availableImages.length > 0) {
+      void fetchImages();
+    } else {
+      setImages([]);
+    }
+  }, [availableImages, runName, runData.current_step_id]);
 
   const plotComponent = (
     <StyledContentContainer>
@@ -239,6 +281,25 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const imageComponent = (
+    <StyledContentContainer>
+      {images.length > 0 ? (
+        <>
+          {images.map((image) => {
+            return (
+              <>
+                <H3>{image.title}</H3>
+                <img src={image.data} alt={image.alt} />
+              </>
+            );
+          })}
+        </>
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No images"} />
+      )}
+    </StyledContentContainer>
+  );
+
   const nodeEditorComponent = (
     <NodeEditor
       onFormSubmit={onFormSubmit}
@@ -255,6 +316,7 @@ export const RunScreen: React.FC = () => {
   const components = [
     plots && plots.length > 0 && { name: "Plots", value: plotComponent },
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
+    availableImages.length > 0 && { name: "Images", value: imageComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
