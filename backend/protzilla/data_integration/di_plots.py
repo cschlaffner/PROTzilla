@@ -303,7 +303,6 @@ def gsea_dot_plot(
         gsea_df["Term"] = gsea_df["Term"].apply(lambda x: x.split("__")[1])
 
     size_y = max((gsea_df[dot_color_value] < cutoff).sum(), 5)
-    print(gsea_df)
     try:
         ax = gseapy.dotplot(
             gsea_df,
