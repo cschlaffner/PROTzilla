@@ -36,7 +36,9 @@ from backend.protzilla.data_analysis.model_evaluation import (
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
+    precision_recall_plot,
     prot_quant_plot,
+    roc_plot,
     scatter_plot,
 )
 from backend.protzilla.utilities.clustergram import (
@@ -1093,30 +1095,9 @@ class PlotProtQuant(DataAnalysisPlotStep):
     plot_method = staticmethod(prot_quant_plot)
 
 
-class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
-    display_name = "Precision Recall"
-    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
-class PlotROC(DataAnalysisStep):
-    display_name = "Receiver Operating Characteristic curve"
-    operation = "plot"
-    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
 class PositiveLabelStep(DataAnalysisStep, ABC):
+
+    positive_label_is_required: bool = False
 
     @override
     def modify_form(self, run: Run) -> None:
@@ -1125,7 +1106,33 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
             run,
             column_field="labels_column",
             group_field="positive_label",
-            required=False,
+            required=self.positive_label_is_required,
+        )
+
+
+class PlotROC(DataAnalysisPlotStep):
+    display_name = "Receiver Operating Characteristic curve"
+    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
+
+    plot_method = staticmethod(roc_plot)
+
+    def create_form(self):
+        return Form(
+            label="ROC Curve",
+            input_fields=[],
+        )
+
+
+class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
+    display_name = "Precision Recall"
+    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
+
+    plot_method = staticmethod(precision_recall_plot)
+
+    def create_form(self):
+        return Form(
+            label="Precision Recall Curve",
+            input_fields=[],
         )
 
 
@@ -1459,6 +1466,8 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
 
+    positive_label_is_required: bool = True
+
 
 class ClassificationRandomForest(ClassificationStep):
     display_name = "Random Forest"
@@ -1485,11 +1494,13 @@ class ClassificationRandomForest(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1507,12 +1518,15 @@ class ClassificationRandomForest(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1536,7 +1550,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1601,7 +1615,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1681,6 +1695,9 @@ class ClassificationSVM(ClassificationStep):
         "y_test_df",
     ]
 
+    # TODO: should either be set via form_inputs or removed from the method's parameters
+    internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
+
     def create_form(self):
         return Form(
             label="Support Vector Machine",
@@ -1693,11 +1710,13 @@ class ClassificationSVM(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1710,12 +1729,15 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1739,7 +1761,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1795,7 +1817,7 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationKernel,
                     value=ClassificationKernel.linear,
                 ),
-                NumberField(
+                FloatField(
                     name="tolerance",
                     label="Tolerance for stopping criterion",
                     min=0.0,
@@ -1803,7 +1825,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0.0,
                     max=4294967295,
                     step=1,
