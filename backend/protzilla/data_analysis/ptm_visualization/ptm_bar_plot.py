@@ -38,14 +38,14 @@ def get_bar_plot_config_module(
 
 
 def create_bar_ptm_visualization(
-    evidence_df: pd.DataFrame,
+    psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
     groups_file_path: Path,
 ) -> dict:
     config_module, out_dir = preprocess_files(
-        evidence_df=evidence_df,
+        evidence_df=psm_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
