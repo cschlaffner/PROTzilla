@@ -76,7 +76,7 @@ def test_plots_volcano_plot_no_annotation(ttest_input, ttest_output, show_figure
         corrected_p_values_df=ttest_output[DataKey.CORRECTED_P_VALUES_DF],
         log2_fold_change_df=ttest_output[DataKey.LOG2_FOLD_CHANGE_DF],
         fc_threshold=0,
-        alpha=ttest_output["corrected_alpha"],
+        alpha=ttest_output["corrected_alpha"].value,
         group1=ttest_input["group1"],
         group2=ttest_input["group2"],
     )

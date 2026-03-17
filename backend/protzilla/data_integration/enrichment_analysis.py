@@ -440,6 +440,16 @@ def gseapy_enrichment(
                 dict(level=logging.ERROR, msg=error_msg, trace=str(e)),
             )
 
+    if isinstance(enriched, list) and len(enriched) == 0:
+        return (
+            None,
+            None,
+            dict(
+                level=logging.ERROR,
+                msg="GSEAPY error: No hits returned for all input gene sets",
+            ),
+        )
+
     enriched["Proteins"] = enriched["Genes"].apply(
         lambda x: ";".join(
             ";".join(gene_to_protein_groups[gene]) for gene in x.split(";")
@@ -461,7 +471,7 @@ def GO_analysis_with_Enrichr(
     organism,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
+    differential_expression_threshold=0.0,
     direction="both",
     gene_sets_path=None,
     gene_sets_enrichr=None,
@@ -709,7 +719,7 @@ def GO_analysis_offline(
     gene_sets_path,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
+    differential_expression_threshold=0.0,
     direction="both",
     background_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
     background_path=None,

@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.protein_coverage import (
     distribute_to_rows,
@@ -289,6 +290,7 @@ def fasta_df():
 def peptide_df():
     outputs = evidence_import(
         file_path=TEST_PEPTIDES_PATH / "evidence_P10636.txt",
+        intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
     evidence_df = outputs[DataKey.PEPTIDE_DF]

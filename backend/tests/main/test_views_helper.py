@@ -15,6 +15,7 @@ def test_get_all_possible_step_names():
         "FastaImport",
         "FilterProteinsBySamplesMissing",
         "FilterProteinsByNumberOfValuesPerGroup",
+        "FilterProteinsByProteinIDs",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",
@@ -58,7 +59,6 @@ def test_get_all_possible_step_names():
         "ModelEvaluationClassificationModel",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
-        "SelectPeptidesForProtein",
         "FLEXIQuantLF",
         "MultiFLEXLF",
         "PTMsPerSample",
@@ -78,6 +78,7 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
+        "ArbitraryCSVImport",
     }
 
     steps = get_all_possible_steps()

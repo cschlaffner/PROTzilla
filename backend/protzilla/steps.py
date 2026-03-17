@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import inspect
 import logging
 import traceback
-from enum import StrEnum
-from typing import Literal
+from enum import Enum, StrEnum
+from typing import Any, Literal, NewType
 
 import pandas as pd
+import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
@@ -211,14 +213,20 @@ class Step(ABC):
         ):
             source_handle: DataKey = data["source_handle"]
             target_handle: DataKey = data["target_handle"]
-            output = steps.get_step_output(
+            source_output = steps.get_step_output(
                 output_key=source_handle, instance_identifier=source
             )
-            if output is None:
+            if source_output is None:
                 raise ValueError(
                     f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
-            self.inputs[target_handle] = output.copy()
+            # TODO: temporary measure while support for model outputs isn't properly finished
+            # the model instances don't implement a .copy() method
+            self.inputs[target_handle] = (
+                source_output.copy()
+                if isinstance(source_output, (pd.DataFrame, list))
+                else source_output
+            )
 
     def input_source(
         self, steps: StepManager, input_key: DataKey
@@ -290,6 +298,7 @@ class Step(ABC):
         :param outputs: A dictionary received after the calculation
         :return: None
         """
+        self.output = Output()
         if not isinstance(outputs, dict):
             raise TypeError("Output of calculation is not a dictionary.")
         outputs = {key: value for key, value in outputs.items() if value is not None}
@@ -312,7 +321,7 @@ class Step(ABC):
 
         if isinstance(outputs, dict):
             plots = outputs.pop("plots", [])
-            self.output.output.update(outputs)
+            self.output.update(outputs)
             self.handle_messages(outputs)
         else:
             plots = outputs
@@ -347,18 +356,19 @@ class Step(ABC):
                 )
 
         return {
-            # key: self.inputs[key]
-            key: self.inputs.get(key)
-            for key in input_parameters.keys()
-            # if key in self.inputs
+            # if there is a default value, we want to use it
+            key: (
+                self.inputs.get(key, param.default)
+                if param.default != inspect.Parameter.empty
+                else self.inputs.get(key)
+            )
+            for key, param in input_parameters.items()
         }
 
     @property
     def plot_input(self) -> dict:
         # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
-        prefixed_output = {
-            "output_" + key: value for key, value in self.output.output.items()
-        }
+        prefixed_output = {"output_" + key: item.value for key, item in self.output}
         plot_input = self.inputs | prefixed_output
 
         input_parameters = inspect.signature(self.plot_method).parameters
@@ -388,9 +398,7 @@ class Step(ABC):
 
         # this is stupid - the steps should just raise the ValueError themselves.
         if list(self.output.output.keys()) == ["messages"]:
-            raise ValueError(
-                f"Output validation failed: Output does not contain data."
-            )
+            raise ValueError(f"Output validation failed: Output does not contain data.")
 
         # for key in self.output_keys:
         #     if key not in self.output or self.output[key] is None:
@@ -456,32 +464,117 @@ class Step(ABC):
         self.plots = Plots()
 
     def invalidate(self) -> None:
-        self.calculation_status = "outdated"
+        # step should not show as outdated if it's never been calculated
+        if self.calculation_status != "incomplete":
+            self.calculation_status = "outdated"
+
+
+class OutputType(StrEnum):
+    DATAFRAME = "dataframe"
+    LIST = "list"
+    MESSAGES = "messages"
+    FLOAT = "float"
+    INT = "int"
+    PNG_BASE64 = "png_base64"
+    # for every data type that is not yaml serializable
+    JOBLIB_ARTIFACT = "joblib_artifact"
+
+
+class OutputItem(yaml.YAMLObject):
+    """
+    Describes one output of a step.
+
+    :ivar output_type: type of output, required for proper serialization
+        and front-end display.
+    :ivar value: data associated with the output
+    """
+
+    yaml_tag: str = "!OutputItem"
+
+    def __init__(self, output_type: OutputType, value: Any) -> None:
+        self.output_type: OutputType = output_type
+        self.value: Any = value
 
 
 class Output:
-    def __init__(self, output: dict = {}):
-        if output is None:
-            output = {}
+    def __init__(
+        self,
+        _output: dict[str, Any] | None = None,
+    ):
+        if _output is None:
+            _output = {}
 
-        self.output = output
+        self.output: dict[str, OutputItem] = {}
+
+        self.update(_output)
 
     def __iter__(self):
         return iter(self.output.items())
 
-    def __getitem__(self, key):
-        return self.output[key]
+    def __getitem__(self, key: str) -> Any:
+        return self.output[key].value
 
     def __repr__(self):
         return f"Output: {self.output}"
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         return key in self.output
+
+    def get(self, key: str) -> Any | None:
+        try:
+            return self.output[key].value
+        except KeyError:
+            return None
+
+    def update(self, source_dict: dict[str, Any]):
+        for key, value in source_dict.items():
+            if isinstance(value, OutputItem):
+                self.output[key] = value
+
+            elif key == "messages":
+                if isinstance(value, list):
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=value
+                    )
+                elif isinstance(value, dict) and len(value) == 0:
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=[]
+                    )
+                elif isinstance(value, dict) and len(value) > 0:
+                    self.output[key] = OutputItem(
+                        output_type=OutputType.MESSAGES, value=[value]
+                    )
+                else:
+                    raise ValueError("Messages should be lists or dicts.")
+
+            # These checks are for backwards compatibility with existing
+            # calculation methods.
+            # We automatically convert the most common data types
+            # to reasonable OutputItem representations
+
+            elif isinstance(value, pd.DataFrame):
+                self.output[key] = OutputItem(
+                    output_type=OutputType.DATAFRAME, value=value
+                )
+
+            elif isinstance(value, list):
+                self.output[key] = OutputItem(output_type=OutputType.LIST, value=value)
+
+            elif isinstance(value, float):
+                self.output[key] = OutputItem(output_type=OutputType.FLOAT, value=value)
+
+            elif isinstance(value, int):
+                self.output[key] = OutputItem(output_type=OutputType.INT, value=value)
+
+            else:
+                raise ValueError(
+                    "Outputs must be passed as messages, dataframes, lists, scalars or OutputItems"
+                )
 
     @property
     def is_empty(self) -> bool:
         return len(self.output) == 0 or all(
-            value is None for value in self.output.values()
+            item.value is None for item in self.output.values()
         )
 
 

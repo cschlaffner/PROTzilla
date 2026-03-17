@@ -1,9 +1,12 @@
 import pandas as pd
 from enum import StrEnum
 from typing import NewType, TypedDict
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
 class DataKey(StrEnum):
+    DEBUG = "debug_data"
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
     METADATA_DF = "metadata_df"
@@ -23,6 +26,8 @@ PeptideDf = NewType("PeptideDf", pd.DataFrame)
 MetadataDf = NewType("MetadataDf", pd.DataFrame)
 
 StepID = NewType("StepID", str)
+
+ClassificationType = SVC | RandomForestClassifier
 
 
 class Connection(TypedDict):

@@ -113,7 +113,6 @@ class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
-        self.inputs["differential_expression_col"] = "log2_fold_change"
         if (
             self.inputs.get(DataKey.PROTEIN_DF) is None
             or not self.inputs["differential_expression_col"]
@@ -215,13 +214,11 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     name="differential_expression_col",
                     label="Column in the protein table containing the values for direction of expression change",
                 ),
-                NumberField(
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
                     "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    min=0,
-                    max=4294967295,
-                    value=0,
+                    value=0.0,
                 ),
                 DropdownField(
                     name="direction",
@@ -351,7 +348,6 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
     method_description = "Offline GO Analysis using a hypergeometric test"
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_offline)
-    # TODO: gene_mapping - adjust this method to use the gene_mapping_df from gene_mapping
 
     def create_form(self):
         return Form(
@@ -361,15 +357,13 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
                     name="differential_expression_col",
                     label="Column in the protein table containing the values for direction of expression change",
                 ),
-                NumberField(
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
                     'values < threshold downregulated. If "log" is in the name of differential_expression_col, '
                     "threshold is applied symmetrically: e.g. log2_fold_change > threshold is upregulated, "
                     "if log2_fold_change < -threshold downregulated",
-                    value=0,
-                    min=0,
-                    max=4294967295,
+                    value=0.0,
                 ),
                 FileInput(
                     name="gene_sets_path",
@@ -761,8 +755,6 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
     output_keys = []
 
-    internal_inputs = {"figsize"}
-
     def create_form(self):
         return Form(
             label="Bar plot for GO enrichment analysis",
@@ -882,14 +874,9 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
         enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
 
-        if (
-            enrichment_df is not None
-            and "enrichment_categories" in enrichment_df.columns
-        ):
+        if enrichment_df is not None and "Gene_set" in enrichment_df.columns:
             gene_sets_field.set_options(
-                form_helper.to_choices(
-                    enrichment_df["enrichment_categories"].unique().tolist()
-                )
+                form_helper.to_choices(enrichment_df["Gene_set"].unique().tolist())
             )
 
 
@@ -901,16 +888,16 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
-    internal_inputs = {"figsize"}
+    internal_inputs = {"figsize", "gene_sets"}
 
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
-                MultiSelectField(
-                    name="gene_sets",
-                    label="Sets to be plotted",
-                ),
+                # MultiSelectField(
+                #     name="gene_sets",
+                #     label="Sets to be plotted",
+                # ),
                 DropdownField(
                     name="dot_color_value",
                     label="Color the dots by value",
