@@ -42,7 +42,7 @@ class OutlierDetectionStep(DataPreprocessingStep, ABC):
 
 
 class FilterPsmStep(DataPreprocessingStep, ABC):
-    operation = "filter_psm"
+    operation = "filter_PSM"
     output_keys = [DataKey.PSM_DF]
 
 
@@ -243,7 +243,7 @@ class FilterPsmByPEPThreshold(FilterPsmStep):
 
     def create_form(self):
         return Form(
-            label="Filter peptides by PEP threshold",
+            label="Filter PSM by PEP threshold",
             input_fields=[
                 FloatField(
                     name="threshold",
@@ -273,7 +273,7 @@ class FilterPsmByExistingProteins(FilterPsmStep):
 
     def create_form(self):
         return Form(
-            label="Filter peptides by existing proteins",
+            label="Filter PSM by existing proteins",
             input_fields=[],
         )
 

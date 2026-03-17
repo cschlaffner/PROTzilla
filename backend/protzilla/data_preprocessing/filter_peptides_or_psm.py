@@ -39,8 +39,8 @@ def filter_peptides_by_pep_value(peptide_df: pd.DataFrame, threshold: float) -> 
 def filter_psm_by_pep_value(psm_df: pd.DataFrame, threshold: float) -> dict:
     psm_df, filtered_psm_list = by_pep_value(psm_df, threshold)
     return dict(
-        peptide_df=psm_df,
-        filtered_peptides=filtered_psm_list,
+        psm_df=psm_df,
+        filtered_psm=filtered_psm_list,
     )
 
 
@@ -98,7 +98,7 @@ def filter_peptides_by_existing_proteins(
 def filter_psm_by_existing_proteins(
     psm_df: pd.DataFrame, protein_df: pd.DataFrame
 ) -> dict:
-    return dict(peptide_df=by_existing_proteins(psm_df, protein_df))
+    return dict(psm_df=by_existing_proteins(psm_df, protein_df))
 
 
 def by_existing_samples(
@@ -130,7 +130,7 @@ def filter_psm_by_existing_samples(
     psm_df: pd.DataFrame, protein_df: pd.DataFrame
 ) -> dict:
     return dict(
-        peptide_df=by_existing_samples(psm_df, protein_df),
+        psm_df=by_existing_samples(psm_df, protein_df),
     )
 
 
