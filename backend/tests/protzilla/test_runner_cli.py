@@ -75,6 +75,21 @@ def test_parse_meta_data(tests_folder_name, metadata_file_path):
     assert Runner(**parsed_args).meta_data_path == metadata_file_path
 
 
+def test_parse_file_input_map(tests_folder_name, tmp_path):
+    run_name = f"{tests_folder_name}/test_parse_file_input_map_{random_string()}"
+    file_input_map_path = tmp_path / "file_inputs.yaml"
+    file_input_map_path.write_text("{}\n", encoding="utf-8")
+
+    test_args = [
+        "standard",
+        "ms_data",
+        f"--run_name={run_name}",
+        f"--file_input_map={file_input_map_path}",
+    ]
+    parsed_args = args_parser().parse_args(test_args).__dict__
+    assert Runner(**parsed_args).file_input_map == {}
+
+
 def test_parse_all_plots(tests_folder_name):
     run_name = f"{tests_folder_name}/test_parse_all_plots_{random_string()}"
     test_args = ["standard", "ms_data", f"--run_name={run_name}", f"--all_plots"]
