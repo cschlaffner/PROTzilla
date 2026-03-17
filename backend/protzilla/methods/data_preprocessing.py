@@ -11,12 +11,14 @@ from backend.protzilla.data_preprocessing import (
     outlier_detection,
     peptide_filter,
     transformation,
+    simplification
 )
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
+from protzilla.data_preprocessing.simplification import AggregationMethod
 
 
 class DataPreprocessingStep(Step, ABC):
@@ -831,3 +833,46 @@ class ImputationByNormalDistributionSampling(ImputationStep):
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
+
+
+class MetadataAdjustment(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Metadata Adjustment"
+    operation = "simplification"
+    method_description = "Match metadata_df and protein_df. Optionally aggregate replicates."
+    output_keys = [DataKey.METADATA_DF]
+
+    def create_form(self):
+        return Form(
+            label="Metadata Adjustment",
+            input_fields=[
+                InfoField(
+                    label="Matches metadata_df and protein_df. Optionally aggregates replicates."
+                ),
+                DropdownField(
+                    name="aggregation_column",
+                    label="Column based on which replicates should be aggregated on",
+                ),
+                DropdownField(
+                    name="aggregation_method",
+                    label="Aggregation method used to aggregate replicate values",
+                    value=AggregationMethod.no_aggregation.value,
+                    options=AggregationMethod,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(simplification.metadata_adjustment)
+
+    def modify_form(self, run: Run) -> None:
+        aggregation_column_field : DropdownField = self.form["aggregation_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            aggregation_column_field.set_options(
+                form_helper.to_choices(
+                    list(metadata_df.columns), required=False
+                )
+            )
+        else:
+            aggregation_column_field.set_options([])
+

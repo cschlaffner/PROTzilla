@@ -8,7 +8,6 @@ from backend.protzilla.methods.importing import (
     DiannImport,
     MetadataColumnAssignment,
     MetadataImport,
-    MetadataImportMethodDiann,
 )
 from backend.protzilla.steps import Step
 

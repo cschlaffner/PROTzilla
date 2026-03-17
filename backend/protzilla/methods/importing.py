@@ -16,7 +16,6 @@ from backend.protzilla.importing.debug_import import arbitrary_csv_import
 from backend.protzilla.importing.metadata_import import (
     metadata_column_assignment,
     metadata_import_method,
-    metadata_import_method_diann,
 )
 from backend.protzilla.importing.ms_data_import import (
     diann_import,
@@ -218,31 +217,6 @@ class MetadataImport(MetadataImportingStep):
         )
 
     calc_method = staticmethod(metadata_import_method)
-
-
-class MetadataImportMethodDiann(MetadataImportingStep):
-    display_name = "DIA-NN Metadata Import"
-    method_description = "Import metadata for run relationships of DIA-NN"
-
-    output_keys = [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
-
-    def create_form(self):
-        return Form(
-            label="DIA-NN Metadata Import",
-            input_fields=[
-                FileInput(
-                    name="file_path",
-                    label="Run-Relationship metadata file:",
-                ),
-                CheckboxField(
-                    name="groupby_sample",
-                    label="Group replicate runs by sample using median",
-                    value=False,
-                ),
-            ],
-        )
-
-    calc_method = staticmethod(metadata_import_method_diann)
 
 
 class MetadataColumnAssignment(MetadataImportingStep):
