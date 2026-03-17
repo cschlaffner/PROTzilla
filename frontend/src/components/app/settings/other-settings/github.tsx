@@ -63,7 +63,7 @@ export const GitHub = () => {
 
   const openLicence = () => {
     window.open("https://github.com/cschlaffner/PROTzilla/blob/main/LICENSE");
-  }
+  };
 
   // TODO: Readd once citation is ready
   // const copyCitation = () => {
@@ -104,11 +104,9 @@ export const GitHub = () => {
         </InnerContentDiv>
         <InnerContentDiv>
           <SectionTitle baseComponent={"h4"} title={"Disclaimer and License"} />
-          <CenteredText
-            text={licenseInfo}
-          />
+          <CenteredText text={licenseInfo} />
           <SecondaryButton onPress={openLicence} text={"Open License"} />
-        </InnerContentDiv>     
+        </InnerContentDiv>
       </ContentDiv>
     </CenteredDiv>
   );
