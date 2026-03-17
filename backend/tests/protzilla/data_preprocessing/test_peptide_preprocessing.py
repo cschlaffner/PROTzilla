@@ -44,7 +44,7 @@ def assert_peptide_filtering_matches_protein_filtering(
 
 def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
     import_outputs = peptide_import.peptide_import(
-        file_path=TEST_PEPTIDES_PATH / "peptides-vsmall.txt",
+        file_path=TEST_PEPTIDES_PATH / "peptides_vsmall.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )

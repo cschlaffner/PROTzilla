@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.form import (
@@ -7,6 +8,7 @@ from backend.protzilla.form import (
     DropdownField,
     FileInput,
     Form,
+    FormDivider,
     HeaderInfoField,
     Option,
 )
@@ -354,6 +356,12 @@ class EvidenceImport(ImportingStep):
                     name="file_path",
                     label="Evidence file",
                 ),
+                DropdownField(
+                    name="intensity_name",
+                    label="Intensity parameter",
+                    value=IntensityType.INTENSITY.value,
+                    options=IntensityType,
+                ),
                 CheckboxField(
                     name="map_to_uniprot",
                     label="Map to Uniprot IDs using Biomart (online)",
@@ -395,15 +403,37 @@ class ExampleDatasetImport(ImportingStep):
         "Aasebø, E.; Berven, F.S.; Bartaula-Brevik, S.; Stokowy, T.; Hovland, R.; Vaudel, M.; Døskeland, S.O.; "
         "McCormack, E.; Batth, T.S.; Olsen, J.V.; et al. Proteome and Phosphoproteome Changes Associated with "
         "Prognosis in Acute Myeloid Leukemia. Cancers 2020, 12, 709.\n"
-        "https://doi.org/10.3390/cancers12030709 "
+        "https://doi.org/10.3390/cancers12030709\n\n"
+        "If you run this step for the first time, the data will be downloaded from PRIDE, which may take a few minutes."
     )
 
-    output_keys = [DataKey.METADATA_DF, DataKey.PEPTIDE_DF, DataKey.PROTEIN_DF]
+    output_keys = [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
 
     def create_form(self):
         return Form(
             label="Example Dataset Import",
-            input_fields=[HeaderInfoField(label=self.method_description)],
+            input_fields=[
+                HeaderInfoField(label=self.method_description),
+                FormDivider("Settings"),
+                CheckboxField(
+                    name="import_peptide_data",
+                    label="Import data from MaxQuant evidence.txt (may take longer and require more memory)",
+                    value=False,
+                ),
+            ],
         )
 
     calc_method = staticmethod(example_dataset_import)
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        import_peptide_data_field = self.form["import_peptide_data"]
+        self.output_keys = self.output_keys = (
+            [
+                DataKey.METADATA_DF,
+                DataKey.PEPTIDE_DF,
+                DataKey.PROTEIN_DF,
+            ]
+            if import_peptide_data_field.value
+            else [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
+        )
