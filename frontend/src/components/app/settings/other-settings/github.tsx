@@ -1,4 +1,4 @@
-import { useNotification } from "@protzilla/app";
+// import { useNotification } from "@protzilla/app";
 import { Icon, SecondaryButton, SectionTitle, Text } from "@protzilla/core";
 import { size, spacing } from "@protzilla/theme";
 import { styled } from "styled-components";
@@ -51,7 +51,7 @@ const CenteredDiv = styled.div`
 `;
 
 export const GitHub = () => {
-  const notify = useNotification();
+  // const notify = useNotification();
 
   const onOpenGitHub = () => {
     window.open("https://github.com/cschlaffner/PROTzilla", "_blank");
