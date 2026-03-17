@@ -1,12 +1,17 @@
 import logging
 
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import (
+    PValueColumnName,
+    SimpleImputerStrategyType,
+)
+from backend.protzilla.constants.data_types import ClassificationType
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy import stats
+from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 from backend.protzilla.constants.colors import (
@@ -103,14 +108,14 @@ def scatter_plot(
 
 
 def create_volcano_plot(
-    p_values: pd.DataFrame,
-    log2_fc: pd.DataFrame,
+    corrected_p_values_df: pd.DataFrame,
+    log2_fold_change_df: pd.DataFrame,
     fc_threshold: float,
     alpha: float,
     group1: str,
     group2: str,
-    item_type: str = "Protein ID",
-    items_of_interest: list | None = None,
+    item_type: PValueColumnName = PValueColumnName.protein_id,
+    items_of_interest: list[str] | None = None,
 ) -> dict:
     """
     Function to create a volcano plot from p values and log2 fold change with the
@@ -127,8 +132,20 @@ def create_volcano_plot(
 
     :return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
-
-    plot_df = p_values.join(log2_fc.set_index(item_type), on=item_type)
+    try:
+        item_type = PValueColumnName(item_type)
+    except ValueError:
+        raise ValueError(
+            f"Unknown column for p-values. Accepted types are {[item for item in PValueColumnName]}"
+        )
+    if item_type not in corrected_p_values_df.columns:
+        raise KeyError(
+            f"Column {item_type} not present in the data passed to this step. \
+            Available columns are {[column for column in corrected_p_values_df.columns]}."
+        )
+    plot_df = corrected_p_values_df.join(
+        log2_fold_change_df.set_index(item_type), on=item_type
+    )
     fig = dashbio.VolcanoPlot(
         dataframe=plot_df,
         effect_size="log2_fold_change",
@@ -147,8 +164,6 @@ def create_volcano_plot(
     )
     if items_of_interest is None:
         items_of_interest = []
-    elif not isinstance(items_of_interest, list):
-        items_of_interest = [items_of_interest]
 
     # annotate the items of interest permanently in the plot
     for item in items_of_interest:
@@ -195,7 +210,15 @@ def create_volcano_plot(
         selector=dict(name=f"Not Significant {item_type}s"),
     )
 
-    return dict(plots=[fig])
+    return dict(
+        plots=[fig],
+        messages=[
+            dict(
+                level=logging.INFO,
+                msg=f"Using possibly corrected alpha with value of {alpha}",
+            )
+        ],
+    )
 
 
 def clustergram_plot(
@@ -514,6 +537,46 @@ def prot_quant_plot(
             bgcolor="rgba(255, 255, 255, 0.5)",
             orientation="v",
         ),
+    )
+
+    return dict(plots=[fig])
+
+
+def precision_recall_plot(
+    model: ClassificationType,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
+):
+    y_score = model.predict_proba(X_test_df)[:, 1]
+    precision, recall, _ = precision_recall_curve(y_test_df, y_score)
+    auc_score = auc(recall, precision)
+    fig = go.Figure()
+    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=1, y1=0)
+    fig.add_trace(go.Scatter(x=recall, y=precision, mode="lines"))
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+    fig.update_layout(
+        title=f"Precision-Recall Curve (AUC={auc_score:.4f})",
+    )
+
+    return dict(plots=[fig])
+
+
+def roc_plot(
+    model: ClassificationType,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
+):
+    y_score = model.predict_proba(X_test_df)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test_df, y_score)
+    auc_score = auc(fpr, tpr)
+    fig = go.Figure()
+    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=0, y1=1)
+    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines"))
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+    fig.update_layout(
+        title=f"ROC Curve (AUC={auc_score:.4f})",
     )
 
     return dict(plots=[fig])

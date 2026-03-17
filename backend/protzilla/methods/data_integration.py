@@ -761,8 +761,6 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
     output_keys = []
 
-    internal_inputs = {"figsize"}
-
     def create_form(self):
         return Form(
             label="Bar plot for GO enrichment analysis",
@@ -882,14 +880,9 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
         enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
 
-        if (
-            enrichment_df is not None
-            and "enrichment_categories" in enrichment_df.columns
-        ):
+        if enrichment_df is not None and "Gene_set" in enrichment_df.columns:
             gene_sets_field.set_options(
-                form_helper.to_choices(
-                    enrichment_df["enrichment_categories"].unique().tolist()
-                )
+                form_helper.to_choices(enrichment_df["Gene_set"].unique().tolist())
             )
 
 
@@ -901,16 +894,16 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
-    internal_inputs = {"figsize"}
+    internal_inputs = {"figsize", "gene_sets"}
 
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
-                MultiSelectField(
-                    name="gene_sets",
-                    label="Sets to be plotted",
-                ),
+                # MultiSelectField(
+                #     name="gene_sets",
+                #     label="Sets to be plotted",
+                # ),
                 DropdownField(
                     name="dot_color_value",
                     label="Color the dots by value",

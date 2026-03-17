@@ -51,21 +51,6 @@ graph_edges:
   - s00010_DifferentialExpressionTTest
   - source_handle: protein_df
     target_handle: protein_df
-- !!python/tuple
-  - s00010_DifferentialExpressionTTest
-  - s00011_PlotVolcano
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00010_DifferentialExpressionTTest
-  - s00012_EnrichmentAnalysisGOAnalysisWithString
-  - source_handle: differentially_expressed_proteins_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00012_EnrichmentAnalysisGOAnalysisWithString
-  - s00013_PlotGOEnrichmentBarPlot
-  - source_handle: enrichment_df
-    target_handle: enrichment_df
 id_clock: 13
 steps:
 - form_inputs:
@@ -171,9 +156,9 @@ steps:
     alpha: 0.05
     fc_zscore_alpha: 0.05
     fc_zscore_filter: false
-    group1: AD
-    group2: CTR
-    grouping: Group
+    group1: null
+    group2: null
+    grouping: null
     multiple_testing_correction_method: Benjamini-Hochberg
     ttest_type: Welch's t-Test
   inputs: {}
@@ -185,7 +170,6 @@ steps:
       y: 353.3920334195707
 - form_inputs:
     fc_threshold: 1
-    input_dict: s00010_DifferentialExpressionTTest
     items_of_interest: []
   inputs: {}
   instance_identifier: s00011_PlotVolcano
