@@ -7,6 +7,7 @@ class DataKey(StrEnum):
     DEBUG = "debug_data"
     PROTEIN_DF = "protein_df"
     PEPTIDE_DF = "peptide_df"
+    PSM_DF = "psm_df"  # psm = peptide spectrum match
     METADATA_DF = "metadata_df"
     FASTA_DF = "fasta_df"
     SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"

@@ -5,8 +5,8 @@ from backend.protzilla.data_analysis.differential_expression_helper import (
 from backend.protzilla.data_analysis.ptm_analysis import ptms_per_sample
 
 
-def test_normalize_ptm_df(evidence_peptide_df):
-    ptm_df = ptms_per_sample(evidence_peptide_df)[DataKey.PTM_DF]
+def test_normalize_ptm_df(psm_df):
+    ptm_df = ptms_per_sample(psm_df)[DataKey.PTM_DF]
     normalized_ptm_df = normalize_ptm_df(ptm_df)
 
     assert normalized_ptm_df.columns.tolist() == [

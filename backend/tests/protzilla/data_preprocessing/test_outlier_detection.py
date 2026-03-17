@@ -14,7 +14,9 @@ from backend.protzilla.data_preprocessing.outlier_detection import (
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
-from protzilla.data_preprocessing.peptide_filter import by_existing_samples
+from protzilla.data_preprocessing.filter_peptides_or_psm import (
+    filter_peptides_by_existing_samples,
+)
 
 
 # TODO #21: implement actual tests for outlier detection
@@ -75,7 +77,7 @@ def test_outlier_detection_with_isolation_forest(
         "n_estimators": 50,
     }
     method_outputs = by_isolation_forest(**method_inputs)
-    peptide_filtering_output = by_existing_samples(
+    peptide_filtering_output = filter_peptides_by_existing_samples(
         peptides_df, method_outputs[DataKey.PROTEIN_DF]
     )
     fig = by_isolation_forest_plot(method_outputs["anomaly_df"])[0]
@@ -98,7 +100,7 @@ def test_outlier_detection_by_local_outlier_factor(
         "number_of_neighbors": 35,
     }
     method_outputs = by_local_outlier_factor(**method_inputs)
-    peptide_filtering_outputs = by_existing_samples(
+    peptide_filtering_outputs = filter_peptides_by_existing_samples(
         peptides_df, method_outputs[DataKey.PROTEIN_DF]
     )
     fig = by_local_outlier_factor_plot(method_outputs["anomaly_df"])[0]
@@ -130,7 +132,7 @@ def test_outlier_detection_with_pca(show_figures, outlier_detection_df, peptides
         "number_of_components": 3,
     }
     method_outputs = by_pca(**method_inputs)
-    peptide_filtering_outputs = by_existing_samples(
+    peptide_filtering_outputs = filter_peptides_by_existing_samples(
         peptides_df, method_outputs[DataKey.PROTEIN_DF]
     )
     fig = by_pca_plot(
