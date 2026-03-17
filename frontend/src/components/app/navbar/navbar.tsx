@@ -12,8 +12,8 @@ import {
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
-import { useNavigate } from "react-router-dom";
 import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 const NavbarBody = styled.div`
