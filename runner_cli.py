@@ -56,6 +56,14 @@ def args_parser():
         "--fasta_path", action="store", help="path to the fasta protein sequence file"
     )
     parser.add_argument(
+        "--file_input_map",
+        action="store",
+        help=(
+            "path to a YAML file using step_id -> {field_name: path} for arbitrary "
+            "file-based step inputs"
+        ),
+    )
+    parser.add_argument(
         "-n",
         "--run_name",
         action="store",
