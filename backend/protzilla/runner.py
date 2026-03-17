@@ -1,11 +1,13 @@
 import logging
 import os
 from pathlib import Path
+import yaml
 
 from backend.protzilla.constants.paths import RUNS_PATH
+from backend.protzilla.form import FileInput
 from backend.protzilla.run import Run, delete_run_folder
 from backend.protzilla.run_helper import log_messages
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step
 from backend.protzilla.utilities.utilities import random_string
 
 
@@ -22,6 +24,7 @@ class Runner:
     :ivar msfragger_path: str, path to MSFragger combined_proteins.tsv
     :ivar diann_path: str, path to DIA-NN intensities file (*.pg_matrix.tsv)
     :ivar diann_meta_data_path: str, path to DIA-NN run-relationship metadata
+    :ivar file_input_map: str, path to YAML file with step-specific file inputs
     :ivar run_name: str, name of run to be created
     :ivar df_mode: str, keep DFs in memory or write on disk, default: disk
     :ivar all_plots: bool, if set all plots will be generated and save in the
@@ -43,6 +46,7 @@ class Runner:
         diann_meta_data_path: str | None = None,
         evidence_path: str | None = None,
         fasta_path: str | None = None,
+        file_input_map: str | None = None,
     ):
         logging.basicConfig(level=logging.INFO)
 
@@ -58,6 +62,7 @@ class Runner:
         self.diann_meta_data_path = diann_meta_data_path
         self.evidence_path = evidence_path
         self.fasta_path = fasta_path
+        self.file_input_map = self._load_file_input_map(file_input_map)
         self.df_mode = df_mode if df_mode is not None else "disk"
         self.workflow = workflow
 
@@ -76,6 +81,7 @@ class Runner:
             workflow_name=self.workflow,
             df_mode=self.df_mode,
         )
+        self._validate_file_input_map()
         logging.info(f"Run {self.run_name} created at {self.run.run_path}")
 
         if (
@@ -106,8 +112,7 @@ class Runner:
                 self.run.steps.goto_step(step_id)
             step = self.run.current_step
             logging.info(f"performing step: {*self.run.steps.current_location,}")
-            if step.section == Section.IMPORTING:
-                self._insert_commandline_inputs(step)
+            self._insert_file_inputs(step)
             self._perform_current_step()
 
             if step.plots and not step.plots.empty:
@@ -122,77 +127,113 @@ class Runner:
         self.run._run_write()
         logging.info(f"Run {self.run_name} saved at {self.run.run_path}")
 
-    def _insert_commandline_inputs(self, step: Step):
-        step_type = step.__class__.__name__
-        if step_type == "MaxQuantImport":
-            step.form["file_path"].value = self.ms_data_path
-            return
-        if step_type == "MsFraggerImport":
-            if self.msfragger_path is None:
-                raise ValueError(
-                    "msfragger_path (--msfragger_path=<path/to/combined_proteins.tsv>) "
-                    f"is not specified, but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.msfragger_path
-            return
-        if step_type == "DiannImport":
-            if self.diann_path is None:
-                raise ValueError(
-                    "diann_path (--diann_path=<path/to/pg_matrix.tsv>) "
-                    f"is not specified, but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.diann_path
+    def _insert_file_inputs(self, step: Step):
+        file_fields = {
+            field.name: field
+            for field in step.form.input_fields
+            if isinstance(field, FileInput)
+        }
+        if not file_fields:
             return
 
-        if step_type == "MetadataImport":
-            if self.meta_data_path is None:
-                raise ValueError(
-                    f"meta_data_path (--meta_data_path=<path/to/data) is not specified,"
-                    f" but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.meta_data_path
-            return
-        if step_type == "MetadataImportMethodDiann":
-            if self.diann_meta_data_path is None:
-                raise ValueError(
-                    "diann_meta_data_path (--diann_meta_data_path=<path/to/data>) "
-                    f"is not specified, but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.diann_meta_data_path
-            return
+        combined_inputs = self._legacy_file_inputs_for_step(step)
+        combined_inputs.update(
+            self.file_input_map.get(step.instance_identifier, {})
+        )  # input map has priority over legacy inputs
 
-        if step_type == "PeptideImport":
-            if self.peptides_path is None:
-                raise ValueError(
-                    f"peptides_path (--peptides_path=<path/to/data>) is not specified, "
-                    f"but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.peptides_path
-            return
-        if step_type == "EvidenceImport":
-            if self.evidence_path is None:
-                raise ValueError(
-                    "evidence_path (--evidence_path=<path/to/evidence.txt>) "
-                    f"is not specified, but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.evidence_path
-            return
-        if step_type == "FastaImport":
-            if self.fasta_path is None:
-                raise ValueError(
-                    "fasta_path (--fasta_path=<path/to/file.fasta>) "
-                    f"is not specified, but is required for {step.operation} with {step.display_name}"
-                )
-            step.form["file_path"].value = self.fasta_path
-            return
-        if step_type == "ExampleDatasetImport":
-            return
-        if step_type == "MetadataColumnAssignment":
-            return
-        else:
+        for field_name, file_path in combined_inputs.items():
+            if field_name in file_fields:
+                file_fields[field_name].value = file_path
+
+    def _legacy_file_inputs_for_step(self, step: Step) -> dict[str, str]:
+        specs = {
+            "MaxQuantImport": {
+                "file_path": ("ms_data_path", "the positional ms_data_path argument"),
+            },
+            "MsFraggerImport": {
+                "file_path": ("msfragger_path", "--msfragger_path"),
+            },
+            "DiannImport": {
+                "file_path": ("diann_path", "--diann_path"),
+            },
+            "MetadataImport": {
+                "file_path": ("meta_data_path", "--meta_data_path"),
+            },
+            "MetadataImportMethodDiann": {
+                "file_path": ("diann_meta_data_path", "--diann_meta_data_path"),
+            },
+            "PeptideImport": {
+                "file_path": ("peptides_path", "--peptides_path"),
+            },
+            "EvidenceImport": {
+                "file_path": ("evidence_path", "--evidence_path"),
+            },
+            "FastaImport": {
+                "file_path": ("fasta_path", "--fasta_path"),
+            },
+        }.get(step.__class__.__name__, {})
+
+        configured_inputs = {}  # ^._.^ ~ MEOW
+        step_overrides = self.file_input_map.get(step.instance_identifier, {})
+
+        for field_name, (attribute_name, legacy_argument) in specs.items():
+            file_path = getattr(self, attribute_name)
+            if file_path is not None:
+                configured_inputs[field_name] = file_path
+                continue
+            if field_name in step_overrides:
+                continue
             raise ValueError(
-                f"Cannot find step with name {step.operation} with {step.display_name} in importing"
+                f"Missing required file input '{field_name}' for {step.operation} with "
+                f"{step.display_name}. Provide it via {legacy_argument} or --file_input_map."
             )
+
+        return configured_inputs
+
+    def _load_file_input_map(
+        self, file_input_map_path: str | None
+    ) -> dict[str, dict[str, str]]:
+        if not file_input_map_path:
+            return {}
+
+        with open(file_input_map_path, "r", encoding="utf-8") as handle:
+            file_input_config = yaml.safe_load(handle)
+
+        if file_input_config is None:
+            return {}
+
+        if not isinstance(file_input_config, dict):
+            raise ValueError("--file_input_map must be a YAML mapping.")
+
+        parsed_inputs = {}
+        for step_id, field_map in file_input_config.items():
+            if not isinstance(field_map, dict):
+                raise ValueError(
+                    "--file_input_map must use the format: step_id -> {field_name: path}."
+                )
+            parsed_inputs[str(step_id)] = {
+                str(field_name): str(path) for field_name, path in field_map.items()
+            }
+        return parsed_inputs
+
+    def _validate_file_input_map(self):
+        for step_id, field_paths in self.file_input_map.items():
+            if step_id not in self.run.steps.all_steps:
+                raise ValueError(
+                    f"--file_input_map references unknown step '{step_id}'."
+                )
+
+            step = self.run.steps.get_step_by_id(step_id)
+
+            for field_name in field_paths:
+                if field_name not in step.form:
+                    raise ValueError(
+                        f"--file_input_map references unknown field '{field_name}' for step '{step_id}'."
+                    )
+                if not isinstance(step.form[field_name], FileInput):
+                    raise ValueError(
+                        f"--file_input_map field '{field_name}' for step '{step_id}' is not a file input."
+                    )
 
     def _perform_current_step(self):
         self.run.current_step.calculate(self.run.steps)
