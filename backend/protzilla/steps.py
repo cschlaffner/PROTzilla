@@ -220,7 +220,13 @@ class Step(ABC):
                 raise ValueError(
                     f"Step {source} has no output with key {source_handle}, but was set to be the input in {target} for key {target_handle}"
                 )
-            self.inputs[target_handle] = source_output.copy()
+            # TODO: temporary measure while support for model outputs isn't properly finished
+            # the model instances don't implement a .copy() method
+            self.inputs[target_handle] = (
+                source_output.copy()
+                if isinstance(source_output, (pd.DataFrame, list))
+                else source_output
+            )
 
     def input_source(
         self, steps: StepManager, input_key: DataKey
@@ -350,10 +356,13 @@ class Step(ABC):
                 )
 
         return {
-            # key: self.inputs[key]
-            key: self.inputs.get(key)
-            for key in input_parameters.keys()
-            # if key in self.inputs
+            # if there is a default value, we want to use it
+            key: (
+                self.inputs.get(key, param.default)
+                if param.default != inspect.Parameter.empty
+                else self.inputs.get(key)
+            )
+            for key, param in input_parameters.items()
         }
 
     @property
