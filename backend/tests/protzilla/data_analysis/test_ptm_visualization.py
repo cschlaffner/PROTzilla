@@ -54,7 +54,7 @@ def get_evidence_df(path: Path):
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
-    evidence_df = outputs[DataKey.PEPTIDE_DF]
+    evidence_df = outputs[DataKey.PSM_DF]
     return evidence_df
 
 
@@ -63,7 +63,7 @@ def pytest_generate_tests(metafunc):
     # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not wort the effort
     if "plot_func" in metafunc.fixturenames:
         basic_kwargs = dict(
-            evidence_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
+            psm_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=GFAP_FASTA_FILE_PATH,
             regions_file_path=GFAP_REGIONS_FILE_PATH,
@@ -77,7 +77,7 @@ def pytest_generate_tests(metafunc):
         if metafunc.definition.name == "test_plotting_functions":
             # Additional files, but for the happy path only
             tau_kwargs = dict(
-                evidence_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
+                psm_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
                 evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
                 fasta_file_path=TAU_FASTA_FILE_PATH,
                 regions_file_path=TAU_REGIONS_FILE_PATH,
@@ -222,7 +222,7 @@ class TestPTMVisualization:
     @staticmethod
     def test_regions_file_too_short_but_matching_region_end(plot_func, kwargs):
         new_kwargs = dict(
-            evidence_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
+            psm_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=TAU_FASTA_FILE_PATH,
             regions_file_path=TAU_PATH
@@ -313,7 +313,7 @@ class TestPTMVisualization:
             ),
         ):
             result = create_overview_ptm_visualization(
-                evidence_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -326,7 +326,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_bar_ptm_visualization(
-                evidence_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -340,7 +340,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_details_ptm_visualization(
-                evidence_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,

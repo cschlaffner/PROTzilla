@@ -293,7 +293,7 @@ def peptide_df():
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
-    evidence_df = outputs[DataKey.PEPTIDE_DF]
+    evidence_df = outputs[DataKey.PSM_DF]
     return evidence_df
 
 
