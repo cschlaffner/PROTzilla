@@ -236,68 +236,12 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const exampleCif = `
-  data_test
-  _symmetry.space_group_name_H-M   'P 1'
-  _cell.length_a   10.0
-  _cell.length_b   10.0
-  _cell.length_c   10.0
-  _cell.angle_alpha   90
-  _cell.angle_beta    90
-  _cell.angle_gamma   90
-  loop_
-  _atom_site.label_atom_id
-  _atom_site.label_asym_id
-  _atom_site.label_seq_id
-  _atom_site.Cartn_x
-  _atom_site.Cartn_y
-  _atom_site.Cartn_z
-  N  A  1  1.0  1.0  1.0
-  CA A  1  2.0  2.0  2.0
-  C  A  1  3.0  3.0  3.0
-  `;
-
-  const minimalCif = `
-  data_MIN
-  #
-  loop_
-  _atom_site.group_PDB
-  _atom_site.id
-  _atom_site.type_symbol
-  _atom_site.label_atom_id
-  _atom_site.label_comp_id
-  _atom_site.label_asym_id
-  _atom_site.label_seq_id
-  _atom_site.Cartn_x
-  _atom_site.Cartn_y
-  _atom_site.Cartn_z
-  ATOM    1  N  N   ALA A   1   0.000   0.000   0.000
-  ATOM    2  C  C   LYS A   2  10.000  5.000   2.000
-  ATOM    3  O  O   LYS A   2  11.000  5.500   2.500
-  #
-  `;
-
-  const crosslinks = [
-  {
-    chain: 'A',
-    resid1: 1,
-    atom1: 'CA',
-    resid2: 2,
-    atom2: 'CA',
-    color: '#FF0000',
-    radius: 0.5
-  }
-];
-
   const visualizationComponent = (
     <StyledContentContainer>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
-          /*<StyledContentDiv key={viz.proteinEntryId}>
-            <MolstarViewer cifText={viz.cifString} crosslinks={crosslinks}/>
-          </StyledContentDiv>*/
           <StyledContentDiv key={viz.proteinEntryId}>
-            <MolstarViewer cifText={minimalCif} crosslinks={crosslinks}/>
+            <MolstarViewer cifText={viz.cifString} />
           </StyledContentDiv>
         ))
       ) : (
