@@ -475,6 +475,7 @@ class OutputType(StrEnum):
     MESSAGES = "messages"
     FLOAT = "float"
     INT = "int"
+    PNG_BASE64 = "png_base64"
     # for every data type that is not yaml serializable
     JOBLIB_ARTIFACT = "joblib_artifact"
 
