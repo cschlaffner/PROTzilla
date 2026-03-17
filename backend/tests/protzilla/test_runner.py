@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+import yaml
 
 from backend.main import settings
 from backend.protzilla.runner import _serialize_graphs
@@ -349,6 +350,45 @@ def test_runner_calculates_logging(caplog, tests_folder_name):
 
     assert "ERROR" in caplog.text
     assert "FileNotFoundError" in caplog.text
+
+
+def test_runner_file_input_map_sets_arbitrary_file_field(tmp_path, tests_folder_name):
+    workflow_dir = TEST_WORKFLOWS_PATH / "all_steps_bundle"
+    file_input_map_path = tmp_path / "file_inputs.yaml"
+    gene_sets_path = tmp_path / "gene_sets.txt"
+    gene_sets_path.write_text("^._.^ ~ Meow", encoding="utf-8")
+    file_input_map_path.write_text(
+        yaml.safe_dump(
+            {
+                "s00067_EnrichmentAnalysisGOAnalysisOffline": {
+                    "gene_sets_path": str(gene_sets_path)
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    kwargs = dict(
+        workflow="all_steps",
+        ms_data_path="dummy_ms_data.txt",
+        meta_data_path=None,
+        peptides_path=None,
+        run_name=f"{tests_folder_name}/test_runner_{random_string()}",
+        df_mode="memory",
+        all_plots=False,
+        verbose=False,
+        file_input_map=str(file_input_map_path),
+    )
+
+    with mock.patch.object(
+        disk_operator.paths, "WORKFLOWS_PATH", workflow_dir.resolve()
+    ):
+        runner = Runner(**kwargs)
+
+    step = runner.run.steps.get_step_by_id("s00067_EnrichmentAnalysisGOAnalysisOffline")
+    runner._insert_file_inputs(step)
+
+    assert step.form["gene_sets_path"].value == str(gene_sets_path)
 
 
 def test_serialize_graphs():
