@@ -9,7 +9,10 @@ from backend.protzilla.constants.option_types import (
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
+from backend.protzilla.constants.option_types import (
+    MultipleTestingCorrectionMethod,
+    PValueColumnName,
+)
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -307,9 +310,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
     ]
 
     def create_form(self):
@@ -353,11 +356,11 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "t_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
         "fc_significance_df",
     ]
 
@@ -434,10 +437,10 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        "log2_fold_change_df",
+        DataKey.CORRECTED_P_VALUES_DF,
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -496,11 +499,11 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -565,11 +568,11 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -636,9 +639,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
@@ -687,9 +690,9 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
@@ -735,7 +738,6 @@ class DataAnalysisPlotStep(DataAnalysisStep, ABC):
     operation = "plot"
 
 
-# TODO: broken - needs decision regarding inclusion as plot method for relevant steps
 class PlotVolcano(DataAnalysisPlotStep):
     display_name = "Volcano Plot"
     method_description = (
@@ -746,21 +748,24 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     plot_method = staticmethod(create_volcano_plot)
     output_keys = []
+    internal_inputs = {"alpha", "group1", "group2"}
 
     def create_form(self):
         return Form(
             label="Volcano Plot",
             input_fields=[
-                DropdownField(
-                    name="input_dict",
-                    label="Input data dict (generated by t-Test or Linear Model Diff Exp)",
-                ),
                 FloatField(
                     name="fc_threshold",
                     label="Log2 fold change threshold",
                     value=0,
                     min=0,
                     step=0.1,
+                ),
+                DropdownField(
+                    name="item_type",
+                    label="Type of input data (can be Protein or PTM)",
+                    options=PValueColumnName,
+                    value=PValueColumnName.protein_id,
                 ),
                 MultiSelectField(
                     name="items_of_interest",
@@ -771,61 +776,38 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        input_dict_field = self.form["input_dict"]
-        items_of_interest_field = self.form["items_of_interest"]
+        items_of_interest_field: MultiSelectField = self.form["items_of_interest"]
+        item_type: str = self.form["item_type"].value
 
-        input_dict_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step,
-                    output_key=["corrected_p_values_df", "log2_fold_change_df"],
-                )
+        source_p_values_df = self.get_input(run.steps, DataKey.CORRECTED_P_VALUES_DF)
+
+        if source_p_values_df is not None:
+            items_of_interest = (
+                source_p_values_df[item_type].unique().tolist()
+                if item_type in source_p_values_df.columns
+                else []
             )
-        )
 
-        if input_dict_field.value == None:
-            return
-
-        input_dict_instance_id = input_dict_field.value
-
-        items_of_interest = []
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_proteins_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["Protein ID"].unique()
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_ptm_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["PTM"].unique()
-
-        items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
+            items_of_interest_field.set_options(
+                form_helper.to_choices(items_of_interest)
+            )
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
-        source_id = self.inputs["input_dict"]
-        self.inputs["p_values"] = steps.get_step_output(
-            output_key="corrected_p_values_df",
-            instance_identifier=source_id,
-        )
-        self.inputs["log2_fc"] = steps.get_step_output(
-            output_key="log2_fold_change_df",
-            instance_identifier=source_id,
-        )
-
-        for input_key in ["alpha", "group1", "group2"]:
-            self.inputs[input_key] = steps.get_step_input(
-                input_key=input_key, instance_identifier=source_id
+        super().insert_dataframes(steps)
+        # implicit data, but better than needing to connect three handles that are all from the same step
+        # also, the instance identifier is known here
+        source_p_values_id, _ = self.input_source(steps, DataKey.CORRECTED_P_VALUES_DF)
+        for input_key in self.internal_inputs:
+            if input_key == "alpha":
+                retrieval_method = steps.get_step_output
+                source_key = "corrected_alpha"
+            else:
+                retrieval_method = steps.get_step_input
+                source_key = input_key
+            self.inputs[input_key] = retrieval_method(
+                source_key, instance_identifier=source_p_values_id
             )
-
-        source_operation = steps.get_step_operation(source_id)
-        if source_operation == "differential_expression":
-            self.inputs["item_type"] = "Protein ID"
-        elif source_operation == "Peptide analysis":
-            self.inputs["item_type"] = "PTM"
 
 
 class PlotProteinCoverage(DataAnalysisPlotStep):
