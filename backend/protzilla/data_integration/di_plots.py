@@ -292,7 +292,7 @@ def gsea_dot_plot(
     if not dot_size:
         dot_size = 5
 
-    if gene_sets == [] or gene_sets == "all":
+    if not gene_sets or gene_sets == "all":
         logger.info("Plotting for all gene set libraries.")
     else:  # remove all Gene_sets that were not selected
         if not isinstance(gene_sets, list):

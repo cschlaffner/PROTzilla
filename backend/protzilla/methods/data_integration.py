@@ -888,16 +888,16 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
-    internal_inputs = {"figsize"}
+    internal_inputs = {"figsize", "gene_sets"}
 
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
-                MultiSelectField(
-                    name="gene_sets",
-                    label="Sets to be plotted",
-                ),
+                # MultiSelectField(
+                #     name="gene_sets",
+                #     label="Sets to be plotted",
+                # ),
                 DropdownField(
                     name="dot_color_value",
                     label="Color the dots by value",
