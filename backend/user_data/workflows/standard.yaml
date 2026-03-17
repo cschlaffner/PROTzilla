@@ -51,6 +51,26 @@ graph_edges:
   - s00010_DifferentialExpressionTTest
   - source_handle: protein_df
     target_handle: protein_df
+- !!python/tuple
+  - s00010_DifferentialExpressionTTest
+  - s00011_PlotVolcano
+  - source_handle: corrected_p_values_df
+    target_handle: corrected_p_values_df
+- !!python/tuple
+  - s00010_DifferentialExpressionTTest
+  - s00011_PlotVolcano
+  - source_handle: log2_fold_change_df
+    target_handle: log2_fold_change_df
+- !!python/tuple
+  - s00010_DifferentialExpressionTTest
+  - s00012_EnrichmentAnalysisGOAnalysisWithString
+  - source_handle: differentially_expressed_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00012_EnrichmentAnalysisGOAnalysisWithString
+  - s00013_PlotGOEnrichmentBarPlot
+  - source_handle: enrichment_df
+    target_handle: enrichment_df
 id_clock: 13
 steps:
 - form_inputs:
