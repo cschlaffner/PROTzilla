@@ -118,7 +118,7 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         )
         assert "protein_df" in import_results
         if import_peptide_data:
-            assert "peptide_df" in import_results
+            assert "psm_df" in import_results
         assert "metadata_df" in import_results
         assert len(import_results["messages"]) == (2 if not import_peptide_data else 3)
         sorted_messages = sorted(import_results["messages"], key=lambda x: x["msg"])
