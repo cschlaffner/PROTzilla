@@ -27,6 +27,7 @@ export { default as handleMetadataIcon } from "./handle_metadata.svg?react";
 export { default as handleSequencesIcon } from "./handle_sequences.svg?react";
 export { default as handlePeptidesIcon } from "./handle_peptides.svg?react";
 export { default as handleProteinIcon } from "./handle_protein.svg?react";
+export { default as handlePsmIcon } from "./handle_psm.svg?react";
 export { default as help } from "./help.svg?react";
 export { default as home } from "./home.svg?react";
 export { default as importing } from "./importing.svg?react";

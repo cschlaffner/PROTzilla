@@ -40,6 +40,9 @@ _forward_mapping: list[Step] = [
     data_preprocessing.FilterPeptidesByPEPThreshold,
     data_preprocessing.FilterPeptidesByExistingProteins,
     data_preprocessing.FilterPeptidesByExistingSamples,
+    data_preprocessing.FilterPsmByPEPThreshold,
+    data_preprocessing.FilterPsmByExistingProteins,
+    data_preprocessing.FilterPsmByExistingSamples,
     data_analysis.DifferentialExpressionANOVA,
     data_analysis.DifferentialExpressionTTest,
     data_analysis.DifferentialExpressionLinearModel,
@@ -86,7 +89,7 @@ _forward_mapping: list[Step] = [
 # Steps excluded from UI, i.e. users cannot instantiate them
 _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
-    data_integration.DatabaseIntegrationByUniprot
+    data_integration.DatabaseIntegrationByUniprot,
 ]
 
 
