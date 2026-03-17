@@ -43,6 +43,7 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: latest=true
           tags: |
             type=semver,pattern={{version}},event=tag
       # Next two steps are necessary for using cache mounts in GHA
