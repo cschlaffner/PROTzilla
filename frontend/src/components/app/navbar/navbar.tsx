@@ -183,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NavbarRight>
           {showRunInformation && memoryUsage !== undefined && (
             <MemoryDiv>
-              <Icon icon={"storage"} color={"onPrimary"} />
+              <Icon icon={"memory"} color={"onPrimary"} />
               <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>
             </MemoryDiv>
           )}
