@@ -252,12 +252,12 @@ def test_runner_imports(
             "items_of_interest": [],
         },
         {
+            "differential_expression_col": "log2_fold_change",
             "differential_expression_threshold": 0,
             "gene_sets_restring": [],
             "organism": 9606,
             "direction": "both",
             "background_path": None,
-            "differential_expression_col": None,
         },
         {
             "cutoff": 0.05,
