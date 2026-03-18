@@ -13,6 +13,7 @@ import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
 import { color, fontSize, fontWeight, spacing } from "@protzilla/theme";
 import { callApiWithParameters } from "@protzilla/utils";
 import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
 const NavbarBody = styled.div`
@@ -86,6 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ...rest
 }) => {
   const notify = useNotification();
+  const navigate = useNavigate();
   const [runName, setRunName] = useState<string>(title ?? "");
   const [isWorkflowSaveOpen, setIsWorkflowSaveOpen] = useState(false);
   // <-- Modal for run properties and edit -->
@@ -95,6 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const onChangeRunName = (newRunName: string) => {
     setRunName(newRunName);
+    void navigate("/", { state: { newRunName } });
   };
 
   const handleAddTag = (tag: string) => {
@@ -183,7 +186,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NavbarRight>
           {showRunInformation && memoryUsage !== undefined && (
             <MemoryDiv>
-              <Icon icon={"storage"} color={"onPrimary"} />
+              <Icon icon={"memory"} color={"onPrimary"} />
               <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>
             </MemoryDiv>
           )}
