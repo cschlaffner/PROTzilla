@@ -90,6 +90,7 @@ _forward_mapping: list[Step] = [
 _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
     data_integration.DatabaseIntegrationByUniprot,
+    data_integration.PlotGSEAEnrichmentPlot,
 ]
 
 

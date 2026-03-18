@@ -1,6 +1,8 @@
 import pandas as pd
 from enum import StrEnum
 from typing import NewType, TypedDict
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
 class DataKey(StrEnum):
@@ -13,6 +15,9 @@ class DataKey(StrEnum):
     SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
     PTM_DF = "ptm_df"
     DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
+    DIFFERENTIALLY_EXPRESSED_PTM_DF = "differentially_expressed_ptm_df"
+    CORRECTED_P_VALUES_DF = "corrected_p_values_df"
+    LOG2_FOLD_CHANGE_DF = "log2_fold_change_df"
     ENRICHMENT_DF = "enrichment_df"
     GENE_MAPPING_DF = "gene_mapping_df"
 
@@ -22,6 +27,8 @@ PeptideDf = NewType("PeptideDf", pd.DataFrame)
 MetadataDf = NewType("MetadataDf", pd.DataFrame)
 
 StepID = NewType("StepID", str)
+
+ClassificationType = SVC | RandomForestClassifier
 
 
 class Connection(TypedDict):

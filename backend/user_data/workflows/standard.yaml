@@ -170,7 +170,6 @@ steps:
       y: 353.3920334195707
 - form_inputs:
     fc_threshold: 1
-    input_dict: null
     items_of_interest: []
   inputs: {}
   instance_identifier: s00011_PlotVolcano
