@@ -81,7 +81,7 @@ def mock_settings_file(new_settings_file_path: Path, tmp_dir: Path):
 
 
 def get_region_range_for_exon_coords(
-    exon_coords: list[tuple[float, float]], horizontal_orientation: bool
+    exon_coords: list[tuple], horizontal_orientation: bool
 ) -> list[tuple[float, float]]:
     # A bit of complicated logic to define the region range for the exon. The side of the exon that is longer, includes
     # some buffer which is not actually part of the exon. Thus, we have to check which side is shorter and only include
@@ -112,7 +112,8 @@ def get_region_range_for_exon_coords(
 def validate_ptm_labels_in_bounds(plot):
     # Does an alignment check of the PTMs to assert that they are not overflowing the sequence or are plotted in
     # the exon gaps.
-    # We only do this for the overview plot, because in other plots we have way more shapes.
+    # Should only be used for the overview plot, because in other plots we have way more shapes that make it
+    # impossible to track what is shapes corresponds to regions and where the PTMs are located.
     all_shapes = plot.layout.shapes
     y_coords = {
         tuple(sorted((shape.y0, shape.y1)))

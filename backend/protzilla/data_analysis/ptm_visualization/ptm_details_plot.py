@@ -90,7 +90,7 @@ def get_details_plot_config_module(
 
 
 def create_details_ptm_visualization(
-    evidence_df: pd.DataFrame,
+    peptide_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
@@ -98,7 +98,7 @@ def create_details_ptm_visualization(
     metadata_column: str,
 ) -> dict:
     config_module, out_dir = preprocess_files(
-        evidence_df=evidence_df,
+        evidence_df=peptide_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,

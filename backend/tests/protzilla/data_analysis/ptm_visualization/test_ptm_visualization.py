@@ -497,7 +497,7 @@ class TestPTMVisualization:
         )
         with mock_settings_file(settings_reduced_ptms_file, tmp_ptm_settings_dir):
             result = create_overview_ptm_visualization(
-                evidence_df=evidence_df,
+                peptide_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -510,7 +510,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_bar_ptm_visualization(
-                evidence_df=evidence_df,
+                peptide_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -525,7 +525,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_details_ptm_visualization(
-                evidence_df=evidence_df,
+                peptide_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,

@@ -2251,10 +2251,6 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
     def get_form_fields(cls) -> list[FormField]:
         return _PTMVisualizationStep.get_form_fields() + [
             DropdownField(
-                name="metadata_df",
-                label="Choose dataframe that contains information about the (treatment) groups that should be plotted",
-            ),
-            DropdownField(
                 name="metadata_column",
                 label="Choose the column of the metadata dataframe that should be used",
             ),
@@ -2262,29 +2258,11 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
 
     calc_method = staticmethod(get_detected_modifications)
 
-    def modify_form(self, form, run):
-        super().modify_form(form, run)
-
-        form["metadata_df"].set_options(
-            form_helper.get_choices(
-                run,
-                output_key="metadata_df",
-                required=True,
-            )
+    def modify_form(self, run):
+        super().modify_form(run)
+        self.set_grouping_options(
+            run, column_field_name="metadata_column", include_sample=True
         )
-        if form.values["metadata_df"] is not None:
-            form["metadata_column"].set_options(
-                form_helper.get_choices_for_metadata_non_sample_columns(
-                    run, instance_identifier=form.values["metadata_df"]
-                )
-            )
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        inputs = super().insert_dataframes(steps, inputs)
-        inputs["metadata_df"] = steps.get_step_output(
-            Step, "metadata_df", inputs["metadata_df"]
-        )
-        return inputs
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):

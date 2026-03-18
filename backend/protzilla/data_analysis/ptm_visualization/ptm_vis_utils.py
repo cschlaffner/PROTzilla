@@ -145,6 +145,8 @@ def get_group_dict_from_df(df: pd.DataFrame, group_col: str) -> dict:
             f"Groups DataFrame must contain the column {group_col} but got {set(df.columns)}"
         )
 
+    # The ordered dict influences the way the groups are ordered in the details plot. This is the easiest way to enable
+    # this customization without having to introduce an additional feature.
     groups = OrderedDict()
     # Seems weird. Is weird. But I wanted to keep it consistent with the original version
     for _, row in df.iterrows():
