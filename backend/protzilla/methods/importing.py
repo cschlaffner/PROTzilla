@@ -346,7 +346,7 @@ class EvidenceImport(ImportingStep):
     operation = "peptide_import"
     method_description = "Import an evidence file"
 
-    output_keys = [DataKey.PEPTIDE_DF]
+    output_keys = [DataKey.PSM_DF]
 
     def create_form(self):
         return Form(

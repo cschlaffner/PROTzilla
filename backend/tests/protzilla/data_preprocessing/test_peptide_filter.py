@@ -1,7 +1,7 @@
 import pandas as pd
-from backend.protzilla.data_preprocessing.peptide_filter import (
-    by_existing_proteins,
-    by_existing_samples,
+from backend.protzilla.data_preprocessing.filter_peptides_or_psm import (
+    filter_peptides_by_existing_proteins,
+    filter_peptides_by_existing_samples,
 )
 
 
@@ -15,7 +15,9 @@ def test_by_existing_proteins_filters_correctly():
 
     protein_df = pd.DataFrame({"Protein ID": ["P1", "P3"]})
 
-    filtered_peptides_df = by_existing_proteins(peptide_df, protein_df)["peptide_df"]
+    filtered_peptides_df = filter_peptides_by_existing_proteins(peptide_df, protein_df)[
+        "peptide_df"
+    ]
 
     expected_df = pd.DataFrame(
         {"Protein ID": ["P1", "P1", "P3"], "Sequence": ["AAA", "BBB", "DDD"]}
@@ -33,7 +35,7 @@ def test_by_existing_samples_filters_correctly():
 
     protein_df = pd.DataFrame({"Sample": ["S1", "S3"]})
 
-    result = by_existing_samples(peptide_df, protein_df)
+    result = filter_peptides_by_existing_samples(peptide_df, protein_df)
     filtered_df = result["peptide_df"]
 
     expected_df = pd.DataFrame({"Sample": ["S1", "S3"], "Sequence": ["AAA", "CCC"]})

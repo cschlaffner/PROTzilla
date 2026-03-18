@@ -167,7 +167,7 @@ def get_modification_groups_from_settings(
 
 
 def preprocess_files(
-    evidence_df: pd.DataFrame,
+    psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
@@ -183,7 +183,5 @@ def preprocess_files(
         out_dir=out_dir,
     )
 
-    MaxQuantPreprocessor(
-        config_module, preprocessor_config_module, evidence_df=evidence_df
-    )
+    MaxQuantPreprocessor(config_module, preprocessor_config_module, evidence_df=psm_df)
     return config_module, out_dir
