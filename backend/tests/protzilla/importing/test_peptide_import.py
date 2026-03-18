@@ -111,7 +111,7 @@ def peptide_df(intensity_name):
     return peptide_df
 
 
-def evidence_df():
+def psm_df():
     # sample, protein id, sequence, intensity, pep
     peptide_protein_list = (
         [
@@ -307,7 +307,7 @@ def test_peptide_import_invalid_intensity_name(
 @pytest.mark.parametrize(
     "intensity_name,file_name,df",
     [
-        (IntensityType.INTENSITY.value, "evidence_vsmall.txt", evidence_df()),
+        (IntensityType.INTENSITY.value, "evidence_vsmall.txt", psm_df()),
         (
             IntensityType.RATIO_HL_NORMALIZED.value,
             "evidence_ratio_hl.txt",
