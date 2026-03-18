@@ -16,6 +16,7 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
+from backend.protzilla.constants.envs import DEBUGMODE
 from backend.protzilla.constants.data_types import Connection
 from backend.protzilla.form import Form
 from backend.protzilla.run import (
@@ -76,7 +77,7 @@ def run_information_list(request):
 
 
 def all_steps(request):
-    steps = get_all_possible_steps(exclude_hidden=False)
+    steps = get_all_possible_steps(exclude_hidden = not DEBUGMODE)
     return JsonResponse(steps, safe=False)
 
 
