@@ -77,7 +77,7 @@ def run_information_list(request):
 
 
 def all_steps(request):
-    steps = get_all_possible_steps(exclude_hidden = not DEBUGMODE)
+    steps = get_all_possible_steps(exclude_hidden=not DEBUGMODE)
     return JsonResponse(steps, safe=False)
 
 
