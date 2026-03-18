@@ -99,16 +99,6 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
             intensity_name=intensity_name,
             map_to_uniprot=False,
         )
-        if "peptide_df" not in peptide_import_dict:
-            return peptide_import_dict
-    else:
-        peptide_import_dict = {}
-    if import_peptide_data:
-        peptide_import_dict = evidence_import(
-            file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
-            intensity_name=intensity_name,
-            map_to_uniprot=False,
-        )
         if DataKey.PEPTIDE_DF not in peptide_import_dict:
             return peptide_import_dict
     else:

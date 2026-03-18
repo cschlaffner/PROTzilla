@@ -165,7 +165,6 @@ def validate_plot_outputs(
     required_groups: set,
     validation_config: Optional["PlotValidationConfig"],
 ):
-    # TODO: technically it should be possible to export all plots and compare newly created plots to these references
     if plot_func == create_overview_ptm_visualization:
         validate_ptm_labels_in_bounds(plot)
 

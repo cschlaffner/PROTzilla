@@ -186,7 +186,7 @@ class TestPTMVisualization:
                 "K281",
                 "S289",
                 "K298",
-                "S305",  # TODO: shouldn't the mod also be on K305?
+                "S305",
                 "K311",
                 "K317",
                 "K321",
@@ -364,7 +364,6 @@ class TestPTMVisualization:
         ):
             plot_func(**kwargs)
 
-        # TODO: this file is basically the same as the shortened one
         kwargs["regions_file_path"] = GFAP_PATH / "regions_one_exon_missing.csv"
         with pytest.raises(
             ValueError,
@@ -557,7 +556,6 @@ class TestPTMVisualization:
     def test_modification_at_regions_starts_and_ends(
         plot_func, kwargs, tmp_ptm_settings_dir, gfap_config
     ):
-        # TODO: bar plot orders ptms in alternative exon by number and doesn't take exon into account
         mock_start_peptide = kwargs["evidence_df"].iloc[97]
         mock_start_peptide["Modified sequence"] = (
             "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
@@ -708,55 +706,10 @@ class TestPTMVisualization:
 
         run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
 
-    # @staticmethod
-    # def test_csk2_protein(plot_func, kwargs, satb1_config, monkeypatch):
-    #     # TODO: maybe convert this into a function that tests overly large figures and fails (before changing width
-    #     #  and make it working again), also check the other configurations as they seem to be affected by plot size
-    #     #  as well
-    #     # TODO: remove
-    #     # if plot_func != create_details_ptm_visualization:
-    #     #     return
-    #
-    #     # TODO: remove this function again?
-    #     # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/kinases/evidence_P67870_CSK2.txt"))
-    #     # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2.fasta")
-    #     # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/kinases/P67870_CSK2_regions.csv")
-    #
-    #     # kwargs["evidence_df"] = get_evidence_df(Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/txt/evidence_Q9H165_BCL11A.txt"))
-    #     # kwargs["fasta_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1.fasta")
-    #     # kwargs["regions_file_path"] = Path("/home/hendraet/stud_sync/Studium/phd/proteomics/data/PXD014997_AML_phosphoproteome/ptm/Q9H165_BCL11A_1_regions.csv")
-    #
-    #     # TODO: Also order Bar Plot
-    #     # TODO: improve performance of bar plot?
-    #     # TODO: Remove N-Term cleavage
-    #     kwargs["evidence_df"] = get_evidence_df(
-    #         Path(
-    #             "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/evidence_P46013.txt"
-    #         )
-    #     )
-    #     kwargs["fasta_file_path"] = Path(
-    #         "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013.fasta"
-    #     )
-    #     kwargs["regions_file_path"] = Path(
-    #         "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/P46013_regions.txt"
-    #     )
-    #
-    #     alter_general_config(monkeypatch, {"FIGURE_WIDTH": 4000})
-    #
-    #     if "metadata_df" in kwargs:
-    #         kwargs["metadata_df"] = get_metadata_df(
-    #             Path(
-    #                 "/home/hendraet/stud_sync/Studium/phd/proteomics/data/ptm_vis_data/nature_paper/meta.csv"
-    #             )
-    #         )
-    #
-    #     run_plot_and_validate(plot_func, kwargs, satb1_config, {"REL-FREE", "RELAPSE"})
-
     @staticmethod
     def test_single_amino_acid_substitution_end_of_exon(
         plot_func, kwargs, tau_substitution_config
     ):
-        # TODO: region names and how they are separated are FUBAR
         kwargs["evidence_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
