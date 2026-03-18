@@ -43,9 +43,6 @@ const StyledCardRow = styled(FlexRow)`
 
 const StyledFlexColumn = styled(FlexColumn)`
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 `;
 
 const StyledCol = styled(Col)`
