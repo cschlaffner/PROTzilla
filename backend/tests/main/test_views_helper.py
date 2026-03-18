@@ -36,7 +36,7 @@ def test_get_all_possible_step_names():
         "FilterPeptidesByPEPThreshold",
         "FilterPeptidesByExistingProteins",
         "FilterPeptidesByExistingSamples",
-        "MetadataAdjustment",
+        "GroupReplicates",
         "DifferentialExpressionANOVA",
         "DifferentialExpressionTTest",
         "DifferentialExpressionLinearModel",

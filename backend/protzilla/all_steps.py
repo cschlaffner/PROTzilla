@@ -39,7 +39,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.FilterPeptidesByPEPThreshold,
     data_preprocessing.FilterPeptidesByExistingProteins,
     data_preprocessing.FilterPeptidesByExistingSamples,
-    data_preprocessing.MetadataAdjustment,
+    data_preprocessing.GroupReplicates,
     data_analysis.DifferentialExpressionANOVA,
     data_analysis.DifferentialExpressionTTest,
     data_analysis.DifferentialExpressionLinearModel,

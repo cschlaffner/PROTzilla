@@ -53,9 +53,7 @@ def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
         return pd.DataFrame(), msg
 
 
-def metadata_import_method(
-    file_path: Path, feature_orientation: str
-) -> dict:
+def metadata_import_method(file_path: Path, feature_orientation: str) -> dict:
     """
         Imports a metadata file and returns the intensity dataframe and a dict with a message if the file import failed,
         and the metadata dataframe if the import was successful.
@@ -70,8 +68,8 @@ def metadata_import_method(
         )
     # A lot of the code assumes that there is a column "Sample" in the metadata dataframe, so this assumption has to be
     # checked here.
-    if "sample name" in meta_df.columns:
-        meta_df.rename(columns={"sample name": "Sample"}, inplace=True)
+    if "MS run" in meta_df.columns:
+        meta_df.rename(columns={"MS run": "Sample"}, inplace=True)
     if "Sample" not in meta_df.columns:
         return {
             "messages": [
