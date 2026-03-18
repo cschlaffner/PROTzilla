@@ -43,6 +43,9 @@ const StyledCardRow = styled(FlexRow)`
 
 const StyledFlexColumn = styled(FlexColumn)`
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const StyledCol = styled(Col)`
@@ -376,7 +379,9 @@ export const RunScreen: React.FC = () => {
                 hasCardTitle={false}
               />
             </StyledCol>
-          ) : null}
+          ) : (
+            <div style={{ flex: 1 }} />
+          )}
           <FooterText>{getFooterMessage()}</FooterText>
         </StyledFlexColumn>
       </StyledCardRow>
