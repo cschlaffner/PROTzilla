@@ -18,6 +18,19 @@ def group_replicates(
     aggregation_column: str,
     aggregation_method: str,
 ) -> dict:
+    """
+    This function groups replicate samples in the protein dataframe based on a specified
+    metadata column and aggregates their intensity values using the provided aggregation method.
+
+    :param metadata_df: the pandas dataframe containing metadata information
+    :param protein_df: the pandas dataframe containing the protein information
+    :param aggregation_column: the column in the metadata dataframe used to group samples
+    :param aggregation_method: the method used to aggregate replicate intensities
+                               ("sum", "mean", "median", "min", "max")
+    :return: dict containing the protein dataframe with grouped and aggregated samples
+    """
+    # for each row in the protein_df add the value of the aggregation column of the metadata_df
+    # we only keep rows that have a matching sample (MS run) in the metadata
     protein_df = pd.merge(
         protein_df,
         metadata_df[["Sample", aggregation_column]],
@@ -25,9 +38,13 @@ def group_replicates(
         right_on="Sample",
         how="inner",
     )
+    # aggregate intensity values of the protein_df -> each combination of a protein id
+    # and a specific value of the aggregation column is one group (= one row in the result)
     aggregation_method = AggregationMethod(aggregation_method)
     protein_df = protein_df.groupby(
         ["Protein ID", aggregation_column], as_index=False
     ).agg({default_intensity_column(protein_df): aggregation_method.value})
+    # since there are different samples in each group we lost our "Sample" column
+    # since some steps assume that there will be a "Sample" column, we rename the aggregation column
     protein_df.rename(columns={aggregation_column: "Sample"}, inplace=True)
-    return dict(protein_df=protein_df, metadata_df=metadata_df)
+    return dict(protein_df=protein_df)
