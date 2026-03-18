@@ -4,7 +4,7 @@ from backend.protzilla.run import Run
 
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
-    return (
+    return sorted(
         [Option(str(el), str(el)) for el in choices] + [Option(None, "---------")]
         if not required
         else [Option(str(el), str(el)) for el in choices]

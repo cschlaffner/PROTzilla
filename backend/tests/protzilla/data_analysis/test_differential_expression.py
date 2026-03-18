@@ -93,8 +93,8 @@ def test_differential_expression_linear_model(
     current_out = linear_model(**current_input)
 
     fig = create_volcano_plot(
-        p_values=current_out["corrected_p_values_df"],
-        log2_fc=current_out["log2_fold_change_df"],
+        corrected_p_values_df=current_out[DataKey.CORRECTED_P_VALUES_DF],
+        log2_fold_change_df=current_out[DataKey.LOG2_FOLD_CHANGE_DF],
         alpha=current_out["corrected_alpha"],
         group1=current_input["group1"],
         group2=current_input["group2"],
@@ -109,16 +109,22 @@ def test_differential_expression_linear_model(
     differentially_expressed_proteins = ["Protein1", "Protein2", "Protein3", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert log2fc_rounded == log2_fc
     assert (
-        list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -143,8 +149,8 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     current_out = t_test(**current_input)
 
     fig = create_volcano_plot(
-        current_out["corrected_p_values_df"],
-        current_out["log2_fold_change_df"],
+        current_out[DataKey.CORRECTED_P_VALUES_DF],
+        current_out[DataKey.LOG2_FOLD_CHANGE_DF],
         test_fc_threshold,
         current_out["corrected_alpha"].value,
         current_input["group1"],
@@ -163,15 +169,21 @@ def test_differential_expression_student_t_test(diff_expr_test_data, show_figure
     significant_proteins = ["Protein1", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert (
-        list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"].value == test_alpha
@@ -200,8 +212,8 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     current_out = t_test(**current_input)
 
     fig = create_volcano_plot(
-        current_out["corrected_p_values_df"],
-        current_out["log2_fold_change_df"],
+        current_out[DataKey.CORRECTED_P_VALUES_DF],
+        current_out[DataKey.LOG2_FOLD_CHANGE_DF],
         test_fc_threshold,
         current_out["corrected_alpha"].value,
         current_input["group1"],
@@ -220,15 +232,21 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     significant_proteins = ["Protein1", "Protein4"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     log2fc_rounded = [
-        round(x, 4) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == corrected_p_values
     assert (
-        list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"].value == test_alpha
@@ -308,8 +326,8 @@ def test_differential_expression_t_test_types(diff_expr_test_data, show_figures)
 
     # Check if the p-values are different
     assert not np.array_equal(
-        student_out["corrected_p_values_df"]["corrected_p_value"],
-        welch_out["corrected_p_values_df"]["corrected_p_value"],
+        student_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"],
+        welch_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"],
     )
 
 
@@ -368,7 +386,8 @@ def test_differential_expression_t_test_with_log_data(show_figures):
     log2_fc = [-1, -0.1]
     # because of the longer fc calculation the comparison does not work as accurately as on paper (inaccuracy due to multiple float operations)
     log2fc_rounded = [
-        round(x, 1) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 1)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert log2fc_rounded == log2_fc
@@ -411,10 +430,15 @@ def test_differential_expression_t_test_with_silac_ratios():
         alpha=0.05,
     )
 
-    assert not out["corrected_p_values_df"].empty
-    assert out["corrected_p_values_df"]["Protein ID"].tolist() == ["Protein1"]
-    assert round(out["corrected_p_values_df"]["corrected_p_value"].iloc[0], 4) == 0.0513
-    assert round(out["log2_fold_change_df"]["log2_fold_change"].iloc[0], 2) == -0.44
+    assert not out[DataKey.CORRECTED_P_VALUES_DF].empty
+    assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == ["Protein1"]
+    assert (
+        round(out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"].iloc[0], 4)
+        == 0.0513
+    )
+    assert (
+        round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 2) == -0.44
+    )
 
 
 def test_differential_expression_anova(show_figures):
@@ -466,7 +490,7 @@ def test_differential_expression_anova(show_figures):
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
     )
-    corrected_p_values_df = output_dict["corrected_p_values_df"]
+    corrected_p_values_df = output_dict[DataKey.CORRECTED_P_VALUES_DF]
 
     p_values_rounded = [round(x, 4) for x in corrected_p_values_df["corrected_p_value"]]
     assertion_p_values = [
@@ -499,8 +523,8 @@ def test_differential_expression_mann_whitney_on_intensity(
     current_out = mann_whitney_test_on_intensity_data(**current_input)
 
     fig = create_volcano_plot(
-        p_values=current_out["corrected_p_values_df"],
-        log2_fc=current_out["log2_fold_change_df"],
+        corrected_p_values_df=current_out[DataKey.CORRECTED_P_VALUES_DF],
+        log2_fold_change_df=current_out[DataKey.LOG2_FOLD_CHANGE_DF],
         alpha=current_out["corrected_alpha"],
         group1=current_input["group1"],
         group2=current_input["group2"],
@@ -521,18 +545,24 @@ def test_differential_expression_mann_whitney_on_intensity(
     ]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     u_statistics = current_out["u_statistic_df"]["u_statistic"]
     log2fc_rounded = [
-        round(x, 4) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == expected_corrected_p_values
     assert all(u_statistics == expected_u_statistics)
     assert log2fc_rounded == expected_log2_fc
     assert (
-        list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == expected_differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -566,7 +596,8 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
     ]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     h_statistics_rounded = [
         round(x, 4) for x in current_out["h_statistic_df"]["h_statistic"]
@@ -575,7 +606,11 @@ def test_differential_expression_kruskal_wallis_on_intensity_three_groups(
     assert p_values_rounded == expected_corrected_p_values
     assert h_statistics_rounded == expected_h_statistics
     assert (
-        list(current_out["differentially_expressed_proteins_df"]["Protein ID"].unique())
+        list(
+            current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF][
+                "Protein ID"
+            ].unique()
+        )
         == expected_differentially_expressed_proteins
     )
     assert current_out["corrected_alpha"] == test_alpha
@@ -612,7 +647,8 @@ def test_differential_expression_kruskal_wallis_on_intensity_group_handling(
 
     expected_corrected_p_values = [0.175, 0.33, 0.5712, 0.175]
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     assert p_values_rounded == expected_corrected_p_values
 
@@ -785,11 +821,13 @@ def test_differential_expression_mann_whitney_on_ptm(
     expected_significant_ptms = ["Oxidation", "GlyGly", "Phospho"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     u_statistics = current_out["u_statistic_df"]["u_statistic"]
     log2_fc_rounded = [
-        round(x, 4) for x in current_out["log2_fold_change_df"]["log2_fold_change"]
+        round(x, 4)
+        for x in current_out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"]
     ]
 
     assert p_values_rounded == expected_corrected_p_values
@@ -824,7 +862,8 @@ def test_differential_expression_kruskal_wallis_on_ptm(
     expected_significant_ptms = ["Oxidation", "Acetyl", "GlyGly", "Phospho"]
 
     p_values_rounded = [
-        round(x, 4) for x in current_out["corrected_p_values_df"]["corrected_p_value"]
+        round(x, 4)
+        for x in current_out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"]
     ]
     h_statistics_rounded = [
         round(x, 4) for x in current_out["h_statistic_df"]["h_statistic"]
@@ -874,11 +913,11 @@ def test_differential_expression_t_test_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["t_statistic_df"].empty
-    assert current_out["log2_fold_change_df"].empty
+    assert current_out[DataKey.LOG2_FOLD_CHANGE_DF].empty
     assert current_out["corrected_alpha"] == 0.05
 
     # Check that an error message was generated
@@ -921,9 +960,9 @@ def test_differential_expression_anova_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["corrected_alpha"] == 0.05
     assert current_out["filtered_proteins"] == []
 
@@ -969,10 +1008,10 @@ def test_differential_expression_linear_model_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
-    assert current_out["corrected_p_values_df"].empty
-    assert current_out["log2_fold_change_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
+    assert current_out[DataKey.LOG2_FOLD_CHANGE_DF].empty
     assert current_out["corrected_alpha"] == 0.05
     assert current_out["filtered_proteins"] == ["Protein1"]
 
@@ -1018,11 +1057,11 @@ def test_differential_expression_mann_whitney_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["u_statistic_df"].empty
-    assert current_out["log2_fold_change_df"].empty
+    assert current_out[DataKey.LOG2_FOLD_CHANGE_DF].empty
     assert current_out["corrected_alpha"] == 0.05
 
     # Check that an error message was generated
@@ -1067,11 +1106,11 @@ def test_differential_expression_mann_whitney_on_ptm_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_ptm_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF].empty
     assert current_out["significant_ptm_df"].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["u_statistic_df"].empty
-    assert current_out["log2_fold_change_df"].empty
+    assert current_out[DataKey.LOG2_FOLD_CHANGE_DF].empty
     assert current_out["corrected_alpha"] == 0.05
 
     # Check that an error message was generated
@@ -1114,9 +1153,9 @@ def test_differential_expression_kruskal_wallis_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_proteins_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF].empty
     assert current_out[DataKey.SIGNIFICANT_PROTEINS_DF].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["h_statistic_df"].empty
     assert current_out["corrected_alpha"] == 0.05
 
@@ -1161,9 +1200,9 @@ def test_differential_expression_kruskal_wallis_on_ptm_empty_p_values():
     )
 
     # Check that all dataframes are empty but with correct columns
-    assert current_out["differentially_expressed_ptm_df"].empty
+    assert current_out[DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF].empty
     assert current_out["significant_ptm_df"].empty
-    assert current_out["corrected_p_values_df"].empty
+    assert current_out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert current_out["h_statistic_df"].empty
     assert current_out["corrected_alpha"] == 0.05
 

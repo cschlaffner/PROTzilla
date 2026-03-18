@@ -23,7 +23,7 @@ def download_example_data(
 ) -> None:
     archive_file_path = EXAMPLE_DATASET_DIR / filename
     if not archive_file_path.exists():
-        logger.info(f"Downloading file %s from PRIDE project %s", filename, accession)
+        logger.info("Downloading file %s from PRIDE project %s", filename, accession)
         try:
             raw_files = pridepy.Files()
             raw_files.download_file_by_name(
@@ -40,9 +40,9 @@ def download_example_data(
         except Exception as e:
             raise RuntimeError(
                 f"Error downloading file {filename} from PRIDE project {accession}. "
-                f"This is likely and issue with PRIDE.\nOriginal error: {e}\n"
+                f"This is likely an issue with PRIDE.\nOriginal error: {e}\n"
             )
-        logger.info(f"Completed download of file %s", filename)
+        logger.info("Completed download of file %s", filename)
 
     required_file_names = []
     if not EXAMPLE_DATASET_PROTEIN_FILE.exists():
@@ -77,6 +77,7 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         file_path=EXAMPLE_DATASET_PROTEIN_FILE,
         intensity_name=intensity_name,
         aggregation_method="Sum",
+        ignore_only_identified_by_site=True,
     )
     # Return messages
     if DataKey.PROTEIN_DF not in protein_import_dict:
@@ -87,9 +88,21 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )
+    if "metadata_df" not in metadata_import_dict:
+        return metadata_import_dict
     if DataKey.METADATA_DF not in metadata_import_dict:
         return metadata_import_dict
 
+    if import_peptide_data:
+        peptide_import_dict = evidence_import(
+            file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
+            intensity_name=intensity_name,
+            map_to_uniprot=False,
+        )
+        if "peptide_df" not in peptide_import_dict:
+            return peptide_import_dict
+    else:
+        peptide_import_dict = {}
     if import_peptide_data:
         peptide_import_dict = evidence_import(
             file_path=EXAMPLE_DATASET_EVIDENCE_FILE,

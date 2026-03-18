@@ -5,9 +5,13 @@ from unittest import mock
 
 import pytest
 
-from protzilla import importing
-from protzilla.importing.example_dataset_import import example_dataset_import
-from tests.paths import (
+from backend.protzilla import importing
+from backend.protzilla.constants.paths import (
+    EXAMPLE_DATASET_PROTEIN_FILE,
+    EXAMPLE_DATASET_EVIDENCE_FILE,
+)
+from backend.protzilla.importing.example_dataset_import import example_dataset_import
+from backend.tests.paths import (
     TEST_MSDATA_PATH,
     TEST_PEPTIDES_PATH,
     TEST_METADATA_PATH,
@@ -23,13 +27,22 @@ def tmp_example_data_dir(tmp_path_factory):
 
 @pytest.fixture()
 def example_data_paths(tmp_example_data_dir):
-    tmp_protein_path = (
-        tmp_example_data_dir.resolve() / "txt_REL_FREE-REPASE/proteinGroups.txt"
+    example_protein_file_path_ending = EXAMPLE_DATASET_PROTEIN_FILE.relative_to(
+        importing.example_dataset_import.EXAMPLE_DATASET_DIR
+    )
+    tmp_protein_path = tmp_example_data_dir.resolve() / example_protein_file_path_ending
+    example_evidence_file_path_ending = EXAMPLE_DATASET_EVIDENCE_FILE.relative_to(
+        importing.example_dataset_import.EXAMPLE_DATASET_DIR
     )
     tmp_evidence_path = (
-        tmp_example_data_dir.resolve() / "txt_REL_FREE-REPASE/evidence.txt"
+        tmp_example_data_dir.resolve() / example_evidence_file_path_ending
     )
-    tmp_meta_path = tmp_example_data_dir.resolve() / "meta.csv"
+    example_meta_file_path_ending = (
+        importing.example_dataset_import.EXAMPLE_DATASET_METADATA_FILE.relative_to(
+            importing.example_dataset_import.EXAMPLE_DATASET_DIR
+        )
+    )
+    tmp_meta_path = tmp_example_data_dir.resolve() / example_meta_file_path_ending
     return tmp_protein_path, tmp_evidence_path, tmp_meta_path
 
 
@@ -86,7 +99,6 @@ def mock_example_data_download(
     [False, True],
 )
 def test_example_data_import(monkeypatch, example_data_paths, import_peptide_data):
-    # TODO: we should also mock metadata
     tmp_protein_path, tmp_evidence_path, tmp_meta_path = example_data_paths
     test_protein_file = TEST_MSDATA_PATH / "MaxQuant/small.tsv"
     test_evidence_file = TEST_PEPTIDES_PATH / "evidence_ratio_hl.txt"
@@ -102,19 +114,28 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         test_metadata_file,
     ):
         import_results = example_dataset_import(
-            import_peptide_data=True
-        )  # TODO: variable
+            import_peptide_data=import_peptide_data,
+        )
         assert "protein_df" in import_results
         if import_peptide_data:
             assert "peptide_df" in import_results
         assert "metadata_df" in import_results
-        assert len(import_results["messages"]) == 2
+        assert len(import_results["messages"]) == (2 if not import_peptide_data else 3)
         sorted_messages = sorted(import_results["messages"], key=lambda x: x["msg"])
         assert sorted_messages[0]["msg"] == "Metadata file successfully imported."
+
+        protein_msg_idx = 1 if not import_peptide_data else 2
         assert (
-            sorted_messages[1]["msg"]
-            == "Successfully imported 29 protein groups for 1 samples. 0 contaminant groups were dropped. 0 invalid proteins were filtered."
+            sorted_messages[protein_msg_idx]["msg"]
+            == "Successfully imported 22 protein groups for 1 samples. 0 contaminant groups were dropped. 0 invalid "
+            "proteins were filtered."
         )
+
+        if import_peptide_data:
+            assert (
+                sorted_messages[1]["msg"]
+                == "Successfully imported 1 protein groups for 2 samples."
+            )
 
 
 @pytest.mark.parametrize(
@@ -128,7 +149,7 @@ def test_example_data_import(monkeypatch, example_data_paths, import_peptide_dat
         ),
         (
             "MaxQuant/small.tsv",
-            "evidence-vsmall.txt",
+            "evidence_vsmall.txt",
             "metadata_full.csv",
             "Ratio H/L was not found in the provided file",
         ),

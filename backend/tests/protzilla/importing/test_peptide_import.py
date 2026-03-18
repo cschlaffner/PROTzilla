@@ -5,8 +5,8 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.importing import peptide_import
 from backend.tests.paths import TEST_PEPTIDES_PATH
 
 
@@ -173,6 +173,60 @@ def evidence_df():
     return peptide_df
 
 
+def evidence_ratio_df(intensity_name):
+    # sample, protein id, sequence, intensity, pep
+    peptide_protein_list = (
+        [
+            "P2",
+            "O60341",
+            "AAAAAAAAAAAATGTEAGPGTAGGSENGSEVAAQPAGLSGPAEVGPGAVGER",
+            "Unmodified",
+            "_AAAAAAAAAAAATGTEAGPGTAGGSENGSEVAAQPAGLSGPAEVGPGAVGER_",
+            None,
+            0.02820,
+            "20160219_AML-SS_P2a_x1",
+        ],
+        [
+            "P23",
+            "O60341",
+            "AAAAAAAAAAAATGTEAGPGTAGGSENGSEVAAQPAGLSGPAEVGPGAVGER",
+            "Unmodified",
+            "_AAAAAAAAAAAATGTEAGPGTAGGSENGSEVAAQPAGLSGPAEVGPGAVGER_",
+            None,
+            0.018737,
+            "20160218_AML-SS_P23_x1",
+        ],
+    )
+    intensity_name_to_intensities = {
+        "Ratio H/L normalized": [1.2907, 0.83188],
+        "Ratio H/L": [1.0161, 0.51728],
+    }
+
+    peptide_df = pd.DataFrame(
+        data=peptide_protein_list,
+        columns=[
+            "Sample",
+            "Protein ID",
+            "Sequence",
+            "Modifications",
+            "Modified sequence",
+            "Missed cleavages",
+            "PEP",
+            "Raw file",
+        ],
+    )
+
+    peptide_df["Intensity"] = intensity_name_to_intensities[intensity_name]
+
+    peptide_df.sort_values(
+        by=["Sample", "Protein ID", "Sequence", "Modifications"],
+        ignore_index=True,
+        inplace=True,
+    )
+
+    return peptide_df
+
+
 @pytest.mark.parametrize(
     "intensity_name", [intensity.value for intensity in IntensityType]
 )
@@ -183,7 +237,7 @@ def test_peptide_import(intensity_name):
     ):
         intensity_name = IntensityType.INTENSITY.value
     outputs = peptide_import.peptide_import(
-        file_path=TEST_PEPTIDES_PATH / "peptides-vsmall.txt",
+        file_path=TEST_PEPTIDES_PATH / "peptides_vsmall.txt",
         intensity_name=intensity_name,
         map_to_uniprot=False,
     )
@@ -193,14 +247,83 @@ def test_peptide_import(intensity_name):
             if message["level"] == logging.ERROR:
                 assert False, message["msg"]
     pd.testing.assert_frame_equal(
-        outputs[DataKey.PEPTIDE_DF], peptide_df(intensity_name), check_dtype=False
+        outputs["peptide_df"], peptide_df(intensity_name), check_dtype=False
     )
 
 
-def test_evidence_import():
-    outputs = peptide_import.evidence_import(
-        file_path=TEST_PEPTIDES_PATH / "evidence-vsmall.txt",
+def test_peptide_import_contaminant_reverse_removal():
+    outputs = peptide_import.peptide_import(
+        file_path=TEST_PEPTIDES_PATH / "peptides_vsmall_con_rev.txt",
         intensity_name=IntensityType.INTENSITY.value,
+        map_to_uniprot=False,
+    )
+
+    original_proteins = peptide_df(IntensityType.INTENSITY.value)["Protein ID"].unique()
+    new_proteins = ["O76009"] + list(original_proteins)
+    assert outputs["peptide_df"]["Protein ID"].nunique() == len(new_proteins)
+    assert set(outputs["peptide_df"]["Protein ID"].unique()) == set(new_proteins)
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("REV"))
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("CON"))
+    assert not any(outputs["peptide_df"]["Protein ID"] == "")
+
+    assert outputs["messages"][0]["level"] == logging.INFO
+    assert (
+        f"Successfully imported {len(new_proteins)} protein groups"
+        in outputs["messages"][0]["msg"]
+    )
+
+
+@pytest.mark.parametrize(
+    "intensity_name,expected_intensity_name",
+    [
+        (intensity.value, intensity.value)
+        for intensity in IntensityType
+        if intensity not in (IntensityType.IBAQ, IntensityType.LFQ_INTENSITY)
+    ]
+    + [
+        (IntensityType.IBAQ.value, IntensityType.INTENSITY.value),
+        (IntensityType.LFQ_INTENSITY.value, IntensityType.INTENSITY.value),
+    ],
+)
+def test_peptide_import_invalid_intensity_name(
+    intensity_name: str, expected_intensity_name: str
+):
+    outputs = peptide_import.peptide_import(
+        file_path=TEST_PEPTIDES_PATH / "peptides_vsmall_wrong_intensity_cols.txt",
+        intensity_name=intensity_name,
+        map_to_uniprot=False,
+    )
+
+    assert "peptide_df" not in outputs
+    assert "messages" in outputs
+    assert len(outputs["messages"]) == 1
+    assert outputs["messages"][0]["level"] == logging.ERROR
+    assert (
+        f"{expected_intensity_name} was not found in the provided file"
+        in outputs["messages"][0]["msg"]
+    )
+
+
+@pytest.mark.parametrize(
+    "intensity_name,file_name,df",
+    [
+        (IntensityType.INTENSITY.value, "evidence_vsmall.txt", evidence_df()),
+        (
+            IntensityType.RATIO_HL_NORMALIZED.value,
+            "evidence_ratio_hl.txt",
+            evidence_ratio_df(IntensityType.RATIO_HL_NORMALIZED.value),
+        ),
+        (
+            IntensityType.RATIO_HL.value,
+            "evidence_ratio_hl.txt",
+            evidence_ratio_df(IntensityType.RATIO_HL.value),
+        ),
+    ],
+)
+def test_evidence_import(intensity_name: str, file_name: str, df: pd.DataFrame):
+    outputs = peptide_import.evidence_import(
+        file_path=TEST_PEPTIDES_PATH / file_name,
+        intensity_name=intensity_name,
         map_to_uniprot=False,
     )
 
@@ -211,13 +334,73 @@ def test_evidence_import():
 
     assert np.allclose(
         outputs[DataKey.PEPTIDE_DF]["PEP"],
-        evidence_df()["PEP"],
+        df["PEP"],
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
     )
 
     pd.testing.assert_frame_equal(
         outputs[DataKey.PEPTIDE_DF].drop(columns=["PEP"]).sort_index(axis=1),
-        evidence_df().drop(columns=["PEP"]).sort_index(axis=1),
+        df.drop(columns=["PEP"]).sort_index(axis=1),
         check_dtype=False,
     )
+
+
+@pytest.mark.parametrize(
+    "intensity_name",
+    [
+        intensity.value
+        for intensity in IntensityType
+        if intensity not in (IntensityType.IBAQ, IntensityType.LFQ_INTENSITY)
+    ],
+)
+def test_evidence_import_invalid_intensity_name(intensity_name: str):
+    outputs = peptide_import.evidence_import(
+        file_path=TEST_PEPTIDES_PATH / "evidence_vsmall_wrong_intensity_cols.txt",
+        intensity_name=intensity_name,
+        map_to_uniprot=False,
+    )
+
+    assert "peptide_df" not in outputs
+    assert "messages" in outputs
+    assert len(outputs["messages"]) == 1
+    assert outputs["messages"][0]["level"] == logging.ERROR
+    assert (
+        f"{intensity_name} was not found in the provided file"
+        in outputs["messages"][0]["msg"]
+    )
+
+
+@pytest.mark.parametrize(
+    "intensity_name",
+    [
+        IntensityType.INTENSITY.value,
+        IntensityType.RATIO_HL.value,
+        IntensityType.RATIO_HL_NORMALIZED.value,
+    ],
+)
+def test_evidence_import_different_column_capitalization(intensity_name: str):
+    outputs = peptide_import.evidence_import(
+        file_path=TEST_PEPTIDES_PATH / "evidence_different_column_capitalization.txt",
+        intensity_name=intensity_name,
+        map_to_uniprot=False,
+    )
+
+    assert "peptide_df" in outputs
+    assert IntensityType.INTENSITY.value in outputs["peptide_df"].columns
+
+
+def test_evidence_import_contaminant_reverse_removal():
+    outputs = peptide_import.evidence_import(
+        file_path=TEST_PEPTIDES_PATH / "evidence_vsmall_con_rev.txt",
+        intensity_name=IntensityType.INTENSITY.value,
+        map_to_uniprot=False,
+    )
+
+    assert len(outputs["peptide_df"]) == 4
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("REV"))
+    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("CON"))
+    assert not any(outputs["peptide_df"]["Protein ID"] == "")
+
+    assert outputs["messages"][0]["level"] == logging.INFO
+    assert f"Successfully imported 3 protein groups" in outputs["messages"][0]["msg"]

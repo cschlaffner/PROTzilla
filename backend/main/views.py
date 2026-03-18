@@ -11,6 +11,7 @@ from plotly.io import to_json
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
+from django.http.request import HttpRequest
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -75,7 +76,7 @@ def run_information_list(request):
 
 
 def all_steps(request):
-    steps = get_all_possible_steps(exclude_hidden=True)
+    steps = get_all_possible_steps(exclude_hidden=False)
     return JsonResponse(steps, safe=False)
 
 
@@ -726,6 +727,36 @@ def _step_output_as_serialised_table(
 
     else:
         return None
+
+
+def get_png_from_step(request: HttpRequest):
+    """
+    API call. Returns a base64-encoded PNG of a step output to the front-end
+    """
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
+    output_key = data.get("output_key")
+
+    run = Run(run_name)
+    step = run.steps.get_step_by_id(step_id)
+    output = step.output.get(output_key)
+    if not isinstance(output, bytes):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Requested output must be bytes object, is {str(type(output))}",
+            },
+            status=405,
+        )
+
+    content = output.decode("utf-8")
+    return JsonResponse({"success": True, "message": "OK", "data": content})
 
 
 def get_current_step_table_data(request):

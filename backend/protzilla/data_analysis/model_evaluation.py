@@ -23,12 +23,9 @@ def evaluate_classification_model(model, protein_df, metadata_df, scoring):
     :return: A dataframe with the metric name and its corresponding score.
     :rtype: dict
     """
-    protein_df = protein_df.set_index("Sample")
-    metadata_df = metadata_df.set_index("Sample")
-    _, metadata_df = encode_labels(metadata_df, "Group")
 
     y_pred = model.predict(protein_df)
-    scores = evaluate_with_scoring(scoring, metadata_df["Encoded Label"], y_pred)
+    scores = evaluate_with_scoring(scoring, metadata_df, y_pred)
 
     scores_df = pd.DataFrame.from_dict(scores, orient="index", columns=["Score"])
     scores_df = scores_df.reset_index().rename(columns={"index": "Metric"})

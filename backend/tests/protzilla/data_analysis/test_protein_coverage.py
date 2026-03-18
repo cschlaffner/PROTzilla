@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.data_analysis.protein_coverage import (

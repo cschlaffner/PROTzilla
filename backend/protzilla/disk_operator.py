@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import datetime
 import os
 import shutil
@@ -120,6 +121,32 @@ class ArtifactOperator:
             joblib.dump(artifact, file_path, compress=("gzip", 3))
 
 
+class Base64Operator:
+    """
+    Handles dumping and loading of files encoded in base64, e.g. PNG images.
+    Files are dumped in binary format and loaded as base64 strings for
+    easier front-end handling
+    """
+
+    @staticmethod
+    def read(file_path: Path) -> bytes:
+        with ErrorHandler():
+            logger.info(f"Reading {file_path} into base64")
+            with open(file_path, "rb") as file:
+                file_content = file.read()
+                encoded = base64.b64encode(file_content)
+                return encoded
+
+    @staticmethod
+    def write(file_path: Path, base64_string: bytes):
+        with ErrorHandler():
+            logger.info(f"Writing base64 to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            data = base64.b64decode(base64_string)
+            with open(file_path, "wb") as file:
+                file.write(data)
+
+
 RUN_FILE = "run.yaml"
 
 
@@ -149,6 +176,7 @@ class DiskOperator:
         self.yaml_operator = YamlOperator()
         self.dataframe_operator = DataFrameOperator()
         self.artifact_operator = ArtifactOperator()
+        self.base64_operator = Base64Operator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -388,6 +416,12 @@ class DiskOperator:
                             output_type=OutputType.JOBLIB_ARTIFACT,
                             value=self.artifact_operator.read(self.run_dir / path),
                         )
+                    case OutputType.PNG_BASE64:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.PNG_BASE64,
+                            value=self.base64_operator.read(self.run_dir / path),
+                        )
                     case _:
                         step_output[key] = item
 
@@ -427,6 +461,17 @@ class DiskOperator:
                             self.artifact_operator.write(file_path, item.value)
                         output_data[key] = OutputItem(
                             output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.PNG_BASE64:
+                        file_path = (
+                            self.plot_dir
+                            / f"{step.instance_identifier}_{key}_image.png"
+                        )
+                        if self._dump_is_outdated(step, "output"):
+                            self.base64_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.PNG_BASE64,
                             value=str(file_path.relative_to(self.run_dir)),
                         )
                     case _:

@@ -71,7 +71,6 @@ def create_ranked_df(
     return ranked_df
 
 
-# TODO we need to adjust the method to use the gene_mapping_df
 def gsea_preranked(
     protein_df,
     gene_mapping_df,
