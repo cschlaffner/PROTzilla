@@ -133,9 +133,7 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "EnrichmentAnalysisGOAnalysisWithString",
         {
-            "proteins_df": runner.run.steps.all_step_instances[
-                ttest_idx
-            ].instance_identifier,
+            "differential_expression_col": "log2_fold_change",
         },
     )
 

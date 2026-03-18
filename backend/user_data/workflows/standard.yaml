@@ -200,6 +200,7 @@ steps:
       y: 347.675883152843
 - form_inputs:
     background_path: null
+    differential_expression_col: log2_fold_change
     differential_expression_threshold: 0
     direction: both
     gene_sets_restring: []
