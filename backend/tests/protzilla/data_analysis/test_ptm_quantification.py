@@ -81,7 +81,6 @@ def metadata_df():
         }
     )  # Dummy DataFrame for metadata import
     df = metadata_import_method(
-        dummy_protein_df,
         TEST_DATA_PATH / "import_data/metadata/metadata_AD01_CTR01.csv",
         feature_orientation="Columns",
     )[DataKey.METADATA_DF]
