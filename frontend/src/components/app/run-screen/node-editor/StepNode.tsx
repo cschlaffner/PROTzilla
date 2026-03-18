@@ -11,6 +11,7 @@ import {
   handleMetadataIcon,
   handlePeptidesIcon,
   handleProteinIcon,
+  handlePsmIcon,
   handleSequencesIcon,
 } from "../../../core/shared/icon/icons";
 
@@ -40,6 +41,7 @@ const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
   protein_df: handleProteinIcon,
   metadata_df: handleMetadataIcon,
   gene_mapping_df: handleDnaIcon,
+  psm_df: handlePsmIcon,
 };
 
 const HANDLE_ICON_SIZE = 26;

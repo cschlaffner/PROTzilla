@@ -9,7 +9,7 @@ from backend.protzilla.data_preprocessing import (
     imputation,
     normalisation,
     outlier_detection,
-    peptide_filter,
+    filter_peptides_or_psm,
     transformation,
 )
 from backend.protzilla.form import *
@@ -39,6 +39,11 @@ class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
     operation = "outlier_detection"
     output_keys = [DataKey.PROTEIN_DF]
+
+
+class FilterPsmStep(DataPreprocessingStep, ABC):
+    operation = "filter_PSM"
+    output_keys = [DataKey.PSM_DF]
 
 
 class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
@@ -167,7 +172,7 @@ class FilterByProteinsCount(FilteringStepBasedOnProteins):
 class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
-    method_description = "Filter by PEP-threshold"
+    method_description = "Filter peptides by PEP-threshold"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -192,14 +197,14 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(peptide_filter.by_pep_value)
-    plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+    calc_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value)
+    plot_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value_plot)
 
 
 class FilterPeptidesByExistingProteins(DataPreprocessingStep):
     display_name = "By existing proteins"
     operation = "filter_peptides"
-    method_description = "Filter by existing proteins"
+    method_description = "Filter peptides by existing proteins"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -208,14 +213,16 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
             input_fields=[],
         )
 
-    calc_method = staticmethod(peptide_filter.by_existing_proteins)
-    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+    calc_method = staticmethod(
+        filter_peptides_or_psm.filter_peptides_by_existing_proteins
+    )
+    plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
 
 
 class FilterPeptidesByExistingSamples(DataPreprocessingStep):
     display_name = "By existing samples"
     operation = "filter_peptides"
-    method_description = "Filter by existing samples"
+    method_description = "Filter peptides by existing samples"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -224,8 +231,68 @@ class FilterPeptidesByExistingSamples(DataPreprocessingStep):
             input_fields=[],
         )
 
-    calc_method = staticmethod(peptide_filter.by_existing_samples)
-    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+    calc_method = staticmethod(
+        filter_peptides_or_psm.filter_peptides_by_existing_samples
+    )
+    plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
+
+
+class FilterPsmByPEPThreshold(FilterPsmStep):
+    display_name = "PEP threshold"
+    method_description = "Filter PSM by PEP-threshold"
+
+    def create_form(self):
+        return Form(
+            label="Filter PSM by PEP threshold",
+            input_fields=[
+                FloatField(
+                    name="threshold",
+                    label="Threshold value for PEP",
+                    value=0,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    hasStepButtons=True,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.PIE_CHART.value,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_pep_value)
+    plot_method = staticmethod(filter_peptides_or_psm.filter_psm_by_pep_value_plot)
+
+
+class FilterPsmByExistingProteins(FilterPsmStep):
+    display_name = "By existing proteins"
+    method_description = "Filter PSM by existing proteins"
+
+    def create_form(self):
+        return Form(
+            label="Filter PSM by existing proteins",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_existing_proteins)
+    plot_method = staticmethod(filter_peptides_or_psm.psm_filtering_pie_plot)
+
+
+class FilterPsmByExistingSamples(FilterPsmStep):
+    display_name = "By existing samples"
+    method_description = "Filter PSM by existing samples"
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing samples",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_existing_samples)
+    plot_method = staticmethod(filter_peptides_or_psm.psm_filtering_pie_plot)
 
 
 class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
