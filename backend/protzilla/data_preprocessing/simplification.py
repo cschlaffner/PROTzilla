@@ -1,7 +1,7 @@
 import pandas as pd
 from enum import Enum
 
-from protzilla.utilities.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 
 class AggregationMethod(Enum):
@@ -49,6 +49,7 @@ def group_replicates(
     protein_df.rename(columns={aggregation_column: "Sample"}, inplace=True)
     return dict(protein_df=protein_df)
 
+
 def metadata_filter_by_samples(
     metadata_df: pd.DataFrame,
     protein_df: pd.DataFrame,
@@ -61,5 +62,5 @@ def metadata_filter_by_samples(
     :param protein_df: the pandas dataframe containing the protein information
     :return: dict containing the filtered metadata dataframe
     """
-    meta_filtered = metadata_df[metadata_df[sample_column].isin(protein_df['Sample'])]
+    meta_filtered = metadata_df[metadata_df[sample_column].isin(protein_df["Sample"])]
     return dict(metadata_df=meta_filtered)
