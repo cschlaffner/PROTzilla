@@ -947,7 +947,22 @@ class FilterMetadataByExistingSamples(Step):
     def create_form(self):
         return Form(
             label="Filter Metadata",
-            input_fields=[],
+            input_fields=[
+                DropdownField(
+                    name="sample_column",
+                    label="Column in metadata containing sample identifiers",
+                ),
+            ],
         )
 
     calc_method = staticmethod(simplification.metadata_filter_by_samples)
+
+    def modify_form(self, run: Run) -> None:
+        sample_column_field: DropdownField = self.form["sample_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            sample_column_field.set_options(
+                form_helper.to_choices(list(metadata_df.columns))
+            )
+        else:
+            sample_column_field.set_options([])

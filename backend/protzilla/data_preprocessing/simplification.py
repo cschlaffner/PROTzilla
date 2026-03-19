@@ -52,6 +52,7 @@ def group_replicates(
 def metadata_filter_by_samples(
     metadata_df: pd.DataFrame,
     protein_df: pd.DataFrame,
+    sample_column: str,
 ) -> dict:
     """
     Filters the metadata_df such that it only includes info on samples also represented in the protein_df
@@ -60,5 +61,5 @@ def metadata_filter_by_samples(
     :param protein_df: the pandas dataframe containing the protein information
     :return: dict containing the filtered metadata dataframe
     """
-    meta_filtered = metadata_df[metadata_df['Sample'].isin(protein_df['Sample'])]
+    meta_filtered = metadata_df[metadata_df[sample_column].isin(protein_df['Sample'])]
     return dict(metadata_df=meta_filtered)
