@@ -227,6 +227,11 @@ class Form:
             for fieldname, value in values.items():
                 self[fieldname].value = value
 
+    def add_field(self, new_field: InputField) -> None:
+        "add a new input field to the form"
+        self.input_fields.append(new_field)
+        self._field_map[new_field.name] = new_field
+
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"
 
