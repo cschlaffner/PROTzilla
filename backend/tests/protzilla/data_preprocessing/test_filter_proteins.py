@@ -10,7 +10,9 @@ from backend.protzilla.data_preprocessing.filter_proteins import (
     by_number_of_values_per_group_plot,
     by_protein_ids,
 )
-from backend.protzilla.data_preprocessing.peptide_filter import by_existing_proteins
+from backend.protzilla.data_preprocessing.filter_peptides_or_psm import (
+    filter_peptides_by_existing_proteins,
+)
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
@@ -150,7 +152,7 @@ def test_filter_proteins_by_missing_samples(
         filter_proteins_by_samples_missing_df, percentage=0.0
     )
 
-    peptide_filtering_output = by_existing_proteins(
+    peptide_filtering_output = filter_peptides_by_existing_proteins(
         peptides_df, method_output["protein_df"]
     )
 
@@ -208,7 +210,7 @@ def test_filter_proteins_by_values_per_group(
         min_amount=4,
     )
 
-    peptide_filtering_output = by_existing_proteins(
+    peptide_filtering_output = filter_peptides_by_existing_proteins(
         peptides_df, method_output["protein_df"]
     )
 

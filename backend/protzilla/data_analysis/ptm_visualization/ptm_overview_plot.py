@@ -28,7 +28,7 @@ def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
 
 
 def get_detected_modifications(
-    evidence_df: pd.DataFrame,
+    psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
@@ -36,7 +36,7 @@ def get_detected_modifications(
     # Although this function is used by different steps, it is tied to the OverviewPlot and thus is placed in this file
     # Everything else would require a bigger rework of the underlying code.
     config_module, out_dir = preprocess_files(
-        evidence_df=evidence_df,
+        psm_df=psm_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
@@ -67,13 +67,13 @@ def get_detected_modifications(
 
 
 def create_overview_ptm_visualization(
-    evidence_df: pd.DataFrame,
+    psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
     fasta_file_path: Path,
     regions_file_path: Path,
 ) -> dict:
     config_module, out_dir = preprocess_files(
-        evidence_df=evidence_df,
+        psm_df=psm_df,
         evidence_file_q_value_threshold=evidence_file_q_value_threshold,
         fasta_file_path=fasta_file_path,
         regions_file_path=regions_file_path,
