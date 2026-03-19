@@ -129,7 +129,6 @@ class KEYS:
     STEPS: str = "steps"
     STEP_OUTPUTS: str = "output"
     STEP_FORM_INPUTS: str = "form_inputs"
-    STEP_FORMS: str = "forms"
     STEP_INPUTS: str = "inputs"
     STEP_MESSAGES: str = "messages"
     STEP_PLOTS: str = "plots"
@@ -331,7 +330,6 @@ class DiskOperator:
             step.visual_data = step_data.get(
                 KEYS.VISUAL_DATA, {"node_position": {"x": 0, "y": 0}}
             )
-            step.form.update_values(step_data.get(KEYS.STEP_FORMS, {}))
             step.plots = self._read_plots(step_data.get(KEYS.STEP_PLOTS, []))
             step.form.update_values(step_data.get(KEYS.STEP_FORM_INPUTS, {}))
             step.calculation_status = step_data.get(
@@ -366,8 +364,6 @@ class DiskOperator:
             step_data[KEYS.VISUAL_DATA] = step.visual_data
             if not workflow_mode:
                 step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
-                form_values = step.form.values
-                step_data[KEYS.STEP_FORMS] = sanitize_inputs(form_values)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
