@@ -15,7 +15,7 @@ steps:
   visual_data:
     node_position:
       x: 0
-      y: -442.4784777432139
+      y: 0
 - form_inputs:
     feature_orientation: Columns (samples in rows, features in columns)
     file_path: null
@@ -24,5 +24,5 @@ steps:
   type: MetadataImport
   visual_data:
     node_position:
-      x: 0
-      y: -290.50263564030695
+      x: 320
+      y: 0
