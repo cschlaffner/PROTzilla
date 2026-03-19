@@ -378,9 +378,18 @@ def svm(
                 encoded_class_weight[encoded_label] = class_weight[original_label]
         class_weight = encoded_class_weight or None
 
+    # without this we introduce NaNs that makes perform_train_test_split break
+    common_idx = protein_df_wide.index.intersection(labels_df.index)
+    protein_df_wide = protein_df_wide.loc[common_idx]
+    labels_df = labels_df.loc[common_idx]
+
+    mask = labels_df["Encoded Label"].notna()
+    X_clean = protein_df_wide[mask]
+    y_clean = labels_df.loc[mask, "Encoded Label"]
+
     X_train, X_test, y_train, y_test = perform_train_test_split(
-        protein_df_wide,
-        labels_df["Encoded Label"],
+        X_clean,
+        y_clean,
         test_size,
         shuffle=shuffle,
         split_stratify=split_stratify,
