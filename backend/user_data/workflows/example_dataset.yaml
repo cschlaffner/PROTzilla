@@ -1,193 +1,153 @@
-current_step_id: s00010_DifferentialExpressionTTest
+current_step_id: s00024_ExampleDatasetImport
 df_mode: Standard
 graph_edges:
 - !!python/tuple
-  - s00003_FilterProteinsBySamplesMissing
-  - s00004_FilterSamplesByProteinIntensitiesSum
+  - s00017_TransformationInversion
+  - s00018_TransformationLog
   - source_handle: protein_df
     target_handle: protein_df
 - !!python/tuple
-  - s00004_FilterSamplesByProteinIntensitiesSum
-  - s00005_ImputationByKNN
+  - s00018_TransformationLog
+  - s00019_NormalisationByWidthAdjustment
   - source_handle: protein_df
     target_handle: protein_df
 - !!python/tuple
-  - s00005_ImputationByKNN
-  - s00006_OutlierDetectionByLocalOutlierFactor
+  - s00019_NormalisationByWidthAdjustment
+  - s00020_FilterProteinsByNumberOfValuesPerGroup
   - source_handle: protein_df
     target_handle: protein_df
 - !!python/tuple
-  - s00006_OutlierDetectionByLocalOutlierFactor
-  - s00007_TransformationLog
+  - s00020_FilterProteinsByNumberOfValuesPerGroup
+  - s00022_DifferentialExpressionTTest
   - source_handle: protein_df
     target_handle: protein_df
 - !!python/tuple
-  - s00007_TransformationLog
-  - s00008_NormalisationByMedian
+  - s00022_DifferentialExpressionTTest
+  - s00021_PlotClustergram
+  - source_handle: significant_proteins_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00023_FilterProteinsByNumberOfValuesPerGroup
+  - s00017_TransformationInversion
   - source_handle: protein_df
     target_handle: protein_df
 - !!python/tuple
-  - s00008_NormalisationByMedian
-  - s00009_PlotProtQuant
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00008_NormalisationByMedian
-  - s00010_DifferentialExpressionTTest
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00014_ExampleDatasetImport
-  - s00003_FilterProteinsBySamplesMissing
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00014_ExampleDatasetImport
-  - s00010_DifferentialExpressionTTest
+  - s00024_ExampleDatasetImport
+  - s00023_FilterProteinsByNumberOfValuesPerGroup
   - source_handle: metadata_df
     target_handle: metadata_df
-id_clock: 14
+- !!python/tuple
+  - s00024_ExampleDatasetImport
+  - s00023_FilterProteinsByNumberOfValuesPerGroup
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00024_ExampleDatasetImport
+  - s00020_FilterProteinsByNumberOfValuesPerGroup
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00024_ExampleDatasetImport
+  - s00022_DifferentialExpressionTTest
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00024_ExampleDatasetImport
+  - s00021_PlotClustergram
+  - source_handle: metadata_df
+    target_handle: metadata_df
+id_clock: 24
 steps:
-- form_inputs:
-    graph_type: Pie chart
-    percentage: 0.5
+- form_inputs: {}
   inputs: {}
-  instance_identifier: s00003_FilterProteinsBySamplesMissing
-  type: FilterProteinsBySamplesMissing
+  instance_identifier: s00017_TransformationInversion
+  type: TransformationInversion
   visual_data:
     node_position:
-      x: -258.05225879191096
-      y: -298.2342679234283
-- form_inputs:
-    deviation_threshold: 2.0
-    graph_type: Pie chart
-  inputs: {}
-  instance_identifier: s00004_FilterSamplesByProteinIntensitiesSum
-  type: FilterSamplesByProteinIntensitiesSum
-  visual_data:
-    node_position:
-      x: -258.4061406572516
-      y: -206.40850235635807
-- form_inputs:
-    graph_type: Boxplot
-    graph_type_quantities: Pie chart
-    group_by: None
-    number_of_neighbours: 5
-    visual_transformation: log10
-  inputs: {}
-  instance_identifier: s00005_ImputationByKNN
-  type: ImputationByKNN
-  visual_data:
-    node_position:
-      x: -227.14923058621144
-      y: -108.12102049010066
-- form_inputs:
-    number_of_neighbors: 20
-  inputs: {}
-  instance_identifier: s00006_OutlierDetectionByLocalOutlierFactor
-  type: OutlierDetectionByLocalOutlierFactor
-  visual_data:
-    node_position:
-      x: -227.68865543232792
-      y: -2.9187973620849945
+      x: -256.3887430491057
+      y: -182.53113148487623
 - form_inputs:
     graph_type: Boxplot
     group_by: None
     log_base: log2
   inputs: {}
-  instance_identifier: s00007_TransformationLog
+  instance_identifier: s00018_TransformationLog
   type: TransformationLog
   visual_data:
     node_position:
-      x: -142.49525545517554
-      y: 116.67611231198052
+      x: -238.11672528144226
+      y: -72.52980712595655
 - form_inputs:
     graph_type: Boxplot
     group_by: None
-    percentile: 0.5
     visual_transformation: log10
   inputs: {}
-  instance_identifier: s00008_NormalisationByMedian
-  type: NormalisationByMedian
+  instance_identifier: s00019_NormalisationByWidthAdjustment
+  type: NormalisationByWidthAdjustment
   visual_data:
     node_position:
-      x: -220.30289590432085
-      y: 223.5847262805539
+      x: -305.1725846997794
+      y: 47.89704244166941
 - form_inputs:
-    protein_group: A0AVT1
-    similarity: 1
-    similarity_measure: Euclidean Distance
+    graph_type: Pie chart
+    min_amount: 5
   inputs: {}
-  instance_identifier: s00009_PlotProtQuant
-  type: PlotProtQuant
+  instance_identifier: s00020_FilterProteinsByNumberOfValuesPerGroup
+  type: FilterProteinsByNumberOfValuesPerGroup
   visual_data:
     node_position:
-      x: -317.46018184070726
-      y: 330.88994431768435
+      x: -195.05443977856737
+      y: 157.54469025999737
+- form_inputs:
+    flip_axes: true
+    heatmap_high_color: '#67001f'
+    heatmap_high_color_limit: 3.5
+    heatmap_legend_title: Heatmap legend
+    heatmap_low_color: '#053061'
+    heatmap_low_color_limit: -2.5
+    imputation_strategy: mean
+    metadata_column: null
+    use_custom_color_scale: true
+  inputs: {}
+  instance_identifier: s00021_PlotClustergram
+  type: PlotClustergram
+  visual_data:
+    node_position:
+      x: 103.5167979883891
+      y: 350.5697288158512
 - form_inputs:
     alpha: 0.05
-    fc_zscore_alpha: 0.05
-    fc_zscore_filter: false
-    group1: REL-FREE
-    group2: RELAPSE
-    grouping: Group
-    log_base: None
-    multiple_testing_correction_method: Benjamini-Hochberg
+    fc_zscore_alpha: 0.07
+    fc_zscore_filter: true
+    group1: null
+    group2: null
+    grouping: null
+    log_base: log2
+    multiple_testing_correction_method: None
     ttest_type: Welch's t-Test
   inputs: {}
-  instance_identifier: s00010_DifferentialExpressionTTest
+  instance_identifier: s00022_DifferentialExpressionTTest
   type: DifferentialExpressionTTest
   visual_data:
     node_position:
-      x: -14.499581956240348
-      y: 353.3920334195707
+      x: -115.31021351610049
+      y: 262.06125298534624
 - form_inputs:
-    fc_threshold: 1
-    input_dict: null
-    items_of_interest: []
+    graph_type: Pie chart
+    min_amount: 1
   inputs: {}
-  instance_identifier: s00011_PlotVolcano
-  type: PlotVolcano
+  instance_identifier: s00023_FilterProteinsByNumberOfValuesPerGroup
+  type: FilterProteinsByNumberOfValuesPerGroup
   visual_data:
     node_position:
-      x: 306.1251344280747
-      y: 347.675883152843
-- form_inputs:
-    background_path: null
-    differential_expression_col: null
-    differential_expression_threshold: 0
-    direction: both
-    gene_sets_restring: []
-    organism: 9606
-  inputs: {}
-  instance_identifier: s00012_EnrichmentAnalysisGOAnalysisWithString
-  type: EnrichmentAnalysisGOAnalysisWithString
-  visual_data:
-    node_position:
-      x: -293.68486194886
-      y: 484.6400996262349
-- form_inputs:
-    cutoff: 0.05
-    gene_sets:
-    - Process
-    - Component
-    - Function
-    - KEGG
-    top_terms: 10
-    value: p-value
-  inputs: {}
-  instance_identifier: s00013_PlotGOEnrichmentBarPlot
-  type: PlotGOEnrichmentBarPlot
-  visual_data:
-    node_position:
-      x: 72.99420317314207
-      y: 490.2744286280802
+      x: -246.08834066154702
+      y: -318.73233114768027
 - form_inputs:
     import_peptide_data: false
   inputs: {}
-  instance_identifier: s00014_ExampleDatasetImport
+  instance_identifier: s00024_ExampleDatasetImport
   type: ExampleDatasetImport
   visual_data:
     node_position:
-      x: -96.0
-      y: -508.0
+      x: 46.25253332298831
+      y: -499.2083768998393

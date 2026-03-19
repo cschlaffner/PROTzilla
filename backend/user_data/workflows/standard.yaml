@@ -3,19 +3,9 @@ df_mode: Standard
 graph_edges:
 - !!python/tuple
   - s00001_MaxQuantImport
-  - s00002_MetadataImport
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00001_MaxQuantImport
   - s00003_FilterProteinsBySamplesMissing
   - source_handle: protein_df
     target_handle: protein_df
-- !!python/tuple
-  - s00002_MetadataImport
-  - s00010_DifferentialExpressionTTest
-  - source_handle: metadata_df
-    target_handle: metadata_df
 - !!python/tuple
   - s00003_FilterProteinsBySamplesMissing
   - s00004_FilterSamplesByProteinIntensitiesSum
@@ -48,10 +38,25 @@ graph_edges:
     target_handle: protein_df
 - !!python/tuple
   - s00008_NormalisationByMedian
-  - s00010_DifferentialExpressionTTest
+  - s00015_DifferentialExpressionTTest
   - source_handle: protein_df
     target_handle: protein_df
-id_clock: 13
+- !!python/tuple
+  - s00014_MetadataImport
+  - s00015_DifferentialExpressionTTest
+  - source_handle: metadata_df
+    target_handle: metadata_df
+- !!python/tuple
+  - s00015_DifferentialExpressionTTest
+  - s00016_EnrichmentAnalysisGOAnalysisWithString
+  - source_handle: log2_fold_change_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00016_EnrichmentAnalysisGOAnalysisWithString
+  - s00017_PlotGOEnrichmentBarPlot
+  - source_handle: enrichment_df
+    target_handle: enrichment_df
+id_clock: 17
 steps:
 - form_inputs:
     aggregation_method: Sum
@@ -64,18 +69,8 @@ steps:
   type: MaxQuantImport
   visual_data:
     node_position:
-      x: -171.80483018600978
+      x: 0
       y: -442.4784777432139
-- form_inputs:
-    feature_orientation: Columns (samples in rows, features in columns)
-    file_path: null
-  inputs: {}
-  instance_identifier: s00002_MetadataImport
-  type: MetadataImport
-  visual_data:
-    node_position:
-      x: 149.16189082791004
-      y: -290.50263564030695
 - form_inputs:
     graph_type: Pie chart
     percentage: 0.5
@@ -84,7 +79,7 @@ steps:
   type: FilterProteinsBySamplesMissing
   visual_data:
     node_position:
-      x: -256.05225879191096
+      x: 0
       y: -298.2342679234283
 - form_inputs:
     deviation_threshold: 2.0
@@ -94,7 +89,7 @@ steps:
   type: FilterSamplesByProteinIntensitiesSum
   visual_data:
     node_position:
-      x: -258.4061406572516
+      x: 0
       y: -206.40850235635807
 - form_inputs:
     graph_type: Boxplot
@@ -107,7 +102,7 @@ steps:
   type: ImputationByKNN
   visual_data:
     node_position:
-      x: -227.14923058621144
+      x: 0
       y: -108.12102049010066
 - form_inputs:
     number_of_neighbors: 20
@@ -116,8 +111,8 @@ steps:
   type: OutlierDetectionByLocalOutlierFactor
   visual_data:
     node_position:
-      x: -227.68865543232792
-      y: -2.9187973620849945
+      x: -2.0381152477982596
+      y: -10.485226942545353
 - form_inputs:
     graph_type: Boxplot
     group_by: None
@@ -127,7 +122,7 @@ steps:
   type: TransformationLog
   visual_data:
     node_position:
-      x: -142.49525545517554
+      x: 0
       y: 116.67611231198052
 - form_inputs:
     graph_type: Boxplot
@@ -139,71 +134,73 @@ steps:
   type: NormalisationByMedian
   visual_data:
     node_position:
-      x: -220.30289590432085
+      x: 0
       y: 223.5847262805539
 - form_inputs:
-    protein_group: null
+    protein_group: A0A075B6S2
     similarity: 1
-    similarity_measure: euclidean distance
+    similarity_measure: Euclidean Distance
   inputs: {}
   instance_identifier: s00009_PlotProtQuant
   type: PlotProtQuant
   visual_data:
     node_position:
-      x: -317.46018184070726
-      y: 330.88994431768435
+      x: 159.26106281628995
+      y: 327.5310183459078
+- form_inputs:
+    feature_orientation: Columns (samples in rows, features in columns)
+    file_path: null
+  inputs: {}
+  instance_identifier: s00014_MetadataImport
+  type: MetadataImport
+  visual_data:
+    node_position:
+      x: -321.5095116049906
+      y: -437.4121452693083
 - form_inputs:
     alpha: 0.05
     fc_zscore_alpha: 0.05
     fc_zscore_filter: false
-    group1: null
-    group2: null
-    grouping: null
+    group1: AD
+    group2: CTR
+    grouping: Group
+    log_base: None
     multiple_testing_correction_method: Benjamini-Hochberg
     ttest_type: Welch's t-Test
   inputs: {}
-  instance_identifier: s00010_DifferentialExpressionTTest
+  instance_identifier: s00015_DifferentialExpressionTTest
   type: DifferentialExpressionTTest
   visual_data:
     node_position:
-      x: -14.499581956240348
-      y: 353.3920334195707
-- form_inputs:
-    fc_threshold: 1
-    items_of_interest: []
-  inputs: {}
-  instance_identifier: s00011_PlotVolcano
-  type: PlotVolcano
-  visual_data:
-    node_position:
-      x: 306.1251344280747
-      y: 347.675883152843
+      x: -188.85330592213842
+      y: 330.64461761253955
 - form_inputs:
     background_path: null
+    differential_expression_col: log2_fold_change
     differential_expression_threshold: 0
     direction: both
     gene_sets_restring: []
     organism: 9606
   inputs: {}
-  instance_identifier: s00012_EnrichmentAnalysisGOAnalysisWithString
+  instance_identifier: s00016_EnrichmentAnalysisGOAnalysisWithString
   type: EnrichmentAnalysisGOAnalysisWithString
   visual_data:
     node_position:
-      x: -293.68486194886
-      y: 484.6400996262349
+      x: -168.27605210474385
+      y: 468.51099195100204
 - form_inputs:
     cutoff: 0.05
     gene_sets:
-    - Process
     - Component
     - Function
     - KEGG
+    - Process
     top_terms: 10
     value: p-value
   inputs: {}
-  instance_identifier: s00013_PlotGOEnrichmentBarPlot
+  instance_identifier: s00017_PlotGOEnrichmentBarPlot
   type: PlotGOEnrichmentBarPlot
   visual_data:
     node_position:
-      x: 72.99420317314207
-      y: 490.2744286280802
+      x: -166.26285101200924
+      y: 576.3139484517293
