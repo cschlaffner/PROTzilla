@@ -58,7 +58,7 @@ def perform_classification(
         )
         return model, model_evaluation_df
     elif validation_strategy == "Manual" and grid_search_method != "Manual":
-        return "Please select a cross validation strategy"
+        raise ValueError("Please select a cross validation strategy")
     elif validation_strategy != "Manual" and grid_search_method == "Manual":
         model = clf.set_params(**clf_parameters)
         cv = perform_cross_validation(
@@ -114,7 +114,7 @@ def random_forest(
     bootstrap: bool = True,
     # test_split_parameters
     test_size: float = 0.2,
-    split_stratify: str = "yes",
+    split_stratify: bool = True,
     shuffle: bool = True,
     random_state: int = 42,
     # classification_parameters
@@ -155,7 +155,7 @@ def random_forest(
     :type test_size: float, optional
     :param split_stratify: If not None, data is split in a stratified fashion, using this as
         the class labels.
-    :type split_stratify: str, optional
+    :type split_stratify: bool, optional
     :param shuffle: Whether to shuffle the data before splitting.
     :type shuffle: bool, optional
     :param random_state: The random seed for reproducibility.
@@ -201,6 +201,11 @@ def random_forest(
     encoding_mapping, labels_df = encode_labels(
         labels_df, labels_column, positive_label
     )
+
+    # Filter out samples with NaN labels
+    valid_samples = labels_df[labels_column].notna()
+    labels_df = labels_df[valid_samples]
+    protein_df_wide = protein_df_wide[protein_df_wide.index.isin(labels_df.index)]
 
     X_train, X_test, y_train, y_test = perform_train_test_split(
         protein_df_wide,
@@ -260,16 +265,14 @@ def svm(
     positive_label: str = None,
     C=1.0,
     kernel="rbf",
-    gamma="scale",  # only relevant ‘rbf’, ‘poly’ and ‘sigmoid’.
     coef0=0.0,  # relevant for "poly" and "sigmoid"
-    probability=True,
     tolerance=0.001,
     class_weight=None,
     max_iter=-1,
     random_state=42,
     # test_split_parameters
     test_size: float = 0.2,
-    split_stratify: str = "yes",
+    split_stratify: bool = True,
     shuffle: bool = True,
     # classification_parameters
     model_selection: str = "Grid search",
@@ -299,18 +302,13 @@ def svm(
     :type C: float
     :param kernel: Specifies the kernel type.
     :type kernel: str, optional
-    :param gamma: Kernel coefficient (default: 'scale', relevant for 'rbf', 'poly', and
-        'sigmoid').
-    :type gamma: str
     :param coef0: Independent term in the kernel function (relevant for 'poly' and
         'sigmoid').
     :type coef0: float
-    :param probability: Whether to enable probability estimates
-    :type probability: bool, optional
     :param tol: Tolerance for stopping criterion
     :type tol: float
     :param class_weight: Weights associated with classes
-    :type class_weight: float
+    :type class_weight: dict[str, float] | None
     :param max_iter: Maximum number of iterations (default: -1, indicating no limit).
     :type max_iter: int
     :param random_state: The random seed for reproducibility.
@@ -318,12 +316,11 @@ def svm(
     :param test_size: The proportion of data to be used for testing. Default is
         0.2 (80-20 train-test split).
     :type test_size: float, optional
-    :param split_stratify: If not None, data is split in a stratified fashion, using this as
+    :param split_stratify: If true, data is split in a stratified fashion, using this as
         the class labels.
-    :type split_stratify: str, optional
+    :type split_stratify: bool, optional
     :param shuffle: Whether to shuffle the data before splitting.
     :type shuffle: bool, optional
-
     :param model_selection: The model selection method for hyperparameter tuning.
     :type model_selection: str
     :param scoring: The scoring metric(s) used to evaluate the model's performance
@@ -365,6 +362,22 @@ def svm(
         labels_df, labels_column, positive_label
     )
 
+    # Filter out samples with NaN labels
+    valid_samples = labels_df[labels_column].notna()
+    labels_df = labels_df[valid_samples]
+    protein_df_wide = protein_df_wide[protein_df_wide.index.isin(labels_df.index)]
+
+    # encode class weigths because we encode the labels
+    if class_weight:
+        encoded_class_weight = {}
+        for encoded_label, original_label in encoding_mapping.items():
+            if (
+                original_label in class_weight
+                and class_weight[original_label] is not None
+            ):
+                encoded_class_weight[encoded_label] = class_weight[original_label]
+        class_weight = encoded_class_weight or None
+
     X_train, X_test, y_train, y_test = perform_train_test_split(
         protein_df_wide,
         labels_df["Encoded Label"],
@@ -378,12 +391,12 @@ def svm(
     clf_parameters = dict(
         C=C,
         kernel=kernel,
-        gamma=gamma,
+        gamma="scale",
         coef0=coef0,
-        probability=probability,
+        probability=False,
         tol=tolerance,
         class_weight=class_weight,
-        max_iter=max_iter,
+        max_iter=int(max_iter),
         random_state=random_state,
     )
     # multiselect returns a string when only one value is selected
