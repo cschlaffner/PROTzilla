@@ -936,3 +936,18 @@ class GroupReplicates(Step):
             )
         else:
             aggregation_column_field.set_options([])
+
+class FilterMetadataByExistingSamples(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Filter metadata by existing samples"
+    operation = "simplification"
+    method_description = "Only keep metadata of samples also represented in protein data"
+    output_keys = [DataKey.METADATA_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter Metadata",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(simplification.metadata_filter_by_samples)

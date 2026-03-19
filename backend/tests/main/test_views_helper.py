@@ -33,6 +33,7 @@ def test_get_all_possible_step_names():
         "SimpleImputationPerProtein",
         "ImputationByKNN",
         "ImputationByNormalDistributionSampling",
+        "FilterMetadataByExistingSamples",
         "FilterPeptidesByPEPThreshold",
         "FilterPeptidesByExistingProteins",
         "FilterPeptidesByExistingSamples",
