@@ -11,12 +11,14 @@ from backend.protzilla.data_preprocessing import (
     outlier_detection,
     filter_peptides_or_psm,
     transformation,
+    simplification,
 )
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
+from protzilla.data_preprocessing.simplification import AggregationMethod
 
 
 class DataPreprocessingStep(Step, ABC):
@@ -898,3 +900,72 @@ class ImputationByNormalDistributionSampling(ImputationStep):
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
+
+
+class GroupReplicates(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Group Replicates"
+    operation = "simplification"
+    method_description = "Aggregate intensities of proteins from replicate runs."
+    output_keys = [DataKey.PROTEIN_DF]
+
+    def create_form(self):
+        return Form(
+            label="Group Replicates",
+            input_fields=[
+                DropdownField(
+                    name="aggregation_column",
+                    label="Column based on which replicates should be aggregated on",
+                ),
+                DropdownField(
+                    name="aggregation_method",
+                    label="Aggregation method used to aggregate replicate values",
+                    options=AggregationMethod,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(simplification.group_replicates)
+
+    def modify_form(self, run: Run) -> None:
+        aggregation_column_field: DropdownField = self.form["aggregation_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            aggregation_column_field.set_options(
+                form_helper.to_choices(list(metadata_df.columns))
+            )
+        else:
+            aggregation_column_field.set_options([])
+
+
+class FilterMetadataByExistingSamples(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Filter metadata by existing samples"
+    operation = "simplification"
+    method_description = (
+        "Only keep metadata of samples also represented in protein data"
+    )
+    output_keys = [DataKey.METADATA_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter Metadata",
+            input_fields=[
+                DropdownField(
+                    name="sample_column",
+                    label="Column in metadata containing sample identifiers",
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(simplification.metadata_filter_by_samples)
+
+    def modify_form(self, run: Run) -> None:
+        sample_column_field: DropdownField = self.form["sample_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            sample_column_field.set_options(
+                form_helper.to_choices(list(metadata_df.columns))
+            )
+        else:
+            sample_column_field.set_options([])
