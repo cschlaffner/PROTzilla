@@ -53,6 +53,7 @@ def test_group_replicates(metadata_df: pd.DataFrame, protein_df: pd.DataFrame):
     assert entry_a["Intensity"].eq(10).all()
     assert entry_b["Intensity"].eq(1.5).all()
 
+
 def test_filter_metadata(
     metadata_df: pd.DataFrame,
     metadata_df_with_spills: pd.DataFrame,
