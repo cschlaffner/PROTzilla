@@ -9,14 +9,16 @@ from backend.protzilla.data_preprocessing import (
     imputation,
     normalisation,
     outlier_detection,
-    peptide_filter,
+    filter_peptides_or_psm,
     transformation,
+    simplification,
 )
 from backend.protzilla.form import *
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
+from protzilla.data_preprocessing.simplification import AggregationMethod
 
 
 class DataPreprocessingStep(Step, ABC):
@@ -39,6 +41,11 @@ class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
     operation = "outlier_detection"
     output_keys = [DataKey.PROTEIN_DF]
+
+
+class FilterPsmStep(DataPreprocessingStep, ABC):
+    operation = "filter_PSM"
+    output_keys = [DataKey.PSM_DF]
 
 
 class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
@@ -167,7 +174,7 @@ class FilterByProteinsCount(FilteringStepBasedOnProteins):
 class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     display_name = "PEP threshold"
     operation = "filter_peptides"
-    method_description = "Filter by PEP-threshold"
+    method_description = "Filter peptides by PEP-threshold"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -192,14 +199,14 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
             ],
         )
 
-    calc_method = staticmethod(peptide_filter.by_pep_value)
-    plot_method = staticmethod(peptide_filter.by_pep_value_plot)
+    calc_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value)
+    plot_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value_plot)
 
 
 class FilterPeptidesByExistingProteins(DataPreprocessingStep):
     display_name = "By existing proteins"
     operation = "filter_peptides"
-    method_description = "Filter by existing proteins"
+    method_description = "Filter peptides by existing proteins"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -208,14 +215,16 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
             input_fields=[],
         )
 
-    calc_method = staticmethod(peptide_filter.by_existing_proteins)
-    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+    calc_method = staticmethod(
+        filter_peptides_or_psm.filter_peptides_by_existing_proteins
+    )
+    plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
 
 
 class FilterPeptidesByExistingSamples(DataPreprocessingStep):
     display_name = "By existing samples"
     operation = "filter_peptides"
-    method_description = "Filter by existing samples"
+    method_description = "Filter peptides by existing samples"
     output_keys = [DataKey.PEPTIDE_DF]
 
     def create_form(self):
@@ -224,8 +233,68 @@ class FilterPeptidesByExistingSamples(DataPreprocessingStep):
             input_fields=[],
         )
 
-    calc_method = staticmethod(peptide_filter.by_existing_samples)
-    plot_method = staticmethod(peptide_filter.peptide_filtering_pie_plot)
+    calc_method = staticmethod(
+        filter_peptides_or_psm.filter_peptides_by_existing_samples
+    )
+    plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
+
+
+class FilterPsmByPEPThreshold(FilterPsmStep):
+    display_name = "PEP threshold"
+    method_description = "Filter PSM by PEP-threshold"
+
+    def create_form(self):
+        return Form(
+            label="Filter PSM by PEP threshold",
+            input_fields=[
+                FloatField(
+                    name="threshold",
+                    label="Threshold value for PEP",
+                    value=0,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    hasStepButtons=True,
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.PIE_CHART.value,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_pep_value)
+    plot_method = staticmethod(filter_peptides_or_psm.filter_psm_by_pep_value_plot)
+
+
+class FilterPsmByExistingProteins(FilterPsmStep):
+    display_name = "By existing proteins"
+    method_description = "Filter PSM by existing proteins"
+
+    def create_form(self):
+        return Form(
+            label="Filter PSM by existing proteins",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_existing_proteins)
+    plot_method = staticmethod(filter_peptides_or_psm.psm_filtering_pie_plot)
+
+
+class FilterPsmByExistingSamples(FilterPsmStep):
+    display_name = "By existing samples"
+    method_description = "Filter PSM by existing samples"
+
+    def create_form(self):
+        return Form(
+            label="Filter peptides by existing samples",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(filter_peptides_or_psm.filter_psm_by_existing_samples)
+    plot_method = staticmethod(filter_peptides_or_psm.psm_filtering_pie_plot)
 
 
 class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
@@ -831,3 +900,72 @@ class ImputationByNormalDistributionSampling(ImputationStep):
 
     calc_method = staticmethod(imputation.by_normal_distribution_sampling)
     plot_method = staticmethod(imputation.by_normal_distribution_sampling_plot)
+
+
+class GroupReplicates(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Group Replicates"
+    operation = "simplification"
+    method_description = "Aggregate intensities of proteins from replicate runs."
+    output_keys = [DataKey.PROTEIN_DF]
+
+    def create_form(self):
+        return Form(
+            label="Group Replicates",
+            input_fields=[
+                DropdownField(
+                    name="aggregation_column",
+                    label="Column based on which replicates should be aggregated on",
+                ),
+                DropdownField(
+                    name="aggregation_method",
+                    label="Aggregation method used to aggregate replicate values",
+                    options=AggregationMethod,
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(simplification.group_replicates)
+
+    def modify_form(self, run: Run) -> None:
+        aggregation_column_field: DropdownField = self.form["aggregation_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            aggregation_column_field.set_options(
+                form_helper.to_choices(list(metadata_df.columns))
+            )
+        else:
+            aggregation_column_field.set_options([])
+
+
+class FilterMetadataByExistingSamples(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Filter metadata by existing samples"
+    operation = "simplification"
+    method_description = (
+        "Only keep metadata of samples also represented in protein data"
+    )
+    output_keys = [DataKey.METADATA_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter Metadata",
+            input_fields=[
+                DropdownField(
+                    name="sample_column",
+                    label="Column in metadata containing sample identifiers",
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(simplification.metadata_filter_by_samples)
+
+    def modify_form(self, run: Run) -> None:
+        sample_column_field: DropdownField = self.form["sample_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            sample_column_field.set_options(
+                form_helper.to_choices(list(metadata_df.columns))
+            )
+        else:
+            sample_column_field.set_options([])

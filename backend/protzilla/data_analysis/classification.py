@@ -244,17 +244,13 @@ def random_forest(
         p_samples,
     )
 
-    X_test.reset_index(inplace=True)
-    X_train.reset_index(inplace=True)
-    y_test = decode_labels(encoding_mapping, y_test)
-    y_train = decode_labels(encoding_mapping, y_train)
     return dict(
         model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )
 
 
@@ -427,15 +423,11 @@ def svm(
         p_samples,
     )
 
-    X_test.reset_index(inplace=True)
-    X_train.reset_index(inplace=True)
-    y_test = decode_labels(encoding_mapping, y_test)
-    y_train = decode_labels(encoding_mapping, y_train)
     return dict(
         model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )

@@ -9,7 +9,10 @@ from backend.protzilla.constants.option_types import (
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
+from backend.protzilla.constants.option_types import (
+    MultipleTestingCorrectionMethod,
+    PValueColumnName,
+)
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -36,7 +39,9 @@ from backend.protzilla.data_analysis.model_evaluation import (
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
+    precision_recall_plot,
     prot_quant_plot,
+    roc_plot,
     scatter_plot,
 )
 from backend.protzilla.utilities.clustergram import (
@@ -305,9 +310,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
     ]
 
     def create_form(self):
@@ -351,11 +356,11 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "t_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
         "fc_significance_df",
     ]
 
@@ -432,10 +437,10 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        "log2_fold_change_df",
+        DataKey.CORRECTED_P_VALUES_DF,
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -494,11 +499,11 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -563,11 +568,11 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -634,9 +639,9 @@ class DifferentialExpressionKruskalWallisOnIntensity(
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
@@ -685,9 +690,9 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "h_statistic_df",
     ]
 
@@ -733,7 +738,6 @@ class DataAnalysisPlotStep(DataAnalysisStep, ABC):
     operation = "plot"
 
 
-# TODO: broken - needs decision regarding inclusion as plot method for relevant steps
 class PlotVolcano(DataAnalysisPlotStep):
     display_name = "Volcano Plot"
     method_description = (
@@ -744,21 +748,24 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     plot_method = staticmethod(create_volcano_plot)
     output_keys = []
+    internal_inputs = {"alpha", "group1", "group2"}
 
     def create_form(self):
         return Form(
             label="Volcano Plot",
             input_fields=[
-                DropdownField(
-                    name="input_dict",
-                    label="Input data dict (generated by t-Test or Linear Model Diff Exp)",
-                ),
                 FloatField(
                     name="fc_threshold",
                     label="Log2 fold change threshold",
                     value=0,
                     min=0,
                     step=0.1,
+                ),
+                DropdownField(
+                    name="item_type",
+                    label="Type of input data (can be Protein or PTM)",
+                    options=PValueColumnName,
+                    value=PValueColumnName.protein_id,
                 ),
                 MultiSelectField(
                     name="items_of_interest",
@@ -769,61 +776,38 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        input_dict_field = self.form["input_dict"]
-        items_of_interest_field = self.form["items_of_interest"]
+        items_of_interest_field: MultiSelectField = self.form["items_of_interest"]
+        item_type: str = self.form["item_type"].value
 
-        input_dict_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step,
-                    output_key=["corrected_p_values_df", "log2_fold_change_df"],
-                )
+        source_p_values_df = self.get_input(run.steps, DataKey.CORRECTED_P_VALUES_DF)
+
+        if source_p_values_df is not None:
+            items_of_interest = (
+                source_p_values_df[item_type].unique().tolist()
+                if item_type in source_p_values_df.columns
+                else []
             )
-        )
 
-        if input_dict_field.value == None:
-            return
-
-        input_dict_instance_id = input_dict_field.value
-
-        items_of_interest = []
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_proteins_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["Protein ID"].unique()
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_ptm_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["PTM"].unique()
-
-        items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
+            items_of_interest_field.set_options(
+                form_helper.to_choices(items_of_interest)
+            )
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
-        source_id = self.inputs["input_dict"]
-        self.inputs["p_values"] = steps.get_step_output(
-            output_key="corrected_p_values_df",
-            instance_identifier=source_id,
-        )
-        self.inputs["log2_fc"] = steps.get_step_output(
-            output_key="log2_fold_change_df",
-            instance_identifier=source_id,
-        )
-
-        for input_key in ["alpha", "group1", "group2"]:
-            self.inputs[input_key] = steps.get_step_input(
-                input_key=input_key, instance_identifier=source_id
+        super().insert_dataframes(steps)
+        # implicit data, but better than needing to connect three handles that are all from the same step
+        # also, the instance identifier is known here
+        source_p_values_id, _ = self.input_source(steps, DataKey.CORRECTED_P_VALUES_DF)
+        for input_key in self.internal_inputs:
+            if input_key == "alpha":
+                retrieval_method = steps.get_step_output
+                source_key = "corrected_alpha"
+            else:
+                retrieval_method = steps.get_step_input
+                source_key = input_key
+            self.inputs[input_key] = retrieval_method(
+                source_key, instance_identifier=source_p_values_id
             )
-
-        source_operation = steps.get_step_operation(source_id)
-        if source_operation == "differential_expression":
-            self.inputs["item_type"] = "Protein ID"
-        elif source_operation == "Peptide analysis":
-            self.inputs["item_type"] = "PTM"
 
 
 class PlotProteinCoverage(DataAnalysisPlotStep):
@@ -1093,30 +1077,9 @@ class PlotProtQuant(DataAnalysisPlotStep):
     plot_method = staticmethod(prot_quant_plot)
 
 
-class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
-    display_name = "Precision Recall"
-    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
-class PlotROC(DataAnalysisStep):
-    display_name = "Receiver Operating Characteristic curve"
-    operation = "plot"
-    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
 class PositiveLabelStep(DataAnalysisStep, ABC):
+
+    positive_label_is_required: bool = False
 
     @override
     def modify_form(self, run: Run) -> None:
@@ -1125,7 +1088,33 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
             run,
             column_field="labels_column",
             group_field="positive_label",
-            required=False,
+            required=self.positive_label_is_required,
+        )
+
+
+class PlotROC(DataAnalysisPlotStep):
+    display_name = "Receiver Operating Characteristic curve"
+    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
+
+    plot_method = staticmethod(roc_plot)
+
+    def create_form(self):
+        return Form(
+            label="ROC Curve",
+            input_fields=[],
+        )
+
+
+class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
+    display_name = "Precision Recall"
+    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
+
+    plot_method = staticmethod(precision_recall_plot)
+
+    def create_form(self):
+        return Form(
+            label="Precision Recall Curve",
+            input_fields=[],
         )
 
 
@@ -1459,6 +1448,8 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
 
+    positive_label_is_required: bool = True
+
 
 class ClassificationRandomForest(ClassificationStep):
     display_name = "Random Forest"
@@ -1485,11 +1476,13 @@ class ClassificationRandomForest(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1507,12 +1500,15 @@ class ClassificationRandomForest(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1536,7 +1532,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1601,7 +1597,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1726,6 +1722,9 @@ class ClassificationSVM(ClassificationStep):
                     class_weights[class_name] = float(value)
         return class_weights or None
 
+    # # TODO: should either be set via form_inputs or removed from the method's parameters
+    # internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
+
     def create_form(self):
         self.internal_inputs = {"class_weight"}
         return Form(
@@ -1739,11 +1738,13 @@ class ClassificationSVM(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
                 CheckboxField(
                     name="split_stratify",
@@ -1756,12 +1757,15 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
                     isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
@@ -1785,7 +1789,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1841,7 +1845,7 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationKernel,
                     value=ClassificationKernel.linear,
                 ),
-                NumberField(
+                FloatField(
                     name="tolerance",
                     label="Tolerance for stopping criterion",
                     min=0.0,
@@ -1856,7 +1860,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0.0,
                     max=4294967295,
                     step=1,

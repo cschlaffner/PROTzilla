@@ -7,8 +7,8 @@ from backend.protzilla.data_analysis.ptm_analysis import (
 )
 
 
-def test_ptms_per_sample(evidence_peptide_df):
-    ptm_df = ptms_per_sample(evidence_peptide_df)["ptm_df"]
+def test_ptms_per_sample(psm_df):
+    ptm_df = ptms_per_sample(psm_df)["ptm_df"]
 
     assert ptm_df.columns.tolist() == [
         "Sample",
@@ -24,8 +24,8 @@ def test_ptms_per_sample(evidence_peptide_df):
     assert ptm_df["Total Amount of Peptides"].tolist() == [10, 5, 5, 4]
 
 
-def test_ptms_per_protein_and_sample(evidence_peptide_df):
-    ptm_df = ptms_per_protein_and_sample(evidence_peptide_df)[DataKey.PTM_DF]
+def test_ptms_per_protein_and_sample(psm_df):
+    ptm_df = ptms_per_protein_and_sample(psm_df)[DataKey.PTM_DF]
 
     assert ptm_df.columns.tolist() == [
         "Sample",

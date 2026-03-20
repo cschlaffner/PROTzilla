@@ -242,7 +242,7 @@ def peptides_df():
 
 
 @pytest.fixture
-def evidence_peptide_df():
+def psm_df():
     df = pd.DataFrame(
         (
             [
