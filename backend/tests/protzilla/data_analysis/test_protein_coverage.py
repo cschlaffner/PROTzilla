@@ -287,19 +287,19 @@ def fasta_df():
 
 
 @pytest.fixture
-def peptide_df():
+def psm_df():
     outputs = evidence_import(
         file_path=TEST_PEPTIDES_PATH / "evidence_P10636.txt",
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
-    evidence_df = outputs[DataKey.PEPTIDE_DF]
-    return evidence_df
+    psm_df = outputs[DataKey.PSM_DF]
+    return psm_df
 
 
 @pytest.fixture
-def metadata_df(peptide_df):
-    samples = peptide_df["Sample"].drop_duplicates()
+def metadata_df(psm_df):
+    samples = psm_df["Sample"].drop_duplicates()
     filtered_samples = samples[samples.str.contains("AD|CTR")]
     groups = filtered_samples.apply(lambda s: "AD" if "AD" in s else "CTR")
 
@@ -333,7 +333,7 @@ def metadata_df(peptide_df):
 )
 def test_plot_protein_coverage(
     fasta_df,
-    peptide_df,
+    psm_df,
     metadata_df,
     protein_id,
     grouping,
@@ -342,7 +342,7 @@ def test_plot_protein_coverage(
 ):
     result = plot_protein_coverage(
         fasta_df,
-        peptide_df,
+        psm_df,
         metadata_df,
         protein_id,
         grouping,
@@ -356,16 +356,14 @@ def test_plot_protein_coverage(
     assert all(any(group in title for group in selected_groups) for title in titles)
 
 
-def test_plot_protein_coverage_protein_id_not_in_fasta(
-    fasta_df, peptide_df, metadata_df
-):
+def test_plot_protein_coverage_protein_id_not_in_fasta(fasta_df, psm_df, metadata_df):
     protein_id = "NON_EXISTENT_PROTEIN"
     with pytest.raises(
         ValueError, match=f"Protein ID {protein_id} not found in protein dictionary."
     ):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id=protein_id,
             grouping="Group",
@@ -375,12 +373,12 @@ def test_plot_protein_coverage_protein_id_not_in_fasta(
 
 
 def test_plot_protein_coverage_selected_groups_not_in_grouping_column(
-    fasta_df, peptide_df, metadata_df
+    fasta_df, psm_df, metadata_df
 ):
     with pytest.raises(ValueError, match="No peptides found for the samples provided"):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id="P10636-1",
             grouping="Group",
@@ -389,11 +387,11 @@ def test_plot_protein_coverage_selected_groups_not_in_grouping_column(
         )
 
 
-def test_plot_protein_coverage_selected_groups_empty(fasta_df, peptide_df, metadata_df):
+def test_plot_protein_coverage_selected_groups_empty(fasta_df, psm_df, metadata_df):
     with pytest.raises(ValueError, match="No samples provided"):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id="P10636-1",
             grouping="Group",
@@ -402,11 +400,11 @@ def test_plot_protein_coverage_selected_groups_empty(fasta_df, peptide_df, metad
         )
 
 
-def test_plot_protein_coverage_selected_groups_none(fasta_df, peptide_df, metadata_df):
+def test_plot_protein_coverage_selected_groups_none(fasta_df, psm_df, metadata_df):
     with pytest.raises(ValueError, match="No samples provided"):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id="P10636-1",
             grouping="Group",
@@ -415,9 +413,7 @@ def test_plot_protein_coverage_selected_groups_none(fasta_df, peptide_df, metada
         )
 
 
-def test_plot_protein_coverage_metadata_not_matching_peptide_samples(
-    fasta_df, peptide_df
-):
+def test_plot_protein_coverage_metadata_not_matching_peptide_samples(fasta_df, psm_df):
     mismatched_metadata = pd.DataFrame(
         {
             "Sample": ["FAKE_SAMPLE_1", "FAKE_SAMPLE_2"],
@@ -427,7 +423,7 @@ def test_plot_protein_coverage_metadata_not_matching_peptide_samples(
     with pytest.raises(ValueError, match="No peptides found for the samples provided"):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             mismatched_metadata,
             protein_id="P10636-1",
             grouping="Group",
@@ -451,12 +447,12 @@ def test_plot_protein_coverage_empty_peptide_df_after_filtering(fasta_df, metada
 
 
 def test_plot_protein_coverage_invalid_aggregation_method(
-    fasta_df, peptide_df, metadata_df
+    fasta_df, psm_df, metadata_df
 ):
     with pytest.raises(ValueError, match="Unknown strategy"):
         plot_protein_coverage(
             fasta_df,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id="P10636-1",
             grouping="Group",
@@ -465,7 +461,7 @@ def test_plot_protein_coverage_invalid_aggregation_method(
         )
 
 
-def test_plot_protein_coverage_malformed_fasta_sequence(peptide_df, metadata_df):
+def test_plot_protein_coverage_malformed_fasta_sequence(psm_df, metadata_df):
     # Create a fasta_df with a protein that won't match any peptides
     protein_id = "P10636-1"
     fasta_with_unmatched_protein = pd.DataFrame(
@@ -479,7 +475,7 @@ def test_plot_protein_coverage_malformed_fasta_sequence(peptide_df, metadata_df)
     ):
         plot_protein_coverage(
             fasta_with_unmatched_protein,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id=protein_id,
             grouping="Group",
@@ -498,7 +494,7 @@ def test_plot_protein_coverage_malformed_fasta_sequence(peptide_df, metadata_df)
     ):
         plot_protein_coverage(
             fasta_with_empty_sequence,
-            peptide_df,
+            psm_df,
             metadata_df,
             protein_id=protein_id,
             grouping="Group",

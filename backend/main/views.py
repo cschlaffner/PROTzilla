@@ -716,10 +716,7 @@ def _step_output_as_serialised_table(
     # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
     # Potential fix: Just do not use lists bro???
     elif (
-        ("_df" not in label)
-        and (label not in hidden_outputs)
-        and (type(_data) == list)
-        and (len(_data) > 0)
+        ("_df" not in label) and (label not in hidden_outputs) and (type(_data) == list)
     ):
         data = pd.DataFrame({label: _data[start_index:end_index]})
         data["id"] = data.index
@@ -796,7 +793,11 @@ def get_current_step_table_data(request):
     )
 
     if serialised_output is None:
-        response["rows"] = [{"Info": "This step output cannot be displayed as a table"}]
+        response["rows"] = [
+            {
+                "Info": f"This step output of type {str(type(step_output))} cannot be displayed as a table"
+            }
+        ]
     else:
         response["success"] = True
         response["rows"] = serialised_output

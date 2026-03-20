@@ -16,5 +16,5 @@ const fetchApiRoot = () => {
 
 export const API_ROOT = fetchApiRoot();
 
-export const PROTZILLA_VERSION = "0.0.1";
+export const PROTZILLA_VERSION = "1.0.0";
 export const PROTZILLA_LASTUPDATE = "2026-03-18";

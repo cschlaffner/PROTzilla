@@ -3,11 +3,6 @@ df_mode: Standard
 graph_edges:
 - !!python/tuple
   - s00001_MaxQuantImport
-  - s00002_MetadataImport
-  - source_handle: protein_df
-    target_handle: protein_df
-- !!python/tuple
-  - s00001_MaxQuantImport
   - s00003_FilterProteinsBySamplesMissing
   - source_handle: protein_df
     target_handle: protein_df
