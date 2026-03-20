@@ -1722,9 +1722,6 @@ class ClassificationSVM(ClassificationStep):
                     class_weights[class_name] = float(value)
         return class_weights or None
 
-    # # TODO: should either be set via form_inputs or removed from the method's parameters
-    # internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
-
     def create_form(self):
         self.internal_inputs = {"class_weight"}
         return Form(
