@@ -34,13 +34,13 @@ def get_evidence_df(path: Path):
         intensity_name=IntensityType.INTENSITY.value,
         map_to_uniprot=False,
     )
-    evidence_df = outputs["peptide_df"]
+    evidence_df = outputs["psm_df"]
     return evidence_df
 
 
 def get_metadata_df(path: Path):
     metadata_df = metadata_import_method(
-        protein_df=None, file_path=path, feature_orientation="columns"
+        file_path=path, feature_orientation="columns"
     )["metadata_df"]
     return metadata_df
 

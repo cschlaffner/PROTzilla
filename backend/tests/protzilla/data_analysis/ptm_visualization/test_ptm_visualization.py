@@ -61,7 +61,7 @@ def pytest_generate_tests(metafunc):
     # (overview, bar, details). Admittedly, it could look a bit prettier, but was currently not worth the effort
     if "plot_func" in metafunc.fixturenames:
         basic_kwargs = dict(
-            peptide_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
+            psm_df=get_evidence_df(GFAP_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=GFAP_FASTA_FILE_PATH,
             regions_file_path=GFAP_REGIONS_FILE_PATH,
@@ -394,7 +394,7 @@ class TestPTMVisualization:
     @staticmethod
     def test_regions_file_too_short_but_matching_region_end(plot_func, kwargs):
         new_kwargs = dict(
-            peptide_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
+            psm_df=get_evidence_df(TAU_EVIDENCE_FILE_PATH),
             evidence_file_q_value_threshold=Q_VALUE_THRESHOLD,
             fasta_file_path=TAU_FASTA_FILE_PATH,
             regions_file_path=TAU_PATH
@@ -445,11 +445,11 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_evidence_samples_not_matching_metadata(plot_func, bar_detail_kwargs):
-        new_evidence_df = bar_detail_kwargs["peptide_df"]
+        new_evidence_df = bar_detail_kwargs["psm_df"]
         new_evidence_df["Sample"] = new_evidence_df["Sample"].apply(
             lambda x: f"Different_{x}" if "AD" in x or "CTR" in x else x
         )
-        bar_detail_kwargs["peptide_df"] = new_evidence_df
+        bar_detail_kwargs["psm_df"] = new_evidence_df
 
         with pytest.raises(
             ValueError,
@@ -497,7 +497,7 @@ class TestPTMVisualization:
         )
         with mock_settings_file(settings_reduced_ptms_file, tmp_ptm_settings_dir):
             result = create_overview_ptm_visualization(
-                peptide_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -510,7 +510,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_bar_ptm_visualization(
-                peptide_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -525,7 +525,7 @@ class TestPTMVisualization:
                 in result["messages"][0]["msg"]
             )
             result = create_details_ptm_visualization(
-                peptide_df=evidence_df,
+                psm_df=evidence_df,
                 evidence_file_q_value_threshold=q_value_threshold,
                 fasta_file_path=fasta_file_path,
                 regions_file_path=regions_file_path,
@@ -542,7 +542,7 @@ class TestPTMVisualization:
 
     @staticmethod
     def test_cassette_exon(plot_func, kwargs, tau_cassette_exon_config):
-        kwargs["peptide_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        kwargs["psm_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
         kwargs["fasta_file_path"] = Path(TAU_PATH / "uniprotkb_P10636_7_8.fasta")
@@ -556,115 +556,115 @@ class TestPTMVisualization:
     def test_modification_at_regions_starts_and_ends(
         plot_func, kwargs, tmp_ptm_settings_dir, gfap_config
     ):
-        mock_start_peptide = kwargs["peptide_df"].iloc[97]
+        mock_start_peptide = kwargs["psm_df"].iloc[97]
         mock_start_peptide["Modified sequence"] = (
             "_(Oxidation (Protein N-term))M(ci)ERRRIT_"
         )
         mock_start_peptide["Modifications"] = "Oxidation (Protein N-term); ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_start_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_start_peptide])],
             ignore_index=True,
         )
 
         # Beginning of exon 1
-        mock_exon1_peptide = kwargs["peptide_df"].iloc[97]
+        mock_exon1_peptide = kwargs["psm_df"].iloc[97]
         mock_exon1_peptide["Sequence"] = "ETSLDT"
         mock_exon1_peptide["Modified sequence"] = "_E(ci)TSLDT_"
         mock_exon1_peptide["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_exon1_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_exon1_peptide])],
             ignore_index=True,
         )
 
         # End of exon 1
-        mock_exon1_end_peptide = kwargs["peptide_df"].iloc[97]
+        mock_exon1_end_peptide = kwargs["psm_df"].iloc[97]
         mock_exon1_end_peptide["Sequence"] = "KQEHKDVM"
         mock_exon1_end_peptide["Modified sequence"] = "_KQEHKDVM(ci)_"
         mock_exon1_end_peptide["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_exon1_end_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_exon1_end_peptide])],
             ignore_index=True,
         )
 
         # Ensures that even though an aligned sequence has dashes in the alternative exon, the surrounding amino acids
         # are still plotted next to each other
-        mock_peptide_exon_alignment_before_dash = kwargs["peptide_df"].iloc[97]
+        mock_peptide_exon_alignment_before_dash = kwargs["psm_df"].iloc[97]
         mock_peptide_exon_alignment_before_dash["Sequence"] = "DTKSVSEG"
         mock_peptide_exon_alignment_before_dash["Modified sequence"] = "_DTKSVSEG(ci)_"
         mock_peptide_exon_alignment_before_dash["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
+        kwargs["psm_df"] = pd.concat(
             [
-                kwargs["peptide_df"],
+                kwargs["psm_df"],
                 pd.DataFrame([mock_peptide_exon_alignment_before_dash]),
             ],
             ignore_index=True,
         )
-        mock_peptide_exon_alignment_after_dash = kwargs["peptide_df"].iloc[97]
+        mock_peptide_exon_alignment_after_dash = kwargs["psm_df"].iloc[97]
         mock_peptide_exon_alignment_after_dash["Sequence"] = "HLKRNIVVK"
         mock_peptide_exon_alignment_after_dash["Modified sequence"] = "_H(ci)LKRNIVVK_"
         mock_peptide_exon_alignment_after_dash["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
+        kwargs["psm_df"] = pd.concat(
             [
-                kwargs["peptide_df"],
+                kwargs["psm_df"],
                 pd.DataFrame([mock_peptide_exon_alignment_after_dash]),
             ],
             ignore_index=True,
         )
 
         # First two peptides of Exon 2
-        mock_exon2_peptide = kwargs["peptide_df"].iloc[97]
+        mock_exon2_peptide = kwargs["psm_df"].iloc[97]
         mock_exon2_peptide["Protein ID"] = "P14136-3"
         mock_exon2_peptide["Sequence"] = "GGKST"
         mock_exon2_peptide["Modified sequence"] = "_G(ci)GKST_"
         mock_exon2_peptide["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_exon2_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_exon2_peptide])],
             ignore_index=True,
         )
-        mock_exon2_peptide = kwargs["peptide_df"].iloc[97]
+        mock_exon2_peptide = kwargs["psm_df"].iloc[97]
         mock_exon2_peptide["Protein ID"] = "P14136-3"
         mock_exon2_peptide["Sequence"] = "GGKST"
         mock_exon2_peptide["Modified sequence"] = "_GG(ci)KST_"
         mock_exon2_peptide["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_exon2_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_exon2_peptide])],
             ignore_index=True,
         )
 
         # Three peptides before alternative exon
-        mock_pre_exon_peptide = kwargs["peptide_df"].iloc[97]
+        mock_pre_exon_peptide = kwargs["psm_df"].iloc[97]
         mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
         mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQIR(GG (R))_"
         mock_pre_exon_peptide["Modifications"] = "GG (R)"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_pre_exon_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_pre_exon_peptide])],
             ignore_index=True,
         )
-        mock_pre_exon_peptide = kwargs["peptide_df"].iloc[97]
+        mock_pre_exon_peptide = kwargs["psm_df"].iloc[97]
         mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
         mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQI(GG (I))R_"
         mock_pre_exon_peptide["Modifications"] = "GG (I)"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_pre_exon_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_pre_exon_peptide])],
             ignore_index=True,
         )
-        mock_pre_exon_peptide = kwargs["peptide_df"].iloc[97]
+        mock_pre_exon_peptide = kwargs["psm_df"].iloc[97]
         mock_pre_exon_peptide["Sequence"] = "TFSNLQIR"
         mock_pre_exon_peptide["Modified sequence"] = "_TFSNLQ(GG (Q))IR_"
         mock_pre_exon_peptide["Modifications"] = "GG (Q)"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_pre_exon_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_pre_exon_peptide])],
             ignore_index=True,
         )
 
         # End of sequence/exon 2
-        mock_sequence_end_peptide = kwargs["peptide_df"].iloc[97]
+        mock_sequence_end_peptide = kwargs["psm_df"].iloc[97]
         mock_sequence_end_peptide["Protein ID"] = "P14136-3"
         mock_sequence_end_peptide["Sequence"] = "GTPPARG"
         mock_sequence_end_peptide["Modified sequence"] = "_GTPPARG(ci)_"
         mock_sequence_end_peptide["Modifications"] = "ci"
-        kwargs["peptide_df"] = pd.concat(
-            [kwargs["peptide_df"], pd.DataFrame([mock_sequence_end_peptide])],
+        kwargs["psm_df"] = pd.concat(
+            [kwargs["psm_df"], pd.DataFrame([mock_sequence_end_peptide])],
             ignore_index=True,
         )
 
@@ -698,7 +698,7 @@ class TestPTMVisualization:
     def test_single_amino_acid_substitution_start_of_exon(
         plot_func, kwargs, satb1_config
     ):
-        kwargs["peptide_df"] = get_evidence_df(SATB1_EVIDENCE_FILE_PATH)
+        kwargs["psm_df"] = get_evidence_df(SATB1_EVIDENCE_FILE_PATH)
         kwargs["fasta_file_path"] = SATB1_FASTA_FILE_PATH
         kwargs["regions_file_path"] = SATB1_REGIONS_FILE_PATH
         if "metadata_df" in kwargs:
@@ -710,7 +710,7 @@ class TestPTMVisualization:
     def test_single_amino_acid_substitution_end_of_exon(
         plot_func, kwargs, tau_substitution_config
     ):
-        kwargs["peptide_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        kwargs["psm_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
         kwargs["fasta_file_path"] = TAU_PATH / "uniprotkb_P10636_5_8.fasta"
@@ -721,7 +721,7 @@ class TestPTMVisualization:
     @staticmethod
     def test_fasta_with_single_sequence(plot_func, kwargs, tau_8_config, tau_5_config):
         # Set up common test data
-        kwargs["peptide_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
+        kwargs["psm_df"] = get_evidence_df(TAU_EVIDENCE_FILE_PATH)
         if "metadata_df" in kwargs:
             kwargs["metadata_df"] = get_metadata_df(TAU_METADATA_FILE_PATH)
 
