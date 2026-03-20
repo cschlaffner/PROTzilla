@@ -1,11 +1,6 @@
 current_step_id: s00001_MaxQuantImport
 df_mode: Standard
-graph_edges:
-- !!python/tuple
-  - s00001_MaxQuantImport
-  - s00002_MetadataImport
-  - source_handle: protein_df
-    target_handle: protein_df
+graph_edges: []
 id_clock: 2
 steps:
 - form_inputs:
@@ -19,8 +14,8 @@ steps:
   type: MaxQuantImport
   visual_data:
     node_position:
-      x: -171.80483018600978
-      y: -442.4784777432139
+      x: 0
+      y: 0
 - form_inputs:
     feature_orientation: Columns (samples in rows, features in columns)
     file_path: null
@@ -29,5 +24,5 @@ steps:
   type: MetadataImport
   visual_data:
     node_position:
-      x: -171.80483018600978
-      y: -290.50263564030695
+      x: 320
+      y: 0

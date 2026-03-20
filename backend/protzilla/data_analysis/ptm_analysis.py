@@ -7,37 +7,37 @@ import re
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
-def ptms_per_sample(peptide_df: pd.DataFrame) -> dict:
+def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
     """
     This function calculates the amount of every PTMs per sample.
 
-    :param peptide_df: the pandas dataframe containing the peptide information
+    :param psm_df: the pandas dataframe containing the peptide information
 
     :return: dict containing a dataframe one row per sample and one column per PTM that occurs in the peptide_df,
     with the cells containing the amount of the PTM in the sample
     """
 
-    modification_df = aggregate_ptms(peptide_df, ["Sample"])
+    modification_df = aggregate_ptms(psm_df, ["Sample"])
 
     modification_df["Total Amount of Peptides"] = (
-        peptide_df.groupby("Sample").size().reset_index()[0]
+        psm_df.groupby("Sample").size().reset_index()[0]
     )
 
     return dict(ptm_df=modification_df)
 
 
-def ptms_per_protein_and_sample(peptide_df: pd.DataFrame) -> dict:
+def ptms_per_protein_and_sample(psm_df: pd.DataFrame) -> dict:
     """
     This function calculates the amount of every PTM per sample and protein.
 
-    :param peptide_df: the pandas dataframe containing the peptide information
+    :param psm_df: the pandas dataframe containing the peptide information
 
     :return: dict containing a dataframe one row per sample and one column per protein,
     with the cells containing a list of PTMs that occur in the peptide_df for the protein and sample and
     their amount in the protein and sample
     """
 
-    modification_df = aggregate_ptms(peptide_df, ["Sample", "Protein ID"])
+    modification_df = aggregate_ptms(psm_df, ["Sample", "Protein ID"])
 
     modi = modification_df.drop(["Sample", "Protein ID"], axis=1).apply(
         lambda x: ("(" + x.astype(str) + ") " + x.name + ", ")
@@ -56,10 +56,10 @@ def ptms_per_protein_and_sample(peptide_df: pd.DataFrame) -> dict:
     return dict(ptm_df=modification_df)
 
 
-def aggregate_ptms(peptide_df: pd.DataFrame, group_by: list[str]):
+def aggregate_ptms(psm_df: pd.DataFrame, group_by: list[str]):
 
     modification_df = pd.concat(
-        [peptide_df[group_by], (peptide_df["Modifications"].str.get_dummies(sep=","))],
+        [psm_df[group_by], (psm_df["Modifications"].str.get_dummies(sep=","))],
         axis=1,
     )
 

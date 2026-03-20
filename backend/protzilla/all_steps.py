@@ -10,7 +10,6 @@ _forward_mapping: list[Step] = [
     importing.MaxQuantImport,
     importing.MsFraggerImport,
     importing.MetadataImport,
-    importing.MetadataImportMethodDiann,
     importing.MetadataColumnAssignment,
     importing.PeptideImport,
     importing.EvidenceImport,
@@ -37,9 +36,14 @@ _forward_mapping: list[Step] = [
     data_preprocessing.SimpleImputationPerProtein,
     data_preprocessing.ImputationByKNN,
     data_preprocessing.ImputationByNormalDistributionSampling,
+    data_preprocessing.FilterMetadataByExistingSamples,
     data_preprocessing.FilterPeptidesByPEPThreshold,
     data_preprocessing.FilterPeptidesByExistingProteins,
     data_preprocessing.FilterPeptidesByExistingSamples,
+    data_preprocessing.FilterPsmByPEPThreshold,
+    data_preprocessing.FilterPsmByExistingProteins,
+    data_preprocessing.FilterPsmByExistingSamples,
+    data_preprocessing.GroupReplicates,
     data_analysis.DifferentialExpressionANOVA,
     data_analysis.DifferentialExpressionTTest,
     data_analysis.DifferentialExpressionLinearModel,
@@ -87,6 +91,7 @@ _forward_mapping: list[Step] = [
 _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
     data_integration.DatabaseIntegrationByUniprot,
+    data_integration.PlotGSEAEnrichmentPlot,
 ]
 
 
