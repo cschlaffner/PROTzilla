@@ -85,7 +85,6 @@ export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
@@ -98,6 +97,30 @@ export const RunScreen: React.FC = () => {
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
+
+  const getFooterMessage = () => {
+    const currentTimestamp = new Date();
+    const currentHour =
+      String(currentTimestamp.getFullYear()) +
+      "-" +
+      String(currentTimestamp.getMonth() + 1) +
+      "-" +
+      String(currentTimestamp.getDate()) +
+      "-" +
+      String(currentTimestamp.getHours());
+
+    const storedHour = localStorage.getItem("footerMessageHour");
+    const storedMessage = localStorage.getItem("footerMessage") ?? "";
+
+    if (storedHour == currentHour) {
+      return storedMessage;
+    } else {
+      const newMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
+      localStorage.setItem("footerMessage", newMessage);
+      localStorage.setItem("footerMessageHour", currentHour);
+      return newMessage;
+    }
+  };
 
   const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
@@ -353,8 +376,10 @@ export const RunScreen: React.FC = () => {
                 hasCardTitle={false}
               />
             </StyledCol>
-          ) : null}
-          <FooterText>{randomMessage}</FooterText>
+          ) : (
+            <div style={{ flex: 1 }} />
+          )}
+          <FooterText>{getFooterMessage()}</FooterText>
         </StyledFlexColumn>
       </StyledCardRow>
     </div>
