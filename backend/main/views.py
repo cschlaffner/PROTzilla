@@ -6,7 +6,7 @@ from zipfile import ZipFile
 from pathlib import Path
 import re
 import traceback
-from typing import Any
+from typing import Any, Optional, List, Dict
 
 import numpy as np
 from django.contrib import messages
@@ -639,8 +639,9 @@ def get_step_visualizations(request):
                 for viz in run.current_step.visualizations:
                     protein_entry_id = viz.get("protein_entry_id", "unknown protein")
                     cif_df = viz.get("cif_df")
+                    crosslink_df = viz.get("crosslink_df")
                     visualizations.append(
-                        create_visualization(cif_df, protein_entry_id)
+                        create_visualization(cif_df, protein_entry_id, crosslink_df)
                     )
             else:
                 cif_df = (
@@ -674,21 +675,34 @@ def get_step_visualizations(request):
 
 
 # TODO: move helper functions somewhere else?
-def create_visualization(cif_df: pd.DataFrame, protein_entry_id: str) -> dict:
+def create_visualization(
+    cif_df: pd.DataFrame,
+    protein_entry_id: str,
+    crosslink_df: Optional[pd.DataFrame] = None,
+) -> dict:
     """
     Convert a CIF DataFrame to a mmCIF string and package it with its protein entry ID.
+    Optionally include crosslinks extracted from crosslink_df.
 
     :param cif_df: DataFrame containing mmCIF atom_site information.
     :param protein_entry_id: Protein identifier to include in the mmCIF header.
+    :param crosslink_df: Optional DataFrame containing crosslink positions.
     :return: Dictionary containing:
-             - "proteinEntryId" (str): The given protein entry ID.
-             - "cifString" (str): The generated mmCIF string. Empty if conversion fails.
+             - "proteinEntryId" (str)
+             - "cifString" (str)
+             - "crosslinks" (optional, list of dicts)
     """
     try:
         cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
     except (ValueError, TypeError):
         cif_string = ""
-    return {"proteinEntryId": protein_entry_id, "cifString": cif_string}
+
+    result = {"proteinEntryId": protein_entry_id, "cifString": cif_string}
+
+    if crosslink_df is not None:
+        result["crosslinks"] = extract_crosslink_positions(crosslink_df)
+
+    return result
 
 
 # TODO: move helper functions somewhere else?
@@ -731,6 +745,28 @@ def convert_df_to_mmcif_for_visualization(
 
     cif_string = "\n".join(lines)
     return cif_string
+
+
+# TODO: move helper functions somewhere else?
+def extract_crosslink_positions(crosslink_df: pd.DataFrame) -> List[Dict[str, int]]:
+    """
+    For each crosslink extract its positions from a DataFrame.
+
+    :param crosslink_df: DataFrame with columns 'crosslinker_position1' and 'crosslinker_position2'.
+    :return: List of dicts with keys 'position1' and 'position2'.
+    """
+    crosslinks = []
+    for _, row in crosslink_df.iterrows():
+        position1 = row.get("crosslinker_position1")
+        position2 = row.get("crosslinker_position2")
+        if pd.notnull(position1) and pd.notnull(position2):
+            crosslinks.append(
+                {
+                    "crosslinkerPosition1": int(position1),
+                    "crosslinkerPosition2": int(position2),
+                }
+            )
+    return crosslinks
 
 
 # TODO: Move somewhere else

@@ -4,6 +4,8 @@ import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
+
+import { CrosslinkPosition, generateCrosslinkCIF } from "./crosslink-struktur";
 import "./molstar-theme.scss";
 
 const Container = styled.div`
@@ -22,14 +24,17 @@ const CanvasWrapper = styled.div`
 
 interface MolstarViewerProps {
   cifText: string;
+  crosslinks: CrosslinkPosition[] | undefined;
 }
 
-const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText }) => {
+const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log(cifText);
+  const LoadingTitle = styled(SectionTitle)`
+    margin: 15px;
+  `;
 
   const ErrorTitle = styled(SectionTitle)`
     color: ${({ theme }) => theme.colors.caution};
@@ -67,6 +72,21 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText }) => {
         const trajectory = await plugin.builders.structure.parseTrajectory(data, "mmcif");
         await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
 
+        if (crosslinks !== undefined) {
+          const crosslinkCifText = generateCrosslinkCIF(cifText, crosslinks);
+          console.log(crosslinkCifText);
+
+          const lineData = await plugin.builders.data.rawData({
+            data: crosslinkCifText,
+            label: "line",
+          });
+          const lineTrajectory = await plugin.builders.structure.parseTrajectory(lineData, "mmcif");
+          //await plugin.builders.structure.hierarchy.applyPreset(lineTrajectory, "default");
+          const lineModel = await plugin.builders.structure.createModel(lineTrajectory);
+          const lineStructure = await plugin.builders.structure.createStructure(lineModel);
+          await plugin.builders.structure.representation.addRepresentation(lineStructure, {});
+        }
+
         setIsLoading(false);
       } catch (err: unknown) {
         console.error("MolstarViewer Error:", err);
@@ -91,7 +111,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText }) => {
 
   return (
     <Container>
-      {isLoading && <SectionTitle baseComponent="h4" description="Structure is loading..." />}
+      {isLoading && <LoadingTitle baseComponent="h4" description="Structure is loading..." />}
       {error && <ErrorTitle baseComponent="h4" description={error} />}
       <CanvasWrapper ref={containerRef} />
     </Container>

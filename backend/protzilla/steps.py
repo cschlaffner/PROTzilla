@@ -315,21 +315,27 @@ class Step:
     def visualization_input(self) -> dict:
         input_parameters = inspect.signature(self.visualization_method).parameters
 
+        prefixed_output = {
+            "output_" + key: value for key, value in self.output.output.items()
+        }
+
+        visualization_input = self.inputs | prefixed_output
+
         required_keys = [
             key
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
         for key in required_keys:
-            if key not in self.inputs:
+            if key not in visualization_input:
                 raise ValueError(
                     f"Missing required input '{key}' for the visualization method"
                 )
 
         return {
-            key: self.inputs[key]
+            key: visualization_input[key]
             for key in input_parameters.keys()
-            if key in self.inputs
+            if key in visualization_input
         }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:

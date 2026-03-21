@@ -23,7 +23,7 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     """
     # right now we always return the central C atom
     # later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
-    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation
+    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
     return "CA"
 
 
@@ -346,6 +346,7 @@ def bar_plot_of_valid_crosslinks(
 def visualization_of_protein_structure(
     protein_to_validate: str,
     cif_df: pd.DataFrame,
+    output_crosslinking_result_df: pd.DataFrame,
 ) -> dict:
     """
     Returns a dict containing the protein entry_id and its CIF-DataFrame.
@@ -359,4 +360,8 @@ def visualization_of_protein_structure(
             f"No CIF dataframe provided for protein '{protein_to_validate}'."
         )
 
-    return {"protein_entry_id": protein_to_validate, "cif_df": cif_df}
+    return {
+        "protein_entry_id": protein_to_validate,
+        "cif_df": cif_df,
+        "crosslink_df": output_crosslinking_result_df,
+    }
