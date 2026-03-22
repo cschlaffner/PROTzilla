@@ -18,6 +18,7 @@ import backend.protzilla.utilities.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
+from backend.protzilla.form import FileInput
 from backend.protzilla.steps import (
     Messages,
     Output,
@@ -277,6 +278,7 @@ class DiskOperator:
     def save_workflow(self, step_manager: StepManager, workflow_name: str) -> None:
         self.workflow_name = workflow_name
         workflow = {}
+        workflow_file_input_map = {}
         workflow[KEYS.STEPS] = []
         workflow[KEYS.DF_MODE] = step_manager.df_mode
         workflow[KEYS.GRAPH_EDGES] = list(step_manager.graph.edges(data=True))
@@ -296,7 +298,23 @@ class DiskOperator:
 
                 step_data[KEYS.STEP_INPUTS] = inputs_to_write
                 workflow[KEYS.STEPS].append(step_data)
+
+                step_file_inputs = {}
+                form_inputs = step.form_inputs
+                for field in step.form.input_fields:
+                    if not isinstance(field, FileInput):
+                        continue
+
+                    file_path = form_inputs.get(field.name)
+                    step_file_inputs[field.name] = str(file_path) if file_path else None
+
+                if step_file_inputs:
+                    workflow_file_input_map[step.instance_identifier] = step_file_inputs
+
             self.yaml_operator.write(self.workflow_file, workflow)
+            self.yaml_operator.write(
+                self.workflow_file_input_map_file, workflow_file_input_map
+            )
 
     def check_file_validity(self, file: Path, steps: StepManager) -> bool:
         """
@@ -529,6 +547,10 @@ class DiskOperator:
     @property
     def workflow_file(self) -> Path:
         return paths.WORKFLOWS_PATH / f"{self.workflow_name}.yaml"
+
+    @property
+    def workflow_file_input_map_file(self) -> Path:
+        return paths.WORKFLOWS_PATH / f"{self.workflow_name}.file_input_map.yaml"
 
     @property
     def dataframe_dir(self) -> Path:

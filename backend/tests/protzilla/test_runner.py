@@ -170,8 +170,8 @@ def test_runner_imports(
     importing_args = [
         "standard",  # expects max-quant import, metadata import
         ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
+        f"--meta-data-path={metadata_file_path}",
     ]
 
     kwargs = args_parser().parse_args(importing_args).__dict__
@@ -279,7 +279,7 @@ def test_runner_raises_error_for_missing_metadata_arg(
     no_metadata_args = [
         "only_import",
         ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(no_metadata_args).__dict__
     runner = Runner(**kwargs)
@@ -297,8 +297,8 @@ def test_runner_calculates(
     calculating_args = [
         "only_import_and_filter_proteins",
         ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
+        f"--meta-data-path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -338,8 +338,8 @@ def test_runner_calculates_logging(caplog, tests_folder_name):
     calculating_args = [
         "only_import_and_filter_proteins",
         "wrong_ms_data_file_path",
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
+        f"--meta-data-path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)

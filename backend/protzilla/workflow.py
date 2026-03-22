@@ -7,7 +7,9 @@ def get_available_workflow_names() -> list[str]:
     return [
         file.stem
         for file in paths.WORKFLOWS_PATH.iterdir()
-        if not file.name.startswith(".") and file.suffix == ".yaml"
+        if not file.name.startswith(".")
+        and file.suffix == ".yaml"
+        and not file.name.endswith(".file_input_map.yaml")
     ]
 
 

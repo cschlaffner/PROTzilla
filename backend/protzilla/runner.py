@@ -1,5 +1,6 @@
 import logging
 import os
+from copy import deepcopy
 from pathlib import Path
 import yaml
 
@@ -106,10 +107,7 @@ class Runner:
         logging.info("------ computing workflow\n")
         ordered_ids = self.run.steps.all_step_ids_toposorted
         for step_id in ordered_ids:
-            if self.run.steps._current_selected_step_id is None:
-                self.run.steps._current_selected_step_id = step_id
-            else:
-                self.run.steps.goto_step(step_id)
+            self.run.steps.goto_step(step_id)
             step = self.run.current_step
             logging.info(f"performing step: {*self.run.steps.current_location,}")
             self._insert_file_inputs(step)
@@ -148,28 +146,28 @@ class Runner:
     def _legacy_file_inputs_for_step(self, step: Step) -> dict[str, str]:
         specs = {
             "MaxQuantImport": {
-                "file_path": ("ms_data_path", "the positional ms_data_path argument"),
+                "file_path": ("ms_data_path", "the positional ms-data-path argument"),
             },
             "MsFraggerImport": {
-                "file_path": ("msfragger_path", "--msfragger_path"),
+                "file_path": ("msfragger_path", "--msfragger-path"),
             },
             "DiannImport": {
-                "file_path": ("diann_path", "--diann_path"),
+                "file_path": ("diann_path", "--diann-path"),
             },
             "MetadataImport": {
-                "file_path": ("meta_data_path", "--meta_data_path"),
+                "file_path": ("meta_data_path", "--meta-data-path"),
             },
             "MetadataImportMethodDiann": {
-                "file_path": ("diann_meta_data_path", "--diann_meta_data_path"),
+                "file_path": ("diann_meta_data_path", "--diann-meta-data-path"),
             },
             "PeptideImport": {
-                "file_path": ("peptides_path", "--peptides_path"),
+                "file_path": ("peptides_path", "--peptides-path"),
             },
             "EvidenceImport": {
-                "file_path": ("evidence_path", "--evidence_path"),
+                "file_path": ("evidence_path", "--evidence-path"),
             },
             "FastaImport": {
-                "file_path": ("fasta_path", "--fasta_path"),
+                "file_path": ("fasta_path", "--fasta-path"),
             },
         }.get(step.__class__.__name__, {})
 
@@ -185,7 +183,7 @@ class Runner:
                 continue
             raise ValueError(
                 f"Missing required file input '{field_name}' for {step.operation} with "
-                f"{step.display_name}. Provide it via {legacy_argument} or --file_input_map."
+                f"{step.display_name}. Provide it via {legacy_argument} or --file-input-map."
             )
 
         return configured_inputs
@@ -203,24 +201,28 @@ class Runner:
             return {}
 
         if not isinstance(file_input_config, dict):
-            raise ValueError("--file_input_map must be a YAML mapping.")
+            raise ValueError("--file-input-map must be a YAML mapping.")
 
         parsed_inputs = {}
         for step_id, field_map in file_input_config.items():
             if not isinstance(field_map, dict):
                 raise ValueError(
-                    "--file_input_map must use the format: step_id -> {field_name: path}."
+                    "--file-input-map must use the format: step_id -> {field_name: path}."
                 )
-            parsed_inputs[str(step_id)] = {
-                str(field_name): str(path) for field_name, path in field_map.items()
-            }
+            parsed_field_map = {}
+            for field_name, path in field_map.items():
+                if path is None or str(path) == "None":
+                    continue
+                parsed_field_map[str(field_name)] = str(path)
+            if parsed_field_map:
+                parsed_inputs[str(step_id)] = parsed_field_map
         return parsed_inputs
 
     def _validate_file_input_map(self):
         for step_id, field_paths in self.file_input_map.items():
             if step_id not in self.run.steps.all_steps:
                 raise ValueError(
-                    f"--file_input_map references unknown step '{step_id}'."
+                    f"--file-input-map references unknown step '{step_id}'."
                 )
 
             step = self.run.steps.get_step_by_id(step_id)
@@ -228,15 +230,25 @@ class Runner:
             for field_name in field_paths:
                 if field_name not in step.form:
                     raise ValueError(
-                        f"--file_input_map references unknown field '{field_name}' for step '{step_id}'."
+                        f"--file-input-map references unknown field '{field_name}' for step '{step_id}'."
                     )
                 if not isinstance(step.form[field_name], FileInput):
                     raise ValueError(
-                        f"--file_input_map field '{field_name}' for step '{step_id}' is not a file input."
+                        f"--file-input-map field '{field_name}' for step '{step_id}' is not a file input."
                     )
 
     def _perform_current_step(self):
-        self.run.current_step.calculate(self.run.steps)
+        step = self.run.current_step
+        explicit_form_values = {}
+        for field in step.form.input_fields:
+            if not hasattr(field, "name") or not hasattr(field, "value"):
+                continue
+            if field.value in (None, "", []):
+                continue
+            explicit_form_values[field.name] = deepcopy(field.value)
+        step.modify_form(self.run)
+        step.form.update_values(explicit_form_values)
+        step.calculate(self.run.steps)
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):

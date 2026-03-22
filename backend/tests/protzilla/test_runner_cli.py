@@ -17,7 +17,7 @@ def metadata_file_path():
 
 def test_parse_run_name(tests_folder_name):
     run_name = f"{tests_folder_name}/test_parse_run_name_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run_name={run_name}", f"--all_plots"]
+    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--all-plots"]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).run_name == run_name
 
@@ -27,7 +27,7 @@ def test_existing_workflow(tests_folder_name):
     test_args = [
         workflow_name,
         "ms_data",
-        f"--run_name={tests_folder_name}/test_existing_workflow_{random_string()}",
+        f"--run-name={tests_folder_name}/test_existing_workflow_{random_string()}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     runner = Runner(**parsed_args)
@@ -44,7 +44,7 @@ def test_non_existing_workflow(tests_folder_name):
     test_args = [
         "non-existent",
         "ms_data",
-        f"--run_name={run_name}",
+        f"--run-name={run_name}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     with pytest.raises(FileNotFoundError):
@@ -57,7 +57,7 @@ def test_parse_ms_data(tests_folder_name):
     test_args = [
         "standard",
         ms_data_path,
-        f"--run_name={run_name}",
+        f"--run-name={run_name}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).ms_data_path == ms_data_path
@@ -68,8 +68,8 @@ def test_parse_meta_data(tests_folder_name, metadata_file_path):
     test_args = [
         "standard",
         "ms_data",
-        f"--run_name={run_name}",
-        f"--meta_data_path={metadata_file_path}",
+        f"--run-name={run_name}",
+        f"--meta-data-path={metadata_file_path}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).meta_data_path == metadata_file_path
@@ -83,8 +83,8 @@ def test_parse_file_input_map(tests_folder_name, tmp_path):
     test_args = [
         "standard",
         "ms_data",
-        f"--run_name={run_name}",
-        f"--file_input_map={file_input_map_path}",
+        f"--run-name={run_name}",
+        f"--file-input-map={file_input_map_path}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).file_input_map == {}
@@ -92,7 +92,7 @@ def test_parse_file_input_map(tests_folder_name, tmp_path):
 
 def test_parse_all_plots(tests_folder_name):
     run_name = f"{tests_folder_name}/test_parse_all_plots_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run_name={run_name}", f"--all_plots"]
+    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--all-plots"]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).all_plots
 
@@ -100,7 +100,7 @@ def test_parse_all_plots(tests_folder_name):
 def test_parse_verbose(caplog, tests_folder_name):
     caplog.set_level(logging.INFO)
     run_name = f"{tests_folder_name}/test_parse_meta_data_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run_name={run_name}", f"--verbose"]
+    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--verbose"]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).verbose
     assert "Parsed arguments" in caplog.text
@@ -108,7 +108,7 @@ def test_parse_verbose(caplog, tests_folder_name):
 
 def test_run_already_exists(monkeypatch, capsys, tests_folder_name):
     run_name = f"{tests_folder_name}/test_run_already_exists_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run_name={run_name}"]
+    test_args = ["standard", "ms_data", f"--run-name={run_name}"]
     Runner(**args_parser().parse_args(test_args).__dict__)
 
     mock_input_no = mock.Mock(return_value="n")
