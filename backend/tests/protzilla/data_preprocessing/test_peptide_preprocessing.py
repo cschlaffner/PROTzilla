@@ -1,9 +1,9 @@
 import pandas as pd
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.data_preprocessing.peptide_filter import (
-    by_pep_value,
-    by_pep_value_plot,
+from backend.protzilla.data_preprocessing.filter_peptides_or_psm import (
+    filter_peptides_by_pep_value,
+    filter_peptides_by_pep_value_plot,
 )
 from backend.protzilla.importing import peptide_import
 from backend.protzilla.constants.intensity_types import IntensityType
@@ -53,9 +53,11 @@ def test_pep_filter(show_figures, leftover_peptide_df, filtered_peptides_list):
         DataKey.PEPTIDE_DF: import_outputs[DataKey.PEPTIDE_DF],
         "threshold": 0.0014,
     }
-    method_outputs = by_pep_value(**method_inputs)
+    method_outputs = filter_peptides_by_pep_value(**method_inputs)
 
-    fig = by_pep_value_plot(method_inputs, method_outputs, "Pie chart")[0]
+    fig = filter_peptides_by_pep_value_plot(method_inputs, method_outputs, "Pie chart")[
+        0
+    ]
     if show_figures:
         fig.show()
 
