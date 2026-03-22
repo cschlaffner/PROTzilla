@@ -284,17 +284,7 @@ class DiskOperator:
         workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
             for step in step_manager.all_step_instances:
-                step_data = self._write_step(step, workflow_mode=True).copy()
-                inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
-                inputs_to_write = {}
-                for input_key, input_value in inputs:
-                    if not (
-                        isinstance(input_value, pd.DataFrame)
-                        or utilities.check_is_path(input_value)
-                    ):
-                        inputs_to_write[input_key] = input_value
-
-                step_data[KEYS.STEP_INPUTS] = inputs_to_write
+                step_data = self._write_step(step, workflow_mode=True).copy() # unsure if copying is needed
                 workflow[KEYS.STEPS].append(step_data)
             self.yaml_operator.write(self.workflow_file, workflow)
 
@@ -352,7 +342,6 @@ class DiskOperator:
                 steps=steps,
                 instance_identifier=step_data.get(KEYS.STEP_INSTANCE_IDENTIFIER),
             )
-            step.inputs = step_data.get(KEYS.STEP_INPUTS, {})
             step.messages = Messages(step_data.get(KEYS.STEP_MESSAGES, []))
             step.output = self._read_outputs(step_data.get(KEYS.STEP_OUTPUTS, {}))
             step.visual_data = step_data.get(
@@ -388,10 +377,9 @@ class DiskOperator:
             step_data = {}
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
             step_data[KEYS.STEP_INSTANCE_IDENTIFIER] = step.instance_identifier
-            step_data[KEYS.STEP_FORM_INPUTS] = sanitize_inputs(step.form_inputs)
+            step_data[KEYS.STEP_FORM_INPUTS] = step.form_inputs
             step_data[KEYS.VISUAL_DATA] = step.visual_data
             if not workflow_mode:
-                step_data[KEYS.STEP_INPUTS] = sanitize_inputs(step.inputs)
                 step_data[KEYS.STEP_PLOTS] = self._write_plots(step)
                 step_data[KEYS.STEP_OUTPUTS] = self._write_output(step)
                 step_data[KEYS.STEP_MESSAGES] = step.messages.messages
@@ -541,22 +529,3 @@ class DiskOperator:
     @property
     def plot_dir(self) -> Path:
         return self.run_dir / "plots"
-
-
-def sanitize_inputs(inputs: dict) -> dict:
-    """
-    Remove dataframes and paths from inputs.
-
-    :param inputs: The inputs to sanitize
-    :return: The sanitized inputs
-    """
-    sanitized = {}
-
-    for key, value in inputs.items():
-        if isinstance(value, pd.DataFrame):
-            continue
-        if utilities.check_is_path(value):
-            continue
-        sanitized[key] = value
-
-    return sanitized
