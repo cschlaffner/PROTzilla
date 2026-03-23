@@ -220,7 +220,7 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
         )
         messages.append(dict(level=logging.INFO, msg=msg))
 
-        return dict(peptide_df=df, messages=messages)
+        return dict(psm_df=df, messages=messages)
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
     except Exception as e:

@@ -84,7 +84,6 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         return protein_import_dict
 
     metadata_import_dict = metadata_import_method(
-        protein_df=protein_import_dict[DataKey.PROTEIN_DF],
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )
@@ -92,25 +91,25 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         return metadata_import_dict
 
     if import_peptide_data:
-        peptide_import_dict = evidence_import(
+        psm_import_dict = evidence_import(
             file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
             intensity_name=intensity_name,
             map_to_uniprot=False,
         )
-        if "peptide_df" not in peptide_import_dict:
-            return peptide_import_dict
+        if "psm_df" not in psm_import_dict:
+            return psm_import_dict
     else:
-        peptide_import_dict = {}
+        psm_import_dict = {}
 
     combined_messages = (
         protein_import_dict.pop("messages", [])
         + metadata_import_dict.pop("messages", [])
-        + peptide_import_dict.pop("messages", [])
+        + psm_import_dict.pop("messages", [])
     )
     combined_dict = {
         **protein_import_dict,
         **metadata_import_dict,
-        **peptide_import_dict,
+        **psm_import_dict,
         "messages": combined_messages,
     }
 
