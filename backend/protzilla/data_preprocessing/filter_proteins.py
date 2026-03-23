@@ -80,6 +80,30 @@ def by_protein_ids(protein_df: pd.DataFrame, protein_ids: list[str]) -> dict:
     return dict(protein_df=filtered_df)
 
 
+def keep_n_most_significant_proteins(
+    number_of_proteins_to_keep: int, differentially_expressed_proteins_df: pd.DataFrame
+) -> dict:
+    """
+    This function filters the differentially expressed proteins dataframe to keep only the specified number of
+    most significant proteins based on the corrected p-value (-> smaller p-value = more significant). Duplicate protein IDs are removed.
+
+    :param number_of_proteins_to_keep: the number of proteins to retain
+    :param differentially_expressed_proteins_df: the dataframe containing differentially expressed proteins with
+        corrected p-values (smaller p-value = more significant)
+    :return: returns a dict containing the filtered dataframe with the most significant proteins
+    """
+    filtered_df = (
+        differentially_expressed_proteins_df.sort_values(
+            "corrected_p_value"
+        )  # sort ascending
+        .drop_duplicates("Protein ID")  # remove protein_id duplicates
+        .head(
+            number_of_proteins_to_keep
+        )  # keep the n proteins with the smallest p_value
+    )
+    return dict(differentially_expressed_proteins_df=filtered_df)
+
+
 def by_samples_missing_plot(
     output_remaining_proteins, output_filtered_proteins, graph_type
 ):
