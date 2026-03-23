@@ -188,7 +188,7 @@ class TestRun:
 
         assert run_standard.current_step.calculation_status == "complete"
 
-        run_standard.step_goto("s00002_MetadataImport")
+        run_standard.step_goto("s00014_MetadataImport")
 
         assert run_standard.current_step.calculation_status == "incomplete"
 
