@@ -115,6 +115,8 @@ export const DataTable: React.FC<DataTableProps> = ({
         slots={{
           footer: CustomFooter,
         }}
+        disableColumnSorting
+        disableColumnFilter
       />
     </ThemeProvider>
   );
