@@ -35,10 +35,10 @@ class Runner:
     def __init__(
         self,
         workflow: str,
-        ms_data_path: str,
-        meta_data_path: str | None,
-        peptides_path: str | None,
-        run_name: str | None,
+        ms_data_path: str | None = None,
+        meta_data_path: str | None = None,
+        peptides_path: str | None = None,
+        run_name: str | None = None,
         df_mode: str | None = "disk",
         all_plots: bool = False,
         verbose: bool = False,
@@ -183,7 +183,7 @@ class Runner:
                 continue
             raise ValueError(
                 f"Missing required file input '{field_name}' for {step.operation} with "
-                f"{step.display_name}. Provide it via {legacy_argument} or --file-input-map."
+                f"{step.display_name}. Provide it via the file-input-map."
             )
 
         return configured_inputs
@@ -201,13 +201,13 @@ class Runner:
             return {}
 
         if not isinstance(file_input_config, dict):
-            raise ValueError("--file-input-map must be a YAML mapping.")
+            raise ValueError("file-input-map must be a YAML mapping.")
 
         parsed_inputs = {}
         for step_id, field_map in file_input_config.items():
             if not isinstance(field_map, dict):
                 raise ValueError(
-                    "--file-input-map must use the format: step_id -> {field_name: path}."
+                    "file-input-map must use the format: step_id -> {field_name: path}."
                 )
             parsed_field_map = {}
             for field_name, path in field_map.items():
@@ -221,20 +221,18 @@ class Runner:
     def _validate_file_input_map(self):
         for step_id, field_paths in self.file_input_map.items():
             if step_id not in self.run.steps.all_steps:
-                raise ValueError(
-                    f"--file-input-map references unknown step '{step_id}'."
-                )
+                raise ValueError(f"file-input-map references unknown step '{step_id}'.")
 
             step = self.run.steps.get_step_by_id(step_id)
 
             for field_name in field_paths:
                 if field_name not in step.form:
                     raise ValueError(
-                        f"--file-input-map references unknown field '{field_name}' for step '{step_id}'."
+                        f"file-input-map references unknown field '{field_name}' for step '{step_id}'."
                     )
                 if not isinstance(step.form[field_name], FileInput):
                     raise ValueError(
-                        f"--file-input-map field '{field_name}' for step '{step_id}' is not a file input."
+                        f"file-input-map field '{field_name}' for step '{step_id}' is not a file input."
                     )
 
     def _perform_current_step(self):

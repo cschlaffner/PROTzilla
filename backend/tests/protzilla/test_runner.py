@@ -231,7 +231,7 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "protein_group": "A0A075B6S2",
+            "protein_group": "P10636",
             "similarity_measure": "Euclidean Distance",
             "similarity": 1,
         },

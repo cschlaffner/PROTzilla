@@ -147,7 +147,7 @@ steps:
       x: 0
       y: 223.5847262805539
 - form_inputs:
-    protein_group: A0A075B6S2
+    protein_group: P10636
     similarity: 1
     similarity_measure: Euclidean Distance
   inputs: {}

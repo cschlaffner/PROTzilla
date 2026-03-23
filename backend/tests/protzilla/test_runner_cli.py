@@ -15,18 +15,30 @@ def metadata_file_path():
     return "metadata_cut_columns.csv"
 
 
-def test_parse_run_name(tests_folder_name):
+@pytest.fixture
+def empty_file_input_map(tmp_path):
+    file_input_map_path = tmp_path / "file_inputs.yaml"
+    file_input_map_path.write_text("{}\n", encoding="utf-8")
+    return str(file_input_map_path)
+
+
+def test_parse_run_name(tests_folder_name, empty_file_input_map):
     run_name = f"{tests_folder_name}/test_parse_run_name_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--all-plots"]
+    test_args = [
+        "standard",
+        empty_file_input_map,
+        f"--run-name={run_name}",
+        f"--all-plots",
+    ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).run_name == run_name
 
 
-def test_existing_workflow(tests_folder_name):
+def test_existing_workflow(tests_folder_name, empty_file_input_map):
     workflow_name = "standard"
     test_args = [
         workflow_name,
-        "ms_data",
+        empty_file_input_map,
         f"--run-name={tests_folder_name}/test_existing_workflow_{random_string()}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
@@ -39,11 +51,11 @@ def test_existing_workflow(tests_folder_name):
     assert len(run_config["steps"]) == len(runner.run.steps.all_steps)
 
 
-def test_non_existing_workflow(tests_folder_name):
+def test_non_existing_workflow(tests_folder_name, empty_file_input_map):
     run_name = f"{tests_folder_name}/test_non_existent_workflow_{random_string()}"
     test_args = [
         "non-existent",
-        "ms_data",
+        empty_file_input_map,
         f"--run-name={run_name}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
@@ -51,23 +63,22 @@ def test_non_existing_workflow(tests_folder_name):
         Runner(**parsed_args)
 
 
-def test_parse_ms_data(tests_folder_name):
-    run_name = f"{tests_folder_name}/test_parse_ms_data_{random_string()}"
-    ms_data_path = "tests/proteinGroups_small_cut.txt"
+def test_parse_file_input_map_path(tests_folder_name, empty_file_input_map):
+    run_name = f"{tests_folder_name}/test_parse_file_input_map_path_{random_string()}"
     test_args = [
         "standard",
-        ms_data_path,
+        empty_file_input_map,
         f"--run-name={run_name}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
-    assert Runner(**parsed_args).ms_data_path == ms_data_path
+    assert parsed_args["file_input_map"] == empty_file_input_map
 
 
-def test_parse_meta_data(tests_folder_name, metadata_file_path):
+def test_parse_meta_data(tests_folder_name, metadata_file_path, empty_file_input_map):
     run_name = f"{tests_folder_name}/test_parse_meta_data_{random_string()}"
     test_args = [
         "standard",
-        "ms_data",
+        empty_file_input_map,
         f"--run-name={run_name}",
         f"--meta-data-path={metadata_file_path}",
     ]
@@ -82,33 +93,44 @@ def test_parse_file_input_map(tests_folder_name, tmp_path):
 
     test_args = [
         "standard",
-        "ms_data",
+        str(file_input_map_path),
         f"--run-name={run_name}",
-        f"--file-input-map={file_input_map_path}",
     ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).file_input_map == {}
 
 
-def test_parse_all_plots(tests_folder_name):
+def test_parse_all_plots(tests_folder_name, empty_file_input_map):
     run_name = f"{tests_folder_name}/test_parse_all_plots_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--all-plots"]
+    test_args = [
+        "standard",
+        empty_file_input_map,
+        f"--run-name={run_name}",
+        f"--all-plots",
+    ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).all_plots
 
 
-def test_parse_verbose(caplog, tests_folder_name):
+def test_parse_verbose(caplog, tests_folder_name, empty_file_input_map):
     caplog.set_level(logging.INFO)
     run_name = f"{tests_folder_name}/test_parse_meta_data_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run-name={run_name}", f"--verbose"]
+    test_args = [
+        "standard",
+        empty_file_input_map,
+        f"--run-name={run_name}",
+        f"--verbose",
+    ]
     parsed_args = args_parser().parse_args(test_args).__dict__
     assert Runner(**parsed_args).verbose
     assert "Parsed arguments" in caplog.text
 
 
-def test_run_already_exists(monkeypatch, capsys, tests_folder_name):
+def test_run_already_exists(
+    monkeypatch, capsys, tests_folder_name, empty_file_input_map
+):
     run_name = f"{tests_folder_name}/test_run_already_exists_{random_string()}"
-    test_args = ["standard", "ms_data", f"--run-name={run_name}"]
+    test_args = ["standard", empty_file_input_map, f"--run-name={run_name}"]
     Runner(**args_parser().parse_args(test_args).__dict__)
 
     mock_input_no = mock.Mock(return_value="n")
