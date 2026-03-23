@@ -19,7 +19,7 @@ services:
       dockerfile: "backend/Dockerfile.dev"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
-      - "./runner_cli.py:/home/prot/zilla/runner_cli.py"
+      - "./runner_cli.py:/home/prot/zilla/runner_cli.py:Z"
       - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
