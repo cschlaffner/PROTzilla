@@ -197,8 +197,8 @@ def test_runner_imports(
         "NormalisationByMedian",
         "PlotProtQuant",
         "DifferentialExpressionTTest",
-        "PlotVolcano",
         "EnrichmentAnalysisGOAnalysisWithString",
+        "PlotVolcano",
         "PlotGOEnrichmentBarPlot",
     ]
     expected_method_parameters = [
@@ -231,25 +231,20 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "protein_group": None,
-            "similarity_measure": "euclidean distance",
+            "protein_group": "A0A075B6S2",
+            "similarity_measure": "Euclidean Distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
-            "grouping": None,
-            "group1": None,
-            "group2": None,
+            "grouping": "Group",
+            "group1": "AD",
+            "group2": "CTR",
             "fc_zscore_filter": False,
             "fc_zscore_alpha": 0.05,
             "log_base": "None",
-        },
-        {
-            "fc_threshold": 1,
-            "item_type": "Protein ID",
-            "items_of_interest": [],
         },
         {
             "differential_expression_col": "log2_fold_change",
@@ -260,8 +255,13 @@ def test_runner_imports(
             "background_path": None,
         },
         {
+            "fc_threshold": 0,
+            "item_type": "Protein ID",
+            "items_of_interest": [],
+        },
+        {
             "cutoff": 0.05,
-            "gene_sets": ["Process", "Component", "Function", "KEGG"],
+            "gene_sets": ["Component", "Function", "KEGG", "Process"],
             "value": "p-value",
             "top_terms": 10,
             "title": "",
