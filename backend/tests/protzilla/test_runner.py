@@ -36,6 +36,28 @@ def tmp_workflow_dir(tmp_path_factory):
     return tmp_path
 
 
+def create_file_input_map(
+    tmp_path: Path,
+    workflow_name: str,
+    ms_data_path: str | None = None,
+    metadata_path: str | None = None,
+) -> str:
+    metadata_step_ids = {
+        "standard": "s00014_MetadataImport",
+        "only_import": "s00002_MetadataImport",
+        "only_import_and_filter_proteins": "s00002_MetadataImport",
+    }
+
+    file_input_map = {
+        "s00001_MaxQuantImport": {"file_path": ms_data_path},
+        metadata_step_ids[workflow_name]: {"file_path": metadata_path},
+    }
+
+    file_input_map_path = tmp_path / f"{workflow_name}_file_inputs.yaml"
+    file_input_map_path.write_text(yaml.safe_dump(file_input_map), encoding="utf-8")
+    return str(file_input_map_path)
+
+
 def mock_perform_method(runner: Runner):
     mock_perform = mock.MagicMock()
     mock_perform.methods = []
@@ -165,13 +187,15 @@ def assert_runner_finished_successfully(runner: Runner):
 
 
 def test_runner_imports(
-    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
+    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path, tmp_path
 ):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "standard", ms_data_file_path, metadata_file_path
+    )
     importing_args = [
         "standard",  # expects max-quant import, metadata import
-        ms_data_file_path,
+        file_input_map_path,
         f"--run-name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta-data-path={metadata_file_path}",
     ]
 
     kwargs = args_parser().parse_args(importing_args).__dict__
@@ -274,11 +298,14 @@ def test_runner_imports(
 
 
 def test_runner_raises_error_for_missing_metadata_arg(
-    monkeypatch, tests_folder_name, ms_data_file_path
+    monkeypatch, tests_folder_name, ms_data_file_path, tmp_path
 ):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "only_import", ms_data_file_path
+    )
     no_metadata_args = [
         "only_import",
-        ms_data_file_path,
+        file_input_map_path,
         f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(no_metadata_args).__dict__
@@ -292,13 +319,22 @@ def test_runner_raises_error_for_missing_metadata_arg(
 
 
 def test_runner_calculates(
-    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
+    monkeypatch,
+    tests_folder_name,
+    ms_data_file_path,
+    metadata_file_path,
+    tmp_path,
 ):
-    calculating_args = [
+    file_input_map_path = create_file_input_map(
+        tmp_path,
         "only_import_and_filter_proteins",
         ms_data_file_path,
+        metadata_file_path,
+    )
+    calculating_args = [
+        "only_import_and_filter_proteins",
+        file_input_map_path,
         f"--run-name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta-data-path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -334,12 +370,14 @@ def test_runner_calculates(
     mock_plot.assert_not_called()
 
 
-def test_runner_calculates_logging(caplog, tests_folder_name):
+def test_runner_calculates_logging(caplog, tests_folder_name, tmp_path):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "only_import_and_filter_proteins", "wrong_ms_data_file_path"
+    )
     calculating_args = [
         "only_import_and_filter_proteins",
-        "wrong_ms_data_file_path",
+        file_input_map_path,
         f"--run-name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta-data-path={metadata_file_path}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
