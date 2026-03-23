@@ -287,14 +287,6 @@ class DiskOperator:
         with ErrorHandler():
             for step in step_manager.all_step_instances:
                 step_data = self._write_step(step, workflow_mode=True).copy()
-                inputs = step_data.get(KEYS.STEP_INPUTS, {}).items()
-                inputs_to_write = {}
-                for input_key, input_value in inputs:
-                    if not (
-                        isinstance(input_value, pd.DataFrame)
-                        or utilities.check_is_path(input_value)
-                    ):
-                        inputs_to_write[input_key] = input_value
 
                 step_data[KEYS.STEP_INPUTS] = inputs_to_write
                 workflow[KEYS.STEPS].append(step_data)
