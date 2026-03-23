@@ -343,6 +343,9 @@ def svm(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
+    if positive_label == '---------':
+        positive_label = None
+
     protein_df_wide = (
         long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     )

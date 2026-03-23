@@ -1448,7 +1448,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
 
-    positive_label_is_required: bool = True
+    positive_label_is_required: bool = False
 
 
 class ClassificationRandomForest(ClassificationStep):
