@@ -113,7 +113,6 @@ class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
         super().insert_dataframes(steps)
-        self.inputs["differential_expression_col"] = "log2_fold_change"
         if (
             self.inputs.get(DataKey.PROTEIN_DF) is None
             or not self.inputs["differential_expression_col"]
@@ -142,6 +141,10 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis with STRING",
             input_fields=[
+                DropdownField(
+                    name="differential_expression_col",
+                    label="Column in the protein table containing the values for direction of expression change",
+                ),
                 NumberField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins fold change < threshold downregulated. Applied symmetrically to log fold changes:",
@@ -181,6 +184,19 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
             form_helper.to_choices(restring.settings.file_types)
         )
 
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
+
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
+
+        if prot_source is not None and source_handle is not None:
+            differential_expression_col_field.set_options(
+                form_helper.get_choices_for_df_columns(
+                    run, step_id=prot_source, output_key=source_handle, required=True
+                )
+            )
+
     calc_method = staticmethod(enrichment_analysis.GO_analysis_with_STRING)
 
 
@@ -194,13 +210,15 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         return Form(
             label="GO analysis with Enrichr",
             input_fields=[
-                NumberField(
+                DropdownField(
+                    name="differential_expression_col",
+                    label="Column in the protein table containing the values for direction of expression change",
+                ),
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: Proteins with fold change > threshold are upregulated, proteins "
                     "fold change < threshold downregulated. Applied symmetrically to log fold changes:",
-                    min=0,
-                    max=4294967295,
-                    value=0,
+                    value=0.0,
                 ),
                 DropdownField(
                     name="direction",
@@ -311,27 +329,41 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
         ):
             background_number_field.isVisible = True
 
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
+
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
+
+        if prot_source is not None and source_handle is not None:
+            differential_expression_col_field.set_options(
+                form_helper.get_choices_for_df_columns(
+                    run, step_id=prot_source, output_key=source_handle, required=True
+                )
+            )
+
 
 class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
     display_name = "GO analysis offline"
     method_description = "Offline GO Analysis using a hypergeometric test"
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_offline)
-    # TODO: gene_mapping - adjust this method to use the gene_mapping_df from gene_mapping
 
     def create_form(self):
         return Form(
             label="GO analysis offline",
             input_fields=[
-                NumberField(
+                DropdownField(
+                    name="differential_expression_col",
+                    label="Column in the protein table containing the values for direction of expression change",
+                ),
+                FloatField(
                     name="differential_expression_threshold",
                     label="Threshold for differential expression: proteins with values > threshold are upregulated, proteins "
                     'values < threshold downregulated. If "log" is in the name of differential_expression_col, '
                     "threshold is applied symmetrically: e.g. log2_fold_change > threshold is upregulated, "
                     "if log2_fold_change < -threshold downregulated",
-                    value=0,
-                    min=0,
-                    max=4294967295,
+                    value=0.0,
                 ),
                 FileInput(
                     name="gene_sets_path",
@@ -387,6 +419,19 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
             == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
         ):
             background_number_field.isVisible = True
+
+        differential_expression_col_field: DropdownField = self.form[
+            "differential_expression_col"
+        ]
+
+        prot_source, source_handle = self.input_source(run.steps, DataKey.PROTEIN_DF)
+
+        if prot_source is not None and source_handle is not None:
+            differential_expression_col_field.set_options(
+                form_helper.get_choices_for_df_columns(
+                    run, step_id=prot_source, output_key=source_handle, required=True
+                )
+            )
 
 
 class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
@@ -464,6 +509,19 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
                     label="Weighted score for the enrichment score calculation, recommended values: "
                     "0, 1, 1.5 or 2",
                     value=1,
+                ),
+                NumberField(
+                    name="threads",
+                    label="Number of CPU hardware threads to use for computation",
+                    value=4,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed used for random number generator",
+                    value=123,
+                    step=1,
                 ),
             ],
         )
@@ -587,6 +645,19 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
                     "0, 1, 1.5 or 2",
                     value=1,
                 ),
+                NumberField(
+                    name="threads",
+                    label="Number of CPU hardware threads to use for computation",
+                    value=4,
+                    min=1,
+                    step=1,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed used for random number generator",
+                    value=123,
+                    step=1,
+                ),
             ],
         )
 
@@ -620,7 +691,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Map protein groups to genes"
 
-    output_keys = ["gene_mapping_df", "filtered_protein_ids"]
+    output_keys = ["gene_mapping_df"]
 
     calc_method = staticmethod(database_integration.gene_mapping)
 
@@ -651,7 +722,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
     operation = "database_integration"
     method_description = "Add Uniprot data to a dataframe"
 
-    output_keys = ["results_df"]
+    output_keys = [DataKey.PROTEIN_DF]
 
     calc_method = staticmethod(database_integration.add_uniprot_data)
 
@@ -671,6 +742,11 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
                 ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        database_names_field: MultiSelectField = self.form["database_name"]
+        database_names_field.set_options(form_helper.to_choices(uniprot_databases()))
 
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
@@ -738,6 +814,8 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.GO_enrichment_dot_plot)
 
+    internal_inputs = {"figsize"}
+
     def create_form(self):
         return Form(
             label="Dot plot for GO enrichment analysis",
@@ -796,14 +874,9 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
         enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
 
-        if (
-            enrichment_df is not None
-            and "enrichment_categories" in enrichment_df.columns
-        ):
+        if enrichment_df is not None and "Gene_set" in enrichment_df.columns:
             gene_sets_field.set_options(
-                form_helper.to_choices(
-                    enrichment_df["enrichment_categories"].unique().tolist()
-                )
+                form_helper.to_choices(enrichment_df["Gene_set"].unique().tolist())
             )
 
 
@@ -815,14 +888,16 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
 
+    internal_inputs = {"figsize", "gene_sets"}
+
     def create_form(self):
         return Form(
             label="Dot plot for (pre-ranked) GSEA",
             input_fields=[
-                MultiSelectField(
-                    name="gene_sets",
-                    label="Sets to be plotted",
-                ),
+                # MultiSelectField(
+                #     name="gene_sets",
+                #     label="Sets to be plotted",
+                # ),
                 DropdownField(
                     name="dot_color_value",
                     label="Color the dots by value",
@@ -873,6 +948,8 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
     output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_enrichment_plot)
+
+    internal_inputs = {"figsize"}
 
     def create_form(self):
         return Form(

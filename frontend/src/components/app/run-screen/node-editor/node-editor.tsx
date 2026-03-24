@@ -17,7 +17,14 @@ import {
   supportedSections,
 } from "@protzilla/utils";
 import type { Connection, Edge, EdgeChange, NodeChange, NodeTypes } from "@xyflow/react";
-import { applyEdgeChanges, applyNodeChanges, Panel, ReactFlow } from "@xyflow/react";
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  Panel,
+  ReactFlow,
+  ReactFlowProvider,
+  useUpdateNodeInternals,
+} from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
@@ -25,9 +32,11 @@ import { StepSelection } from "../step-selection";
 import type { HoveredHandleMeta, StepNodeType } from "./StepNode";
 import StepNode from "./StepNode";
 import { layoutNodesWithDagre, resolveCollisions } from "./node-editor-layout";
-import { NodeEditorProps } from "./node-editor.props";
+import type { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
+
+const MIN_FLOW_WIDTH = 320;
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -49,11 +58,24 @@ const StyledFlowCanvas = styled.div`
 `;
 
 const StyledDivider = styled.div`
-  width: 1px;
-  background-color: ${color("secondary")};
-  flex-grow: 1;
+  width: 6px;
+  cursor: col-resize;
+  position: relative;
+  flex: 0 0 6px;
   align-self: stretch;
   margin-right: ${spacing("small")};
+  touch-action: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background-color: ${color("secondary")};
+  }
 `;
 
 const StyledFormColumn = styled.div`
@@ -81,6 +103,17 @@ const StyledStepButtonsRow = styled.div`
   margin-bottom: ${spacing("small")};
 `;
 
+const NodeInternalsSync: React.FC<{ nodeIds: string[] }> = ({ nodeIds }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  useEffect(() => {
+    if (nodeIds.length === 0) return;
+    updateNodeInternals(nodeIds);
+  }, [nodeIds, updateNodeInternals]);
+
+  return null;
+};
+
 export const NodeEditor: React.FC<NodeEditorProps> = ({
   onFormSubmit,
   runName,
@@ -88,6 +121,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   runData,
 }) => {
   const notify = useNotification();
+
+  const editorRowRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef(false);
+  const [flowWidth, setFlowWidth] = useState<number | null>(null);
 
   //
   // State
@@ -133,6 +170,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [navigateOrRefreshSteps, runName],
   );
 
+  const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+
   //
   // Data syncing
   //
@@ -167,6 +206,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       };
     });
 
+    const syncEdges = runData.graph_edges;
+
+    setTimeout(() => {
+      setEdges(syncEdges);
+    }, 0);
+
     if (syncNodes.length > nodes.length) {
       skipNextSyncRef.current = true;
       resolveAndPersistNodes(mergedNodes);
@@ -180,19 +225,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
     setNodes(mergedNodes);
   }, [navigateOrRefreshSteps, nodes.length, resolveAndPersistNodes, runData]);
-
-  const fetchEdges = useCallback(async () => {
-    try {
-      const res = await callApiWithParameters("get_edges/", { run_name: runName });
-      if (res.data) setEdges(res.data as Edge[]);
-    } catch (err) {
-      console.error("Failed to fetch edges", err);
-    }
-  }, [runName]);
-
-  useEffect(() => {
-    void fetchEdges();
-  }, [fetchEdges, runData.current_step_id]); // Refresh edges when step changes
 
   //
   // Handlers
@@ -235,11 +267,30 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           title: response.message.title,
           message: response.message.msg,
         });
-        void fetchEdges();
+        navigateOrRefreshSteps();
       });
     },
-    [fetchEdges, notify, runName],
+    [navigateOrRefreshSteps, notify, runName],
   );
+
+  const onDividerPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    isResizingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }, []);
+
+  const onDividerPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizingRef.current || !editorRowRef.current) return;
+    const rowRect = editorRowRef.current.getBoundingClientRect();
+    const nextWidth = Math.max(event.clientX - rowRect.left, MIN_FLOW_WIDTH);
+    setFlowWidth(nextWidth);
+  }, []);
+
+  const onDividerPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizingRef.current) return;
+    isResizingRef.current = false;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  }, []);
 
   const removeCurrentConnection = useCallback(() => {
     if (!selectedEdge) return;
@@ -258,9 +309,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         message: response.message.msg,
       });
       setSelectedEdge(null);
-      void fetchEdges();
+      navigateOrRefreshSteps();
     });
-  }, [fetchEdges, notify, runName, selectedEdge]);
+  }, [navigateOrRefreshSteps, notify, runName, selectedEdge]);
 
   const onAutoLayout = useCallback(() => {
     const layoutedNodes = layoutNodesWithDagre(nodes, edges);
@@ -325,8 +376,8 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   return (
-    <StyledRow>
-      <StyledFlowColumn>
+    <StyledRow ref={editorRowRef}>
+      <StyledFlowColumn style={flowWidth ? { width: flowWidth } : undefined}>
         <StyledStepButtonsRow>
           {supportedSections.map((section) => (
             <StepSelection
@@ -346,44 +397,64 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         </StyledStepButtonsRow>
 
         <StyledFlowCanvas>
-          <ReactFlow
-            key={runName}
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onEdgeClick={onEdgeClick}
-            onPaneClick={onPaneClick}
-            onNodeDragStop={onNodeDragStop}
-            onConnect={onConnect}
-            fitView
-          >
-            <Panel position="top-left">
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
-                <RedButton onClick={() => void deleteCurrentStep()}>Remove current step</RedButton>
-                {selectedEdge && (
-                  <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
-                    Remove selected connection
+          <ReactFlowProvider>
+            <ReactFlow
+              key={runName}
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onEdgeClick={onEdgeClick}
+              onPaneClick={onPaneClick}
+              onNodeDragStop={onNodeDragStop}
+              onConnect={onConnect}
+              fitView
+            >
+              <NodeInternalsSync nodeIds={nodeIds} />
+              <Panel position="top-left">
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
+                  <RedButton onClick={() => void deleteCurrentStep()}>
+                    Remove current step
                   </RedButton>
-                )}
-              </div>
-            </Panel>
-
-            <Panel position="top-right">
-              {hoveredHandleMeta.isActive && (
-                <div style={{ textAlign: "right" }}>
-                  <p>{hoveredHandleMeta.direction}</p>
-                  <p>{hoveredHandleMeta.type}</p>
+                  {selectedEdge && (
+                    <RedButton onClick={removeCurrentConnection} isDisabled={!selectedEdge}>
+                      Remove selected connection
+                    </RedButton>
+                  )}
                 </div>
-              )}
-            </Panel>
-          </ReactFlow>
+              </Panel>
+
+              <Panel position="top-right">
+                {hoveredHandleMeta.isActive && (
+                  <div
+                    style={{
+                      textAlign: "right",
+                      backgroundColor: "white",
+                      padding: "10px",
+                      border: "2px solid black",
+                    }}
+                  >
+                    <p>{hoveredHandleMeta.direction}</p>
+                    <p>{hoveredHandleMeta.type}</p>
+                  </div>
+                )}
+              </Panel>
+            </ReactFlow>
+          </ReactFlowProvider>
         </StyledFlowCanvas>
       </StyledFlowColumn>
 
-      <StyledDivider />
+      <StyledDivider
+        onPointerDown={onDividerPointerDown}
+        onPointerMove={onDividerPointerMove}
+        onPointerUp={onDividerPointerUp}
+        onPointerCancel={onDividerPointerUp}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize node editor"
+      />
 
       <StyledFormColumn>
         <BackendForm
@@ -398,9 +469,9 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
-            // Quite a radical solution, but sadly works
             navigateOrRefreshSteps();
           }}
+          runData={runData}
         />
       </StyledFormColumn>
     </StyledRow>

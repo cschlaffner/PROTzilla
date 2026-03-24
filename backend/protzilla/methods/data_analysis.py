@@ -2,11 +2,17 @@ from abc import ABC
 import logging
 from typing_extensions import override
 
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import (
+    LogBaseWithNoneType,
+    SimpleImputerStrategyType,
+)
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.constants.option_types import MultipleTestingCorrectionMethod
+from backend.protzilla.constants.option_types import (
+    MultipleTestingCorrectionMethod,
+    PValueColumnName,
+)
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
     expectation_maximisation,
@@ -33,7 +39,9 @@ from backend.protzilla.data_analysis.model_evaluation import (
 from backend.protzilla.data_analysis.plots import (
     clustergram_plot,
     create_volcano_plot,
+    precision_recall_plot,
     prot_quant_plot,
+    roc_plot,
     scatter_plot,
 )
 from backend.protzilla.utilities.clustergram import (
@@ -41,7 +49,6 @@ from backend.protzilla.utilities.clustergram import (
     HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
-    select_peptides_of_protein,
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
@@ -60,6 +67,7 @@ from backend.protzilla.form import (
     HeaderInfoField,
     InfoField,
     InputField,
+    Option,
     MultiSelectField,
     NumberField,
     TextField,
@@ -291,13 +299,6 @@ class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
 
     operation = "differential_expression"
 
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-        # TODO: either make this an explicit output or find a different representation
-        # should definitely not be implicit
-        self.inputs["log_base"] = steps.get_step_input(input_key="log_base")
-
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
 
@@ -309,12 +310,9 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        DataKey.METADATA_DF,
-        "corrected_alpha",
-        "filtered_proteins",
+        DataKey.CORRECTED_P_VALUES_DF,
     ]
 
     def create_form(self):
@@ -357,18 +355,13 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
     display_name = "t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
-    internal_inputs = {"log_base"}
-
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "t_statistic_df",
-        "log2_fold_change_df",
-        "corrected_alpha",
+        DataKey.LOG2_FOLD_CHANGE_DF,
         "fc_significance_df",
-        "fc_zscore_alpha",
-        "fc_zscore_filter",
     ]
 
     def create_form(self):
@@ -395,6 +388,12 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="grouping",
@@ -438,12 +437,10 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        "log2_fold_change_df",
-        "corrected_alpha",
-        "filtered_proteins",
+        DataKey.CORRECTED_P_VALUES_DF,
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -464,6 +461,12 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="grouping",
@@ -496,12 +499,11 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
-        "corrected_alpha",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -522,6 +524,12 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -560,12 +568,11 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
+        DataKey.CORRECTED_P_VALUES_DF,
         "u_statistic_df",
-        "log2_fold_change_df",
-        "corrected_alpha",
+        DataKey.LOG2_FOLD_CHANGE_DF,
     ]
 
     def create_form(self):
@@ -586,6 +593,12 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
                     max=1,
                     step=0.01,
                     separatePrefix="\u03b1",
+                ),
+                DropdownField(
+                    name="log_base",
+                    label="Data log base",
+                    value=LogBaseWithNoneType.NONE,
+                    options=LogBaseWithNoneType,
                 ),
                 DropdownField(
                     name="p_value_calculation_method",
@@ -626,10 +639,10 @@ class DifferentialExpressionKruskalWallisOnIntensity(
     )
 
     output_keys = [
-        "differentially_expressed_proteins_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF,
         DataKey.SIGNIFICANT_PROTEINS_DF,
-        "corrected_p_values_df",
-        "corrected_alpha",
+        DataKey.CORRECTED_P_VALUES_DF,
+        "h_statistic_df",
     ]
 
     def create_form(self):
@@ -677,10 +690,10 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
     )
 
     output_keys = [
-        "differentially_expressed_ptm_df",
+        DataKey.DIFFERENTIALLY_EXPRESSED_PTM_DF,
         "significant_ptm_df",
-        "corrected_p_values_df",
-        "corrected_alpha",
+        DataKey.CORRECTED_P_VALUES_DF,
+        "h_statistic_df",
     ]
 
     def create_form(self):
@@ -725,7 +738,6 @@ class DataAnalysisPlotStep(DataAnalysisStep, ABC):
     operation = "plot"
 
 
-# TODO: broken - needs decision regarding inclusion as plot method for relevant steps
 class PlotVolcano(DataAnalysisPlotStep):
     display_name = "Volcano Plot"
     method_description = (
@@ -736,21 +748,24 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     plot_method = staticmethod(create_volcano_plot)
     output_keys = []
+    internal_inputs = {"alpha", "group1", "group2"}
 
     def create_form(self):
         return Form(
             label="Volcano Plot",
             input_fields=[
-                DropdownField(
-                    name="input_dict",
-                    label="Input data dict (generated by t-Test or Linear Model Diff Exp)",
-                ),
                 FloatField(
                     name="fc_threshold",
                     label="Log2 fold change threshold",
                     value=0,
                     min=0,
                     step=0.1,
+                ),
+                DropdownField(
+                    name="item_type",
+                    label="Type of input data (can be Protein or PTM)",
+                    options=PValueColumnName,
+                    value=PValueColumnName.protein_id,
                 ),
                 MultiSelectField(
                     name="items_of_interest",
@@ -761,61 +776,38 @@ class PlotVolcano(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        input_dict_field = self.form["input_dict"]
-        items_of_interest_field = self.form["items_of_interest"]
+        items_of_interest_field: MultiSelectField = self.form["items_of_interest"]
+        item_type: str = self.form["item_type"].value
 
-        input_dict_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step,
-                    output_key=["corrected_p_values_df", "log2_fold_change_df"],
-                )
+        source_p_values_df = self.get_input(run.steps, DataKey.CORRECTED_P_VALUES_DF)
+
+        if source_p_values_df is not None:
+            items_of_interest = (
+                source_p_values_df[item_type].unique().tolist()
+                if item_type in source_p_values_df.columns
+                else []
             )
-        )
 
-        if input_dict_field.value == None:
-            return
-
-        input_dict_instance_id = input_dict_field.value
-
-        items_of_interest = []
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_proteins_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["Protein ID"].unique()
-        step_output = run.steps.get_step_output(
-            output_key="differentially_expressed_ptm_df",
-            instance_identifier=input_dict_instance_id,
-        )
-        if step_output is not None:
-            items_of_interest = step_output["PTM"].unique()
-
-        items_of_interest_field.set_options(form_helper.to_choices(items_of_interest))
+            items_of_interest_field.set_options(
+                form_helper.to_choices(items_of_interest)
+            )
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
-        source_id = self.inputs["input_dict"]
-        self.inputs["p_values"] = steps.get_step_output(
-            output_key="corrected_p_values_df",
-            instance_identifier=source_id,
-        )
-        self.inputs["log2_fc"] = steps.get_step_output(
-            output_key="log2_fold_change_df",
-            instance_identifier=source_id,
-        )
-
-        for input_key in ["alpha", "group1", "group2"]:
-            self.inputs[input_key] = steps.get_step_input(
-                input_key=input_key, instance_identifier=source_id
+        super().insert_dataframes(steps)
+        # implicit data, but better than needing to connect three handles that are all from the same step
+        # also, the instance identifier is known here
+        source_p_values_id, _ = self.input_source(steps, DataKey.CORRECTED_P_VALUES_DF)
+        for input_key in self.internal_inputs:
+            if input_key == "alpha":
+                retrieval_method = steps.get_step_output
+                source_key = "corrected_alpha"
+            else:
+                retrieval_method = steps.get_step_input
+                source_key = input_key
+            self.inputs[input_key] = retrieval_method(
+                source_key, instance_identifier=source_p_values_id
             )
-
-        source_operation = steps.get_step_operation(source_id)
-        if source_operation == "differential_expression":
-            self.inputs["item_type"] = "Protein ID"
-        elif source_operation == "Peptide analysis":
-            self.inputs["item_type"] = "PTM"
 
 
 class PlotProteinCoverage(DataAnalysisPlotStep):
@@ -908,12 +900,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
         return Form(
             label="Scatter Plot",
             input_fields=[
-                # TODO: handle isRequired
-                # TODO: is this supposed to be metadata?
-                DropdownField(
-                    name="color_df_field",
-                    label="Choose dataframe to be used for coloring",
-                ),
                 DropdownField(
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for coloring",
@@ -923,16 +909,19 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
-        color_field: DropdownField = self.form["color_df_field"]
-
-        color_field.set_options(
-            form_helper.to_choices(
-                run.steps.get_instance_identifiers(
-                    step_type=Step, output_key="color_df"
-                ),
-                required=False,
-            )
+        metadata_column_field: DropdownField = self.form["metadata_column"]
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
         )
+        if metadata_source is not None and source_handle is not None:
+            metadata_column_field.set_options(
+                form_helper.get_choices_for_metadata(
+                    run,
+                    instance_identifier=metadata_source,
+                    include_sample=False,
+                    output_key=source_handle,
+                )
+            )
 
 
 class PlotClustergram(DataAnalysisPlotStep):
@@ -1088,30 +1077,9 @@ class PlotProtQuant(DataAnalysisPlotStep):
     plot_method = staticmethod(prot_quant_plot)
 
 
-class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
-    display_name = "Precision Recall"
-    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
-class PlotROC(DataAnalysisStep):
-    display_name = "Receiver Operating Characteristic curve"
-    operation = "plot"
-    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
-
-    # Todo: output_keys
-
-    calc_method = staticmethod(evaluate_classification_model)
-
-    # TODO: adapt method parameters
-
-
 class PositiveLabelStep(DataAnalysisStep, ABC):
+
+    positive_label_is_required: bool = False
 
     @override
     def modify_form(self, run: Run) -> None:
@@ -1120,7 +1088,33 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
             run,
             column_field="labels_column",
             group_field="positive_label",
-            required=False,
+            required=self.positive_label_is_required,
+        )
+
+
+class PlotROC(DataAnalysisPlotStep):
+    display_name = "Receiver Operating Characteristic curve"
+    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
+
+    plot_method = staticmethod(roc_plot)
+
+    def create_form(self):
+        return Form(
+            label="ROC Curve",
+            input_fields=[],
+        )
+
+
+class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
+    display_name = "Precision Recall"
+    method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
+
+    plot_method = staticmethod(precision_recall_plot)
+
+    def create_form(self):
+        return Form(
+            label="Precision Recall Curve",
+            input_fields=[],
         )
 
 
@@ -1159,17 +1153,17 @@ class ClusteringKMeans(ClusteringStep):
                     options=ModelSelection,
                     value=ModelSelection.grid_search,
                 ),
-                # TODO: Add dynamic parameters for grid search & randomized search
-                # TODO: Add dynamic parameter for model selection scoring
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_clusters",
@@ -1212,8 +1206,37 @@ class ClusteringKMeans(ClusteringStep):
                     min=0,
                     value=1e-4,
                 ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
+                ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 
 class ClusteringExpectationMaximisation(ClusteringStep):
@@ -1247,18 +1270,17 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                     options=ModelSelection,
                     value=ModelSelection.grid_search,
                 ),
-                # TODO: Add dynamic parameters for grid search & randomized search
-                # TODO Add dynamic parameter for model selection scoring
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_components",
@@ -1294,8 +1316,37 @@ class ClusteringExpectationMaximisation(ClusteringStep):
                     step=1,
                     value=0,
                 ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
+                ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
@@ -1328,18 +1379,17 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                     options=ModelSelection,
                     value=ModelSelection.grid_search,
                 ),
-                # TODO: Add dynamic parameters for grid search & randomized search
-                # TODO Add dynamic parameter for model selection scoring
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClusteringScoring,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 DropdownField(
                     name="scoring",
                     label="Scoring for the model",
                     options=ClusteringScoring,
-                    value=ClusteringScoring.adjusted_rand_score,
+                    value=ClusteringScoring.completeness_score,
                 ),
                 NumberField(
                     name="n_clusters",
@@ -1360,14 +1410,45 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
                     options=ClusteringLinkage,
                     value=ClusteringLinkage.ward,
                 ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
+                ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+
+        model_selection_raw = self.form["model_selection"].value
+        model_selection = getattr(model_selection_raw, "value", model_selection_raw)
+
+        is_grid = model_selection == ModelSelection.grid_search.value
+        is_random = model_selection == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        self.form["cv"].isVisible = is_grid
+        self.form["n_iter"].isVisible = is_random
+        self.form["model_selection_scoring"].isVisible = is_search
 
     calc_method = staticmethod(hierarchical_agglomerative_clustering)
 
 
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
+
+    positive_label_is_required: bool = True
 
 
 class ClassificationRandomForest(ClassificationStep):
@@ -1395,52 +1476,63 @@ class ClassificationRandomForest(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                 ),
-                # TODO: Validation strategy
+                CheckboxField(
+                    name="bootstrap",
+                    label="Boolstrap data should be used when building trees.",
+                    value=True,
+                ),
                 DropdownField(
                     name="validation_strategy",
                     label="Validation strategy",
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
+                    isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
                     label="Number of folds",
                     min=2,
                     value=5,
+                    isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_repeats",
                     label="Number of times cross-validator needs to be repeated",
                     min=1,
                     value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1450,6 +1542,7 @@ class ClassificationRandomForest(ClassificationStep):
                     name="p_samples",
                     label="Size of the test sets",
                     value=1,
+                    isVisible=False,
                 ),
                 MultiSelectField(
                     name="scoring",
@@ -1465,9 +1558,23 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_estimators",
@@ -1490,7 +1597,7 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1498,6 +1605,61 @@ class ClassificationRandomForest(ClassificationStep):
                 ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
+        train_val_split_field: NumberField = self.form["train_val_split"]
+        n_splits_field: NumberField = self.form["n_splits"]
+        shuffle_field: DropdownField = self.form["shuffle"]
+        n_repeats_field: NumberField = self.form["n_repeats"]
+        p_samples_field: NumberField = self.form["p_samples"]
+
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
+
+        if validation in [
+            ClassificationValidationStrategy.k_fold.value,
+            ClassificationValidationStrategy.stratified_k_fold.value,
+        ]:
+            n_splits_field.isVisible = True
+            shuffle_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
+            n_splits_field.isVisible = True
+            shuffle_field.isVisible = True
+            n_repeats_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
+            p_samples_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.manual.value:
+            train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(random_forest)
 
@@ -1515,6 +1677,9 @@ class ClassificationSVM(ClassificationStep):
         "y_test_df",
     ]
 
+    # TODO: should either be set via form_inputs or removed from the method's parameters
+    internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
+
     def create_form(self):
         return Form(
             label="Support Vector Machine",
@@ -1527,52 +1692,58 @@ class ClassificationSVM(ClassificationStep):
                     name="positive_label",
                     label="Choose positive class",
                 ),
-                NumberField(
+                FloatField(
                     name="test_size",
-                    label="Test size",
+                    label="Test size (proportion of entire dataset)",
                     min=0,
+                    max=1,
                     value=0.20,
+                    hasStepButtons=False,
                 ),
-                DropdownField(
-                    name="split_stratisfy",
+                CheckboxField(
+                    name="split_stratify",
                     label="Stratify the split",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
                 ),
-                # TODO: Validation strategy
                 DropdownField(
                     name="validation_strategy",
                     label="Validation strategy",
                     options=ClassificationValidationStrategy,
                     value=ClassificationValidationStrategy.k_fold,
                 ),
-                NumberField(
+                FloatField(
                     name="train_val_split",
                     label="Choose the size of the validation data set (you can either enter the absolute number of validation "
                     "samples or a number between 0.0 and 1.0 to represent the percentage of validation samples)",
+                    min=0,
+                    max=1,
                     value=0.20,
+                    isVisible=False,
+                    hasStepButtons=False,
                 ),
                 NumberField(
                     name="n_splits",
                     label="Number of folds",
                     min=2,
                     value=5,
+                    isVisible=False,
                 ),
-                DropdownField(
+                CheckboxField(
                     name="shuffle",
                     label="Whether to shuffle the data before splitting into batches",
-                    options=YesNo,
-                    value=YesNo.yes,
+                    value=True,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="n_repeats",
                     label="Number of times cross-validator needs to be repeated",
                     min=1,
                     value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="random_state_cv",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during classification",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1582,6 +1753,7 @@ class ClassificationSVM(ClassificationStep):
                     name="p_samples",
                     label="Size of the test sets",
                     value=1,
+                    isVisible=False,
                 ),
                 MultiSelectField(
                     name="scoring",
@@ -1597,9 +1769,23 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 DropdownField(
                     name="model_selection_scoring",
-                    label="Select a scoring for identifying the best estimator following a grid search",
+                    label="Select a scoring for identifying the best estimator following a parameter search (grid or randomized)",
                     options=ClassificationScoring,
                     value=ClassificationScoring.accuracy,
+                ),
+                NumberField(
+                    name="cv",
+                    label="Number of cross-validation folds for grid search",
+                    min=2,
+                    value=5,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="n_iter",
+                    label="Number of parameter settings sampled for randomized search",
+                    min=1,
+                    value=10,
+                    isVisible=False,
                 ),
                 NumberField(
                     name="C",
@@ -1613,7 +1799,7 @@ class ClassificationSVM(ClassificationStep):
                     options=ClassificationKernel,
                     value=ClassificationKernel.linear,
                 ),
-                NumberField(
+                FloatField(
                     name="tolerance",
                     label="Tolerance for stopping criterion",
                     min=0.0,
@@ -1621,7 +1807,7 @@ class ClassificationSVM(ClassificationStep):
                 ),
                 NumberField(
                     name="random_state",
-                    label="Seed for random number generation",
+                    label="Seed for random number generation during model fitting",
                     min=0.0,
                     max=4294967295,
                     step=1,
@@ -1629,6 +1815,61 @@ class ClassificationSVM(ClassificationStep):
                 ),
             ],
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        super().modify_form(run)
+
+        validation_raw = self.form["validation_strategy"].value
+        validation = getattr(validation_raw, "value", validation_raw)
+
+        model_sel_raw = self.form["model_selection"].value
+        model_sel = getattr(model_sel_raw, "value", model_sel_raw)
+
+        train_val_split_field: NumberField = self.form["train_val_split"]
+        n_splits_field: NumberField = self.form["n_splits"]
+        shuffle_field: DropdownField = self.form["shuffle"]
+        n_repeats_field: NumberField = self.form["n_repeats"]
+        p_samples_field: NumberField = self.form["p_samples"]
+
+        cv_field: NumberField = self.form["cv"]
+        n_iter_field: NumberField = self.form["n_iter"]
+        model_selection_scoring_field: DropdownField = self.form[
+            "model_selection_scoring"
+        ]
+
+        train_val_split_field.isVisible = False
+        n_splits_field.isVisible = False
+        shuffle_field.isVisible = False
+        n_repeats_field.isVisible = False
+        p_samples_field.isVisible = False
+
+        cv_field.isVisible = False
+        n_iter_field.isVisible = False
+        model_selection_scoring_field.isVisible = False
+
+        if validation in [
+            ClassificationValidationStrategy.k_fold.value,
+            ClassificationValidationStrategy.stratified_k_fold.value,
+        ]:
+            n_splits_field.isVisible = True
+            shuffle_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.repeated_k_fold.value:
+            n_splits_field.isVisible = True
+            shuffle_field.isVisible = True
+            n_repeats_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.leave_p_out.value:
+            p_samples_field.isVisible = True
+        elif validation == ClassificationValidationStrategy.manual.value:
+            train_val_split_field.isVisible = True
+
+        is_grid = model_sel == ModelSelection.grid_search.value
+        is_random = model_sel == ModelSelection.randomized_search.value
+        is_search = is_grid or is_random
+
+        cv_field.isVisible = is_grid
+        n_iter_field.isVisible = is_random
+        model_selection_scoring_field.isVisible = is_search
 
     calc_method = staticmethod(svm)
 
@@ -1638,10 +1879,6 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
     operation = "model_evaluation"
     method_description = "Assessing an already trained classification model on separate testing data using widely used scoring metrics"
 
-    input_keys = [
-        # Todo: input_dict
-        "scoring",
-    ]
     output_keys = ["scores_df"]
 
     def create_form(self):
@@ -1710,7 +1947,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     value=6,
                 ),
                 NumberField(
-                    name="n_iter",
+                    name="max_iter",
                     label="Maximum number of iterations for the optimization",
                     min=250,
                     value=1000,
@@ -1776,6 +2013,14 @@ class DimensionReductionUMAP(DataAnalysisStep):
                 NumberField(
                     name="random_state",
                     label="Seed for random number generation",
+                    min=0,
+                    max=4294967295,
+                    step=1,
+                    value=42,
+                ),
+                NumberField(
+                    name="transform_seed",
+                    label="Seed for stochastic aspects of the transform operation",
                     min=0,
                     max=4294967295,
                     step=1,
@@ -1908,127 +2153,6 @@ class MultiFLEXLF(BaseFLEXLF):
 
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
     operation = "Peptide analysis"
-
-
-class SelectPeptidesForProtein(PeptideAnalysisStep):
-    display_name = "Select Peptides of Protein"
-    method_description = "Filter peptides for the a selected Protein of Interest from a peptide dataframe"
-
-    output_keys = [DataKey.PEPTIDE_DF]
-
-    def create_form(self):
-        return Form(
-            label="Select Peptides of Protein",
-            input_fields=[
-                DropdownField(
-                    name="auto_select",
-                    label="Automatically select most significant Protein",
-                    options=YesNo,
-                    value=YesNo.no,
-                ),
-                DropdownField(
-                    name="protein_list",
-                    label="Select a list of Proteins from which you want to choose your Proteins of Interest",
-                ),
-                DropdownField(
-                    name="sort_proteins",
-                    label="Sort Proteins by p-value (requires a list of Proteins from a Differential Expression Analysis to be selected)",
-                    options=YesNo,
-                    value=YesNo.no,
-                ),
-                MultiSelectField(
-                    name="protein_ids",
-                    label="Protein IDs",
-                ),
-            ],
-        )
-
-    # TODO: unsure about what this step does/how it should be translated - leaving mostly as is ~T
-    @override
-    def modify_form(self, run: Run) -> None:
-        peptide_df_field: DropdownField = self.form["peptide_df_field"]
-        auto_select_field: DropdownField = self.form["auto_select"]
-        sort_proteins_field: DropdownField = self.form["sort_proteins"]
-        protein_list_field: DropdownField = self.form["protein_list"]
-        protein_ids_field: MultiSelectField = self.form["protein_ids"]
-
-        peptide_df_field.set_options(
-            form_helper.get_choices(run, DataKey.PEPTIDE_DF, Step)
-        )
-        peptide_df_field.value = run.steps.get_instance_identifiers(
-            DataPreprocessingStep, DataKey.PEPTIDE_DF
-        )[-1]
-
-        selected_auto_select = True if auto_select_field.value == YesNo.yes else False
-
-        protein_list_options = form_helper.to_choices(
-            [] if selected_auto_select else ["all proteins"]
-        )
-        protein_list_options.extend(
-            form_helper.get_choices(
-                run, DataKey.SIGNIFICANT_PROTEINS_DF, DataAnalysisStep
-            )
-        )
-        protein_list_field.set_options(protein_list_options)
-
-        chosen_list = protein_list_field.value
-        if not selected_auto_select:
-            # TODO: Enable toggling
-            if chosen_list == "all_proteins":
-                protein_ids_field.set_options(
-                    form_helper.to_choices(run.steps.protein_df["Protein ID"].unique())
-                )
-            else:
-                if sort_proteins_field.value == YesNo.yes:
-                    protein_ids_field.set_options(
-                        form_helper.to_choices(
-                            run.steps.get_step_output(
-                                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                                instance_identifier=chosen_list,
-                            )
-                            .sort_values(by="corrected_p_value")["Protein ID"]
-                            .unique()
-                        )
-                    )
-                else:
-                    significant_proteins = run.steps.get_step_output(
-                        output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                        instance_identifier=chosen_list,
-                    )
-                    if significant_proteins is not None:
-                        protein_ids_field.set_options(
-                            form_helper.to_choices(
-                                significant_proteins["Protein ID"].unique()
-                            )
-                        )
-
-    calc_method = staticmethod(select_peptides_of_protein)
-
-    @override
-    def insert_dataframes(self, steps: StepManager) -> None:
-        super().insert_dataframes(steps)
-
-        self.inputs[DataKey.METADATA_DF] = steps.metadata_df
-
-        if self.inputs["auto_select"]:
-            significant_proteins = steps.get_step_output(
-                output_key=DataKey.SIGNIFICANT_PROTEINS_DF,
-                instance_identifier=self.inputs["protein_list"],
-            )
-            index_of_most_significant_protein = significant_proteins[
-                "corrected_p_value"
-            ].idxmin()
-            most_significant_protein = significant_proteins.loc[
-                index_of_most_significant_protein
-            ]
-            self.inputs["protein_id"] = [most_significant_protein["Protein ID"]]
-            self.messages.append(
-                {
-                    "level": logging.INFO,
-                    "msg": f"Selected the most significant Protein: {most_significant_protein['Protein ID']}, "
-                    f"from {self.inputs['protein_list']}",
-                }
-            )
 
 
 class PTMsPerSample(PeptideAnalysisStep):

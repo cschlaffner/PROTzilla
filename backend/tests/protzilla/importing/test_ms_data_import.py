@@ -323,8 +323,8 @@ def test_transform_and_clean():
     protein_df = outputs[DataKey.PROTEIN_DF].drop(columns=["Gene"])
 
     assert protein_df.equals(expected_df)
-    assert outputs["contaminants"] == ["Q11111;CON__P12345"]
-    assert outputs["filtered_proteins"] == ["REV__P12345"]
+    assert outputs["contaminants"].value == ["Q11111;CON__P12345"]
+    assert outputs["filtered_proteins"].value == ["REV__P12345"]
 
 
 def test_transform_and_clean_ignore_only_identified_by_site():

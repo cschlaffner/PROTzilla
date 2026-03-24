@@ -8,7 +8,6 @@ from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 def by_samples_missing(
     protein_df: pd.DataFrame | None,
-    peptide_df: pd.DataFrame | None,
     percentage: float = 0.5,
 ) -> dict:
     """
@@ -16,7 +15,6 @@ def by_samples_missing(
     is below a threshold (percentage).
 
     :param protein_df: the protein dataframe that should be filtered
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param percentage: ranging from 0 to 1. Defining the relative share of samples the proteins need to be present in,
         in order for the protein to be kept.
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
@@ -32,32 +30,24 @@ def by_samples_missing(
         transformed_df.drop(remaining_proteins_list, axis=1).columns.unique().tolist()
     )
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            (peptide_df["Protein ID"].isin(remaining_proteins_list))
-        ]
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_proteins=filtered_proteins_list,
         remaining_proteins=remaining_proteins_list,
     )
 
 
-def by_silac_ratios(
+def by_number_of_values_per_group(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
-    peptide_df: pd.DataFrame | None = None,
     min_amount: int = 1,
 ) -> dict:
     """
-    This function filters proteins based on the amount of samples with unique SILAC ratios per group. Only proteins with
+    This function filters proteins based on the amount of samples with unique values per group. Only proteins with
     at least the specified amount of samples in each group are kept.
 
     :param protein_df: the protein dataframe that should be filtered
     :param metadata_df: the metadata dataframe from which to take group labels
-    :param peptide_df: the peptide dataframe that should be filtered in accordance to the intensity dataframe (optional)
     :param min_amount: defines the minimum amount of samples the protein has to have a unique intensity in (inclusive)
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
         and a list of Protein IDs that were kept
@@ -78,17 +68,16 @@ def by_silac_ratios(
         remaining_proteins_list
     ).index.tolist()
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
-    filtered_peptide_df = None
-    if peptide_df is not None:
-        filtered_peptide_df = peptide_df[
-            (peptide_df["Protein ID"].isin(remaining_proteins_list))
-        ]
     return dict(
         protein_df=filtered_df,
-        peptide_df=filtered_peptide_df,
         filtered_proteins=filtered_proteins_list,
         remaining_proteins=remaining_proteins_list,
     )
+
+
+def by_protein_ids(protein_df: pd.DataFrame, protein_ids: list[str]) -> dict:
+    filtered_df = protein_df[(protein_df["Protein ID"].isin(protein_ids))]
+    return dict(protein_df=filtered_df)
 
 
 def by_samples_missing_plot(
@@ -99,7 +88,7 @@ def by_samples_missing_plot(
     )
 
 
-def by_silac_ratios_plot(
+def by_number_of_values_per_group_plot(
     output_remaining_proteins, output_filtered_proteins, graph_type
 ):
     return _build_pie_bar_plot(

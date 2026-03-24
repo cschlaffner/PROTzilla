@@ -1,4 +1,4 @@
-import { RequestData, StepID, StepStatus } from "@protzilla/utils";
+import { RequestData, RunData, StepID, StepStatus } from "@protzilla/utils";
 
 import {
   CheckboxSelectInputFieldProps,
@@ -22,6 +22,7 @@ export interface BackendFormProps {
   onNext: () => void;
   onChange: () => void;
   onSubmit: (request: RequestData) => void;
+  runData: RunData;
 }
 
 export interface BackendFormData {

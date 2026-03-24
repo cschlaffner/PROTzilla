@@ -25,7 +25,8 @@ def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
     Also checks if some Protein groups have completely identical values for each sample.
     If so, add a warning to the messages list.
     :param df: the dataframe that should be checked
-    :return: True if there are NaN values in the dataframe, False otherwise
+    :param messages: a list to which warning messages will be appended
+    :return: a dictionary containing the dataframe and the updated messages list
     """
     if df.isnull().values.any():
         columns_with_nan = df.columns[df.isna().any()].tolist()
