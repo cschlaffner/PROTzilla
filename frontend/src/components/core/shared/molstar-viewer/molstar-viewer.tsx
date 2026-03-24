@@ -5,7 +5,7 @@ import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { CrosslinkPosition, generateCrosslinkCIF } from "./crosslink-struktur";
+import { CrosslinkerPosition, generateCrosslinkCIF } from "./crosslink-struktur";
 import "./molstar-theme.scss";
 
 const Container = styled.div`
@@ -24,7 +24,7 @@ const CanvasWrapper = styled.div`
 
 interface MolstarViewerProps {
   cifText: string;
-  crosslinks: CrosslinkPosition[] | undefined;
+  crosslinks: CrosslinkerPosition[] | undefined;
 }
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
@@ -107,7 +107,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         }
       }
     };
-  }, [cifText]);
+  }, [cifText, crosslinks]);
 
   return (
     <Container>

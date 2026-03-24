@@ -26,7 +26,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { CrosslinkPosition } from "../../core/shared/molstar-viewer/crosslink-struktur";
+import { CrosslinkerPosition } from "../../core/shared/molstar-viewer/crosslink-struktur";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -85,7 +85,7 @@ const FooterText = styled.div`
 interface Visualization {
   proteinEntryId: string;
   cifString: string;
-  crosslinks?: CrosslinkPosition[];
+  crosslinks?: CrosslinkerPosition[];
 }
 
 export const RunScreen: React.FC = () => {
@@ -160,16 +160,12 @@ export const RunScreen: React.FC = () => {
       const rawVisualizations: Visualization[] = response.data.map((viz: Visualization) => ({
         proteinEntryId: viz.proteinEntryId,
         cifString: viz.cifString,
-        crosslinks: viz.crosslinks?.map((crossLink: CrosslinkPosition) => ({
+        crosslinks: viz.crosslinks?.map((crossLink: CrosslinkerPosition) => ({
           crosslinkerPosition1: crossLink.crosslinkerPosition1,
           crosslinkerPosition2: crossLink.crosslinkerPosition2,
         })),
       }));
 
-      rawVisualizations.forEach((viz) => {
-        console.log("Protein:", viz.proteinEntryId);
-        console.log("Crosslinks:", viz.crosslinks);
-      });
       setVisualizations(rawVisualizations);
     }
   }, [runName]);

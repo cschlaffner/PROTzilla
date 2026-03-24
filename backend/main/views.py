@@ -637,11 +637,11 @@ def get_step_visualizations(request):
                 and not run.current_step.visualizations.empty
             ):
                 for viz in run.current_step.visualizations:
-                    protein_entry_id = viz.get("protein_entry_id", "unknown protein")
+                    protein_entry_id = viz.get("protein_entry_id")
                     cif_df = viz.get("cif_df")
-                    crosslink_df = viz.get("crosslink_df")
+                    crosslinking_df = viz.get("crosslinking_df")
                     visualizations.append(
-                        create_visualization(cif_df, protein_entry_id, crosslink_df)
+                        create_visualization(cif_df, protein_entry_id, crosslinking_df)
                     )
             else:
                 cif_df = (
@@ -678,15 +678,15 @@ def get_step_visualizations(request):
 def create_visualization(
     cif_df: pd.DataFrame,
     protein_entry_id: str,
-    crosslink_df: Optional[pd.DataFrame] = None,
+    crosslinking_df: Optional[pd.DataFrame] = None,
 ) -> dict:
     """
     Convert a CIF DataFrame to a mmCIF string and package it with its protein entry ID.
-    Optionally include crosslinks extracted from crosslink_df.
+    Optionally include crosslinks.
 
     :param cif_df: DataFrame containing mmCIF atom_site information.
     :param protein_entry_id: Protein identifier to include in the mmCIF header.
-    :param crosslink_df: Optional DataFrame containing crosslink positions.
+    :param crosslinking_df: Optional DataFrame containing crosslink positions.
     :return: Dictionary containing:
              - "proteinEntryId" (str)
              - "cifString" (str)
@@ -699,8 +699,8 @@ def create_visualization(
 
     result = {"proteinEntryId": protein_entry_id, "cifString": cif_string}
 
-    if crosslink_df is not None:
-        result["crosslinks"] = extract_crosslink_positions(crosslink_df)
+    if crosslinking_df is not None:
+        result["crosslinks"] = extract_crosslink_positions(crosslinking_df)
 
     return result
 
@@ -748,15 +748,15 @@ def convert_df_to_mmcif_for_visualization(
 
 
 # TODO: move helper functions somewhere else?
-def extract_crosslink_positions(crosslink_df: pd.DataFrame) -> List[Dict[str, int]]:
+def extract_crosslink_positions(crosslinking_df: pd.DataFrame) -> List[Dict[str, int]]:
     """
     For each crosslink extract its positions from a DataFrame.
 
-    :param crosslink_df: DataFrame with columns 'crosslinker_position1' and 'crosslinker_position2'.
+    :param crosslinking_df: DataFrame with columns 'crosslinker_position1' and 'crosslinker_position2'.
     :return: List of dicts with keys 'position1' and 'position2'.
     """
     crosslinks = []
-    for _, row in crosslink_df.iterrows():
+    for _, row in crosslinking_df.iterrows():
         position1 = row.get("crosslinker_position1")
         position2 = row.get("crosslinker_position2")
         if pd.notnull(position1) and pd.notnull(position2):

@@ -349,11 +349,12 @@ def visualization_of_protein_structure(
     output_crosslinking_result_df: pd.DataFrame,
 ) -> dict:
     """
-    Returns a dict containing the protein entry_id and its CIF-DataFrame.
+    Returns a dict containing the protein entry_id, its CIF-DataFrame and its crosslink-DataFrame.
 
     :param protein_to_validate: Entry_id of the protein to visualize
     :param cif_df: CIF DataFrame for the protein
-    :return: Dict with 'protein' and 'cif_df'
+    :param output_crosslinking_result_df: calculated crosslink-information for the protein
+    :return: Dict with 'protein', 'cif_df' and 'crosslinking_df'
     """
     if cif_df is None or cif_df.empty:
         raise ValueError(
@@ -363,5 +364,5 @@ def visualization_of_protein_structure(
     return {
         "protein_entry_id": protein_to_validate,
         "cif_df": cif_df,
-        "crosslink_df": output_crosslinking_result_df,
+        "crosslinking_df": output_crosslinking_result_df,
     }

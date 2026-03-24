@@ -1,11 +1,11 @@
-export interface CrosslinkPosition {
+export interface CrosslinkerPosition {
   crosslinkerPosition1: number;
   crosslinkerPosition2: number;
-  aa1?: string;
-  aa2?: string;
+  reactiveAtom1?: string;
+  reactiveAtom2?: string;
 }
 
-export interface CrosslinkAtom {
+export interface CrosslinkerAtom {
   x: number;
   y: number;
   z: number;
@@ -23,24 +23,24 @@ interface AtomSiteIndices {
   zCoordIdx: number;
 }
 
-function getReactiveAtom(aa?: string): string {
+function getReactiveAtom(reactiveAtom?: string): string {
   // right now we always return the central C atom
   // later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
-  // then we just have to define aa
-  if (!aa) return "CA";
+  // then we just have to define a reactiveAtom
+  if (!reactiveAtom) return "CA";
   const mapping: Record<string, string> = {
     K: "NZ",
     S: "OG",
     T: "OG1",
   };
-  return mapping[aa] || "CA";
+  return mapping[reactiveAtom] || "CA";
 }
 
-function findCrosslinkAtomCoordinates(
+function findCrosslinkerAtomCoordinates(
   cifString: string,
-  atomId: string,
-  seqPos: number,
-): CrosslinkAtom | null {
+  crosslinkerAtomId: string,
+  crosslinkerSeqPos: number,
+): CrosslinkerAtom | null {
   const lines = cifString.split(/\r?\n/);
 
   for (const line of lines) {
@@ -51,37 +51,37 @@ function findCrosslinkAtomCoordinates(
 
     const cifIndices = getCifAtomSiteIndices(cifString);
 
-    const atomName = tokens[cifIndices.atomIdIdx];
-    const resSeq = parseInt(tokens[cifIndices.seqIdIdx], 10);
+    const lineAtomId = tokens[cifIndices.atomIdIdx];
+    const lineSeqPos = parseInt(tokens[cifIndices.seqIdIdx], 10);
 
-    if (atomName === atomId && resSeq === seqPos) {
+    if (lineAtomId === crosslinkerAtomId && lineSeqPos === crosslinkerSeqPos) {
       return {
         x: parseFloat(tokens[cifIndices.xCoordIdx]),
         y: parseFloat(tokens[cifIndices.yCoordIdx]),
         z: parseFloat(tokens[cifIndices.zCoordIdx]),
         chain: tokens[cifIndices.chainIdIdx],
-        seqPos: resSeq,
-        atomId: atomName,
+        seqPos: lineSeqPos,
+        atomId: lineAtomId,
       };
     }
   }
 
-  throw new Error(`No atom found for seq=${String(seqPos)}, atom=${atomId}`);
+  throw new Error(`No atom found for seq=${String(crosslinkerSeqPos)}, atom=${crosslinkerAtomId}`);
 }
 
 function extractCrosslinkAtoms(
   cifString: string,
-  crosslink: CrosslinkPosition,
-): [CrosslinkAtom | null, CrosslinkAtom | null] {
-  const reactiveAtom1 = getReactiveAtom(crosslink.aa1);
-  const atom1 = findCrosslinkAtomCoordinates(
+  crosslink: CrosslinkerPosition,
+): [CrosslinkerAtom | null, CrosslinkerAtom | null] {
+  const reactiveAtom1 = getReactiveAtom(crosslink.reactiveAtom1);
+  const atom1 = findCrosslinkerAtomCoordinates(
     cifString,
     reactiveAtom1,
     crosslink.crosslinkerPosition1,
   );
 
-  const reactiveAtom2 = getReactiveAtom(crosslink.aa2);
-  const atom2 = findCrosslinkAtomCoordinates(
+  const reactiveAtom2 = getReactiveAtom(crosslink.reactiveAtom2);
+  const atom2 = findCrosslinkerAtomCoordinates(
     cifString,
     reactiveAtom2,
     crosslink.crosslinkerPosition2,
@@ -90,33 +90,42 @@ function extractCrosslinkAtoms(
   return [atom1, atom2];
 }
 
-export function generateCrosslinkCIF(cifString: string, crosslinks: CrosslinkPosition[]): string {
+export function generateCrosslinkCIF(cifString: string, crosslinks: CrosslinkerPosition[]): string {
   const atomLines: string[] = [];
-  const structConnLines: string[] = [];
-  let structConnId = 1;
+  const connectionLines: string[] = [];
+  let connectionId = 1;
 
   for (const crosslink of crosslinks) {
     const [atom1, atom2] = extractCrosslinkAtoms(cifString, crosslink);
 
     if (atom1 && atom2) {
-      const atom1Id = `XL${String(structConnId)}A`;
-      const atom2Id = `XL${String(structConnId)}B`;
+      const atom1Id = `XL${String(connectionId)}A`;
+      const atom2Id = `XL${String(connectionId)}B`;
 
-      const atom1Line = `ATOM ${String(structConnId * 2 - 1)} ${atom1Id} ${atom1Id} LIN ${atom1.chain} ${String(atom1.seqPos)} \
-        ${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`;
+      const atom1Line = [
+        `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
+        `LIN ${atom1.chain} ${String(atom1.seqPos)}`,
+        `${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`,
+      ].join(" ");
 
-      const atom2Line = `ATOM ${String(structConnId * 2)} ${atom2Id} ${atom2Id} LIN ${atom2.chain} ${String(atom2.seqPos)} \
-        ${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`;
+      const atom2Line = [
+        `ATOM ${String(connectionId * 2)} ${atom2Id} ${atom2Id}`,
+        `LIN ${atom2.chain} ${String(atom2.seqPos)}`,
+        `${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`,
+      ].join(" ");
 
       atomLines.push(atom1Line);
       atomLines.push(atom2Line);
 
-      const connLine = `${String(structConnId)} covalent ${atom1Id} X ${atom1.chain} ${String(atom1.seqPos)} \
-        ${atom2Id} X ${atom2.chain} ${String(atom2.seqPos)}`;
+      const connectionLine = [
+        `${String(connectionId)} covalent ${atom1Id}`,
+        `X ${atom1.chain} ${String(atom1.seqPos)} ${atom2Id}`,
+        `X ${atom2.chain} ${String(atom2.seqPos)}`,
+      ].join(" ");
 
-      structConnLines.push(connLine);
+      connectionLines.push(connectionLine);
 
-      structConnId++;
+      connectionId++;
     }
   }
 
@@ -149,7 +158,7 @@ export function generateCrosslinkCIF(cifString: string, crosslinks: CrosslinkPos
     _struct_conn.ptnr2_label_comp_id
     _struct_conn.ptnr2_label_asym_id
     _struct_conn.ptnr2_label_seq_id
-    ${structConnLines.join("\n")}
+    ${connectionLines.join("\n")}
     `;
 
   return cifCrosslink;
