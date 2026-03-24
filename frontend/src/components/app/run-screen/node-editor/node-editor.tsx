@@ -133,7 +133,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
-  const skipNextSyncRef = useRef(false);
+  const nodesRef = useRef<StepNodeType[]>([]);
 
   // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
@@ -148,12 +148,35 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   };
 
   const resolveAndPersistNodes = useCallback(
-    (nodesToResolve: StepNodeType[], refreshAfter = false) => {
+    (
+      nodesToResolve: StepNodeType[],
+      originalNodes: StepNodeType[],
+      refreshAfter = false,
+      forceChangedNodeId?: string,
+    ) => {
       const resolvedNodes = resolveCollisions(nodesToResolve);
       setNodes(resolvedNodes);
 
+      const changedNodes = resolvedNodes.filter((node) => {
+        const originalNode = originalNodes.find((currentNode) => currentNode.id === node.id);
+
+        return (
+          node.id === forceChangedNodeId ||
+          !originalNode ||
+          originalNode.position.x !== node.position.x ||
+          originalNode.position.y !== node.position.y
+        );
+      });
+
+      if (changedNodes.length === 0) {
+        if (refreshAfter) {
+          navigateOrRefreshSteps();
+        }
+        return;
+      }
+
       void Promise.all(
-        resolvedNodes.map((node) =>
+        changedNodes.map((node) =>
           callApiWithParameters("set_step_pos/", {
             run_name: runName,
             step_id: node.id,
@@ -171,6 +194,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   );
 
   const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   //
   // Data syncing
@@ -193,7 +220,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     })) as StepNodeType[];
 
     const mergedNodes = syncNodes.map((syncNode) => {
-      const existingNode = nodes.find((currentNode) => currentNode.id === syncNode.id);
+      const existingNode = nodesRef.current.find((currentNode) => currentNode.id === syncNode.id);
 
       if (!existingNode) {
         return syncNode;
@@ -212,19 +239,13 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       setEdges(syncEdges);
     }, 0);
 
-    if (syncNodes.length > nodes.length) {
-      skipNextSyncRef.current = true;
-      resolveAndPersistNodes(mergedNodes);
-      return;
-    }
-
-    if (skipNextSyncRef.current) {
-      skipNextSyncRef.current = false;
+    if (syncNodes.length > nodesRef.current.length) {
+      resolveAndPersistNodes(mergedNodes, syncNodes);
       return;
     }
 
     setNodes(mergedNodes);
-  }, [navigateOrRefreshSteps, nodes.length, resolveAndPersistNodes, runData]);
+  }, [navigateOrRefreshSteps, resolveAndPersistNodes, runData]);
 
   //
   // Handlers
@@ -251,7 +272,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       const draggedNodes = nodes.map((currentNode) =>
         currentNode.id === node.id ? { ...currentNode, ...node } : currentNode,
       );
-      resolveAndPersistNodes(draggedNodes, true);
+      resolveAndPersistNodes(draggedNodes, nodes, true, node.id);
     },
     [nodes, resolveAndPersistNodes],
   );
