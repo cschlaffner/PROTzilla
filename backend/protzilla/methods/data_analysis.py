@@ -2250,19 +2250,19 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
     @classmethod
     def get_form_fields(cls) -> list[FormField]:
         return _PTMVisualizationStep.get_form_fields() + [
-            FileInput(
-                name="groups_file_path",
-                label="Metadata used to define groups",
-            ),
-            InfoField(
-                label="The groups file should be a CSV file with the following columns: file_name, group_name, "
-                "replicate. These specify the name of the name of the experiment in the evidence file (not "
-                "raw file name), the name that should be displayed when referencing the group, and "
-                "optionally the replicate number (1, 2, ...).",
+            DropdownField(
+                name="metadata_column",
+                label="Choose the column of the metadata dataframe that should be used",
             ),
         ]
 
     calc_method = staticmethod(get_detected_modifications)
+
+    def modify_form(self, run):
+        super().modify_form(run)
+        self.set_grouping_options(
+            run, column_field_name="metadata_column", include_sample=True
+        )
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):

@@ -2,6 +2,7 @@ import py7zr
 from pridepy import pridepy
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.constants.paths import (
     EXAMPLE_DATASET_PROTEIN_FILE,
     EXAMPLE_DATASET_METADATA_FILE,
@@ -10,7 +11,6 @@ from backend.protzilla.constants.paths import (
 )
 from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.importing.import_utils import FeatureOrientationType
-from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.importing.metadata_import import metadata_import_method
 from backend.protzilla.importing.ms_data_import import max_quant_import
 from backend.protzilla.importing.peptide_import import evidence_import
@@ -87,7 +87,7 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )
-    if "metadata_df" not in metadata_import_dict:
+    if DataKey.METADATA_DF not in metadata_import_dict:
         return metadata_import_dict
 
     if import_peptide_data:

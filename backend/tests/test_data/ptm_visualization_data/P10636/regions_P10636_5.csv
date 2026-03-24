@@ -6,6 +6,5 @@ name,region_end,group,short_name
 "PRR",241,A,"PRR"
 "R1",272,A,"R1"
 "R2",303,A,"R2"
-"R3",334,A,"R3"
 "R4",371,A,"R4"
-"C-term",441,A,"C-term"
+"C-term",410,A,"C-term"
