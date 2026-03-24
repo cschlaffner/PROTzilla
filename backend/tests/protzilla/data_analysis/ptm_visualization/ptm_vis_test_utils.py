@@ -39,9 +39,9 @@ def get_evidence_df(path: Path):
 
 
 def get_metadata_df(path: Path):
-    metadata_df = metadata_import_method(
-        file_path=path, feature_orientation="columns"
-    )["metadata_df"]
+    metadata_df = metadata_import_method(file_path=path, feature_orientation="columns")[
+        "metadata_df"
+    ]
     return metadata_df
 
 
