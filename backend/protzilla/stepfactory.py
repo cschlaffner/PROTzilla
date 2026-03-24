@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from backend.protzilla.steps import Step, StepManager
+from backend.protzilla.steps import Step
+from backend.protzilla.step_manager import StepManager
 
 
 class StepFactory:
@@ -24,12 +25,6 @@ class StepFactory:
             if method.__name__ == step_type:
                 if instance_identifier:
                     return method(instance_identifier=instance_identifier)
-                instance_count = len(
-                    [
-                        instance
-                        for instance in steps.all_steps
-                        if isinstance(instance, method)
-                    ]
-                )
-                return method(instance_identifier=f"{step_type}_{instance_count + 1}")
+                new_id_number: int = steps.next_id_number()
+                return method(instance_identifier=f"s{new_id_number:05}_{step_type}")
         raise ValueError(f"Unknown step type {step_type}")

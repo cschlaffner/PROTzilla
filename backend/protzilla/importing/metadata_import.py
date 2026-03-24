@@ -6,7 +6,7 @@ import pandas as pd
 from pandas import DataFrame
 
 from backend.protzilla.constants.paths import BACKEND_PATH
-from backend.protzilla.utilities import random_string
+from backend.protzilla.utilities.utilities import random_string
 
 
 def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
@@ -53,9 +53,7 @@ def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
         return pd.DataFrame(), msg
 
 
-def metadata_import_method(
-    protein_df: pd.DataFrame, file_path: Path, feature_orientation: str
-) -> dict:
+def metadata_import_method(file_path: Path, feature_orientation: str) -> dict:
     """
         Imports a metadata file and returns the intensity dataframe and a dict with a message if the file import failed,
         and the metadata dataframe if the import was successful.
@@ -70,7 +68,8 @@ def metadata_import_method(
         )
     # A lot of the code assumes that there is a column "Sample" in the metadata dataframe, so this assumption has to be
     # checked here.
-
+    if "MS run" in meta_df.columns:
+        meta_df.rename(columns={"MS run": "Sample"}, inplace=True)
     if "Sample" not in meta_df.columns:
         return {
             "messages": [
@@ -105,69 +104,16 @@ def metadata_import_method(
             BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv"
         )
         meta_df.to_csv(file_path, index=False)
-        return metadata_import_method(protein_df, file_path, "Columns")
+        return metadata_import_method(file_path, "Columns")
 
     elif str(file_path).startswith(
         f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"
     ):
         os.remove(file_path)
-    if "replicate" in meta_df.columns:
-        # this indicates a DIANN metadata file with replicate information, we now want to calculate the median across
-        # all MS runs for a sample then instead of having intensities for each MS run in our dataframe, we
-        # have intensities for each sample
-        # note that up until now, "Sample" in the intensity df referred to the ms run
-        res = pd.merge(
-            protein_df,
-            meta_df[["MS run", "sample name"]],
-            left_on="Sample",
-            right_on="MS run",
-            how="left",
-        )
-        res.groupby(
-            ["Protein ID", "sample name"], as_index=False
-        ).median()  # TODO why do we do this?
-
     return dict(metadata_df=meta_df, messages=messages)
 
 
-def metadata_import_method_diann(
-    protein_df: DataFrame, file_path: Path, groupby_sample: bool = False
-) -> dict:
-    """
-    This method imports a metadata file with run relationship information and returns the intensity dataframe and the
-    metadata dataframe. If the import fails, it returns the unchanged dataframe and a dict with a message about the
-    error.
-    """
-    meta_df, msg = file_importer(file_path)
-    if meta_df.empty:
-        return dict(
-            messages=[dict(level=logging.ERROR, msg=msg)],
-        )
-
-    if str(file_path).startswith(f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"):
-        os.remove(file_path)
-
-    if groupby_sample:
-        # we want to take the median of all MS runs (column "Sample" in the intensity df) for each Sample
-        # (column "sample name" in the metadata df)
-        protein_df = pd.merge(
-            protein_df,
-            meta_df[["MS run", "sample name"]],
-            left_on="Sample",
-            right_on="MS run",
-            how="left",
-        )
-        protein_df = protein_df.groupby(
-            ["Protein ID", "sample name"], as_index=False
-        ).median()
-        protein_df.rename(columns={"sample name": "Sample"}, inplace=True)
-        return dict(protein_df=protein_df, metadata_df=meta_df)
-
-    return dict(protein_df=protein_df, metadata_df=meta_df)
-
-
 def metadata_column_assignment(
-    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     metadata_required_column: str = None,
     metadata_unknown_column: str = None,
@@ -175,8 +121,6 @@ def metadata_column_assignment(
     """
     This function renames a column in the metadata dataframe to the required column name.
 
-    :param protein_df: this is passed for consistency, but not used
-    :type protein_df: pandas DataFrame
     :param metadata_df: the metadata dataframe to be changed
     :type metadata_df: float
     :param metadata_required_column: the name of the column in the dataframe that is used for the metadata assignment
@@ -197,7 +141,6 @@ def metadata_column_assignment(
     ):
         msg = f"You can proceed, as there is nothing that needs to be changed."
         return dict(
-            protein_df=protein_df,
             metadata_df=metadata_df,
             messages=[dict(level=logging.INFO, msg=msg)],
         )
@@ -206,7 +149,6 @@ def metadata_column_assignment(
         msg = f"Metadata already contains column '{metadata_required_column}'. \
         Please rename the column or select another column."
         return dict(
-            protein_df=protein_df,
             metadata_df=metadata_df,
             messages=[dict(level=logging.ERROR, msg=msg)],
         )
@@ -214,4 +156,4 @@ def metadata_column_assignment(
     renamed_metadata_df = metadata_df.rename(
         columns={metadata_unknown_column: metadata_required_column}
     )
-    return dict(protein_df=protein_df, metadata_df=renamed_metadata_df, messages=dict())
+    return dict(metadata_df=renamed_metadata_df, messages=dict())

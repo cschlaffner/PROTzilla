@@ -40,12 +40,12 @@ urlpatterns = [
     path("api/add_plot/", views.add_plot, name="add_plot"),
     path("api/add_step/", views.add_step, name="add_step"),
     path("api/delete_step/", views.delete_step, name="delete_step"),
-    path("api/update_step/", views.update_step, name="update_step"),
     path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
+    path("api/set_step_pos/", views.set_step_pos, name="set_step_pos"),
+    path("api/connect_steps/", views.connect_steps, name="connect_steps"),
+    path("api/disconnect_steps/", views.disconnect_steps, name="disconnect_steps"),
+    path("api/get_edges/", views.get_edges, name="get_edges"),
     path("api/save_workflow/", views.save_workflow, name="save_workflow"),
-    path(
-        "api/download_table/", views.download_table, name="download_table"
-    ),  # might function?
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path(
@@ -57,6 +57,11 @@ urlpatterns = [
         "api/get_current_step_table_data/",
         views.get_current_step_table_data,
         name="get_current_step_table_data",
+    ),
+    path(
+        "api/get_png_from_step/",
+        views.get_png_from_step,
+        name="get_png_from_step",
     ),
     path("api/get_run_data/", views.get_run_data, name="get_run_data"),
     path("api/upload_file/", views.upload_file, name="upload_file"),

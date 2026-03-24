@@ -36,9 +36,12 @@ from backend.protzilla.utilities.dunn_score import dunn_score
 
 
 def encode_labels(labels_df, labels_column, positive_label=None):
+    labels_df = labels_df.copy()
+    # Filter out NaN labels
+    labels_df = labels_df[labels_df[labels_column].notna()]
     labels_list = labels_df[labels_column].unique().tolist()
     if len(labels_list) < 2 and positive_label is not None:
-        return "the data must contain at least 2 different classes"
+        raise ValueError("the data must contain at least 2 different classes")
     elif len(labels_list) == 2 and positive_label is not None:
         # if labels are binary let user determine which is the positive label
         negative_label = (
@@ -69,7 +72,12 @@ def perform_grid_search_cv(
     scoring,
     model_selection_scoring,
     cv=None,
+    n_iter=10,
 ):
+    # make sure refit is never None
+    if model_selection_scoring is None:
+        model_selection_scoring = False
+
     if grid_search_model == "Grid search":
         return GridSearchCV(
             model,
@@ -84,6 +92,7 @@ def perform_grid_search_cv(
             param_distributions=param_grid,
             scoring=scoring,
             cv=cv,
+            n_iter=n_iter,
             refit=model_selection_scoring,
         )
 
@@ -211,16 +220,15 @@ def perform_train_test_split(
     test_size=0.2,
     random_state=42,
     shuffle=True,
-    split_stratify="yes",
+    split_stratify=True,
 ):
     # by default this contains already filtered samples from metadata, we need to remove those
     labels_df = labels_df[labels_df.index.isin(input_df.index)]
-    split_stratify = labels_df if split_stratify == "yes" else None
     return train_test_split(
         input_df,
         labels_df,
         test_size=test_size,
         random_state=random_state,
         shuffle=shuffle,
-        stratify=split_stratify,
+        stratify=labels_df if split_stratify else None,
     )

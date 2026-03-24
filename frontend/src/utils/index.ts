@@ -8,4 +8,3 @@ export * from "./mockUpData.ts";
 export * from "./order-by";
 export * from "./platform-detection";
 export * from "./protzilla-types.ts";
-export * from "./step_index_helper.ts";

@@ -4,30 +4,29 @@ import gseapy
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from plotly.graph_objs import Figure
 
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities import fig_to_base64
-
-from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
+from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.utilities.utilities import fig_to_base64
 
 
 def GO_enrichment_bar_plot(
-    input_df,
+    enrichment_df,
     top_terms,
     cutoff,
     value,
     gene_sets={},
     title="",
-    figsize=None,
-):
+) -> list[Figure]:
     """
     Create a bar plot for the GO enrichment results. The plot is created using the gseapy library.
     Groups the bars by the enrichment categories (e.g. KEGG, Reactome, etc.) and sorts the bars by
     the adjusted p-value or FDR, whichever is available in the input data. A cutoff can be applied
     to the data to only show significant results or results with a low FDR.
 
-    :param input_df: GO enrichment results
-    :type input_df: pandas.DataFrame
+    :param enrichment_df: GO enrichment results
+    :type enrichment_df: pandas.DataFrame
     :param gene_sets: Categories/Sets from enrichment to plot with colors per category
     :type gene_sets: dict
     :param top_terms: Number of top enriched terms per category
@@ -39,14 +38,11 @@ def GO_enrichment_bar_plot(
     :type value: str
     :param title: Title of the plot, defaults to ""
     :type title: str, optional
-    :param figsize: Size of the plot, defaults to None and is calculated dynamically if not provided.
-    :type figsize: tuple, optional
 
-    :return: Base64 encoded image of the plot
-    :rtype: bytes
+    :return: the figure as a plotly graph object
     """
 
-    if input_df is None or len(input_df) == 0 or input_df.empty:
+    if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -57,14 +53,14 @@ def GO_enrichment_bar_plot(
     # columns with placeholder values (since they are not used in the plot).
     # Example files can be found in the tests/test_data/enrichment_data folder.
     restring_input = False
-    if "term" in input_df.columns:
+    if "term" in enrichment_df.columns:
         # df is a restring file
         restring_input = True
-        input_df = input_df.rename(
+        enrichment_df = enrichment_df.rename(
             columns={"description": "Term", "p_value": "P-value"}
         )
-        input_df["Overlap"] = "0/0"
-    elif not "Term" in input_df.columns:
+        enrichment_df["Overlap"] = "0/0"
+    elif not "Term" in enrichment_df.columns:
         msg = "Please choose an enrichment result dataframe to plot."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -80,7 +76,7 @@ def GO_enrichment_bar_plot(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all Gene_sets that are not in categories
-    df = input_df[input_df["Gene_set"].isin(gene_sets)]
+    df = enrichment_df[enrichment_df["Gene_set"].isin(gene_sets)]
 
     if value == "fdr":  # only available for restring result
         if restring_input:
@@ -126,7 +122,7 @@ def GO_enrichment_bar_plot(
 
 
 def GO_enrichment_dot_plot(
-    input_df,
+    enrichment_df,
     top_terms,
     cutoff,
     gene_sets=[],
@@ -142,8 +138,8 @@ def GO_enrichment_dot_plot(
     Only the top_terms that meet the cutoff are shown. The x axis can be used to compare multiple
     Gene Set Libraries or to display the Combined Score of one of them.
 
-    :param input_df: GO enrichment results (offline or Enrichr)
-    :type input_df: pandas.DataFrame
+    :param enrichment_df: GO enrichment results (offline or Enrichr)
+    :type enrichment_df: pandas.DataFrame
     :param gene_sets: Categories/Gene Set Libraries from enrichment to plot
     :type gene_sets: list
     :param top_terms: Number of top enriched terms per category
@@ -167,26 +163,29 @@ def GO_enrichment_dot_plot(
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    if not isinstance(input_df, pd.DataFrame) or not "Overlap" in input_df.columns:
+    if (
+        not isinstance(enrichment_df, pd.DataFrame)
+        or not "Overlap" in enrichment_df.columns
+    ):
         msg = "Please input a dataframe from offline GO enrichment analysis or GO enrichment analysis with Enrichr."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if input_df is None or len(input_df) == 0 or input_df.empty:
+    if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     if not gene_sets:
         msg = "Please select at least one category to plot."
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
     if not isinstance(gene_sets, list):
         gene_sets = [gene_sets]
 
     if len(gene_sets) > 1 and x_axis_type == "Combined Score":
         msg = "Combined Score is only available for one category. Choose only one category or Gene Sets as x-axis."
-        return [dict(messages=[dict(level=logging.WARNING, msg=msg)])]
+        return dict(messages=[dict(level=logging.WARNING, msg=msg)])
 
     # remove all Gene_sets that are not in categories
-    df = input_df[input_df["Gene_set"].isin(gene_sets)]
+    df = enrichment_df[enrichment_df["Gene_set"].isin(gene_sets)]
 
     size_y = top_terms * len(gene_sets)
     xticklabels_rot = 45 if rotate_x_labels else 0
@@ -205,15 +204,13 @@ def GO_enrichment_dot_plot(
                 xticklabels_rot=xticklabels_rot,
                 show_ring=show_ring,
             )
-            return [
-                dict(
-                    plot_base64=fig_to_base64(ax.get_figure()),
-                    key="go_enrichment_dot_plot_img",
-                )
-            ]
+            return dict(
+                plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
+            )
+
         except ValueError as e:
             msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-            return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+            return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
 
     elif x_axis_type == "Combined Score":
         try:
@@ -227,18 +224,16 @@ def GO_enrichment_dot_plot(
                 xticklabels_rot=xticklabels_rot,
                 show_ring=show_ring,
             )
-            return [
-                dict(
-                    plot_base64=fig_to_base64(ax.get_figure()),
-                    key="go_enrichment_dot_plot_img",
-                )
-            ]
+            return dict(
+                plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
+            )
+
         except ValueError as e:
             msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
-            return [dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])]
+            return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
     else:
         msg = "Invalid x_axis_type value"
-        return [dict(messages=[dict(level=logging.ERROR, msg=msg)])]
+        return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
 
 def gsea_dot_plot(
@@ -257,8 +252,8 @@ def gsea_dot_plot(
     Creates a dot plot from GSEA and pre-ranked GSEA results. The plot is created using the gseapy library.
     Only the top_terms that meet the cutoff are shown.
 
-    :param input_df: GSEA or pre-ranked GSEA results
-    :type input_df: pandas.DataFrame
+    :param gsea_df: GSEA or pre-ranked GSEA results
+    :type gsea_df: pandas.DataFrame
     :param cutoff: Cutoff for the dot_color_value. Only terms with
         dot_color_value < cutoff will be shown.
     :type cutoff: float
@@ -299,9 +294,9 @@ def gsea_dot_plot(
 
     if not gene_sets or gene_sets == "all":
         logger.info("Plotting for all gene set libraries.")
-    if not isinstance(gene_sets, list):
-        gene_sets = [gene_sets]
     else:  # remove all Gene_sets that were not selected
+        if not isinstance(gene_sets, list):
+            gene_sets = [gene_sets]
         gsea_df = gsea_df[gsea_df["Term"].str.startswith(tuple(gene_sets))]
 
     if remove_library_names:
@@ -320,8 +315,7 @@ def gsea_dot_plot(
             show_ring=show_ring,
         )
         return dict(
-            plot_base64=fig_to_base64(ax.get_figure()),
-            key="gsea_dot_plot_img",
+            plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(ax.get_figure())),
         )
 
     except ValueError as e:
@@ -380,8 +374,10 @@ def gsea_enrichment_plot(
             figsize=figsize if figsize else (6, 5.5),
         )
         return dict(
-            plot_base64=fig_to_base64(enrichment_plot_axes[0].get_figure()),
-            key="gsea_enrichment_plot_img",
+            plot=OutputItem(
+                OutputType.PNG_BASE64,
+                fig_to_base64(enrichment_plot_axes[0].get_figure()),
+            ),
         )
 
     except Exception as e:

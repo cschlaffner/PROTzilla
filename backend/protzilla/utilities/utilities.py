@@ -59,7 +59,7 @@ def fig_to_base64(fig):
 
 
 def default_intensity_column(
-    intensity_df: pd.DataFrame, intensity_column_name: str = None
+    intensity_df: pd.DataFrame, intensity_column_name: str | None = None
 ) -> str:
     """
     Returns the default intensity column name if no column name is provided.
@@ -75,6 +75,8 @@ def default_intensity_column(
 
     if intensity_column_name is not None:
         return intensity_column_name
+    if intensity_df.empty:
+        raise ValueError("The provided dataframe is empty")
     matched_columns = [
         col
         for col in intensity_df.columns
@@ -142,6 +144,17 @@ def get_file_name_from_upload_path(upload_path: str) -> str:
     base_name = file_name_randomized.split("_")[0]
     file_extension = file_name_randomized.split(".")[-1]
     return f"{base_name}.{file_extension}"
+
+
+def lerp(start: float, end: float, interpolation_factor: float) -> float:
+    """
+    Performs linear interpolation
+
+    :param start: first interpolation value
+    :param end: second interpolation value
+    :param interpolation_factor: interpolation factor (between 0 and 1)
+    """
+    return (1 - interpolation_factor) * start + interpolation_factor * end
 
 
 def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str]:
