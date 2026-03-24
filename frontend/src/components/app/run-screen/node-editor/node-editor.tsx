@@ -1,6 +1,13 @@
 import "@xyflow/react/dist/style.css";
 import { useNotification } from "@protzilla/app";
-import { BackendForm, FlexRow, Icon, RedButton, SecondaryButton } from "@protzilla/core";
+import {
+  BackendForm,
+  FlexRow,
+  GrayButton,
+  Icon,
+  RedButton,
+  SecondaryButton,
+} from "@protzilla/core";
 import { color, spacing } from "@protzilla/theme";
 import type { Step } from "@protzilla/utils";
 import {
@@ -24,7 +31,8 @@ import { styled } from "styled-components";
 import { StepSelection } from "../step-selection";
 import type { HoveredHandleMeta, StepNodeType } from "./StepNode";
 import StepNode from "./StepNode";
-import { NodeEditorProps } from "./node-editor.props";
+import { layoutNodesWithDagre, resolveCollisions } from "./node-editor-layout";
+import type { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
 
@@ -95,7 +103,6 @@ const StyledStepButtonsRow = styled.div`
   margin-bottom: ${spacing("small")};
 `;
 
-// Warning: AI-generated stuff. Only way to (hopefully) prevent nodes from disappearing
 const NodeInternalsSync: React.FC<{ nodeIds: string[] }> = ({ nodeIds }) => {
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -126,6 +133,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const nodesRef = useRef<StepNodeType[]>([]);
 
   // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
@@ -139,7 +147,57 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     navigateOrRefreshSteps();
   };
 
+  const resolveAndPersistNodes = useCallback(
+    (
+      nodesToResolve: StepNodeType[],
+      originalNodes: StepNodeType[],
+      refreshAfter = false,
+      forceChangedNodeId?: string,
+    ) => {
+      const resolvedNodes = resolveCollisions(nodesToResolve);
+      setNodes(resolvedNodes);
+
+      const changedNodes = resolvedNodes.filter((node) => {
+        const originalNode = originalNodes.find((currentNode) => currentNode.id === node.id);
+
+        return (
+          node.id === forceChangedNodeId ||
+          !originalNode ||
+          originalNode.position.x !== node.position.x ||
+          originalNode.position.y !== node.position.y
+        );
+      });
+
+      if (changedNodes.length === 0) {
+        if (refreshAfter) {
+          navigateOrRefreshSteps();
+        }
+        return;
+      }
+
+      void Promise.all(
+        changedNodes.map((node) =>
+          callApiWithParameters("set_step_pos/", {
+            run_name: runName,
+            step_id: node.id,
+            x: node.position.x,
+            y: node.position.y,
+          }),
+        ),
+      ).then(() => {
+        if (refreshAfter) {
+          navigateOrRefreshSteps();
+        }
+      });
+    },
+    [navigateOrRefreshSteps, runName],
+  );
+
   const nodeIds = useMemo(() => nodes.map((node) => node.id), [nodes]);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   //
   // Data syncing
@@ -159,16 +217,35 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         navigateOrRefreshSteps,
         setHoveredHandleMeta,
       },
-    }));
+    })) as StepNodeType[];
 
-    setNodes(syncNodes as StepNodeType[]);
+    const mergedNodes = syncNodes.map((syncNode) => {
+      const existingNode = nodesRef.current.find((currentNode) => currentNode.id === syncNode.id);
+
+      if (!existingNode) {
+        return syncNode;
+      }
+
+      return {
+        ...existingNode,
+        position: syncNode.position,
+        data: syncNode.data,
+      };
+    });
 
     const syncEdges = runData.graph_edges;
 
     setTimeout(() => {
       setEdges(syncEdges);
     }, 0);
-  }, [runData, navigateOrRefreshSteps]);
+
+    if (syncNodes.length > nodesRef.current.length) {
+      resolveAndPersistNodes(mergedNodes, syncNodes);
+      return;
+    }
+
+    setNodes(mergedNodes);
+  }, [navigateOrRefreshSteps, resolveAndPersistNodes, runData]);
 
   //
   // Handlers
@@ -192,16 +269,12 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
 
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
-      void callApiWithParameters("set_step_pos/", {
-        run_name: runName,
-        step_id: node.id,
-        x: node.position.x,
-        y: node.position.y,
-      }).then(() => {
-        navigateOrRefreshSteps();
-      });
+      const draggedNodes = nodes.map((currentNode) =>
+        currentNode.id === node.id ? { ...currentNode, ...node } : currentNode,
+      );
+      resolveAndPersistNodes(draggedNodes, nodes, true, node.id);
     },
-    [navigateOrRefreshSteps, runName],
+    [nodes, resolveAndPersistNodes],
   );
 
   const onConnect = useCallback(
@@ -260,6 +333,29 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       navigateOrRefreshSteps();
     });
   }, [navigateOrRefreshSteps, notify, runName, selectedEdge]);
+
+  const onAutoLayout = useCallback(() => {
+    const layoutedNodes = layoutNodesWithDagre(nodes, edges);
+    setNodes(layoutedNodes);
+
+    Promise.all(
+      layoutedNodes.map((node) =>
+        callApiWithParameters("set_step_pos/", {
+          run_name: runName,
+          step_id: node.id,
+          x: node.position.x,
+          y: node.position.y,
+        }),
+      ),
+    )
+      .then(() => {
+        notify({ type: "success", title: "Layout updated", message: "Node positions saved" });
+        navigateOrRefreshSteps();
+      })
+      .catch(() => {
+        notify({ type: "error", title: "Layout failed", message: "Could not save positions" });
+      });
+  }, [edges, navigateOrRefreshSteps, nodes, notify, runName]);
 
   const deleteCurrentStep = async () => {
     await callApiWithParameters("delete_step/", {
@@ -339,6 +435,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
               <NodeInternalsSync nodeIds={nodeIds} />
               <Panel position="top-left">
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <GrayButton onClick={onAutoLayout}>Tidy layout</GrayButton>
                   <RedButton onClick={() => void deleteCurrentStep()}>
                     Remove current step
                   </RedButton>
@@ -393,7 +490,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           }}
           onSubmit={onFormSubmit}
           onChange={() => {
-            // Quite a radical solution, but sadly works
             navigateOrRefreshSteps();
           }}
           runData={runData}
