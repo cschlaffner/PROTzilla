@@ -284,7 +284,9 @@ class DiskOperator:
         workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
             for step in step_manager.all_step_instances:
-                step_data = self._write_step(step, workflow_mode=True).copy() # unsure if copying is needed
+                step_data = self._write_step(
+                    step, workflow_mode=True
+                ).copy()  # unsure if copying is needed
                 workflow[KEYS.STEPS].append(step_data)
             self.yaml_operator.write(self.workflow_file, workflow)
 
