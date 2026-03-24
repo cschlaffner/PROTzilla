@@ -224,12 +224,11 @@ def perform_train_test_split(
 ):
     # by default this contains already filtered samples from metadata, we need to remove those
     labels_df = labels_df[labels_df.index.isin(input_df.index)]
-    split_stratify = labels_df if split_stratify else None
     return train_test_split(
         input_df,
         labels_df,
         test_size=test_size,
         random_state=random_state,
         shuffle=shuffle,
-        stratify=split_stratify,
+        stratify=labels_df if split_stratify else None,
     )
