@@ -247,6 +247,7 @@ class Runner:
         step.modify_form(self.run)
         step.form.update_values(explicit_form_values)
         step.calculate(self.run.steps)
+        self.run._run_write()
 
     def _save_plots_html(self, step):
         for i, plot in enumerate(step.plots):
