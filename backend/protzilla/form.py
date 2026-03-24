@@ -226,7 +226,7 @@ class Form:
         "insert new values into the form"
         if not values:
             return
-            
+
         for fieldname, value in values.items():
             if fieldname in self._field_map:
                 self._field_map[fieldname].value = value
