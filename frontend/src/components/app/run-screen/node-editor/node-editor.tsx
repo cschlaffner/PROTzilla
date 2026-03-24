@@ -24,7 +24,7 @@ import { styled } from "styled-components";
 import { StepSelection } from "../step-selection";
 import type { HoveredHandleMeta, StepNodeType } from "./StepNode";
 import StepNode from "./StepNode";
-import { layoutNodesWithDagre } from "./node-editor-layout";
+import { layoutNodesWithDagre, resolveCollisions } from "./node-editor-layout";
 import { NodeEditorProps } from "./node-editor.props";
 
 const nodeTypes: NodeTypes = { step: StepNode };
@@ -96,7 +96,7 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const [nodes, setNodes] = useState<StepNodeType[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
-  const dragStartPositionsRef = useRef<Record<string, { x: number; y: number } | undefined>>({});
+  const skipNextSyncRef = useRef(false);
 
   // Mouse-Over info for each handle, displayed in the corner
   const [hoveredHandleMeta, setHoveredHandleMeta] = useState<HoveredHandleMeta>({
@@ -109,6 +109,29 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     notify({ type: "success", title: "Step added", message: "Successfully added step" });
     navigateOrRefreshSteps();
   };
+
+  const resolveAndPersistNodes = useCallback(
+    (nodesToResolve: StepNodeType[], refreshAfter = false) => {
+      const resolvedNodes = resolveCollisions(nodesToResolve);
+      setNodes(resolvedNodes);
+
+      void Promise.all(
+        resolvedNodes.map((node) =>
+          callApiWithParameters("set_step_pos/", {
+            run_name: runName,
+            step_id: node.id,
+            x: node.position.x,
+            y: node.position.y,
+          }),
+        ),
+      ).then(() => {
+        if (refreshAfter) {
+          navigateOrRefreshSteps();
+        }
+      });
+    },
+    [navigateOrRefreshSteps, runName],
+  );
 
   //
   // Data syncing
@@ -128,10 +151,35 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
         navigateOrRefreshSteps,
         setHoveredHandleMeta,
       },
-    }));
+    })) as StepNodeType[];
 
-    setNodes(syncNodes as StepNodeType[]);
-  }, [runData, navigateOrRefreshSteps]);
+    const mergedNodes = syncNodes.map((syncNode) => {
+      const existingNode = nodes.find((currentNode) => currentNode.id === syncNode.id);
+
+      if (!existingNode) {
+        return syncNode;
+      }
+
+      return {
+        ...existingNode,
+        position: syncNode.position,
+        data: syncNode.data,
+      };
+    });
+
+    if (syncNodes.length > nodes.length) {
+      skipNextSyncRef.current = true;
+      resolveAndPersistNodes(mergedNodes);
+      return;
+    }
+
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
+
+    setNodes(mergedNodes);
+  }, [navigateOrRefreshSteps, nodes.length, resolveAndPersistNodes, runData]);
 
   const fetchEdges = useCallback(async () => {
     try {
@@ -166,56 +214,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     setSelectedEdge(null);
   }, []);
 
-  const getNodeRect = useCallback((node: StepNodeType) => {
-    const width = node.width ?? 260;
-    const height = node.height ?? 72;
-    return {
-      x: node.position.x,
-      y: node.position.y,
-      width,
-      height,
-    };
-  }, []);
-
-  const nodesOverlap = useCallback(
-    (node: StepNodeType, other: StepNodeType) => {
-      const a = getNodeRect(node);
-      const b = getNodeRect(other);
-      return (
-        a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
-      );
-    },
-    [getNodeRect],
-  );
-
-  const onNodeDragStart = useCallback((_event: unknown, node: StepNodeType) => {
-    dragStartPositionsRef.current[node.id] = { x: node.position.x, y: node.position.y };
-  }, []);
-
   const onNodeDragStop = useCallback(
     (_event: unknown, node: StepNodeType) => {
-      const isOverlapping = nodes.some(
-        (other) => other.id !== node.id && nodesOverlap(node, other),
+      const draggedNodes = nodes.map((currentNode) =>
+        currentNode.id === node.id ? { ...currentNode, ...node } : currentNode,
       );
-      if (isOverlapping) {
-        const originalPosition = dragStartPositionsRef.current[node.id];
-        if (originalPosition) {
-          setNodes((prev) =>
-            prev.map((n) => (n.id === node.id ? { ...n, position: originalPosition } : n)),
-          );
-        }
-        return;
-      }
-      void callApiWithParameters("set_step_pos/", {
-        run_name: runName,
-        step_id: node.id,
-        x: node.position.x,
-        y: node.position.y,
-      }).then(() => {
-        navigateOrRefreshSteps();
-      });
+      resolveAndPersistNodes(draggedNodes, true);
     },
-    [navigateOrRefreshSteps, nodes, nodesOverlap, runName],
+    [nodes, resolveAndPersistNodes],
   );
 
   const onConnect = useCallback(
@@ -349,7 +355,6 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
             onEdgesChange={onEdgesChange}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
-            onNodeDragStart={onNodeDragStart}
             onNodeDragStop={onNodeDragStop}
             onConnect={onConnect}
             fitView
