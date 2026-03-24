@@ -286,9 +286,8 @@ class DiskOperator:
         workflow[KEYS.CURRENT_STEP_ID] = step_manager._current_selected_step_id
         with ErrorHandler():
             for step in step_manager.all_step_instances:
-                step_data = self._write_step(step, workflow_mode=True).copy()
+                step_data = self._write_step(step, workflow_mode=True)
 
-                step_data[KEYS.STEP_INPUTS] = inputs_to_write
                 workflow[KEYS.STEPS].append(step_data)
 
                 step_file_inputs = {}

@@ -70,7 +70,7 @@ def args_parser():
         action="store",
         help="Name of the run. If not provided a random name will be assigned",
     )
-    parser.add_argument("-d", "--df-mode", action="store", help="disk or memory")
+    # parser.add_argument("-d", "--df-mode", action="store", help="disk or memory") # Doenst work according to Joris, so we dont want this in the release. Standard is currently disk.
     parser.add_argument(
         "-p",
         "--all-plots",
