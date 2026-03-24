@@ -1,4 +1,3 @@
-import pytest
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.ptm_analysis import (
