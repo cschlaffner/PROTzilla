@@ -14,7 +14,7 @@ from backend.protzilla.data_preprocessing.outlier_detection import (
 from backend.tests.protzilla.data_preprocessing.test_peptide_preprocessing import (
     assert_peptide_filtering_matches_protein_filtering,
 )
-from protzilla.data_preprocessing.filter_peptides_or_psm import (
+from backend.protzilla.data_preprocessing.filter_peptides_or_psm import (
     filter_peptides_by_existing_samples,
 )
 

@@ -18,7 +18,7 @@ from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
-from protzilla.data_preprocessing.simplification import AggregationMethod
+from backend.protzilla.data_preprocessing.simplification import AggregationMethod
 
 
 class DataPreprocessingStep(Step, ABC):

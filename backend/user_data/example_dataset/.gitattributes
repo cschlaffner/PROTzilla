@@ -1,3 +1,0 @@
-evidence.txt filter=lfs diff=lfs merge=lfs -text
-meta.csv filter=lfs diff=lfs merge=lfs -text
-proteinGroups.txt filter=lfs diff=lfs merge=lfs -text

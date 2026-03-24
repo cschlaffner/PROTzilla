@@ -52,11 +52,21 @@ graph_edges:
   - source_handle: log2_fold_change_df
     target_handle: protein_df
 - !!python/tuple
+  - s00015_DifferentialExpressionTTest
+  - s00018_PlotVolcano
+  - source_handle: corrected_p_values_df
+    target_handle: corrected_p_values_df
+- !!python/tuple
+  - s00015_DifferentialExpressionTTest
+  - s00018_PlotVolcano
+  - source_handle: log2_fold_change_df
+    target_handle: log2_fold_change_df
+- !!python/tuple
   - s00016_EnrichmentAnalysisGOAnalysisWithString
   - s00017_PlotGOEnrichmentBarPlot
   - source_handle: enrichment_df
     target_handle: enrichment_df
-id_clock: 17
+id_clock: 18
 steps:
 - form_inputs:
     aggregation_method: Sum
@@ -111,8 +121,8 @@ steps:
   type: OutlierDetectionByLocalOutlierFactor
   visual_data:
     node_position:
-      x: -2.0381152477982596
-      y: -10.485226942545353
+      x: -2.038115247798288
+      y: -8.763328565867546
 - form_inputs:
     graph_type: Boxplot
     group_by: None
@@ -137,7 +147,7 @@ steps:
       x: 0
       y: 223.5847262805539
 - form_inputs:
-    protein_group: A0A075B6S2
+    protein_group: P10636
     similarity: 1
     similarity_measure: Euclidean Distance
   inputs: {}
@@ -204,3 +214,14 @@ steps:
     node_position:
       x: -166.26285101200924
       y: 576.3139484517293
+- form_inputs:
+    fc_threshold: 0
+    item_type: Protein ID
+    items_of_interest: []
+  inputs: {}
+  instance_identifier: s00018_PlotVolcano
+  type: PlotVolcano
+  visual_data:
+    node_position:
+      x: 206.64941134977875
+      y: 473.28329929019014
