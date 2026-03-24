@@ -1,4 +1,3 @@
-
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.ptm_analysis import (
     ptms_per_sample,
