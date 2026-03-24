@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import datetime
 import os
 import shutil
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
+import joblib
 from plotly.io import read_json, write_json
 
 from backend.protzilla.constants.data_types import DataKey
@@ -16,7 +18,14 @@ import backend.protzilla.utilities.utilities as utilities
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.steps import Messages, Output, Plots, Step
+from backend.protzilla.steps import (
+    Messages,
+    Output,
+    OutputItem,
+    OutputType,
+    Plots,
+    Step,
+)
 from backend.protzilla.step_manager import StepManager
 
 try:
@@ -41,6 +50,24 @@ class ErrorHandler:
                 traceback.print_exception(exc_type, exc_val, exc_tb)
             return False
         return True
+
+
+##
+## Custom PyYAML representers/constructors
+##
+
+
+def output_type_representer(dumper, data):
+    return dumper.represent_scalar("!OutputType", str(data.value))
+
+
+def output_type_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return OutputType(value)
+
+
+yaml.add_representer(OutputType, output_type_representer)
+yaml.add_constructor("!OutputType", output_type_constructor)
 
 
 class YamlOperator:
@@ -78,6 +105,48 @@ class DataFrameOperator:
             dataframe.to_csv(file_path, index=False)
 
 
+# for all non serializable data types
+class ArtifactOperator:
+    @staticmethod
+    def read(file_path: Path):
+        with ErrorHandler():
+            logger.info(f"Reading artifact from {file_path}")
+            return joblib.load(file_path)
+
+    @staticmethod
+    def write(file_path: Path, artifact):
+        with ErrorHandler():
+            logger.info(f"Writing artifact to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(artifact, file_path, compress=("gzip", 3))
+
+
+class Base64Operator:
+    """
+    Handles dumping and loading of files encoded in base64, e.g. PNG images.
+    Files are dumped in binary format and loaded as base64 strings for
+    easier front-end handling
+    """
+
+    @staticmethod
+    def read(file_path: Path) -> bytes:
+        with ErrorHandler():
+            logger.info(f"Reading {file_path} into base64")
+            with open(file_path, "rb") as file:
+                file_content = file.read()
+                encoded = base64.b64encode(file_content)
+                return encoded
+
+    @staticmethod
+    def write(file_path: Path, base64_string: bytes):
+        with ErrorHandler():
+            logger.info(f"Writing base64 to {file_path}")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            data = base64.b64decode(base64_string)
+            with open(file_path, "wb") as file:
+                file.write(data)
+
+
 RUN_FILE = "run.yaml"
 
 
@@ -106,6 +175,8 @@ class DiskOperator:
         self.workflow_name = workflow_name
         self.yaml_operator = YamlOperator()
         self.dataframe_operator = DataFrameOperator()
+        self.artifact_operator = ArtifactOperator()
+        self.base64_operator = Base64Operator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -250,6 +321,17 @@ class DiskOperator:
                     logger.warning(f"Deleting dataframe {file}")
                     file.unlink()
 
+    def clean_artifact_dir(self, steps: StepManager) -> None:
+        with ErrorHandler():
+            if not self.artifact_dir.exists():
+                return
+            for file in self.artifact_dir.iterdir():
+                if file.is_dir():
+                    continue
+                if not self.check_file_validity(file, steps):
+                    logger.warning(f"Deleting artifact {file}")
+                    file.unlink()
+
     def clear_upload_dir(self) -> None:
         # TODO in general our way of handling file uploads is kind of non-straightforward, maybe we should switch
         # to directly using the FileUpload provided by Django instead of the work-around with the path of the upload as a str
@@ -293,6 +375,15 @@ class DiskOperator:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
+        """
+        Serializes a step to a dictionary for the YamlOperator to dump
+
+        :param step: the step to serialize
+        :param workflow_mode: whether or not to save all data or only metadata
+            (e.g. when dumping workflows)
+
+        :return: Serializable dictionary
+        """
         with ErrorHandler():
             step_data = {}
             step_data[KEYS.STEP_TYPE] = step.__class__.__name__
@@ -307,44 +398,84 @@ class DiskOperator:
                 step_data[KEYS.STEP_CALCULATION_STATUS] = step.calculation_status
             return step_data
 
-    def _read_outputs(self, output: dict) -> Output:
+    def _read_outputs(self, _output: dict[str, OutputItem]) -> Output:
+        step_output = {}
         with ErrorHandler():
-            step_output = {}
-            for key, value in output.items():
-                # Non-string values get used directly as output
-                if not isinstance(value, str):
-                    step_output[key] = value
-                    continue
+            for key, item in _output.items():
+                match item.output_type:
+                    # Load Dataframes from disk
+                    case OutputType.DATAFRAME:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=self.dataframe_operator.read(self.run_dir / path),
+                        )
+                    case OutputType.JOBLIB_ARTIFACT:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=self.artifact_operator.read(self.run_dir / path),
+                        )
+                    case OutputType.PNG_BASE64:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.PNG_BASE64,
+                            value=self.base64_operator.read(self.run_dir / path),
+                        )
+                    case _:
+                        step_output[key] = item
 
-                # Make sure this works for old run saves which use absolute directories
-                base_path = self.run_dir
-                if Path(value).is_absolute():
-                    base_path = Path()
-
-                if (base_path / Path(value)).exists():
-                    step_output[key] = self.dataframe_operator.read(
-                        base_path / Path(value)
-                    )
-
-                # Path does not exist, just use raw string provided.
-                else:
-                    step_output[key] = value
             return Output(step_output)
 
     def _write_output(self, step: Step) -> dict:
+        """
+        Writes the outputs of a step to disk and returns a dictionary describing the outputs
+        to then be serialized.
+
+        :param step: the step whose outputs to dump
+        :return: serialized output
+        """
         with ErrorHandler(), step.disk_write_mutex:
-            output_data = {}
-            for key, value in step.output:
-                if isinstance(value, pd.DataFrame):
-                    file_path = (
-                        self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
-                    )
-                    # Only dump if outdated version
-                    if self._dump_is_outdated(step, "output"):
-                        self.dataframe_operator.write(file_path, value)
-                    output_data[key] = str(file_path.relative_to(self.run_dir))
-                else:
-                    output_data[key] = value
+            output_data: dict[str, OutputItem] = {}
+            for key, item in step.output:
+                match item.output_type:
+                    case OutputType.DATAFRAME:
+                        assert isinstance(item.value, pd.DataFrame)
+                        file_path = (
+                            self.dataframe_dir / f"{step.instance_identifier}_{key}.csv"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.dataframe_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.DATAFRAME,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.JOBLIB_ARTIFACT:
+                        file_path = (
+                            self.artifact_dir
+                            / f"{step.instance_identifier}_{key}.joblib.gz"
+                        )
+                        # Only dump if outdated version
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.JOBLIB_ARTIFACT,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.PNG_BASE64:
+                        file_path = (
+                            self.plot_dir
+                            / f"{step.instance_identifier}_{key}_image.png"
+                        )
+                        if self._dump_is_outdated(step, "output"):
+                            self.base64_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.PNG_BASE64,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case _:
+                        output_data[key] = item
 
             self._update_dump_state(step, "output")
             return output_data
@@ -404,6 +535,10 @@ class DiskOperator:
         return self.run_dir / "dataframes"
 
     @property
+    def artifact_dir(self) -> Path:
+        return self.run_dir / "artifacts"
+
+    @property
     def plot_dir(self) -> Path:
         return self.run_dir / "plots"
 
@@ -415,10 +550,13 @@ def sanitize_inputs(inputs: dict) -> dict:
     :param inputs: The inputs to sanitize
     :return: The sanitized inputs
     """
-    return {
-        key: value
-        for key, value in inputs.items()
-        if type(value) != pd.DataFrame
-        and not utilities.check_is_path(value)
-        and key != DataKey.PEPTIDE_DF
-    }
+    sanitized = {}
+
+    for key, value in inputs.items():
+        if isinstance(value, pd.DataFrame):
+            continue
+        if utilities.check_is_path(value):
+            continue
+        sanitized[key] = value
+
+    return sanitized

@@ -6,6 +6,8 @@ from backend.protzilla.data_analysis.classification_helper import encode_labels
 from backend.protzilla.utilities.utilities import fig_to_base64
 
 
+# TODO: might be useful for validation but incompatible with frontend,
+# since the builtin plot method returns a matplotlib object
 def precision_recall_curve_plot(model, input_test_df, labels_test_df, plot_title=None):
     """
     Calculate and plot the precision-recall curve for a classification model.
@@ -22,17 +24,17 @@ def precision_recall_curve_plot(model, input_test_df, labels_test_df, plot_title
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    input_test_df = input_test_df.set_index("Sample")
-    _, labels_test_df = encode_labels(labels_test_df, "Label")
 
     display = PrecisionRecallDisplay.from_estimator(
-        model, input_test_df, labels_test_df["Encoded Label"]
+        model, input_test_df, labels_test_df
     )
     display.plot(color=PLOT_PRIMARY_COLOR)
     plot.title(plot_title)
     return [fig_to_base64(display.figure_)]
 
 
+# TODO: might be useful for validation but incompatible with frontend,
+# since the builtin plot method returns a matplotlib object
 def roc_curve_plot(model, input_test_df, labels_test_df, plot_title=None):
     """
     Calculate and plot the roc curve for a classification model.
@@ -49,12 +51,8 @@ def roc_curve_plot(model, input_test_df, labels_test_df, plot_title=None):
     :return: Base64 encoded image of the plot
     :rtype: bytes
     """
-    input_test_df = input_test_df.set_index("Sample")
-    _, labels_test_df = encode_labels(labels_test_df, "Label")
 
-    display = RocCurveDisplay.from_estimator(
-        model, input_test_df, labels_test_df["Encoded Label"]
-    )
+    display = RocCurveDisplay.from_estimator(model, input_test_df, labels_test_df)
     display.plot(color=PLOT_PRIMARY_COLOR)
     plot.title(plot_title)
     return [fig_to_base64(display.figure_)]

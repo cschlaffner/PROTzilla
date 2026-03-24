@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.run import Run
 from backend.tests.paths import TEST_METADATA_PATH
 from backend.protzilla.methods.importing import (
     DiannImport,
@@ -55,7 +56,7 @@ def test_metadata_import_faulty_file(run_imported):
     )
     run_imported.step_calculate()
     assert "messages" in run_imported.current_outputs.output
-    messages = run_imported.current_outputs.output["messages"][0]
+    messages = run_imported.current_outputs["messages"][0]
     assert (
         messages["level"] == 40
         and "The metadata file must contain a column named 'Sample'" in messages["msg"]
@@ -99,25 +100,33 @@ def test_metadata_import_diann(run_empty):
     )
 
 
-def test_metadata_orientation(run_empty):
-    run_empty.step_add(MetadataImport())
-    run_empty.step_next()
-    run_empty.current_form(
+def test_metadata_orientation(run_imported: Run):
+    run_imported.step_add(MetadataImport("teststep02_Meta"))
+    run_imported.steps.connect_steps(
+        {
+            "source": "teststep01_MXQ",
+            "sourceHandle": DataKey.PROTEIN_DF,
+            "target": "teststep02_Meta",
+            "targetHandle": DataKey.PROTEIN_DF,
+        }
+    )
+    run_imported.step_next()
+    run_imported.current_form(
         {
             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
         }
     )
-    run_empty.step_calculate()
-    metadata_df_a = run_empty.current_outputs[DataKey.METADATA_DF]
-    run_empty.current_form(
+    run_imported.step_calculate()
+    metadata_df_a = run_imported.current_outputs[DataKey.METADATA_DF]
+    run_imported.current_form(
         {
             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_rows.csv",
             "feature_orientation": "Rows (samples in columns, features in rows)",
         }
     )
-    run_empty.step_calculate()
-    metadata_df_b = run_empty.current_outputs[DataKey.METADATA_DF]
+    run_imported.step_calculate()
+    metadata_df_b = run_imported.current_outputs[DataKey.METADATA_DF]
     assert metadata_df_a.shape == metadata_df_b.shape
     assert metadata_df_a.columns.tolist() == metadata_df_b.columns.tolist()
     assert metadata_df_a.equals(metadata_df_b)

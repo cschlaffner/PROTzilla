@@ -4,6 +4,7 @@ import pandas as pd
 
 if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
+    from backend.protzilla.run import Run
 
 from backend.protzilla.steps import Step, Section, Output
 from backend.protzilla.constants.data_types import (
@@ -12,6 +13,7 @@ from backend.protzilla.constants.data_types import (
     StepID,
     parse_connection,
 )
+
 
 import networkx as nx
 
@@ -31,12 +33,7 @@ class StepManager:
     def __repr__(self):
         return f"StepManager with {str(len(self.all_steps))} steps: {str(self.all_step_ids_toposorted)}"
 
-    def __init__(
-        self,
-        *,
-        disk_operator: DiskOperator,
-        df_mode: str = "disk",
-    ):
+    def __init__(self, *, disk_operator: DiskOperator, df_mode: str = "disk"):
         self.df_mode: str = df_mode
         self.disk_operator: DiskOperator = disk_operator
 
@@ -119,6 +116,14 @@ class StepManager:
         descendant_ids = list(nx.descendants(self.graph, step_id))
         return [self.all_steps[step_id] for step_id in descendant_ids]
 
+    def immediate_succeeding_steps(self, step_id: StepID) -> list[Step]:
+        """
+        :param step_id: ID of step of interest
+        :return: List of all immediate successors of the given step (all the child nodes in the graph)
+        """
+        child_ids = list(self.graph.successors(step_id))
+        return [self.all_steps[step_id] for step_id in child_ids]
+
     def step_is_terminal(self, step_id: StepID) -> bool:
         return int(self.graph.out_degree(step_id)) == 0
 
@@ -137,7 +142,7 @@ class StepManager:
             ]
         )
 
-    def edges_with_exact_data(
+    def incoming_edges_for_handle(
         self,
         source: StepID | None,
         source_handle: DataKey | None,
@@ -152,7 +157,7 @@ class StepManager:
         :param source_handle: handle of the source (optional)
         :param target: ID of the target node
         :param target_handle: the connection handle of the target
-        :return: list of edges (ebunch)
+        :return: list of edges (ebunch) - should never be more than one, but we return a list just in case
         """
         return [
             edge
@@ -167,16 +172,26 @@ class StepManager:
     ## Batch invalidation
     ##
 
-    def invalidate_current_and_following_steps(self) -> int:
+    def invalidate_step_and_following_steps_based_on_step_id(
+        self, step_id: StepID
+    ) -> None:
+        """
+        Invalidates the step with the given step id and all dependent/following steps.
+        :return: the amount of invalidated steps
+        """
+        steps_to_invalidate = [self.all_steps[step_id]] + self.succeeding_steps(step_id)
+        for step in steps_to_invalidate:
+            step.invalidate()
+
+    def invalidate_current_and_following_steps(self) -> None:
         """
         Invalidates the current step and all dependent/following steps.
 
         :return: the amount of invalidated steps
         """
-        steps_to_remove = [self.current_step] + self.following_steps
-        for step in steps_to_remove:
-            step.invalidate()
-        return len(steps_to_remove)
+        self.invalidate_step_and_following_steps_based_on_step_id(
+            self.current_selected_step_id
+        )
 
     def _clear_succeeding_steps(self, step_id: StepID) -> None:
         """
@@ -251,12 +266,42 @@ class StepManager:
     def recommended_next_step_id(self) -> StepID | None:
         """
         Mainly for front-end. Instance identifier of the next step to navigate to when pressing the "Next" button.
-
-        :return: The recommended next step identifier or None if we are at a terminal step
+        If the step is a terminal step, the next step is an arbitrary computable step.
+        Otherwise, if there is a computable immediate successor step, that step is picked as the next step.
+        Otherwise, the next step is a computable preceding step of one of the immediate successors.
+        :return: The recommended next step identifier or None if all steps are already calculated.
         """
+
+        def _possible_next_step(step_id: StepID) -> bool:
+            return (
+                self.calc_dependencies_met_for_step(step_id)
+                and self.all_steps[step_id].calculation_status != "complete"
+            )
+
         if self.is_at_terminal_step:
+            for step_id in self.all_step_ids:
+                if _possible_next_step(step_id):
+                    return step_id
+            # all steps are calculated
             return None
-        return list(self.graph.successors(self.current_selected_step_id))[0]
+        else:
+            for arbitrary_child_step in self.immediate_succeeding_steps(
+                self.current_selected_step_id
+            ):
+                if _possible_next_step(arbitrary_child_step.instance_identifier):
+                    return arbitrary_child_step.instance_identifier
+            # none of the child steps can be calculated right now
+            arbitrary_child_step = self.immediate_succeeding_steps(
+                self.current_selected_step_id
+            )[0]
+            for preceeding_step_of_child_step in self.preceding_steps(
+                arbitrary_child_step.instance_identifier
+            ):
+                if _possible_next_step(
+                    preceeding_step_of_child_step.instance_identifier
+                ):
+                    return preceeding_step_of_child_step.instance_identifier
+        return None
 
     def goto_step(self, step_id: StepID) -> None:
         """
@@ -266,11 +311,11 @@ class StepManager:
         if step_id not in self.all_steps:
             raise ValueError(f"Step {step_id} not found")
 
+        self._current_selected_step_id = step_id
+
         # TODO: We'll keep this for now, but I assume this is unneccessary
         if self.df_mode == "disk":
             self.disk_operator._write_output(self.current_step)
-
-        self._current_selected_step_id = step_id
 
     def next_step(self) -> None:
         """
@@ -282,13 +327,12 @@ class StepManager:
         """
         if not self.is_at_terminal_step:
             self.disk_operator.clear_upload_dir()  # TODO this could be a problem when using protzilla for multiple users
-            if self.df_mode == "disk":
-                # TODO maybe this doesnt really need to be written to disk anymore,
-                # as it is preceeded by a calculation, after which everything is written to
-                # disk anyway. Better would be if it would just replace the dfs with their respective paths
-                self.current_step.output = Output(
-                    self.disk_operator._write_output(self.current_step)
-                )
+            # TODO: This never worked and will never work.
+            # There needs to be a complete overhaul of the df_mode handling.
+            # if self.df_mode == "disk":
+            #     self.current_step.output = Output(
+            #         self.disk_operator._write_output(self.current_step)
+            #     )
             next_step_id = self.recommended_next_step_id
             self._current_selected_step_id = next_step_id
         else:
@@ -352,25 +396,28 @@ class StepManager:
 
         # Navigate to a predecessor if step was selected
         # Else navigate to a fallback option
+        must_goto_fallback = False
         try:
             self.previous_step()
         except ValueError:  # No previous step
-            self.goto_step(self.fallback_step_id)
+            must_goto_fallback = True
 
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
+
+        if must_goto_fallback:
+            self.goto_step(self.fallback_step_id)
 
     ##
     ## Connection management
     ##
 
-    def connect_steps(self, connection: Connection) -> None:
+    def connect_steps(self, connection: Connection, run: Run | None = None) -> None:
         """
         Connects an output of one source step to an input of another target step.
         Creates/updates the corresponding link in the graph and sets the handles as edge data.
 
         :param connection: the connection to establish
-        :return: the target step instance
         :raises KeyError: if the connection parameters are incorrect
         """
         source, source_handle, target, target_handle = parse_connection(connection)
@@ -378,16 +425,9 @@ class StepManager:
         # TODO: We currently allow arbitrary connections between all kinds of input.
         # Technical restrictions would make this cleaner
 
-        # retrieve all incoming edges to the target
-        old_edges = self.edges_with_exact_data(None, None, target, target_handle)
         # Abort if the exact connection is already present
-        for old_source, _, _, data in old_edges:
-            if (
-                old_source == source
-                and data["source_handle"] == source_handle
-                and data["target_handle"] == target_handle
-            ):
-                return
+        if self.incoming_edges_for_handle(source, source_handle, target, target_handle):
+            return
 
         # Abort if connection creates cycle
         probe_graph = self.graph.copy()
@@ -397,22 +437,34 @@ class StepManager:
                 "The connection you try to add would lead to a circular dependency. Circular dependencies are not permitted."
             )
 
+        # retrieve all incoming edges to the target
+        old_edges = self.incoming_edges_for_handle(None, None, target, target_handle)
+
         # Delete any existing connection to the target handle that isn't equal to the current one
-        self.graph.remove_edges_from(old_edges)
+        self.graph.remove_edges_from(old_edges)  # pyright: ignore[reportArgumentType].
 
         self.graph.add_edge(
             source, target, source_handle=source_handle, target_handle=target_handle
         )
 
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
+        if run is not None:
+            self.all_steps[target].modify_form(run)
+
     def disconnect_steps(self, connection: Connection) -> None:
         source, source_handle, target, target_handle = parse_connection(connection)
         # retrieve edges that have exactly this combination of source, target and handles
-        edges = self.edges_with_exact_data(source, source_handle, target, target_handle)
+        edges = self.incoming_edges_for_handle(
+            source, source_handle, target, target_handle
+        )
         if not edges:
             raise ValueError(
                 f"No connection from {source}.{source_handle} to {target}.{target_handle} found"
             )
-        self.graph.remove_edges_from(edges)
+        # pyright is wrong here - it expects 3-tuples (u, v, data) like for a DiGraph
+        # but since we have a MultiDiGraph, our edges are of format (u, v, key, data)
+        self.graph.remove_edges_from(edges)  # pyright: ignore[reportArgumentType]
+        self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
 
     def get_edges(self) -> list[Connection]:
         """
@@ -462,40 +514,24 @@ class StepManager:
         """
 
         step = self.get_step_by_id(instance_identifier)
-        try:
-            return step.output[output_key]
-        # TODO: this is really ugly, but Output does not have a .get() method
-        except KeyError:
-            return None
+        return step.output.get(output_key)
 
-    # TODO: this should be adapted to at least only include a step's ancestry
     def get_step_input(
         self,
-        step_type: Step | None = None,
-        input_key: str = "",  # TODO same as get_step_output
-        instance_identifier: str | None = None,
-        default: Any = None,
+        input_key: DataKey,
+        instance_identifier: StepID,
     ):
         """
-        Get the specific input of the inputs of a specific step type. The step type can also a parent class of the
-        step type, in which case the input of the most recent step of the specific type is returned.
-        :param step_type: The type of the step as a class object
+        Get the specific input from the step with the given instance_identifier.
+
         :param input_key: The key of the desired input in the input dictionary of the step
         :param instance_identifier: The instance identifier of the step to get the input from
-        :param default: The default value to return if the input is not found
         :return: The value of the input of the step or None
         """
 
-        if step_type is not None:
-            raise NotImplementedError("Passing the step type is deprecated")
+        step = self.get_step_by_id(instance_identifier)
 
-        for step in reversed(self.previous_calculated_steps):
-            if (
-                step.instance_identifier == instance_identifier
-                or instance_identifier is None
-            ) and input_key in step.inputs:
-                return step.inputs[input_key]
-        return default
+        return step.inputs.get(input_key)
 
     def get_step_operation(self, step_id: str) -> str:
         try:

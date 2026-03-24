@@ -1,4 +1,5 @@
 import { GridValidRowModel } from "@mui/x-data-grid";
+import type { Edge } from "@xyflow/react";
 
 export interface UIStateProps {
   isDisabled?: boolean;
@@ -14,6 +15,12 @@ export type StepID = string;
 export interface StepOutputInfo {
   label: string;
   display_name: string;
+}
+
+export interface Image {
+  title: string;
+  alt: string;
+  data: string;
 }
 
 // We assume these are the only data types we receive for tables
@@ -88,6 +95,7 @@ export interface RunData {
   memory_usage: string;
   current_step_has_plot: boolean;
   recommended_next_step_id: StepID;
+  graph_edges: Edge[];
 }
 
 export const emptyRunData: RunData = {
@@ -97,6 +105,7 @@ export const emptyRunData: RunData = {
   memory_usage: "",
   current_step_has_plot: false,
   recommended_next_step_id: "",
+  graph_edges: [],
 };
 
 export interface Table {
