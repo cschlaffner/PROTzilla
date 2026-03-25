@@ -73,8 +73,10 @@ def test_validate_with_angstrom_deviation(distance, expected):
 
     assert "alphafold_distance" in df.columns
     assert "valid_crosslink" in df.columns
+    assert "link_type" in df.columns
     assert df.loc[0, "alphafold_distance"] == distance
     assert df.loc[0, "valid_crosslink"] == expected
+    assert df.loc[0, "link_type"] == "intra"
 
 
 def test_modify_form_creates_crosslinker_fields():
@@ -333,6 +335,7 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
     assert "valid_crosslink" in result_df.columns
     assert "crosslinker_position1" in result_df.columns
     assert "crosslinker_position2" in result_df.columns
+    assert "link_type" in result_df.columns
 
 
 def test_validate_multimer_no_links_between_structures_returns_empty_and_warning():
@@ -462,6 +465,10 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
     # With permissive bounds, all should be valid.
     assert result_df["valid_crosslink"].dropna().all()
 
+    # Check link_type column
+    assert "link_type" in result_df.columns
+    assert result_df["link_type"].isin(["intra", "inter"]).all()
+
     # Expect a duplication warning message.
     assert any(
         ("duplicated" in str(m.get("msg", "")).lower()) and (m.get("level") is not None)
@@ -500,6 +507,7 @@ def sample_crosslinking_df():
             "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
             "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
             "valid_crosslink": [True, False, True, False],
+            "link_type": ["intra", "intra", "inter", "inter"],
         }
     )
 
@@ -568,6 +576,7 @@ def sample_crosslinking_df_with_no_std():
             "Crosslinker": ["CL1", "CL1", "CL2", "CL2"],
             "alphafold_distance": [10.5, 10.5, 10.5, 10.5],
             "valid_crosslink": [True, False, True, False],
+            "link_type": ["intra", "intra", "inter", "inter"],
         }
     )
 
@@ -641,6 +650,7 @@ def sample_crosslinking_df_with_one_crosslinker():
             "Crosslinker": ["CL1", "CL1", "CL1", "CL1"],
             "alphafold_distance": [10.0, 12.0, 8.0, 9.0],
             "valid_crosslink": [True, False, True, False],
+            "link_type": ["intra", "intra", "inter", "inter"],
         }
     )
 
@@ -681,8 +691,8 @@ def test_diagrams_calls_with_correct_parameters(
 
         # Check histogram call parameters for crosslinker full-range
         first_hist_call = mock_hist.call_args_list[0].kwargs
-        assert first_hist_call["name_a"] == "Valid Crosslinks"
-        assert first_hist_call["name_b"] == "Invalid Crosslinks"
+        assert first_hist_call["name_a"] == "Valid Crosslinks (intra: 2, inter: 0)"
+        assert first_hist_call["name_b"] == "Invalid Crosslinks (intra: 0, inter: 2)"
         assert (
             first_hist_call["heading"]
             == "Predicted distances for P12345 with crosslinker CL1"
@@ -802,3 +812,4 @@ def test_validate_multimer_with_invalid_crosslinks():
         .tolist()
     )
     assert valid_distances == [2.0, 2.0]
+    assert "link_type" in result_df.columns
