@@ -1,14 +1,17 @@
 import numpy as np
 import pandas as pd
 
+from backend.protzilla.constants.option_types import LogTransformationBaseType
 from backend.protzilla.data_preprocessing.plots import (
     create_box_plots,
     create_histograms,
 )
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 
-def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> dict:
+def by_inversion(
+    protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None = None
+) -> dict:
     """
     This function inverts the intensity column of a dataframe (1/n).
     Especially useful for H/L <-> L/H ratio transformations.
@@ -42,7 +45,9 @@ def by_inversion(protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None) -> d
 
 
 def by_log(
-    protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None, log_base="log10"
+    protein_df: pd.DataFrame,
+    peptide_df: pd.DataFrame | None = None,
+    log_base: LogTransformationBaseType = LogTransformationBaseType.LOG10,
 ) -> dict:
     """
     This function log-transforms intensity
@@ -59,6 +64,10 @@ def by_log(
     :return: returns a dict containing the transformed dataframes for "protein_df" and "peptide_df" respectively
     :rtype: dict[str, pd.DataFrame | None]
     """
+    try:
+        log_base = LogTransformationBaseType(log_base)
+    except ValueError:
+        raise ValueError("Unknown log_base. Known log methods are 'log2' and 'log10'.")
     intensity_name = default_intensity_column(protein_df)
     peptide_intensity_name = (
         default_intensity_column(peptide_df) if peptide_df is not None else None
@@ -67,20 +76,12 @@ def by_log(
     transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
 
     # TODO 41 drop data when intensity is 0 and return them in dict
-    if log_base == "log2":
-        transformed_df[intensity_name] = np.log2(transformed_df[intensity_name])
-        if transformed_peptide_df is not None:
-            transformed_peptide_df[peptide_intensity_name] = np.log2(
-                transformed_peptide_df[peptide_intensity_name]
-            )
-    elif log_base == "log10":
-        transformed_df[intensity_name] = np.log10(transformed_df[intensity_name])
-        if transformed_peptide_df is not None:
-            transformed_peptide_df[peptide_intensity_name] = np.log10(
-                transformed_peptide_df[peptide_intensity_name]
-            )
-    else:
-        raise ValueError("Unknown log_base. Known log methods are 'log2' and 'log10'.")
+    log_method = np.log2 if log_base == LogTransformationBaseType.LOG2 else np.log10
+    transformed_df[intensity_name] = log_method(transformed_df[intensity_name])
+    if transformed_peptide_df is not None:
+        transformed_peptide_df[peptide_intensity_name] = log_method(
+            transformed_peptide_df[peptide_intensity_name]
+        )
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
 
 

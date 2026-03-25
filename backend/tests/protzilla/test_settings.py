@@ -8,14 +8,13 @@ import yaml
 import pytest
 from django.test.client import RequestFactory
 
-import backend.main.settings
-import main.views_settings
-from main.views_settings import (
+from backend.main import settings, views_settings
+from backend.main.views_settings import (
     save_ptm_settings,
     load_ptm_settings,
     load_default_ptm_settings_as_yaml,
 )
-from protzilla.constants.paths import (
+from backend.protzilla.constants.paths import (
     SETTINGS_PATH,
     DEFAULT_PTM_SETTINGS_FILE_STEM,
     CUSTOM_PTM_SETTINGS_FILE_STEM,
@@ -84,12 +83,8 @@ def test_save_ptm_settings(
     shutil.copy(default_ptm_settings_file, tmp_settings_dir)
 
     with (
-        mock.patch.object(
-            main.views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()
-        ),
-        mock.patch.object(
-            backend.main.settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()
-        ),
+        mock.patch.object(views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()),
+        mock.patch.object(settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()),
     ):
         save_response = save_ptm_settings(
             request_save_ptm_settings, default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM
@@ -146,10 +141,10 @@ def test_save_ptm_settings_malformed_settings(
 
         with (
             mock.patch.object(
-                main.views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()
+                views_settings, "SETTINGS_PATH", tmp_settings_dir.resolve()
             ),
             mock.patch.object(
-                backend.main.settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()
+                settings, "FILE_UPLOAD_TEMP_DIR", tmp_upload_dir.resolve()
             ),
         ):
             save_response = save_ptm_settings(

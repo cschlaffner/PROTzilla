@@ -1,11 +1,28 @@
+current_step_id: s00001_MaxQuantImport
+df_mode: Standard
+graph_edges: []
+id_clock: 2
 steps:
-  - form_inputs:
-      intensity_name: iBAQ
-      map_to_uniprot: false
-      aggregation_method: Sum
-    inputs: { }
-    type: MaxQuantImport
-  - form_inputs:
-      feature_orientation: Columns (samples in rows, features in columns)
-    inputs: { }
-    type: MetadataImport
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    ignore_only_identified_by_site: false
+    intensity_name: iBAQ
+    map_to_uniprot: false
+  inputs: {}
+  instance_identifier: s00001_MaxQuantImport
+  type: MaxQuantImport
+  visual_data:
+    node_position:
+      x: 0
+      y: 0
+- form_inputs:
+    feature_orientation: Columns (samples in rows, features in columns)
+    file_path: null
+  inputs: {}
+  instance_identifier: s00002_MetadataImport
+  type: MetadataImport
+  visual_data:
+    node_position:
+      x: 320
+      y: 0

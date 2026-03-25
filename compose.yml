@@ -1,6 +1,6 @@
 services:
   prod:
-    image: protzilla
+    image: ghcr.io/cschlaffner/protzilla
     build: .
     ports:
       - "8000:8000"
@@ -10,19 +10,24 @@ services:
     # - '/home/www/.protzilla/user_data:./home/prot/zilla/backend/user_data:Z' # :Z is required for SELinux and should be ignored everywhere else
     # Use this for backend changes to reflect without rebuilding
     # - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+    # - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot:Z"
 
   django:
+    image: ghcr.io/cschlaffner/protzilla-django
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+      - "./runner_cli.py:/home/prot/zilla/runner_cli.py:Z"
+      - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
     networks:
       - "dev-network"
 
   vite:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"
@@ -30,8 +35,7 @@ services:
       - VITE_API_URL=http://django
     volumes:
       - "./frontend/src:/prot/zilla/frontend/src:Z" # :Z is required for SELinux and should be ignored everywhere else
-      - "node_modules:/prot/zilla/frontend/node_modules"
-      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
+      - "pnpm-store:/prot/zilla/frontend/.pnpm-store"
     networks:
       - "dev-network"
     ports:
@@ -40,6 +44,7 @@ services:
       - "django"
   
   storybook:
+    image: ghcr.io/cschlaffner/protzilla-vite
     build:
       context: .
       dockerfile: "frontend/Dockerfile.dev"
@@ -48,15 +53,15 @@ services:
     volumes:
       - "./frontend/src:/prot/zilla/frontend/src:Z" # :Z is required for SELinux and should be ignored everywhere else
       - "./frontend/.storybook:/prot/zilla/frontend/.storybook:Z"
-      - "node_modules:/prot/zilla/frontend/node_modules"
-      - ".pnpm-store:/prot/zilla/frontend/.pnpm-store"
+      - "pnpm-store:/prot/zilla/frontend/.pnpm-store"
     entrypoint: ["pnpm", "run", "storybook", "--no-open"]
     ports:
       - "6006:6006"
 
 volumes:
+  uniprot:
   node_modules:
-  .pnpm-store:
+  pnpm-store:
 
 networks:
   dev-network:

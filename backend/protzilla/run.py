@@ -13,15 +13,9 @@ from typing import Any
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
-from backend.protzilla.steps import (
-    Messages,
-    Output,
-    Plots,
-    Downloads,
-    Step,
-    StepManager,
-)
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.steps import Messages, Output, Plots, Downloads, Step
+from backend.protzilla.step_manager import StepManager
+from backend.protzilla.utilities.utilities import format_trace
 
 
 def get_available_run_names() -> list[str]:
@@ -261,6 +255,14 @@ class Run:
         """
         self._metadata.update(metadata)
 
+    @error_handling
+    @auto_save
+    def set_step_pos(self, step_id: str, x: float, y: float) -> None:
+        step = self.steps.all_steps.get(step_id)
+        if step is None:
+            raise ValueError(f"Unknown step id: {step_id}")
+        step.visual_data["node_position"] = {"x": x, "y": y}
+
     def update_modification_date(self) -> None:
         self._metadata["modification_date"] = datetime.now().strftime(
             metadata_date_format
@@ -274,7 +276,7 @@ class Run:
         self.update_metadata(
             {
                 "df_mode": self.steps.df_mode,
-                "steps": [step.display_name for step in self.steps.all_steps],
+                "steps": [step.display_name for step in self.steps.all_step_instances],
             }
         )
 
@@ -290,23 +292,16 @@ class Run:
         self.steps.add_step(step)
         self.update_metadata(
             {
-                "steps": [step.display_name for step in self.steps.all_steps],
+                "steps": [step.display_name for step in self.steps.all_step_instances],
             }
         )
 
-    @error_handling
+    # @error_handling
     @auto_save
-    def step_remove(
-        self,
-        step: Step | None = None,
-        step_index: int | None = None,
-        section: str | None = None,
-    ) -> None:
-        self.steps.remove_step(step=step, step_index=step_index, section=section)
+    def step_remove(self, step_id: str) -> None:
+        self.steps.remove_step(step_id)
         self.update_metadata(
-            {
-                "steps": [step.display_name for step in self.steps.all_steps],
-            }
+            {"steps": [step.display_name for step in self.steps.all_step_instances]}
         )
 
     @error_handling
@@ -331,17 +326,12 @@ class Run:
 
     @error_handling
     @auto_save
-    def step_goto(self, step_index: int, section: str) -> None:
-        self.steps.goto_step(step_index, section)
+    def step_goto(self, step_id: str) -> None:
+        self.steps.goto_step(step_id)
 
     @error_handling
-    def step_set_outdated(self, offset: int = 0) -> int:
-        return self.steps.set_steps_outdated(offset)
-
-    @error_handling
-    @auto_save
-    def step_change_method(self, new_method: str) -> None:
-        self.steps.change_method(new_method)
+    def step_set_outdated(self) -> int:
+        return self.steps.invalidate_current_and_following_steps()
 
     @auto_save
     def step_upload_file(self, inputname: str, file) -> None:
@@ -350,7 +340,7 @@ class Run:
     @auto_save
     def current_form(self, new_form_values={}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
-        self.steps.current_step.form.apply_modification(self)
+        self.steps.current_step.modify_form(self)
         return self.steps.current_step.form
 
     @property
@@ -370,9 +360,11 @@ class Run:
         return self.steps.current_step.output
 
     @property
-    def current_filtered_data(self) -> dict:
-        return self.steps.current_step.filtered_datatable
-
-    @property
     def current_step(self) -> Step | None:
         return self.steps.current_step
+
+    @property
+    def current_step_ready_for_calculation(self) -> bool:
+        return self.steps.calc_dependencies_met_for_step(
+            self.steps.current_selected_step_id
+        )

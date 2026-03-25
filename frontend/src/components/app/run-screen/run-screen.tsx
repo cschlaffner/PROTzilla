@@ -1,4 +1,4 @@
-import { ListEditor, Navbar, PlotDownloadSettings } from "@protzilla/app";
+import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
   CSVButton,
   DataTable,
@@ -13,17 +13,20 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
-  dummyTextComponent1,
   emptyRunData,
   footerMessages,
-  SelectedStep,
+  Image,
+  StepID,
   StepOutputInfo,
+  SwitchComponent,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+
+import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;
@@ -66,7 +69,7 @@ const StyledContentDiv = styled.div`
 
 const StyledCSVButton = styled(CSVButton)`
   width: auto;
-  align-telf: flex-end;
+  align-self: flex-end;
   margin-top: ${spacing("buttonGap")};
 `;
 
@@ -82,7 +85,6 @@ export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const randomMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
@@ -91,20 +93,51 @@ export const RunScreen: React.FC = () => {
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
   const [downloads, setDownloads] = useState<Record<string, string> | undefined>();
 
+  // Static PNGs sent as base64
+  const [images, setImages] = useState<Image[]>([]);
+  const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
+
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
-  const navigateOrRefreshSteps = (selectedStep?: SelectedStep) => {
+  const getFooterMessage = () => {
+    const currentTimestamp = new Date();
+    const currentHour =
+      String(currentTimestamp.getFullYear()) +
+      "-" +
+      String(currentTimestamp.getMonth() + 1) +
+      "-" +
+      String(currentTimestamp.getDate()) +
+      "-" +
+      String(currentTimestamp.getHours());
+
+    const storedHour = localStorage.getItem("footerMessageHour");
+    const storedMessage = localStorage.getItem("footerMessage") ?? "";
+
+    if (storedHour == currentHour) {
+      return storedMessage;
+    } else {
+      const newMessage = footerMessages[Math.floor(Math.random() * footerMessages.length)];
+      localStorage.setItem("footerMessage", newMessage);
+      localStorage.setItem("footerMessageHour", currentHour);
+      return newMessage;
+    }
+  };
+
+  const navigateOrRefreshSteps = (stepID?: StepID) => {
     /*
       If a step is selected, navigate to that step.
       If no step is selected, just refresh the run data to update the run list.
     */
 
-    if (selectedStep) {
+    if (stepID) {
       void callApiWithParameters("navigate_to_step/", {
         run_name: runName,
-        section: selectedStep.section,
-        index: String(selectedStep.index),
+        step_id: stepID,
       }).then(() => {
+        setAvailableTables(undefined);
+        setPlots(undefined);
+        setAvailableImages([]);
+
         void getRunData();
         void getStepPlots();
         void getStepDownloads();
@@ -157,8 +190,15 @@ export const RunScreen: React.FC = () => {
       run_name: runName,
     });
     if (response) {
-      const data = response.outputs;
-      setAvailableTables(data);
+      const tableOutputs = [];
+      const imageOutputs = [];
+      for (const output of response.outputs) {
+        if (output.output_type === "dataframe" || output.output_type === "list")
+          tableOutputs.push(output);
+        else if (output.output_type === "png_base64") imageOutputs.push(output);
+      }
+      setAvailableTables(tableOutputs);
+      setAvailableImages(imageOutputs);
     }
   }, [runName]);
 
@@ -176,6 +216,9 @@ export const RunScreen: React.FC = () => {
   }, [getRunData, getStepPlots, getStepDownloads, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
+    setAvailableTables(undefined);
+    setAvailableImages([]);
+    setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getStepDownloads();
@@ -193,6 +236,36 @@ export const RunScreen: React.FC = () => {
   } else {
     plotPlaceholderMessage = "No plot available for this step.";
   }
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const imagePromises = availableImages.map(async (output_info) => {
+        const response = await callApiWithParameters("get_png_from_step/", {
+          run_name: runName,
+          step_id: runData.current_step_id,
+          output_key: output_info.label,
+        });
+        return {
+          title: output_info.label,
+          alt: output_info.label,
+          data: "data:image/png;base64,".concat(response.data),
+        };
+      });
+
+      try {
+        const resolvedImages = await Promise.all(imagePromises);
+        setImages(resolvedImages);
+      } catch (error) {
+        console.error("Failed to fetch image data:", error);
+      }
+    };
+
+    if (availableImages.length > 0) {
+      void fetchImages();
+    } else {
+      setImages([]);
+    }
+  }, [availableImages, runName, runData.current_step_id]);
 
   const plotComponent = (
     <StyledContentContainer>
@@ -249,8 +322,23 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
-  const otherComponent = (
-    <SwitchCard hasShadow={false} components={[{ name: "🚧", value: dummyTextComponent1 }]} />
+  const imageComponent = (
+    <StyledContentContainer>
+      {images.length > 0 ? (
+        <>
+          {images.map((image) => {
+            return (
+              <>
+                <H3>{image.title}</H3>
+                <img src={image.data} alt={image.alt} />
+              </>
+            );
+          })}
+        </>
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No images"} />
+      )}
+    </StyledContentContainer>
   );
 
   const downloadJson = (filename: string, content: string) => {
@@ -283,15 +371,25 @@ export const RunScreen: React.FC = () => {
       )}
     </StyledContentContainer>
   );
-
-  const listEditorComponent = (
-    <ListEditor
+  const nodeEditorComponent = (
+    <NodeEditor
       onFormSubmit={onFormSubmit}
       runName={runName}
       navigateOrRefreshSteps={navigateOrRefreshSteps}
       runData={runData}
     />
   );
+
+  const editorModes = [{ name: "Flow", value: nodeEditorComponent }];
+
+  const selectedEditorMode: SwitchComponent["name"] = "Flow";
+
+  const components = [
+    plots && plots.length > 0 && { name: "Plots", value: plotComponent },
+    availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
+    availableImages.length > 0 && { name: "Images", value: imageComponent },
+    { name: "Downloads", value: downloadComponent },
+  ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -301,16 +399,14 @@ export const RunScreen: React.FC = () => {
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => void navigate("/")}
+        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
       />
 
       <StyledCardRow>
         <StyledFlexColumn>
           <StyledListSwitchCard
-            components={[
-              { name: "List", value: listEditorComponent },
-              { name: "Node", value: dummyTextComponent1 },
-            ]}
+            components={editorModes}
+            selection={selectedEditorMode}
             hasCardTitle={false}
             styleProps={{
               display: "flex",
@@ -320,19 +416,19 @@ export const RunScreen: React.FC = () => {
           />
         </StyledFlexColumn>
         <StyledFlexColumn style={{ flex: 1 }}>
-          <StyledCol>
-            <SwitchCard
-              styleProps={{ height: "calc(100% - 3em)" }}
-              components={[
-                { name: "Plots", value: plotComponent },
-                { name: "Tables", value: tableComponent },
-                { name: "Downloads", value: downloadComponent },
-                { name: "Other Output", value: otherComponent },
-              ]}
-              hasCardTitle={false}
-            />
-          </StyledCol>
-          <FooterText>{randomMessage}</FooterText>
+          {components.length ? (
+            <StyledCol>
+              <SwitchCard
+                key={runData.current_step_id}
+                styleProps={{ height: "calc(100% - 3em)" }}
+                components={components}
+                hasCardTitle={false}
+              />
+            </StyledCol>
+          ) : (
+            <div style={{ flex: 1 }} />
+          )}
+          <FooterText>{getFooterMessage()}</FooterText>
         </StyledFlexColumn>
       </StyledCardRow>
     </div>

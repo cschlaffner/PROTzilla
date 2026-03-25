@@ -49,6 +49,10 @@ This specifies that the local directory `./backend/user_data` should be mounted 
 ## Running PROTzilla
 
 Once you have completed the installation steps, you can open a command line in the PROTzilla directory (or use the one from the cloning step if you didn't close it) and run `docker compose up -d prod`. This will prepare everything and start the service. Once the command has finished, you can navigate to [localhost:8000](http://localhost:8000) and use PROTzilla!
+
+> [!NOTE]
+> If you make changes to the code and would like to apply them, you'll need to run `docker compose up --build -d prod`. Like this, the image will be built from local sources and not downloaded from the latest release on Github.
+
 Note that on Linux, Docker Desktop and Docker Engine use separate contexts by default, so you won't see containers started from the CLI in Docker Desktop in case you installed it. This is explained in the "Docker Desktop vs. Docker Engine: What's the difference?" section on the installation page.
 
 ## Stopping PROTzilla

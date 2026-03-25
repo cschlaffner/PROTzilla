@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import gemmi
 import pandas as pd
 import requests
+import re
 
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.protzilla_logging import logger
@@ -211,7 +212,7 @@ def extend_metadata_csv(
         messages.append(dict(level=logging.ERROR, msg=msg))
 
 
-def get_amino_acid_sequence_df(fasta_dest: Path, messages: list) -> pd.DataFrame:
+def get_amino_acid_sequences_df(fasta_dest: Path, messages: list) -> pd.DataFrame:
     """
     Load a FASTA file and return its amino acid sequence DataFrame.
 
@@ -230,8 +231,8 @@ def get_amino_acid_sequence_df(fasta_dest: Path, messages: list) -> pd.DataFrame
     """
     try:
         fasta_dict = fasta_import(str(fasta_dest))
-        amino_acid_sequence_df = fasta_dict["fasta_df"]
-        return amino_acid_sequence_df
+        amino_acid_sequences_df = fasta_dict["fasta_df"]
+        return amino_acid_sequences_df
     except Exception:
         msg = "Failed to create sequence dataframe"
         logger.exception(msg)
@@ -266,7 +267,7 @@ def handle_alphafold_files(
     cif_df = pd.DataFrame()
     pae_df = pd.DataFrame()
     plddt_df = pd.DataFrame()
-    amino_acid_sequence_df = pd.DataFrame()
+    amino_acid_sequences_df = pd.DataFrame()
     messages = []
 
     temp_dir, work_dir = get_correct_af_directories(
@@ -317,7 +318,7 @@ def handle_alphafold_files(
             logger.exception(msg)
             messages.append(dict(level=logging.ERROR, msg=msg))
         if fasta_dest is not None:
-            amino_acid_sequence_df = get_amino_acid_sequence_df(
+            amino_acid_sequences_df = get_amino_acid_sequences_df(
                 fasta_dest=fasta_dest,
                 messages=messages,
             )
@@ -330,7 +331,7 @@ def handle_alphafold_files(
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
-        "amino_acid_sequence_df": amino_acid_sequence_df,
+        "amino_acid_sequences_df": amino_acid_sequences_df,
         "messages": messages,
     }
 
@@ -405,7 +406,7 @@ def fetch_alphafold_protein_structure(
         "cif_df": alpha_dfs["cif_df"],
         "pae_df": alpha_dfs["pae_df"],
         "plddt_df": alpha_dfs["plddt_df"],
-        "amino_acid_sequence_df": alpha_dfs["amino_acid_sequence_df"],
+        "amino_acid_sequences_df": alpha_dfs["amino_acid_sequences_df"],
     }
     messages = alpha_dfs["messages"]
     if not any(df.empty for df in df_dict.values()):
@@ -636,7 +637,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     )
 
     # get fasta file
-    amino_acid_sequence_df = get_amino_acid_sequences_df_from_disk(
+    amino_acid_sequences_df = get_amino_acid_sequences_df_from_disk(
         entry_id=entry_id, structure_dir=structure_dir
     )
 
@@ -686,7 +687,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
-        "amino_acid_sequence_df": amino_acid_sequence_df,
+        "amino_acid_sequences_df": amino_acid_sequences_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
@@ -756,7 +757,6 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         msg = f"Failed to read JSON files in {structure_dir}: {e}"
         logger.exception(msg)
         raise RuntimeError(msg) from e
-
     df_dict = {
         "metadata_df": metadata_df,
         "amino_acid_sequences_df": amino_acid_sequences_df,
@@ -764,7 +764,6 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "confidence_df": confidence_df,
         "full_data_df": full_data_df,
     }
-
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
     return df_dict
@@ -772,7 +771,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
 
 def upload_multimer_prediction(
     entry_id: str,
-    uniprot_ids: list[str],
+    uniprot_ids: str,
     model_used: str,
     amino_acid_sequences: Path,
     cif_file: Path,
@@ -834,9 +833,11 @@ def upload_multimer_prediction(
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    uniprot_ids_as_list = re.split(r"\s*,\s*", uniprot_ids.strip())
+
     data: dict[str, Any] = {
         "entry_id": entry_id,
-        "uniprot_ids": uniprot_ids,
+        "uniprot_ids": uniprot_ids_as_list,
         "model_created_date": timestamp,
         "model_used": model_used,
     }
@@ -864,7 +865,7 @@ def upload_multimer_prediction(
                     messages.append(dict(level=logging.ERROR, msg=msg))
 
         fasta_dict = fasta_import(str(amino_acid_sequences))
-        amino_acid_sequence_df = fasta_dict["fasta_df"]
+        amino_acid_sequences_df = fasta_dict["fasta_df"]
 
         confidence_df = pd.read_json(confidence_file)
 
@@ -889,7 +890,7 @@ def upload_multimer_prediction(
             "cif_df": cif_df,
             "confidence_df": confidence_df,
             "full_data_df": full_data_df,
-            "amino_acid_sequences_df": amino_acid_sequence_df,
+            "amino_acid_sequences_df": amino_acid_sequences_df,
         }
 
         if not any(df.empty for df in df_dict.values()):

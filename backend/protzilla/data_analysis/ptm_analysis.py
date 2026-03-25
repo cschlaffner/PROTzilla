@@ -1,6 +1,3 @@
-import logging
-from math import log
-
 import numpy as np
 import pandas as pd
 import re
@@ -8,71 +5,37 @@ import re
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
-def select_peptides_of_protein(
-    peptide_df: pd.DataFrame,
-    protein_ids: list[str],
-) -> dict:
-    """
-    This function filters out all peptides with a PEP value (assigned to all samples
-    together for each peptide) below a certain threshold.
-
-    :param peptide_df: the pandas dataframe containing the peptide information
-    :param protein_ids: the protein ID to filter the corresponding peptides for
-
-    :return: dict of the filtered peptide dataframe
-    """
-
-    filtered_peptide_dfs = [pd.DataFrame] * len(protein_ids)
-    for i, protein_id in enumerate(protein_ids):
-        filtered_peptide_dfs[i] = peptide_df[
-            peptide_df["Protein ID"].str.contains(protein_id)
-        ]
-    filtered_peptides = pd.concat(filtered_peptide_dfs)
-
-    return dict(
-        peptide_df=filtered_peptides,
-        messages=[
-            {
-                "level": (
-                    logging.INFO if len(filtered_peptides) > 0 else logging.WARNING
-                ),
-                "msg": f"Selected {len(filtered_peptides)} entry's from the peptide dataframe.",
-            }
-        ],
-    )
-
-
-def ptms_per_sample(peptide_df: pd.DataFrame) -> dict:
+def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
     """
     This function calculates the amount of every PTMs per sample.
 
-    :param peptide_df: the pandas dataframe containing the peptide information
+    :param psm_df: the pandas dataframe containing the peptide information
 
     :return: dict containing a dataframe one row per sample and one column per PTM that occurs in the peptide_df,
     with the cells containing the amount of the PTM in the sample
     """
 
-    modification_df = aggregate_ptms(peptide_df, ["Sample"])
+    modification_df = aggregate_ptms(psm_df, ["Sample"])
 
     modification_df["Total Amount of Peptides"] = (
-        peptide_df.groupby("Sample").size().reset_index()[0]
+        psm_df.groupby("Sample").size().reset_index()[0]
     )
 
     return dict(ptm_df=modification_df)
 
 
-def ptms_per_protein_and_sample(peptide_df: pd.DataFrame) -> dict:
+def ptms_per_protein_and_sample(psm_df: pd.DataFrame) -> dict:
     """
     This function calculates the amount of every PTM per sample and protein.
 
-    :param peptide_df: the pandas dataframe containing the peptide information
+    :param psm_df: the pandas dataframe containing the peptide information
 
     :return: dict containing a dataframe one row per sample and one column per protein,
     with the cells containing a list of PTMs that occur in the peptide_df for the protein and sample and
     their amount in the protein and sample
     """
 
-    modification_df = aggregate_ptms(peptide_df, ["Sample", "Protein ID"])
+    modification_df = aggregate_ptms(psm_df, ["Sample", "Protein ID"])
 
     modi = modification_df.drop(["Sample", "Protein ID"], axis=1).apply(
         lambda x: ("(" + x.astype(str) + ") " + x.name + ", ")
@@ -91,10 +54,10 @@ def ptms_per_protein_and_sample(peptide_df: pd.DataFrame) -> dict:
     return dict(ptm_df=modification_df)
 
 
-def aggregate_ptms(peptide_df: pd.DataFrame, group_by: list[str]):
+def aggregate_ptms(psm_df: pd.DataFrame, group_by: list[str]):
 
     modification_df = pd.concat(
-        [peptide_df[group_by], (peptide_df["Modifications"].str.get_dummies(sep=","))],
+        [psm_df[group_by], (psm_df["Modifications"].str.get_dummies(sep=","))],
         axis=1,
     )
 

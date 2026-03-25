@@ -1,4 +1,4 @@
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 
 def test_get_all_possible_step_names():
@@ -7,7 +7,6 @@ def test_get_all_possible_step_names():
         "DiannImport",
         "MsFraggerImport",
         "MetadataImport",
-        "MetadataImportMethodDiann",
         "MetadataColumnAssignment",
         "PeptideImport",
         "EvidenceImport",
@@ -20,7 +19,8 @@ def test_get_all_possible_step_names():
         "UploadMultimerPredictions",
         "ImportMultimerStructurePredictionFromDisk",
         "FilterProteinsBySamplesMissing",
-        "FilterProteinsBySilacRatios",
+        "FilterProteinsByNumberOfValuesPerGroup",
+        "FilterProteinsByProteinIDs",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",
@@ -39,7 +39,14 @@ def test_get_all_possible_step_names():
         "SimpleImputationPerProtein",
         "ImputationByKNN",
         "ImputationByNormalDistributionSampling",
+        "FilterMetadataByExistingSamples",
         "FilterPeptidesByPEPThreshold",
+        "FilterPeptidesByExistingProteins",
+        "FilterPeptidesByExistingSamples",
+        "FilterPsmByPEPThreshold",
+        "FilterPsmByExistingProteins",
+        "FilterPsmByExistingSamples",
+        "GroupReplicates",
         "DifferentialExpressionANOVA",
         "DifferentialExpressionTTest",
         "DifferentialExpressionLinearModel",
@@ -62,7 +69,6 @@ def test_get_all_possible_step_names():
         "ModelEvaluationClassificationModel",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
-        "SelectPeptidesForProtein",
         "FLEXIQuantLF",
         "MultiFLEXLF",
         "PTMsPerSample",
@@ -82,7 +88,9 @@ def test_get_all_possible_step_names():
         "PlotGOEnrichmentDotPlot",
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
-        "CrossLinkingValidationWithAngstromDeviation",
+        "ArbitraryCSVImport",
+        "CrosslinkingValidationWithAngstromDeviation",
+        "CrosslinkingValidationWithAngstromDeviationForMultimer",
     }
 
     steps = get_all_possible_steps()
