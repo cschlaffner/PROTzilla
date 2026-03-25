@@ -3,9 +3,9 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap, TSNEMethod
-from protzilla.data_analysis.plots import scatter_plot
-from protzilla.methods.data_analysis import DimensionReductionMetric
-from tests.protzilla.data_analysis.test_scatter_plot import check_figure_output
+from backend.protzilla.data_analysis.plots import scatter_plot
+from backend.protzilla.methods.data_analysis import DimensionReductionMetric
+from backend.tests.protzilla.data_analysis.test_scatter_plot import check_figure_output
 
 
 @pytest.fixture

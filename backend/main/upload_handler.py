@@ -1,5 +1,4 @@
 import os
-import tempfile
 from os.path import exists
 
 from django.core.files.uploadedfile import UploadedFile

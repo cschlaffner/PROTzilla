@@ -1,7 +1,8 @@
 import pytest
 
-from protzilla.importing.fasta_import import parse_fasta_id, fasta_import
-from tests.paths import TEST_FASTA_PATH
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.importing.fasta_import import parse_fasta_id, fasta_import
+from backend.tests.paths import TEST_FASTA_PATH
 
 
 def test_parse_fasta_id():
@@ -34,8 +35,8 @@ def test_parse_fasta_id():
 )
 def test_fasta_import(fasta_file, protein_id):
     output = fasta_import(fasta_file)
-    assert "fasta_df" in output
-    assert set(output["fasta_df"]["Protein ID"]) == set(protein_id)
+    assert DataKey.FASTA_DF in output
+    assert set(output[DataKey.FASTA_DF]["Protein ID"]) == set(protein_id)
 
 
 def test_import_of_malformed_fasta():

@@ -4,9 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.importing import peptide_import
-from tests.paths import TEST_PEPTIDES_PATH
+from backend.tests.paths import TEST_PEPTIDES_PATH
 
 
 def peptide_df(intensity_name):
@@ -110,7 +111,7 @@ def peptide_df(intensity_name):
     return peptide_df
 
 
-def evidence_df():
+def psm_df():
     # sample, protein id, sequence, intensity, pep
     peptide_protein_list = (
         [
@@ -306,7 +307,7 @@ def test_peptide_import_invalid_intensity_name(
 @pytest.mark.parametrize(
     "intensity_name,file_name,df",
     [
-        (IntensityType.INTENSITY.value, "evidence_vsmall.txt", evidence_df()),
+        (IntensityType.INTENSITY.value, "evidence_vsmall.txt", psm_df()),
         (
             IntensityType.RATIO_HL_NORMALIZED.value,
             "evidence_ratio_hl.txt",
@@ -332,14 +333,14 @@ def test_evidence_import(intensity_name: str, file_name: str, df: pd.DataFrame):
                 assert False, message["msg"]
 
     assert np.allclose(
-        outputs["peptide_df"]["PEP"],
+        outputs[DataKey.PSM_DF]["PEP"],
         df["PEP"],
         rtol=1e-02,  # Relative tolerance
         atol=1e-04,  # Absolute tolerance
     )
 
     pd.testing.assert_frame_equal(
-        outputs["peptide_df"].drop(columns=["PEP"]).sort_index(axis=1),
+        outputs[DataKey.PSM_DF].drop(columns=["PEP"]).sort_index(axis=1),
         df.drop(columns=["PEP"]).sort_index(axis=1),
         check_dtype=False,
     )
@@ -385,8 +386,8 @@ def test_evidence_import_different_column_capitalization(intensity_name: str):
         map_to_uniprot=False,
     )
 
-    assert "peptide_df" in outputs
-    assert IntensityType.INTENSITY.value in outputs["peptide_df"].columns
+    assert "psm_df" in outputs
+    assert IntensityType.INTENSITY.value in outputs["psm_df"].columns
 
 
 def test_evidence_import_contaminant_reverse_removal():
@@ -396,10 +397,10 @@ def test_evidence_import_contaminant_reverse_removal():
         map_to_uniprot=False,
     )
 
-    assert len(outputs["peptide_df"]) == 4
-    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("REV"))
-    assert not any(outputs["peptide_df"]["Protein ID"].str.contains("CON"))
-    assert not any(outputs["peptide_df"]["Protein ID"] == "")
+    assert len(outputs["psm_df"]) == 4
+    assert not any(outputs["psm_df"]["Protein ID"].str.contains("REV"))
+    assert not any(outputs["psm_df"]["Protein ID"].str.contains("CON"))
+    assert not any(outputs["psm_df"]["Protein ID"] == "")
 
     assert outputs["messages"][0]["level"] == logging.INFO
     assert f"Successfully imported 3 protein groups" in outputs["messages"][0]["msg"]

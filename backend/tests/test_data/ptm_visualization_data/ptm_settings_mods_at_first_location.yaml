@@ -1,0 +1,90 @@
+color_settings:
+  cleavage_label_color: '#333333'
+  cleavage_scale_color_high: '#542788'
+  cleavage_scale_color_low: '#B35806'
+  cleavage_scale_color_mid: '#F7F7F7'
+  group_label_colors: {}
+  ptm_scale_color_high: '#01665E'
+  ptm_scale_color_low: '#B35806'
+  ptm_scale_color_mid: '#F5F5F5'
+  sequence_region_colors:
+    A: '#FFFFFF'
+    B: '#D3D3D3'
+modifications:
+  Acetyl:
+    above_below: B
+    color: '#93478F'
+    name: Acetylation
+    sites:
+    - K
+  Citrullination:
+    above_below: B
+    color: '#4682B4'
+    name: Citrullination
+    sites:  # TODO: maybe reduce again
+    - A
+    - B
+    - C
+    - D
+    - E
+    - F
+    - G
+    - H
+    - I
+    - J
+    - K
+    - L
+    - M
+    - N
+    - O
+    - P
+    - Q
+    - R
+    - S
+    - T
+    - U
+    - V
+    - W
+    - X
+    - Y
+    - Z
+  Deamidated:
+    above_below: A
+    color: '#34AEEB'
+    name: Deamidation
+    sites:
+    - N
+    - Q
+    - R
+  GG:
+    above_below: B
+    color: '#548056'
+    name: Ubiquitination
+    sites:
+    - K
+    - Q  # Testing only
+    - I  # Testing only
+    - R  # Testing only
+  GlyGly:
+    above_below: B
+    color: '#548056'
+    name: Ubiquitination
+    sites:
+    - K
+  Phospho:
+    above_below: B
+    color: '#000000'
+    name: Phosphorylation
+    sites:
+    - S
+    - T
+    - Y
+  Oxidation:
+    above_below: B
+    color: '#FF00FF'
+    name: Oxidation
+    sites:  # Probably incomplete list
+      - M
+other_settings:
+  label_angle: 0
+  vertical_orientation: false

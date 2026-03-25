@@ -2,11 +2,11 @@
 This module contains the code to parse a fasta file containing protein sequences and their ids.
 """
 
-import logging
-
 import pandas as pd
 from Bio import SeqIO
 from pandas import DataFrame
+
+from backend.protzilla.constants.data_types import DataKey
 
 
 def parse_fasta_id(fasta_id: str) -> str:
@@ -60,4 +60,4 @@ def fasta_import(
     fasta_sequences = pd.DataFrame(
         {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
     )
-    return {"fasta_df": fasta_sequences}
+    return {DataKey.FASTA_DF.value: fasta_sequences}
