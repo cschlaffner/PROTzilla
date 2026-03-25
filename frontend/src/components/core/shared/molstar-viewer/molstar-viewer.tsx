@@ -5,7 +5,7 @@ import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { CrosslinkerPosition, generateCrosslinkCIF } from "./crosslink-struktur";
+import { CrosslinkerInformation, generateCrosslinkCIF } from "./crosslink-struktur";
 import "./molstar-theme.scss";
 
 const Container = styled.div`
@@ -24,7 +24,7 @@ const CanvasWrapper = styled.div`
 
 interface MolstarViewerProps {
   cifText: string;
-  crosslinks: CrosslinkerPosition[] | undefined;
+  crosslinks: CrosslinkerInformation[] | undefined;
 }
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
@@ -74,7 +74,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
 
         if (crosslinks !== undefined) {
           const crosslinkCifText = generateCrosslinkCIF(cifText, crosslinks);
-          console.log(crosslinkCifText);
+          //console.log(crosslinkCifText);
 
           const lineData = await plugin.builders.data.rawData({
             data: crosslinkCifText,
@@ -84,7 +84,13 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
           //await plugin.builders.structure.hierarchy.applyPreset(lineTrajectory, "default");
           const lineModel = await plugin.builders.structure.createModel(lineTrajectory);
           const lineStructure = await plugin.builders.structure.createStructure(lineModel);
-          await plugin.builders.structure.representation.addRepresentation(lineStructure, {});
+          //await plugin.builders.structure.representation.addRepresentation(lineStructure, {});
+          await plugin.builders.structure.representation.addRepresentation(lineStructure, {
+            color: "uniform",
+            colorParams: {
+              value: 0xff0000,
+            },
+          });
         }
 
         setIsLoading(false);

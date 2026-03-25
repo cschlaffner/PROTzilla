@@ -1,6 +1,7 @@
-export interface CrosslinkerPosition {
+export interface CrosslinkerInformation {
   crosslinkerPosition1: number;
   crosslinkerPosition2: number;
+  isValid: boolean;
   reactiveAtom1?: string;
   reactiveAtom2?: string;
 }
@@ -71,7 +72,7 @@ function findCrosslinkerAtomCoordinates(
 
 function extractCrosslinkAtoms(
   cifString: string,
-  crosslink: CrosslinkerPosition,
+  crosslink: CrosslinkerInformation,
 ): [CrosslinkerAtom | null, CrosslinkerAtom | null] {
   const reactiveAtom1 = getReactiveAtom(crosslink.reactiveAtom1);
   const atom1 = findCrosslinkerAtomCoordinates(
@@ -90,7 +91,10 @@ function extractCrosslinkAtoms(
   return [atom1, atom2];
 }
 
-export function generateCrosslinkCIF(cifString: string, crosslinks: CrosslinkerPosition[]): string {
+export function generateCrosslinkCIF(
+  cifString: string,
+  crosslinks: CrosslinkerInformation[],
+): string {
   const atomLines: string[] = [];
   const connectionLines: string[] = [];
   let connectionId = 1;

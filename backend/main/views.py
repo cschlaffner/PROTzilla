@@ -700,7 +700,7 @@ def create_visualization(
     result = {"proteinEntryId": protein_entry_id, "cifString": cif_string}
 
     if crosslinking_df is not None:
-        result["crosslinks"] = extract_crosslink_positions(crosslinking_df)
+        result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
 
     return result
 
@@ -748,22 +748,24 @@ def convert_df_to_mmcif_for_visualization(
 
 
 # TODO: move helper functions somewhere else?
-def extract_crosslink_positions(crosslinking_df: pd.DataFrame) -> List[Dict[str, int]]:
+def extract_relevant_crosslink_information(crosslinking_df: pd.DataFrame) -> List[Dict[str, int]]:
     """
-    For each crosslink extract its positions from a DataFrame.
+    For each crosslink extract its relevant information from a DataFrame.
 
-    :param crosslinking_df: DataFrame with columns 'crosslinker_position1' and 'crosslinker_position2'.
-    :return: List of dicts with keys 'position1' and 'position2'.
+    :param crosslinking_df: DataFrame with columns 'crosslinker_position1', 'crosslinker_position2' and 'valid_crosslink'.
+    :return: List of dicts with keys 'position1', 'position2' and 'is_valid'.
     """
     crosslinks = []
     for _, row in crosslinking_df.iterrows():
         position1 = row.get("crosslinker_position1")
         position2 = row.get("crosslinker_position2")
-        if pd.notnull(position1) and pd.notnull(position2):
+        is_valid = row.get("valid_crosslink")
+        if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
             crosslinks.append(
                 {
                     "crosslinkerPosition1": int(position1),
                     "crosslinkerPosition2": int(position2),
+                    "isValid": bool(is_valid),
                 }
             )
     return crosslinks
