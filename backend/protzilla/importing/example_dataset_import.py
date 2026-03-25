@@ -1,18 +1,19 @@
 import py7zr
 from pridepy import pridepy
 
-from protzilla.constants.intensity_types import IntensityType
-from protzilla.constants.paths import (
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.constants.paths import (
     EXAMPLE_DATASET_PROTEIN_FILE,
     EXAMPLE_DATASET_METADATA_FILE,
     EXAMPLE_DATASET_EVIDENCE_FILE,
     EXAMPLE_DATASET_DIR,
 )
-from protzilla.constants.protzilla_logging import logger
-from protzilla.importing.import_utils import FeatureOrientationType
-from protzilla.importing.metadata_import import metadata_import_method
-from protzilla.importing.ms_data_import import max_quant_import
-from protzilla.importing.peptide_import import evidence_import
+from backend.protzilla.constants.protzilla_logging import logger
+from backend.protzilla.importing.import_utils import FeatureOrientationType
+from backend.protzilla.importing.metadata_import import metadata_import_method
+from backend.protzilla.importing.ms_data_import import max_quant_import
+from backend.protzilla.importing.peptide_import import evidence_import
 
 
 def download_example_data(
@@ -78,37 +79,37 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
         aggregation_method="Sum",
         ignore_only_identified_by_site=True,
     )
-    if "protein_df" not in protein_import_dict:
+    # Return messages
+    if DataKey.PROTEIN_DF not in protein_import_dict:
         return protein_import_dict
 
     metadata_import_dict = metadata_import_method(
-        protein_df=protein_import_dict["protein_df"],
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
     )
-    if "metadata_df" not in metadata_import_dict:
+    if DataKey.METADATA_DF not in metadata_import_dict:
         return metadata_import_dict
 
     if import_peptide_data:
-        peptide_import_dict = evidence_import(
+        psm_import_dict = evidence_import(
             file_path=EXAMPLE_DATASET_EVIDENCE_FILE,
             intensity_name=intensity_name,
             map_to_uniprot=False,
         )
-        if "peptide_df" not in peptide_import_dict:
-            return peptide_import_dict
+        if "psm_df" not in psm_import_dict:
+            return psm_import_dict
     else:
-        peptide_import_dict = {}
+        psm_import_dict = {}
 
     combined_messages = (
         protein_import_dict.pop("messages", [])
         + metadata_import_dict.pop("messages", [])
-        + peptide_import_dict.pop("messages", [])
+        + psm_import_dict.pop("messages", [])
     )
     combined_dict = {
         **protein_import_dict,
         **metadata_import_dict,
-        **peptide_import_dict,
+        **psm_import_dict,
         "messages": combined_messages,
     }
 

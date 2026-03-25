@@ -112,12 +112,11 @@ const StepDescriptionDropdown = styled.div`
 export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
   section,
-  //eslint-disable-next-line
-  index,
-  isSmallButton,
+  isSmallButton = false,
   onAddStep,
-  handlePosition,
-  setShowHandle,
+  handlePosition = { top: 0, left: 0 },
+  setShowHandle = () => undefined,
+  ModalTrigger,
 
   ...rest
 }) => {
@@ -185,7 +184,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
     await callApiWithParameters("add_step/", {
-      // TODO add index
       run_name: run_name,
       method: method_name,
     }).then(() => {
@@ -209,7 +207,9 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   // - - - Render - - -
   return (
     <div style={{ display: "flex", flexDirection: "column", margin: "0 5px" }}>
-      {isSmallButton ? (
+      {ModalTrigger ? (
+        ModalTrigger(handleOpenModal)
+      ) : isSmallButton ? (
         <IconButton
           icon={"add"}
           onPointerDown={isModalOpen ? undefined : handleOpenModal}

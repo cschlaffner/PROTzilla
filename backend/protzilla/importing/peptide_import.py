@@ -7,7 +7,7 @@ import pandas as pd
 
 from backend.protzilla.constants.intensity_types import IntensityType
 from backend.protzilla.importing.ms_data_import import clean_protein_groups
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities.utilities import format_trace
 from backend.protzilla.constants.peptide_columns import (
     MAX_QUANT_PEPTIDE_COLUMNS,
     MAX_QUANT_EVIDENCE_COLUMNS,
@@ -220,7 +220,7 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
         )
         messages.append(dict(level=logging.INFO, msg=msg))
 
-        return dict(peptide_df=df, messages=messages)
+        return dict(psm_df=df, messages=messages)
     except AssertionError as e:
         return dict(messages=[dict(level=logging.ERROR, msg=str(e))])
     except Exception as e:

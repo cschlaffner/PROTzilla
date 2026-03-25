@@ -11,7 +11,7 @@ from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
     create_pie_plot,
 )
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 from backend.protzilla.constants.option_types import (
     SimpleImputerStrategyType,
@@ -25,7 +25,8 @@ def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
     Also checks if some Protein groups have completely identical values for each sample.
     If so, add a warning to the messages list.
     :param df: the dataframe that should be checked
-    :return: True if there are NaN values in the dataframe, False otherwise
+    :param messages: a list to which warning messages will be appended
+    :return: a dictionary containing the dataframe and the updated messages list
     """
     if df.isnull().values.any():
         columns_with_nan = df.columns[df.isna().any()].tolist()
@@ -59,9 +60,7 @@ def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
     return dict(protein_df=df, messages=messages)
 
 
-def by_knn(
-    protein_df: pd.DataFrame, number_of_neighbours: int = 5, fit_params={}
-) -> dict:
+def by_knn(protein_df: pd.DataFrame, number_of_neighbours: int = 5) -> dict:
     """
     A function to perform value imputation based on KNN
     (k-nearest neighbors). Imputes missing values for each
@@ -92,7 +91,7 @@ def by_knn(
     columns = transformed_df.columns
 
     imputer = KNNImputer(n_neighbors=number_of_neighbours)
-    transformed_df = imputer.fit_transform(transformed_df, **fit_params)
+    transformed_df = imputer.fit_transform(transformed_df)
     transformed_df = pd.DataFrame(transformed_df, columns=columns, index=index)
 
     # Turn the wide format into the long format

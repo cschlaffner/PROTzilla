@@ -1,4 +1,3 @@
-import logging
 from unittest.mock import patch
 
 import time
@@ -193,7 +192,7 @@ def test_GO_analysis_with_STRING(mock_enrichment, background):
     mock_enrichment.side_effect = [up_df, down_df]
 
     out_df = GO_analysis_with_STRING(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_restring=["KEGG", "Process"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -229,7 +228,7 @@ def test_GO_analysis_with_STRING_one_direction_missing(mock_enrichment):
     mock_enrichment.side_effect = [up_df, down_df]
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=up_proteins_df,
+        protein_df=up_proteins_df,
         gene_sets_restring=["KEGG", "Process"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -239,7 +238,7 @@ def test_GO_analysis_with_STRING_one_direction_missing(mock_enrichment):
     assert "No downregulated proteins" in current_out["messages"][0]["msg"]
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=down_proteins_df,
+        protein_df=down_proteins_df,
         gene_sets_restring=["KEGG", "Process"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -259,7 +258,7 @@ def test_GO_analysis_with_STRING_no_upregulated_proteins():
     )
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_restring=["KEGG"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -279,7 +278,7 @@ def test_GO_analysis_with_STRING_no_downregulated_proteins():
     )
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_restring=["KEGG"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -299,7 +298,7 @@ def test_GO_analysis_with_STRING_no_knowledge_base():
     )
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_restring=None,
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -322,7 +321,7 @@ def test_GO_analysis_with_STRING_no_proteins():
     )
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_restring=["KEGG"],
         organism=9606,
         differential_expression_col="log2_fold_change",
@@ -335,7 +334,7 @@ def test_GO_analysis_with_STRING_no_proteins():
 
 def test_GO_analysis_with_STRING_proteins_list():
     current_out = GO_analysis_with_STRING(
-        proteins_df=["Protein1", "Protein2", "Protein3"],
+        protein_df=["Protein1", "Protein2", "Protein3"],
         gene_sets_restring=["KEGG"],
         organism=9606,
     )
@@ -348,7 +347,7 @@ def test_GO_analysis_with_STRING_proteins_list():
 
 def test_GO_analysis_with_STRING_no_fc_df():
     current_out = GO_analysis_with_STRING(
-        proteins_df=pd.DataFrame(["Protein1", "Protein2", "Protein3"]),
+        protein_df=pd.DataFrame(["Protein1", "Protein2", "Protein3"]),
         gene_sets_restring=["KEGG"],
         organism=9606,
     )
@@ -378,7 +377,7 @@ def test_GO_analysis_with_STRING_too_many_col_df():
     )
 
     current_out = GO_analysis_with_STRING(
-        proteins_df=test_intensity_df, gene_sets_restring=["KEGG"], organism=9606
+        protein_df=test_intensity_df, gene_sets_restring=["KEGG"], organism=9606
     )
     assert "messages" in current_out
     assert (
@@ -391,7 +390,7 @@ def test_GO_analysis_with_enrichr_wrong_proteins_input():
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
-        proteins_df="Protein1;Protein2;aStringOfProteins",
+        protein_df="Protein1;Protein2;aStringOfProteins",
         organism="human",
         differential_expression_col="log2_fold_change",
         gene_sets_enrichr=["KEGG"],
@@ -409,7 +408,7 @@ def test_GO_analysis_with_enrichr_wrong_gene_sets_input():
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
-        proteins_df=pd.DataFrame(
+        protein_df=pd.DataFrame(
             {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
         ),
         organism="human",
@@ -424,7 +423,7 @@ def test_GO_analysis_with_no_gene_sets_input():
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
-        proteins_df=pd.DataFrame(
+        protein_df=pd.DataFrame(
             {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
         ),
         organism="human",
@@ -485,7 +484,7 @@ def test_GO_analysis_with_Enrichr(mock_uniprot_groups_to_gene):
     filtered_protein_ids = (["Protein1", "Protein5", "Protein12;Protein13"],)
 
     current_out = GO_analysis_with_Enrichr(
-        proteins_df=pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 8}),
+        protein_df=pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 8}),
         gene_mapping_df=gene_mapping_df,
         organism="human",
         differential_expression_col="fold_change",
@@ -524,7 +523,7 @@ def test_GO_analysis_Enrichr_wrong_background_file():
     if biomart_availability == False:
         pytest.skip("BioMart servers are not available. Skipping related tests.")
     current_out = GO_analysis_with_Enrichr(
-        proteins_df=pd.DataFrame(
+        protein_df=pd.DataFrame(
             {"Protein ID": ["Protein1"], "log2_fold_change": [1.0]}
         ),
         organism="human",
@@ -622,7 +621,7 @@ def test_GO_analysis_offline_protein_sets(
     proteins_df = pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 6})
 
     current_out = GO_analysis_offline(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_path=protein_sets_path,
         differential_expression_col="fold_change",
         direction="up",
@@ -680,12 +679,12 @@ def test_GO_analysis_offline_background(
     proteins_df = pd.DataFrame({"Protein ID": proteins, "fold_change": [-1.0] * 6})
 
     current_out = GO_analysis_offline(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_path=TEST_ENRICHMENT_PATH / "gene_sets.txt",
         differential_expression_col="fold_change",
         differential_expression_threshold=1.0,  # all are downregulated
         direction="down",
-        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
+        background_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path=background_path,
         gene_mapping_df=offline_mock_mapping[0],
     )
@@ -721,7 +720,7 @@ def test_GO_analysis_offline_no_protein_sets():
     ]
     proteins_df = pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 3})
     current_out = GO_analysis_offline(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_path="",
         differential_expression_col="fold_change",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
@@ -740,7 +739,7 @@ def test_GO_analysis_offline_invalid_protein_set_file():
     ]
     proteins_df = pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 3})
     current_out = GO_analysis_offline(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_path="an_invalid_filetype.png",
         differential_expression_col="fold_change",
         direction="up",
@@ -760,11 +759,11 @@ def test_GO_analysis_offline_invalid_background_set_file():
     ]
     proteins_df = pd.DataFrame({"Protein ID": proteins, "fold_change": [1.0] * 3})
     current_out = GO_analysis_offline(
-        proteins_df=proteins_df,
+        protein_df=proteins_df,
         gene_sets_path="a_valid_filetype.gmt",
         differential_expression_col="fold_change",
         direction="up",
-        backgorund_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
+        background_type=GOAnalysisOflineBackgroundType.upload_a_file.value,
         background_path="an_invalid_filetype.png",
         gene_mapping_df=pd.DataFrame(columns=["Protein ID", "Gene"]),
     )

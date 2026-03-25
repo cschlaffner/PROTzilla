@@ -12,7 +12,7 @@ class TSNEMethod(Enum):
 
 
 def t_sne(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     method: str,
     n_components: int = 2,
     perplexity: float = 30.0,
@@ -29,8 +29,8 @@ def t_sne(
     You can find the default values for the non-adjustable parameters here:
     https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
 
-    :param input_df: the dataframe, whose dimensions should be reduced.
-    :type input_df: pd.DataFrame
+    :param protein_df: the dataframe, whose dimensions should be reduced.
+    :type protein_df: pd.DataFrame
     :param n_components: The dimension of the space to embed into.
     :type n_components: int
     :param perplexity: the perplexity is related to the number of nearest neighbors
@@ -57,6 +57,9 @@ def t_sne(
         corresponding Sample.
     :rtype: dict
     """
+
+    input_df = protein_df
+
     intensity_df_wide = (
         long_to_wide(input_df) if is_long_format(input_df) else input_df.copy()
     )
@@ -104,7 +107,7 @@ def t_sne(
 
 
 def umap(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     n_neighbors: float = 15,
     n_components: int = 2,
     min_dist: float = 0.1,
@@ -120,8 +123,8 @@ def umap(
     You can find the default values for the non-adjustable parameters here:
     https://umap-learn.readthedocs.io/en/latest/api.html
 
-    :param input_df: the dataframe, whose dimensions should be reduced.
-    :type input_df: pd.DataFrame
+    :param protein_df: the dataframe, whose dimensions should be reduced.
+    :type protein_df: pd.DataFrame
     :param n_components: The dimension of the space to embed into.
     :type n_components: int
     :param n_neighbors: The size of local neighborhood in terms of number of
@@ -150,6 +153,8 @@ def umap(
     # umap import is slow, so it should only get imported when needed
     from umap import UMAP
 
+    input_df = protein_df
+
     intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
     if intensity_df_wide.isnull().sum().any():
         raise ValueError(
@@ -170,4 +175,5 @@ def umap(
         index=intensity_df_wide.index,
         columns=[f"Component{i+1}" for i in range(n_components)],
     ).reset_index()
+
     return dict(embedded_data=embedded_data)

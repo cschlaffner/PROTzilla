@@ -1,12 +1,17 @@
 import logging
 
-from backend.protzilla.constants.option_types import SimpleImputerStrategyType
+from backend.protzilla.constants.option_types import (
+    PValueColumnName,
+    SimpleImputerStrategyType,
+)
+from backend.protzilla.constants.data_types import ClassificationType
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy import stats
+from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 from backend.protzilla.constants.colors import (
@@ -103,14 +108,14 @@ def scatter_plot(
 
 
 def create_volcano_plot(
-    p_values: pd.DataFrame,
-    log2_fc: pd.DataFrame,
+    corrected_p_values_df: pd.DataFrame,
+    log2_fold_change_df: pd.DataFrame,
     fc_threshold: float,
     alpha: float,
     group1: str,
     group2: str,
-    item_type: str = "Protein ID",
-    items_of_interest: list | None = None,
+    item_type: PValueColumnName = PValueColumnName.protein_id,
+    items_of_interest: list[str] | None = None,
 ) -> dict:
     """
     Function to create a volcano plot from p values and log2 fold change with the
@@ -127,8 +132,20 @@ def create_volcano_plot(
 
     :return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
-
-    plot_df = p_values.join(log2_fc.set_index(item_type), on=item_type)
+    try:
+        item_type = PValueColumnName(item_type)
+    except ValueError:
+        raise ValueError(
+            f"Unknown column for p-values. Accepted types are {[item for item in PValueColumnName]}"
+        )
+    if item_type not in corrected_p_values_df.columns:
+        raise KeyError(
+            f"Column {item_type} not present in the data passed to this step. \
+            Available columns are {[column for column in corrected_p_values_df.columns]}."
+        )
+    plot_df = corrected_p_values_df.join(
+        log2_fold_change_df.set_index(item_type), on=item_type
+    )
     fig = dashbio.VolcanoPlot(
         dataframe=plot_df,
         effect_size="log2_fold_change",
@@ -147,8 +164,6 @@ def create_volcano_plot(
     )
     if items_of_interest is None:
         items_of_interest = []
-    elif not isinstance(items_of_interest, list):
-        items_of_interest = [items_of_interest]
 
     # annotate the items of interest permanently in the plot
     for item in items_of_interest:
@@ -195,11 +210,19 @@ def create_volcano_plot(
         selector=dict(name=f"Not Significant {item_type}s"),
     )
 
-    return dict(plots=[fig])
+    return dict(
+        plots=[fig],
+        messages=[
+            dict(
+                level=logging.INFO,
+                msg=f"Using possibly corrected alpha with value of {alpha}",
+            )
+        ],
+    )
 
 
 def clustergram_plot(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None,
     flip_axes: bool,
     metadata_column: str | None = None,
@@ -242,8 +265,10 @@ def clustergram_plot(
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
     try:
-        assert isinstance(input_df, pd.DataFrame) and not input_df.empty
+        assert isinstance(protein_df, pd.DataFrame) and not protein_df.empty
         assert isinstance(metadata_df, pd.DataFrame) or not metadata_df
+
+        input_df = protein_df
 
         messages = []
         input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
@@ -321,15 +346,10 @@ def clustergram_plot(
         )
         return dict(plots=[clustergram], messages=messages)
     except AssertionError as e:
-        if not isinstance(input_df, pd.DataFrame):
+        if not isinstance(protein_df, pd.DataFrame):
             msg = 'The selected input for "input dataframe" is not a dataframe, dataframes have the suffix "df"'
         elif not isinstance(metadata_df, pd.DataFrame) and metadata_df is not None:
             msg = 'The selected input for "metadata dataframe" is not a dataframe, dataframes have the suffix "df"'
-        elif input_df_wide.isna().any(axis=None):
-            msg = (
-                "The selected input dataframe contains missing values. These should be filtered out or imputed before "
-                "creating a clustergram plot."
-            )
         elif (
             isinstance(metadata_df, pd.DataFrame)
             and metadata_column not in metadata_df.columns
@@ -345,7 +365,7 @@ def clustergram_plot(
 
 
 def prot_quant_plot(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     protein_group: str,
     similarity: float = 1.0,
     similarity_measure: str = "euclidean distance",
@@ -366,9 +386,11 @@ def prot_quant_plot(
     :return: returns a dictionary containing a list with a plotly figure
     """
 
-    wide_df = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_wide_df = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
-    if protein_group not in wide_df.columns:
+    if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")
     elif similarity_measure == "euclidean distance" and similarity < 0:
         raise ValueError(
@@ -389,14 +411,14 @@ def prot_quant_plot(
     lower_upper_x = []
     lower_upper_y = []
 
-    lower_upper_x.append(wide_df.index[0])
-    lower_upper_y.append(wide_df.iloc[0].min())
+    lower_upper_x.append(protein_wide_df.index[0])
+    lower_upper_y.append(protein_wide_df.iloc[0].min())
 
-    for index, row in wide_df.iterrows():
+    for index, row in protein_wide_df.iterrows():
         lower_upper_x.append(index)
         lower_upper_y.append(row.max())
 
-    for index, row in reversed(list(wide_df.iterrows())):
+    for index, row in reversed(list(protein_wide_df.iterrows())):
         lower_upper_x.append(index)
         lower_upper_y.append(row.min())
 
@@ -411,17 +433,17 @@ def prot_quant_plot(
     )
 
     similar_groups = []
-    for group_to_compare in wide_df.columns:
+    for group_to_compare in protein_wide_df.columns:
         if group_to_compare != protein_group:
             if similarity_measure == "euclidean distance":
                 distance = euclidean_distances(
-                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             else:
                 distance = cosine_similarity(
-                    stats.zscore(wide_df[protein_group]).reshape(1, -1),
-                    stats.zscore(wide_df[group_to_compare]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
+                    stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
             if similarity_measure == "euclidean distance":
                 if distance <= similarity:
@@ -433,8 +455,8 @@ def prot_quant_plot(
     for group in similar_groups:
         fig.add_trace(
             go.Scatter(
-                x=wide_df.index,
-                y=wide_df[group],
+                x=protein_wide_df.index,
+                y=protein_wide_df[group],
                 mode="lines",
                 name=group[:15] + "..." if len(group) > 15 else group,
                 line=dict(color=PLOT_COLOR_SEQUENCE[2]),
@@ -458,8 +480,8 @@ def prot_quant_plot(
     )
     fig.add_trace(
         go.Scatter(
-            x=wide_df.index,
-            y=wide_df[protein_group],
+            x=protein_wide_df.index,
+            y=protein_wide_df[protein_group],
             mode="lines",
             name=formatted_protein_name,
             line=dict(color=PLOT_SECONDARY_COLOR),
@@ -499,10 +521,10 @@ def prot_quant_plot(
         xaxis=dict(
             tickmode="array",
             tickangle=0,
-            tickvals=wide_df.index,
+            tickvals=protein_wide_df.index,
             ticktext=[
                 f"<span style='font-size: 10px; color:{color_mapping.get(label[0], 'black')}'><b>•</b></span>"
-                for label in wide_df.index
+                for label in protein_wide_df.index
             ],
         ),
         autosize=True,
@@ -513,6 +535,46 @@ def prot_quant_plot(
             bgcolor="rgba(255, 255, 255, 0.5)",
             orientation="v",
         ),
+    )
+
+    return dict(plots=[fig])
+
+
+def precision_recall_plot(
+    model: ClassificationType,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
+):
+    y_score = model.predict_proba(X_test_df)[:, 1]
+    precision, recall, _ = precision_recall_curve(y_test_df, y_score)
+    auc_score = auc(recall, precision)
+    fig = go.Figure()
+    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=1, y1=0)
+    fig.add_trace(go.Scatter(x=recall, y=precision, mode="lines"))
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+    fig.update_layout(
+        title=f"Precision-Recall Curve (AUC={auc_score:.4f})",
+    )
+
+    return dict(plots=[fig])
+
+
+def roc_plot(
+    model: ClassificationType,
+    X_test_df: pd.DataFrame,
+    y_test_df: pd.DataFrame,
+):
+    y_score = model.predict_proba(X_test_df)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test_df, y_score)
+    auc_score = auc(fpr, tpr)
+    fig = go.Figure()
+    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=0, y1=1)
+    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines"))
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+    fig.update_xaxes(constrain="domain")
+    fig.update_layout(
+        title=f"ROC Curve (AUC={auc_score:.4f})",
     )
 
     return dict(plots=[fig])
