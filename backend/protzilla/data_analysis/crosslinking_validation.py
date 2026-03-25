@@ -382,6 +382,11 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df["valid_crosslink"].notna()
     ]
 
+    checked_crosslinks_df["link_type"] = checked_crosslinks_df.apply(
+        lambda row: "intra" if row["Protein_id1"] == row["Protein_id2"] else "inter",
+        axis=1,
+    )
+
     return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
 
 
@@ -442,6 +447,18 @@ def diagrams_of_crosslinking_validation_data(
         df_valid = pd.DataFrame({"alphafold_distance": distances_valid})
         df_invalid = pd.DataFrame({"alphafold_distance": distances_invalid})
 
+        # Count intra/inter for valid and invalid crosslinks
+        valid_mask = crosslinker_df["valid_crosslink"]
+        invalid_mask = ~crosslinker_df["valid_crosslink"]
+        valid_intra = ((valid_mask) & (crosslinker_df["link_type"] == "intra")).sum()
+        valid_inter = ((valid_mask) & (crosslinker_df["link_type"] == "inter")).sum()
+        invalid_intra = (
+            (invalid_mask) & (crosslinker_df["link_type"] == "intra")
+        ).sum()
+        invalid_inter = (
+            (invalid_mask) & (crosslinker_df["link_type"] == "inter")
+        ).sum()
+
         (
             crosslinker_length,
             accepted_deviation_upper_bound,
@@ -451,8 +468,8 @@ def diagrams_of_crosslinking_validation_data(
         histogram = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a="Valid Crosslinks",
-            name_b="Invalid Crosslinks",
+            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
             x_title="Distance (Å)",
             y_title="Count",
@@ -483,8 +500,8 @@ def diagrams_of_crosslinking_validation_data(
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a="Valid Crosslinks",
-            name_b="Invalid Crosslinks",
+            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
             x_title="Distance (Å)",
             y_title="Count",
@@ -543,8 +560,20 @@ def diagrams_of_crosslinking_validation_data(
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
-    valid_crosslinks = (validated_df["valid_crosslink"] == True).sum()
-    invalid_crosslinks = (validated_df["valid_crosslink"] == False).sum()
+    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
+    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
+    valid_intra_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    valid_inter_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+    invalid_intra_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    invalid_inter_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
 
     bar_plot_over_all_checked_crosslinks = create_bar_plot(
         values_of_sectors=[
@@ -552,8 +581,8 @@ def diagrams_of_crosslinking_validation_data(
             invalid_crosslinks,
         ],
         names_of_sectors=[
-            "Cross-Links matching predicted data",
-            "Cross-Links not matching predicted data",
+            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
         ],
         heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
         y_title="Number of Cross-Links",
