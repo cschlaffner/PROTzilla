@@ -430,11 +430,11 @@ class AlphaFoldPredictionLoad(ImportingStep):
     method_description = "Loads the predicted structure of the monomer with the given protein ID out of the AlphaFold DB."
 
     output_keys = [
-        "metadata_df",
-        "cif_df",
-        "pae_df",
-        "plddt_df",
-        "amino_acid_sequences_df",
+        DataKey.METADATA_DF,
+        DataKey.CIF_DF,
+        DataKey.PAE_DF,
+        DataKey.PLDDT_DF,
+        DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
     plot_method = None
@@ -463,7 +463,7 @@ class CrosslinkingImport(ImportingStep):
     operation = "Crosslinking Data Import"
     method_description = "Import a file containing crosslinking data"
 
-    output_keys = ["crosslinking_df", "imported_rows_with_errors_df"]
+    output_keys = [DataKey.CROSSLINKING_DF]
 
     def create_form(self):
         return Form(
@@ -494,11 +494,11 @@ class ImportMonomerStructurePredictionFromDisk(ImportingStep):
     method_description = "Load an already uploaded monomer structure prediction from disk into current run"
 
     output_keys = [
-        "metadata_df",
-        "cif_df",
-        "pae_df",
-        "plddt_df",
-        "amino_acid_sequences_df",
+        DataKey.METADATA_DF,
+        DataKey.CIF_DF,
+        DataKey.PAE_DF,
+        DataKey.PLDDT_DF,
+        DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
     def create_form(self):
@@ -508,11 +508,14 @@ class ImportMonomerStructurePredictionFromDisk(ImportingStep):
                 DropdownField(
                     name="entry_id",
                     label="Entry ID of the monomer prediction to be loaded into the run. (Unless specified otherwise this is the Protein ID)",
-                    options=form_helper.to_choices(
-                        get_all_available_entry_ids_of_monomer_metadata()
-                    ),
                 )
             ],
+        )
+
+    def modify_form(self, run: Run):
+        entry_id_field = self.form["entry_id"]
+        entry_id_field.set_options(
+            form_helper.to_choices(get_all_available_entry_ids_of_monomer_metadata())
         )
 
     calc_method = staticmethod(get_monomer_structure_dfs)
@@ -524,11 +527,11 @@ class UploadMultimerPredictions(ImportingStep):
     method_description = "Upload a multimer protein prediction"
 
     output_keys = [
-        "metadata_df",
-        "cif_df",
-        "confidence_df",
-        "full_data_df",
-        "amino_acid_sequences_df",
+        DataKey.METADATA_DF,
+        DataKey.CIF_DF,
+        DataKey.CONFIDENCE_DF,
+        DataKey.FULL_DATA_DF,
+        DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
     def create_form(self):
@@ -590,11 +593,11 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
     method_description = "Load an already uploaded multimer structure prediction from disk into current run"
 
     output_keys = [
-        "metadata_df",
-        "amino_acid_sequences_df",
-        "cif_df",
-        "confidence_df",
-        "full_data_df",
+        DataKey.METADATA_DF,
+        DataKey.CIF_DF,
+        DataKey.CONFIDENCE_DF,
+        DataKey.FULL_DATA_DF,
+        DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
     def create_form(self):
@@ -604,11 +607,14 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
                 DropdownField(
                     name="entry_id",
                     label="Entry ID of the multimer prediction to be loaded into the run.",
-                    options=form_helper.to_choices(
-                        get_all_available_entry_ids_of_multimer_metadata()
-                    ),
                 )
             ],
+        )
+
+    def modify_form(self, run: Run):
+        entry_id_field = self.form["entry_id"]
+        entry_id_field.set_options(
+            form_helper.to_choices(get_all_available_entry_ids_of_multimer_metadata())
         )
 
     calc_method = staticmethod(get_multimer_structure_dfs)

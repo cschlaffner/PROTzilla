@@ -4,6 +4,7 @@ from backend.protzilla.run import Run
 
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
+    """should probably only be used in modify_form and not when defining the form"""
     return sorted(
         [Option(str(el), str(el)) for el in choices] + [Option(None, "---------")]
         if not required

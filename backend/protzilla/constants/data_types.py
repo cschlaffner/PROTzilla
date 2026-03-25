@@ -20,6 +20,13 @@ class DataKey(StrEnum):
     LOG2_FOLD_CHANGE_DF = "log2_fold_change_df"
     ENRICHMENT_DF = "enrichment_df"
     GENE_MAPPING_DF = "gene_mapping_df"
+    CIF_DF = "cif_df"
+    AMINO_ACID_SEQUENCES_DF = "amino_acid_sequences_df"
+    PAE_DF = "pae_df"  # pae = predicted aligned error
+    PLDDT_DF = "plddt_df"  # plddt = predicted local distance difference test
+    CROSSLINKING_DF = "crosslinking_df"
+    CONFIDENCE_DF = "confidence_df"
+    FULL_DATA_DF = "full_data_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)

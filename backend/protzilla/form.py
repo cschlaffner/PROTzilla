@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     pass
 
 
-FormInputType = str | int | float | bool | list[str]
+FormInputType = str | int | float | bool | list[str] | dict
 
 # Backwards compatibility for older imports that expect `inputs` from this module.
 inputs = FormInputType

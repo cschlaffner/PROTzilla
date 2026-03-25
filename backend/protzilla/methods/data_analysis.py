@@ -2369,10 +2369,17 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
         )
 
 
-class CrosslinkingValidation(DataAnalysisStep):
-    @staticmethod
-    def _get_crosslinker_names_from_crosslinker_df(steps: StepManager) -> list[str]:
-        df = steps.get_step_output(Step, output_key="crosslinking_df")
+class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
+    output_keys = ["crosslinking_result_df"]
+    internal_inputs = {"crosslinker_information"}
+
+    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
+    calc_method = staticmethod(validate_with_angstrom_deviation)
+
+    def _get_crosslinker_names_from_crosslinker_df(
+        self, steps: StepManager
+    ) -> list[str]:
+        df = self.get_input(steps, DataKey.CROSSLINKING_DF)
         if df is None or "Crosslinker" not in df.columns:
             return []
         crosslinkers = df["Crosslinker"].dropna().unique()
@@ -2413,143 +2420,37 @@ class CrosslinkingValidation(DataAnalysisStep):
             ]
         return crosslinker_to_length_and_deviation
 
-    def insert_dataframes_with_correct_input_step_id(
-        self, steps, inputs, correct_input_step_identifier: str
-    ) -> dict:
-        inputs["cif_df"] = steps.get_step_output(
-            Step, "cif_df", correct_input_step_identifier
-        )
-        inputs["amino_acid_sequences_df"] = steps.get_step_output(
-            Step, "amino_acid_sequences_df", correct_input_step_identifier
-        )
-        inputs["crosslinking_df"] = steps.get_step_output(
-            Step,
-            "crosslinking_df",
-        )
-        if inputs.get("crosslinking_df") is None:
-            raise ValueError("No cross linking data found.")
+    def modify_form(self, run: Run) -> None:
+        # create input fields for every crosslink
+        self.create_crosslink_input_fields(form=self.form, run=run)
 
-        inputs["crosslinker_information"] = self.collect_crosslinking_information(
-            steps=steps, inputs=inputs
+    def insert_dataframes(self, steps: StepManager) -> None:
+        super().insert_dataframes(steps)
+        self.inputs["crosslinker_information"] = self.collect_crosslinking_information(
+            steps=steps, inputs=self.form_inputs
         )
 
-        metadata_df = steps.get_step_output(
-            Step, "metadata_df", correct_input_step_identifier
-        )
-        if "uniprot_accession" in metadata_df.columns:
-            inputs["structures_to_validate"] = metadata_df["uniprot_accession"].tolist()
-        elif "uniprot_ids" in metadata_df.columns:
-            value = metadata_df["uniprot_ids"].iloc[0]
-            if isinstance(value, str):
-                value = ast.literal_eval(value)
 
-            inputs["structures_to_validate"] = value
-
-        else:
-            raise ValueError(
-                "No correct metadata found. Metadata must contain 'uniprot_ids' or 'uniprot_accession'."
-            )
-        return inputs
-
-
-class CrosslinkingValidationWithAngstromDeviation(CrosslinkingValidation):
+class CrosslinkingValidationWithAngstromDeviation(
+    CrosslinkingValidationWithAngstromStep
+):
     display_name = "Ångström Deviation For Monomer Structures"
     operation = "Cross Linking Validation"
     method_description = "Validates cross links within the one protein structure based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
 
-    output_keys = ["crosslinking_result_df"]
-
     def create_form(self):
-        return Form(
-            label="Ångström Deviation - Monomer",
-            input_fields=[
-                DropdownField(
-                    name="entry_id",
-                    label="Protein prediction that should be validated",
-                ),
-            ],
-        )
-
-    def modify_form(self, form: Form, run: Run) -> None:
-        # add all loaded protein entry ids to the dropdown of structures_to_validate_field
-        loaded_protein_entry_ids = list(
-            set(
-                run.steps.get_inputs_of_step_type(
-                    ImportMonomerStructurePredictionFromDisk, "entry_id"
-                )
-                + run.steps.get_inputs_of_step_type(
-                    AlphaFoldPredictionLoad, "uniprot_id"
-                )
-            )
-        )
-        form["entry_id"].set_options(form_helper.to_choices(loaded_protein_entry_ids))
-        # create fields for every crosslink
-        self.create_crosslink_input_fields(form=form, run=run)
-
-    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
-    calc_method = staticmethod(validate_with_angstrom_deviation)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["entry_id"]
-        correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
-            ImportMonomerStructurePredictionFromDisk, "entry_id", entry_id
-        ) or steps.get_step_identifier_of_step_with_input(
-            AlphaFoldPredictionLoad, "uniprot_id", entry_id
-        )
-
-        return self.insert_dataframes_with_correct_input_step_id(
-            steps=steps,
-            inputs=inputs,
-            correct_input_step_identifier=correct_input_step_identifier,
-        )
+        return Form(label="Ångström Deviation - Monomer", input_fields=[])
 
 
-class CrosslinkingValidationWithAngstromDeviationForMultimer(CrosslinkingValidation):
+class CrosslinkingValidationWithAngstromDeviationForMultimer(
+    CrosslinkingValidationWithAngstromStep
+):
     display_name = "Ångström Deviation For Multimer Structures"
     operation = "Cross Linking Validation"
     method_description = "Validates cross links between proteins based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
 
-    output_keys = ["crosslinking_result_df"]
-
     def create_form(self):
         return Form(
             label="Ångström Deviation - Multimer",
-            input_fields=[
-                DropdownField(
-                    name="entry_id",
-                    label="Multimer prediction that should be validated",
-                ),
-            ],
-        )
-
-    def modify_form(self, form: Form, run: Run) -> None:
-        # add all loaded protein entry ids to the dropdown of structures_to_validate_field
-        loaded_proteins_entry_ids = list(
-            set(
-                run.steps.get_inputs_of_step_type(
-                    ImportMultimerStructurePredictionFromDisk, "entry_id"
-                )
-                + run.steps.get_inputs_of_step_type(
-                    UploadMultimerPredictions, "entry_id"
-                )
-            )
-        )
-        form["entry_id"].set_options(form_helper.to_choices(loaded_proteins_entry_ids))
-        self.create_crosslink_input_fields(form=form, run=run)
-
-    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
-    calc_method = staticmethod(validate_with_angstrom_deviation)
-
-    def insert_dataframes(self, steps: StepManager, inputs) -> dict:
-        entry_id = inputs["entry_id"]
-        correct_input_step_identifier = steps.get_step_identifier_of_step_with_input(
-            ImportMultimerStructurePredictionFromDisk, "entry_id", entry_id
-        ) or steps.get_step_identifier_of_step_with_input(
-            UploadMultimerPredictions, "entry_id", entry_id
-        )
-
-        return self.insert_dataframes_with_correct_input_step_id(
-            steps=steps,
-            inputs=inputs,
-            correct_input_step_identifier=correct_input_step_identifier,
+            input_fields=[],
         )

@@ -62,7 +62,7 @@ class Step(ABC):
         self,
         instance_identifier: StepID | None = None,
     ):
-        self.inputs: dict[DataKey, pd.DataFrame | FormInputType] = {}
+        self.inputs: dict[DataKey | str, pd.DataFrame | FormInputType] = {}
         self.output: Output = Output()
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
@@ -101,7 +101,7 @@ class Step(ABC):
         )
 
     def get_form_values(self) -> None:
-        self.inputs = self.form_inputs.copy()
+        self.inputs |= self.form_inputs.copy()
 
     @classmethod
     def to_dict(cls):

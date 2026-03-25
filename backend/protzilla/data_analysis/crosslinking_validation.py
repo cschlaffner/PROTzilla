@@ -1,5 +1,5 @@
 import itertools
-
+import ast
 import math
 
 import pandas as pd
@@ -256,9 +256,21 @@ def add_protein_crosslink_positions_to_df(
     return crosslinking_df, messages
 
 
+def _get_structures_to_validate(metadata_df: pd.DataFrame) -> list[str]:
+    if "uniprot_accession" in metadata_df.columns:
+        return metadata_df["uniprot_accession"].tolist()
+    elif "uniprot_ids" in metadata_df.columns:
+        value = metadata_df["uniprot_ids"].iloc[0]
+        if isinstance(value, str):
+            value = ast.literal_eval(value)
+        return value
+    else:
+        raise ValueError("Metadata must contain 'uniprot_ids' or 'uniprot_accession'.")
+
+
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
-    structures_to_validate: list[str],
+    metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -270,7 +282,7 @@ def validate_with_angstrom_deviation(
     and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
     :param crosslinking_df: DataFrame containing cross-linking data.
-    :param structures_to_validate: UniProt IDs of the proteins to validate.
+    :param metadata_df: DataFrame containing metadata
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
@@ -283,7 +295,7 @@ def validate_with_angstrom_deviation(
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
-
+    structures_to_validate = _get_structures_to_validate(metadata_df)
     all_crosslinks_df = crosslinking_df.copy()
     is_multimer = len(structures_to_validate) > 1
     if not is_multimer:
@@ -387,7 +399,7 @@ def validate_with_angstrom_deviation(
 
 def diagrams_of_crosslinking_validation_data(
     crosslinking_df: pd.DataFrame,
-    structures_to_validate: list[str],
+    metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -409,7 +421,7 @@ def diagrams_of_crosslinking_validation_data(
 
     :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
                             distances, crosslinker identifiers, and validation results.
-    :param structures_to_validate: UniProt IDs of the proteins to validate.
+    :param metadata_df: Dataframe containing metadata.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
@@ -421,9 +433,10 @@ def diagrams_of_crosslinking_validation_data(
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
+    structures_to_validate = _get_structures_to_validate(metadata_df)
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df,
-        structures_to_validate,
+        metadata_df,
         crosslinker_information,
         cif_df,
         amino_acid_sequences_df,
