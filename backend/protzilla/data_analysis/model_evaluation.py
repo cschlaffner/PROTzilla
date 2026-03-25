@@ -1,7 +1,6 @@
 import pandas as pd
 
 from backend.protzilla.data_analysis.classification_helper import (
-    encode_labels,
     evaluate_with_scoring,
 )
 

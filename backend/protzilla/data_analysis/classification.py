@@ -7,7 +7,6 @@ from backend.protzilla.data_analysis.classification_helper import (
     create_dict_with_lists_as_values,
     create_model_evaluation_df_grid_search,
     create_model_evaluation_df_grid_search_manual,
-    decode_labels,
     encode_labels,
     evaluate_with_scoring,
     perform_cross_validation,

@@ -1,5 +1,4 @@
 from abc import ABC
-import logging
 from typing_extensions import override
 import ast
 
@@ -68,13 +67,9 @@ from backend.protzilla.form import (
     HeaderInfoField,
     InfoField,
     InputField,
-    Option,
     MultiSelectField,
     NumberField,
     TextField,
-)
-from backend.protzilla.methods.data_preprocessing import (
-    DataPreprocessingStep,
 )
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
