@@ -13,6 +13,7 @@ import {
 import { Button } from "../../button";
 import {
   CheckboxSelectInputField,
+  ColorInputField,
   DropdownInputField,
   FileInputField,
   FormDivider,
@@ -50,11 +51,12 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   buttonText,
   previousStepCalculationStatus,
   currentStepCalculationStatus,
-  current_step_index,
+  current_step_id,
   isLastStep,
   onNext,
   onSubmit,
   onChange,
+  runData,
 }) {
   const notify = useNotification();
   const theme = useTheme();
@@ -78,7 +80,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
 
   useEffect(() => {
     void getStepForm();
-  }, [current_step_index, getStepForm]);
+  }, [current_step_id, getStepForm, runData]);
 
   const handleChange = (name: string, value: BackendInputValueType) => {
     void getStepForm({ [name]: value });
@@ -188,6 +190,8 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
       return <TextInputField onChange={handleInputChange} {...props} />;
     case "number":
       return <NumberInputField onChange={handleInputChange} {...props} />;
+    case "color":
+      return <ColorInputField onChange={handleInputChange} {...props} />;
     case "search":
       return <SearchInputField onChange={handleInputChange} {...props} />;
     case "radio-select":

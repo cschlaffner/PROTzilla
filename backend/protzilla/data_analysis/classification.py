@@ -7,14 +7,17 @@ from backend.protzilla.data_analysis.classification_helper import (
     create_dict_with_lists_as_values,
     create_model_evaluation_df_grid_search,
     create_model_evaluation_df_grid_search_manual,
-    decode_labels,
     encode_labels,
     evaluate_with_scoring,
     perform_cross_validation,
     perform_grid_search_cv,
     perform_train_test_split,
 )
-from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.utilities.transform_dfs import (
+    is_long_format,
+    long_to_wide,
+)
 
 
 def perform_classification(
@@ -54,7 +57,7 @@ def perform_classification(
         )
         return model, model_evaluation_df
     elif validation_strategy == "Manual" and grid_search_method != "Manual":
-        return "Please select a cross validation strategy"
+        raise ValueError("Please select a cross validation strategy")
     elif validation_strategy != "Manual" and grid_search_method == "Manual":
         model = clf.set_params(**clf_parameters)
         cv = perform_cross_validation(
@@ -100,7 +103,7 @@ def perform_classification(
 
 
 def random_forest(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
@@ -110,7 +113,7 @@ def random_forest(
     bootstrap: bool = True,
     # test_split_parameters
     test_size: float = 0.2,
-    split_stratify: str = "yes",
+    split_stratify: bool = True,
     shuffle: bool = True,
     random_state: int = 42,
     # classification_parameters
@@ -128,8 +131,8 @@ def random_forest(
     """
     Perform classification using a random forest classifier from sklearn.
 
-    :param input_df: The dataframe that should be classified in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be classified in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -151,7 +154,7 @@ def random_forest(
     :type test_size: float, optional
     :param split_stratify: If not None, data is split in a stratified fashion, using this as
         the class labels.
-    :type split_stratify: str, optional
+    :type split_stratify: bool, optional
     :param shuffle: Whether to shuffle the data before splitting.
     :type shuffle: bool, optional
     :param random_state: The random seed for reproducibility.
@@ -183,10 +186,12 @@ def random_forest(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
     # prepare X and y dataframes for classification
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -196,8 +201,13 @@ def random_forest(
         labels_df, labels_column, positive_label
     )
 
+    # Filter out samples with NaN labels
+    valid_samples = labels_df[labels_column].notna()
+    labels_df = labels_df[valid_samples]
+    protein_df_wide = protein_df_wide[protein_df_wide.index.isin(labels_df.index)]
+
     X_train, X_test, y_train, y_test = perform_train_test_split(
-        input_df_wide,
+        protein_df_wide,
         labels_df["Encoded Label"],
         test_size,
         shuffle=shuffle,
@@ -233,37 +243,31 @@ def random_forest(
         p_samples,
     )
 
-    X_test.reset_index(inplace=True)
-    X_train.reset_index(inplace=True)
-    y_test = decode_labels(encoding_mapping, y_test)
-    y_train = decode_labels(encoding_mapping, y_train)
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )
 
 
 def svm(
-    input_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     labels_column: str,
     positive_label: str = None,
     C=1.0,
     kernel="rbf",
-    gamma="scale",  # only relevant ‘rbf’, ‘poly’ and ‘sigmoid’.
     coef0=0.0,  # relevant for "poly" and "sigmoid"
-    probability=True,
     tolerance=0.001,
     class_weight=None,
     max_iter=-1,
     random_state=42,
     # test_split_parameters
     test_size: float = 0.2,
-    split_stratify: str = "yes",
+    split_stratify: bool = True,
     shuffle: bool = True,
     # classification_parameters
     model_selection: str = "Grid search",
@@ -280,8 +284,8 @@ def svm(
     """
     Perform classification using the support vector machine classifier from sklearn.
 
-    :param input_df: The dataframe that should be classified in wide or long format
-    :type input_df: pd.DataFrame
+    :param protein_df: The dataframe that should be classified in wide or long format
+    :type protein_df: pd.DataFrame
     :param metadata_df: A separate dataframe containing additional metadata information.
     :type metadata_df: pd.DataFrame
     :param labels_column: The column name in the `metadata_df` dataframe that contains
@@ -293,18 +297,13 @@ def svm(
     :type C: float
     :param kernel: Specifies the kernel type.
     :type kernel: str, optional
-    :param gamma: Kernel coefficient (default: 'scale', relevant for 'rbf', 'poly', and
-        'sigmoid').
-    :type gamma: str
     :param coef0: Independent term in the kernel function (relevant for 'poly' and
         'sigmoid').
     :type coef0: float
-    :param probability: Whether to enable probability estimates
-    :type probability: bool, optional
     :param tol: Tolerance for stopping criterion
     :type tol: float
     :param class_weight: Weights associated with classes
-    :type class_weight: float
+    :type class_weight: dict[str, float] | None
     :param max_iter: Maximum number of iterations (default: -1, indicating no limit).
     :type max_iter: int
     :param random_state: The random seed for reproducibility.
@@ -312,12 +311,11 @@ def svm(
     :param test_size: The proportion of data to be used for testing. Default is
         0.2 (80-20 train-test split).
     :type test_size: float, optional
-    :param split_stratify: If not None, data is split in a stratified fashion, using this as
+    :param split_stratify: If true, data is split in a stratified fashion, using this as
         the class labels.
-    :type split_stratify: str, optional
+    :type split_stratify: bool, optional
     :param shuffle: Whether to shuffle the data before splitting.
     :type shuffle: bool, optional
-
     :param model_selection: The model selection method for hyperparameter tuning.
     :type model_selection: str
     :param scoring: The scoring metric(s) used to evaluate the model's performance
@@ -344,10 +342,15 @@ def svm(
     """
     # TODO 216 add warning to user that data should be to shuffled, give that is being sorted at the beginning!
 
-    input_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    if positive_label == "---------":
+        positive_label = None
+
+    protein_df_wide = (
+        long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
+    )
 
     # prepare X and y dataframes for classification
-    input_df_wide.sort_values(by="Sample", inplace=True)
+    protein_df_wide.sort_values(by="Sample", inplace=True)
     labels_df = (
         metadata_df[["Sample", labels_column]]
         .set_index("Sample")
@@ -357,9 +360,34 @@ def svm(
         labels_df, labels_column, positive_label
     )
 
+    # Filter out samples with NaN labels
+    valid_samples = labels_df[labels_column].notna()
+    labels_df = labels_df[valid_samples]
+    protein_df_wide = protein_df_wide[protein_df_wide.index.isin(labels_df.index)]
+
+    # encode class weigths because we encode the labels
+    if class_weight:
+        encoded_class_weight = {}
+        for encoded_label, original_label in encoding_mapping.items():
+            if (
+                original_label in class_weight
+                and class_weight[original_label] is not None
+            ):
+                encoded_class_weight[encoded_label] = class_weight[original_label]
+        class_weight = encoded_class_weight or None
+
+    # without this we introduce NaNs that makes perform_train_test_split break
+    common_idx = protein_df_wide.index.intersection(labels_df.index)
+    protein_df_wide = protein_df_wide.loc[common_idx]
+    labels_df = labels_df.loc[common_idx]
+
+    mask = labels_df["Encoded Label"].notna()
+    X_clean = protein_df_wide[mask]
+    y_clean = labels_df.loc[mask, "Encoded Label"]
+
     X_train, X_test, y_train, y_test = perform_train_test_split(
-        input_df_wide,
-        labels_df["Encoded Label"],
+        X_clean,
+        y_clean,
         test_size,
         shuffle=shuffle,
         split_stratify=split_stratify,
@@ -370,12 +398,12 @@ def svm(
     clf_parameters = dict(
         C=C,
         kernel=kernel,
-        gamma=gamma,
+        gamma="scale",
         coef0=coef0,
-        probability=probability,
+        probability=False,
         tol=tolerance,
         class_weight=class_weight,
-        max_iter=max_iter,
+        max_iter=int(max_iter),
         random_state=random_state,
     )
     # multiselect returns a string when only one value is selected
@@ -397,15 +425,11 @@ def svm(
         p_samples,
     )
 
-    X_test.reset_index(inplace=True)
-    X_train.reset_index(inplace=True)
-    y_test = decode_labels(encoding_mapping, y_test)
-    y_train = decode_labels(encoding_mapping, y_train)
     return dict(
-        model=model,
+        model=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=model),
         model_evaluation_df=model_evaluation_df,
         X_train_df=X_train,
         X_test_df=X_test,
-        y_train_df=y_train,
-        y_test_df=y_test,
+        y_train_df=y_train.to_frame(),
+        y_test_df=y_test.to_frame(),
     )

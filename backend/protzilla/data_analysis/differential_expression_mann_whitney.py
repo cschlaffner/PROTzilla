@@ -4,10 +4,11 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import LogBaseWithNoneType
 from backend.protzilla.data_analysis.differential_expression_helper import (
     _map_log_base,
     apply_multiple_testing_correction,
-    merge_differential_expression_and_significant_df,
     normalize_ptm_df,
 )
 from backend.protzilla.utilities.transform_dfs import long_to_wide
@@ -19,7 +20,7 @@ def mann_whitney_test_on_intensity_data(
     grouping: str,
     group1: str,
     group2: str,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     p_value_calculation_method: str = "auto",
@@ -86,9 +87,9 @@ def mann_whitney_test_on_intensity_data(
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
-        corrected_p_values_df=outputs["corrected_p_values_df"],
+        corrected_p_values_df=outputs[DataKey.CORRECTED_P_VALUES_DF],
         u_statistic_df=outputs["u_statistic_df"],
-        log2_fold_change_df=outputs["log2_fold_change_df"],
+        log2_fold_change_df=outputs[DataKey.LOG2_FOLD_CHANGE_DF],
         corrected_alpha=outputs["corrected_alpha"],
         messages=outputs["messages"],
     )
@@ -100,6 +101,7 @@ def mann_whitney_test_on_ptm_data(
     grouping: str,
     group1: str,
     group2: str,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     p_value_calculation_method: str = "auto",
@@ -114,6 +116,7 @@ def mann_whitney_test_on_ptm_data(
         that should be used.
     :param group1: The name of the first group for the Mann-Whitney U test.
     :param group2: The name of the second group for the Mann-Whitney U test.
+    :param log_base: The base of the logarithm that was used to transform the data.
     :param alpha: The significance level for the test.
     :param multiple_testing_correction_method: The method for multiple testing correction.
     :param p_value_calculation_method: The method for p-value calculation.
@@ -137,7 +140,7 @@ def mann_whitney_test_on_ptm_data(
         grouping=grouping,
         group1=group1,
         group2=group2,
-        log_base=None,
+        log_base=log_base,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="PTM",
@@ -147,9 +150,9 @@ def mann_whitney_test_on_ptm_data(
     return dict(
         differentially_expressed_ptm_df=output["differential_expressed_columns_df"],
         significant_ptm_df=output["significant_columns_df"],
-        corrected_p_values_df=output["corrected_p_values_df"],
+        corrected_p_values_df=output[DataKey.CORRECTED_P_VALUES_DF],
         u_statistic_df=output["u_statistic_df"],
-        log2_fold_change_df=output["log2_fold_change_df"],
+        log2_fold_change_df=output[DataKey.LOG2_FOLD_CHANGE_DF],
         corrected_alpha=output["corrected_alpha"],
         messages=output["messages"],
     )
@@ -161,7 +164,7 @@ def mann_whitney_test_on_columns(
     grouping: str,
     group1: str,
     group2: str,
-    log_base: str = None,
+    log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     columns_name: str = "Protein ID",

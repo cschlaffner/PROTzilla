@@ -8,7 +8,7 @@ from plotly.graph_objects import Figure
 from plotly.subplots import make_subplots
 
 from backend.protzilla.data_preprocessing.plots_helper import generate_tics
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
     PLOT_PRIMARY_COLOR,

@@ -1,10 +1,10 @@
-from enum import Enum
 import logging
 import time
+from enum import Enum
 
 import gseapy
-import numpy as np
 import pandas as pd
+from pandas import DataFrame
 from restring import restring
 
 from backend.protzilla.constants.protzilla_logging import logger
@@ -28,6 +28,15 @@ def unused():
 
 last_call_time = None
 MIN_WAIT_TIME = 1  # Minimum wait time between STRING API calls in seconds
+
+
+def is_dataframe_valid(protein_df: DataFrame, differential_expression_col: str) -> bool:
+    return (
+        isinstance(protein_df, pd.DataFrame)
+        and "Protein ID" in protein_df.columns
+        and differential_expression_col in protein_df.columns
+        and pd.api.types.is_numeric_dtype(protein_df[differential_expression_col])
+    )
 
 
 def get_functional_enrichment_with_delay(protein_list, **string_params):
@@ -107,7 +116,7 @@ def merge_up_down_regulated_dfs_restring(up_df, down_df):
 
 
 def GO_analysis_with_STRING(
-    proteins_df,
+    protein_df,
     organism,
     gene_sets_restring=None,
     differential_expression_col=None,
@@ -120,11 +129,11 @@ def GO_analysis_with_STRING(
     via the restring package. Results for up- and downregulated proteins are aggregated
     and written into a result dataframe.
 
-    :param proteins_df: dataframe with protein IDs and expression change column
+    :param protein_df: dataframe with protein IDs and expression change column
         (e.g. log2 fold change). The expression change column is used to determine
         up- and downregulated proteins. The magnitude of the expression change is
         not used.
-    :type proteins_df: pandas.DataFrame
+    :type protein_df: pandas.DataFrame
     :param gene_sets_restring: list of knowledge databases to use for enrichment
         Possible values: KEGG, Component, Function, Process and RCTM
     :type gene_sets_restring: list
@@ -157,19 +166,14 @@ def GO_analysis_with_STRING(
     """
 
     out_messages = []
-    if (
-        not isinstance(proteins_df, pd.DataFrame)
-        or "Protein ID" not in proteins_df.columns
-        or differential_expression_col not in proteins_df.columns
-        or not proteins_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all columns but "Protein ID" and differential_expression_col column
-    proteins_df = proteins_df[["Protein ID", differential_expression_col]]
-    proteins_df.drop_duplicates(subset="Protein ID", inplace=True)
-    expression_change_col = proteins_df[differential_expression_col]
+    protein_df = protein_df[["Protein ID", differential_expression_col]]
+    protein_df.drop_duplicates(subset="Protein ID", inplace=True)
+    expression_change_col = protein_df[differential_expression_col]
 
     # split protein list according to direction of expression change and threshold
     if "log" in differential_expression_col:
@@ -179,10 +183,10 @@ def GO_analysis_with_STRING(
         up_threshold = differential_expression_threshold
         down_threshold = differential_expression_threshold
     up_protein_list = list(
-        proteins_df.loc[expression_change_col > up_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col > up_threshold, "Protein ID"]
     )
     down_protein_list = list(
-        proteins_df.loc[expression_change_col < down_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col < down_threshold, "Protein ID"]
     )
 
     if len(up_protein_list) == 0:
@@ -436,6 +440,16 @@ def gseapy_enrichment(
                 dict(level=logging.ERROR, msg=error_msg, trace=str(e)),
             )
 
+    if isinstance(enriched, list) and len(enriched) == 0:
+        return (
+            None,
+            None,
+            dict(
+                level=logging.ERROR,
+                msg="GSEAPY error: No hits returned for all input gene sets",
+            ),
+        )
+
     enriched["Proteins"] = enriched["Genes"].apply(
         lambda x: ";".join(
             ";".join(gene_to_protein_groups[gene]) for gene in x.split(";")
@@ -453,11 +467,11 @@ class GOAnalysisWithEnrichrBackgroundType(Enum):
 
 
 def GO_analysis_with_Enrichr(
-    proteins_df,
+    protein_df,
     organism,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
+    differential_expression_threshold=0.0,
     direction="both",
     gene_sets_path=None,
     gene_sets_enrichr=None,
@@ -478,8 +492,8 @@ def GO_analysis_with_Enrichr(
     When gene sets from Enrichr are used, the background parameters are ignored. All genes in the gene sets
     will be used instead.
 
-    :param proteins_df: proteins to be analyzed
-    :type proteins_df: dataframe
+    :param protein_df_field: proteins to be analyzed
+    :type protein_df_field: dataframe
     :param differential_expression_col: name of the column in the proteins dataframe that contains values for
         direction of expression change.
     :type differential_expression_col: str
@@ -540,12 +554,7 @@ def GO_analysis_with_Enrichr(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     out_messages = []
-    if (
-        not isinstance(proteins_df, pd.DataFrame)
-        or not "Protein ID" in proteins_df.columns
-        or not differential_expression_col in proteins_df.columns
-        or not proteins_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
@@ -608,9 +617,9 @@ def GO_analysis_with_Enrichr(
         background = None
 
     # remove all columns but "Protein ID" and differential_expression_col column
-    proteins_df = proteins_df[["Protein ID", differential_expression_col]]
-    proteins_df.drop_duplicates(subset="Protein ID", inplace=True)
-    expression_change_col = proteins_df[differential_expression_col]
+    protein_df = protein_df[["Protein ID", differential_expression_col]]
+    protein_df.drop_duplicates(subset="Protein ID", inplace=True)
+    expression_change_col = protein_df[differential_expression_col]
 
     # split protein list according to direction of expression change and threshold
     if "log" in differential_expression_col:
@@ -620,10 +629,10 @@ def GO_analysis_with_Enrichr(
         up_threshold = differential_expression_threshold
         down_threshold = differential_expression_threshold
     up_protein_list = list(
-        proteins_df.loc[expression_change_col > up_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col > up_threshold, "Protein ID"]
     )
     down_protein_list = list(
-        proteins_df.loc[expression_change_col < down_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col < down_threshold, "Protein ID"]
     )
 
     if not up_protein_list:
@@ -706,13 +715,13 @@ class GOAnalysisOflineBackgroundType(Enum):
 
 
 def GO_analysis_offline(
-    proteins_df,
+    protein_df,
     gene_sets_path,
     differential_expression_col,
     gene_mapping_df,
-    differential_expression_threshold=0,
+    differential_expression_threshold=0.0,
     direction="both",
-    backgorund_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
+    background_type: GOAnalysisOflineBackgroundType = GOAnalysisOflineBackgroundType.all_genes.value,
     background_path=None,
     background_number=None,
 ):
@@ -727,8 +736,8 @@ def GO_analysis_offline(
     the gene_sets are used as the background.
     Up- and downregulated proteins are analyzed separately and the results are merged.
 
-    :param proteins_df: proteins to be analyzed
-    :type proteins_df: dataframe
+    :param protein_df_field: proteins to be analyzed
+    :type protein_df_field: dataframe
     :param gene_sets_path: path to file containing gene sets. The identifiers
         in the gene_sets should be uppercase gene symbols.
 
@@ -761,12 +770,12 @@ def GO_analysis_offline(
         - both: functional enrichment info is retrieved for upregulated and downregulated
         proteins separately, but the terms are aggregated for the resulting dataframe
     :type direction: str
-    :param backgorund_type: type of background to be used for the analysis.
+    :param background_type: type of background to be used for the analysis.
         Possible values:
         - "Upload a file (recommended)"
         - "Specify number of expressed genes (not recommended)"
         - "Use all genes in the gene set"
-    :type backgorund_type: GOAnalysisOflineBackgroundType
+    :type background_type: GOAnalysisOflineBackgroundType
     :param background_path: background genes to be used for the analysis.
         Should be provided as uppercase gene symbols. If no background is provided,
         all genes in gene sets are used. The background is defined by your experiment.
@@ -780,19 +789,14 @@ def GO_analysis_offline(
     """
     # enhancement: make sure ID type for all inputs match
     out_messages = []
-    if (
-        not isinstance(proteins_df, pd.DataFrame)
-        or not "Protein ID" in proteins_df.columns
-        or not differential_expression_col in proteins_df.columns
-        or not proteins_df[differential_expression_col].dtype == np.number
-    ):
+    if not is_dataframe_valid(protein_df, differential_expression_col):
         msg = "Proteins must be a dataframe with Protein ID and direction of expression change column (e.g. log2FC)"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
     # remove all columns but "Protein ID" and differential_expression_col column
-    proteins_df = proteins_df[["Protein ID", differential_expression_col]]
-    proteins_df.drop_duplicates(subset="Protein ID", inplace=True)
-    expression_change_col = proteins_df[differential_expression_col]
+    protein_df = protein_df[["Protein ID", differential_expression_col]]
+    protein_df.drop_duplicates(subset="Protein ID", inplace=True)
+    expression_change_col = protein_df[differential_expression_col]
 
     # split protein list according to direction of expression change and threshold
     if "log" in differential_expression_col:
@@ -802,10 +806,10 @@ def GO_analysis_offline(
         up_threshold = differential_expression_threshold
         down_threshold = differential_expression_threshold
     up_protein_list = list(
-        proteins_df.loc[expression_change_col > up_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col > up_threshold, "Protein ID"]
     )
     down_protein_list = list(
-        proteins_df.loc[expression_change_col < down_threshold, "Protein ID"]
+        protein_df.loc[expression_change_col < down_threshold, "Protein ID"]
     )
 
     if not up_protein_list:
@@ -837,7 +841,7 @@ def GO_analysis_offline(
     ):  # file could not be read successfully
         return gene_sets
 
-    if backgorund_type == GOAnalysisOflineBackgroundType.upload_a_file.value:
+    if background_type == GOAnalysisOflineBackgroundType.upload_a_file.value:
         if not background_path:
             msg = "No background file provided. Please provide a file with background proteins."
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -847,7 +851,7 @@ def GO_analysis_offline(
             return background
 
     elif (
-        backgorund_type
+        background_type
         == GOAnalysisOflineBackgroundType.number_of_expressed_genes.value
     ):
         if not background_number:
@@ -855,7 +859,7 @@ def GO_analysis_offline(
             return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
         background = background_number
-    elif backgorund_type == GOAnalysisOflineBackgroundType.all_genes.value:
+    elif background_type == GOAnalysisOflineBackgroundType.all_genes.value:
         background = None
     else:
         msg = "Invalid background type. Please select one of the available options."

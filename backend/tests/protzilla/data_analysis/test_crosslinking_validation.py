@@ -17,6 +17,7 @@ from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
     add_vertical_line_with_annotation_in_legend,
 )
+from backend.protzilla.form import Form
 
 from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDeviation
 
@@ -60,10 +61,9 @@ def test_validate_with_angstrom_deviation(distance, expected):
     )
 
     crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Länge 5 Å ± 1 Å
-
     result = validate_with_angstrom_deviation(
         crosslinking_df,
-        structures_to_validate=["P12345"],
+        metadata_df=pd.DataFrame({"uniprot_accession": ["P12345"]}),
         crosslinker_information=crosslinker_information,
         amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
@@ -89,17 +89,19 @@ def test_modify_form_creates_crosslinker_fields():
     run.steps = steps
 
     step = CrosslinkingValidationWithAngstromDeviation()
-    form = step.create_form()
+    step.form = step.create_form()
 
-    step.modify_form(form, run)
+    step.input_source = MagicMock(return_value=("dummy_step", "dummy_handle"))
 
-    assert "DSS_length" in form
-    assert "DSS_upper_accepted_deviation" in form
-    assert "DSS_lower_accepted_deviation" in form
+    step.modify_form(run)
 
-    assert "BS3_length" in form
-    assert "BS3_upper_accepted_deviation" in form
-    assert "BS3_lower_accepted_deviation" in form
+    assert "DSS_length" in step.form
+    assert "DSS_upper_accepted_deviation" in step.form
+    assert "DSS_lower_accepted_deviation" in step.form
+
+    assert "BS3_length" in step.form
+    assert "BS3_upper_accepted_deviation" in step.form
+    assert "BS3_lower_accepted_deviation" in step.form
 
 
 def test_get_distance_between_two_amino_acids_in_angstrom():
@@ -315,7 +317,7 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
 
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structures_to_validate=["P1", "P2"],
+        metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -377,7 +379,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
 
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structures_to_validate=["P1", "P2"],
+        metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -437,7 +439,7 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
 
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structures_to_validate=["P1", "P2"],
+        metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -546,7 +548,7 @@ def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_line
 
     figures = diagrams_of_crosslinking_validation_data(
         crosslinking_df=sample_crosslinking_df,
-        structures_to_validate=["P12345"],
+        metadata_df=pd.DataFrame({"uniprot_accession": ["P12345"]}),
         crosslinker_information=sample_crosslinker_info,
         cif_df=pd.DataFrame(),
         amino_acid_sequences_df=pd.DataFrame(),
@@ -615,7 +617,7 @@ def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_l
 
     figures = diagrams_of_crosslinking_validation_data(
         crosslinking_df=sample_crosslinking_df_with_no_std,
-        structures_to_validate=["P12345"],
+        metadata_df=pd.DataFrame({"uniprot_accession": ["P12345"]}),
         crosslinker_information=sample_crosslinker_info_matching_sample_crosslinking_df_with_no_std,
         cif_df=pd.DataFrame(),
         amino_acid_sequences_df=pd.DataFrame(),
@@ -678,7 +680,7 @@ def test_diagrams_calls_with_correct_parameters(
 
         figures = diagrams_of_crosslinking_validation_data(
             crosslinking_df=sample_crosslinking_df_with_one_crosslinker,
-            structures_to_validate=["P12345"],
+            metadata_df=pd.DataFrame({"uniprot_accession": ["P12345"]}),
             crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
             cif_df=pd.DataFrame(),
             amino_acid_sequences_df=pd.DataFrame(),
@@ -789,7 +791,7 @@ def test_validate_multimer_with_invalid_crosslinks():
 
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structures_to_validate=["P1", "P2"],
+        metadata_df=pd.DataFrame({"uniprot_ids": ["['P1', 'P2']"]}),
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,

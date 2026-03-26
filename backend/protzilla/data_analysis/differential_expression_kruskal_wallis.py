@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression_helper import (
-    _map_log_base,
     apply_multiple_testing_correction,
     merge_differential_expression_and_significant_df,
     preprocess_grouping,
@@ -19,7 +19,6 @@ def kruskal_wallis_test_on_intensity_data(
     metadata_df: pd.DataFrame,
     grouping: str,
     selected_groups: list = None,
-    log_base: str = None,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
 ) -> dict:
@@ -31,7 +30,6 @@ def kruskal_wallis_test_on_intensity_data(
     @param grouping: The column name in the metadata data frame that contains the grouping information,
         that should be used.
     @param selected_groups: groups to test against each other
-    @param log_base: The base of the logarithm that was used to transform the data.
     @param alpha: The significance level for the test.
     @param multiple_testing_correction_method: The method for multiple testing correction.
 
@@ -52,7 +50,6 @@ def kruskal_wallis_test_on_intensity_data(
         metadata_df=metadata_df,
         grouping=grouping,
         selected_groups=selected_groups,
-        log_base=log_base,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="Protein ID",
@@ -68,7 +65,7 @@ def kruskal_wallis_test_on_intensity_data(
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
-        corrected_p_values_df=outputs["corrected_p_values_df"],
+        corrected_p_values_df=outputs[DataKey.CORRECTED_P_VALUES_DF],
         h_statistic_df=outputs["h_statistic_df"],
         corrected_alpha=outputs["corrected_alpha"],
         messages=outputs["messages"],
@@ -112,7 +109,6 @@ def kruskal_wallis_test_on_ptm_data(
         metadata_df=metadata_df,
         grouping=grouping,
         selected_groups=selected_groups,
-        log_base=None,
         alpha=alpha,
         multiple_testing_correction_method=multiple_testing_correction_method,
         columns_name="PTM",
@@ -121,7 +117,7 @@ def kruskal_wallis_test_on_ptm_data(
     return dict(
         differentially_expressed_ptm_df=output["differential_expressed_columns_df"],
         significant_ptm_df=output["significant_columns_df"],
-        corrected_p_values_df=output["corrected_p_values_df"],
+        corrected_p_values_df=output[DataKey.CORRECTED_P_VALUES_DF],
         h_statistic_df=output["h_statistic_df"],
         corrected_alpha=output["corrected_alpha"],
         messages=output["messages"],
@@ -133,7 +129,6 @@ def kruskal_wallis_test_on_columns(
     metadata_df: pd.DataFrame,
     grouping: str,
     selected_groups: list = None,
-    log_base: str = None,
     alpha=0.05,
     multiple_testing_correction_method: str = "Benjamini-Hochberg",
     columns_name: str = "Protein ID",
@@ -147,7 +142,6 @@ def kruskal_wallis_test_on_columns(
     @param grouping: The column name in the metadata data frame that contains the grouping information,
     that should be used.
     @param selected_groups: groups to test against each other
-    @param log_base: The base of the logarithm that was used to transform the data.
     @param alpha: The significance level for the test.
     @param multiple_testing_correction_method: The method for multiple testing correction.
     @param columns_name: The semantics of the column names. This is used to name the columns in the output data frames.

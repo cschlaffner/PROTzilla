@@ -14,7 +14,7 @@ from functools import partial
 from typing import Callable, Optional
 from enum import Enum
 
-from backend.protzilla.utilities import format_trace
+from backend.protzilla.utilities.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
     columns_in_crosslinking_df,
     rename_columns_csm_format,
