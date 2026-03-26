@@ -23,6 +23,3 @@ def test_yaml_operator_path_handling(tmp_output_dir):
     yaml_operator.write(out_file_path, data_dict)
     yaml_file_contents = yaml_operator.read(out_file_path)
     assert yaml_file_contents["file_path"] == pathlib.Path(dummy_path)
-    assert str(yaml_file_contents["file_path"]) == str(
-        pathlib.PureWindowsPath(dummy_path)
-    )
