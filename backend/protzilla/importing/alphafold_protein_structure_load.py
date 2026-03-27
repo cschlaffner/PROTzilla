@@ -26,8 +26,8 @@ def get_monomer_metadata_df() -> pd.DataFrame:
     Returns all data from alphafold_monomer_metadata.csv in form of a dataframe. If no such csv exist, it returns
     a dataframe with the corresponding keys but no values and creates a csv with the expected column names.
     """
-    metadata_csv = paths.AF_MONOMER_METADATA_CSV_PATH
-    if not metadata_csv.exists():
+    monomer_metadata_csv = paths.AF_MONOMER_METADATA_CSV_PATH
+    if not monomer_metadata_csv.exists():
         metadata_df = pd.DataFrame(
             columns=[
                 "entry_id",
@@ -37,10 +37,10 @@ def get_monomer_metadata_df() -> pd.DataFrame:
                 "model_used",
             ]
         )
-        metadata_csv.parent.mkdir(parents=True, exist_ok=True)
-        metadata_df.to_csv(metadata_csv, index=False)
+        monomer_metadata_csv.parent.mkdir(parents=True, exist_ok=True)
+        metadata_df.to_csv(monomer_metadata_csv, index=False)
         return metadata_df
-    return pd.read_csv(metadata_csv, dtype=str)
+    return pd.read_csv(monomer_metadata_csv, dtype=str)
 
 
 def get_multimer_metadata_df() -> pd.DataFrame:
@@ -48,9 +48,9 @@ def get_multimer_metadata_df() -> pd.DataFrame:
     Returns all data from alphafold_multimer_metadata.csv in form of a dataframe. If no such csv exist, it returns
     a dataframe with the corresponding keys but no values and creates a csv with the expected column names.
     """
-    metadata_csv = paths.AF_MULTIMER_METADATA_CSV_PATH
+    multimer_metadata_csv = paths.AF_MULTIMER_METADATA_CSV_PATH
 
-    if not metadata_csv.exists():
+    if not multimer_metadata_csv.exists():
         metadata_df = pd.DataFrame(
             columns=[
                 "entry_id",
@@ -59,10 +59,10 @@ def get_multimer_metadata_df() -> pd.DataFrame:
                 "model_used",
             ]
         )
-        metadata_csv.parent.mkdir(parents=True, exist_ok=True)
-        metadata_df.to_csv(metadata_csv, index=False)
+        multimer_metadata_csv.parent.mkdir(parents=True, exist_ok=True)
+        metadata_df.to_csv(multimer_metadata_csv, index=False)
         return metadata_df
-    return pd.read_csv(metadata_csv, dtype=str)
+    return pd.read_csv(multimer_metadata_csv, dtype=str)
 
 
 def to_fasta(seq: str, header: str = "protein_sequence", width: int = 60) -> str:
@@ -244,7 +244,7 @@ def handle_alphafold_files(
     files_urls: dict[str, Any],
     uniprot: str,
     seq: str,
-    metadata_df: pd.DataFrame,
+    monomer_metadata_df: pd.DataFrame,
     entry_id: str,
     persist_upload: bool = False,
 ) -> dict[str, pd.DataFrame | None]:
@@ -258,10 +258,10 @@ def handle_alphafold_files(
     :param files_urls: Dictionary containing URLs for CIF, PAE, and pLDDT files
     :param uniprot: The UniProt ID of the protein
     :param seq: The protein sequence
-    :param metadata_df: DataFrame containing AlphaFold metadata
+    :param monomer_metadata_df: DataFrame containing AlphaFold monomer metadata
     :param entry_id: The entry_id (in the case of fetching from AF DB the same as uniprot id) (used for directory naming)
     :param persist_upload: If True, files are saved persistently; if False, only loaded into memory
-    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, sequence data or None values for
+    :return: A dictionary containing DataFrames for monomer metadata, CIF, PAE, pLDDT, sequence data or None values for
     failed loads and messages such as warnings
     """
     cif_df = pd.DataFrame()
@@ -284,7 +284,7 @@ def handle_alphafold_files(
                 entry_id=entry_id,
                 metadata_csv=paths.AF_MONOMER_METADATA_CSV_PATH,
                 existing_metadata_df=existing_metadata_df,
-                metadata_df=metadata_df,
+                metadata_df=monomer_metadata_df,
                 messages=messages,
             )
 
@@ -342,12 +342,12 @@ def fetch_alphafold_protein_structure(
     """
     Fetch AlphaFold protein structure data from the AlphaFold Database API.
 
-    Retrieves metadata and structure files (CIF, PAE, pLDDT) from the AlphaFold Database
+    Retrieves monomer metadata and structure files (CIF, PAE, pLDDT) from the AlphaFold Database
     for the given UniProt ID. Optionally persists the downloaded files to disk.
 
     :param uniprot_id: The UniProt ID of the protein
     :param persist_upload: If True, files are saved persistently; if False, only loaded into memory
-    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
+    :return: A dictionary containing DataFrames for monomer metadata, CIF, PAE, pLDDT, and sequence data
     :raises RuntimeError: If the API request fails or returns invalid data
     :raises ValueError: If no predictions are found for the given UniProt ID
     """
@@ -391,18 +391,18 @@ def fetch_alphafold_protein_structure(
             if isinstance(r.get(key), str) and r.get(key):
                 files_urls[key] = r[key]
 
-        metadata_df = pd.DataFrame([data])
+        monomer_metadata_df = pd.DataFrame([data])
 
         alpha_dfs = handle_alphafold_files(
             files_urls=files_urls,
             uniprot=uniprot_id,
             seq=seq_tmp,
-            metadata_df=metadata_df,
+            monomer_metadata_df=monomer_metadata_df,
             entry_id=uniprot_id,
             persist_upload=persist_upload,
         )
     df_dict = {
-        "metadata_df": metadata_df,
+        "structure_metadata_df": monomer_metadata_df,
         "cif_df": alpha_dfs["cif_df"],
         "pae_df": alpha_dfs["pae_df"],
         "plddt_df": alpha_dfs["plddt_df"],
@@ -617,12 +617,12 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     Writes monomer structure data from disk of a specific entry ID into dataframes.
 
     :param entry_id: entry_id of the uploaded monomer structure
-    :return: A dictionary containing DataFrames for metadata, CIF, PAE, pLDDT, and sequence data
+    :return: A dictionary containing DataFrames for monomer metadata, CIF, PAE, pLDDT, and sequence data
     """
     messages: list[dict[str, str | int]] = []
     all_metadata_df = get_monomer_metadata_df()
 
-    metadata_df = check_and_get_metadata_df(
+    monomer_metadata_df = check_and_get_metadata_df(
         entry_id=entry_id,
         all_metadata_df=all_metadata_df,
         csv_file=paths.AF_MONOMER_METADATA_CSV_PATH,
@@ -683,7 +683,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         raise RuntimeError(msg) from e
 
     df_dict = {
-        "metadata_df": metadata_df,
+        "structure_metadata_df": monomer_metadata_df,
         "cif_df": cif_df,
         "pae_df": pae_df,
         "plddt_df": plddt_df,
@@ -699,12 +699,12 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     Writes multimer structure data from disk of a specific entry ID into dataframes.
 
     :param entry_id: entry_id of the uploaded monomer structure
-    :return: A dictionary containing DataFrames for metadata, CIF, confidence, full data, and sequence data
+    :return: A dictionary containing DataFrames for multimer metadata, CIF, confidence, full data, and sequence data
     """
     messages: list[dict[str, str | int]] = []
     all_metadata_df = get_multimer_metadata_df()
 
-    metadata_df = check_and_get_metadata_df(
+    multimer_metadata_df = check_and_get_metadata_df(
         entry_id=entry_id,
         all_metadata_df=all_metadata_df,
         csv_file=paths.AF_MULTIMER_METADATA_CSV_PATH,
@@ -758,7 +758,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         logger.exception(msg)
         raise RuntimeError(msg) from e
     df_dict = {
-        "metadata_df": metadata_df,
+        "structure_metadata_df": multimer_metadata_df,
         "amino_acid_sequences_df": amino_acid_sequences_df,
         "cif_df": cif_df,
         "confidence_df": confidence_df,
@@ -782,8 +782,8 @@ def upload_multimer_prediction(
     """
     Process an AlphaFold multimer prediction and return its parsed data as DataFrames.
 
-    The function assembles metadata for the prediction, optionally persists both
-    metadata and input files to the configured multimer storage directory, and
+    The function assembles multimer metadata for the prediction, optionally persists both
+    multimer metadata and input files to the configured multimer storage directory, and
     parses the provided files into DataFrames:
     - FASTA sequences via fasta_import, key "fasta_df".
     - mmCIF structure via read_alphafold_mmcif.
@@ -797,7 +797,7 @@ def upload_multimer_prediction(
     removed in a finally block.
 
     :param entry_id: Unique identifier for the prediction entry. Used for
-        directory naming and metadata.
+        directory naming and mulitmer metadata.
     :param uniprot_ids: UniProt identifiers associated with the multimer
         prediction.
     :param model_used: Name or identifier of the AlphaFold model used to
@@ -809,11 +809,11 @@ def upload_multimer_prediction(
     :param full_data_file: Path to the full data JSON file. If the JSON
         content is a dict it is normalized into a single-row DataFrame.
         Otherwise, an empty DataFrame is returned and a warning is recorded.
-    :param persist_upload: If True, persist metadata and copy input files into
+    :param persist_upload: If True, persist multimer metadata and copy input files into
         the configured multimer directory. If False, use a temporary directory
-        and do not persist metadata.
+        and do not persist multimer metadata.
     :return: A dictionary containing:
-        - "metadata_df": DataFrame with entry metadata.
+        - "structure_metadata_df": DataFrame with entry multimer metadata.
         - "cif_df": DataFrame parsed from the mmCIF file.
         - "confidence_df": DataFrame loaded from the confidence JSON.
         - "full_data_df": Normalized DataFrame from the full data JSON or empty.
@@ -843,14 +843,14 @@ def upload_multimer_prediction(
     }
 
     try:
-        metadata_df = pd.DataFrame([data])
+        multimer_metadata_df = pd.DataFrame([data])
         if persist_upload:
             exsisting_metadata_df = get_multimer_metadata_df()
             extend_metadata_csv(
                 entry_id=entry_id,
                 metadata_csv=paths.AF_MULTIMER_METADATA_CSV_PATH,
                 existing_metadata_df=exsisting_metadata_df,
-                metadata_df=metadata_df,
+                metadata_df=multimer_metadata_df,
                 messages=messages,
             )
             for file_name in [
@@ -886,7 +886,7 @@ def upload_multimer_prediction(
         cif_df = read_alphafold_mmcif(cif_file)
 
         df_dict = {
-            "metadata_df": metadata_df,
+            "structure_metadata_df": multimer_metadata_df,
             "cif_df": cif_df,
             "confidence_df": confidence_df,
             "full_data_df": full_data_df,
