@@ -60,7 +60,12 @@ class ArbitraryCSVImport(ImportingStep):
         return Form(
             label="Arbitrary CSV Import",
             input_fields=[
-                FileInput(name="file_path", label="CSV file", value=None, accept=".csv")
+                FileInput(
+                    name="file_path",
+                    label="CSV file",
+                    value=None,
+                    accept=".csv",
+                )
             ],
         )
 
@@ -87,7 +92,7 @@ class MaxQuantImport(ImportingStep):
                     name="file_path",
                     label="MaxQuant intensities file (proteinGroups.txt)",
                     value=None,
-                    accept=".txt",
+                    accept=".txt,.tsv,.csv",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -132,7 +137,7 @@ class DiannImport(ImportingStep):
                     name="file_path",
                     label="DIA-NN intensities file (*.pg_matrix.tsv)",
                     value=None,
-                    accept=".tsv",
+                    accept=".txt,.tsv,.csv",
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
@@ -167,7 +172,7 @@ class MsFraggerImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
-                    accept=".tsv",
+                    accept=".txt,.tsv,.csv",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -202,7 +207,11 @@ class MetadataImport(MetadataImportingStep):
         return Form(
             label="Metadata Import",
             input_fields=[
-                FileInput(name="file_path", label="Metadata file", accept=".csv"),
+                FileInput(
+                    name="file_path",
+                    label="Metadata file",
+                    accept=".csv,.xlsx,.psv,.tsv",
+                ),
                 DropdownField(
                     name="feature_orientation",
                     label="Feature orientation",
@@ -290,7 +299,11 @@ class PeptideImport(ImportingStep):
         return Form(
             label="MaxQuant Peptide Import",
             input_fields=[
-                FileInput(name="file_path", label="Peptide file", accept=".txt"),
+                FileInput(
+                    name="file_path",
+                    label="Peptide file",
+                    accept=".txt,.tsv,.csv",
+                ),
                 DropdownField(
                     name="intensity_name",
                     label="Intensity parameter",
@@ -319,7 +332,11 @@ class EvidenceImport(ImportingStep):
         return Form(
             label="MaxQuant Evidence Import",
             input_fields=[
-                FileInput(name="file_path", label="Evidence file", accept=".txt"),
+                FileInput(
+                    name="file_path",
+                    label="Evidence file",
+                    accept=".txt,.tsv,.csv",
+                ),
                 DropdownField(
                     name="intensity_name",
                     label="Intensity parameter",
@@ -350,7 +367,11 @@ class FastaImport(ImportingStep):
         return Form(
             label="Fasta Protein Sequence Import",
             input_fields=[
-                FileInput(name="file_path", label="Fasta file", accept=".fasta"),
+                FileInput(
+                    name="file_path",
+                    label="Fasta file",
+                    accept=".fasta,.fa,.faa",
+                ),
             ],
         )
 
