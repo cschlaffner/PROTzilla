@@ -148,9 +148,15 @@ def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
     assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     assert not out["structure_metadata_df"].empty
     assert out["structure_metadata_df"].iloc[0]["uniprot_accession"] == "Q8WP00"
-    assert out["structure_metadata_df"].iloc[0]["model_created_date"] == "2025-08-01T00:00:00Z"
+    assert (
+        out["structure_metadata_df"].iloc[0]["model_created_date"]
+        == "2025-08-01T00:00:00Z"
+    )
     assert out["structure_metadata_df"].iloc[0]["gene"] == "PRM1"
-    assert out["structure_metadata_df"].iloc[0]["model_used"] == "AlphaFold Monomer v2.0 pipeline"
+    assert (
+        out["structure_metadata_df"].iloc[0]["model_used"]
+        == "AlphaFold Monomer v2.0 pipeline"
+    )
 
 
 def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
