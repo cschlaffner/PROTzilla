@@ -92,7 +92,7 @@ class MaxQuantImport(ImportingStep):
                     name="file_path",
                     label="MaxQuant intensities file (proteinGroups.txt)",
                     value=None,
-                    accept=".txt,.tsv,.csv",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -137,7 +137,7 @@ class DiannImport(ImportingStep):
                     name="file_path",
                     label="DIA-NN intensities file (*.pg_matrix.tsv)",
                     value=None,
-                    accept=".txt,.tsv,.csv",
+                    accept="txt,.tsv",
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
@@ -172,7 +172,7 @@ class MsFraggerImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
-                    accept=".txt,.tsv,.csv",
+                    accept=".txt,.tsv",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -302,7 +302,7 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
-                    accept=".txt,.tsv,.csv",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -335,7 +335,7 @@ class EvidenceImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Evidence file",
-                    accept=".txt,.tsv,.csv",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
