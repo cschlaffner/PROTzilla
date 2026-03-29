@@ -155,6 +155,7 @@ class FileInput(_baseField):
     value: str | None = None
     type: str = "file"
     filedata: str = ""
+    accept: str | None = None
 
 
 @dataclass
