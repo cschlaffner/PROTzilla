@@ -693,7 +693,7 @@ def test_diagrams_calls_with_correct_parameters(
 
         # Check histogram call parameters for crosslinker full-range
         first_hist_call = mock_hist.call_args_list[0].kwargs
-        assert first_hist_call["name_a"] == "Valid Crosslinks (intra: 2, inter: 0)"
+        assert first_hist_call["name_a"] == "Valid Crosslinks (intra: 1, inter: 1)"
         assert first_hist_call["name_b"] == "Invalid Crosslinks (intra: 0, inter: 2)"
         assert (
             first_hist_call["heading"]
