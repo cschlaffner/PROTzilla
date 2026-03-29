@@ -45,10 +45,12 @@ const TextContainer = styled(FlexColumn)`
   gap: ${spacing("verySmall")};
   flex: 1;
   min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
 `;
 
 const ButtonContainer = styledDiv.div`
-  display: flex
+  display: flex;
 `;
 
 const TitleText = styled(Text)`
