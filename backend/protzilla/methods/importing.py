@@ -631,8 +631,6 @@ class AlphaFoldQueryJsonGeneration(Step):
         "Generate a JSON to upload to AlphaFold-Server to generate a prediction."
     )
 
-    output_keys = ["downloads"]
-
     def create_form(self):
         return Form(
             label="AlphaFold Query JSON Generation",

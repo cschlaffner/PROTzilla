@@ -67,7 +67,6 @@ class Step(ABC):
         self.output: Output = Output()
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
-        self.downloads: Downloads = Downloads()
         self.messages: Messages = Messages([])
         self.disk_write_mutex = Lock()
 
@@ -80,10 +79,6 @@ class Step(ABC):
                 "dumped": 0,
             },
             "plots": {
-                "generated": 0,
-                "dumped": 0,
-            },
-            "downloads": {
                 "generated": 0,
                 "dumped": 0,
             },
@@ -625,21 +620,3 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
-
-
-class Downloads:
-    #  maps file name to file content (a string)
-    def __init__(self, downloads: dict[str, str] | None = None):
-        if downloads is None:
-            downloads: dict[str, str] = {}
-        self.downloads = downloads
-
-    def __iter__(self):
-        return iter(self.downloads)
-
-    def __repr__(self):
-        return f"Downloads: {len(self.downloads)}"
-
-    @property
-    def empty(self) -> bool:
-        return len(self.downloads) == 0
