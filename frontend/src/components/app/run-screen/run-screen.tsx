@@ -13,6 +13,7 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
+  Download,
   emptyRunData,
   footerMessages,
   Image,
@@ -91,7 +92,8 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
-  const [downloads, setDownloads] = useState<Record<string, string> | undefined>();
+  const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
+  const [downloads, setDownloads] = useState<Download[]>([]);
 
   // Static PNGs sent as base64
   const [images, setImages] = useState<Image[]>([]);
@@ -135,12 +137,12 @@ export const RunScreen: React.FC = () => {
         step_id: stepID,
       }).then(() => {
         setAvailableTables(undefined);
+        setAvailableDownloads([]);
         setPlots(undefined);
         setAvailableImages([]);
 
         void getRunData();
         void getStepPlots();
-        void getStepDownloads();
         void getCurrentStepOutputLabels();
       });
     } else {
@@ -176,14 +178,15 @@ export const RunScreen: React.FC = () => {
   }, [runName]);
 
   const getStepDownloads = useCallback(async () => {
-    const response = await callApiWithParameters("get_step_downloads/", {
+    const response = await callApiWithParameters("get_downloads_from_step/", {
       run_name: runName,
+      step_id: runData.current_step_id,
     });
     if (response) {
       const downloads = response.data;
       setDownloads(downloads);
     }
-  }, [runName]);
+  }, [runName, runData]);
 
   const getCurrentStepOutputLabels = useCallback(async () => {
     const response = await callApiWithParameters("get_current_step_output_labels/", {
@@ -192,33 +195,32 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const tableOutputs = [];
       const imageOutputs = [];
+      const downloadOutputs = [];
       for (const output of response.outputs) {
         if (output.output_type === "dataframe" || output.output_type === "list")
           tableOutputs.push(output);
         else if (output.output_type === "png_base64") imageOutputs.push(output);
+        else if (output.output_type === "download") downloadOutputs.push(output);
       }
       setAvailableTables(tableOutputs);
       setAvailableImages(imageOutputs);
+      setAvailableDownloads(downloadOutputs);
     }
   }, [runName]);
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([
-        getRunData(),
-        getStepPlots(),
-        getStepDownloads(),
-        getCurrentStepOutputLabels(),
-      ]);
+      await Promise.all([getRunData(), getStepPlots(), getCurrentStepOutputLabels()]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepDownloads, getCurrentStepOutputLabels]);
+  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
     setAvailableTables(undefined);
     setAvailableImages([]);
     setPlots(undefined);
+    setAvailableDownloads([]);
     void getRunData();
     void getStepPlots();
     void getStepDownloads();
@@ -355,22 +357,25 @@ export const RunScreen: React.FC = () => {
 
   const downloadComponent = (
     <StyledContentContainer>
-      {downloads && Object.keys(downloads).length > 0 ? (
-        Object.entries(downloads).map(([filename, content]) => (
-          <SecondaryButton
-            key={filename}
-            text={filename}
-            style={{ width: "fit-content" }}
-            onClick={() => {
-              downloadJson(filename, content);
-            }}
-          />
-        ))
+      {downloads.length > 0 ? (
+        downloads.flatMap((download) =>
+          Object.entries(download.data || {}).map(([filename, content]) => (
+            <SecondaryButton
+              key={`${download.title}-${filename}`}
+              text={filename}
+              style={{ width: "fit-content" }}
+              onClick={() => {
+                downloadJson(filename, JSON.stringify(content));
+              }}
+            />
+          )),
+        )
       ) : (
         <SectionTitle baseComponent={"h4"} description={"No downloads available for this step."} />
       )}
     </StyledContentContainer>
   );
+
   const nodeEditorComponent = (
     <NodeEditor
       onFormSubmit={onFormSubmit}
@@ -388,7 +393,7 @@ export const RunScreen: React.FC = () => {
     plots && plots.length > 0 && { name: "Plots", value: plotComponent },
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
     availableImages.length > 0 && { name: "Images", value: imageComponent },
-    { name: "Downloads", value: downloadComponent },
+    availableDownloads.length > 0 && { name: "Downloads", value: downloadComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (

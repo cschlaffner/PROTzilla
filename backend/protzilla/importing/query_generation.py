@@ -1,8 +1,8 @@
 import json
 import logging
-
-import pandas as pd
 import requests
+
+from backend.protzilla.steps import OutputItem, OutputType
 
 
 def generate_alphafold_query_json(
@@ -100,7 +100,7 @@ def generate_alphafold_query_json(
             level=logging.INFO, msg=f"Successfully generated a json file for AlphaFold."
         )
     )
-    return dict(
-        messages=messages,
-        downloads={name: query_as_string},
+    return dict( #TODO: Messages
+        messages = messages,
+        downloads=OutputItem(output_type=OutputType.DOWNLOAD, value = {name: query_as_string})
     )

@@ -682,29 +682,30 @@ def get_step_plots(request):
         )
 
 
-def get_step_downloads(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-
-        run = Run(run_name)
-        if run.current_step is not None:
-            downloads = run.current_downloads
-        else:
-            downloads = {}
-
-        return JsonResponse(
-            {
-                "success": True,
-                "message": "Got the available download(s) for the step",
-                "data": downloads,
-            },
-            safe=False,
-        )
-    else:
+def get_downloads_from_step(request: HttpRequest):
+    """
+    API call. Returns a base64-encoded PNG of a step output to the front-end
+    """
+    if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
+    output_key = data.get("output_key")
+
+    run = Run(run_name)
+    step = run.steps.get_step_by_id(step_id)
+    #output = step.output.get(output_key)
+
+    if run.current_step is not None:
+        downloads = step.output["downloads"]
+    else:
+        downloads = {}
+
+    return JsonResponse({"success": True, "message": "Got the available download(s) for the step", "data": downloads})
 
 
 # TODO: Move somewhere else

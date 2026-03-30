@@ -671,4 +671,4 @@ class AlphaFoldQueryJsonGeneration(Step):
             ],
         )
 
-    download_method = staticmethod(generate_alphafold_query_json)
+    calc_method = staticmethod(generate_alphafold_query_json)

@@ -160,11 +160,6 @@ class Step(ABC):
                 self.handle_plot_outputs(plot_output)
                 self.artifact_versions["plots"]["generated"] += 1
 
-            if self.download_method:
-                download_output = self.download_method(**self.download_input)
-                self.handle_download_outputs(download_output)
-                self.artifact_versions["downloads"]["generated"] += 1
-
             self.calculation_status = "complete"
 
             # delete tempfiles
@@ -339,24 +334,6 @@ class Step(ABC):
 
         self.plots = Plots(plots)
 
-    def handle_download_outputs(self, outputs: dict) -> None:
-        """
-        Handles the dictionary from the download method and creates a Download object from it.
-        Responsible for validating that the output is a dictionary, handling any messages contained in the output
-        and setting the downloads attribute of the class.
-        :param outputs: A dictionary received after the download method
-        :return: None
-        """
-
-        if not isinstance(outputs, dict):
-            raise TypeError("Output of download method is not a dictionary.")
-
-        downloads = outputs.pop("downloads", {})
-        self.output.output.update(outputs)
-        self.handle_messages(outputs)
-
-        self.downloads = Downloads(downloads)
-
     def handle_messages(self, outputs: dict) -> None:
         """
         Handles the messages from the calculation method and creates a Messages object from it.
@@ -369,7 +346,6 @@ class Step(ABC):
 
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
-    download_method = None
 
     def _get_input_parameters(
         self, function: Callable[..., Any], relevant_inputs: dict | None = None
@@ -411,10 +387,6 @@ class Step(ABC):
         return self._get_input_parameters(
             function=self.plot_method, relevant_inputs=plot_input
         )
-
-    @property
-    def download_input(self) -> dict:
-        return self._get_input_parameters(self.download_method)
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
@@ -507,6 +479,7 @@ class OutputType(StrEnum):
     FLOAT = "float"
     INT = "int"
     PNG_BASE64 = "png_base64"
+    DOWNLOAD = "download"
     # for every data type that is not yaml serializable
     JOBLIB_ARTIFACT = "joblib_artifact"
 

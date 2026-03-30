@@ -23,6 +23,11 @@ export interface Image {
   data: string;
 }
 
+export interface Download {
+  title: string;
+  data: string;
+}
+
 // We assume these are the only data types we receive for tables
 export type TableRecord = Record<string, number | string | null>;
 
