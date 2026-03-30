@@ -94,13 +94,12 @@ def generate_alphafold_query_json(
                 }
             }
         )
-    query_as_string = f"[{json.dumps(query)}]"
     messages.append(
         dict(
             level=logging.INFO, msg=f"Successfully generated a json file for AlphaFold."
         )
     )
-    return dict( #TODO: Messages
-        messages = messages,
-        downloads=OutputItem(output_type=OutputType.DOWNLOAD, value = {name: query_as_string})
+    return dict(
+        messages=messages,
+        downloads=OutputItem(output_type=OutputType.DOWNLOAD, value={name: [query]}),
     )

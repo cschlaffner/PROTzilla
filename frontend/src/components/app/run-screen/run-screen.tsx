@@ -177,17 +177,6 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
-  const getStepDownloads = useCallback(async () => {
-    const response = await callApiWithParameters("get_downloads_from_step/", {
-      run_name: runName,
-      step_id: runData.current_step_id,
-    });
-    if (response) {
-      const downloads = response.data;
-      setDownloads(downloads);
-    }
-  }, [runName, runData]);
-
   const getCurrentStepOutputLabels = useCallback(async () => {
     const response = await callApiWithParameters("get_current_step_output_labels/", {
       run_name: runName,
@@ -223,7 +212,6 @@ export const RunScreen: React.FC = () => {
     setAvailableDownloads([]);
     void getRunData();
     void getStepPlots();
-    void getStepDownloads();
     void getCurrentStepOutputLabels();
   };
 
@@ -268,6 +256,30 @@ export const RunScreen: React.FC = () => {
       setImages([]);
     }
   }, [availableImages, runName, runData.current_step_id]);
+
+  useEffect(() => {
+    if (!runData.current_step_id || availableDownloads.length === 0) return;
+
+    const fetchDownloads = async () => {
+      const responses = await Promise.all(
+        availableDownloads.map(async (output) => {
+          const response = await callApiWithParameters("get_downloads_from_step/", {
+            run_name: runName,
+            step_id: runData.current_step_id,
+            output_key: output.label,
+          });
+
+          return {
+            title: output.label,
+            data: response?.data,
+          };
+        }),
+      );
+      setDownloads(responses);
+    };
+
+    void fetchDownloads();
+  }, [runName, runData.current_step_id, availableDownloads]);
 
   const plotComponent = (
     <StyledContentContainer>
@@ -365,7 +377,7 @@ export const RunScreen: React.FC = () => {
               text={filename}
               style={{ width: "fit-content" }}
               onClick={() => {
-                downloadJson(filename, JSON.stringify(content));
+                downloadJson(filename, JSON.stringify(content, null, 2));
               }}
             />
           )),

@@ -698,14 +698,24 @@ def get_downloads_from_step(request: HttpRequest):
 
     run = Run(run_name)
     step = run.steps.get_step_by_id(step_id)
-    #output = step.output.get(output_key)
-
-    if run.current_step is not None:
-        downloads = step.output["downloads"]
-    else:
+    downloads = step.output.get(output_key)
+    if downloads is None:
         downloads = {}
-
-    return JsonResponse({"success": True, "message": "Got the available download(s) for the step", "data": downloads})
+    if not isinstance(downloads, dict):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Requested output must be dict object, is {str(type(downloads))}",
+            },
+            status=405,
+        )
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Got the available download(s) for the step",
+            "data": downloads,
+        }
+    )
 
 
 # TODO: Move somewhere else
