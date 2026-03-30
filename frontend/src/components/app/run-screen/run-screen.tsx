@@ -26,7 +26,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { CrosslinkerInformation } from "../../core/shared/molstar-viewer/crosslink-struktur";
+import { CrosslinkerInformation } from "../../core/shared/molstar-viewer/crosslinker-processing";
 
 const StyledNavbar = styled(Navbar)`
   position: sticky;

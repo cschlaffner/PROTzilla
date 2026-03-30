@@ -1,0 +1,29 @@
+import { SectionTitle } from "@protzilla/core";
+import styled from "styled-components";
+
+export const Container = styled.div`
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const CanvasWrapper = styled.div`
+  flex: 1;
+  position: relative;
+  top: 86px;
+`;
+
+export const LoadingTitle = styled(SectionTitle)`
+  margin: 15px;
+`;
+
+export const ErrorTitle = styled(SectionTitle)`
+  margin: 15px;
+  color: ${({ theme }) => theme.colors.caution};
+
+  * {
+    color: inherit !important;
+  }
+`;
