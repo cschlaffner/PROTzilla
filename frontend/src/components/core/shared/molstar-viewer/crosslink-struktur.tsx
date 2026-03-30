@@ -2,6 +2,7 @@ export interface CrosslinkerInformation {
   crosslinkerPosition1: number;
   crosslinkerPosition2: number;
   isValid: boolean;
+  isIntraCrosslink: boolean;
   reactiveAtom1?: string;
   reactiveAtom2?: string;
 }
@@ -22,6 +23,13 @@ interface AtomSiteIndices {
   xCoordIdx: number;
   yCoordIdx: number;
   zCoordIdx: number;
+}
+
+export enum CrosslinkType {
+  ValidIntra = "valid-intra-crosslink",
+  InvalidIntra = "invalid-intra-crosslink",
+  ValidInter = "valid-inter-crosslink",
+  InvalidInter = "invalid-inter-crosslink",
 }
 
 function getReactiveAtom(reactiveAtom?: string): string {
@@ -94,10 +102,18 @@ function extractCrosslinkAtoms(
 export function generateCrosslinkCIF(
   cifString: string,
   crosslinks: CrosslinkerInformation[],
-): string {
+): { crosslinkerCifText: string; crosslinkerGroups: Record<CrosslinkType, string[]> } {
   const atomLines: string[] = [];
   const connectionLines: string[] = [];
   let connectionId = 1;
+
+  const crosslinkGroups: Record<CrosslinkType, string[]> = Object.values(CrosslinkType).reduce(
+    (crosslinkGroups, type) => {
+      crosslinkGroups[type] = [];
+      return crosslinkGroups;
+    },
+    {} as Record<CrosslinkType, string[]>,
+  );
 
   for (const crosslink of crosslinks) {
     const [atom1, atom2] = extractCrosslinkAtoms(cifString, crosslink);
@@ -105,6 +121,9 @@ export function generateCrosslinkCIF(
     if (atom1 && atom2) {
       const atom1Id = `XL${String(connectionId)}A`;
       const atom2Id = `XL${String(connectionId)}B`;
+
+      const crosslinkType = getCrosslinkType(crosslink);
+      crosslinkGroups[crosslinkType].push(atom1Id, atom2Id);
 
       const atom1Line = [
         `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
@@ -133,7 +152,7 @@ export function generateCrosslinkCIF(
     }
   }
 
-  const cifCrosslink = `
+  const crosslinkCifText = `
     data_crosslink
 
     loop_
@@ -165,7 +184,7 @@ export function generateCrosslinkCIF(
     ${connectionLines.join("\n")}
     `;
 
-  return cifCrosslink;
+  return { crosslinkerCifText: crosslinkCifText, crosslinkerGroups: crosslinkGroups };
 }
 
 function getCifAtomSiteIndices(cifString: string): AtomSiteIndices {
@@ -200,4 +219,12 @@ function getCifAtomSiteIndices(cifString: string): AtomSiteIndices {
     yCoordIdx: findFirst(yCoordColNames),
     zCoordIdx: findFirst(zCoordColNames),
   };
+}
+
+function getCrosslinkType(crosslink: CrosslinkerInformation): CrosslinkType {
+  if (crosslink.isIntraCrosslink) {
+    return crosslink.isValid ? CrosslinkType.ValidIntra : CrosslinkType.InvalidIntra;
+  } else {
+    return crosslink.isValid ? CrosslinkType.ValidInter : CrosslinkType.InvalidInter;
+  }
 }

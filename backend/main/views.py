@@ -748,7 +748,9 @@ def convert_df_to_mmcif_for_visualization(
 
 
 # TODO: move helper functions somewhere else?
-def extract_relevant_crosslink_information(crosslinking_df: pd.DataFrame) -> List[Dict[str, int]]:
+def extract_relevant_crosslink_information(
+    crosslinking_df: pd.DataFrame,
+) -> List[Dict[str, int]]:
     """
     For each crosslink extract its relevant information from a DataFrame.
 
@@ -760,12 +762,14 @@ def extract_relevant_crosslink_information(crosslinking_df: pd.DataFrame) -> Lis
         position1 = row.get("crosslinker_position1")
         position2 = row.get("crosslinker_position2")
         is_valid = row.get("valid_crosslink")
+        is_intra_crosslink = row.get("Is_intra_crosslink")
         if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
             crosslinks.append(
                 {
                     "crosslinkerPosition1": int(position1),
                     "crosslinkerPosition2": int(position2),
                     "isValid": bool(is_valid),
+                    "isIntraCrosslink": bool(is_intra_crosslink),
                 }
             )
     return crosslinks

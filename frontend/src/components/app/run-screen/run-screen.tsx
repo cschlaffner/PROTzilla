@@ -164,6 +164,7 @@ export const RunScreen: React.FC = () => {
           crosslinkerPosition1: crossLink.crosslinkerPosition1,
           crosslinkerPosition2: crossLink.crosslinkerPosition2,
           isValid: crossLink.isValid,
+          isIntraCrosslink: crossLink.isIntraCrosslink,
         })),
       }));
 

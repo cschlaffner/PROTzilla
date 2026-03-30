@@ -2,10 +2,11 @@ import { SectionTitle } from "@protzilla/core";
 import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
+import { MolScriptBuilder as MS } from "molstar/lib/mol-script/language/builder";
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
-import { CrosslinkerInformation, generateCrosslinkCIF } from "./crosslink-struktur";
+import { CrosslinkerInformation, CrosslinkType, generateCrosslinkCIF } from "./crosslink-struktur";
 import "./molstar-theme.scss";
 
 const Container = styled.div`
@@ -73,24 +74,45 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
 
         if (crosslinks !== undefined) {
-          const crosslinkCifText = generateCrosslinkCIF(cifText, crosslinks);
-          //console.log(crosslinkCifText);
+          const { crosslinkerCifText: crosslinkerCifText, crosslinkerGroups: crosslinkerGroups } =
+            generateCrosslinkCIF(cifText, crosslinks);
 
           const lineData = await plugin.builders.data.rawData({
-            data: crosslinkCifText,
+            data: crosslinkerCifText,
             label: "line",
           });
           const lineTrajectory = await plugin.builders.structure.parseTrajectory(lineData, "mmcif");
-          //await plugin.builders.structure.hierarchy.applyPreset(lineTrajectory, "default");
           const lineModel = await plugin.builders.structure.createModel(lineTrajectory);
           const lineStructure = await plugin.builders.structure.createStructure(lineModel);
-          //await plugin.builders.structure.representation.addRepresentation(lineStructure, {});
-          await plugin.builders.structure.representation.addRepresentation(lineStructure, {
-            color: "uniform",
-            colorParams: {
-              value: 0xff0000,
-            },
-          });
+
+          const CROSSLINKER_COLORS = {
+            [CrosslinkType.ValidIntra]: 0xe03e00, // kräftiges orange-rot
+            [CrosslinkType.InvalidIntra]: 0xfca311, // blasses gelb-orange
+            [CrosslinkType.ValidInter]: 0x8a2be2, // kräftiges lila
+            [CrosslinkType.InvalidInter]: 0xd8b4ff, // blasses lila
+          };
+
+          for (const type of Object.values(CrosslinkType)) {
+            const atomIds = crosslinkerGroups[type];
+
+            const expression = MS.struct.generator.atomGroups({
+              "atom-test": MS.core.set.has([MS.set(...atomIds), MS.ammp("label_atom_id")]),
+            });
+
+            const component = await plugin.builders.structure.tryCreateComponentFromExpression(
+              lineStructure,
+              expression,
+              type,
+            );
+
+            if (component) {
+              await plugin.builders.structure.representation.addRepresentation(component, {
+                type: "line",
+                color: "uniform",
+                colorParams: { value: CROSSLINKER_COLORS[type] },
+              });
+            }
+          }
         }
 
         setIsLoading(false);
