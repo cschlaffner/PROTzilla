@@ -24,8 +24,7 @@ export interface Image {
 }
 
 export interface Download {
-  title: string;
-  data: string;
+  data: Record<string, unknown>;
 }
 
 // We assume these are the only data types we receive for tables

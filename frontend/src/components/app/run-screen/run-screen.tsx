@@ -82,6 +82,59 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
+interface UseStepOutputsParams<TOutput, TResponse, TResult> {
+  available_outputs: TOutput[];
+  endpoint: string;
+  runName: string;
+  stepId?: string;
+  transform: (output: TOutput, response: TResponse) => TResult;
+}
+
+export function useCertainStepOutputs<
+  TOutput extends StepOutputInfo,
+  TResponse = any,
+  TResult = any,
+>({
+  available_outputs,
+  endpoint,
+  runName,
+  stepId,
+  transform,
+}: UseStepOutputsParams<TOutput, TResponse, TResult>): TResult[] {
+  const [data, setData] = useState<TResult[]>([]);
+
+  useEffect(() => {
+    if (!stepId || available_outputs.length === 0) {
+      setData([]);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const responses = await Promise.all(
+          available_outputs.map(async (output) => {
+            const response: TResponse = await callApiWithParameters(endpoint, {
+              run_name: runName,
+              step_id: stepId,
+              output_key: output.label,
+            });
+
+            return transform(output, response);
+          }),
+        );
+
+        setData(responses);
+      } catch (error) {
+        console.error("Failed to fetch outputs:", error);
+      }
+    };
+
+    void fetchData();
+  }, [available_outputs, endpoint, runName, stepId, transform]);
+
+  return data;
+}
+
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,11 +146,38 @@ export const RunScreen: React.FC = () => {
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
-  const [downloads, setDownloads] = useState<Download[]>([]);
+  const downloads = useCertainStepOutputs<
+    StepOutputInfo,
+    Download,
+    { title: string; data: Record<string, unknown> }
+  >({
+    available_outputs: availableDownloads,
+    endpoint: "get_downloads_from_step/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: (output, response) => ({
+      title: output.label,
+      data: response.data,
+    }),
+  });
 
   // Static PNGs sent as base64
-  const [images, setImages] = useState<Image[]>([]);
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
+  const images = useCertainStepOutputs<
+    StepOutputInfo,
+    Image,
+    { title: string; alt: string; data: string }
+  >({
+    available_outputs: availableImages,
+    endpoint: "get_png_from_step/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: (output, response) => ({
+      title: output.label,
+      alt: output.label,
+      data: "data:image/png;base64," + response.data,
+    }),
+  });
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -227,60 +307,6 @@ export const RunScreen: React.FC = () => {
     plotPlaceholderMessage = "No plot available for this step.";
   }
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      const imagePromises = availableImages.map(async (output_info) => {
-        const response = await callApiWithParameters("get_png_from_step/", {
-          run_name: runName,
-          step_id: runData.current_step_id,
-          output_key: output_info.label,
-        });
-        return {
-          title: output_info.label,
-          alt: output_info.label,
-          data: "data:image/png;base64,".concat(response.data),
-        };
-      });
-
-      try {
-        const resolvedImages = await Promise.all(imagePromises);
-        setImages(resolvedImages);
-      } catch (error) {
-        console.error("Failed to fetch image data:", error);
-      }
-    };
-
-    if (availableImages.length > 0) {
-      void fetchImages();
-    } else {
-      setImages([]);
-    }
-  }, [availableImages, runName, runData.current_step_id]);
-
-  useEffect(() => {
-    if (!runData.current_step_id || availableDownloads.length === 0) return;
-
-    const fetchDownloads = async () => {
-      const responses = await Promise.all(
-        availableDownloads.map(async (output) => {
-          const response = await callApiWithParameters("get_downloads_from_step/", {
-            run_name: runName,
-            step_id: runData.current_step_id,
-            output_key: output.label,
-          });
-
-          return {
-            title: output.label,
-            data: response?.data,
-          };
-        }),
-      );
-      setDownloads(responses);
-    };
-
-    void fetchDownloads();
-  }, [runName, runData.current_step_id, availableDownloads]);
-
   const plotComponent = (
     <StyledContentContainer>
       {plots && plots.length > 0 ? (
@@ -371,7 +397,7 @@ export const RunScreen: React.FC = () => {
     <StyledContentContainer>
       {downloads.length > 0 ? (
         downloads.flatMap((download) =>
-          Object.entries(download.data || {}).map(([filename, content]) => (
+          Object.entries(download.data).map(([filename, content]) => (
             <SecondaryButton
               key={`${download.title}-${filename}`}
               text={filename}
