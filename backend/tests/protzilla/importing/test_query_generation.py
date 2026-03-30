@@ -26,15 +26,13 @@ def test_generate_alphafold_multimer_json_query_for_multiple_proteins(mock_get):
     mock_get.side_effect = [mock_resp1, mock_resp2]
 
     result = generate_alphafold_query_json("P69905 P68871", "2,3", -1, "name")
-    downloads = result["downloads"]
+    downloads = result["downloads"].value
 
     assert len(downloads) == 1
     key = list(downloads.keys())[0]
     assert key == "name"
 
-    # Parse JSON string (after removing outer brackets)
-    json_str = downloads[key]
-    parsed_json = json.loads(json_str[1:-1])
+    parsed_json = downloads[key][0]
 
     # Check top-level keys
     expected_keys = {"name", "modelSeeds", "sequences", "dialect", "version"}
@@ -76,10 +74,10 @@ def test_generate_alphafold_multimer_json_query_with_model_seed(mock_get):
     mock_get.return_value = mock_resp
 
     result = generate_alphafold_query_json("P69905", "2", model_seed=12345, name="name")
-    downloads = result["downloads"]
+    downloads = result["downloads"].value
     key = list(downloads.keys())[0]
-    parsed_json = json.loads(downloads[key][1:-1])
-    assert parsed_json["modelSeeds"] == [12345]
+    query_json = downloads[key][0]
+    assert query_json["modelSeeds"] == [12345]
 
 
 def test_generate_alphafold_multimer_json_query_with_mismatched_number_of_ids_and_number_of_copies():
