@@ -13,7 +13,7 @@ from typing import Any
 import backend.protzilla.constants.paths as paths
 from backend.protzilla.constants.date_format import metadata_date_format
 from backend.protzilla.form import Form
-from backend.protzilla.steps import Messages, Output, Plots, Downloads, Step
+from backend.protzilla.steps import Messages, Output, Plots, Step
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.utilities.utilities import format_trace
 
@@ -350,10 +350,6 @@ class Run:
     @property
     def current_plots(self) -> Plots | None:
         return self.steps.current_step.plots
-
-    @property
-    def current_downloads(self) -> dict[str, str] | None:
-        return self.steps.current_step.downloads.downloads
 
     @property
     def current_outputs(self) -> Output:
