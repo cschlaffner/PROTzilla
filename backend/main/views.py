@@ -683,9 +683,6 @@ def get_step_plots(request):
 
 
 def get_downloads_from_step(request: HttpRequest):
-    """
-    API call. Returns a base64-encoded PNG of a step output to the front-end
-    """
     if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405

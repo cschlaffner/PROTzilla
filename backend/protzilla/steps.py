@@ -474,7 +474,7 @@ class OutputType(StrEnum):
     FLOAT = "float"
     INT = "int"
     PNG_BASE64 = "png_base64"
-    DOWNLOAD = "download"
+    DOWNLOAD = "download"  # right now only JSONs are supported, value should be dict(filename, json content)
     # for every data type that is not yaml serializable
     JOBLIB_ARTIFACT = "joblib_artifact"
 
