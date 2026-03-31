@@ -2,6 +2,8 @@ from __future__ import annotations
 from abc import ABC
 from typing_extensions import override
 
+import pandas as pd
+
 from backend.protzilla.form import *
 from backend.protzilla import form_helper
 from backend.protzilla.constants.data_types import DataKey
@@ -43,6 +45,7 @@ from backend.protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from protzilla.importing.query_generation import generate_alphafold_query_json
 
 
 class ImportingStep(Step, ABC):
@@ -618,3 +621,52 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
         )
 
     calc_method = staticmethod(get_multimer_structure_dfs)
+
+
+class AlphaFoldQueryJsonGeneration(Step):
+    section = "importing"
+    display_name = "AlphaFold Query JSON Generation"
+    operation = "Query Generation"
+    method_description = (
+        "Generate a JSON to upload to AlphaFold-Server to generate a prediction."
+    )
+
+    def create_form(self):
+        return Form(
+            label="AlphaFold Query JSON Generation",
+            input_fields=[
+                TextField(
+                    name="name",
+                    label="File name and AlphaFold job name for generated query",
+                ),
+                InfoField(
+                    label="Only enter file stem, '.json' will be added automatically."
+                ),
+                TextField(
+                    name="protein_ids",
+                    label="UniProt Protein IDs",
+                ),
+                InfoField(label="IDs should be space- or comma-separated."),
+                TextField(
+                    name="number_copies",
+                    label="Number of copies of each protein monomer",
+                ),
+                InfoField(
+                    label="For each entered ID a number should be entered.\n"
+                    "Numbers should be should be space- or comma-separated."
+                ),
+                NumberField(
+                    name="model_seed",
+                    label="Model seed for AlphaFold",
+                    min=-1,
+                    max=4294967295,
+                    value=-1,
+                ),
+                InfoField(
+                    label="Leave -1 if you want to use a random seed.\n"
+                    "Otherwise enter a seed (integer between 0 and 4294967295)"
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(generate_alphafold_query_json)

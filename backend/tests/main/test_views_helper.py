@@ -14,6 +14,7 @@ def test_get_all_possible_step_names():
         "FastaImport",
         "AlphaFoldPredictionLoad",
         "CrosslinkingImport",
+        "AlphaFoldQueryJsonGeneration",
         "ImportMonomerStructurePredictionFromDisk",
         "UploadMultimerPredictions",
         "ImportMultimerStructurePredictionFromDisk",

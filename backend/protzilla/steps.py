@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 import inspect
 import logging
 import traceback
-from enum import StrEnum
-from typing import Any, Literal
+from enum import Enum, StrEnum
+from pathlib import Path
+from types import MethodType
+from typing import Any, Literal, Callable
 
 import pandas as pd
 import yaml
@@ -340,50 +342,46 @@ class Step(ABC):
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
 
-    @property
-    def calculation_input(self) -> dict:
-        input_parameters = inspect.signature(self.calc_method).parameters
+    def _get_input_parameters(
+        self, function: Callable[..., Any], relevant_inputs: dict | None = None
+    ) -> dict:
+        if relevant_inputs is None:
+            relevant_inputs = self.inputs
+        input_parameters = inspect.signature(function).parameters
         required_keys = [
             key
             for key, param in input_parameters.items()
             if param.default == inspect.Parameter.empty
         ]
         for key in required_keys:
-            if key not in self.inputs:
+            if key not in relevant_inputs:
                 raise ValueError(
-                    f"Missing required input '{key}' for the calculation method"
+                    f"Missing required input '{key}' for the '{function.__name__}' method"
                 )
 
         return {
             # if there is a default value, we want to use it
             key: (
-                self.inputs.get(key, param.default)
+                relevant_inputs.get(key, param.default)
                 if param.default != inspect.Parameter.empty
-                else self.inputs.get(key)
+                else relevant_inputs.get(key)
             )
             for key, param in input_parameters.items()
+            if key in relevant_inputs
         }
+
+    @property
+    def calculation_input(self) -> dict:
+        return self._get_input_parameters(self.calc_method)
 
     @property
     def plot_input(self) -> dict:
         # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
         prefixed_output = {"output_" + key: item.value for key, item in self.output}
         plot_input = self.inputs | prefixed_output
-
-        input_parameters = inspect.signature(self.plot_method).parameters
-
-        required_keys = [
-            key
-            for key, param in input_parameters.items()
-            if param.default == inspect.Parameter.empty
-        ]
-        for key in required_keys:
-            if key not in plot_input:
-                raise ValueError(f"Missing required input '{key}' for the plot method")
-
-        return {
-            key: plot_input[key] for key in input_parameters.keys() if key in plot_input
-        }
+        return self._get_input_parameters(
+            function=self.plot_method, relevant_inputs=plot_input
+        )
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
@@ -476,6 +474,7 @@ class OutputType(StrEnum):
     FLOAT = "float"
     INT = "int"
     PNG_BASE64 = "png_base64"
+    DOWNLOAD = "download"  # right now only JSONs are supported, value should be dict(filename, json content)
     # for every data type that is not yaml serializable
     JOBLIB_ARTIFACT = "joblib_artifact"
 

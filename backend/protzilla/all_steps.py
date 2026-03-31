@@ -17,6 +17,7 @@ _forward_mapping: list[Step] = [
     importing.FastaImport,
     importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
+    importing.AlphaFoldQueryJsonGeneration,
     importing.ImportMonomerStructurePredictionFromDisk,
     importing.UploadMultimerPredictions,
     importing.ImportMultimerStructurePredictionFromDisk,

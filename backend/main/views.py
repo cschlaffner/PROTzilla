@@ -682,6 +682,39 @@ def get_step_plots(request):
         )
 
 
+def get_downloads_from_step(request: HttpRequest):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
+    output_key = data.get("output_key")
+
+    run = Run(run_name)
+    step = run.steps.get_step_by_id(step_id)
+    downloads = step.output.get(output_key)
+    if downloads is None:
+        downloads = {}
+    if not isinstance(downloads, dict):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Requested output must be dict object, is {str(type(downloads))}",
+            },
+            status=405,
+        )
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Got the available download(s) for the step",
+            "data": downloads,
+        }
+    )
+
+
 # TODO: Move somewhere else
 def _step_output_as_serialised_table(
     label: str, _data: pd.DataFrame | Any, index_delims: tuple[int, int] = (None, None)

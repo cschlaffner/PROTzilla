@@ -13,6 +13,7 @@ import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
   callApiWithParameters,
+  Download,
   emptyRunData,
   footerMessages,
   Image,
@@ -81,6 +82,55 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
+interface UseStepOutputsParams<TOutput, TResponse, TResult> {
+  available_outputs: TOutput[];
+  endpoint: string;
+  runName: string;
+  stepId?: string;
+  transform: (output: TOutput, response: TResponse) => TResult;
+}
+
+export function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
+  available_outputs,
+  endpoint,
+  runName,
+  stepId,
+  transform,
+}: UseStepOutputsParams<TOutput, TResponse, TResult>): TResult[] {
+  const [data, setData] = useState<TResult[]>([]);
+
+  useEffect(() => {
+    if (!stepId || available_outputs.length === 0) {
+      setData([]);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const responses = await Promise.all(
+          available_outputs.map(async (output) => {
+            const response: TResponse = await callApiWithParameters(endpoint, {
+              run_name: runName,
+              step_id: stepId,
+              output_key: output.label,
+            });
+
+            return transform(output, response);
+          }),
+        );
+
+        setData(responses);
+      } catch (error) {
+        console.error("Failed to fetch outputs:", error);
+      }
+    };
+
+    void fetchData();
+  }, [available_outputs, endpoint, runName, stepId, transform]);
+
+  return data;
+}
+
 export const RunScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,10 +141,39 @@ export const RunScreen: React.FC = () => {
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
+  const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
+  const downloads = useCertainStepOutputs<
+    StepOutputInfo,
+    Download,
+    { title: string; data: Record<string, unknown> }
+  >({
+    available_outputs: availableDownloads,
+    endpoint: "get_downloads_from_step/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: (output, response) => ({
+      title: output.label,
+      data: response.data,
+    }),
+  });
 
   // Static PNGs sent as base64
-  const [images, setImages] = useState<Image[]>([]);
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
+  const images = useCertainStepOutputs<
+    StepOutputInfo,
+    Image,
+    { title: string; alt: string; data: string }
+  >({
+    available_outputs: availableImages,
+    endpoint: "get_png_from_step/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: (output, response) => ({
+      title: output.label,
+      alt: output.label,
+      data: "data:image/png;base64," + response.data,
+    }),
+  });
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
@@ -134,6 +213,7 @@ export const RunScreen: React.FC = () => {
         step_id: stepID,
       }).then(() => {
         setAvailableTables(undefined);
+        setAvailableDownloads([]);
         setPlots(undefined);
         setAvailableImages([]);
 
@@ -180,13 +260,16 @@ export const RunScreen: React.FC = () => {
     if (response) {
       const tableOutputs = [];
       const imageOutputs = [];
+      const downloadOutputs = [];
       for (const output of response.outputs) {
         if (output.output_type === "dataframe" || output.output_type === "list")
           tableOutputs.push(output);
         else if (output.output_type === "png_base64") imageOutputs.push(output);
+        else if (output.output_type === "download") downloadOutputs.push(output);
       }
       setAvailableTables(tableOutputs);
       setAvailableImages(imageOutputs);
+      setAvailableDownloads(downloadOutputs);
     }
   }, [runName]);
 
@@ -202,6 +285,7 @@ export const RunScreen: React.FC = () => {
     setAvailableTables(undefined);
     setAvailableImages([]);
     setPlots(undefined);
+    setAvailableDownloads([]);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
@@ -218,36 +302,6 @@ export const RunScreen: React.FC = () => {
   } else {
     plotPlaceholderMessage = "No plot available for this step.";
   }
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      const imagePromises = availableImages.map(async (output_info) => {
-        const response = await callApiWithParameters("get_png_from_step/", {
-          run_name: runName,
-          step_id: runData.current_step_id,
-          output_key: output_info.label,
-        });
-        return {
-          title: output_info.label,
-          alt: output_info.label,
-          data: "data:image/png;base64,".concat(response.data),
-        };
-      });
-
-      try {
-        const resolvedImages = await Promise.all(imagePromises);
-        setImages(resolvedImages);
-      } catch (error) {
-        console.error("Failed to fetch image data:", error);
-      }
-    };
-
-    if (availableImages.length > 0) {
-      void fetchImages();
-    } else {
-      setImages([]);
-    }
-  }, [availableImages, runName, runData.current_step_id]);
 
   const plotComponent = (
     <StyledContentContainer>
@@ -323,6 +377,39 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const downloadJson = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadComponent = (
+    <StyledContentContainer>
+      {downloads.length > 0 ? (
+        downloads.flatMap((download) =>
+          Object.entries(download.data).map(([filename, content]) => (
+            <SecondaryButton
+              key={`${download.title}-${filename}`}
+              text={filename}
+              style={{ width: "fit-content" }}
+              onClick={() => {
+                downloadJson(filename, JSON.stringify(content, null, 2));
+              }}
+            />
+          )),
+        )
+      ) : (
+        <SectionTitle baseComponent={"h4"} description={"No downloads available for this step."} />
+      )}
+    </StyledContentContainer>
+  );
+
   const nodeEditorComponent = (
     <NodeEditor
       onFormSubmit={onFormSubmit}
@@ -340,6 +427,7 @@ export const RunScreen: React.FC = () => {
     plots && plots.length > 0 && { name: "Plots", value: plotComponent },
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
     availableImages.length > 0 && { name: "Images", value: imageComponent },
+    availableDownloads.length > 0 && { name: "Downloads", value: downloadComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
