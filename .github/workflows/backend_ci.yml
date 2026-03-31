@@ -2,9 +2,12 @@ name: Backend CI Pipeline
 
 on:
   push:
+    branches:
+      - 'dev'
     paths:
       - backend/**
   pull_request:
+    types: ['opened', 'synchronize']
     paths:
       - backend/**
 
@@ -43,7 +46,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Check formatting with black
-        run: python -m black --check .
+        run: |
+          python -m black --version
+          python -m black --check --diff .
 
       - name: Analyse the code with autoflake
         run: python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables --expand-star-imports --ignore-init-module-imports $(git ls-files '*.py')
@@ -60,10 +65,3 @@ jobs:
           GIT_LFS_SKIP_SMUDGE: 1
         with:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v4
-        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
-        with:
-          name: python-coverage-comment-action
-          path: python-coverage-comment-action.txt

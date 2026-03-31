@@ -21,7 +21,6 @@ export const SingleCheckboxInputField: React.FC<SingleCheckboxInputFieldProps> =
   ...props
 }) => {
   const [isChecked, setIsChecked] = useState<boolean>(() => {
-    onChange(initialValue ?? false);
     return initialValue ?? false;
   });
 

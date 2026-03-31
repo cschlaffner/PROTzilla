@@ -1,5 +1,6 @@
 FROM python:3.11 AS backend-base
 
+LABEL org.opencontainers.image.source=https://github.com/cschlaffner/PROTzilla
 RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
     --mount=type=cache,target=/root/.cache/pip \
     pip install -U pip && pip install -r requirements.txt
@@ -14,4 +15,5 @@ RUN --mount=type=bind,source=install_scripts/database_download.py,target=install
     --mount=type=bind,source=backend/protzilla/constants/paths.py,target=backend/protzilla/constants/paths.py \
     python install_scripts/database_download.py
 
+ENV DEBUGMODE=1
 ENTRYPOINT ["bash", "-c", "python -m debugpy --listen 0.0.0.0:5678 backend/manage.py runserver 0.0.0.0:8000 --nothreading"]

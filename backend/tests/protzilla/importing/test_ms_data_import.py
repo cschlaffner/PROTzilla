@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from backend.protzilla.constants.data_types import DataKey
 from backend.tests.paths import TEST_MSDATA_PATH
 from backend.protzilla.importing import ms_data_import
-from protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.constants.intensity_types import IntensityType
 
 
 def ms_fragger_import_intensity_df(intensity_name):
@@ -197,9 +198,9 @@ def test_max_quant_import_different_intensity_names(intensity_name):
         file_path=f"{TEST_MSDATA_PATH}/MaxQuant/small.tsv",
         intensity_name=intensity_name,
     )
-    assert "protein_df" in outputs
-    assert outputs["protein_df"] is not None
-    assert intensity_name in outputs["protein_df"].columns
+    assert DataKey.PROTEIN_DF in outputs
+    assert outputs[DataKey.PROTEIN_DF] is not None
+    assert intensity_name in outputs[DataKey.PROTEIN_DF].columns
 
 
 def test_max_quant_import_file_not_exist():
@@ -207,7 +208,7 @@ def test_max_quant_import_file_not_exist():
         file_path="non_existent_file_path",
         intensity_name="Intensity",
     )
-    assert "protein_df" not in outputs
+    assert DataKey.PROTEIN_DF not in outputs
     assert "messages" in outputs
     assert any(message["level"] == logging.ERROR for message in outputs["messages"])
     assert any("found" in message["msg"].lower() for message in outputs["messages"])
@@ -218,7 +219,7 @@ def test_max_quant_import_no_protein_ids_column():
         file_path=f"{TEST_MSDATA_PATH}/MaxQuant/small_noproteincolumn.tsv",
         intensity_name="Intensity",
     )
-    assert "protein_df" not in outputs
+    assert DataKey.PROTEIN_DF not in outputs
     assert "messages" in outputs
     assert any(message["level"] == logging.ERROR for message in outputs["messages"])
     assert any(
@@ -231,7 +232,7 @@ def test_max_quant_import_invalid_data():
         file_path=f"{TEST_MSDATA_PATH}/MaxQuant/small_invalid.tsv",
         intensity_name="Intensity",
     )
-    assert "protein_df" not in outputs
+    assert DataKey.PROTEIN_DF not in outputs
     assert "messages" in outputs
     assert any(message["level"] == logging.ERROR for message in outputs["messages"])
 
@@ -260,7 +261,7 @@ def test_ms_fragger_import(intensity_name):
 
     # we do not care about the genes column, it is never used (and replaced by nan)
     expected_protein_df = expected_protein_df.drop(columns=["Gene"])
-    result_protein_df = outputs["protein_df"].drop(columns=["Gene"])
+    result_protein_df = outputs[DataKey.PROTEIN_DF].drop(columns=["Gene"])
 
     pd.testing.assert_frame_equal(expected_protein_df, result_protein_df)
 
@@ -275,7 +276,7 @@ def test_diann_import():
 
     # we do not care about the genes column, it is never used (and replaced by nan)
     expected_intensity_df = expected_intensity_df.drop(columns=["Gene"])
-    result_intensity_df = outputs["protein_df"].drop(columns=["Gene"])
+    result_intensity_df = outputs[DataKey.PROTEIN_DF].drop(columns=["Gene"])
     pd.testing.assert_frame_equal(result_intensity_df, expected_intensity_df)
 
 
@@ -284,7 +285,7 @@ def test_filter_rev_con():
         file_path=f"{TEST_MSDATA_PATH}/MaxQuant/proteinGroups_small_cut.txt",
         intensity_name="Intensity",
     )
-    protein_ids = outputs["protein_df"]["Protein ID"].unique().tolist()
+    protein_ids = outputs[DataKey.PROTEIN_DF]["Protein ID"].unique().tolist()
     # not the complete group should be filtered out if contains valid ids
     assert "P04211" in protein_ids
     # all instances of rev and con should be filtered out
@@ -319,11 +320,11 @@ def test_transform_and_clean():
     expected_df = pd.DataFrame(expected_output, columns=out_col)
 
     # we do not care about the genes column, it is deprecated (and replaced by nan)
-    protein_df = outputs["protein_df"].drop(columns=["Gene"])
+    protein_df = outputs[DataKey.PROTEIN_DF].drop(columns=["Gene"])
 
     assert protein_df.equals(expected_df)
-    assert outputs["contaminants"] == ["Q11111;CON__P12345"]
-    assert outputs["filtered_proteins"] == ["REV__P12345"]
+    assert outputs["contaminants"].value == ["Q11111;CON__P12345"]
+    assert outputs["filtered_proteins"].value == ["REV__P12345"]
 
 
 def test_transform_and_clean_ignore_only_identified_by_site():
@@ -341,7 +342,7 @@ def test_transform_and_clean_ignore_only_identified_by_site():
         aggregation_method="Sum",
         ignore_only_identified_by_site=True,
     )
-    protein_df = outputs["protein_df"].drop(columns=["Gene"])
+    protein_df = outputs[DataKey.PROTEIN_DF].drop(columns=["Gene"])
     expected_df = pd.DataFrame(
         {"Sample": ["S1"], "Protein ID": ["P00001"], "Intensity": [2.0]}
     )

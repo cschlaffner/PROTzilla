@@ -1,0 +1,10 @@
+name,region_end,group,short_name
+"N-term",45,A,"N-term"
+"N1",73,A,"N1"
+"N2",102,B,"N2"
+"Mid",150,A,"Mid"
+"PRR",241,A,"PRR"
+"R1",272,A,"R1"
+"R2",303,A,"R2"
+"R4",371,A,"R4"
+"C-term",410,A,"C-term"

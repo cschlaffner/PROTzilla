@@ -2,11 +2,10 @@ from enum import Enum
 import logging
 
 import gseapy
-import numpy as np
 import pandas as pd
 
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import is_intensity_df, long_to_wide
 
 from .enrichment_analysis_helper import read_protein_or_gene_sets_file
@@ -72,7 +71,6 @@ def create_ranked_df(
     return ranked_df
 
 
-# TODO we need to adjust the method to use the gene_mapping_df
 def gsea_preranked(
     protein_df,
     gene_mapping_df,
@@ -153,7 +151,7 @@ def gsea_preranked(
         msg = f"Ranking column '{ranking_column}' not found in protein_df."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-    if not protein_df[ranking_column].dtype == np.number:
+    if not pd.api.types.is_numeric_dtype(protein_df[ranking_column].dtype):
         msg = f"Ranking column '{ranking_column}' must be numeric. Please check your input data or choose a different column."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 

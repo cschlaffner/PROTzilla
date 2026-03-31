@@ -1,24 +1,25 @@
 import json
-import io
 from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
-from pathlib import Path
 import re
 import traceback
 from typing import Any, Optional, List, Dict
+import logging
+from typing import Any
 
 import numpy as np
-from django.contrib import messages
-from django.contrib.messages import add_message
 from plotly.io import to_json
 
 import pandas as pd
 from django.http import JsonResponse, FileResponse
+from django.http.request import HttpRequest
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from backend.main import settings
+from backend.protzilla.constants.envs import DEBUGMODE
+from backend.protzilla.constants.data_types import Connection
 from backend.protzilla.form import Form
 from backend.protzilla.run import (
     Run,
@@ -35,9 +36,8 @@ from backend.protzilla.constants.paths import (
     RUNS_PATH,
     WORKFLOWS_PATH,
 )
-from backend.protzilla.utilities import format_trace, get_memory_usage
+from backend.protzilla.utilities.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
-from backend.protzilla.steps import Step
 from backend.main.views_helper import (
     get_display_name,
     get_step,
@@ -45,7 +45,7 @@ from backend.main.views_helper import (
     parameters_from_post,
     sanitize_name,
 )
-from protzilla.all_steps import get_all_possible_steps
+from backend.protzilla.all_steps import get_all_possible_steps
 
 database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
 
@@ -79,7 +79,7 @@ def run_information_list(request):
 
 
 def all_steps(request):
-    steps = get_all_possible_steps()
+    steps = get_all_possible_steps(exclude_hidden=not DEBUGMODE)
     return JsonResponse(steps, safe=False)
 
 
@@ -359,70 +359,152 @@ def add_step(request):
 
 
 def delete_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
-
-        index = int(index)
-        run = Run(run_name)
-
-        if (
-            section == run.current_step.section
-            and index == run.steps.current_step_index_in_section
-        ):
-            # if the step to be deleted is the current step, we need to go to the next step first
-            if run.steps.current_step_index > 0:
-                run.step_previous()
-            else:
-                return JsonResponse(
-                    {"success": False, "message": "Cannot delete the first step"},
-                    status=405,
-                )
-
-        run.step_remove(step_index=index, section=section)
-
-        return JsonResponse({"success": True, "message": "Deleted step"})
-    else:
+    """
+    API call. Deletes the step with the given instance identifier
+    """
+    if request.method != "POST":
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
 
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
 
-def update_step(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        method = data.get("method")
+    run = Run(run_name)
 
-        run = Run(run_name)
-
-        run.step_change_method(method)
-
-        return JsonResponse({"success": True, "message": "Updated step method"})
-    else:
+    try:
+        run.step_remove(step_id)
+    except ValueError as e:
         return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
+            {"success": False, "message": "Cannot delete step: " + str(e)}
         )
+
+    return JsonResponse({"success": True, "message": "Deleted step"})
 
 
 def navigate_to_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        section = data.get(
-            "section"
-        )  # this is a bit different to the original, but frontend prob has to deal with it :)
-        index = data.get("index")
+        step_id = data.get("step_id")
 
-        index = int(index)
         run = Run(run_name)
-        run.step_goto(index, section)
+        run.step_goto(step_id)
 
         return JsonResponse({"success": True, "message": "Navigated successfully"})
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def set_step_pos(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        step_id = data.get("step_id")
+        x = data.get("x")
+        y = data.get("y")
+
+        if run_name is None or step_id is None or x is None or y is None:
+            return JsonResponse(
+                {"success": False, "message": "Missing parameters"}, status=400
+            )
+
+        run = Run(run_name)
+        run.set_step_pos(step_id, float(x), float(y))
+
+        return JsonResponse({"success": True, "message": "Updated step position"})
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def connect_steps(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        connection: Connection = data.get("connection")
+        run = Run(run_name)
+        try:
+            run.steps.connect_steps(connection, run)
+            return JsonResponse(
+                {
+                    "success": True,
+                    # we really need a general message type outside of step calculation
+                    "message": {
+                        "title": "Connected steps successfully",
+                        # very verbose, could be condensed in the future
+                        "msg": f"Step {connection['target']} now uses the output with key {connection['sourceHandle']} of step {connection['source']} as its input with key {connection['targetHandle']}.",
+                    },
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        title="Error connecting steps",
+                        msg=str(e),
+                        # TODO: trace is never shown atm, but should be part of a message system refactor
+                        trace=format_trace(traceback.format_exception(e)),
+                    ),
+                }
+            )
+
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def disconnect_steps(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name: str = data.get("run_name")
+        connection = data.get("connection")
+        run = Run(run_name)
+        try:
+            run.steps.disconnect_steps(connection)
+            return JsonResponse(
+                {
+                    "success": True,
+                    # we really need a general message type outside of step calculation
+                    "message": {
+                        "title": "Disconnected steps successfully",
+                        # very verbose, could be condensed in the future
+                        "msg": f"Removed {connection['source']} as the input for {connection['targetHandle']} of step {connection['target']}.",
+                    },
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        title="Error disconnecting steps",
+                        msg=str(e),
+                        # TODO: trace is never shown atm, but should be part of a message system refactor
+                        trace=format_trace(traceback.format_exception(e)),
+                    ),
+                }
+            )
+
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def get_edges(request) -> JsonResponse:
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        run = Run(run_name)
+        edges = run.steps.get_edges()
+        return JsonResponse({"success": True, "data": edges})
     else:
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
@@ -520,32 +602,6 @@ def delete_workflow(request):
         )
 
 
-def download_table(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        run_name = data.get("run_name")
-        index = data.get("index")
-        key = data.get("key")
-
-        run = Run(run_name)
-
-        instance_id = run.steps.all_steps[index].instance_identifier
-        buffer = io.StringIO()
-        df: pd.DataFrame = run.steps.get_step_output(
-            Step, key, instance_id, include_current_step=True
-        )
-        df.to_csv(buffer)
-
-        buffer.seek(0)
-        csv_bytes = buffer.getvalue()
-
-        return FileResponse(csv_bytes, content_type="text/csv")
-    else:
-        return JsonResponse(
-            {"success": False, "message": "Invalid request method"}, status=405
-        )
-
-
 def get_run_data(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -557,15 +613,19 @@ def get_run_data(request):
         if run.current_step is not None:
             run_data["displayed_steps"] = get_displayed_steps(run.steps)
             run_data["current_section"] = run.current_step.section
-            run_data["current_step_index"] = run.steps.current_step_index
+            run_data["current_step_id"] = run.steps.current_selected_step_id
+            run_data["recommended_next_step_id"] = run.steps.recommended_next_step_id
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = (
                 True if run.current_step.plot_method is not None else False
             )
+            run_data["__dbg_graph_nodes"] = list(run.steps.graph.nodes())
+            run_data["graph_edges"] = run.steps.get_edges()
         else:
             run_data["displayed_steps"] = []
             run_data["current_section"] = None
             run_data["current_step"] = None
+            run_data["current_step_id"] = None
             run_data["memory_usage"] = get_memory_usage()
             run_data["current_step_has_plot"] = False
 
@@ -588,7 +648,7 @@ def get_step_form(request):
         run = Run(run_name)
 
         if new_form_values != {}:
-            run.steps.set_steps_outdated()
+            run.steps.invalidate_current_and_following_steps()
 
         form = run.current_form(new_form_values)
 
@@ -622,6 +682,39 @@ def get_step_plots(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+
+def get_downloads_from_step(request: HttpRequest):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
+    output_key = data.get("output_key")
+
+    run = Run(run_name)
+    step = run.steps.get_step_by_id(step_id)
+    downloads = step.output.get(output_key)
+    if downloads is None:
+        downloads = {}
+    if not isinstance(downloads, dict):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Requested output must be dict object, is {str(type(downloads))}",
+            },
+            status=405,
+        )
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Got the available download(s) for the step",
+            "data": downloads,
+        }
+    )
 
 
 def get_step_visualizations(request):
@@ -809,10 +902,7 @@ def _step_output_as_serialised_table(
     # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
     # Potential fix: Just do not use lists bro???
     elif (
-        ("_df" not in label)
-        and (label not in hidden_outputs)
-        and (type(_data) == list)
-        and (len(_data) > 0)
+        ("_df" not in label) and (label not in hidden_outputs) and (type(_data) == list)
     ):
         data = pd.DataFrame({label: _data[start_index:end_index]})
         data["id"] = data.index
@@ -821,6 +911,36 @@ def _step_output_as_serialised_table(
 
     else:
         return None
+
+
+def get_png_from_step(request: HttpRequest):
+    """
+    API call. Returns a base64-encoded PNG of a step output to the front-end
+    """
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run_name = data.get("run_name")
+    step_id = data.get("step_id")
+    output_key = data.get("output_key")
+
+    run = Run(run_name)
+    step = run.steps.get_step_by_id(step_id)
+    output = step.output.get(output_key)
+    if not isinstance(output, bytes):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Requested output must be bytes object, is {str(type(output))}",
+            },
+            status=405,
+        )
+
+    content = output.decode("utf-8")
+    return JsonResponse({"success": True, "message": "OK", "data": content})
 
 
 def get_current_step_table_data(request):
@@ -859,7 +979,11 @@ def get_current_step_table_data(request):
     )
 
     if serialised_output is None:
-        response["rows"] = [{"Info": "This step output cannot be displayed as a table"}]
+        response["rows"] = [
+            {
+                "Info": f"This step output of type {str(type(step_output))} cannot be displayed as a table"
+            }
+        ]
     else:
         response["success"] = True
         response["rows"] = serialised_output
@@ -897,7 +1021,11 @@ def get_current_step_output_labels(request):
     for label, data in run.current_outputs:
         if label not in hidden_outputs:
             response["outputs"].append(
-                {"label": label, "display_name": get_display_name(label)}
+                {
+                    "label": label,
+                    "display_name": get_display_name(label),
+                    "output_type": data.output_type,
+                }
             )
 
     response["success"] = True
@@ -911,12 +1039,23 @@ def calculate_step(request):
         user_input = data.get("data")
 
         run = Run(run_name)
+
+        if not run.current_step_ready_for_calculation:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": dict(
+                        level=logging.ERROR,
+                        msg="At least one dependent step has not been calculated yet",
+                    ),
+                }
+            )
+
         run.current_form(user_input)
         run.step_calculate()
 
         calculation_data = {}
-        calculation_data["section"] = run.current_step.section
-        calculation_data["index"] = run.steps.current_step_index_in_section
+        calculation_data["step_id"] = run.current_step.instance_identifier
         calculation_data["status"] = run.current_step.calculation_status
         calculation_data["messages"] = [
             message for message in run.current_messages.messages
