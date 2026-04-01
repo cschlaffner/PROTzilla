@@ -4,7 +4,7 @@ import traceback
 from zipfile import ZipFile
 import re
 import traceback
-from typing import Any, Optional, List, Dict
+from typing import Any 
 import logging
 from typing import Any
 
@@ -44,6 +44,7 @@ from backend.main.views_helper import (
     get_displayed_steps,
     parameters_from_post,
     sanitize_name,
+    create_visualization,
 )
 from backend.protzilla.all_steps import get_all_possible_steps
 
@@ -746,107 +747,6 @@ def get_step_visualizations(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
-
-
-# TODO: move helper functions somewhere else?
-def create_visualization(
-    cif_df: pd.DataFrame,
-    protein_entry_id: str,
-    crosslinking_df: Optional[pd.DataFrame] = None,
-) -> dict:
-    """
-    Convert a CIF DataFrame to a mmCIF string and package it with its protein entry ID.
-    Optionally include crosslinks.
-
-    :param cif_df: DataFrame containing mmCIF atom_site information.
-    :param protein_entry_id: Protein identifier to include in the mmCIF header.
-    :param crosslinking_df: Optional DataFrame containing crosslink positions.
-    :return: Dictionary containing:
-             - "proteinEntryId" (str)
-             - "cifString" (str)
-             - "crosslinks" (optional, list of dicts)
-    """
-    try:
-        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
-    except (ValueError, TypeError):
-        cif_string = ""
-
-    result = {"proteinEntryId": protein_entry_id, "cifString": cif_string}
-
-    if crosslinking_df is not None:
-        result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
-
-    return result
-
-
-# TODO: move helper functions somewhere else?
-def convert_df_to_mmcif_for_visualization(
-    cif_df: pd.DataFrame, protein_entry_id: str
-) -> str:
-    """
-    Convert a DataFrame containing mmCIF atom_site information back into a mmCIF string.
-
-    :param cif_df: DataFrame with CIF columns
-    :param protein_entry_id: Optional entry ID for the CIF block
-    :return: A string representing the mmCIF file
-    """
-    if cif_df is None or cif_df.empty:
-        raise ValueError("CIF-DataFrame is empty, cannot create mmCIF content.")
-
-    lines = [
-        f"data_{protein_entry_id}",
-        "#",
-        f"_entry.id {protein_entry_id}",
-        "#",
-        "loop_",
-    ]
-
-    for column in cif_df.columns:
-        lines.append(column)
-
-    for _, row in cif_df.iterrows():
-        row_items = []
-        for column in cif_df.columns:
-            value = row[column]
-            if value is None:
-                value_str = "."
-            else:
-                value_str = str(value)
-                if " " in value_str or any(char in value_str for char in "();,"):
-                    value_str = f"'{value_str}'"
-            row_items.append(value_str)
-        lines.append(" ".join(row_items))
-
-    cif_string = "\n".join(lines)
-    return cif_string
-
-
-# TODO: move helper functions somewhere else?
-def extract_relevant_crosslink_information(
-    crosslinking_df: pd.DataFrame,
-) -> List[Dict[str, int]]:
-    """
-    For each crosslink extract its relevant information from a DataFrame.
-
-    :param crosslinking_df: DataFrame with columns 'crosslinker_position1', 'crosslinker_position2' and 'valid_crosslink'.
-    :return: List of dicts with keys 'position1', 'position2' and 'is_valid'.
-    """
-    crosslinks = []
-    for _, row in crosslinking_df.iterrows():
-        position1 = row.get("crosslinker_position1")
-        position2 = row.get("crosslinker_position2")
-        is_valid = row.get("valid_crosslink")
-        is_intra_crosslink = row.get("Is_intra_crosslink")
-        if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
-            crosslinks.append(
-                {
-                    "crosslinkerPosition1": int(position1),
-                    "crosslinkerPosition2": int(position2),
-                    "isValid": bool(is_valid),
-                    "isIntraCrosslink": bool(is_intra_crosslink),
-                }
-            )
-    return crosslinks
 
 
 # TODO: Move somewhere else

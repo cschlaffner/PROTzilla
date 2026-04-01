@@ -380,7 +380,7 @@ export const RunScreen: React.FC = () => {
           </StyledContentDiv>
         ))
       ) : (
-        <SectionTitle baseComponent="h4" description="No visualizations available for this step." />
+        <SectionTitle baseComponent="h4" description="Structure-visualization is loading..." />
       )}
     </StyledContentContainer>
   );
@@ -403,10 +403,7 @@ export const RunScreen: React.FC = () => {
           }))}
         />
       ) : (
-        <SectionTitle
-          baseComponent={"h4"}
-          description={"This step does not provide any tables as output."}
-        />
+        <SectionTitle baseComponent={"h4"} description={"Output-tables are loading..."} />
       )}
     </StyledContentContainer>
   );
@@ -458,7 +455,7 @@ export const RunScreen: React.FC = () => {
           )),
         )
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"No downloads available for this step."} />
+        <SectionTitle baseComponent={"h4"} description={"Available downloads are loading..."} />
       )}
     </StyledContentContainer>
   );
