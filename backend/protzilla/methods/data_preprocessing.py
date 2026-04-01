@@ -34,8 +34,14 @@ class DataPreprocessingStep(Step, ABC):
         self.plot_inputs: dict = {}
 
 
-class FilteringStepBasedOnProteins(DataPreprocessingStep, ABC):
+class FilterSamplesStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
+    operation = "filter_samples"
+
+
+class FilterProteinsStep(DataPreprocessingStep, ABC):
+    output_keys = [DataKey.PROTEIN_DF]
+    operation = "filter_proteins"
 
 
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
@@ -48,9 +54,8 @@ class FilterPsmStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PSM_DF]
 
 
-class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
+class FilterProteinsBySamplesMissing(FilterProteinsStep):
     display_name = "By samples missing"
-    operation = "filter_proteins"
     method_description = (
         "Filter proteins based on the amount of samples with nan values"
     )
@@ -80,9 +85,8 @@ class FilterProteinsBySamplesMissing(FilteringStepBasedOnProteins):
     plot_method = staticmethod(filter_proteins.by_samples_missing_plot)
 
 
-class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
+class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
     display_name = "By number of values per group"
-    operation = "filter_proteins"
     method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
@@ -109,9 +113,8 @@ class FilterProteinsByNumberOfValuesPerGroup(FilteringStepBasedOnProteins):
     plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)
 
 
-class FilterProteinsByProteinIDs(FilteringStepBasedOnProteins):
+class FilterProteinsByProteinIDs(FilterProteinsStep):
     display_name = "By protein ids"
-    operation = "filter_proteins"
     method_description = "Filter by protein ids entered by user"
 
     def create_form(self):
@@ -140,9 +143,31 @@ class FilterProteinsByProteinIDs(FilteringStepBasedOnProteins):
             protein_ids_field.set_options([])
 
 
-class FilterByProteinsCount(FilteringStepBasedOnProteins):
+class FilterProteinsKeepNmostSignificantProteins(FilterProteinsStep):
+    display_name = "Keep n most significant proteins"
+    method_description = (
+        "Filter to keep the n most significant proteins (with the lowest p-values)"
+    )
+    output_keys = [DataKey.DIFFERENTIALLY_EXPRESSED_PROTEINS_DF]
+
+    def create_form(self):
+        return Form(
+            label="Filter proteins to keep the n most significant proteins",
+            input_fields=[
+                NumberField(
+                    name="number_of_proteins_to_keep",
+                    label="Number of proteins to keep",
+                    value=1,
+                    min=1,
+                )
+            ],
+        )
+
+    calc_method = staticmethod(filter_proteins.keep_n_most_significant_proteins)
+
+
+class FilterByProteinsCount(FilterSamplesStep):
     display_name = "By protein count"
-    operation = "filter_samples"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
@@ -297,9 +322,8 @@ class FilterPsmByExistingSamples(FilterPsmStep):
     plot_method = staticmethod(filter_peptides_or_psm.psm_filtering_pie_plot)
 
 
-class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
+class FilterSamplesByProteinsMissing(FilterSamplesStep):
     display_name = "By proteins missing"
-    operation = "filter_samples"
     method_description = (
         "Filter samples based on the amount of proteins with nan values"
     )
@@ -329,9 +353,8 @@ class FilterSamplesByProteinsMissing(FilteringStepBasedOnProteins):
     plot_method = staticmethod(filter_samples.by_proteins_missing_plot)
 
 
-class FilterSamplesByProteinIntensitiesSum(FilteringStepBasedOnProteins):
+class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
     display_name = "By sum of intensities"
-    operation = "filter_samples"
     method_description = "Filter by sum of protein intensities per sample"
 
     def create_form(self):
