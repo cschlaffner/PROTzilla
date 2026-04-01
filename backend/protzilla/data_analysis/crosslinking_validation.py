@@ -396,10 +396,9 @@ def validate_with_angstrom_deviation(
     checked_crosslinks_df = relevant_crosslinks_df[
         relevant_crosslinks_df["valid_crosslink"].notna()
     ]
+    protein_designation = ",".join(structures_to_validate)
     data_for_visualization = {
-        "protein_entry_id": structures_to_validate[
-            0
-        ],  # ToDo: Change so that we also can process multimers
+        "protein_entry_id": protein_designation,
         "cif_df": cif_df,
         "crosslinking_df": checked_crosslinks_df,
     }
