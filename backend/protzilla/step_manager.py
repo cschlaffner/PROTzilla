@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from backend.protzilla.disk_operator import DiskOperator
     from backend.protzilla.run import Run
 
-from backend.protzilla.steps import Step, Section, Output
+from backend.protzilla.steps import Step, Section
 from backend.protzilla.constants.data_types import (
     Connection,
     DataKey,

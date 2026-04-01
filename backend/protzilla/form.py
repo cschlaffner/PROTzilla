@@ -155,6 +155,7 @@ class FileInput(_baseField):
     value: str | None = None
     type: str = "file"
     filedata: str = ""
+    accept: str | None = None
 
 
 @dataclass
@@ -220,12 +221,25 @@ class Form:
             for field in self.input_fields
             if isinstance(field, _baseField)
         }
+        self._value_buffer = {}
 
     def update_values(self, values: dict[str, Any]) -> None:
         "insert new values into the form"
-        if values:
-            for fieldname, value in values.items():
-                self[fieldname].value = value
+        if not values:
+            return
+
+        for fieldname, value in values.items():
+            if fieldname in self._field_map:
+                self._field_map[fieldname].value = value
+            else:
+                self._value_buffer[fieldname] = value
+
+    def add_field(self, new_field: InputField) -> None:
+        "add a new input field to the form"
+        self.input_fields.append(new_field)
+        self._field_map[new_field.name] = new_field
+        if new_field.name in self._value_buffer:
+            new_field.value = self._value_buffer.pop(new_field.name)
 
     def __getitem__(self, fieldname: str) -> InputField:
         "to do form[fieldname] to get the field object"

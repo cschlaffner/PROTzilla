@@ -2,7 +2,6 @@ import matplotlib.pyplot as plot
 from sklearn.metrics import PrecisionRecallDisplay, RocCurveDisplay
 
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
-from backend.protzilla.data_analysis.classification_helper import encode_labels
 from backend.protzilla.utilities.utilities import fig_to_base64
 
 

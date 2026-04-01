@@ -1,5 +1,4 @@
 from abc import ABC
-import logging
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
@@ -67,13 +66,9 @@ from backend.protzilla.form import (
     HeaderInfoField,
     InfoField,
     InputField,
-    Option,
     MultiSelectField,
     NumberField,
     TextField,
-)
-from backend.protzilla.methods.data_preprocessing import (
-    DataPreprocessingStep,
 )
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
@@ -1448,7 +1443,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 class ClassificationStep(PositiveLabelStep, ABC):
     operation = "classification"
 
-    positive_label_is_required: bool = True
+    positive_label_is_required: bool = False
 
 
 class ClassificationRandomForest(ClassificationStep):
@@ -1677,10 +1672,53 @@ class ClassificationSVM(ClassificationStep):
         "y_test_df",
     ]
 
-    # TODO: should either be set via form_inputs or removed from the method's parameters
-    internal_inputs = {"max_iter", "coef0", "gamma", "class_weight", "probability"}
+    def get_classes_from_metadata_based_on_labels_column(self, run: Run):
+        instance_identifier_of_metadata, source_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
+        )
+        if instance_identifier_of_metadata is None:
+            return []
+        grouping: str | None = self.form["labels_column"].value
+        classes = form_helper.get_choices_for_groups(
+            run, instance_identifier_of_metadata, source_handle, grouping
+        )
+        return classes
+
+    def create_class_weight_input_fields(self, form: Form, run: Run):
+        # First, hide all existing weight fields
+        for field in form.input_fields:
+            if hasattr(field, "name") and field.name.endswith("_weight"):
+                field.isVisible = False
+
+        # Then, get current classes and make their fields visible or add them
+        classes = self.get_classes_from_metadata_based_on_labels_column(run)
+        for cl in classes:
+            field_name = f"{cl.value}_weight"
+            if field_name in form:
+                form[field_name].isVisible = True
+            else:
+                form.add_field(
+                    FloatField(
+                        name=field_name,
+                        label=f"Weight of {cl.value}",
+                        min=0.0,
+                        value=1.0,
+                    )
+                )
+
+    def collect_class_weights_from_form(self) -> dict[str, float] | None:
+        class_weights = {}
+        for field in self.form.input_fields:
+            field_name = getattr(field, "name", None)
+            if field_name and field_name.endswith("_weight") and field.isVisible:
+                value = self.form[field_name].value
+                if value is not None:
+                    class_name = field_name.removesuffix("_weight")
+                    class_weights[class_name] = float(value)
+        return class_weights or None
 
     def create_form(self):
+        self.internal_inputs = {"class_weight"}
         return Form(
             label="Support Vector Machine",
             input_fields=[
@@ -1793,7 +1831,7 @@ class ClassificationSVM(ClassificationStep):
                     min=0.0,
                     value=1.0,
                 ),
-                MultiSelectField(
+                DropdownField(
                     name="kernel",
                     label="Specifies the kernel type to be used in the algorithm",
                     options=ClassificationKernel,
@@ -1806,6 +1844,13 @@ class ClassificationSVM(ClassificationStep):
                     value=1e-4,
                 ),
                 NumberField(
+                    name="max_iter",
+                    label="Maximum number of iterations before stopping (-1 disables limit)",
+                    min=-1.0,
+                    step=1,
+                    value=-1.0,
+                ),
+                NumberField(
                     name="random_state",
                     label="Seed for random number generation during model fitting",
                     min=0.0,
@@ -1813,12 +1858,18 @@ class ClassificationSVM(ClassificationStep):
                     step=1,
                     value=6,
                 ),
+                FloatField(
+                    name="coef0",
+                    label="Bias term (intercept): Independent term in the kernel function that shifts the decision boundary",
+                    value=0.0,
+                ),
             ],
         )
 
     @override
     def modify_form(self, run: Run) -> None:
         super().modify_form(run)
+        self.create_class_weight_input_fields(self.form, run)
 
         validation_raw = self.form["validation_strategy"].value
         validation = getattr(validation_raw, "value", validation_raw)
@@ -1870,6 +1921,10 @@ class ClassificationSVM(ClassificationStep):
         cv_field.isVisible = is_grid
         n_iter_field.isVisible = is_random
         model_selection_scoring_field.isVisible = is_search
+
+    def insert_dataframes(self, steps) -> None:
+        super().insert_dataframes(steps)
+        self.inputs["class_weight"] = self.collect_class_weights_from_form()
 
     calc_method = staticmethod(svm)
 
@@ -2212,12 +2267,12 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
                 hasStepButtons=False,
             ),
             FileInput(
-                name="fasta_file_path",
-                label="FASTA file",
+                name="fasta_file_path", label="FASTA file", accept=".fasta,.fa,.faa"
             ),
             FileInput(
                 name="regions_file_path",
                 label="Metadata used to define regions",
+                accept=".csv",
             ),
             InfoField(
                 label="The file for regions should be a CSV file with the following columns: name, region_end, "
@@ -2250,19 +2305,19 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
     @classmethod
     def get_form_fields(cls) -> list[FormField]:
         return _PTMVisualizationStep.get_form_fields() + [
-            FileInput(
-                name="groups_file_path",
-                label="Metadata used to define groups",
-            ),
-            InfoField(
-                label="The groups file should be a CSV file with the following columns: file_name, group_name, "
-                "replicate. These specify the name of the name of the experiment in the evidence file (not "
-                "raw file name), the name that should be displayed when referencing the group, and "
-                "optionally the replicate number (1, 2, ...).",
+            DropdownField(
+                name="metadata_column",
+                label="Choose the column of the metadata dataframe that should be used",
             ),
         ]
 
     calc_method = staticmethod(get_detected_modifications)
+
+    def modify_form(self, run):
+        super().modify_form(run)
+        self.set_grouping_options(
+            run, column_field_name="metadata_column", include_sample=True
+        )
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):

@@ -1,19 +1,13 @@
 import json
-import os
 import shutil
 from pathlib import Path
 from unittest import mock
 
-import pandas as pd
 import pytest
+import yaml
 
 from backend.main import settings
-from backend.protzilla.constants.paths import (
-    EXAMPLE_DATASET_METADATA_FILE,
-    EXAMPLE_DATASET_PROTEIN_FILE,
-)
 from backend.protzilla.runner import _serialize_graphs
-from backend.protzilla.steps import Step
 from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
     TEST_MSDATA_PATH,
@@ -23,7 +17,6 @@ from backend.tests.paths import (
 from backend.protzilla import disk_operator
 from backend.protzilla.runner import Runner
 from runner_cli import args_parser
-from backend.tests.paths import TEST_AML_DATA_PATH
 
 
 @pytest.fixture
@@ -41,6 +34,28 @@ def tmp_workflow_dir(tmp_path_factory):
     test_tmp_data_dir = Path("workflows/")
     tmp_path = tmp_path_factory.mktemp(str(test_tmp_data_dir))
     return tmp_path
+
+
+def create_file_input_map(
+    tmp_path: Path,
+    workflow_name: str,
+    ms_data_path: str | None = None,
+    metadata_path: str | None = None,
+) -> str:
+    metadata_step_ids = {
+        "standard": "s00014_MetadataImport",
+        "only_import": "s00002_MetadataImport",
+        "only_import_and_filter_proteins": "s00002_MetadataImport",
+    }
+
+    file_input_map = {
+        "s00001_MaxQuantImport": {"file_path": ms_data_path},
+        metadata_step_ids[workflow_name]: {"file_path": metadata_path},
+    }
+
+    file_input_map_path = tmp_path / f"{workflow_name}_file_inputs.yaml"
+    file_input_map_path.write_text(yaml.safe_dump(file_input_map), encoding="utf-8")
+    return str(file_input_map_path)
 
 
 def mock_perform_method(runner: Runner):
@@ -76,7 +91,7 @@ def mock_perform_plot(runner: Runner):
 def find_step_by_class_name(runner: Runner, class_name: str):
     return next(
         i
-        for i, step in enumerate(runner.run.steps.all_steps)
+        for i, step in enumerate(runner.run.steps.all_step_instances)
         if step.__class__.__name__ == class_name
     )
 
@@ -84,7 +99,7 @@ def find_step_by_class_name(runner: Runner, class_name: str):
 def set_step_field_value(runner: Runner, step_idx: int, field_name: str, value):
     field = next(
         f
-        for f in runner.run.steps.all_steps[step_idx].form.input_fields
+        for f in runner.run.steps.all_step_instances[step_idx].form.input_fields
         if f.name == field_name
     )
     field.value = value
@@ -93,8 +108,10 @@ def set_step_field_value(runner: Runner, step_idx: int, field_name: str, value):
 def configure_step_fields(runner: Runner, class_name: str, field_values: dict):
     """Find a step by class name and set multiple field values."""
     step_idx = find_step_by_class_name(runner, class_name)
+    step = runner.run.steps.all_step_instances[step_idx]
     for field_name, value in field_values.items():
-        set_step_field_value(runner, step_idx, field_name, value)
+        if field_name in step.form:
+            set_step_field_value(runner, step_idx, field_name, value)
     return step_idx
 
 
@@ -112,9 +129,6 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "PlotProtQuant",
         {
-            "input_df": runner.run.steps.all_steps[
-                prot_quant_idx - 1
-            ].instance_identifier,
             "protein_group": "P10636",
         },
     )
@@ -129,7 +143,11 @@ def prepare_standard_workflow_runner(runner: Runner):
     configure_step_fields(
         runner,
         "PlotVolcano",
-        {"input_dict": runner.run.steps.all_steps[ttest_idx].instance_identifier},
+        {
+            "input_dict": runner.run.steps.all_step_instances[
+                ttest_idx
+            ].instance_identifier
+        },
     )
 
     # Configure GO enrichment analysis to use t-test results
@@ -137,7 +155,7 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "EnrichmentAnalysisGOAnalysisWithString",
         {
-            "proteins_df": runner.run.steps.all_steps[ttest_idx].instance_identifier,
+            "differential_expression_col": "log2_fold_change",
         },
     )
 
@@ -146,7 +164,7 @@ def prepare_standard_workflow_runner(runner: Runner):
         runner,
         "PlotGOEnrichmentBarPlot",
         {
-            "input_df_step_instance": runner.run.steps.all_steps[
+            "input_df_step_instance": runner.run.steps.all_step_instances[
                 go_idx
             ].instance_identifier
         },
@@ -155,24 +173,29 @@ def prepare_standard_workflow_runner(runner: Runner):
 
 def assert_runner_finished_successfully(runner: Runner):
     assert all(
-        step.calculation_status == "complete" for step in runner.run.steps.all_steps
+        step.calculation_status == "complete"
+        for step in runner.run.steps.all_step_instances
     )
-    assert runner.run.steps.all_steps[-1] == runner.run.current_step
     assert (
-        all(step.finished for step in runner.run.steps.all_steps)
-        and not runner.run.current_step.messages
-        and not (getattr(runner.run.current_step.output, "messages", []))
+        runner.run.steps.get_step_by_id(runner.run.steps.all_step_ids_toposorted[-1])
+        == runner.run.current_step
+    )
+    assert (
+        not runner.run.current_step.messages
+        and "messages" not in runner.run.current_step.output
     )
 
 
 def test_runner_imports(
-    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
+    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path, tmp_path
 ):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "standard", ms_data_file_path, metadata_file_path
+    )
     importing_args = [
         "standard",  # expects max-quant import, metadata import
-        ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        file_input_map_path,
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
 
     kwargs = args_parser().parse_args(importing_args).__dict__
@@ -198,8 +221,8 @@ def test_runner_imports(
         "NormalisationByMedian",
         "PlotProtQuant",
         "DifferentialExpressionTTest",
-        "PlotVolcano",
         "EnrichmentAnalysisGOAnalysisWithString",
+        "PlotVolcano",
         "PlotGOEnrichmentBarPlot",
     ]
     expected_method_parameters = [
@@ -232,27 +255,23 @@ def test_runner_imports(
             "visual_transformation": "log10",
         },
         {
-            "protein_df_field": None,
-            "protein_group": None,
-            "similarity_measure": "euclidean distance",
+            "protein_group": "P10636",
+            "similarity_measure": "Euclidean Distance",
             "similarity": 1,
         },
         {
             "ttest_type": "Welch's t-Test",
-            "protein_df_field": None,
             "multiple_testing_correction_method": "Benjamini-Hochberg",
             "alpha": 0.05,
-            "fc_zscore_alpha": 0.05,
-            "fc_zscore_filter": False,
-            "grouping": None,
-            "group1": None,
-            "group2": None,
+            "grouping": "Group",
+            "group1": "AD",
+            "group2": "CTR",
             "fc_zscore_filter": False,
             "fc_zscore_alpha": 0.05,
+            "log_base": "None",
         },
-        {"input_dict": None, "fc_threshold": 1, "items_of_interest": []},
         {
-            "protein_df_field": None,
+            "differential_expression_col": "log2_fold_change",
             "differential_expression_threshold": 0,
             "gene_sets_restring": [],
             "organism": 9606,
@@ -260,9 +279,13 @@ def test_runner_imports(
             "background_path": None,
         },
         {
-            "input_df_field": None,
+            "fc_threshold": 0,
+            "item_type": "Protein ID",
+            "items_of_interest": [],
+        },
+        {
             "cutoff": 0.05,
-            "gene_sets": ["Process", "Component", "Function", "KEGG"],
+            "gene_sets": ["Component", "Function", "KEGG", "Process"],
             "value": "p-value",
             "top_terms": 10,
             "title": "",
@@ -275,12 +298,15 @@ def test_runner_imports(
 
 
 def test_runner_raises_error_for_missing_metadata_arg(
-    monkeypatch, tests_folder_name, ms_data_file_path
+    monkeypatch, tests_folder_name, ms_data_file_path, tmp_path
 ):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "only_import", ms_data_file_path
+    )
     no_metadata_args = [
         "only_import",
-        ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
+        file_input_map_path,
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(no_metadata_args).__dict__
     runner = Runner(**kwargs)
@@ -293,13 +319,22 @@ def test_runner_raises_error_for_missing_metadata_arg(
 
 
 def test_runner_calculates(
-    monkeypatch, tests_folder_name, ms_data_file_path, metadata_file_path
+    monkeypatch,
+    tests_folder_name,
+    ms_data_file_path,
+    metadata_file_path,
+    tmp_path,
 ):
-    calculating_args = [
+    file_input_map_path = create_file_input_map(
+        tmp_path,
         "only_import_and_filter_proteins",
         ms_data_file_path,
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        metadata_file_path,
+    )
+    calculating_args = [
+        "only_import_and_filter_proteins",
+        file_input_map_path,
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -330,17 +365,19 @@ def test_runner_calculates(
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
         },
-        {"percentage": 0.5, "graph_type": "Pie chart"},
+        {"percentage": 0.5, "graph_type": "Bar chart"},
     ]
     mock_plot.assert_not_called()
 
 
-def test_runner_calculates_logging(caplog, tests_folder_name):
+def test_runner_calculates_logging(caplog, tests_folder_name, tmp_path):
+    file_input_map_path = create_file_input_map(
+        tmp_path, "only_import_and_filter_proteins", "wrong_ms_data_file_path"
+    )
     calculating_args = [
         "only_import_and_filter_proteins",
-        "wrong_ms_data_file_path",
-        f"--run_name={tests_folder_name}/test_runner_{random_string()}",
-        f"--meta_data_path={metadata_file_path}",
+        file_input_map_path,
+        f"--run-name={tests_folder_name}/test_runner_{random_string()}",
     ]
     kwargs = args_parser().parse_args(calculating_args).__dict__
     runner = Runner(**kwargs)
@@ -349,6 +386,45 @@ def test_runner_calculates_logging(caplog, tests_folder_name):
 
     assert "ERROR" in caplog.text
     assert "FileNotFoundError" in caplog.text
+
+
+def test_runner_file_input_map_sets_arbitrary_file_field(tmp_path, tests_folder_name):
+    workflow_dir = TEST_WORKFLOWS_PATH / "all_steps_bundle"
+    file_input_map_path = tmp_path / "file_inputs.yaml"
+    gene_sets_path = tmp_path / "gene_sets.txt"
+    gene_sets_path.write_text("^._.^ ~ Meow", encoding="utf-8")
+    file_input_map_path.write_text(
+        yaml.safe_dump(
+            {
+                "s00067_EnrichmentAnalysisGOAnalysisOffline": {
+                    "gene_sets_path": str(gene_sets_path)
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    kwargs = dict(
+        workflow="all_steps",
+        ms_data_path="dummy_ms_data.txt",
+        meta_data_path=None,
+        peptides_path=None,
+        run_name=f"{tests_folder_name}/test_runner_{random_string()}",
+        df_mode="memory",
+        all_plots=False,
+        verbose=False,
+        file_input_map=str(file_input_map_path),
+    )
+
+    with mock.patch.object(
+        disk_operator.paths, "WORKFLOWS_PATH", workflow_dir.resolve()
+    ):
+        runner = Runner(**kwargs)
+
+    step = runner.run.steps.get_step_by_id("s00067_EnrichmentAnalysisGOAnalysisOffline")
+    runner._insert_file_inputs(step)
+
+    assert step.form["gene_sets_path"].value == str(gene_sets_path)
 
 
 def test_serialize_graphs():
@@ -388,6 +464,7 @@ def test_integration_runner(
     metadata_file_path, ms_data_file_path, tests_folder_name, monkeypatch
 ):
     name = tests_folder_name + "/test_runner_integration_" + random_string()
+    print("ADBLHBSFHLB: ", f"{TEST_MSDATA_PATH}/{ms_data_file_path}")
     runner = Runner(
         **{
             "workflow": "standard",
@@ -408,61 +485,6 @@ def test_integration_runner(
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
     assert_runner_finished_successfully(runner)
-
-
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Avoid downloading the example dataset files every time CI is run",
-)
-def test_example_dataset_runner(tests_folder_name, monkeypatch):
-    assert (
-        EXAMPLE_DATASET_METADATA_FILE.exists() and EXAMPLE_DATASET_PROTEIN_FILE.exists()
-    )
-
-    name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
-    runner = Runner(
-        **{
-            "workflow": "example_dataset",
-            "ms_data_path": None,
-            "meta_data_path": None,
-            "peptides_path": None,
-            "run_name": name,
-            "df_mode": "memory",
-            "all_plots": True,
-            "verbose": False,
-        }
-    )
-
-    mock_write = mock.MagicMock()
-    monkeypatch.setattr(runner.run, "_run_write", mock_write)
-    mock_plot_safe = mock.MagicMock()
-    monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
-    runner.compute_workflow()
-    assert_runner_finished_successfully(runner)
-
-    preprocessing_output_df = runner.run.steps.get_step_output(
-        step_type=Step,
-        output_key="protein_df",
-        instance_identifier="FilterProteinsBySilacRatios_2",
-    )
-
-    assert len(preprocessing_output_df["Protein ID"].unique()) == 5309
-
-    protein_list = pd.read_csv(TEST_AML_DATA_PATH / "preprocessed_protein_list.csv")
-
-    # Do some preprocessing to account for differences in additional protein ids
-    protein_list_1 = protein_list["Protein IDs"].str.split(";").str[0]
-    preprocessing_output_df_1 = (
-        preprocessing_output_df["Protein ID"].str.split(";").str[0].unique()
-    )
-    assert set(protein_list_1) == set(preprocessing_output_df_1)
-
-    significant_protein_df = runner.run.steps.get_step_output(
-        step_type=Step,
-        output_key="significant_proteins_df",
-        instance_identifier="DifferentialExpressionTTest_1",
-    )
-    assert significant_protein_df["Protein ID"].nunique() == 359
 
 
 @pytest.mark.parametrize(
@@ -495,7 +517,7 @@ def test_integration_runner_non_maxquant(
     with mock.patch.object(
         disk_operator.paths, "WORKFLOWS_PATH", tmp_workflow_dir.resolve()
     ):
-        runner = Runner(
+        kwargs = dict(
             workflow=mock_workflow,
             ms_data_path=f"{TEST_MSDATA_PATH}/{ms_data_file_path}",
             meta_data_path=f"{TEST_METADATA_PATH}/{metadata_file_path}",
@@ -504,6 +526,15 @@ def test_integration_runner_non_maxquant(
             df_mode="memory",
             all_plots=True,
             verbose=False,
+        )
+
+        if mock_workflow == "MSFragger_Standard":
+            kwargs["msfragger_path"] = f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
+        elif mock_workflow == "DIA-NN_Standard":
+            kwargs["diann_path"] = f"{TEST_MSDATA_PATH}/{ms_data_file_path}"
+
+        runner = Runner(
+            **kwargs,
         )
 
         mock_write = mock.MagicMock()

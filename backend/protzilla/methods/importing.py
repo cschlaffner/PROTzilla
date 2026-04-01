@@ -64,6 +64,7 @@ class ArbitraryCSVImport(ImportingStep):
                     name="file_path",
                     label="CSV file",
                     value=None,
+                    accept=".csv",
                 )
             ],
         )
@@ -91,6 +92,7 @@ class MaxQuantImport(ImportingStep):
                     name="file_path",
                     label="MaxQuant intensities file (proteinGroups.txt)",
                     value=None,
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -135,6 +137,7 @@ class DiannImport(ImportingStep):
                     name="file_path",
                     label="DIA-NN intensities file (*.pg_matrix.tsv)",
                     value=None,
+                    accept="txt,.tsv",
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
@@ -169,6 +172,7 @@ class MsFraggerImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
+                    accept=".txt,.tsv",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -206,6 +210,7 @@ class MetadataImport(MetadataImportingStep):
                 FileInput(
                     name="file_path",
                     label="Metadata file",
+                    accept=".csv,.xlsx,.psv,.tsv",
                 ),
                 DropdownField(
                     name="feature_orientation",
@@ -297,6 +302,7 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -329,6 +335,7 @@ class EvidenceImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Evidence file",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -363,6 +370,7 @@ class FastaImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Fasta file",
+                    accept=".fasta,.fa,.faa",
                 ),
             ],
         )
