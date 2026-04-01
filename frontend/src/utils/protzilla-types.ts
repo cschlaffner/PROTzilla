@@ -19,6 +19,12 @@ export interface StepOutputInfo {
   display_name: string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 export interface Image {
   title: string;
   alt: string;

@@ -13,6 +13,7 @@ import {
 import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
+  ApiResponse,
   callApiWithParameters,
   Download,
   emptyRunData,
@@ -146,33 +147,37 @@ export const RunScreen: React.FC = () => {
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   const [availableVisualizations, setAvailableVisualizations] = useState<StepOutputInfo[]>([]);
+  const transformVisualization = useCallback(
+    (_output: StepOutputInfo, response: ApiResponse<Visualization>) => ({
+      proteinEntryId: response.data.proteinEntryId,
+      cifString: response.data.cifString,
+      crosslinks: response.data.crosslinks,
+    }),
+    [],
+  );
   const visualizations = useCertainStepOutputs<
     StepOutputInfo,
-    Visualization,
+    ApiResponse<Visualization>,
     { proteinEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
   >({
     available_outputs: availableVisualizations,
     endpoint: "get_step_visualizations/",
     runName: runName,
     stepId: runData.current_step_id,
-    transform: (_output, response) => ({
-      proteinEntryId: response.proteinEntryId,
-      cifString: response.cifString,
-      crosslinks: response.crosslinks,
-    }),
+    transform: transformVisualization,
   });
 
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
   const transformDownload = useCallback(
-    (output: StepOutputInfo, response: Download) => ({
+    (output: StepOutputInfo, response: ApiResponse<Download>) => ({
       title: output.label,
-      data: response.data,
+      data: response.data.data,
     }),
     [],
   );
   const downloads = useCertainStepOutputs<
     StepOutputInfo,
-    Download,
+    ApiResponse<Download>,
     { title: string; data: Record<string, unknown> }
   >({
     available_outputs: availableDownloads,
@@ -185,16 +190,16 @@ export const RunScreen: React.FC = () => {
   // Static PNGs sent as base64
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
   const transformImage = useCallback(
-    (output: StepOutputInfo, response: Image) => ({
+    (output: StepOutputInfo, response: ApiResponse<Image>) => ({
       title: output.label,
       alt: output.label,
-      data: "data:image/png;base64," + response.data,
+      data: "data:image/png;base64," + response.data.data,
     }),
     [],
   );
   const images = useCertainStepOutputs<
     StepOutputInfo,
-    Image,
+    ApiResponse<Image>,
     { title: string; alt: string; data: string }
   >({
     available_outputs: availableImages,
@@ -476,7 +481,7 @@ export const RunScreen: React.FC = () => {
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
     availableImages.length > 0 && { name: "Images", value: imageComponent },
     availableDownloads.length > 0 && { name: "Downloads", value: downloadComponent },
-    { name: "Visualizations", value: visualizationComponent },
+    availableVisualizations.length > 0 && { name: "Visualizations", value: visualizationComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (

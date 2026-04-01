@@ -67,7 +67,6 @@ class Step(ABC):
         self.output: Output = Output()
         self.visual_data = {"node_position": {"x": 0, "y": 0}}
         self.plots: Plots = Plots()
-        self.visualizations: Visualizations = Visualizations()
         self.messages: Messages = Messages([])
         self.disk_write_mutex = Lock()
 
@@ -80,10 +79,6 @@ class Step(ABC):
                 "dumped": 0,
             },
             "plots": {
-                "generated": 0,
-                "dumped": 0,
-            },
-            "visualization": {
                 "generated": 0,
                 "dumped": 0,
             },
@@ -159,13 +154,6 @@ class Step(ABC):
                 plot_output = self.plot_method(**self.plot_input)
                 self.handle_plot_outputs(plot_output)
                 self.artifact_versions["plots"]["generated"] += 1
-
-            if self.visualization_method:
-                visualization_output = self.visualization_method(
-                    **self.visualization_input
-                )
-                self.handle_visualization_outputs(visualization_output)
-                self.artifact_versions["visualization"]["generated"] += 1
 
             self.calculation_status = "complete"
 
@@ -340,23 +328,6 @@ class Step(ABC):
             plots = outputs
 
         self.plots = Plots(plots)
-
-    def handle_visualization_outputs(self, outputs: dict | list) -> None:
-        """
-        Handles the output of the visualization method and creates a Visualizations object from it.
-        :param outputs: Must be a dict or a list of dicts
-        """
-        if not isinstance(outputs, dict) and not isinstance(outputs, list):
-            raise TypeError(
-                f"Visualization outputs must be a dict or list, got {type(outputs)}."
-            )
-        elif isinstance(outputs, dict):
-            self.visualizations = Visualizations([outputs])
-        elif isinstance(outputs, list):
-            for entry in outputs:
-                if not isinstance(entry, dict):
-                    raise TypeError(f"All entries must be dicts, got {type(entry)}")
-            self.visualizations = Visualizations(outputs)
 
     def handle_messages(self, outputs: dict) -> None:
         """
@@ -678,20 +649,3 @@ class Plots:
     @property
     def empty(self) -> bool:
         return len(self.plots) == 0
-
-
-class Visualizations:
-    def __init__(self, visualizations: list | None = None):
-        if visualizations is None:
-            visualizations: list = []
-        self.visualizations = visualizations
-
-    def __iter__(self):
-        return iter(self.visualizations)
-
-    def __repr__(self):
-        return f"Visualizations: {len(self.visualizations)}"
-
-    @property
-    def empty(self) -> bool:
-        return len(self.visualizations) == 0
