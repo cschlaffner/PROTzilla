@@ -1,5 +1,5 @@
 import { color, fontSize, size, spacing } from "@protzilla/theme";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { TextInputFieldProps } from "./text-input-field.props";
@@ -30,7 +30,21 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const wasThereInputAfterHandleBlurRef = useRef(false);
+
   const handleChange = (value: string) => {
+    if (characterLimit >= 0 && value.length > characterLimit) {
+      return;
+    }
+    setValue(value);
+    if (!wasThereInputAfterHandleBlurRef.current) {
+      wasThereInputAfterHandleBlurRef.current = true;
+      onChange(value);
+    }
+  };
+
+  const handleBlur = () => {
+    wasThereInputAfterHandleBlurRef.current = false;
     if (characterLimit >= 0 && value.length > characterLimit) {
       return;
     }
@@ -55,6 +69,13 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
         placeholder={placeholder}
         onChange={(e) => {
           handleChange(e.target.value);
+        }}
+        onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleBlur();
+            (e.target as HTMLInputElement).blur();
+          }
         }}
         $isSmall={props.isSmall ?? false}
         {...props}

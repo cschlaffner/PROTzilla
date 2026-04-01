@@ -70,6 +70,8 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
   const hasMin = typeof min === "number";
   const hasMax = typeof max === "number";
 
+  const wasThereInputAfterHandleBlurRef = useRef(false);
+
   const handleChange = (e: { target: { value: string } }) => {
     const raw = e.target.value;
 
@@ -77,9 +79,17 @@ export const NumberInputField: React.FC<NumberInputFieldProps> = ({
     if (isInteger && raw.includes(".")) return;
 
     setDisplayValue(raw);
+    if (!wasThereInputAfterHandleBlurRef.current) {
+      const num = isInteger ? parseInt(raw, 10) : parseFloat(raw);
+      if (!isNaN(num)) {
+        wasThereInputAfterHandleBlurRef.current = true;
+        onChange(num);
+      }
+    }
   };
 
   const handleBlur = () => {
+    wasThereInputAfterHandleBlurRef.current = false;
     if (displayValue === "" || displayValue === "-") {
       setDisplayValue(String(Math.max(0, min ?? 0)));
       return;
