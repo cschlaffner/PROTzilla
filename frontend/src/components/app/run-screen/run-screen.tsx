@@ -163,6 +163,13 @@ export const RunScreen: React.FC = () => {
   });
 
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
+  const transformDownload = useCallback(
+    (output: StepOutputInfo, response: Download) => ({
+      title: output.label,
+      data: response.data,
+    }),
+    [],
+  );
   const downloads = useCertainStepOutputs<
     StepOutputInfo,
     Download,
@@ -172,14 +179,19 @@ export const RunScreen: React.FC = () => {
     endpoint: "get_downloads_from_step/",
     runName: runName,
     stepId: runData.current_step_id,
-    transform: (output, response) => ({
-      title: output.label,
-      data: response.data,
-    }),
+    transform: transformDownload,
   });
 
   // Static PNGs sent as base64
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
+  const transformImage = useCallback(
+    (output: StepOutputInfo, response: Image) => ({
+      title: output.label,
+      alt: output.label,
+      data: "data:image/png;base64," + response.data,
+    }),
+    [],
+  );
   const images = useCertainStepOutputs<
     StepOutputInfo,
     Image,
@@ -189,11 +201,7 @@ export const RunScreen: React.FC = () => {
     endpoint: "get_png_from_step/",
     runName: runName,
     stepId: runData.current_step_id,
-    transform: (output, response) => ({
-      title: output.label,
-      alt: output.label,
-      data: "data:image/png;base64," + response.data,
-    }),
+    transform: transformImage,
   });
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
