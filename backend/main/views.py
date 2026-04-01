@@ -721,45 +721,26 @@ def get_step_visualizations(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
+        step_id = data.get("step_id")
+        output_key = data.get("output_key")
 
         run = Run(run_name)
-        visualizations = []
-        if run.current_step is not None:
-            if (
-                run.current_step.visualizations
-                and not run.current_step.visualizations.empty
-            ):
-                for viz in run.current_step.visualizations:
-                    protein_entry_id = viz.get("protein_entry_id")
-                    cif_df = viz.get("cif_df")
-                    crosslinking_df = viz.get("crosslinking_df")
-                    visualizations.append(
-                        create_visualization(cif_df, protein_entry_id, crosslinking_df)
-                    )
-            else:
-                cif_df = (
-                    run.current_step.output.output.get("cif_df")
-                    if run.current_step.output
-                    else None
-                )
-                if cif_df is not None:
-                    inputs = run.current_step.inputs if run.current_step.inputs else {}
-                    protein_entry_id = (
-                        inputs.get("entry_id")
-                        or inputs.get("uniprot_id")
-                        or "unknown protein"
-                    )
-                    visualizations.append(
-                        create_visualization(cif_df, protein_entry_id)
-                    )
-
+        step = run.steps.get_step_by_id(step_id)
+        visualization_dict = step.output.get(output_key)
+        if visualization_dict is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Got no available visualization for the step",
+                    "data": {},
+                }
+            )
         return JsonResponse(
             {
                 "success": True,
-                "message": "Got the visualization(s) for the step",
-                "data": visualizations,
-            },
-            safe=False,
+                "message": "Got the available visualization for the step",
+                "data": create_visualization(**visualization_dict),
+            }
         )
     else:
         return JsonResponse(

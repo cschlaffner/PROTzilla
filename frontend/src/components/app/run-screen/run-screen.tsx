@@ -21,6 +21,7 @@ import {
   StepID,
   StepOutputInfo,
   SwitchComponent,
+  Visualization,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -84,13 +85,6 @@ const FooterText = styled.div`
   width: 100%;
 `;
 
-//TODO: probably move somewhere else?
-interface Visualization {
-  proteinEntryId: string;
-  cifString: string;
-  crosslinks?: CrosslinkerInformation[];
-}
-
 interface UseStepOutputsParams<TOutput, TResponse, TResult> {
   available_outputs: TOutput[];
   endpoint: string;
@@ -149,8 +143,25 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
-  const [visualizations, setVisualizations] = useState<Visualization[]>([]);
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
+
+  const [availableVisualizations, setAvailableVisualizations] = useState<StepOutputInfo[]>([]);
+  const visualizations = useCertainStepOutputs<
+    StepOutputInfo,
+    Visualization,
+    { proteinEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
+  >({
+    available_outputs: availableVisualizations,
+    endpoint: "get_step_visualizations/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: (_output, response) => ({
+      proteinEntryId: response.proteinEntryId,
+      cifString: response.cifString,
+      crosslinks: response.crosslinks,
+    }),
+  });
+
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
   const downloads = useCertainStepOutputs<
     StepOutputInfo,
@@ -226,10 +237,10 @@ export const RunScreen: React.FC = () => {
         setAvailableDownloads([]);
         setPlots(undefined);
         setAvailableImages([]);
+        setAvailableVisualizations([]);
 
         void getRunData();
         void getStepPlots();
-        void getStepVisualizations();
         void getCurrentStepOutputLabels();
       });
     } else {
@@ -264,26 +275,6 @@ export const RunScreen: React.FC = () => {
     }
   }, [runName]);
 
-  const getStepVisualizations = useCallback(async () => {
-    const response = await callApiWithParameters("get_step_visualizations/", {
-      run_name: runName,
-    });
-    if (response) {
-      const rawVisualizations: Visualization[] = response.data.map((viz: Visualization) => ({
-        proteinEntryId: viz.proteinEntryId,
-        cifString: viz.cifString,
-        crosslinks: viz.crosslinks?.map((crossLink: CrosslinkerInformation) => ({
-          crosslinkerPosition1: crossLink.crosslinkerPosition1,
-          crosslinkerPosition2: crossLink.crosslinkerPosition2,
-          isValid: crossLink.isValid,
-          isIntraCrosslink: crossLink.isIntraCrosslink,
-        })),
-      }));
-
-      setVisualizations(rawVisualizations);
-    }
-  }, [runName]);
-
   const getCurrentStepOutputLabels = useCallback(async () => {
     const response = await callApiWithParameters("get_current_step_output_labels/", {
       run_name: runName,
@@ -292,39 +283,37 @@ export const RunScreen: React.FC = () => {
       const tableOutputs = [];
       const imageOutputs = [];
       const downloadOutputs = [];
+      const visualizationOutputs = [];
       for (const output of response.outputs) {
         if (output.output_type === "dataframe" || output.output_type === "list")
           tableOutputs.push(output);
         else if (output.output_type === "png_base64") imageOutputs.push(output);
         else if (output.output_type === "download") downloadOutputs.push(output);
+        else if (output.output_type === "visualization") visualizationOutputs.push(output);
       }
       setAvailableTables(tableOutputs);
       setAvailableImages(imageOutputs);
       setAvailableDownloads(downloadOutputs);
+      setAvailableVisualizations(visualizationOutputs);
     }
   }, [runName]);
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([
-        getRunData(),
-        getStepPlots(),
-        getStepVisualizations(),
-        getCurrentStepOutputLabels(),
-      ]);
+      await Promise.all([getRunData(), getStepPlots(), getCurrentStepOutputLabels()]);
     };
 
     void fetchData();
-  }, [getRunData, getStepPlots, getStepVisualizations, getCurrentStepOutputLabels]);
+  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
   const onFormSubmit = () => {
     setAvailableTables(undefined);
     setAvailableImages([]);
     setPlots(undefined);
     setAvailableDownloads([]);
+    setAvailableVisualizations([]);
     void getRunData();
     void getStepPlots();
-    void getStepVisualizations();
     void getCurrentStepOutputLabels();
   };
 

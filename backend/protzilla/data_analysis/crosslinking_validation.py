@@ -13,7 +13,10 @@ from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
     create_bar_plot,
 )
-from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
+from backend.protzilla.data_analysis.plots import (
+    add_vertical_line_with_annotation_in_legend,
+)
+from backend.protzilla.steps import OutputItem, OutputType
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -393,8 +396,20 @@ def validate_with_angstrom_deviation(
     checked_crosslinks_df = relevant_crosslinks_df[
         relevant_crosslinks_df["valid_crosslink"].notna()
     ]
-
-    return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
+    data_for_visualization = {
+        "protein_entry_id": structures_to_validate[
+            0
+        ],  # ToDo: Change so that we also can process multimers
+        "cif_df": cif_df,
+        "crosslinking_df": checked_crosslinks_df,
+    }
+    return dict(
+        crosslinking_result_df=checked_crosslinks_df,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
 
 
 def diagrams_of_crosslinking_validation_data(
@@ -574,28 +589,3 @@ def diagrams_of_crosslinking_validation_data(
     figures.append(bar_plot_over_all_checked_crosslinks)
 
     return figures
-
-
-def visualization_of_protein_structure(
-    protein_to_validate: str,
-    cif_df: pd.DataFrame,
-    output_crosslinking_result_df: pd.DataFrame,
-) -> dict:
-    """
-    Returns a dict containing the protein entry_id, its CIF-DataFrame and its crosslink-DataFrame.
-
-    :param protein_to_validate: Entry_id of the protein to visualize
-    :param cif_df: CIF DataFrame for the protein
-    :param output_crosslinking_result_df: calculated crosslink-information for the protein
-    :return: Dict with 'protein', 'cif_df' and 'crosslinking_df'
-    """
-    if cif_df is None or cif_df.empty:
-        raise ValueError(
-            f"No CIF dataframe provided for protein '{protein_to_validate}'."
-        )
-
-    return {
-        "protein_entry_id": protein_to_validate,
-        "cif_df": cif_df,
-        "crosslinking_df": output_crosslinking_result_df,
-    }
