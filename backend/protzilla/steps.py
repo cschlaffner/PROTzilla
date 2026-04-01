@@ -341,7 +341,6 @@ class Step(ABC):
 
     calc_method = None
     plot_method = None  # if the plot method uses the output of the calculation method, it should be prefixed with "output_"
-    visualization_method = None
 
     def _get_input_parameters(
         self, function: Callable[..., Any], relevant_inputs: dict | None = None
@@ -383,33 +382,6 @@ class Step(ABC):
         return self._get_input_parameters(
             function=self.plot_method, relevant_inputs=plot_input
         )
-
-    @property
-    def visualization_input(self) -> dict:
-        input_parameters = inspect.signature(self.visualization_method).parameters
-
-        prefixed_output = {
-            "output_" + key: value for key, value in self.output.output.items()
-        }
-
-        visualization_input = self.inputs | prefixed_output
-
-        required_keys = [
-            key
-            for key, param in input_parameters.items()
-            if param.default == inspect.Parameter.empty
-        ]
-        for key in required_keys:
-            if key not in visualization_input:
-                raise ValueError(
-                    f"Missing required input '{key}' for the visualization method"
-                )
-
-        return {
-            key: visualization_input[key]
-            for key in input_parameters.keys()
-            if key in visualization_input
-        }
 
     def validate_outputs(self, soft_check: bool = False) -> bool:
         """
