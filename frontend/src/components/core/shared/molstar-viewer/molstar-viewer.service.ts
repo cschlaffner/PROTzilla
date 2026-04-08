@@ -7,13 +7,7 @@ import {
   CrosslinkerType,
   generateCrosslinkCIF,
 } from "./crosslinker-processing";
-
-const CROSSLINKER_COLORS = {
-  [CrosslinkerType.ValidIntra]: 0xe03e00, // bright orange-red
-  [CrosslinkerType.InvalidIntra]: 0xfca311, // pale yellow-orange
-  [CrosslinkerType.ValidInter]: 0x8a2be2, // bright purple
-  [CrosslinkerType.InvalidInter]: 0xd8b4ff, // pale violet
-};
+import { CROSSLINKER_COLORS } from "./molstar-viewer.config";
 
 export async function addCrosslinks(
   plugin: PluginUIContext,
