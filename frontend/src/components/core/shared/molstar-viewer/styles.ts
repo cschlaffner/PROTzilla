@@ -18,12 +18,3 @@ export const CanvasWrapper = styled.div`
 export const LoadingTitle = styled(SectionTitle)`
   margin: 15px;
 `;
-
-export const ErrorTitle = styled(SectionTitle)`
-  margin: 15px;
-  color: ${({ theme }) => theme.colors.caution};
-
-  * {
-    color: inherit !important;
-  }
-`;
