@@ -1,4 +1,3 @@
-import { SectionTitle } from "@protzilla/core";
 import { styled } from "styled-components";
 
 export const Container = styled.div`
@@ -7,15 +6,11 @@ export const Container = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 `;
 
 export const CanvasWrapper = styled.div`
   flex: 1;
   position: relative;
-  top: 86px;
-`;
-
-console.log(SectionTitle);
-export const LoadingTitle = styled(SectionTitle)`
-  margin: 15px;
+  top: 12vh;
 `;

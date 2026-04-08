@@ -1,4 +1,5 @@
 import { useNotification } from "@protzilla/app";
+import { SectionTitle } from "@protzilla/core";
 import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
@@ -6,7 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { MolstarViewerProps } from "./molstar-viewer.props";
 import { addCrosslinks, handleError } from "./molstar-viewer.service";
-import { CanvasWrapper, Container, LoadingTitle } from "./styles";
+import { CanvasWrapper, Container } from "./styles";
 import "./molstar-theme.scss";
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
@@ -70,7 +71,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
   return (
     <Container>
       {isLoading && (
-        <LoadingTitle baseComponent="h4" description="Structure-visualization is loading..." />
+        <SectionTitle baseComponent="h4" description="Structure-visualization is loading..." />
       )}
       <CanvasWrapper ref={containerRef} />
     </Container>
