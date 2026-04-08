@@ -94,7 +94,7 @@ interface UseStepOutputsParams<TOutput, TResponse, TResult> {
   transform: (output: TOutput, response: TResponse) => TResult;
 }
 
-export function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
+function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
   available_outputs,
   endpoint,
   runName,

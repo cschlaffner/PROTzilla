@@ -10,14 +10,16 @@ const Description = styled(H1)`
   color: ${color("gray50")};
 `;
 
-export const SectionTitle: React.FC<SectionTitleProps> = ({
+export function SectionTitle({
   baseComponent = "h1",
   title,
   description,
   ...rest
-}) => (
-  <FlexColumn {...rest}>
-    {title && <H1 as={baseComponents[baseComponent]} text={title} />}
-    {description && <Description as={baseComponents[baseComponent]} text={description} />}
-  </FlexColumn>
-);
+}: SectionTitleProps) {
+  return (
+    <FlexColumn {...rest}>
+      {title && <H1 as={baseComponents[baseComponent]} text={title} />}
+      {description && <Description as={baseComponents[baseComponent]} text={description} />}
+    </FlexColumn>
+  );
+}
