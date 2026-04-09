@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MolstarViewerProps } from "./molstar-viewer.props";
 import { addCrosslinks, handleError } from "./molstar-viewer.service";
 import { CanvasWrapper, Container } from "./styles";
-import "./molstar-theme.scss";
+import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
