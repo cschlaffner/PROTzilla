@@ -493,6 +493,8 @@ def upload_multimer_structure(request):
         confidence_file = data.get("confidence_file")
         full_data_file = data.get("full_data_file")
 
+        ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
+
         # add row to metadata csv
         metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
         expected_columns = [
