@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import re
 from datetime import date, datetime, timezone
 from io import BytesIO
 
@@ -493,6 +494,8 @@ def upload_multimer_structure(request):
         confidence_file = data.get("confidence_file")
         full_data_file = data.get("full_data_file")
 
+        ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
+
         # add row to metadata csv
         metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
         expected_columns = [
@@ -508,9 +511,11 @@ def upload_multimer_structure(request):
 
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        uniprot_ids_as_list = re.split(r"\s*,\s*", uniprot_ids.strip())
+
         new_row = {
             "entry_id": entry_id,
-            "uniprot_ids": uniprot_ids,
+            "uniprot_ids": uniprot_ids_as_list,
             "model_created_date": timestamp,
             "model_used": model_used,
         }
