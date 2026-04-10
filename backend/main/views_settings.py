@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import re
 from datetime import date, datetime, timezone
 from io import BytesIO
 
@@ -510,9 +511,11 @@ def upload_multimer_structure(request):
 
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        uniprot_ids_as_list = re.split(r"\s*,\s*", uniprot_ids.strip())
+
         new_row = {
             "entry_id": entry_id,
-            "uniprot_ids": uniprot_ids,
+            "uniprot_ids": uniprot_ids_as_list,
             "model_created_date": timestamp,
             "model_used": model_used,
         }
