@@ -427,8 +427,8 @@ def fetch_alphafold_protein_structure(
         data_for_visualization = None
 
     return dict(
-        **df_dict, 
-        messages = messages, 
+        **df_dict,
+        messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
@@ -703,12 +703,12 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     data_for_visualization = {
-            "protein_entry_id": entry_id,
-            "cif_df": cif_df,
-        }
+        "protein_entry_id": entry_id,
+        "cif_df": cif_df,
+    }
     return dict(
-        **df_dict, 
-        messages = messages, 
+        **df_dict,
+        messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
@@ -787,12 +787,12 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     data_for_visualization = {
-            "protein_entry_id": entry_id,
-            "cif_df": cif_df,
-        }
+        "protein_entry_id": entry_id,
+        "cif_df": cif_df,
+    }
     return dict(
-        **df_dict, 
-        messages = messages, 
+        **df_dict,
+        messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
@@ -942,8 +942,8 @@ def upload_multimer_prediction(
             shutil.rmtree(temp_dir, ignore_errors=True)
 
     return dict(
-        **df_dict, 
-        messages = messages, 
+        **df_dict,
+        messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),

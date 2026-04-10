@@ -1,6 +1,8 @@
 export interface CrosslinkerInformation {
   crosslinkerPosition1: number;
   crosslinkerPosition2: number;
+  chainId1: string;
+  chainId2: string;
   isValid: boolean;
   isIntraCrosslink: boolean;
   reactiveAtom1?: string;
@@ -32,8 +34,6 @@ export enum CrosslinkerType {
   InvalidInter = "invalid-inter-crosslink",
 }
 
-// ------------------------- public API: -------------------------
-
 export function generateCrosslinkCIF(
   cifString: string,
   crosslinks: CrosslinkerInformation[],
@@ -51,7 +51,7 @@ export function generateCrosslinkCIF(
   );
 
   for (const crosslink of crosslinks) {
-    const [atom1, atom2] = extractCrosslinkerAtoms(cifString, crosslink);
+    const [atom1, atom2] = getCrosslinkerAtoms(cifString, crosslink);
 
     if (atom1 && atom2) {
       const atom1Id = `XL${String(connectionId)}A`;
@@ -137,10 +137,11 @@ function getReactiveAtom(reactiveAtom?: string): string {
   return mapping[reactiveAtom] || "CA";
 }
 
-function findCrosslinkerAtomCoordinates(
+function findAtomCoordinatesInCif(
   cifString: string,
   crosslinkerAtomId: string,
   crosslinkerSeqPos: number,
+  crosslinkerChainId: string,
 ): CrosslinkerAtom | null {
   const lines = cifString.split(/\r?\n/);
 
@@ -154,15 +155,20 @@ function findCrosslinkerAtomCoordinates(
 
     const lineAtomId = tokens[cifIndices.atomIdIdx];
     const lineSeqPos = parseInt(tokens[cifIndices.seqIdIdx], 10);
+    const lineChainId = tokens[cifIndices.chainIdIdx];
 
-    if (lineAtomId === crosslinkerAtomId && lineSeqPos === crosslinkerSeqPos) {
+    if (
+      lineAtomId === crosslinkerAtomId &&
+      lineSeqPos === crosslinkerSeqPos &&
+      lineChainId === crosslinkerChainId
+    ) {
       return {
         x: parseFloat(tokens[cifIndices.xCoordIdx]),
         y: parseFloat(tokens[cifIndices.yCoordIdx]),
         z: parseFloat(tokens[cifIndices.zCoordIdx]),
-        chain: tokens[cifIndices.chainIdIdx],
-        seqPos: lineSeqPos,
-        atomId: lineAtomId,
+        chain: crosslinkerChainId,
+        seqPos: crosslinkerSeqPos,
+        atomId: crosslinkerAtomId,
       };
     }
   }
@@ -170,22 +176,24 @@ function findCrosslinkerAtomCoordinates(
   throw new Error(`No atom found for seq=${String(crosslinkerSeqPos)}, atom=${crosslinkerAtomId}`);
 }
 
-function extractCrosslinkerAtoms(
+function getCrosslinkerAtoms(
   cifString: string,
   crosslink: CrosslinkerInformation,
 ): [CrosslinkerAtom | null, CrosslinkerAtom | null] {
   const reactiveAtom1 = getReactiveAtom(crosslink.reactiveAtom1);
-  const atom1 = findCrosslinkerAtomCoordinates(
+  const atom1 = findAtomCoordinatesInCif(
     cifString,
     reactiveAtom1,
     crosslink.crosslinkerPosition1,
+    crosslink.chainId1,
   );
 
   const reactiveAtom2 = getReactiveAtom(crosslink.reactiveAtom2);
-  const atom2 = findCrosslinkerAtomCoordinates(
+  const atom2 = findAtomCoordinatesInCif(
     cifString,
     reactiveAtom2,
     crosslink.crosslinkerPosition2,
+    crosslink.chainId2,
   );
 
   return [atom1, atom2];

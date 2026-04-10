@@ -179,7 +179,9 @@ def load_yaml_from_file(path: Path) -> str:
     with path.open("r") as f:
         return f.read()
 
+
 # ------------------------- helper for get_step_visualization: -------------------------
+
 
 def create_visualization(
     cif_df: pd.DataFrame,
@@ -265,6 +267,13 @@ def extract_relevant_crosslink_information(
     for _, row in crosslinking_df.iterrows():
         position1 = row.get("crosslinker_position1")
         position2 = row.get("crosslinker_position2")
+        # When the validation is extended to treat multimeres with more than one chain correctly,
+        # it should ideally store chain_id1 and chain_id2 into the crosslinking_df.
+        # Since we already need those chain ids to calculate correct distances in the validation,
+        # it would be unnecessary to determine those again in the visualization.
+        # Therefore we use placeholders for now and need to change the following, when the validation is extended:
+        chain_id1 = "A"  # row.get("chain_id1")
+        chain_id2 = "A"  # row.get("chain_id2")
         is_valid = row.get("valid_crosslink")
         is_intra_crosslink = row.get("Is_intra_crosslink")
         if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
@@ -272,6 +281,8 @@ def extract_relevant_crosslink_information(
                 {
                     "crosslinkerPosition1": int(position1),
                     "crosslinkerPosition2": int(position2),
+                    "chainId1": str(chain_id1),
+                    "chainId2": str(chain_id2),
                     "isValid": bool(is_valid),
                     "isIntraCrosslink": bool(is_intra_crosslink),
                 }
