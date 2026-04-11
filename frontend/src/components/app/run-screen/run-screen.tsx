@@ -92,6 +92,7 @@ interface UseStepOutputsParams<TOutput, TResponse, TResult> {
   runName: string;
   stepId?: string;
   transform: (output: TOutput, response: TResponse) => TResult;
+  enabled?: boolean;
 }
 
 function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
@@ -100,11 +101,12 @@ function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResul
   runName,
   stepId,
   transform,
+  enabled = true,
 }: UseStepOutputsParams<TOutput, TResponse, TResult>): TResult[] {
   const [data, setData] = useState<TResult[]>([]);
 
   useEffect(() => {
-    if (!stepId || available_outputs.length === 0) {
+    if (!enabled || !stepId || available_outputs.length === 0) {
       setData([]);
       return;
     }
@@ -130,7 +132,7 @@ function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResul
     };
 
     void fetchData();
-  }, [available_outputs, endpoint, runName, stepId, transform]);
+  }, [available_outputs, endpoint, runName, stepId, transform, enabled]);
 
   return data;
 }
@@ -142,9 +144,17 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
+  const [selectedOutputTab, setSelectedOutputTab] = useState<string>("");
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
+
+  const [hasLoadedVisualizations, setHasLoadedVisualizations] = useState(false);
+  useEffect(() => {
+    if (selectedOutputTab === "Visualizations") {
+      setHasLoadedVisualizations(true);
+    }
+  }, [selectedOutputTab]);
 
   const [availableVisualizations, setAvailableVisualizations] = useState<StepOutputInfo[]>([]);
   const transformVisualization = useCallback(
@@ -165,6 +175,7 @@ export const RunScreen: React.FC = () => {
     runName: runName,
     stepId: runData.current_step_id,
     transform: transformVisualization,
+    enabled: hasLoadedVisualizations,
   });
 
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
@@ -481,6 +492,21 @@ export const RunScreen: React.FC = () => {
     availableVisualizations.length > 0 && { name: "Visualizations", value: visualizationComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
+  useEffect(() => {
+    if (components.length > 0 && !selectedOutputTab) {
+      setSelectedOutputTab(components[0].name);
+    }
+  }, [components]);
+
+  useEffect(() => {
+    setHasLoadedVisualizations(false);
+    setSelectedOutputTab("");
+  }, [runData.current_step_id]);
+
+  useEffect(() => {
+    setHasLoadedVisualizations(false);
+  }, [runData.current_step_id]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <StyledNavbar
@@ -513,6 +539,14 @@ export const RunScreen: React.FC = () => {
                 styleProps={{ height: "calc(100% - 3em)" }}
                 components={components}
                 hasCardTitle={false}
+                selection={selectedOutputTab}
+                callback={(arg) => {
+                  setSelectedOutputTab(arg.name);
+
+                  if (arg.name === "Visualizations" && !hasLoadedVisualizations) {
+                    setHasLoadedVisualizations(true);
+                  }
+                }}
               />
             </StyledCol>
           ) : (
