@@ -71,7 +71,7 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   const {
     isLoading,
     settings,
-    loadSettings,
+    resetSettingsToDefault,
     saveSettings,
     computeDisplaySizes,
     setComputedSettings,
@@ -142,8 +142,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     onClose();
   };
   const handleReset = () => {
-    void loadSettings("plots_default");
-    settings.title = prevTitle;
+    void (async () => {
+      const hasReset = await resetSettingsToDefault();
+      if (hasReset) {
+        handleSettingChange("title", prevTitle);
+      }
+    })();
   };
   const handleSaving = () => {
     void saveSettings();
