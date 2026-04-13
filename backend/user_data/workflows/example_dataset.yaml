@@ -117,7 +117,7 @@ steps:
       y: 350.5697288158512
 - form_inputs:
     alpha: 0.05
-    fc_zscore_alpha: 0.07
+    fc_zscore_alpha: 0.05
     fc_zscore_filter: true
     group1: null
     group2: null
