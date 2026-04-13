@@ -13,7 +13,6 @@ interface CrosslinkerAtom {
   x: number;
   y: number;
   z: number;
-  chain: string;
   seqPos: number;
   atomId: string;
 }
@@ -60,15 +59,18 @@ export function generateCrosslinkCIF(
       const crosslinkType = getCrosslinkerType(crosslink);
       crosslinkGroups[crosslinkType].push(atom1Id, atom2Id);
 
+      // chainId = Z, to enable inter-crosslinks, because connections can only exist within the same chain
+      // compId (indicating the residue), is unimportant for this representation and can therefore be a placeholder
+
       const atom1Line = [
         `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
-        `LIN ${atom1.chain} ${String(atom1.seqPos)}`,
+        `LIN Z ${String(atom1.seqPos)}`,
         `${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`,
       ].join(" ");
 
       const atom2Line = [
         `ATOM ${String(connectionId * 2)} ${atom2Id} ${atom2Id}`,
-        `LIN ${atom2.chain} ${String(atom2.seqPos)}`,
+        `LIN Z ${String(atom2.seqPos)}`,
         `${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`,
       ].join(" ");
 
@@ -77,11 +79,13 @@ export function generateCrosslinkCIF(
 
       const connectionLine = [
         `${String(connectionId)} covalent ${atom1Id}`,
-        `X ${atom1.chain} ${String(atom1.seqPos)} ${atom2Id}`,
-        `X ${atom2.chain} ${String(atom2.seqPos)}`,
+        `X Z ${String(atom1.seqPos)} ${atom2Id}`,
+        `X Z ${String(atom2.seqPos)}`,
       ].join(" ");
 
       connectionLines.push(connectionLine);
+
+      console.log(connectionLine);
 
       connectionId++;
     }
@@ -166,7 +170,6 @@ function findAtomCoordinatesInCif(
         x: parseFloat(tokens[cifIndices.xCoordIdx]),
         y: parseFloat(tokens[cifIndices.yCoordIdx]),
         z: parseFloat(tokens[cifIndices.zCoordIdx]),
-        chain: crosslinkerChainId,
         seqPos: crosslinkerSeqPos,
         atomId: crosslinkerAtomId,
       };
