@@ -259,11 +259,11 @@ def add_protein_crosslink_positions_to_df(
     return crosslinking_df, messages
 
 
-def _get_structures_to_validate(metadata_df: pd.DataFrame) -> list[str]:
-    if "uniprot_accession" in metadata_df.columns:
-        return metadata_df["uniprot_accession"].tolist()
-    elif "uniprot_ids" in metadata_df.columns:
-        value = metadata_df["uniprot_ids"].iloc[0]
+def _get_structures_to_validate(structure_metadata_df: pd.DataFrame) -> list[str]:
+    if "uniprot_accession" in structure_metadata_df.columns:
+        return structure_metadata_df["uniprot_accession"].tolist()
+    elif "uniprot_ids" in structure_metadata_df.columns:
+        value = structure_metadata_df["uniprot_ids"].iloc[0]
         if isinstance(value, str):
             value = ast.literal_eval(value)
         return value
@@ -273,7 +273,7 @@ def _get_structures_to_validate(metadata_df: pd.DataFrame) -> list[str]:
 
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
+    structure_metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -285,7 +285,7 @@ def validate_with_angstrom_deviation(
     and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
     :param crosslinking_df: DataFrame containing cross-linking data.
-    :param metadata_df: DataFrame containing metadata
+    :param structure_metadata_df: DataFrame containing metadata
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
@@ -298,7 +298,7 @@ def validate_with_angstrom_deviation(
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
-    structures_to_validate = _get_structures_to_validate(metadata_df)
+    structures_to_validate = _get_structures_to_validate(structure_metadata_df)
     all_crosslinks_df = crosslinking_df.copy()
     is_multimer = len(structures_to_validate) > 1
     if not is_multimer:
@@ -396,6 +396,12 @@ def validate_with_angstrom_deviation(
     checked_crosslinks_df = relevant_crosslinks_df[
         relevant_crosslinks_df["valid_crosslink"].notna()
     ]
+    
+    checked_crosslinks_df["link_type"] = checked_crosslinks_df.apply(
+        lambda row: "intra" if row["Protein_id1"] == row["Protein_id2"] else "inter",
+        axis=1,
+    )
+    
     protein_designation = ",".join(structures_to_validate)
     data_for_visualization = {
         "protein_entry_id": protein_designation,
@@ -413,7 +419,7 @@ def validate_with_angstrom_deviation(
 
 def diagrams_of_crosslinking_validation_data(
     crosslinking_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
+    structure_metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -435,7 +441,7 @@ def diagrams_of_crosslinking_validation_data(
 
     :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
                             distances, crosslinker identifiers, and validation results.
-    :param metadata_df: Dataframe containing metadata.
+    :param structure_metadata_df: Dataframe containing metadata.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
@@ -447,10 +453,10 @@ def diagrams_of_crosslinking_validation_data(
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
-    structures_to_validate = _get_structures_to_validate(metadata_df)
+    structures_to_validate = _get_structures_to_validate(structure_metadata_df)
     validated_df = validate_with_angstrom_deviation(
         crosslinking_df,
-        metadata_df,
+        structure_metadata_df,
         crosslinker_information,
         cif_df,
         amino_acid_sequences_df,
@@ -469,6 +475,18 @@ def diagrams_of_crosslinking_validation_data(
         df_valid = pd.DataFrame({"alphafold_distance": distances_valid})
         df_invalid = pd.DataFrame({"alphafold_distance": distances_invalid})
 
+        # Count intra/inter for valid and invalid crosslinks
+        valid_mask = crosslinker_df["valid_crosslink"]
+        invalid_mask = ~crosslinker_df["valid_crosslink"]
+        valid_intra = ((valid_mask) & (crosslinker_df["link_type"] == "intra")).sum()
+        valid_inter = ((valid_mask) & (crosslinker_df["link_type"] == "inter")).sum()
+        invalid_intra = (
+            (invalid_mask) & (crosslinker_df["link_type"] == "intra")
+        ).sum()
+        invalid_inter = (
+            (invalid_mask) & (crosslinker_df["link_type"] == "inter")
+        ).sum()
+
         (
             crosslinker_length,
             accepted_deviation_upper_bound,
@@ -478,8 +496,8 @@ def diagrams_of_crosslinking_validation_data(
         histogram = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a="Valid Crosslinks",
-            name_b="Invalid Crosslinks",
+            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
             x_title="Distance (Å)",
             y_title="Count",
@@ -510,8 +528,8 @@ def diagrams_of_crosslinking_validation_data(
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a="Valid Crosslinks",
-            name_b="Invalid Crosslinks",
+            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
             x_title="Distance (Å)",
             y_title="Count",
@@ -570,8 +588,20 @@ def diagrams_of_crosslinking_validation_data(
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
-    valid_crosslinks = (validated_df["valid_crosslink"] == True).sum()
-    invalid_crosslinks = (validated_df["valid_crosslink"] == False).sum()
+    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
+    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
+    valid_intra_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    valid_inter_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+    invalid_intra_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    invalid_inter_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
 
     bar_plot_over_all_checked_crosslinks = create_bar_plot(
         values_of_sectors=[
@@ -579,8 +609,8 @@ def diagrams_of_crosslinking_validation_data(
             invalid_crosslinks,
         ],
         names_of_sectors=[
-            "Cross-Links matching predicted data",
-            "Cross-Links not matching predicted data",
+            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
         ],
         heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
         y_title="Number of Cross-Links",

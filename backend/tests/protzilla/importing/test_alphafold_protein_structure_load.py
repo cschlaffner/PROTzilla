@@ -127,7 +127,7 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
     assert out.keys() == {
-        "metadata_df",
+        "structure_metadata_df",
         "cif_df",
         "pae_df",
         "plddt_df",
@@ -145,12 +145,18 @@ def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
     )
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
-    assert isinstance(out["metadata_df"], pd.DataFrame)
-    assert not out["metadata_df"].empty
-    assert out["metadata_df"].iloc[0]["uniprot_accession"] == "Q8WP00"
-    assert out["metadata_df"].iloc[0]["model_created_date"] == "2025-08-01T00:00:00Z"
-    assert out["metadata_df"].iloc[0]["gene"] == "PRM1"
-    assert out["metadata_df"].iloc[0]["model_used"] == "AlphaFold Monomer v2.0 pipeline"
+    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
+    assert not out["structure_metadata_df"].empty
+    assert out["structure_metadata_df"].iloc[0]["uniprot_accession"] == "Q8WP00"
+    assert (
+        out["structure_metadata_df"].iloc[0]["model_created_date"]
+        == "2025-08-01T00:00:00Z"
+    )
+    assert out["structure_metadata_df"].iloc[0]["gene"] == "PRM1"
+    assert (
+        out["structure_metadata_df"].iloc[0]["model_used"]
+        == "AlphaFold Monomer v2.0 pipeline"
+    )
 
 
 def test_fetch_alphafold_files_exist(tmp_path, monkeypatch):
@@ -296,9 +302,9 @@ CA C 2.0
 
     out = get_monomer_structure_dfs("Q8WP00")
 
-    assert isinstance(out["metadata_df"], pd.DataFrame)
-    assert not out["metadata_df"].empty
-    assert out["metadata_df"].iloc[0]["entry_id"] == "Q8WP00"
+    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
+    assert not out["structure_metadata_df"].empty
+    assert out["structure_metadata_df"].iloc[0]["entry_id"] == "Q8WP00"
 
     assert isinstance(out["cif_df"], pd.DataFrame)
     assert not out["cif_df"].empty
@@ -464,9 +470,9 @@ N N
         persist_upload=True,
     )
 
-    assert isinstance(out["metadata_df"], pd.DataFrame)
+    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     # check metadata contents
-    mdf = out["metadata_df"]
+    mdf = out["structure_metadata_df"]
     assert mdf.iloc[0]["entry_id"] == "M1"
     assert mdf.iloc[0]["uniprot_ids"] == ["X"]
     assert mdf.iloc[0]["model_used"] == "m"
@@ -594,7 +600,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     )
 
     # verify dataframes are returned
-    assert isinstance(out["metadata_df"], pd.DataFrame)
+    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     assert isinstance(out["cif_df"], pd.DataFrame)
     # directory should still exist (created for the entry)
     upload_dir = tmp_path / "M2"
@@ -826,7 +832,7 @@ N N
     full_data.write_text(json.dumps({"pae": [[0.1, 0.2], [0.3, 0.4]]}))
 
     out = get_multimer_structure_dfs("M1")
-    assert isinstance(out["metadata_df"], pd.DataFrame)
+    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     assert isinstance(out["cif_df"], pd.DataFrame)
     assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
     assert isinstance(out["confidence_df"], pd.DataFrame)

@@ -433,7 +433,7 @@ class AlphaFoldPredictionLoad(ImportingStep):
     method_description = "Loads the predicted structure of the monomer with the given protein ID out of the AlphaFold DB."
 
     output_keys = [
-        DataKey.METADATA_DF,
+        DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
         DataKey.PAE_DF,
         DataKey.PLDDT_DF,
@@ -497,7 +497,7 @@ class ImportMonomerStructurePredictionFromDisk(ImportingStep):
     method_description = "Load an already uploaded monomer structure prediction from disk into current run"
 
     output_keys = [
-        DataKey.METADATA_DF,
+        DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
         DataKey.PAE_DF,
         DataKey.PLDDT_DF,
@@ -530,7 +530,7 @@ class UploadMultimerPredictions(ImportingStep):
     method_description = "Upload a multimer protein prediction"
 
     output_keys = [
-        DataKey.METADATA_DF,
+        DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,
@@ -596,7 +596,7 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
     method_description = "Load an already uploaded multimer structure prediction from disk into current run"
 
     output_keys = [
-        DataKey.METADATA_DF,
+        DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,

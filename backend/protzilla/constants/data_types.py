@@ -11,6 +11,7 @@ class DataKey(StrEnum):
     PEPTIDE_DF = "peptide_df"
     PSM_DF = "psm_df"  # psm = peptide spectrum match
     METADATA_DF = "metadata_df"
+    STRUCTURE_METADATA_DF = "structure_metadata_df"
     FASTA_DF = "fasta_df"
     SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
     PTM_DF = "ptm_df"
