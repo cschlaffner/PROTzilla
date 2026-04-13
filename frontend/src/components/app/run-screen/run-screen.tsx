@@ -98,6 +98,8 @@ export const RunScreen: React.FC = () => {
 
   const [isDownloadModalOpen, openDownloadModal, closeDownloadModal] = useToggleableState(false);
 
+  const [selectedOutputTab, setSelectedOutputTab] = useState<SwitchComponent["name"]>("Tables");
+
   const getFooterMessage = () => {
     const currentTimestamp = new Date();
     const currentHour =
@@ -374,6 +376,10 @@ export const RunScreen: React.FC = () => {
                 styleProps={{ height: "calc(100% - 3em)" }}
                 components={components}
                 hasCardTitle={false}
+                selection={selectedOutputTab}
+                callback={(component) => {
+                  setSelectedOutputTab(component.name);
+                }}
               />
             </StyledCol>
           ) : (
