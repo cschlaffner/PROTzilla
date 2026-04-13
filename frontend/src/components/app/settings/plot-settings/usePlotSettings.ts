@@ -156,33 +156,32 @@ export const usePlotSettings = (isOpen?: boolean) => {
     }
   };
 
-  // Fixed width for containing the correct ratio of width & height
-  const basePlotWidth = 400;
   const ptToInch = 1 / 72;
   const inchToMm = 25.4;
-  const dpi = 300;
+  const exportDpi = 300;
+  const screenDpi = 96;
 
   /**
    * This function returns the scale factor for resizing the plot from its
    * current displayed size to desired download size (regarding resolution etc).
    */
   const getScale = (plot: Figure) => {
-    const currentWidth = plot.layout.width ?? basePlotWidth;
-    return ((settings.width / inchToMm) * dpi) / currentWidth;
+    const currentWidth =
+      plot.layout.width ?? Math.round((settings.width / inchToMm) * screenDpi);
+    return ((settings.width / inchToMm) * exportDpi) / currentWidth;
   };
 
   /**
-   * This function returns the scaled sizes for displaying the plot.
+   * This function returns the sizes for displaying the plot at screen DPI,
+   * preserving detail that would be lost with a fixed small preview width.
    */
   const computeDisplaySizes = () => {
-    // Figure size
-    let ratio = settings.width / settings.height;
-    const width = basePlotWidth;
-    const height = Math.round(basePlotWidth / ratio);
-    // Font size
-    ratio = width / settings.width;
-    const titleSize = Math.round(settings.titleSize * ptToInch * inchToMm * ratio);
-    const textSize = Math.round(settings.textSize * ptToInch * inchToMm * ratio);
+    // Figure size at screen resolution
+    const width = Math.round((settings.width / inchToMm) * screenDpi);
+    const height = Math.round((settings.height / inchToMm) * screenDpi);
+    // Font size: convert pt to screen pixels (pt → inch → pixels at screen DPI)
+    const titleSize = Math.round(settings.titleSize * ptToInch * screenDpi);
+    const textSize = Math.round(settings.textSize * ptToInch * screenDpi);
     return {
       width,
       height,
