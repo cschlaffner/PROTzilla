@@ -200,8 +200,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
    * current displayed size to desired download size (regarding resolution etc).
    */
   const getScale = (plot: Figure) => {
-    const currentWidth =
-      plot.layout.width ?? Math.round((settings.width / inchToMm) * screenDpi);
+    const currentWidth = plot.layout.width ?? Math.round((settings.width / inchToMm) * screenDpi);
     return ((settings.width / inchToMm) * exportDpi) / currentWidth;
   };
 
