@@ -43,7 +43,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         const trajectory = await plugin.builders.structure.parseTrajectory(data, "mmcif");
         await plugin.builders.structure.hierarchy.applyPreset(trajectory, "default");
 
-        // add crosslinks to structure
+        // add crosslinks to structure, if available
         if (crosslinks !== undefined) {
           await addCrosslinks(plugin, cifText, crosslinks);
         }

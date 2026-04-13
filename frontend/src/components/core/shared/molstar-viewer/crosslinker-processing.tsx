@@ -59,18 +59,18 @@ export function generateCrosslinkCIF(
       const crosslinkType = getCrosslinkerType(crosslink);
       crosslinkGroups[crosslinkType].push(atom1Id, atom2Id);
 
-      // chainId = Z, to enable inter-crosslinks, because connections can only exist within the same chain
+      // chainId = CL, to enable inter-crosslinks, because connections can only exist within the same chain
       // compId (indicating the residue), is unimportant for this representation and can therefore be a placeholder
 
       const atom1Line = [
         `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
-        `LIN Z ${String(atom1.seqPos)}`,
+        `LIN CL ${String(atom1.seqPos)}`,
         `${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`,
       ].join(" ");
 
       const atom2Line = [
         `ATOM ${String(connectionId * 2)} ${atom2Id} ${atom2Id}`,
-        `LIN Z ${String(atom2.seqPos)}`,
+        `LIN CL ${String(atom2.seqPos)}`,
         `${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`,
       ].join(" ");
 
@@ -78,9 +78,9 @@ export function generateCrosslinkCIF(
       atomLines.push(atom2Line);
 
       const connectionLine = [
-        `${String(connectionId)} covalent ${atom1Id}`,
-        `X Z ${String(atom1.seqPos)} ${atom2Id}`,
-        `X Z ${String(atom2.seqPos)}`,
+        `${String(connectionId)} misc ${atom1Id}`,
+        `X CL ${String(atom1.seqPos)} ${atom2Id}`,
+        `X CL ${String(atom2.seqPos)}`,
       ].join(" ");
 
       connectionLines.push(connectionLine);

@@ -396,18 +396,19 @@ def validate_with_angstrom_deviation(
     checked_crosslinks_df = relevant_crosslinks_df[
         relevant_crosslinks_df["valid_crosslink"].notna()
     ]
-    
+
     checked_crosslinks_df["link_type"] = checked_crosslinks_df.apply(
         lambda row: "intra" if row["Protein_id1"] == row["Protein_id2"] else "inter",
         axis=1,
     )
-    
+
     protein_designation = ",".join(structures_to_validate)
     data_for_visualization = {
         "protein_entry_id": protein_designation,
         "cif_df": cif_df,
         "crosslinking_df": checked_crosslinks_df,
     }
+
     return dict(
         crosslinking_result_df=checked_crosslinks_df,
         messages=messages,
