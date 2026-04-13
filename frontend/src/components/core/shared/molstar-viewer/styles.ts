@@ -71,7 +71,10 @@ const layoutBlocks = `
   .msp-plugin .msp-layout-right,
   .msp-plugin .msp-layout-left,
   .msp-plugin .msp-slider-base-rail,
-  .msp-plugin .msp-viewport-top-left-controls .msp-animation-viewport-controls .msp-animation-viewport-controls-select,
+  .msp-plugin 
+    .msp-viewport-top-left-controls 
+    .msp-animation-viewport-controls 
+    .msp-animation-viewport-controls-select,
   .msp-plugin .msp-viewport-controls-panel,
 `;
 

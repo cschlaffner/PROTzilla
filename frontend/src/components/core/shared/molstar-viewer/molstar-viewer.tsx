@@ -66,7 +66,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         }
       }
     };
-  }, [cifText, crosslinks]);
+  }, [cifText, crosslinks, notify]);
 
   return (
     <Container>

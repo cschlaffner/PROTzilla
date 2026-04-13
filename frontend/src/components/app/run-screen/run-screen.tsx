@@ -144,7 +144,7 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
-  const [selectedOutputTab, setSelectedOutputTab] = useState<string>("");
+  const [selectedOutputTab, setSelectedOutputTab] = useState<SwitchComponent["name"]>("");
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
@@ -496,15 +496,11 @@ export const RunScreen: React.FC = () => {
     if (components.length > 0 && !selectedOutputTab) {
       setSelectedOutputTab(components[0].name);
     }
-  }, [components]);
+  }, [components, selectedOutputTab]);
 
   useEffect(() => {
     setHasLoadedVisualizations(false);
     setSelectedOutputTab("");
-  }, [runData.current_step_id]);
-
-  useEffect(() => {
-    setHasLoadedVisualizations(false);
   }, [runData.current_step_id]);
 
   return (
@@ -540,10 +536,10 @@ export const RunScreen: React.FC = () => {
                 components={components}
                 hasCardTitle={false}
                 selection={selectedOutputTab}
-                callback={(arg) => {
-                  setSelectedOutputTab(arg.name);
+                callback={(component) => {
+                  setSelectedOutputTab(component.name);
 
-                  if (arg.name === "Visualizations" && !hasLoadedVisualizations) {
+                  if (component.name === "Visualizations" && !hasLoadedVisualizations) {
                     setHasLoadedVisualizations(true);
                   }
                 }}
