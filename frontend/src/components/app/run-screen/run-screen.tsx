@@ -391,7 +391,7 @@ export const RunScreen: React.FC = () => {
           </StyledContentDiv>
         ))
       ) : (
-        <SectionTitle baseComponent="h4" description="Structure-visualization is loading..." />
+        <SectionTitle baseComponent="h4" description="Structure visualisation is loading..." />
       )}
     </StyledContentContainer>
   );
@@ -414,7 +414,7 @@ export const RunScreen: React.FC = () => {
           }))}
         />
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"Output-tables are loading..."} />
+        <SectionTitle baseComponent={"h4"} description={"Output tables are loading..."} />
       )}
     </StyledContentContainer>
   );
@@ -489,7 +489,7 @@ export const RunScreen: React.FC = () => {
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
     availableImages.length > 0 && { name: "Images", value: imageComponent },
     availableDownloads.length > 0 && { name: "Downloads", value: downloadComponent },
-    availableVisualizations.length > 0 && { name: "Visualizations", value: visualizationComponent },
+    availableVisualizations.length > 0 && { name: "Visualisations", value: visualizationComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   useEffect(() => {
@@ -539,7 +539,7 @@ export const RunScreen: React.FC = () => {
                 callback={(component) => {
                   setSelectedOutputTab(component.name);
 
-                  if (component.name === "Visualizations" && !hasLoadedVisualizations) {
+                  if (component.name === "Visualisations" && !hasLoadedVisualizations) {
                     setHasLoadedVisualizations(true);
                   }
                 }}

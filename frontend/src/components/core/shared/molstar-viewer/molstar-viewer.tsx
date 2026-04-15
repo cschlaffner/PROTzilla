@@ -71,7 +71,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
   return (
     <Container>
       {isLoading && (
-        <SectionTitle baseComponent="h4" description="Structure-visualization is loading..." />
+        <SectionTitle baseComponent="h4" description="Structure visualisation is loading..." />
       )}
       <CanvasWrapper ref={containerRef} />
     </Container>
