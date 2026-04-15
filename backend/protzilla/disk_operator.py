@@ -391,7 +391,7 @@ class DiskOperator:
             step.artifact_versions[key]["generated"]
             > step.artifact_versions[key]["dumped"]
         )
-    
+
     def _visualization_is_outdated(self, step: Step) -> bool:
         return (
             step.artifact_versions["visualization"]["generated"]
@@ -402,9 +402,9 @@ class DiskOperator:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
 
     def _update_visualization_dump_state(self, step: Step) -> None:
-        step.artifact_versions["visualization"]["dumped"] = (
-            step.artifact_versions["visualization"]["generated"]
-        )
+        step.artifact_versions["visualization"]["dumped"] = step.artifact_versions[
+            "visualization"
+        ]["generated"]
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
         """

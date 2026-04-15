@@ -82,7 +82,7 @@ class Step(ABC):
                 "generated": 0,
                 "dumped": 0,
             },
-            "visualization": {   
+            "visualization": {
                 "generated": 0,
                 "dumped": 0,
             },
