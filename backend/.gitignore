@@ -9,6 +9,7 @@
 !user_data/workflows/only_import.yaml
 !user_data/workflows/only_import_and_filter_proteins.yaml
 !user_data/workflows/standard.yaml
+!user_data/workflows/cl_monomer.yaml
 !user_data/workflows/.test-run-empty.yaml
 !user_data/example_dataset
 
