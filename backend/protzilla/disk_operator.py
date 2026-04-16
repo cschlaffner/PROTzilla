@@ -146,21 +146,6 @@ class Base64Operator:
                 file.write(data)
 
 
-class VisualizationOperator:
-    @staticmethod
-    def read(file_path: Path):
-        with ErrorHandler():
-            logger.info(f"Reading visualization from {file_path}")
-            return joblib.load(file_path)
-
-    @staticmethod
-    def write(file_path: Path, visualization):
-        with ErrorHandler():
-            logger.info(f"Writing visualization to {file_path}")
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            joblib.dump(visualization, file_path, compress=("gzip", 3))
-
-
 RUN_FILE = "run.yaml"
 
 
@@ -191,7 +176,6 @@ class DiskOperator:
         self.dataframe_operator = DataFrameOperator()
         self.artifact_operator = ArtifactOperator()
         self.base64_operator = Base64Operator()
-        self.visualization_operator = VisualizationOperator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():
@@ -392,19 +376,8 @@ class DiskOperator:
             > step.artifact_versions[key]["dumped"]
         )
 
-    def _visualization_is_outdated(self, step: Step) -> bool:
-        return (
-            step.artifact_versions["visualization"]["generated"]
-            > step.artifact_versions["visualization"]["dumped"]
-        )
-
     def _update_dump_state(self, step: Step, key: str) -> None:
         step.artifact_versions[key]["dumped"] = step.artifact_versions[key]["generated"]
-
-    def _update_visualization_dump_state(self, step: Step) -> None:
-        step.artifact_versions["visualization"]["dumped"] = step.artifact_versions[
-            "visualization"
-        ]["generated"]
 
     def _write_step(self, step: Step, workflow_mode: bool = False) -> dict:
         """
@@ -457,7 +430,7 @@ class DiskOperator:
                         path = Path(str(item.value))
                         step_output[key] = OutputItem(
                             output_type=OutputType.VISUALIZATION,
-                            value=self.visualization_operator.read(self.run_dir / path),
+                            value=self.artifact_operator.read(self.run_dir / path),
                         )
                     case _:
                         step_output[key] = item
@@ -474,6 +447,8 @@ class DiskOperator:
         """
         with ErrorHandler(), step.disk_write_mutex:
             output_data: dict[str, OutputItem] = {}
+            visualization_written = False
+            logger.info(f"Step outputs: {[k for k, v in step.output]}")
             for key, item in step.output:
                 match item.output_type:
                     case OutputType.DATAFRAME:
@@ -516,8 +491,10 @@ class DiskOperator:
                             self.artifact_dir
                             / f"{step.instance_identifier}_{key}_visualization.joblib.gz"
                         )
-                        if self._visualization_is_outdated(step):
-                            self.visualization_operator.write(file_path, item.value)
+
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, item.value)
+
                         output_data[key] = OutputItem(
                             output_type=OutputType.VISUALIZATION,
                             value=str(file_path.relative_to(self.run_dir)),
@@ -526,7 +503,9 @@ class DiskOperator:
                         output_data[key] = item
 
             self._update_dump_state(step, "output")
-            self._update_visualization_dump_state(step)
+            # self._update_visualization_dump_state(step)
+            if visualization_written:
+                self._update_visualization_dump_state(step)
             return output_data
 
     def _read_plots(self, plots: dict) -> Plots:

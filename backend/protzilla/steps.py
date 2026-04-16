@@ -82,10 +82,6 @@ class Step(ABC):
                 "generated": 0,
                 "dumped": 0,
             },
-            "visualization": {
-                "generated": 0,
-                "dumped": 0,
-            },
         }
 
         if instance_identifier is None:
