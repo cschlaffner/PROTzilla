@@ -503,9 +503,6 @@ class DiskOperator:
                         output_data[key] = item
 
             self._update_dump_state(step, "output")
-            # self._update_visualization_dump_state(step)
-            if visualization_written:
-                self._update_visualization_dump_state(step)
             return output_data
 
     def _read_plots(self, plots: dict) -> Plots:

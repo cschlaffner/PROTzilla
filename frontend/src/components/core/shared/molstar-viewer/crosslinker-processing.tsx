@@ -52,43 +52,39 @@ export function generateCrosslinkCIF(
   for (const crosslink of crosslinks) {
     const [atom1, atom2] = getCrosslinkerAtoms(cifString, crosslink);
 
-    if (atom1 && atom2) {
-      const atom1Id = `XL${String(connectionId)}A`;
-      const atom2Id = `XL${String(connectionId)}B`;
+    const atom1Id = `XL${String(connectionId)}A`;
+    const atom2Id = `XL${String(connectionId)}B`;
 
-      const crosslinkType = getCrosslinkerType(crosslink);
-      crosslinkGroups[crosslinkType].push(atom1Id, atom2Id);
+    const crosslinkType = getCrosslinkerType(crosslink);
+    crosslinkGroups[crosslinkType].push(atom1Id, atom2Id);
 
-      // chainId = CL, to enable inter-crosslinks, because connections can only exist within the same chain
-      // compId (indicating the residue), is unimportant for this representation and can therefore be a placeholder
+    // chainId = CL, to enable inter-crosslinks, because connections can only exist within the same chain
+    // compId (indicating the residue), is unimportant for this representation and can therefore be a placeholder
 
-      const atom1Line = [
-        `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
-        `LIN CL ${String(atom1.seqPos)}`,
-        `${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`,
-      ].join(" ");
+    const atom1Line = [
+      `ATOM ${String(connectionId * 2 - 1)} ${atom1Id} ${atom1Id}`,
+      `LIN CL ${String(atom1.seqPos)}`,
+      `${String(atom1.x)} ${String(atom1.y)} ${String(atom1.z)} 1.0 0.0`,
+    ].join(" ");
 
-      const atom2Line = [
-        `ATOM ${String(connectionId * 2)} ${atom2Id} ${atom2Id}`,
-        `LIN CL ${String(atom2.seqPos)}`,
-        `${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`,
-      ].join(" ");
+    const atom2Line = [
+      `ATOM ${String(connectionId * 2)} ${atom2Id} ${atom2Id}`,
+      `LIN CL ${String(atom2.seqPos)}`,
+      `${String(atom2.x)} ${String(atom2.y)} ${String(atom2.z)} 1.0 0.0`,
+    ].join(" ");
 
-      atomLines.push(atom1Line);
-      atomLines.push(atom2Line);
+    atomLines.push(atom1Line);
+    atomLines.push(atom2Line);
 
-      const connectionLine = [
-        `${String(connectionId)} misc ${atom1Id}`,
-        `X CL ${String(atom1.seqPos)} ${atom2Id}`,
-        `X CL ${String(atom2.seqPos)}`,
-      ].join(" ");
+    const connectionLine = [
+      `${String(connectionId)} misc ${atom1Id}`,
+      `X CL ${String(atom1.seqPos)} ${atom2Id}`,
+      `X CL ${String(atom2.seqPos)}`,
+    ].join(" ");
 
-      connectionLines.push(connectionLine);
+    connectionLines.push(connectionLine);
 
-      console.log(connectionLine);
-
-      connectionId++;
-    }
+    connectionId++;
   }
 
   const crosslinkCifText = `
@@ -143,10 +139,11 @@ function getReactiveAtom(reactiveAtom?: string): string {
 
 function findAtomCoordinatesInCif(
   cifString: string,
+  cifIndices: ReturnType<typeof getCifAtomSiteIndices>,
   crosslinkerAtomId: string,
   crosslinkerSeqPos: number,
   crosslinkerChainId: string,
-): CrosslinkerAtom | null {
+): CrosslinkerAtom {
   const lines = cifString.split(/\r?\n/);
 
   for (const line of lines) {
@@ -154,8 +151,6 @@ function findAtomCoordinatesInCif(
     if (!trimmed || trimmed.startsWith("#")) continue;
     const tokens = trimmed.split(/\s+/);
     if (tokens[0] !== "ATOM" && tokens[0] !== "HETATM") continue;
-
-    const cifIndices = getCifAtomSiteIndices(cifString);
 
     const lineAtomId = tokens[cifIndices.atomIdIdx];
     const lineSeqPos = parseInt(tokens[cifIndices.seqIdIdx], 10);
@@ -182,10 +177,13 @@ function findAtomCoordinatesInCif(
 function getCrosslinkerAtoms(
   cifString: string,
   crosslink: CrosslinkerInformation,
-): [CrosslinkerAtom | null, CrosslinkerAtom | null] {
+): [CrosslinkerAtom, CrosslinkerAtom] {
+  const cifIndices = getCifAtomSiteIndices(cifString);
+
   const reactiveAtom1 = getReactiveAtom(crosslink.reactiveAtom1);
   const atom1 = findAtomCoordinatesInCif(
     cifString,
+    cifIndices,
     reactiveAtom1,
     crosslink.crosslinkerPosition1,
     crosslink.chainId1,
@@ -194,6 +192,7 @@ function getCrosslinkerAtoms(
   const reactiveAtom2 = getReactiveAtom(crosslink.reactiveAtom2);
   const atom2 = findAtomCoordinatesInCif(
     cifString,
+    cifIndices,
     reactiveAtom2,
     crosslink.crosslinkerPosition2,
     crosslink.chainId2,

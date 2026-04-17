@@ -189,7 +189,7 @@ def create_visualization(
     crosslinking_df: Optional[pd.DataFrame] = None,
 ) -> dict:
     """
-    Convert a CIF DataFrame to a mmCIF string and package it with its protein entry ID.
+    Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its protein entry ID.
     Optionally include crosslinks.
 
     :param cif_df: DataFrame containing mmCIF atom_site information.
@@ -201,7 +201,7 @@ def create_visualization(
              - "crosslinks" (optional, list of dicts)
     """
     try:
-        cif_string = convert_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
+        cif_string = convert_cif_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
     except (ValueError, TypeError):
         cif_string = ""
 
@@ -213,7 +213,7 @@ def create_visualization(
     return result
 
 
-def convert_df_to_mmcif_for_visualization(
+def convert_cif_df_to_mmcif_for_visualization(
     cif_df: pd.DataFrame, protein_entry_id: str
 ) -> str:
     """
@@ -259,9 +259,24 @@ def extract_relevant_crosslink_information(
 ) -> List[Dict[str, int]]:
     """
     For each crosslink extract its relevant information from a DataFrame.
+    This includes information on where the crosslinker binds on both its ends,
+    such as the chain and the absolute crosslinker position within the chain.
+    As well as a boolean for its validity and wether it is an intra or inter crosslink.
 
-    :param crosslinking_df: DataFrame with columns 'crosslinker_position1', 'crosslinker_position2' and 'valid_crosslink'.
-    :return: List of dicts with keys 'position1', 'position2' and 'is_valid'.
+    :param crosslinking_df: DataFrame with columns
+        'crosslinker_position1',
+        'crosslinker_position2',
+        'chain_id1',
+        'chain_id2',
+        'valid_crosslink',
+        'Is_intra_crosslink',
+    :return: List of dicts with keys
+        'crosslinkerPosition1',
+        'crosslinkerPosition2',
+        'chainId1',
+        'chainId2',
+        'isValid',
+        'isIntraCrosslink',
     """
     crosslinks = []
     for _, row in crosslinking_df.iterrows():
