@@ -25,11 +25,6 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
 }) => {
   const [value, setValue] = useState(initialValue);
 
-  useEffect(() => {
-    onChange(initialValue);
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const wasThereInputAfterHandleBlurRef = useRef(false);
 
   const handleChange = (value: string) => {

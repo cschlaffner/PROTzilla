@@ -45,11 +45,6 @@ export const ColorInputField: React.FC<ColorInputFieldProps> = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  useEffect(() => {
-    onChange(initialValue);
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleChange = (newValue: string) => {
     setValue(newValue);
     onChange(newValue);
