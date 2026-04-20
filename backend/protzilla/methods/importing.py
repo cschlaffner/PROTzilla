@@ -550,10 +550,10 @@ class UploadMultimerPredictions(ImportingStep):
                 ),
                 TextField(
                     name="uniprot_ids",
-                    label="Protein IDs of all proteins used in the sequence.",
+                    label="Protein IDs of all proteins used in the sequence. ",
                 ),
                 InfoField(
-                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9"
+                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9. List them in the same order as provided to the AlphaFold model. If a protein appears multiple times, include it each time it occurs in the corresponding position."
                 ),
                 TextField(
                     name="model_used",

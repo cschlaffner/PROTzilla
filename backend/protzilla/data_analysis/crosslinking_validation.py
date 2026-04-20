@@ -35,6 +35,7 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     amino_acid_position_where_crosslinker_bound: int,
     amino_acid_type: str,
     cif_df: pd.DataFrame,
+    chain_id: str,
 ) -> tuple[float, float, float]:
     """
     Returns the Cartesian coordinates of the atom to which the cross-linker is
@@ -43,25 +44,25 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     :param amino_acid_position_where_crosslinker_bound: 1-based position of the amino acid residue
     :param amino_acid_type: amino acid type at the given position
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param chain_id: ID of the chain of the atom the crosslinker bounds to
     :return: a tuple (x, y, z) containing the Cartesian coordinates of the atom in Ångström
     :raises ValueError: if the specified atom cannot be found in the CIF data
     """
 
     relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type)
+    seq_ids = pd.to_numeric(cif_df["_atom_site.label_seq_id"], errors="coerce")
 
     # Filter to the exact reactive atom of the amino acid residue
     # where the crosslinker is bound (e.g. CA at position 45)
     cif_df = cif_df[
         (cif_df["_atom_site.label_atom_id"] == relevant_atom)
-        & (
-            cif_df["_atom_site.label_seq_id"].astype(int)
-            == amino_acid_position_where_crosslinker_bound
-        )
+        & (seq_ids == amino_acid_position_where_crosslinker_bound)
+        & (cif_df["_atom_site.auth_asym_id"] == chain_id)
     ]
 
     if cif_df.empty:
         raise ValueError(
-            f"No {relevant_atom} atom found for amino acid at position {amino_acid_position_where_crosslinker_bound}."
+            f"No {relevant_atom} atom found for amino acid at position {amino_acid_position_where_crosslinker_bound} in chain {chain_id}."
         )
 
     row = cif_df.iloc[0]
@@ -79,6 +80,8 @@ def get_distance_between_two_amino_acids_in_angstrom(
     amino_acid_type1: str,
     amino_acid_type2: str,
     cif_df: pd.DataFrame,
+    chain_id1: str,
+    chain_id2: str,
 ) -> float:
     """
     Calculates the Euclidean distance in Ångström between two amino acid residues
@@ -89,19 +92,27 @@ def get_distance_between_two_amino_acids_in_angstrom(
     :param amino_acid_type1: amino acid type at the first position
     :param amino_acid_type2: amino acid type at the second position
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
+    :param chain_id1: ID of the chain of the first amino acid residue in which crosslinker binds
+    :param chain_id2: ID of the chain of the second amino acid residue in which crosslinker binds
     :return: the distance between the two residues in Ångström
     """
 
     pos1 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
-            amino_acid_position1, amino_acid_type1, cif_df
+            amino_acid_position1,
+            amino_acid_type1,
+            cif_df,
+            chain_id1,
         ),
         dtype=float,
     )
 
     pos2 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
-            amino_acid_position2, amino_acid_type2, cif_df
+            amino_acid_position2,
+            amino_acid_type2,
+            cif_df,
+            chain_id2,
         ),
         dtype=float,
     )
@@ -268,6 +279,86 @@ def _get_structures_to_validate(structure_metadata_df: pd.DataFrame) -> list[str
         raise ValueError("Metadata must contain 'uniprot_ids' or 'uniprot_accession'.")
 
 
+def get_chain_starts(
+    cif_df: pd.DataFrame,
+    protein_id: str,
+) -> dict:
+    """
+    Returns the starting row positions and chain IDs for all chains
+    belonging to a given protein in an mmCIF-derived DataFrame.
+
+    :param cif_df: mmCIF data as a pandas DataFrame.
+    :param protein_id: identifier of the protein you want to query.
+    :return: set of residue numbers where the different chains start indexed by chain_id
+    """
+    relevant_df = cif_df[
+        cif_df["_atom_site.pdbx_sifts_xref_db_acc"] == protein_id
+    ].copy()
+    relevant_df["_atom_site.label_seq_id"] = pd.to_numeric(
+        relevant_df["_atom_site.label_seq_id"], errors="coerce"
+    )
+    relevant_df = relevant_df.dropna(
+        subset=["_atom_site.auth_asym_id", "_atom_site.label_seq_id"]
+    )
+
+    # Find, for each chain, the first row position in the original DataFrame
+    # and the corresponding first residue number which is the smallest number of the chain
+    results = {}
+    for chain_id, group in relevant_df.groupby("_atom_site.auth_asym_id", sort=False):
+        results[chain_id] = int(group["_atom_site.label_seq_id"].min())
+
+    return results
+
+
+def expand_crosslinks_to_chain_combinations(
+    relevant_crosslinks_df: pd.DataFrame,
+    chains_per_protein: dict[str, dict[str, int]],
+) -> pd.DataFrame:
+    """
+    Duplicate each crosslink row so that all possible chain combinations
+    are represented.
+
+
+    :param relevant_crosslinks_df: dataframe that contains information on the crosslinks between the proteins
+    :param chains_per_protein: dictionary that contains for each protein id a dictionary that gives the first residue position for each chain id
+    return: crosslinks dataframe with the additional columns of Chain_id1 and Chain_id2
+    """
+    expanded_rows = []
+
+    for _, crosslink in relevant_crosslinks_df.iterrows():
+        protein_id1 = crosslink["Protein_id1"]
+        protein_id2 = crosslink["Protein_id2"]
+
+        chains_protein1 = chains_per_protein.get(protein_id1, {})
+        chains_protein2 = chains_per_protein.get(protein_id2, {})
+
+        chain_ids1 = list(chains_protein1.keys())
+        chain_ids2 = list(chains_protein2.keys())
+
+        if not chain_ids1 or not chain_ids2:
+            continue
+
+        # we do not want the same combination twice if the protein_ids are the same
+        # e.g.: protein 1 chain A - protein 1 chain B and protein 1 chain B - protein 1 chain A
+        if protein_id1 == protein_id2:
+            chain_pairs = itertools.combinations_with_replacement(chain_ids1, 2)
+        else:
+            chain_pairs = itertools.product(chain_ids1, chain_ids2)
+
+        for chain_id1, chain_id2 in chain_pairs:
+            new_row = crosslink.copy()
+            new_row["Chain_id1"] = chain_id1
+            new_row["Chain_id2"] = chain_id2
+            expanded_rows.append(new_row)
+
+    if not expanded_rows:
+        return pd.DataFrame(
+            columns=list(relevant_crosslinks_df.columns) + ["Chain_id1", "Chain_id2"]
+        )
+
+    return pd.DataFrame(expanded_rows).reset_index(drop=True)
+
+
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
@@ -316,6 +407,17 @@ def validate_with_angstrom_deviation(
         messages = [dict(level=logging.WARNING, msg=msg)]
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
+    chains_per_protein = {}
+    for protein_id in set(structures_to_validate):
+        chains_per_protein[protein_id] = get_chain_starts(
+            cif_df=cif_df, protein_id=protein_id
+        )
+
+    relevant_crosslinks_df = expand_crosslinks_to_chain_combinations(
+        relevant_crosslinks_df=relevant_crosslinks_df,
+        chains_per_protein=chains_per_protein,
+    )
+
     relevant_crosslinks_df, messages = add_protein_crosslink_positions_to_df(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
@@ -330,19 +432,14 @@ def validate_with_angstrom_deviation(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
 
-        relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[
-            "crosslinker_position1"
-        ].astype("Int64")
-
-        relevant_crosslinks_df["crosslinker_position2"] = relevant_crosslinks_df[
-            "crosslinker_position2"
-        ].astype("Int64")
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
             amino_acid_position2=crosslink.crosslinker_position2,
             amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1],
             amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1],
             cif_df=cif_df,
+            chain_id1=crosslink.Chain_id1,
+            chain_id2=crosslink.Chain_id2,
         )
         try:
             (
@@ -385,6 +482,14 @@ def validate_with_angstrom_deviation(
         "crosslinker_position1",
         "crosslinker_position2",
     ]
+
+    relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[
+        "crosslinker_position1"
+    ].astype("Int64")
+    relevant_crosslinks_df["crosslinker_position2"] = relevant_crosslinks_df[
+        "crosslinker_position2"
+    ].astype("Int64")
+
     relevant_crosslinks_df[new_columns] = relevant_crosslinks_df.apply(
         check_crosslink, axis=1
     )
@@ -395,7 +500,7 @@ def validate_with_angstrom_deviation(
     ]
 
     checked_crosslinks_df["link_type"] = checked_crosslinks_df.apply(
-        lambda row: "intra" if row["Protein_id1"] == row["Protein_id2"] else "inter",
+        lambda row: "intra" if row["Chain_id1"] == row["Chain_id2"] else "inter",
         axis=1,
     )
 
@@ -450,6 +555,8 @@ def diagrams_of_crosslinking_validation_data(
 
     figures = []
 
+    structures_to_validate_str = ", ".join(structures_to_validate)
+
     for crosslinker, crosslinker_df in validated_df.groupby("Crosslinker"):
         distances_valid = crosslinker_df.loc[
             crosslinker_df["valid_crosslink"] == True, "alphafold_distance"
@@ -477,7 +584,6 @@ def diagrams_of_crosslinking_validation_data(
             accepted_deviation_upper_bound,
             accepted_deviation_lower_bound,
         ) = crosslinker_information[crosslinker]
-        structures_to_validate_str = ", ".join(structures_to_validate)
         histogram = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
