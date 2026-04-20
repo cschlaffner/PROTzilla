@@ -732,9 +732,9 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
             logger.error(msg)
             raise RuntimeError()
         elif len(json_files) == 2:
-                msg = f"Only two json file found in {structure_dir} for entry '{entry_id}'. Three json files are expected"
-                logger.error(msg)
-                raise RuntimeError()
+            msg = f"Only two json file found in {structure_dir} for entry '{entry_id}'. Three json files are expected"
+            logger.error(msg)
+            raise RuntimeError()
         else:
             with open(json_files[0], "r") as f:
                 obj1 = json.load(f)
@@ -750,7 +750,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
 
             confidence_df, full_data_df, job_request_df = None, None, None
             for json_df in [json1, json2, json3]:
-                if  "chain_iptm" in json_df.columns:
+                if "chain_iptm" in json_df.columns:
                     confidence_df = json_df
                 elif "pae" in json_df.columns:
                     full_data_df = json_df
