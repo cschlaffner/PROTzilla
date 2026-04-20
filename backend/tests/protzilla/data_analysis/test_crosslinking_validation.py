@@ -60,10 +60,14 @@ def test_validate_with_angstrom_deviation(distance, expected):
         }
     )
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
+    )
+
     crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Länge 5 Å ± 1 Å
     result = validate_with_angstrom_deviation(
         crosslinking_df,
-        structure_metadata_df=pd.DataFrame({"uniprot_accession": ["P12345"]}),
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         amino_acid_sequences_df=amino_acid_sequences_df,
         cif_df=cif_df,
@@ -315,9 +319,13 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
     # Format is [length, upper_deviation, lower_deviation].
     crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structure_metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -377,9 +385,13 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
     )
     crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structure_metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -437,9 +449,13 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
     # Always-valid bounds so we focus on duplication and distance computation.
     crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structure_metadata_df=pd.DataFrame({"uniprot_ids": [["P1", "P2"]]}),
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -789,9 +805,13 @@ def test_validate_multimer_with_invalid_crosslinks():
     # Distances will be [0.0, 0.0, 2.0, 2.0] -> two valid (2.0) and two invalid (0.0).
     crosslinker_information = {"XL": [1.5, 0.6, 0.6]}
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
-        structure_metadata_df=pd.DataFrame({"uniprot_ids": ["['P1', 'P2']"]}),
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
