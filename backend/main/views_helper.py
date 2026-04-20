@@ -185,27 +185,29 @@ def load_yaml_from_file(path: Path) -> str:
 
 def create_visualization(
     cif_df: pd.DataFrame,
-    protein_entry_id: str,
+    structure_entry_id: str,
     crosslinking_df: Optional[pd.DataFrame] = None,
 ) -> dict:
     """
-    Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its protein entry ID.
+    Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its structure entry ID.
     Optionally include crosslinks.
 
     :param cif_df: DataFrame containing mmCIF atom_site information.
-    :param protein_entry_id: Protein identifier to include in the mmCIF header.
+    :param structure_entry_id: Protein identifier to include in the mmCIF header.
     :param crosslinking_df: Optional DataFrame containing crosslink positions.
     :return: Dictionary containing:
-             - "proteinEntryId" (str)
+             - "structureEntryId" (str)
              - "cifString" (str)
              - "crosslinks" (optional, list of dicts)
     """
     try:
-        cif_string = convert_cif_df_to_mmcif_for_visualization(cif_df, protein_entry_id)
+        cif_string = convert_cif_df_to_mmcif_for_visualization(
+            cif_df, structure_entry_id
+        )
     except (ValueError, TypeError):
         cif_string = ""
 
-    result = {"proteinEntryId": protein_entry_id, "cifString": cif_string}
+    result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
 
     if crosslinking_df is not None:
         result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
@@ -214,22 +216,22 @@ def create_visualization(
 
 
 def convert_cif_df_to_mmcif_for_visualization(
-    cif_df: pd.DataFrame, protein_entry_id: str
+    cif_df: pd.DataFrame, structure_entry_id: str
 ) -> str:
     """
     Convert a DataFrame containing mmCIF atom_site information back into a mmCIF string.
 
     :param cif_df: DataFrame with CIF columns
-    :param protein_entry_id: Optional entry ID for the CIF block
+    :param structure_entry_id: Optional entry ID for the CIF block
     :return: A string representing the mmCIF file
     """
     if cif_df is None or cif_df.empty:
         raise ValueError("CIF-DataFrame is empty, cannot create mmCIF content.")
 
     lines = [
-        f"data_{protein_entry_id}",
+        f"data_{structure_entry_id}",
         "#",
-        f"_entry.id {protein_entry_id}",
+        f"_entry.id {structure_entry_id}",
         "#",
         "loop_",
     ]

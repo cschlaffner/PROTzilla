@@ -271,6 +271,13 @@ def _get_structures_to_validate(structure_metadata_df: pd.DataFrame) -> list[str
         raise ValueError("Metadata must contain 'uniprot_ids' or 'uniprot_accession'.")
 
 
+def _get_structure_entry_id(structure_metadata_df: pd.DataFrame) -> list[str]:
+    if "entry_id" in structure_metadata_df.columns:
+        return structure_metadata_df["entry_id"].iloc[0]
+    else:
+        raise ValueError("Metadata must contain 'entry_id'.")
+
+
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
@@ -402,9 +409,9 @@ def validate_with_angstrom_deviation(
         axis=1,
     )
 
-    protein_designation = ",".join(structures_to_validate)
+    structure_entry_id = _get_structure_entry_id(structure_metadata_df)
     data_for_visualization = {
-        "protein_entry_id": protein_designation,
+        "structure_entry_id": structure_entry_id,
         "cif_df": cif_df,
         "crosslinking_df": checked_crosslinks_df,
     }

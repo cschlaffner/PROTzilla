@@ -415,7 +415,7 @@ def fetch_alphafold_protein_structure(
         logger.info(success_msg)
         messages.append(dict(level=logging.INFO, msg=success_msg))
         data_for_visualization = {
-            "protein_entry_id": uniprot_id,
+            "structure_entry_id": uniprot_id,
             "cif_df": alpha_dfs["cif_df"],
         }
     else:
@@ -703,7 +703,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     data_for_visualization = {
-        "protein_entry_id": entry_id,
+        "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
     return dict(
@@ -787,7 +787,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     data_for_visualization = {
-        "protein_entry_id": entry_id,
+        "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
     return dict(
@@ -928,7 +928,7 @@ def upload_multimer_prediction(
             logger.info(success_msg)
             messages.append(dict(level=logging.INFO, msg=success_msg))
             data_for_visualization = {
-                "protein_entry_id": entry_id,
+                "structure_entry_id": entry_id,
                 "cif_df": cif_df,
             }
         else:

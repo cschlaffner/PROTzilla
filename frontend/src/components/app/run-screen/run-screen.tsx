@@ -159,7 +159,7 @@ export const RunScreen: React.FC = () => {
   const [availableVisualizations, setAvailableVisualizations] = useState<StepOutputInfo[]>([]);
   const transformVisualization = useCallback(
     (_output: StepOutputInfo, response: ApiResponse<Visualization>) => ({
-      proteinEntryId: response.data.proteinEntryId,
+      structureEntryId: response.data.structureEntryId,
       cifString: response.data.cifString,
       crosslinks: response.data.crosslinks,
     }),
@@ -168,7 +168,7 @@ export const RunScreen: React.FC = () => {
   const visualizations = useCertainStepOutputs<
     StepOutputInfo,
     ApiResponse<Visualization>,
-    { proteinEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
+    { structureEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
   >({
     available_outputs: availableVisualizations,
     endpoint: "get_step_visualizations/",
@@ -386,7 +386,7 @@ export const RunScreen: React.FC = () => {
     <StyledContentContainer>
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
-          <StyledContentDiv key={viz.proteinEntryId}>
+          <StyledContentDiv key={viz.structureEntryId}>
             <MolstarViewer cifText={viz.cifString} crosslinks={viz.crosslinks} />
           </StyledContentDiv>
         ))

@@ -36,7 +36,7 @@ export interface Download {
 }
 
 export interface Visualization {
-  proteinEntryId: string;
+  structureEntryId: string;
   cifString: string;
   crosslinks?: CrosslinkerInformation[];
 }
