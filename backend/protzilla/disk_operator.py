@@ -447,8 +447,6 @@ class DiskOperator:
         """
         with ErrorHandler(), step.disk_write_mutex:
             output_data: dict[str, OutputItem] = {}
-            visualization_written = False
-            logger.info(f"Step outputs: {[k for k, v in step.output]}")
             for key, item in step.output:
                 match item.output_type:
                     case OutputType.DATAFRAME:
