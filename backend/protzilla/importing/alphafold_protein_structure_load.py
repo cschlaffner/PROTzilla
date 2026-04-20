@@ -723,7 +723,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         entry_id=entry_id, structure_dir=structure_dir
     )
 
-    # get jsons (PAE and pLDDT)
+    # get jsons (full data and confidence and job requests)
     json_files = get_json_files_in_dir(entry_id=entry_id, structure_dir=structure_dir)
 
     try:
@@ -731,28 +731,35 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
             msg = f"Only one json file found in {structure_dir} for entry '{entry_id}'. Two json files are expected"
             logger.error(msg)
             raise RuntimeError()
+        elif len(json_files) == 2:
+                msg = f"Only two json file found in {structure_dir} for entry '{entry_id}'. Three json files are expected"
+                logger.error(msg)
+                raise RuntimeError()
         else:
             with open(json_files[0], "r") as f:
                 obj1 = json.load(f)
             with open(json_files[1], "r") as f:
                 obj2 = json.load(f)
+            with open(json_files[2], "r") as f:
+                obj3 = json.load(f)
 
             json1 = pd.json_normalize(obj1)
             json2 = pd.json_normalize(obj2)
+            json3 = pd.json_normalize(obj3)
             # iptm stands for interface predicted TM score
-            if "chain_iptm" in json1.columns and "pae" in json2.columns:
-                confidence_df = json1
-                full_data_df = json2
-            elif "chain_iptm" in json2.columns and "pae" in json1.columns:
-                confidence_df = json2
-                full_data_df = json1
-            else:
-                # Fallback: assign and warn
-                confidence_df = json1
-                full_data_df = json2
-                warn = f"Could not detect confidence scores/full data information in JSON files for entry '{entry_id}'; ''{json_files[0]} is read as confidenc, {json_files[1]} is read as full data summary."
-                logger.warning(warn)
-                messages.append(dict(level=logging.WARNING, msg=warn))
+
+            confidence_df, full_data_df, job_request_df = None, None, None
+            for json_df in [json1, json2, json3]:
+                if  "chain_iptm" in json_df.columns:
+                    confidence_df = json_df
+                elif "pae" in json_df.columns:
+                    full_data_df = json_df
+                elif "sequences" in json_df.columns:
+                    job_request_df = json_df
+            if confidence_df is None or full_data_df is None or job_request_df is None:
+                msg = f"Could not detect confidence scores/full data/job request in JSON files for entry '{entry_id}'."
+                logger.exception(msg)
+                raise RuntimeError(msg)
     except Exception as e:
         msg = f"Failed to read JSON files in {structure_dir}: {e}"
         logger.exception(msg)
@@ -763,6 +770,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "cif_df": cif_df,
         "confidence_df": confidence_df,
         "full_data_df": full_data_df,
+        "job_request_df": job_request_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
     df_dict["messages"] = messages
@@ -777,6 +785,7 @@ def upload_multimer_prediction(
     cif_file: Path,
     confidence_file: Path,
     full_data_file: Path,
+    job_request_file: Path,
     persist_upload: bool,
 ) -> dict[str, Any]:
     """
@@ -858,6 +867,7 @@ def upload_multimer_prediction(
                 cif_file,
                 confidence_file,
                 full_data_file,
+                job_request_file,
             ]:
                 success, msg = copy_file_to_directory(file_name, work_dir)
                 if not success:
@@ -868,6 +878,7 @@ def upload_multimer_prediction(
         amino_acid_sequences_df = fasta_dict["fasta_df"]
 
         confidence_df = pd.read_json(confidence_file)
+        job_request_df = pd.read_json(job_request_file)
 
         # full_data json has arrays of unequal lengths so we need to normalize
         full_data_df = pd.DataFrame()
@@ -891,6 +902,7 @@ def upload_multimer_prediction(
             "confidence_df": confidence_df,
             "full_data_df": full_data_df,
             "amino_acid_sequences_df": amino_acid_sequences_df,
+            "job_request_df": job_request_df,
         }
 
         if not any(df.empty for df in df_dict.values()):

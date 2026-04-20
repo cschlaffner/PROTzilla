@@ -493,6 +493,7 @@ def upload_multimer_structure(request):
         cif_file = data.get("cif_file")
         confidence_file = data.get("confidence_file")
         full_data_file = data.get("full_data_file")
+        job_request_file = data.get("job_request_file")
 
         ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -536,7 +537,7 @@ def upload_multimer_structure(request):
         #  Copy files to source directory out of temp directory
 
         target_dir = ALPHAFOLD_MULTIMER_PATH / entry_id.upper()
-        file_names = [fasta_file, cif_file, confidence_file, full_data_file]
+        file_names = [fasta_file, cif_file, confidence_file, full_data_file, job_request_file]
         success, message = check_and_copy_files_to_directory(
             file_names=file_names, target_dir=target_dir
         )

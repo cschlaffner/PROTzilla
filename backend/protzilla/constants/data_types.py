@@ -28,6 +28,7 @@ class DataKey(StrEnum):
     CROSSLINKING_DF = "crosslinking_df"
     CONFIDENCE_DF = "confidence_df"
     FULL_DATA_DF = "full_data_df"
+    JOB_REQUEST_DF = "job_request_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)
