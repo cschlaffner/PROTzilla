@@ -13,6 +13,7 @@ from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
     create_bar_plot,
 )
+from backend.protzilla.constants.protzilla_logging import logger
 from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
 
 
@@ -283,9 +284,12 @@ def get_chains(
     :param id_column_name: column name to check against valid_ids.
     :return: list of unique chain IDs.
     """
-    relevant_df = cif_df[cif_df[id_column_name].isin(valid_ids[protein_id])]
+    target_ids = valid_ids.get(protein_id, [])
+    if not target_ids:
+        return []
+    target_ids_as_strings = [str(i) for i in target_ids]
+    relevant_df = cif_df[cif_df[id_column_name].astype(str).isin(target_ids_as_strings)]
     chain_ids = relevant_df["_atom_site.auth_asym_id"].dropna().unique().tolist()
-
     return chain_ids
 
 
@@ -506,6 +510,7 @@ def validate_with_angstrom_deviation(
     if relevant_crosslinks_df.empty:
         msg = "There are no cross links between the structures to validate."
         messages = [dict(level=logging.WARNING, msg=msg)]
+        logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
     chains_per_protein = {}
@@ -521,6 +526,12 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df=relevant_crosslinks_df,
         chains_per_protein=chains_per_protein,
     )
+
+    if relevant_crosslinks_df.empty:
+        msg = "There are no cross links between the structures to validate."
+        messages = [dict(level=logging.WARNING, msg=msg)]
+        logger.warning(msg)
+        return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
     relevant_crosslinks_df, messages = add_protein_crosslink_positions_to_df(
         relevant_crosslinks_df, amino_acid_sequences_df
@@ -645,6 +656,8 @@ def diagrams_of_crosslinking_validation_data(
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
+    if validated_df.empty:
+        return {}
     validated_df = validated_df.dropna(subset=["valid_crosslink"])
 
     figures = []
