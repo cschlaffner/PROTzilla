@@ -98,7 +98,9 @@ def build_convex_hull(points: np.ndarray) -> Trimesh:
             "At least four distinct points are required to build a 3D convex hull."
         )
 
-    return trimesh.convex.convex_hull(points, qhull_options="QJ") # Maybe QJ is stupid here? Ill have to look into it
+    return trimesh.convex.convex_hull(
+        points, qhull_options="QJ"
+    )  # Maybe QJ is stupid here? Ill have to look into it
 
 
 def meshes_intersect(
