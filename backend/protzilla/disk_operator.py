@@ -426,6 +426,12 @@ class DiskOperator:
                             output_type=OutputType.PNG_BASE64,
                             value=self.base64_operator.read(self.run_dir / path),
                         )
+                    case OutputType.VISUALIZATION:
+                        path = Path(str(item.value))
+                        step_output[key] = OutputItem(
+                            output_type=OutputType.VISUALIZATION,
+                            value=self.artifact_operator.read(self.run_dir / path),
+                        )
                     case _:
                         step_output[key] = item
 
@@ -476,6 +482,19 @@ class DiskOperator:
                             self.base64_operator.write(file_path, item.value)
                         output_data[key] = OutputItem(
                             output_type=OutputType.PNG_BASE64,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
+                    case OutputType.VISUALIZATION:
+                        file_path = (
+                            self.artifact_dir
+                            / f"{step.instance_identifier}_{key}_visualization.joblib.gz"
+                        )
+
+                        if self._dump_is_outdated(step, "output"):
+                            self.artifact_operator.write(file_path, item.value)
+
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.VISUALIZATION,
                             value=str(file_path.relative_to(self.run_dir)),
                         )
                     case _:

@@ -1,6 +1,8 @@
 import { GridValidRowModel } from "@mui/x-data-grid";
 import type { Edge } from "@xyflow/react";
 
+import { CrosslinkerInformation } from "../components/core/shared/molstar-viewer/crosslinker-processing.tsx";
+
 export interface UIStateProps {
   isDisabled?: boolean;
 }
@@ -17,6 +19,12 @@ export interface StepOutputInfo {
   display_name: string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 export interface Image {
   title: string;
   alt: string;
@@ -25,6 +33,12 @@ export interface Image {
 
 export interface Download {
   data: Record<string, unknown>;
+}
+
+export interface Visualization {
+  structureEntryId: string;
+  cifString: string;
+  crosslinks?: CrosslinkerInformation[];
 }
 
 // We assume these are the only data types we receive for tables

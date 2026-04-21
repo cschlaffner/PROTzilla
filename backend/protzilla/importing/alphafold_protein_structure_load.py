@@ -19,6 +19,7 @@ from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
 from backend.protzilla.utilities.utilities import copy_file_to_directory
+from backend.protzilla.steps import OutputItem, OutputType
 
 
 def get_monomer_metadata_df() -> pd.DataFrame:
@@ -413,14 +414,25 @@ def fetch_alphafold_protein_structure(
         success_msg = f"Successfully loaded AlphaFold data for protein with Protein ID '{uniprot_id}'"
         logger.info(success_msg)
         messages.append(dict(level=logging.INFO, msg=success_msg))
+        data_for_visualization = {
+            "structure_entry_id": uniprot_id,
+            "cif_df": alpha_dfs["cif_df"],
+        }
     else:
         message = (
             f"Could not load AlphaFold data for protein with Protein ID '{uniprot_id}'"
         )
         logger.warning(message)
         messages.append(dict(level=logging.WARNING, msg=message))
-    df_dict["messages"] = messages
-    return df_dict
+        data_for_visualization = None
+
+    return dict(
+        **df_dict,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
 
 
 def get_all_available_entry_ids_of_monomer_metadata() -> list[str]:
@@ -690,8 +702,17 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "amino_acid_sequences_df": amino_acid_sequences_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
-    df_dict["messages"] = messages
-    return df_dict
+    data_for_visualization = {
+        "structure_entry_id": entry_id,
+        "cif_df": cif_df,
+    }
+    return dict(
+        **df_dict,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
 
 
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
@@ -765,8 +786,17 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "full_data_df": full_data_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
-    df_dict["messages"] = messages
-    return df_dict
+    data_for_visualization = {
+        "structure_entry_id": entry_id,
+        "cif_df": cif_df,
+    }
+    return dict(
+        **df_dict,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
 
 
 def upload_multimer_prediction(
@@ -897,14 +927,24 @@ def upload_multimer_prediction(
             success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
             logger.info(success_msg)
             messages.append(dict(level=logging.INFO, msg=success_msg))
+            data_for_visualization = {
+                "structure_entry_id": entry_id,
+                "cif_df": cif_df,
+            }
         else:
             message = f"Could not load AlphaFold data for entry '{entry_id}'"
             logger.warning(message)
             messages.append(dict(level=logging.WARNING, msg=message))
-        df_dict["messages"] = messages
+            data_for_visualization = None
 
     finally:
         if temp_dir is not None:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    return df_dict
+    return dict(
+        **df_dict,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
