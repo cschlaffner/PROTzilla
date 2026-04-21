@@ -308,11 +308,8 @@ def expand_crosslinks_to_chain_combinations(
         protein_id1 = crosslink["Protein_id1"]
         protein_id2 = crosslink["Protein_id2"]
 
-        chains_protein1 = chains_per_protein[protein_id1]
-        chains_protein2 = chains_per_protein[protein_id2]
-
-        chain_ids1 = list(chains_protein1.keys())
-        chain_ids2 = list(chains_protein2.keys())
+        chain_ids1 = chains_per_protein[protein_id1]
+        chain_ids2 = chains_per_protein[protein_id2]
 
         if not chain_ids1 or not chain_ids2:
             continue
@@ -357,16 +354,10 @@ def monomer_validation(
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :return: A dictionary containing the validation results and distance metrics.
     """
-    all_crosslinks_df = crosslinking_df.copy()
     protein_id = structure_metadata_df["uniprot_accession"].iloc[0]
-    # we are only interested in intra-crosslinks of the protein we want to validate
-    mask = (all_crosslinks_df["Protein_id1"] == protein_id) & (
-        all_crosslinks_df["Protein_id2"] == protein_id
-    )
     valid_ids = {protein_id: [protein_id]}
-    relevant_crosslinks_df = all_crosslinks_df[mask]
     return validate_with_angstrom_deviation(
-        relevant_crosslinks_df=relevant_crosslinks_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
@@ -462,14 +453,9 @@ def multimer_validation(
         amino_acid_sequences_df=amino_acid_sequences_df, job_request_df=job_request_df
     )
     structures_to_validate = list(valid_ids.keys())
-    all_crosslinks_df = crosslinking_df.copy()
-    mask = (all_crosslinks_df["Protein_id1"].isin(structures_to_validate)) & (
-        all_crosslinks_df["Protein_id2"].isin(structures_to_validate)
-    )
-    relevant_crosslinks_df = all_crosslinks_df[mask]
 
     return validate_with_angstrom_deviation(
-        relevant_crosslinks_df=relevant_crosslinks_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
@@ -480,7 +466,7 @@ def multimer_validation(
 
 
 def validate_with_angstrom_deviation(
-    relevant_crosslinks_df: pd.DataFrame,
+    crosslinking_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -494,7 +480,7 @@ def validate_with_angstrom_deviation(
     so if the distance between the connected amino acids in AlphaFold is less than (cross-linker length + the upper allowed deviation)
     and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
-    :param relevant_crosslinks_df: DataFrame containing the subset of cross-linking data to validate.
+    :param crosslinking_df: DataFrame containing the cross-linking data to validate.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of three floats:
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
@@ -509,6 +495,12 @@ def validate_with_angstrom_deviation(
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
+
+    all_crosslinks_df = crosslinking_df.copy()
+    mask = (all_crosslinks_df["Protein_id1"].isin(structures_to_validate)) & (
+        all_crosslinks_df["Protein_id2"].isin(structures_to_validate)
+    )
+    relevant_crosslinks_df = all_crosslinks_df[mask]
 
     # Check if dataframe is empty
     if relevant_crosslinks_df.empty:
@@ -708,9 +700,10 @@ def diagrams_of_crosslinking_validation_data(
         )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
-        standard_deviation_predicted_lengths = crosslinker_df["alphafold_distance"].std(
-            ddof=0
-        )
+        if len(crosslinker_df) == 1:
+            standard_deviation_predicted_lengths = 0.0
+        else:
+            standard_deviation_predicted_lengths = crosslinker_df["alphafold_distance"].std()
         mean_plus_two_std = (
             mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
         )

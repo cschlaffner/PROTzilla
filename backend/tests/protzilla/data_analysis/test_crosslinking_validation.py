@@ -69,7 +69,7 @@ def test_validate_with_angstrom_deviation(distance, expected):
     structures_to_validate = ["P12345"]
 
     result = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
@@ -334,7 +334,7 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
     structures_to_validate = ["P1", "P2"]
 
     out = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -404,7 +404,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
     structures_to_validate = ["P1", "P2"]
 
     out = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -452,15 +452,15 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
         ],
     )
 
-    cif_df = cif_df = pd.DataFrame(
+    cif_df = pd.DataFrame(
         {
-            "_atom_site.label_atom_id": ["CA"] * 4,
-            "_atom_site.label_seq_id": list(range(1, 5)),
-            "_atom_site.Cartn_x": [float(i) for i in range(1, 5)],
-            "_atom_site.Cartn_y": [0.0] * 4,
-            "_atom_site.Cartn_z": [0.0] * 4,
-            "_atom_site.auth_asym_id": ["A"] * 4,
-            "_atom_site.label_entity_id": [1, 1, 2, 2],
+            "_atom_site.label_atom_id": ["CA"] * 8,
+            "_atom_site.label_seq_id": [1, 2, 3, 4, 1, 2, 3, 4],
+            "_atom_site.Cartn_x": [1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0],
+            "_atom_site.Cartn_y": [0.0] * 8,
+            "_atom_site.Cartn_z": [0.0] * 8,
+            "_atom_site.auth_asym_id": ["A", "A", "A", "A", "B", "B", "B", "B"],
+            "_atom_site.label_entity_id": [1, 1, 1, 1, 2, 2, 2, 2],
         }
     )
 
@@ -470,7 +470,7 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
     structures_to_validate = ["P1", "P2"]
 
     out = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -804,7 +804,7 @@ def test_validate_multimer_with_invalid_crosslinks():
     structures_to_validate = ["P1", "P2"]
 
     out = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -934,7 +934,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
     """Test that intra/inter link_type is determined by chain ID, not protein ID."""
     sequences_df = pd.DataFrame(
         [
-            ("P1-1", "ABAB"),
+            ("P1-1", "ABCD"), 
         ],
         columns=["Protein ID", "Protein Sequence"],
     )
@@ -957,13 +957,13 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
 
     cif_df = pd.DataFrame(
         {
-            "_atom_site.label_atom_id": ["CA"] * 4,
-            "_atom_site.label_seq_id": list(range(1, 5)),
-            "_atom_site.Cartn_x": [float(i) for i in range(1, 5)],
-            "_atom_site.Cartn_y": [0.0] * 4,
-            "_atom_site.Cartn_z": [0.0] * 4,
-            "_atom_site.auth_asym_id": ["A", "A", "B", "B"],
-            "_atom_site.label_entity_id": [1, 1, 1, 1],  # All same protein ID in entity
+            "_atom_site.label_atom_id": ["CA"] * 8,
+            "_atom_site.label_seq_id": [1, 2, 3, 4, 1, 2, 3, 4],
+            "_atom_site.Cartn_x": [1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0],
+            "_atom_site.Cartn_y": [0.0] * 8,
+            "_atom_site.Cartn_z": [0.0] * 8,
+            "_atom_site.auth_asym_id": ["A", "A", "A", "A", "B", "B", "B", "B"],
+            "_atom_site.label_entity_id": [1, 1, 1, 1, 1, 1, 1, 1],
         }
     )
 
@@ -972,7 +972,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
     structures_to_validate = ["P1"]
 
     out = validate_with_angstrom_deviation(
-        relevant_crosslinks_df=crosslinking_df,
+        crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
