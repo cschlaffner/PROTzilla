@@ -703,7 +703,9 @@ def diagrams_of_crosslinking_validation_data(
         if len(crosslinker_df) == 1:
             standard_deviation_predicted_lengths = 0.0
         else:
-            standard_deviation_predicted_lengths = crosslinker_df["alphafold_distance"].std()
+            standard_deviation_predicted_lengths = crosslinker_df[
+                "alphafold_distance"
+            ].std()
         mean_plus_two_std = (
             mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
         )

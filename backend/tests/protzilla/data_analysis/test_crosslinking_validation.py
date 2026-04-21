@@ -934,7 +934,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
     """Test that intra/inter link_type is determined by chain ID, not protein ID."""
     sequences_df = pd.DataFrame(
         [
-            ("P1-1", "ABCD"), 
+            ("P1-1", "ABCD"),
         ],
         columns=["Protein ID", "Protein Sequence"],
     )
