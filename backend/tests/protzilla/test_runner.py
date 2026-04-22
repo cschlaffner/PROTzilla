@@ -497,14 +497,16 @@ def test_integration_runner(
 def test_example_dataset_runner(tests_folder_name, monkeypatch):
     name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
     runner = Runner(
-        workflow="example_dataset",
-        ms_data_path=None,
-        meta_data_path=None,
-        peptides_path=None,
-        run_name=name,
-        df_mode="memory",
-        all_plots=True,
-        verbose=False,
+        **{
+            "workflow": "example_dataset",
+            "ms_data_path": None,
+            "meta_data_path": None,
+            "peptides_path": None,
+            "run_name": name,
+            "df_mode": "memory",
+            "all_plots": True,
+            "verbose": False,
+        }
     )
 
     mock_write = mock.MagicMock()
@@ -523,7 +525,7 @@ def test_example_dataset_runner(tests_folder_name, monkeypatch):
 
     protein_list = pd.read_csv(TEST_AML_DATA_PATH / "preprocessed_protein_list.csv")
 
-    # Account for different secondary protein IDs by comparing the leading entry.
+    # Do some preprocessing to account for differences in additional protein ids
     protein_list_1 = protein_list["Protein IDs"].str.split(";").str[0]
     preprocessing_output_df_1 = (
         preprocessing_output_df["Protein ID"].str.split(";").str[0].unique()
