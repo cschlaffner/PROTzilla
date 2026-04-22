@@ -27,7 +27,7 @@ Before running, make sure you have [Docker](https://www.docker.com/) and Docker 
     For other setups, `debugpy` is listening on its default port 5678
 
 ## &#x1F996; Start & use PROTzilla
-If your deployment was successful, open the application on http://127.0.0.1:8000/. After that, you can start using PROTzilla for your research! &#x1F996;
+If your deployment was successful, open the application on http://localhost:5173. After that, you can start using PROTzilla for your research! &#x1F996;
 
 ## :bulb: Quick Introduction on how to use PROTzilla in the browser
 **Workflows** in PROTzilla are blank templates that define a predefined sequence of parameterized steps, each **step** being a computation that takes data as input and produces according results. Steps are organized into Importing, Preprocessing, Analysis, and Integration sections. For your analysis, you can select a workflow to create a **run**, import your real data (and add extra steps if needed), then execute it. You can execute a run step by step or in one go with a single click on `Calculate` in the last step. PROTzilla also lets you generate and download **custom plots** and seamlessly integrate **UniProt databases** into your analysis.
