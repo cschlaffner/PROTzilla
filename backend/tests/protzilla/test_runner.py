@@ -1,8 +1,10 @@
 import json
+import os
 import shutil
 from pathlib import Path
 from unittest import mock
 
+import pandas as pd
 import pytest
 import yaml
 
@@ -10,6 +12,7 @@ from backend.main import settings
 from backend.protzilla.runner import _serialize_graphs
 from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
+    TEST_AML_DATA_PATH,
     TEST_MSDATA_PATH,
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
@@ -485,6 +488,53 @@ def test_integration_runner(
     monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
     runner.compute_workflow()
     assert_runner_finished_successfully(runner)
+
+
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Avoid downloading the example dataset files every time CI is run",
+)
+def test_example_dataset_runner(tests_folder_name, monkeypatch):
+    name = tests_folder_name + "/test_aml_paper_integration_" + random_string()
+    runner = Runner(
+        workflow="example_dataset",
+        ms_data_path=None,
+        meta_data_path=None,
+        peptides_path=None,
+        run_name=name,
+        df_mode="memory",
+        all_plots=True,
+        verbose=False,
+    )
+
+    mock_write = mock.MagicMock()
+    monkeypatch.setattr(runner.run, "_run_write", mock_write)
+    mock_plot_safe = mock.MagicMock()
+    monkeypatch.setattr(runner, "_save_plots_html", mock_plot_safe)
+    runner.compute_workflow()
+    assert_runner_finished_successfully(runner)
+
+    preprocessing_output_df = runner.run.steps.get_step_output(
+        output_key="protein_df",
+        instance_identifier="s00020_FilterProteinsByNumberOfValuesPerGroup",
+    )
+
+    assert len(preprocessing_output_df["Protein ID"].unique()) == 5309
+
+    protein_list = pd.read_csv(TEST_AML_DATA_PATH / "preprocessed_protein_list.csv")
+
+    # Account for different secondary protein IDs by comparing the leading entry.
+    protein_list_1 = protein_list["Protein IDs"].str.split(";").str[0]
+    preprocessing_output_df_1 = (
+        preprocessing_output_df["Protein ID"].str.split(";").str[0].unique()
+    )
+    assert set(protein_list_1) == set(preprocessing_output_df_1)
+
+    significant_protein_df = runner.run.steps.get_step_output(
+        output_key="significant_proteins_df",
+        instance_identifier="s00022_DifferentialExpressionTTest",
+    )
+    assert significant_protein_df["Protein ID"].nunique() == 359
 
 
 @pytest.mark.parametrize(
