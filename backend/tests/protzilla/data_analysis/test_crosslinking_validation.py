@@ -993,7 +993,10 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
     )
 
     structure_metadata_df = pd.DataFrame(
-        {"entry_id": ["test"], "uniprot_ids": ["ABCD"],}
+        {
+            "entry_id": ["test"],
+            "uniprot_ids": ["ABCD"],
+        }
     )
 
     crosslinker_information = {"XL": [0.0, 0.0, 0.0]}

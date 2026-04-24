@@ -972,7 +972,6 @@ N N
     j2.write_text(json.dumps({"other": 2}))
     j3.write_text(json.dumps({"other": 3}))
 
-
     out = get_multimer_structure_dfs("M2")
     assert any(m.get("level") == logging.WARNING for m in out["messages"])
     assert any(
