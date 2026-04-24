@@ -14,7 +14,7 @@ from backend.protzilla.data_preprocessing import (
     simplification,
 )
 from backend.protzilla.form import *
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
@@ -36,22 +36,22 @@ class DataPreprocessingStep(Step, ABC):
 
 class FilterSamplesStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
-    operation = "filter_samples"
-
+    operation: StepOperation = StepOperation.FILTER_SAMPLES
 
 class FilterProteinsStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
-    operation = "filter_proteins"
+    operation: StepOperation = StepOperation.FILTER_PROTEINS
 
+class FilterPeptidesStep(DataPreprocessingStep, ABC):
+    operation: StepOperation = StepOperation.FILTER_PEPTIDES
 
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
-    operation = "outlier_detection"
     output_keys = [DataKey.PROTEIN_DF]
-
+    operation: StepOperation = StepOperation.OUTLIER_DETECTION
 
 class FilterPsmStep(DataPreprocessingStep, ABC):
-    operation = "filter_PSM"
     output_keys = [DataKey.PSM_DF]
+    operation: StepOperation = StepOperation.FILTER_PSMS
 
 
 class FilterProteinsBySamplesMissing(FilterProteinsStep):
@@ -196,9 +196,8 @@ class FilterByProteinsCount(FilterSamplesStep):
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
 
 
-class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
+class FilterPeptidesByPEPThreshold(FilterPeptidesStep):
     display_name = "PEP threshold"
-    operation = "filter_peptides"
     method_description = "Filter peptides by PEP-threshold"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -228,9 +227,8 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     plot_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value_plot)
 
 
-class FilterPeptidesByExistingProteins(DataPreprocessingStep):
+class FilterPeptidesByExistingProteins(FilterPeptidesStep):
     display_name = "By existing proteins"
-    operation = "filter_peptides"
     method_description = "Filter peptides by existing proteins"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -246,9 +244,8 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
     plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
 
 
-class FilterPeptidesByExistingSamples(DataPreprocessingStep):
+class FilterPeptidesByExistingSamples(FilterPeptidesStep):
     display_name = "By existing samples"
-    operation = "filter_peptides"
     method_description = "Filter peptides by existing samples"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -463,7 +460,7 @@ class OutlierDetectionByIsolationForest(OutlierDetectionStep):
 
 class TransformationLog(DataPreprocessingStep):
     display_name = "Log"
-    operation = "transformation"
+    operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by log"
 
     def create_form(self):
@@ -498,7 +495,7 @@ class TransformationLog(DataPreprocessingStep):
 
 class TransformationInversion(DataPreprocessingStep):
     display_name = "Inversion"
-    operation = "transformation"
+    operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by inversion"
 
     def create_form(self):
@@ -511,7 +508,7 @@ class TransformationInversion(DataPreprocessingStep):
 
 
 class NormalisationStep(DataPreprocessingStep, ABC):
-    operation = "normalisation"
+    operation: StepOperation = StepOperation.NORMALIZATION
     output_keys = [DataKey.PROTEIN_DF]
 
 
@@ -702,7 +699,7 @@ class NormalisationByReferenceProtein(NormalisationStep):
 
 
 class ImputationStep(DataPreprocessingStep, ABC):
-    operation = "imputation"
+    operation: StepOperation = StepOperation.IMPUTATION
     output_keys = [DataKey.PROTEIN_DF]
 
     plot_input_fields: Sequence[FormField] = [
@@ -928,7 +925,7 @@ class ImputationByNormalDistributionSampling(ImputationStep):
 class GroupReplicates(Step):
     section = Section.DATA_PREPROCESSING
     display_name = "Group Replicates"
-    operation = "simplification"
+    operation: StepOperation = StepOperation.SIMPLIFICATION
     method_description = "Aggregate intensities of proteins from replicate runs."
     output_keys = [DataKey.PROTEIN_DF]
 
@@ -964,7 +961,7 @@ class GroupReplicates(Step):
 class FilterMetadataByExistingSamples(Step):
     section = Section.DATA_PREPROCESSING
     display_name = "Filter metadata by existing samples"
-    operation = "simplification"
+    operation: StepOperation = StepOperation.SIMPLIFICATION
     method_description = (
         "Only keep metadata of samples also represented in protein data"
     )

@@ -12,6 +12,7 @@ import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
+# from backend.protzilla.constants.step_operations import StepOperation
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities.utilities import format_trace, name_to_title
 
@@ -37,6 +38,29 @@ class Section(StrEnum):
     DATA_INTEGRATION = "data_integration"
     NOT_CATEGORIZED = "others"
 
+class StepOperation(StrEnum):
+    """
+    Supported operations for steps (more granular categorization)
+    """
+    PROTEIN_IMPORT = "protein_import"
+    PEPTIDE_IMPORT = "peptide_import"
+    PSM_IMPORT = "psm_import"
+    METADATA_IMPORT = "metadata_import"
+    FASTA_IMPORT = "fasta_import"
+    EXAMPLE_IMPORT = "example_import"
+
+    FILTER_SAMPLES = "filter_samples"
+    FILTER_PROTEINS = "filter_proteins"
+    FILTER_PEPTIDES = "filter_peptides"
+    FILTER_PSMS = "filter_psms"
+    OUTLIER_DETECTION = "outlier_detection"
+    TRANSFORMATION = "transformation"
+    NORMALIZATION = "normalization"
+    IMPUTATION = "imputation"
+    SIMPLIFICATION = "simplification"
+        
+    NOT_CATEGORIZED = "unknown"
+
 
 class Step(ABC):
     """
@@ -46,7 +70,7 @@ class Step(ABC):
     section: Section = Section.NOT_CATEGORIZED
     form: Form
     display_name: str = None
-    operation: str = None
+    operation: StepOperation = StepOperation.NOT_CATEGORIZED
     method_description: str = None
     visual_data: dict
     internal_inputs: set[str] = set[str]()

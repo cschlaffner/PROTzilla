@@ -84,7 +84,6 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
   // }, []);
 
   const onElementClick = () => {
-    console.log(data.step.name); // TODO: still required?
     data.navigateOrRefreshSteps(data.step.id);
   };
 
@@ -101,7 +100,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
       <DefaultColoredIcon icon={icon} style={{ flexShrink: 0 }} />
       <TextContainer style={{ marginLeft: "5px" }}>
         <ContentText
-          text={`${data.step.method_name} : ${data.step.name}`}
+          text={`${data.step.name}`}
           style={{ userSelect: "none" }}
         />
       </TextContainer>

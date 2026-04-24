@@ -2233,7 +2233,6 @@ class PTMsPerSample(PeptideAnalysisStep):
 
 class PTMsProteinAndPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample and Protein"
-    operation = "Peptide analysis"
     method_description = (
         "Analyze the post-translational modifications (PTMs) of all Proteins. "
         "This function requires a peptide dataframe with PTM information."
