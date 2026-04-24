@@ -53,8 +53,8 @@ const OperationIconWrapper = styled.div`
   
   /* Targeting the Icon component specifically to make it larger */
   & > svg, & > span {
-    width: 32px !important;
-    height: 32px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
 `;
 
@@ -123,6 +123,8 @@ const stepOperationIconMap: Record<string, string> = {
   filter_proteins: "stepFilter",
   filter_peptides: "stepFilter",
   filter_psms: "stepFilter",
+  gene_ontology: "stepGO",
+  gsea: "stepGSEA",
   imputation: "stepImputation",
   modification_quantification: "stepModificationQuantification",
   normalization: "stepNormalization",

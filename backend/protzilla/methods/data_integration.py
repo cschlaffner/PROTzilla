@@ -109,6 +109,7 @@ class EnrichmentAnalysisStep(DataIntegrationStep, ABC):
 
 class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
     output_keys = [DataKey.ENRICHMENT_DF]
+    operation: StepOperation = StepOperation.GENE_ONTOLOGY
 
     @override
     def insert_dataframes(self, steps: StepManager) -> None:
@@ -442,6 +443,7 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
 class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
     display_name = "GSEA"
     method_description = "Perform gene set enrichment analysis"
+    operation: StepOperation = StepOperation.GSEA
 
     output_keys = [DataKey.ENRICHMENT_DF, "ranking"]
 
@@ -580,6 +582,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
     display_name = "GSEA preranked"
     method_description = "Maps proteins to genes and performs GSEA according using provided numerical column for ranking"
 
+    operation: StepOperation = StepOperation.GSEA
     output_keys = [DataKey.ENRICHMENT_DF, "ranking"]
 
     calc_method = staticmethod(enrichment_analysis.gsea_preranked)
@@ -759,7 +762,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
     display_name = "Bar plot for GO enrichment analysis"
     method_description = "Creates a bar plot from GO enrichment data"
-
+    operation: StepOperation = StepOperation.GENE_ONTOLOGY
     output_keys = []
 
     def create_form(self):
@@ -816,6 +819,7 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
     display_name = "Dot plot for GO enrichment analysis (offline & with Enrichr) "
     method_description = "Creates a categorical scatter plot from GO enrichment data"
+    operation: StepOperation = StepOperation.GENE_ONTOLOGY
 
     output_keys = []
 
@@ -891,6 +895,7 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
     display_name = "Dot plot for (pre-ranked) GSEA"
     method_description = "Creates a categorical scatter plot from GSEA data"
 
+    operation: StepOperation = StepOperation.GSEA
     output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_dot_plot)
@@ -952,6 +957,7 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
     display_name = "Enrichment plot for (pre-ranked) GSEA"
     method_description = "Creates an enrichment plot from (pre-ranked) GSEA data with the enrichment score, ranked_metric, gene rank and hits"
 
+    operation: StepOperation = StepOperation.GSEA
     output_keys = []
 
     calc_method = staticmethod(di_plots.gsea_enrichment_plot)

@@ -67,8 +67,10 @@ class StepOperation(StrEnum):
     DIMENSION_REDUCTION = "dimension_reduction"
     MODIFICATION_QUANTIFICATION = "modification_quantification"
 
-    ENRICHMENT_ANALYSIS = "enrichtment_analysis"
     DATABASE_INTEGRATION = "database_integration"
+    ENRICHMENT_ANALYSIS = "enrichment_analysis"
+    GENE_ONTOLOGY = "gene_ontology"
+    GSEA = "gsea"
         
     NOT_CATEGORIZED = "others"
     DEBUG = "(debug)"
