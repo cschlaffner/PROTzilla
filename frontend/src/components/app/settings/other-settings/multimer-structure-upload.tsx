@@ -95,6 +95,7 @@ export const MultimerStructureUpload = () => {
     cif_file: string,
     confidence_file: string,
     full_data_file: string,
+    job_request_file: string,
   ) => {
     const response = await callApiWithParameters("upload_multimer_structure", {
       entry_id: entry_id,
@@ -104,6 +105,7 @@ export const MultimerStructureUpload = () => {
       cif_file: cif_file,
       confidence_file: confidence_file,
       full_data_file: full_data_file,
+      job_request_file: job_request_file,
     });
     if (response?.success) {
       notify({
@@ -231,6 +233,13 @@ export const MultimerStructureUpload = () => {
               isVisible: true,
               accept: ".json",
             },
+            {
+              type: "file",
+              name: "job_request_file",
+              label: "Job request json file (required):",
+              isVisible: true,
+              accept: ".json",
+            },
           ],
         }}
         onChange={(data) => {
@@ -242,6 +251,7 @@ export const MultimerStructureUpload = () => {
             data.cif_file as string,
             data.confidence_file as string,
             data.full_data_file as string,
+            data.job_request_file as string,
           );
         }}
       />

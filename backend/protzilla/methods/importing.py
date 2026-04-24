@@ -534,6 +534,7 @@ class UploadMultimerPredictions(ImportingStep):
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,
+        DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
@@ -550,10 +551,10 @@ class UploadMultimerPredictions(ImportingStep):
                 ),
                 TextField(
                     name="uniprot_ids",
-                    label="Protein IDs of all proteins used in the sequence.",
+                    label="Protein IDs of all proteins used in the sequence. ",
                 ),
                 InfoField(
-                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9"
+                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9."
                 ),
                 TextField(
                     name="model_used",
@@ -579,6 +580,11 @@ class UploadMultimerPredictions(ImportingStep):
                     label="Full data json file (required)",
                     value=None,
                 ),
+                FileInput(
+                    name="job_request_file",
+                    label="Job request json file (required)",
+                    value=None,
+                ),
                 CheckboxField(
                     name="persist_upload",
                     label="Upload should be saved persistently across runs",
@@ -600,6 +606,7 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,
+        DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
