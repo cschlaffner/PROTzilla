@@ -3,6 +3,7 @@ from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
 import re
+import traceback
 import logging
 from typing import Any
 
@@ -42,6 +43,7 @@ from backend.main.views_helper import (
     get_displayed_steps,
     parameters_from_post,
     sanitize_name,
+    create_visualization,
 )
 from backend.protzilla.all_steps import get_all_possible_steps
 
@@ -713,6 +715,37 @@ def get_downloads_from_step(request: HttpRequest):
             "data": downloads,
         }
     )
+
+
+def get_step_visualizations(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        run_name = data.get("run_name")
+        step_id = data.get("step_id")
+        output_key = data.get("output_key")
+
+        run = Run(run_name)
+        step = run.steps.get_step_by_id(step_id)
+        visualization_dict = step.output.get(output_key)
+        if visualization_dict is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Got no available visualization for the step",
+                    "data": {},
+                }
+            )
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Got the available visualization for the step",
+                "data": create_visualization(**visualization_dict),
+            }
+        )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
 
 
 # TODO: Move somewhere else

@@ -64,12 +64,17 @@ def test_validate_with_angstrom_deviation(distance, expected):
         }
     )
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
+    )
+
     crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Länge 5 Å ± 1 Å
     valid_ids = {"P12345": ["P12345"]}
     structures_to_validate = ["P12345"]
 
     result = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
@@ -333,8 +338,13 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
     valid_ids = {"P1": [1], "P2": [2]}
     structures_to_validate = ["P1", "P2"]
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -403,8 +413,13 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
     valid_ids = {"P1": [1], "P2": [2]}
     structures_to_validate = ["P1", "P2"]
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -469,8 +484,13 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
     valid_ids = {"P1": [1], "P2": [2]}
     structures_to_validate = ["P1", "P2"]
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
@@ -803,8 +823,13 @@ def test_validate_multimer_with_invalid_crosslinks():
     valid_ids = {"P1": [1], "P2": [2]}
     structures_to_validate = ["P1", "P2"]
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": [["P1", "P2"]]}
+    )
+
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
         crosslinker_information=crosslinker_information,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,

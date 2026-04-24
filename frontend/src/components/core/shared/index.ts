@@ -21,6 +21,7 @@ export * from "./input-fields/info-field";
 export * from "./input-fields/header-info-field";
 export * from "./modal";
 export * from "./plot";
+export * from "./molstar-viewer";
 export * from "./section-title";
 export * from "./switch";
 export * from "./text";

@@ -14,7 +14,10 @@ from backend.protzilla.data_preprocessing.plots import (
     create_bar_plot,
 )
 from backend.protzilla.constants.protzilla_logging import logger
-from protzilla.data_analysis.plots import add_vertical_line_with_annotation_in_legend
+from backend.protzilla.data_analysis.plots import (
+    add_vertical_line_with_annotation_in_legend,
+)
+from backend.protzilla.steps import OutputItem, OutputType
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -28,7 +31,7 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     """
     # right now we always return the central C atom
     # later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
-    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation
+    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
     return "CA"
 
 
@@ -293,6 +296,13 @@ def get_chains(
     return chain_ids
 
 
+def _get_structure_entry_id(structure_metadata_df: pd.DataFrame) -> list[str]:
+    if "entry_id" in structure_metadata_df.columns:
+        return structure_metadata_df["entry_id"].iloc[0]
+    else:
+        raise ValueError("Metadata must contain 'entry_id'.")
+
+
 def expand_crosslinks_to_chain_combinations(
     relevant_crosslinks_df: pd.DataFrame,
     chains_per_protein: dict[str, dict[str, int]],
@@ -363,6 +373,7 @@ def monomer_validation(
     return validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
+        structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         valid_ids=valid_ids,
@@ -460,6 +471,7 @@ def multimer_validation(
     return validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
+        structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         valid_ids=valid_ids,
@@ -471,6 +483,7 @@ def multimer_validation(
 def validate_with_angstrom_deviation(
     crosslinking_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
+    structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     valid_ids: dict,
@@ -618,7 +631,20 @@ def validate_with_angstrom_deviation(
         axis=1,
     )
 
-    return dict(crosslinking_result_df=checked_crosslinks_df, messages=messages)
+    structure_entry_id = _get_structure_entry_id(structure_metadata_df)
+    data_for_visualization = {
+        "structure_entry_id": structure_entry_id,
+        "cif_df": cif_df,
+        "crosslinking_df": checked_crosslinks_df,
+    }
+
+    return dict(
+        crosslinking_result_df=checked_crosslinks_df,
+        messages=messages,
+        visualization=OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+    )
 
 
 def diagrams_of_crosslinking_validation_data(

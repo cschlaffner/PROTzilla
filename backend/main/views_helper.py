@@ -2,6 +2,8 @@ import re
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
+from typing import Optional, List, Dict
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.disk_operator import YamlOperator
@@ -176,3 +178,130 @@ def load_yaml_from_file(path: Path) -> str:
         raise FileNotFoundError(f"File {path} does not exist.")
     with path.open("r") as f:
         return f.read()
+
+
+# ------------------------- helper for get_step_visualization: -------------------------
+
+
+def create_visualization(
+    cif_df: pd.DataFrame,
+    structure_entry_id: str,
+    crosslinking_df: Optional[pd.DataFrame] = None,
+) -> dict:
+    """
+    Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its structure entry ID.
+    Optionally include crosslinks.
+
+    :param cif_df: DataFrame containing mmCIF atom_site information.
+    :param structure_entry_id: Protein identifier to include in the mmCIF header.
+    :param crosslinking_df: Optional DataFrame containing crosslink positions.
+    :return: Dictionary containing:
+             - "structureEntryId" (str)
+             - "cifString" (str)
+             - "crosslinks" (optional, list of dicts)
+    """
+    try:
+        cif_string = convert_cif_df_to_mmcif_for_visualization(
+            cif_df, structure_entry_id
+        )
+    except (ValueError, TypeError):
+        cif_string = ""
+
+    result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
+
+    if crosslinking_df is not None:
+        result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
+
+    return result
+
+
+def convert_cif_df_to_mmcif_for_visualization(
+    cif_df: pd.DataFrame, structure_entry_id: str
+) -> str:
+    """
+    Convert a DataFrame containing mmCIF atom_site information back into a mmCIF string.
+
+    :param cif_df: DataFrame with CIF columns
+    :param structure_entry_id: Optional entry ID for the CIF block
+    :return: A string representing the mmCIF file
+    """
+    if cif_df is None or cif_df.empty:
+        raise ValueError("CIF-DataFrame is empty, cannot create mmCIF content.")
+
+    lines = [
+        f"data_{structure_entry_id}",
+        "#",
+        f"_entry.id {structure_entry_id}",
+        "#",
+        "loop_",
+    ]
+
+    for column in cif_df.columns:
+        lines.append(column)
+
+    for _, row in cif_df.iterrows():
+        row_items = []
+        for column in cif_df.columns:
+            value = row[column]
+            if value is None:
+                value_str = "."
+            else:
+                value_str = str(value)
+                if " " in value_str or any(char in value_str for char in "();,"):
+                    value_str = f"'{value_str}'"
+            row_items.append(value_str)
+        lines.append(" ".join(row_items))
+
+    cif_string = "\n".join(lines)
+    return cif_string
+
+
+def extract_relevant_crosslink_information(
+    crosslinking_df: pd.DataFrame,
+) -> List[Dict[str, int]]:
+    """
+    For each crosslink extract its relevant information from a DataFrame.
+    This includes information on where the crosslinker binds on both its ends,
+    such as the chain and the absolute crosslinker position within the chain.
+    As well as a boolean for its validity and wether it is an intra or inter crosslink.
+
+    :param crosslinking_df: DataFrame with columns
+        'crosslinker_position1',
+        'crosslinker_position2',
+        'chain_id1',
+        'chain_id2',
+        'valid_crosslink',
+        'Is_intra_crosslink',
+    :return: List of dicts with keys
+        'crosslinkerPosition1',
+        'crosslinkerPosition2',
+        'chainId1',
+        'chainId2',
+        'isValid',
+        'isIntraCrosslink',
+    """
+    crosslinks = []
+    for _, row in crosslinking_df.iterrows():
+        position1 = row.get("crosslinker_position1")
+        position2 = row.get("crosslinker_position2")
+        # When the validation is extended to treat multimeres with more than one chain correctly,
+        # it should ideally store chain_id1 and chain_id2 into the crosslinking_df.
+        # Since we already need those chain ids to calculate correct distances in the validation,
+        # it would be unnecessary to determine those again in the visualization.
+        # Therefore we use placeholders for now and need to change the following, when the validation is extended:
+        chain_id1 = "A"  # row.get("chain_id1")
+        chain_id2 = "A"  # row.get("chain_id2")
+        is_valid = row.get("valid_crosslink")
+        is_intra_crosslink = row.get("Is_intra_crosslink")
+        if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
+            crosslinks.append(
+                {
+                    "crosslinkerPosition1": int(position1),
+                    "crosslinkerPosition2": int(position2),
+                    "chainId1": str(chain_id1),
+                    "chainId2": str(chain_id2),
+                    "isValid": bool(is_valid),
+                    "isIntraCrosslink": bool(is_intra_crosslink),
+                }
+            )
+    return crosslinks

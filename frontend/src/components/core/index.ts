@@ -24,6 +24,7 @@ export * from "./shared/input-fields/info-field";
 export * from "./shared/input-fields/header-info-field";
 export * from "./shared/modal";
 export * from "./shared/plot";
+export * from "./shared/molstar-viewer";
 export * from "./shared/section-title";
 export * from "./shared/switch";
 export * from "./shared/text";

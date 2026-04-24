@@ -4,6 +4,7 @@ import {
   DataTable,
   FlexColumn,
   FlexRow,
+  MolstarViewer,
   PlotComponent,
   SecondaryButton,
   SectionTitle,
@@ -12,6 +13,7 @@ import {
 import { useToggleableState } from "@protzilla/hooks";
 import { spacing } from "@protzilla/theme";
 import {
+  ApiResponse,
   callApiWithParameters,
   Download,
   emptyRunData,
@@ -20,6 +22,7 @@ import {
   StepID,
   StepOutputInfo,
   SwitchComponent,
+  Visualization,
 } from "@protzilla/utils";
 import { Figure } from "plotly.js";
 import React, { useCallback, useEffect, useState } from "react";
@@ -27,6 +30,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
+import { CrosslinkerInformation } from "../../core/shared/molstar-viewer/crosslinker-processing";
 import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
@@ -88,19 +92,21 @@ interface UseStepOutputsParams<TOutput, TResponse, TResult> {
   runName: string;
   stepId?: string;
   transform: (output: TOutput, response: TResponse) => TResult;
+  enabled?: boolean;
 }
 
-export function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
+function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse, TResult>({
   available_outputs,
   endpoint,
   runName,
   stepId,
   transform,
+  enabled = true,
 }: UseStepOutputsParams<TOutput, TResponse, TResult>): TResult[] {
   const [data, setData] = useState<TResult[]>([]);
 
   useEffect(() => {
-    if (!stepId || available_outputs.length === 0) {
+    if (!enabled || !stepId || available_outputs.length === 0) {
       setData([]);
       return;
     }
@@ -126,7 +132,7 @@ export function useCertainStepOutputs<TOutput extends StepOutputInfo, TResponse,
     };
 
     void fetchData();
-  }, [available_outputs, endpoint, runName, stepId, transform]);
+  }, [available_outputs, endpoint, runName, stepId, transform, enabled]);
 
   return data;
 }
@@ -138,21 +144,51 @@ export const RunScreen: React.FC = () => {
   const runName = location.state?.runName;
 
   const [runData, setRunData] = useState(emptyRunData);
+  const [selectedOutputTab, setSelectedOutputTab] = useState<SwitchComponent["name"]>("");
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
+  const [hasLoadedVisualizations, setHasLoadedVisualizations] = useState(false);
+  useEffect(() => {
+    if (selectedOutputTab === "Visualizations") {
+      setHasLoadedVisualizations(true);
+    }
+  }, [selectedOutputTab]);
+
+  const [availableVisualizations, setAvailableVisualizations] = useState<StepOutputInfo[]>([]);
+  const transformVisualization = useCallback(
+    (_output: StepOutputInfo, response: ApiResponse<Visualization>) => ({
+      structureEntryId: response.data.structureEntryId,
+      cifString: response.data.cifString,
+      crosslinks: response.data.crosslinks,
+    }),
+    [],
+  );
+  const visualizations = useCertainStepOutputs<
+    StepOutputInfo,
+    ApiResponse<Visualization>,
+    { structureEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
+  >({
+    available_outputs: availableVisualizations,
+    endpoint: "get_step_visualizations/",
+    runName: runName,
+    stepId: runData.current_step_id,
+    transform: transformVisualization,
+    enabled: hasLoadedVisualizations,
+  });
+
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
   const transformDownload = useCallback(
-    (output: StepOutputInfo, response: Download) => ({
+    (output: StepOutputInfo, response: ApiResponse<Download>) => ({
       title: output.label,
-      data: response.data,
+      data: response.data.data,
     }),
     [],
   );
   const downloads = useCertainStepOutputs<
     StepOutputInfo,
-    Download,
+    ApiResponse<Download>,
     { title: string; data: Record<string, unknown> }
   >({
     available_outputs: availableDownloads,
@@ -165,16 +201,16 @@ export const RunScreen: React.FC = () => {
   // Static PNGs sent as base64
   const [availableImages, setAvailableImages] = useState<StepOutputInfo[]>([]);
   const transformImage = useCallback(
-    (output: StepOutputInfo, response: Image) => ({
+    (output: StepOutputInfo, response: ApiResponse<Image>) => ({
       title: output.label,
       alt: output.label,
-      data: "data:image/png;base64," + response.data,
+      data: "data:image/png;base64," + response.data.data,
     }),
     [],
   );
   const images = useCertainStepOutputs<
     StepOutputInfo,
-    Image,
+    ApiResponse<Image>,
     { title: string; alt: string; data: string }
   >({
     available_outputs: availableImages,
@@ -225,6 +261,7 @@ export const RunScreen: React.FC = () => {
         setAvailableDownloads([]);
         setPlots(undefined);
         setAvailableImages([]);
+        setAvailableVisualizations([]);
 
         void getRunData();
         void getStepPlots();
@@ -270,15 +307,18 @@ export const RunScreen: React.FC = () => {
       const tableOutputs = [];
       const imageOutputs = [];
       const downloadOutputs = [];
+      const visualizationOutputs = [];
       for (const output of response.outputs) {
         if (output.output_type === "dataframe" || output.output_type === "list")
           tableOutputs.push(output);
         else if (output.output_type === "png_base64") imageOutputs.push(output);
         else if (output.output_type === "download") downloadOutputs.push(output);
+        else if (output.output_type === "visualization") visualizationOutputs.push(output);
       }
       setAvailableTables(tableOutputs);
       setAvailableImages(imageOutputs);
       setAvailableDownloads(downloadOutputs);
+      setAvailableVisualizations(visualizationOutputs);
     }
   }, [runName]);
 
@@ -295,6 +335,7 @@ export const RunScreen: React.FC = () => {
     setAvailableImages([]);
     setPlots(undefined);
     setAvailableDownloads([]);
+    setAvailableVisualizations([]);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
@@ -341,6 +382,20 @@ export const RunScreen: React.FC = () => {
     </StyledContentContainer>
   );
 
+  const visualizationComponent = (
+    <StyledContentContainer>
+      {visualizations.length > 0 ? (
+        visualizations.map((viz) => (
+          <StyledContentDiv key={viz.structureEntryId}>
+            <MolstarViewer cifText={viz.cifString} crosslinks={viz.crosslinks} />
+          </StyledContentDiv>
+        ))
+      ) : (
+        <SectionTitle baseComponent="h4" description="Structure visualisation is loading..." />
+      )}
+    </StyledContentContainer>
+  );
+
   const singleTableComponent = (tableLabel: string) => (
     <StyledContentDiv>
       <DataTable runName={runName} tableLabel={tableLabel} />
@@ -359,10 +414,7 @@ export const RunScreen: React.FC = () => {
           }))}
         />
       ) : (
-        <SectionTitle
-          baseComponent={"h4"}
-          description={"This step does not provide any tables as output."}
-        />
+        <SectionTitle baseComponent={"h4"} description={"Output tables are loading..."} />
       )}
     </StyledContentContainer>
   );
@@ -414,7 +466,7 @@ export const RunScreen: React.FC = () => {
           )),
         )
       ) : (
-        <SectionTitle baseComponent={"h4"} description={"No downloads available for this step."} />
+        <SectionTitle baseComponent={"h4"} description={"Available downloads are loading..."} />
       )}
     </StyledContentContainer>
   );
@@ -437,7 +489,19 @@ export const RunScreen: React.FC = () => {
     availableTables && availableTables.length > 0 && { name: "Tables", value: tableComponent },
     availableImages.length > 0 && { name: "Images", value: imageComponent },
     availableDownloads.length > 0 && { name: "Downloads", value: downloadComponent },
+    availableVisualizations.length > 0 && { name: "Visualisations", value: visualizationComponent },
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
+
+  useEffect(() => {
+    if (components.length > 0 && !selectedOutputTab) {
+      setSelectedOutputTab(components[0].name);
+    }
+  }, [components, selectedOutputTab]);
+
+  useEffect(() => {
+    setHasLoadedVisualizations(false);
+    setSelectedOutputTab("");
+  }, [runData.current_step_id]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -471,6 +535,14 @@ export const RunScreen: React.FC = () => {
                 styleProps={{ height: "calc(100% - 3em)" }}
                 components={components}
                 hasCardTitle={false}
+                selection={selectedOutputTab}
+                callback={(component) => {
+                  setSelectedOutputTab(component.name);
+
+                  if (component.name === "Visualisations" && !hasLoadedVisualizations) {
+                    setHasLoadedVisualizations(true);
+                  }
+                }}
               />
             </StyledCol>
           ) : (

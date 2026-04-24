@@ -133,6 +133,7 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
         "plddt_df",
         "amino_acid_sequences_df",
         "messages",
+        "visualization",
     }
 
 
