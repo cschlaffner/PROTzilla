@@ -2281,12 +2281,12 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
                 hasStepButtons=False,
             ),
             FileInput(
-                name="fasta_file_path",
-                label="FASTA file",
+                name="fasta_file_path", label="FASTA file", accept=".fasta,.fa,.faa"
             ),
             FileInput(
                 name="regions_file_path",
                 label="Metadata used to define regions",
+                accept=".csv",
             ),
             InfoField(
                 label="The file for regions should be a CSV file with the following columns: name, region_end, "
