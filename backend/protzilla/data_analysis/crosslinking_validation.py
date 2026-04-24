@@ -420,9 +420,8 @@ def get_valid_ids_per_protein_id_from_job_request(
             if protein_id is not None:
                 # Remove the specific isoform/variant suffix because we do not use it in the crosslinking df
                 protein_id = protein_id.replace("-1", "")
-                valid_ids[protein_id] = []
                 for _ in range(count):
-                    valid_ids[protein_id].append(unique_id)
+                    valid_ids.setdefault(protein_id, []).append(unique_id)
                     unique_id += 1
     return valid_ids
 
