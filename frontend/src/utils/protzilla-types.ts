@@ -41,6 +41,7 @@ export interface Step {
     };
   };
   method_name: string;
+  operation: string;
   status: StepStatus;
 }
 

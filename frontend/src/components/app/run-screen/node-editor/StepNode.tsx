@@ -50,9 +50,10 @@ const StatusIndicatorWrapper = styled.div`
 const OperationIconWrapper = styled.div`
   flex-shrink: 0;
   margin-right: 12px;
-  
+
   /* Targeting the Icon component specifically to make it larger */
-  & > svg, & > span {
+  & > svg,
+  & > span {
     width: 40px !important;
     height: 40px !important;
   }
@@ -64,7 +65,7 @@ const TextContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  
+
   /* Text wrapping logic */
   & span {
     white-space: normal;
@@ -115,7 +116,7 @@ const triangleStyle = (direction: HandleDirection) => ({
   backgroundColor: "#1d1d1d",
 });
 
-const stepOperationIconMap: Record<string, string> = {
+const stepOperationIconMap: Partial<Record<string, string>> = {
   classification: "stepClassification",
   clustering: "stepClustering",
   dimension_reduction: "stepDimensionReduction",
@@ -131,7 +132,7 @@ const stepOperationIconMap: Record<string, string> = {
   differential_expression: "stepStatisticalTest",
   transformation: "stepTransformation",
   ptm_visualization: "stepPTMVisualization",
-}
+};
 
 export default function StepNode({ data }: NodeProps<StepNodeType>) {
   const onElementClick = () => {
@@ -155,15 +156,12 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
       {/* Larger Operation Icon */}
       <OperationIconWrapper>
-        <Icon icon={operationIcon} />
+        <Icon icon={operationIcon as IconType} />
       </OperationIconWrapper>
 
       {/* Wrapped Text Content */}
       <TextContainer>
-        <ContentText
-          text={`${data.step.name}`}
-          style={{ userSelect: "none", fontSize: "18px" }}
-        />
+        <ContentText text={data.step.name} style={{ userSelect: "none", fontSize: "18px" }} />
       </TextContainer>
 
       {/* Input handles */}
@@ -171,7 +169,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
         const InputIcon = DATA_TYPE_ICON_MAP[input];
         return (
           <Handle
-            key={`in-${index}`}
+            key={`in-${String(index)}`}
             type="target"
             position={Position.Top}
             id={input}
@@ -180,19 +178,37 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
               border: "none",
               width: HANDLE_ICON_SIZE,
               height: HANDLE_ICON_SIZE,
-              left: `${(100 / (data.step.input_keys.length + 1)) * (index + 1)}%`,
+              left: `${String((100 / (data.step.input_keys.length + 1)) * (index + 1))}%`,
               top: -HANDLE_ICON_OFFSET,
               transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
-            onMouseEnter={() => data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input })}
-            onMouseLeave={() => data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })}
+            onMouseEnter={() => {
+              data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input });
+            }}
+            onMouseLeave={() => {
+              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+            }}
           >
             {InputIcon ? (
-              <div style={{ width: "100%", height: "100%", backgroundColor: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <InputIcon style={{ width: "100%", height: "100%" }} aria-hidden="true" focusable="false" />
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <InputIcon
+                  style={{ width: "100%", height: "100%" }}
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </div>
             ) : (
               <div style={triangleStyle("Input")}></div>
@@ -206,7 +222,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
         const OutputIcon = DATA_TYPE_ICON_MAP[output];
         return (
           <Handle
-            key={`out-${index}`}
+            key={`out-${String(index)}`}
             type="source"
             position={Position.Bottom}
             id={output}
@@ -215,19 +231,37 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
               border: "none",
               width: HANDLE_ICON_SIZE,
               height: HANDLE_ICON_SIZE,
-              left: `${(100 / (data.step.output_keys.length + 1)) * (index + 1)}%`,
+              left: `${String((100 / (data.step.output_keys.length + 1)) * (index + 1))}%`,
               bottom: -HANDLE_ICON_OFFSET,
               transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
-            onMouseEnter={() => data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output })}
-            onMouseLeave={() => data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })}
+            onMouseEnter={() => {
+              data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output });
+            }}
+            onMouseLeave={() => {
+              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
+            }}
           >
             {OutputIcon ? (
-              <div style={{ width: "100%", height: "100%", backgroundColor: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <OutputIcon style={{ width: "100%", height: "100%" }} aria-hidden="true" focusable="false" />
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <OutputIcon
+                  style={{ width: "100%", height: "100%" }}
+                  aria-hidden="true"
+                  focusable="false"
+                />
               </div>
             ) : (
               <div style={triangleStyle("Output")}></div>
