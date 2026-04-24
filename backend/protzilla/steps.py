@@ -75,6 +75,16 @@ class StepOperation(StrEnum):
     NOT_CATEGORIZED = "others"
     DEBUG = "(debug)"
 
+"""
+Maps internal step operation names to display names where regular mapping would fail
+"""
+step_operation_display_name = {
+    "psm_import": "PSM Import",
+    "filter_psms": "Filter PSMs",
+    "gene_ontology": "Gene Ontology (GO)",
+    "gsea": "Gene Set Enrichment Analysis (GSEA)"
+}
+
 
 class Step(ABC):
     """
@@ -150,7 +160,7 @@ class Step(ABC):
             "method_name": cls.__name__,
             "section": cls.section,
             "display_name": cls.display_name,
-            "operation": name_to_title(cls.operation),
+            "operation": step_operation_display_name.get(cls.operation) or name_to_title(cls.operation),
             "method_description": cls.method_description,
         }
 
