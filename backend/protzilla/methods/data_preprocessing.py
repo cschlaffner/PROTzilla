@@ -38,16 +38,20 @@ class FilterSamplesStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
     operation: StepOperation = StepOperation.FILTER_SAMPLES
 
+
 class FilterProteinsStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
     operation: StepOperation = StepOperation.FILTER_PROTEINS
 
+
 class FilterPeptidesStep(DataPreprocessingStep, ABC):
     operation: StepOperation = StepOperation.FILTER_PEPTIDES
+
 
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
     operation: StepOperation = StepOperation.OUTLIER_DETECTION
+
 
 class FilterPsmStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PSM_DF]

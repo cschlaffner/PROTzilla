@@ -75,6 +75,7 @@ class ArbitraryCSVImport(ImportingStep):
 class MetadataImportingStep(ImportingStep, ABC):
     operation: StepOperation = StepOperation.METADATA_IMPORT
 
+
 class ProteinImportingStep(ImportingStep, ABC):
     operation: StepOperation = StepOperation.PROTEIN_IMPORT
 

@@ -2248,6 +2248,7 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
 
 class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
+    operation: StepOperation = StepOperation.PTM_VISUALIZATION
 
     @classmethod
     def get_form_fields(cls) -> list[FormField]:

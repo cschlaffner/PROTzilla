@@ -116,7 +116,7 @@ const triangleStyle = (direction: HandleDirection) => ({
 });
 
 const stepOperationIconMap: Record<string, string> = {
-  classifacation: "stepClassification",
+  classification: "stepClassification",
   clustering: "stepClustering",
   dimension_reduction: "stepDimensionReduction",
   filter_samples: "stepFilter",
@@ -129,7 +129,8 @@ const stepOperationIconMap: Record<string, string> = {
   modification_quantification: "stepModificationQuantification",
   normalization: "stepNormalization",
   differential_expression: "stepStatisticalTest",
-  transformation: "stepTransformation"
+  transformation: "stepTransformation",
+  ptm_visualization: "stepPTMVisualization",
 }
 
 export default function StepNode({ data }: NodeProps<StepNodeType>) {

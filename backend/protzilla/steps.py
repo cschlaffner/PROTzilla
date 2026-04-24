@@ -37,10 +37,12 @@ class Section(StrEnum):
     DATA_INTEGRATION = "data_integration"
     NOT_CATEGORIZED = "others"
 
+
 class StepOperation(StrEnum):
     """
     Supported operations for steps (more granular categorization)
     """
+
     PROTEIN_IMPORT = "protein_import"
     PEPTIDE_IMPORT = "peptide_import"
     PSM_IMPORT = "psm_import"
@@ -66,14 +68,16 @@ class StepOperation(StrEnum):
     MODEL_EVALUATION = "model_evaluation"
     DIMENSION_REDUCTION = "dimension_reduction"
     MODIFICATION_QUANTIFICATION = "modification_quantification"
+    PTM_VISUALIZATION = "ptm_visualization"
 
     DATABASE_INTEGRATION = "database_integration"
     ENRICHMENT_ANALYSIS = "enrichment_analysis"
     GENE_ONTOLOGY = "gene_ontology"
     GSEA = "gsea"
-        
+
     NOT_CATEGORIZED = "others"
     DEBUG = "(debug)"
+
 
 """
 Maps internal step operation names to display names where regular mapping would fail
@@ -82,7 +86,8 @@ step_operation_display_name = {
     "psm_import": "PSM Import",
     "filter_psms": "Filter PSMs",
     "gene_ontology": "Gene Ontology (GO)",
-    "gsea": "Gene Set Enrichment Analysis (GSEA)"
+    "gsea": "Gene Set Enrichment Analysis (GSEA)",
+    "ptm_visualization": "PTM Visualisation",
 }
 
 
@@ -160,7 +165,8 @@ class Step(ABC):
             "method_name": cls.__name__,
             "section": cls.section,
             "display_name": cls.display_name,
-            "operation": step_operation_display_name.get(cls.operation) or name_to_title(cls.operation),
+            "operation": step_operation_display_name.get(cls.operation)
+            or name_to_title(cls.operation),
             "method_description": cls.method_description,
         }
 
