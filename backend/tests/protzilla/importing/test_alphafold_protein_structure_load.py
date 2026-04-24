@@ -967,14 +967,15 @@ N N
 
     j1 = prot_dir / "j1.json"
     j2 = prot_dir / "j2.json"
-    j3 = prot_dir / "j3s.json"
-    j1.write_text(json.dumps({"something": 1}))
-    j2.write_text(json.dumps({"other": 2}))
-    j3.write_text(json.dumps({"other": 3}))
+    j3 = prot_dir / "j3.json"
+    j1.write_text(json.dumps({"wrong_key": 1}))
+    j2.write_text(json.dumps({"pae": 2}))
+    j3.write_text(json.dumps({"sequences": 3}))
 
-    out = get_multimer_structure_dfs("M2")
-    assert any(m.get("level") == logging.WARNING for m in out["messages"])
-    assert any(
-        "Could not detect confidence scores" in str(m.get("msg", ""))
-        for m in out["messages"]
+    with pytest.raises(RuntimeError) as exc_info:
+        get_multimer_structure_dfs("M2")
+
+    assert "Failed to read JSON files in" in str(exc_info.value)
+    assert "Could not detect confidence scores/full data/job request" in str(
+        exc_info.value
     )
