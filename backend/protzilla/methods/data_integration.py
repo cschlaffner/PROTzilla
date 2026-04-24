@@ -29,7 +29,7 @@ from backend.protzilla.form import (
     TextField,
 )
 from backend.protzilla.run import Run
-from backend.protzilla.steps import Plots, Step, Section
+from backend.protzilla.steps import Plots, Step, Section, StepOperation
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_integration.enrichment_analysis import (
     GOAnalysisOflineBackgroundType,
@@ -104,7 +104,7 @@ class DataIntegrationStep(Step, ABC):
 
 
 class EnrichmentAnalysisStep(DataIntegrationStep, ABC):
-    operation = "enrichment_analysis"
+    operation: StepOperation = StepOperation.ENRICHMENT_ANALYSIS
 
 
 class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
@@ -124,7 +124,7 @@ class EnrichmentAnalysisGOStep(EnrichmentAnalysisStep, ABC):
 
 
 class DataIntegrationPlotStep(DataIntegrationStep, ABC):
-    operation = "plot"
+    operation: StepOperation = StepOperation.PLOT
 
     @override
     def handle_calc_outputs(self, outputs: dict) -> None:
@@ -695,7 +695,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
 
 class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
     display_name = "Gene mapping"
-    operation = "database_integration"
+    operation: StepOperation = StepOperation.DATABASE_INTEGRATION
     method_description = "Map protein groups to genes"
 
     output_keys = ["gene_mapping_df"]
@@ -726,7 +726,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
 
 class DatabaseIntegrationByUniprot(DataIntegrationStep):
     display_name = "Uniprot"
-    operation = "database_integration"
+    operation: StepOperation = StepOperation.DATABASE_INTEGRATION
     method_description = "Add Uniprot data to a dataframe"
 
     output_keys = [DataKey.PROTEIN_DF]

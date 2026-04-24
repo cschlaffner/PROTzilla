@@ -70,7 +70,7 @@ from backend.protzilla.form import (
     NumberField,
     TextField,
 )
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
@@ -291,13 +291,11 @@ class DataAnalysisStep(Step, ABC):
 
 
 class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
-
-    operation = "differential_expression"
+    operation: StepOperation = StepOperation.DIFFERENTIAL_EXPRESSION
 
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
-
-    operation = "Peptide analysis"
+    operation: StepOperation = StepOperation.PEPTIDE_ANALYSIS
 
 
 class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
@@ -729,8 +727,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
 
 
 class DataAnalysisPlotStep(DataAnalysisStep, ABC):
-
-    operation = "plot"
+    operation: StepOperation = StepOperation.PLOT
 
 
 class PlotVolcano(DataAnalysisPlotStep):
@@ -921,7 +918,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
-    operation = "plot"
     method_description = (
         "Creates a 2D clustergram from data using the samples on one axis and the proteins on the "
         "other axis. The data is clustered using euclidean distances for hierarchical clustering."
@@ -1114,7 +1110,7 @@ class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
 
 
 class ClusteringStep(PositiveLabelStep, ABC):
-    operation = "clustering"
+    operation: StepOperation = StepOperation.CLUSTERING
 
 
 class ClusteringKMeans(ClusteringStep):
@@ -1441,7 +1437,7 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 
 
 class ClassificationStep(PositiveLabelStep, ABC):
-    operation = "classification"
+    operation: StepOperation = StepOperation.CLASSIFICATION
 
     positive_label_is_required: bool = False
 
@@ -1931,7 +1927,7 @@ class ClassificationSVM(ClassificationStep):
 
 class ModelEvaluationClassificationModel(DataAnalysisStep):
     display_name = "Evaluation of classification models"
-    operation = "model_evaluation"
+    operation: StepOperation = StepOperation.MODEL_EVALUATION
     method_description = "Assessing an already trained classification model on separate testing data using widely used scoring metrics"
 
     output_keys = ["scores_df"]
@@ -1955,7 +1951,7 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
 
 class DimensionReductionTSNE(DataAnalysisStep):
     display_name = "t-SNE"
-    operation = "dimension_reduction"
+    operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using t-SNE"
 
     output_keys = ["embedded_data"]
@@ -2023,7 +2019,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
 class DimensionReductionUMAP(DataAnalysisStep):
     display_name = "UMAP"
-    operation = "dimension_reduction"
+    operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using UMAP"
 
     output_keys = ["embedded_data"]
@@ -2125,7 +2121,7 @@ class BaseFLEXLF(DataAnalysisStep, ABC):
 
 class FLEXIQuantLF(BaseFLEXLF):
     display_name = "FLEXIQuant-LF"
-    operation = "modification_quantification"
+    operation: StepOperation = StepOperation.MODIFICATION_QUANTIFICATION
     method_description = (
         "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
         "peptides and to quantify the degree of modification based solely on the unmodified peptide "
@@ -2161,7 +2157,7 @@ class FLEXIQuantLF(BaseFLEXLF):
 
 class MultiFLEXLF(BaseFLEXLF):
     display_name = "MultiFLEX-LF"
-    operation = "modification_quantification"
+    operation: StepOperation = StepOperation.MODIFICATION_QUANTIFICATION
     method_description = (
         "Quantifies the extent of protein modifications in proteomics data by using robust linear "
         "regression to compare modified and unmodified peptide precursors and facilitates the "
@@ -2207,12 +2203,11 @@ class MultiFLEXLF(BaseFLEXLF):
 
 
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
-    operation = "Peptide analysis"
+    operation: StepOperation = StepOperation.PEPTIDE_ANALYSIS
 
 
 class PTMsPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample"
-    operation = "Peptide analysis"
     method_description = (
         "Analyze the post-translational modifications (PTMs) of a single protein of interest. "
         "This function requires a peptide dataframe with PTM information."

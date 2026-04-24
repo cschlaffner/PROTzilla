@@ -51,7 +51,7 @@ class ImportingStep(Step, ABC):
 
 class ArbitraryCSVImport(ImportingStep):
     display_name: str = "Arbitrary CSV import"
-    operation: str = "(DEBUG)"
+    operation: StepOperation = StepOperation.DEBUG
     method_description: str = "For debugging purposes. Imports any CSV as a dataframe"
 
     output_keys: list[DataKey] = [DataKey.DEBUG]

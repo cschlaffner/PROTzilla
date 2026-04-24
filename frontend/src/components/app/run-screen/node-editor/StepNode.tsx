@@ -15,6 +15,69 @@ import {
   handleSequencesIcon,
 } from "../../../core/shared/icon/icons";
 
+// --- Constants ---
+const NODE_WIDTH = 260;
+const NODE_HEIGHT = 70;
+const HANDLE_ICON_SIZE = 26;
+const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
+const FALLBACK_TRIANGLE_SIZE = Math.round(HANDLE_ICON_SIZE * 0.6);
+
+// --- Styled Components ---
+
+const StyledNode = styled.div`
+  width: ${NODE_WIDTH}px;
+  height: ${NODE_HEIGHT}px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 2px solid #1d1d1d;
+  border-radius: 8px;
+  background-color: white;
+  box-sizing: border-box; /* Ensures padding doesn't affect the fixed width */
+`;
+
+const StatusIndicatorWrapper = styled.div`
+  position: absolute;
+  left: -35px; /* Pulls it outside to the left */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const OperationIconWrapper = styled.div`
+  flex-shrink: 0;
+  margin-right: 12px;
+  
+  /* Targeting the Icon component specifically to make it larger */
+  & > svg, & > span {
+    width: 32px !important;
+    height: 32px !important;
+  }
+`;
+
+const TextContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  
+  /* Text wrapping logic */
+  & span {
+    white-space: normal;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limits text to 2 lines to maintain node height */
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
+  }
+`;
+
+// --- Helpers & Maps ---
+
 type HandleDirection = "Input" | "Output" | "None";
 
 export interface HoveredHandleMeta {
@@ -44,10 +107,6 @@ const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
   psm_df: handlePsmIcon,
 };
 
-const HANDLE_ICON_SIZE = 26;
-const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
-const FALLBACK_TRIANGLE_SIZE = Math.round(HANDLE_ICON_SIZE * 0.6);
-
 const triangleStyle = (direction: HandleDirection) => ({
   width: FALLBACK_TRIANGLE_SIZE,
   height: FALLBACK_TRIANGLE_SIZE,
@@ -56,61 +115,60 @@ const triangleStyle = (direction: HandleDirection) => ({
   backgroundColor: "#1d1d1d",
 });
 
-const StyledNode = styled.div`
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 15px;
-  padding-bottom: 15px;
-  display: flex;
-  align-itmes: center;
-  position: relative;
-  border: 2px solid black;
-  border-radius: 5px;
-`;
-
-const TextContainer = styled.div`
-  display: flex;
-  gap: 5px;
-  marginleft: "auto";
-  max-width: 225px;
-  whitespace: normal;
-  line-height: 150%;
-  max-height: 4.5em;
-`;
+const stepOperationIconMap: Record<string, string> = {
+  classifacation: "stepClassification",
+  clustering: "stepClustering",
+  dimension_reduction: "stepDimensionReduction",
+  filter_samples: "stepFilter",
+  filter_proteins: "stepFilter",
+  filter_peptides: "stepFilter",
+  filter_psms: "stepFilter",
+  imputation: "stepImputation",
+  modification_quantification: "stepModificationQuantification",
+  normalization: "stepNormalization",
+  differential_expression: "stepStatisticalTest",
+  transformation: "stepTransformation"
+}
 
 export default function StepNode({ data }: NodeProps<StepNodeType>) {
-  // const onClick = useCallback((evt) => {
-  //   console.log(evt.target.value);
-  // }, []);
-
   const onElementClick = () => {
     data.navigateOrRefreshSteps(data.step.id);
   };
 
-  const icon: DefaultColoredIconType = data.step.status;
-  const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "";
+  const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "white";
+  const operationIcon = stepOperationIconMap[data.step.operation] ?? (data.section as IconType);
+  const statusIcon: DefaultColoredIconType = data.step.status;
 
   return (
     <StyledNode
-      className={`step-node`}
+      className="step-node"
       style={{ backgroundColor: nodeBgColour }}
       onClick={onElementClick}
     >
-      <Icon icon={data.section as IconType} style={{ flexShrink: 0, marginRight: "10px" }} />
-      <DefaultColoredIcon icon={icon} style={{ flexShrink: 0 }} />
-      <TextContainer style={{ marginLeft: "5px" }}>
+      {/* Status Indicator outside the node */}
+      <StatusIndicatorWrapper>
+        <DefaultColoredIcon icon={statusIcon} />
+      </StatusIndicatorWrapper>
+
+      {/* Larger Operation Icon */}
+      <OperationIconWrapper>
+        <Icon icon={operationIcon} />
+      </OperationIconWrapper>
+
+      {/* Wrapped Text Content */}
+      <TextContainer>
         <ContentText
           text={`${data.step.name}`}
-          style={{ userSelect: "none" }}
+          style={{ userSelect: "none", fontSize: "18px" }}
         />
       </TextContainer>
 
-      {/*Target (input) handles*/}
+      {/* Input handles */}
       {data.step.input_keys.map((input, index) => {
         const InputIcon = DATA_TYPE_ICON_MAP[input];
         return (
           <Handle
-            key={index}
+            key={`in-${index}`}
             type="target"
             position={Position.Top}
             id={input}
@@ -119,37 +177,19 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
               border: "none",
               width: HANDLE_ICON_SIZE,
               height: HANDLE_ICON_SIZE,
-              left: `${String((100 / (data.step.input_keys.length + 1)) * (index + 1))}%`,
+              left: `${(100 / (data.step.input_keys.length + 1)) * (index + 1)}%`,
               top: -HANDLE_ICON_OFFSET,
               transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
-            onMouseEnter={() => {
-              data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input });
-            }}
-            onMouseLeave={() => {
-              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
-            }}
+            onMouseEnter={() => data.setHoveredHandleMeta({ isActive: true, direction: "Input", type: input })}
+            onMouseLeave={() => data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })}
           >
             {InputIcon ? (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <InputIcon
-                  style={{ width: "100%", height: "100%" }}
-                  aria-hidden="true"
-                  focusable="false"
-                />
+              <div style={{ width: "100%", height: "100%", backgroundColor: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <InputIcon style={{ width: "100%", height: "100%" }} aria-hidden="true" focusable="false" />
               </div>
             ) : (
               <div style={triangleStyle("Input")}></div>
@@ -158,12 +198,12 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
         );
       })}
 
-      {/*Source (ouput) handles*/}
+      {/* Output handles */}
       {data.step.output_keys.map((output, index) => {
         const OutputIcon = DATA_TYPE_ICON_MAP[output];
         return (
           <Handle
-            key={index}
+            key={`out-${index}`}
             type="source"
             position={Position.Bottom}
             id={output}
@@ -172,37 +212,19 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
               border: "none",
               width: HANDLE_ICON_SIZE,
               height: HANDLE_ICON_SIZE,
-              left: `${String((100 / (data.step.output_keys.length + 1)) * (index + 1))}%`,
+              left: `${(100 / (data.step.output_keys.length + 1)) * (index + 1)}%`,
               bottom: -HANDLE_ICON_OFFSET,
               transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
-            onMouseEnter={() => {
-              data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output });
-            }}
-            onMouseLeave={() => {
-              data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" });
-            }}
+            onMouseEnter={() => data.setHoveredHandleMeta({ isActive: true, direction: "Output", type: output })}
+            onMouseLeave={() => data.setHoveredHandleMeta({ isActive: false, direction: "None", type: "None" })}
           >
             {OutputIcon ? (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <OutputIcon
-                  style={{ width: "100%", height: "100%" }}
-                  aria-hidden="true"
-                  focusable="false"
-                />
+              <div style={{ width: "100%", height: "100%", backgroundColor: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <OutputIcon style={{ width: "100%", height: "100%" }} aria-hidden="true" focusable="false" />
               </div>
             ) : (
               <div style={triangleStyle("Output")}></div>

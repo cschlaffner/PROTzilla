@@ -12,7 +12,6 @@ import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
-# from backend.protzilla.constants.step_operations import StepOperation
 from backend.protzilla.form import FormInputType, Form, InputField
 from backend.protzilla.utilities.utilities import format_trace, name_to_title
 
@@ -58,8 +57,21 @@ class StepOperation(StrEnum):
     NORMALIZATION = "normalization"
     IMPUTATION = "imputation"
     SIMPLIFICATION = "simplification"
+
+    DIFFERENTIAL_EXPRESSION = "differential_expression"
+    PEPTIDE_ANALYSIS = "peptide_analysis"
+    PLOT = "plot"
+    CLUSTERING = "clustering"
+    CLASSIFICATION = "classification"
+    MODEL_EVALUATION = "model_evaluation"
+    DIMENSION_REDUCTION = "dimension_reduction"
+    MODIFICATION_QUANTIFICATION = "modification_quantification"
+
+    ENRICHMENT_ANALYSIS = "enrichtment_analysis"
+    DATABASE_INTEGRATION = "database_integration"
         
-    NOT_CATEGORIZED = "unknown"
+    NOT_CATEGORIZED = "others"
+    DEBUG = "(debug)"
 
 
 class Step(ABC):

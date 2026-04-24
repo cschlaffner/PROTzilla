@@ -45,6 +45,21 @@ export { default as settings } from "./setting-fill.svg?react";
 export { default as spinner } from "./spinner.svg?react";
 export { default as star } from "./star.svg?react";
 export { default as starFill } from "./star-fill.svg?react";
+
+export { default as stepClassification} from "./step_classification.svg?react";
+export { default as stepClustering} from "./step_clustering.svg?react";
+export { default as stepDimensionReduction} from "./step_dimreduction.svg?react";
+export { default as stepFilter} from "./step_filter.svg?react";
+export { default as stepGO} from "./step_go.svg?react";
+export { default as stepGSEA} from "./step_gsea.svg?react";
+export { default as stepImputation} from "./step_imputation.svg?react";
+export { default as stepModificationQuantification} from "./step_modquant.svg?react";
+export { default as stepNormalization} from "./step_normalization.svg?react";
+export { default as stepProteinCoverage} from "./step_protcoverage.svg?react";
+export { default as stepPTMVisualization} from "./step_ptmvis.svg?react";
+export { default as stepStatisticalTest} from "./step_stattest.svg?react";
+export { default as stepTransformation} from "./step_transformation.svg?react";
+
 export { default as storage } from "./storage.svg?react";
 export { default as threeDots } from "./three-dots.svg?react";
 export { default as trash } from "./trash.svg?react";
