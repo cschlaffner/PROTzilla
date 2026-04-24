@@ -35,10 +35,16 @@ export interface Download {
   data: Record<string, unknown>;
 }
 
+export interface PolyhedronData {
+  vertices: number[][];
+  faces: number[][];
+}
+
 export interface Visualization {
   structureEntryId: string;
   cifString: string;
   crosslinks?: CrosslinkerInformation[];
+  polyhedron?: PolyhedronData;
 }
 
 // We assume these are the only data types we receive for tables

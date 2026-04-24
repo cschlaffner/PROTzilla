@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
-import trimesh
-from trimesh import Trimesh
-from trimesh.collision import CollisionManager
+from scipy.spatial import ConvexHull
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from trimesh import Trimesh
 
 
 def _resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
@@ -98,9 +102,54 @@ def build_convex_hull(points: np.ndarray) -> Trimesh:
             "At least four distinct points are required to build a 3D convex hull."
         )
 
+    import trimesh
+
     return trimesh.convex.convex_hull(
         points, qhull_options="QJ"
     )  # Maybe QJ is stupid here? Ill have to look into it
+
+
+def convex_hull_polyhedron_from_cif(cif_df: pd.DataFrame) -> dict:
+    """
+    Build a convex hull from all atom coordinates in a CIF DataFrame
+    and return it as triangle mesh lists for frontend visualization.
+    """
+
+    required_columns = [
+        "_atom_site.Cartn_x",
+        "_atom_site.Cartn_y",
+        "_atom_site.Cartn_z",
+    ]
+    missing_columns = [column for column in required_columns if column not in cif_df.columns]
+    if missing_columns:
+        raise ValueError(
+            f"CIF DataFrame is missing required columns for convex hull creation: {missing_columns}"
+        )
+
+    coordinates = (
+        cif_df[required_columns]
+        .apply(pd.to_numeric, errors="coerce")
+        .dropna()
+        .drop_duplicates()
+        .to_numpy()
+    )
+
+    try:
+        hull = build_convex_hull(coordinates)
+        return {
+            "vertices": hull.vertices.tolist(),
+            "faces": hull.faces.tolist(),
+        }
+    except ModuleNotFoundError:
+        hull = ConvexHull(coordinates)
+        used_vertex_indices = np.unique(hull.simplices)
+        remap = {old: new for new, old in enumerate(used_vertex_indices)}
+        faces = [[remap[index] for index in face] for face in hull.simplices.tolist()]
+        vertices = coordinates[used_vertex_indices]
+        return {
+            "vertices": vertices.tolist(),
+            "faces": faces,
+        }
 
 
 def meshes_intersect(
@@ -109,6 +158,8 @@ def meshes_intersect(
     """
     Determine whether two triangle meshes intersect or touch.
     """
+
+    from trimesh.collision import CollisionManager
 
     manager = CollisionManager()
     manager.add_object("mesh_a", mesh_a)
@@ -119,6 +170,8 @@ def meshes_distance(mesh_a: Trimesh, mesh_b: Trimesh) -> float:
     """
     Calculate the minimum euclidean distance between two triangle meshes.
     """
+
+    from trimesh.collision import CollisionManager
 
     manager = CollisionManager()
     manager.add_object("mesh_a", mesh_a)

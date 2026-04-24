@@ -63,38 +63,45 @@ def get_available_run_info() -> (
     runs_favourited = []
     all_tags = set()
     for run_name in get_available_run_names():
+        try:
+            run_dir = os.path.join(paths.RUNS_PATH, run_name)
+            metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
+            if not os.path.isfile(metadata_yaml_path):
+                Run(
+                    run_name
+                )  # initialize run to create metadata.yaml (creation date set to now)
+            yaml_operator = YamlOperator()
+            metadata = yaml_operator.read(Path(metadata_yaml_path))
+            if not metadata:
+                metadata = {}
+            tags = metadata.get("tags", set())
 
-        run_dir = os.path.join(paths.RUNS_PATH, run_name)
-        metadata_yaml_path = os.path.join(run_dir, "metadata.yaml")
-        if not os.path.isfile(metadata_yaml_path):
-            Run(
-                run_name
-            )  # initialize run to create metadata.yaml (creation date set to now)
-        yaml_operator = YamlOperator()
-        metadata = yaml_operator.read(Path(metadata_yaml_path))
-        if not metadata:
-            metadata = {}
-        tags = metadata.get("tags", set())
+            run_name = {
+                "run_name": run_name,
+                "creation_date": metadata.get("creation_date", "date not available"),
+                "modification_date": metadata.get(
+                    "modification_date", "date not available"
+                ),
+                "memory_mode": metadata.get("df_mode", "disk"),
+                "run_steps": metadata.get("steps", []),
+                "favourite_status": metadata.get("favourite", False),
+                "run_tags": list(tags),
+            }
 
-        run_name = {
-            "run_name": run_name,
-            "creation_date": metadata.get("creation_date", "date not available"),
-            "modification_date": metadata.get(
-                "modification_date", "date not available"
-            ),
-            "memory_mode": metadata.get("df_mode", "disk"),
-            "run_steps": metadata.get("steps", []),
-            "favourite_status": metadata.get("favourite", False),
-            "run_tags": list(tags),
-        }
+            if run_name["favourite_status"]:
+                runs_favourited.append(run_name)
+            else:
+                runs.append(run_name)
 
-        if run_name["favourite_status"]:
-            runs_favourited.append(run_name)
-        else:
-            runs.append(run_name)
-
-        for tag in tags:
-            all_tags.add(tag)
+            for tag in tags:
+                all_tags.add(tag)
+        except Exception as error:
+            logging.warning(
+                "Skipping invalid run folder '%s' while listing runs: %s",
+                run_name,
+                error,
+            )
+            continue
 
     all_tags = list(all_tags)
 
