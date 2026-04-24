@@ -992,6 +992,10 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
         }
     )
 
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_ids": ["ABCD"],}
+    )
+
     crosslinker_information = {"XL": [0.0, 0.0, 0.0]}
     valid_ids = {"P1": [1]}  # One protein ID, but present in chains A and B
     structures_to_validate = ["P1"]
@@ -999,6 +1003,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
     out = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
         crosslinker_information=crosslinker_information,
+        structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=sequences_df,
         valid_ids=valid_ids,

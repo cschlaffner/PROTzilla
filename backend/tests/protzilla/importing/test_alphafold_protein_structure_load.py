@@ -967,8 +967,11 @@ N N
 
     j1 = prot_dir / "j1.json"
     j2 = prot_dir / "j2.json"
+    j3 = prot_dir / "j3s.json"
     j1.write_text(json.dumps({"something": 1}))
     j2.write_text(json.dumps({"other": 2}))
+    j3.write_text(json.dumps({"other": 3}))
+
 
     out = get_multimer_structure_dfs("M2")
     assert any(m.get("level") == logging.WARNING for m in out["messages"])
