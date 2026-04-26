@@ -1,4 +1,5 @@
 import math
+import textwrap
 
 import numpy as np
 import pandas as pd
@@ -279,9 +280,14 @@ def create_histograms(
         if visual_transformation == "log10":
             fig.update_layout(xaxis=generate_tics(0, max_value, True))
 
-    fig.update_layout(title={"text": f"<b>{heading}</b>"})
+    wrapped_title = "<br>".join(textwrap.wrap(heading, width=60))
+    fig.update_layout(
+        title={"text": f"<b>{wrapped_title}</b>"}
+    )
     fig.update_xaxes(title=x_title)
     fig.update_yaxes(title=y_title, rangemode="tozero")
+
+    fig.update_layout(margin_pad=20)
 
     # Disable toggling of the visibility of the traces by clicking on the legend
     fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False))
