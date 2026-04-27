@@ -25,6 +25,18 @@ export const CustomFooter: React.FC<GridFooterContainerProps> = () => {
   );
 };
 
+const FALLBACK_TOO_MANY_COLUMNS = [
+  {
+    ERROR: "This table contains too many columns to be properly displayed within PROTzilla.",
+    id: "error_too_many_columns1",
+  },
+  {
+    ERROR: "Please download the table using the button below and view using external software.",
+    id: "error_too_many_columns2",
+  },
+];
+const MAX_COLUMNS = 10;
+
 export const DataTable: React.FC<DataTableProps> = ({
   runName,
   tableLabel,
@@ -58,8 +70,13 @@ export const DataTable: React.FC<DataTableProps> = ({
           end_index: endIndex,
         });
 
-        setCurrentRows(response.rows);
-        setTotalRowCount(response.total_row_count);
+        if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
+          setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
+          setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
+        } else {
+          setCurrentRows(response.rows);
+          setTotalRowCount(response.total_row_count);
+        }
       } catch (error) {
         console.error("Failed to fetch table data:", error);
       } finally {
