@@ -88,6 +88,7 @@ step_operation_display_name = {
     "gene_ontology": "Gene Ontology (GO)",
     "gsea": "Gene Set Enrichment Analysis (GSEA)",
     "ptm_visualization": "PTM Visualisation",
+    "normalization": "Normalisation"
 }
 
 
