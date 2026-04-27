@@ -7,12 +7,20 @@ import type React from "react";
 import { styled } from "styled-components";
 
 import {
+  handleCifIcon,
+  handleConfidenceIcon,
+  handleCrosslinkingIcon,
+  handleDebugDataIcon,
   handleDnaIcon,
+  handleFullDataIcon,
   handleMetadataIcon,
+  handlePaeIcon,
   handlePeptidesIcon,
+  handlePlddtIcon,
   handleProteinIcon,
   handlePsmIcon,
   handleSequencesIcon,
+  handleStructureMetadataIcon,
 } from "../../../core/shared/icon/icons";
 
 type HandleDirection = "Input" | "Output" | "None";
@@ -36,12 +44,21 @@ export type StepNodeType = Node<StepNodeData, "step">;
 type HandleIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
+  amino_acid_sequences_df: handleSequencesIcon,
+  cif_df: handleCifIcon,
+  confidence_df: handleConfidenceIcon,
+  crosslinking_df: handleCrosslinkingIcon,
+  debug_data: handleDebugDataIcon,
   fasta_df: handleSequencesIcon,
-  peptide_df: handlePeptidesIcon,
-  protein_df: handleProteinIcon,
-  metadata_df: handleMetadataIcon,
+  full_data_df: handleFullDataIcon,
   gene_mapping_df: handleDnaIcon,
+  metadata_df: handleMetadataIcon,
+  pae_df: handlePaeIcon,
+  peptide_df: handlePeptidesIcon,
+  plddt_df: handlePlddtIcon,
+  protein_df: handleProteinIcon,
   psm_df: handlePsmIcon,
+  structure_metadata_df: handleStructureMetadataIcon,
 };
 
 const HANDLE_ICON_SIZE = 26;

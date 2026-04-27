@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Remote Attach",
+            "name": "DebugPy: PROTzilla Backend",
             "type": "debugpy",
             "request": "attach",
             "connect": {
@@ -12,7 +12,7 @@
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/backend",
-                    "remoteRoot": "backend/"
+                    "remoteRoot": "/home/prot/zilla/backend/"
                 }
             ]
         }

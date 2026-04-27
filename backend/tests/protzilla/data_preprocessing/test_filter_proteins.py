@@ -9,6 +9,7 @@ from backend.protzilla.data_preprocessing.filter_proteins import (
     by_number_of_values_per_group,
     by_number_of_values_per_group_plot,
     by_protein_ids,
+    keep_n_most_significant_proteins,
 )
 from backend.protzilla.data_preprocessing.filter_peptides_or_psm import (
     filter_peptides_by_existing_proteins,
@@ -236,3 +237,36 @@ def test_filter_proteins_by_protein_ids_filters_correctly(filter_proteins_df):
         filtered_protein_df.reset_index(drop=True),
         expected_protein_df.reset_index(drop=True),
     )
+
+
+def test_keep_n_most_significant_proteins_with_duplicates():
+    df = pd.DataFrame(
+        {
+            "Protein ID": ["p1", "p1", "p2", "p3", "p4"],
+            "corrected_p_value": [0.05, 0.01, 0.02, 0.03, 0.04],
+        }
+    )
+
+    result = keep_n_most_significant_proteins(3, df)
+    result_df = result["differentially_expressed_proteins_df"]
+
+    expected_proteins = ["p1", "p2", "p3"]
+    expected_p_values = [0.01, 0.02, 0.03]
+
+    assert len(result_df) == 3
+    assert result_df["Protein ID"].tolist() == expected_proteins
+    assert result_df["corrected_p_value"].tolist() == expected_p_values
+
+
+def test_keep_n_most_significant_proteins_with_less_rows_than_requested():
+    df = pd.DataFrame(
+        {
+            "Protein ID": ["p1", "p2"],
+            "corrected_p_value": [0.01, 0.02],
+        }
+    )
+
+    result = keep_n_most_significant_proteins(5, df)
+    result_df = result["differentially_expressed_proteins_df"]
+
+    assert len(result_df) == 2

@@ -448,6 +448,28 @@ N N
     conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
     full = tmp_path / "full.json"
     full.write_text('{"a": [1,2]}')
+    job_request = tmp_path / "job_request.json"
+    job_request.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "test_job",
+                    "modelSeeds": ["123456789"],
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": "AAAA",
+                                "count": 1,
+                                "useStructureTemplate": True,
+                            }
+                        }
+                    ],
+                    "dialect": "alphafoldserver",
+                    "version": 3,
+                }
+            ]
+        )
+    )
 
     # monkeypatch copy to actually copy files
     def _copy(src, dest_dir):
@@ -468,6 +490,7 @@ N N
         cif_file=cif,
         confidence_file=conf,
         full_data_file=full,
+        job_request_file=job_request,
         persist_upload=True,
     )
 
@@ -495,6 +518,12 @@ N N
     full_df = out["full_data_df"]
     assert isinstance(full_df, pd.DataFrame)
     assert full_df.iloc[0]["a"] == [1, 2]
+
+    # job request JSON
+    job_df = out["job_request_df"]
+    assert isinstance(job_df, pd.DataFrame)
+    assert job_df.iloc[0]["name"] == "test_job"
+    assert job_df.iloc[0]["dialect"] == "alphafoldserver"
 
     # sequences
     seqs = out["amino_acid_sequences_df"]
@@ -588,6 +617,28 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
     full = tmp_path / "full.json"
     full.write_text('{"a": [1,2]}')
+    job_request = tmp_path / "job_request.json"
+    job_request.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "test_job_2",
+                    "modelSeeds": ["987654321"],
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": "BBBB",
+                                "count": 1,
+                                "useStructureTemplate": True,
+                            }
+                        }
+                    ],
+                    "dialect": "alphafoldserver",
+                    "version": 3,
+                }
+            ]
+        )
+    )
 
     out = upload_multimer_prediction(
         entry_id="M2",
@@ -597,12 +648,15 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
         cif_file=cif,
         confidence_file=conf,
         full_data_file=full,
+        job_request_file=job_request,
         persist_upload=False,
     )
 
     # verify dataframes are returned
     assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     assert isinstance(out["cif_df"], pd.DataFrame)
+    assert isinstance(out["job_request_df"], pd.DataFrame)
+    assert out["job_request_df"].iloc[0]["name"] == "test_job_2"
     # directory should still exist (created for the entry)
     upload_dir = tmp_path / "M2"
     assert not upload_dir.exists()
@@ -829,8 +883,30 @@ N N
 
     confidence = prot_dir / "confidence.json"
     full_data = prot_dir / "full.json"
+    job_request = prot_dir / "job_request.json"
     confidence.write_text(json.dumps({"chain_iptm": [0.75]}))
     full_data.write_text(json.dumps({"pae": [[0.1, 0.2], [0.3, 0.4]]}))
+    job_request.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "multimer_job",
+                    "modelSeeds": ["111111111"],
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": "AAAA",
+                                "count": 2,
+                                "useStructureTemplate": True,
+                            }
+                        }
+                    ],
+                    "dialect": "alphafoldserver",
+                    "version": 3,
+                }
+            ]
+        )
+    )
 
     out = get_multimer_structure_dfs("M1")
     assert isinstance(out["structure_metadata_df"], pd.DataFrame)
@@ -838,9 +914,12 @@ N N
     assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
     assert isinstance(out["confidence_df"], pd.DataFrame)
     assert isinstance(out["full_data_df"], pd.DataFrame)
+    assert isinstance(out["job_request_df"], pd.DataFrame)
 
     assert "chain_iptm" in out["confidence_df"].columns
     assert "pae" in out["full_data_df"].columns
+    assert out["job_request_df"].iloc[0]["name"] == "multimer_job"
+    assert out["job_request_df"].iloc[0]["version"] == 3
 
     assert any(m.get("level") == logging.INFO for m in out["messages"]) or any(
         "Successfully loaded" in str(m.get("msg", "")) for m in out["messages"]
@@ -888,12 +967,15 @@ N N
 
     j1 = prot_dir / "j1.json"
     j2 = prot_dir / "j2.json"
-    j1.write_text(json.dumps({"something": 1}))
-    j2.write_text(json.dumps({"other": 2}))
+    j3 = prot_dir / "j3.json"
+    j1.write_text(json.dumps({"wrong_key": 1}))
+    j2.write_text(json.dumps({"pae": 2}))
+    j3.write_text(json.dumps({"sequences": 3}))
 
-    out = get_multimer_structure_dfs("M2")
-    assert any(m.get("level") == logging.WARNING for m in out["messages"])
-    assert any(
-        "Could not detect confidence scores" in str(m.get("msg", ""))
-        for m in out["messages"]
+    with pytest.raises(RuntimeError) as exc_info:
+        get_multimer_structure_dfs("M2")
+
+    assert "Failed to read JSON files in" in str(exc_info.value)
+    assert "Could not detect confidence scores/full data/job request" in str(
+        exc_info.value
     )

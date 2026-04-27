@@ -61,11 +61,16 @@ export const usePlotSettings = (isOpen?: boolean) => {
     textSize: 0,
   });
 
-  const loadSettings = async (templateName: string) => {
-    const response = await callApiWithParameters("load_settings", {
-      templateName: templateName,
-    });
-    if (response) {
+  const loadSettings = async (templateName: string): Promise<PlotSettings | null> => {
+    setIsLoading(true);
+    try {
+      const response = await callApiWithParameters("load_settings", {
+        templateName: templateName,
+      });
+      if (!response) {
+        return null;
+      }
+
       const loadedSettings: PlotSettings = {
         fileFormat: response.file_format,
         width: response.width,
@@ -81,8 +86,13 @@ export const usePlotSettings = (isOpen?: boolean) => {
       };
       setSettings(loadedSettings);
       setSavedSettings(loadedSettings);
+      return loadedSettings;
+    } catch (error: unknown) {
+      console.error("Loading plot settings failed: ", error);
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -91,34 +101,49 @@ export const usePlotSettings = (isOpen?: boolean) => {
     }
   }, [isOpen]);
 
-  const saveSettings = async () => {
-    setSavedSettings(settings);
+  const saveSettings = async (settingsToSave: PlotSettings = settings): Promise<boolean> => {
     const res = await callApiWithParameters("save_settings", {
-      file_format: settings.fileFormat,
-      width: settings.width,
-      height: settings.height,
-      margin_top: settings.marginTop,
-      margin_bottom: settings.marginBottom,
-      margin_left: settings.marginLeft,
-      margin_right: settings.marginRight,
-      font: settings.selectedFont,
-      custom_font: settings.customFont,
-      title_size: settings.titleSize,
-      text_size: settings.textSize,
+      file_format: settingsToSave.fileFormat,
+      width: settingsToSave.width,
+      height: settingsToSave.height,
+      margin_top: settingsToSave.marginTop,
+      margin_bottom: settingsToSave.marginBottom,
+      margin_left: settingsToSave.marginLeft,
+      margin_right: settingsToSave.marginRight,
+      font: settingsToSave.selectedFont,
+      custom_font: settingsToSave.customFont,
+      title_size: settingsToSave.titleSize,
+      text_size: settingsToSave.textSize,
     });
     if (res?.success) {
+      setSavedSettings(settingsToSave);
       notify({
         title: "Saved successfully",
         message: "Your settings will apply to all plots you want to download.",
         type: "success",
       });
+      return true;
     } else {
       notify({
         title: "Saving failed",
         message: "An unexpected error occurred.",
         type: "error",
       });
+      return false;
     }
+  };
+
+  const resetSettingsToDefault = async (): Promise<boolean> => {
+    const defaultSettings = await loadSettings("plots_default");
+    if (!defaultSettings) {
+      notify({
+        title: "Reset failed",
+        message: "Could not load default settings.",
+        type: "error",
+      });
+      return false;
+    }
+    return saveSettings(defaultSettings);
   };
 
   const downloadPlot = async (plot: Figure) => {
@@ -138,7 +163,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
         console.error("Export as .", settings.fileFormat, " failed: ", error);
       });
     } else if (["eps", "pdf", "tiff"].includes(settings.fileFormat)) {
-      const blob: Blob = await callApiWithParameters(
+      const blob = (await callApiWithParameters(
         "download_plot",
         {
           plot: plotAsJson,
@@ -148,7 +173,16 @@ export const usePlotSettings = (isOpen?: boolean) => {
         "blob",
       ).catch((error: unknown) => {
         console.error("Export as .", settings.fileFormat, " failed: ", error);
-      });
+        return undefined;
+      })) as Blob | undefined;
+      if (!blob) {
+        notify({
+          title: "Download failed",
+          message: "Could not export the plot.",
+          type: "error",
+        });
+        return;
+      }
       const fileNameWithSuffix = fileName + "." + settings.fileFormat;
       saveAs(blob, fileNameWithSuffix);
     } else {
@@ -156,33 +190,31 @@ export const usePlotSettings = (isOpen?: boolean) => {
     }
   };
 
-  // Fixed width for containing the correct ratio of width & height
-  const basePlotWidth = 400;
   const ptToInch = 1 / 72;
   const inchToMm = 25.4;
-  const dpi = 300;
+  const exportDpi = 300;
+  const screenDpi = 96;
 
   /**
    * This function returns the scale factor for resizing the plot from its
    * current displayed size to desired download size (regarding resolution etc).
    */
   const getScale = (plot: Figure) => {
-    const currentWidth = plot.layout.width ?? basePlotWidth;
-    return ((settings.width / inchToMm) * dpi) / currentWidth;
+    const currentWidth = plot.layout.width ?? Math.round((settings.width / inchToMm) * screenDpi);
+    return ((settings.width / inchToMm) * exportDpi) / currentWidth;
   };
 
   /**
-   * This function returns the scaled sizes for displaying the plot.
+   * This function returns the sizes for displaying the plot at screen DPI,
+   * preserving detail that would be lost with a fixed small preview width.
    */
   const computeDisplaySizes = () => {
-    // Figure size
-    let ratio = settings.width / settings.height;
-    const width = basePlotWidth;
-    const height = Math.round(basePlotWidth / ratio);
-    // Font size
-    ratio = width / settings.width;
-    const titleSize = Math.round(settings.titleSize * ptToInch * inchToMm * ratio);
-    const textSize = Math.round(settings.textSize * ptToInch * inchToMm * ratio);
+    // Figure size at screen resolution
+    const width = Math.round((settings.width / inchToMm) * screenDpi);
+    const height = Math.round((settings.height / inchToMm) * screenDpi);
+    // Font size: convert pt to screen pixels (pt → inch → pixels at screen DPI)
+    const titleSize = Math.round(settings.titleSize * ptToInch * screenDpi);
+    const textSize = Math.round(settings.textSize * ptToInch * screenDpi);
     return {
       width,
       height,
@@ -244,6 +276,7 @@ export const usePlotSettings = (isOpen?: boolean) => {
     setComputedSettings,
     loadSettings,
     saveSettings,
+    resetSettingsToDefault,
     downloadPlot,
     computeDisplaySizes,
     getTitleFromLayout,

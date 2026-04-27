@@ -172,6 +172,7 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
                 FileInput(
                     name="background_path",
                     label="Background set (no upload = entire proteome), UniProt IDs (one per line, txt or csv)",
+                    accept=".txt,.csv",
                 ),
             ],
         )
@@ -245,6 +246,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     ".txt (one set per line): SetName followed by tab-separated list of proteins\n"
                     ".csv (one set per line): SetName, Gene1, Gene2, ...\n"
                     r".json: {SetName: [Gene1, Gene2, ...], SetName2: [Gene2, Gene3,...]})",
+                    accept=".gmt,.txt,.csv,.json",
                 ),
                 DropdownField(
                     name="gene_sets_enrichr",
@@ -259,6 +261,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                 FileInput(
                     name="background_path",
                     label="Background set with uppercase gene symbols (one gene per line, csv or txt)",
+                    accept=".txt,.csv",
                 ),
                 NumberField(
                     name="background_number",
@@ -372,6 +375,7 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
                     "followed by tab-separated list of proteins | .csv (one set per line): "
                     "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
                     "SetName2: [Gene2, Gene3, ...]})",
+                    accept=".gmt,.txt,.csv,.json",
                 ),
                 DropdownField(
                     name="direction",
@@ -388,6 +392,7 @@ class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
                 FileInput(
                     name="background_path",
                     label="Background set with uppercase gene symbols (one gene per line, csv or txt)",
+                    accept=".txt,.csv",
                 ),
                 NumberField(
                     name="background_number",
@@ -460,6 +465,7 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
                     "followed by tab-separated list of proteins | .csv (one set per line): "
                     "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
                     "SetName2: [Gene2, Gene3, ...]})",
+                    accept=".gmt,.txt,.csv,.json",
                 ),
                 DropdownField(
                     name="gene_sets_enrichr",
@@ -607,6 +613,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
                     "followed by tab-separated list of proteins | .csv (one set per line): "
                     "SetName, Gene1, Gene2, ... | .json: {SetName: [Gene1, Gene2, ...], "
                     "SetName2: [Gene2, Gene3, ...]})",
+                    accept=".gmt,.txt,.csv,.json",
                 ),
                 DropdownField(
                     name="gene_sets_enrichr",
