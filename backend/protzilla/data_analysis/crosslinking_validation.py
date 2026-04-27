@@ -1,12 +1,14 @@
 import itertools
 import ast
 import math
+from pipes import stepkinds
 
 import pandas as pd
 import numpy as np
 import re
 import logging
 
+from pandas.io.stata import stata_epoch
 from plotly.graph_objects import Figure
 
 from backend.protzilla.data_preprocessing.plots import (
@@ -18,6 +20,7 @@ from backend.protzilla.data_analysis.plots import (
     add_vertical_line_with_annotation_in_legend,
 )
 from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.data_preprocessing.plots_helper import millify
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -647,6 +650,43 @@ def validate_with_angstrom_deviation(
     )
 
 
+def _get_tick_values_with_lines(fig, min_value, max_value):
+    """
+    Generates tick values and labels for a Plotly figure's x-axis, ensuring that
+    the x-positions of all vertical lines in the figure are included as additional ticks.
+
+    Regular ticks are spaced evenly based on the range between min_value and max_value.
+    Vertical line positions that fall within the range and are not already covered by a regular tick
+    are appended and labeled with their rounded value.
+
+    :param fig: Plotly Figure object whose shapes are inspected for vertical lines.
+    :param min_value: Lower bound of the x-axis range.
+    :param max_value: Upper bound of the x-axis range.
+    :return: Dictionary with tickmode, tickvals, and ticktext suitable for use in update_xaxes.
+    """
+    line_x_values = [
+        shape.x0
+        for shape in fig.layout.shapes
+        if shape.type == "line" and shape.x0 == shape.x1
+    ]
+
+    step_size = pow(10, math.floor(np.log10(max_value - min_value)))
+    first_step = math.ceil(min_value / step_size) * step_size
+    last_step = math.ceil(max_value / step_size) * step_size + 3 * step_size
+    tick_values = list(np.arange(first_step, last_step, step_size))
+    tick_text = list(np.vectorize(lambda x: millify(x))(tick_values))
+
+    for x in line_x_values:
+        if x not in tick_values and min_value <= x <= max_value:
+            tick_values.append(x)
+            tick_text.append(str(round(x, 2)))
+
+    paired = sorted(zip(tick_values, tick_text))
+    tick_values, tick_text = zip(*paired)
+
+    return dict(tickmode="array", tickvals=list(tick_values), ticktext=list(tick_text))
+
+
 def diagrams_of_crosslinking_validation_data(
     validated_df: pd.DataFrame,
     structures_to_validate: str,
@@ -716,6 +756,31 @@ def diagrams_of_crosslinking_validation_data(
             accepted_deviation_upper_bound,
             accepted_deviation_lower_bound,
         ) = crosslinker_information[crosslinker]
+        # make sure that the crosslinker length is always shown
+        hist_min = math.floor(
+            min(
+                crosslinker_length,
+                np.nanmin(
+                    [
+                        df_valid["alphafold_distance"].min(),
+                        df_invalid["alphafold_distance"].min(),
+                    ]
+                ),
+            )
+            - 1
+        )
+        hist_max = math.ceil(
+            max(
+                crosslinker_length,
+                np.nanmax(
+                    [
+                        df_valid["alphafold_distance"].max(),
+                        df_invalid["alphafold_distance"].max(),
+                    ]
+                ),
+            )
+            + 1
+        )
         histogram = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
@@ -728,12 +793,14 @@ def diagrams_of_crosslinking_validation_data(
             visual_transformation="linear",
             relevant_column_a="alphafold_distance",
             relevant_column_b="alphafold_distance",
+            min_value=hist_min,
+            max_value=hist_max,
             one_bin_per_int=True,
         )
         add_vertical_line_with_annotation_in_legend(
             fig=histogram,
             dash="solid",
-            annotation=f"{crosslinker} length",
+            annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
         )
 
@@ -750,6 +817,9 @@ def diagrams_of_crosslinking_validation_data(
         mean_minus_two_std = max(
             0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
         )
+        # make sure that the crosslinker length is always shown
+        hist_2std_min = math.floor(min(crosslinker_length, mean_minus_two_std) - 1)
+        hist_2std_max = math.ceil(max(crosslinker_length, mean_plus_two_std) + 1)
 
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
@@ -763,14 +833,14 @@ def diagrams_of_crosslinking_validation_data(
             visual_transformation="linear",
             relevant_column_a="alphafold_distance",
             relevant_column_b="alphafold_distance",
-            min_value=mean_minus_two_std,
-            max_value=mean_plus_two_std,
+            min_value=hist_2std_min,
+            max_value=hist_2std_max,
             one_bin_per_int=True,
         )
         add_vertical_line_with_annotation_in_legend(
             fig=histogram_two_standard_deviations,
             dash="solid",
-            annotation=f"{crosslinker} length",
+            annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
         )
 
@@ -810,7 +880,14 @@ def diagrams_of_crosslinking_validation_data(
                     annotation=f"allowed deviation lower bound",
                     x_value=crosslinker_length - accepted_deviation_lower_bound,
                 )
-
+        histogram.update_xaxes(
+            **_get_tick_values_with_lines(histogram, hist_min, hist_max)
+        )
+        histogram_two_standard_deviations.update_xaxes(
+            **_get_tick_values_with_lines(
+                histogram_two_standard_deviations, hist_2std_min, hist_2std_max
+            )
+        )
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
