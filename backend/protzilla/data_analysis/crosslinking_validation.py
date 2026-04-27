@@ -759,7 +759,7 @@ def diagrams_of_crosslinking_validation_data(
         # make sure that the crosslinker length is always shown
         hist_min = math.floor(
             min(
-                crosslinker_length,
+                crosslinker_length - accepted_deviation_lower_bound,
                 np.nanmin(
                     [
                         df_valid["alphafold_distance"].min(),
@@ -771,7 +771,7 @@ def diagrams_of_crosslinking_validation_data(
         )
         hist_max = math.ceil(
             max(
-                crosslinker_length,
+                crosslinker_length + accepted_deviation_upper_bound,
                 np.nanmax(
                     [
                         df_valid["alphafold_distance"].max(),
@@ -817,9 +817,6 @@ def diagrams_of_crosslinking_validation_data(
         mean_minus_two_std = max(
             0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
         )
-        # make sure that the crosslinker length is always shown
-        hist_2std_min = math.floor(min(crosslinker_length, mean_minus_two_std) - 1)
-        hist_2std_max = math.ceil(max(crosslinker_length, mean_plus_two_std) + 1)
 
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
@@ -833,8 +830,8 @@ def diagrams_of_crosslinking_validation_data(
             visual_transformation="linear",
             relevant_column_a="alphafold_distance",
             relevant_column_b="alphafold_distance",
-            min_value=hist_2std_min,
-            max_value=hist_2std_max,
+            min_value=mean_minus_two_std,
+            max_value=mean_plus_two_std,
             one_bin_per_int=True,
         )
         add_vertical_line_with_annotation_in_legend(
@@ -885,7 +882,7 @@ def diagrams_of_crosslinking_validation_data(
         )
         histogram_two_standard_deviations.update_xaxes(
             **_get_tick_values_with_lines(
-                histogram_two_standard_deviations, hist_2std_min, hist_2std_max
+                histogram_two_standard_deviations, mean_minus_two_std, mean_plus_two_std
             )
         )
         figures.append(histogram_two_standard_deviations)
