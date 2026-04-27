@@ -89,7 +89,7 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     create_overview_ptm_visualization,
     get_detected_modifications,
 )
-from protzilla.data_analysis.crosslinking_validation import (
+from backend.protzilla.data_analysis.crosslinking_validation import (
     validate_with_angstrom_deviation,
     diagrams_of_crosslinking_validation_data,
 )
