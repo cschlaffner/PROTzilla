@@ -2380,7 +2380,10 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
         return list(crosslinkers)
 
     def create_crosslink_input_fields(self, form: Form, run: Run):
-        crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
+        try:
+            crosslinkers = self._get_crosslinker_names_from_crosslinker_df(run.steps)
+        except KeyError:
+            return
         for crosslinker in crosslinkers:
             field_name = f"{crosslinker}_length"
             if field_name not in form:
@@ -2435,7 +2438,10 @@ class CrosslinkingValidationWithAngstromDeviation(
     plot_method = staticmethod(monomer_diagrams)
 
     def create_form(self):
-        return Form(label="Ångström Deviation - Monomer", input_fields=[])
+        try:
+            return self.form
+        except AttributeError:
+            return Form(label="Ångström Deviation - Monomer", input_fields=[])
 
 
 class CrosslinkingValidationWithAngstromDeviationForMultimer(
