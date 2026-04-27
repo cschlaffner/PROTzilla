@@ -325,6 +325,9 @@ class Step(ABC):
         else:
             plots = outputs
 
+        if not plots:
+            raise ValueError("Output of plot method is empty.")
+
         self.plots = Plots(plots)
 
     def handle_messages(self, outputs: dict) -> None:
