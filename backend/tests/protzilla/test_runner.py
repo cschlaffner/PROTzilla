@@ -269,6 +269,7 @@ def test_runner_imports(
             "fc_zscore_filter": False,
             "fc_zscore_alpha": 0.05,
             "log_base": "None",
+            "nan_policy": "Raise",
         },
         {
             "differential_expression_col": "log2_fold_change",
