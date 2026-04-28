@@ -109,12 +109,12 @@ def metadata_df():
 
 
 def check_dimensionality_reduction_output(
-    out_df: pd.DataFrame, orig_df: pd.DataFrame, n_components: int
+    out_df: pd.DataFrame, orig_df: pd.DataFrame, n_components: int, value: str = "Sample"
 ):
     assert (
-        out_df.shape == (orig_df["Sample"].nunique(), n_components + 1)
-        and out_df["Sample"].sort_values().tolist()
-        == sorted(orig_df["Sample"].unique())
+        out_df.shape == (orig_df[value].nunique(), n_components + 1)
+        and out_df[value].sort_values().tolist()
+        == sorted(orig_df[value].unique())
         and all(
             (
                 pd.api.types.is_numeric_dtype(out_df[f"Component{i + 1}"])
