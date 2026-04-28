@@ -391,6 +391,16 @@ def test_differential_expression_t_test_with_log_data(show_figures):
 
 
 def test_differential_expression_t_test_with_silac_ratios():
+    """
+    SILAC ratio data contains NaN values in both groups.
+    nan_policy='omit' tells scipy to drop NaN before the t-test, yielding a valid p-value.
+
+    Group1 ratios: [1.2, NaN, 1.1]  →  omit NaN for t-test: [1.2, 1.1]
+    Group2 ratios: [0.8, 0.9, NaN]  →  omit NaN for t-test: [0.8, 0.9]
+
+    NOTE: Fold change uses np.median() (not np.nanmedian()), so NaN in either group
+    causes the fold change itself to be NaN. Only the p-value is reliable here.
+    """
     silac_ratio_df = pd.DataFrame(
         data=[
             ["Sample1", "Protein1", "Gene1", 1.2],
@@ -425,18 +435,18 @@ def test_differential_expression_t_test_with_silac_ratios():
         log_base="None",
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
-        omit_nans=True,
+        nan_policy="omit",
     )
 
+    # Protein1 IS included because scipy returned a valid p-value after omitting NaN.
     assert not out[DataKey.CORRECTED_P_VALUES_DF].empty
     assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == ["Protein1"]
     assert (
         round(out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"].iloc[0], 4)
         == 0.0513
     )
-    assert (
-        round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 2) == -0.44
-    )
+    # Fold change is NaN because np.median([1.2, NaN, 1.1]) = NaN (not nanmedian).
+    assert np.isnan(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0])
 
 
 @pytest.fixture
@@ -467,10 +477,92 @@ def nan_intensity_data():
     return protein_df, metadata_df
 
 
-def test_differential_expression_t_test_omit_nans(nan_intensity_data):
-    """NaN values in intensity data are always dropped before the t-test.
-    The result should be the same for both omit_nans=True and omit_nans=False,
-    and both Welch's and Student's t-test types should succeed.
+@pytest.fixture
+def nan_intensity_data_insufficient_after_omit():
+    """
+    Intensity data where each group has exactly 2 samples, one of which is NaN.
+
+    After nan_policy='omit' drops the NaN, each group is left with only 1 valid
+    sample — insufficient for a two-sample t-test. scipy returns NaN for both
+    t-statistic and p-value in this degenerate case.
+
+        Group1: [18.0, NaN]  →  after omit: [18.0]  (1 sample, variance undefined)
+        Group2: [8.0,  NaN]  →  after omit: [8.0]   (1 sample, variance undefined)
+    """
+    protein_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", 18.0],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", 8.0],
+            ["Sample4", "Protein1", "Gene1", np.nan],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+    metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group2"],
+            ["Sample4", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+    return protein_df, metadata_df
+
+
+def test_t_test_nan_policy_omit_raises_nan_when_too_few_samples_remain(
+    nan_intensity_data_insufficient_after_omit,
+):
+    """
+    nan_policy='omit' with only 2 samples per group where 1 is NaN:
+    after omission only 1 valid sample remains per group, which is insufficient
+    for a t-test. scipy returns NaN for the p-value, so the protein is excluded
+    and the function signals the problem via INVALID_PROTEINGROUP_DATA_MSG.
+
+        Group1: [18.0, NaN]  →  after omit: [18.0]  →  p = NaN  →  protein excluded
+        Group2: [8.0,  NaN]  →  after omit: [8.0]
+    """
+    protein_df, metadata_df = nan_intensity_data_insufficient_after_omit
+
+    out = t_test(
+        protein_df=protein_df,
+        metadata_df=metadata_df,
+        ttest_type="Welch's t-Test",
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        log_base="None",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        nan_policy="omit",
+    )
+
+    # No valid p-value could be computed → protein is excluded from all result dataframes.
+    assert out[DataKey.CORRECTED_P_VALUES_DF].empty
+    assert out[DataKey.LOG2_FOLD_CHANGE_DF].empty
+
+    # The function should report that insufficient data was found.
+    from backend.protzilla.data_analysis.differential_expression_helper import (
+        INVALID_PROTEINGROUP_DATA_MSG,
+    )
+
+    assert any(message == INVALID_PROTEINGROUP_DATA_MSG for message in out["messages"])
+
+
+def test_t_test_nan_policy_omit_skips_nan_samples_and_computes_result(
+    nan_intensity_data,
+):
+    """
+    nan_policy='omit': NaN samples are silently dropped before the t-test runs,
+    so scipy returns a valid p-value and the protein is kept in the results.
+
+    Data layout (nan_intensity_data fixture):
+        Group1: [18.0, NaN, 22.0]  →  after omitting NaN: [18.0, 22.0]  →  valid p-value
+        Group2: [8.0, 10.0, 12.0]  →  no NaNs
+
+    NOTE: The fold change is computed with np.median() (not np.nanmedian()), so a NaN
+    in the raw group data causes the fold change to be NaN even under 'omit' policy.
+    This is a known limitation of the current implementation.
     """
     protein_df, metadata_df = nan_intensity_data
     common_kwargs = dict(
@@ -482,23 +574,77 @@ def test_differential_expression_t_test_omit_nans(nan_intensity_data):
         log_base="None",
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
+        nan_policy="omit",
     )
 
-    for omit_nans in [True, False]:
-        for ttest_type in ["Welch's t-Test", "Student's t-Test"]:
-            out = t_test(ttest_type=ttest_type, omit_nans=omit_nans, **common_kwargs)
-            assert not out[
-                DataKey.CORRECTED_P_VALUES_DF
-            ].empty, f"ttest_type={ttest_type}, omit_nans={omit_nans}: expected a result but got empty df"
-            assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == [
-                "Protein1"
-            ]
-            # Group1 valid after dropna: [18, 22] → median 20; Group2: [8, 10, 12] → median 10
-            # log2(10/20) = -1.0
-            assert (
-                round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 1)
-                == -1.0
-            )
+    for ttest_type in ["Welch's t-Test", "Student's t-Test"]:
+        out = t_test(ttest_type=ttest_type, **common_kwargs)
+        # The protein IS included because scipy found a valid p-value after omitting NaN.
+        assert not out[
+            DataKey.CORRECTED_P_VALUES_DF
+        ].empty, f"ttest_type={ttest_type}: Protein1 should be included after NaN samples are omitted"
+        assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == ["Protein1"]
+        # Fold change is NaN because np.median([18.0, NaN, 22.0]) = NaN (not nanmedian).
+        assert np.isnan(
+            out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0]
+        ), f"ttest_type={ttest_type}: expected NaN fold change (median does not skip NaN)"
+
+
+def test_t_test_nan_policy_propagate_excludes_protein_with_any_nan(nan_intensity_data):
+    """
+    nan_policy='propagate': a NaN anywhere in a group causes the t-test to return NaN
+    for that protein. The protein is then excluded from the output entirely.
+
+    Data layout (nan_intensity_data fixture):
+        Group1: [18.0, NaN, 22.0]  →  one NaN → t-test returns p = NaN → Protein1 excluded
+        Group2: [8.0, 10.0, 12.0]  →  (no NaNs, but NaN from Group1 already propagated)
+
+    Expected: corrected_p_values_df is empty because no protein produced a valid p-value.
+    """
+    protein_df, metadata_df = nan_intensity_data
+
+    out = t_test(
+        protein_df=protein_df,
+        metadata_df=metadata_df,
+        ttest_type="Welch's t-Test",
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        log_base="None",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+        nan_policy="propagate",
+    )
+
+    assert out[
+        DataKey.CORRECTED_P_VALUES_DF
+    ].empty, "Protein1 should be excluded because the NaN in Group1 propagated to the p-value"
+
+
+def test_t_test_nan_policy_raise_errors_when_nan_is_present(nan_intensity_data):
+    """
+    nan_policy='raise': a ValueError is raised immediately when any NaN value is
+    detected in the input data. Use this policy to treat NaN as a hard error that
+    must be resolved before running the analysis.
+
+    Data layout (nan_intensity_data fixture):
+        Group1: [18.0, NaN, 22.0]  →  NaN is present → ValueError is raised
+    """
+    protein_df, metadata_df = nan_intensity_data
+
+    with pytest.raises(ValueError):
+        t_test(
+            protein_df=protein_df,
+            metadata_df=metadata_df,
+            ttest_type="Welch's t-Test",
+            grouping="Group",
+            group1="Group1",
+            group2="Group2",
+            log_base="None",
+            multiple_testing_correction_method="Benjamini-Hochberg",
+            alpha=0.05,
+            nan_policy="raise",
+        )
 
 
 def test_differential_expression_anova(show_figures):
@@ -960,6 +1106,9 @@ def test_differential_expression_t_test_empty_p_values():
         columns=["Sample", "Group"],
     )
 
+    # nan_policy="propagate": all intensities are NaN → every protein's p-value is NaN
+    # → no valid protein groups → function returns empty dataframes + error message.
+    # (nan_policy="raise" would crash immediately; "omit" would leave empty groups → same NaN result)
     current_out = t_test(
         protein_df=test_intensity_df,
         metadata_df=test_metadata_df,
@@ -970,6 +1119,7 @@ def test_differential_expression_t_test_empty_p_values():
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
         log_base="None",
+        nan_policy="propagate",
     )
 
     # Check that all dataframes are empty but with correct columns
