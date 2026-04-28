@@ -48,7 +48,9 @@ def ptms_per_protein_and_sample(psm_df: pd.DataFrame) -> dict:
     modification_df = modification_df[["Sample", "Protein ID", "Modifications"]]
 
     modification_df = (
-        long_to_wide(modification_df, "Modifications").fillna("").reset_index()
+        long_to_wide(modification_df, value_name="Modifications")
+        .fillna("")
+        .reset_index()
     )
 
     return dict(ptm_df=modification_df)
