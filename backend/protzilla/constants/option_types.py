@@ -59,6 +59,10 @@ class PValueColumnName(StrEnum):
     protein_id = "Protein ID"
     ptm = "PTM"
 
+class NanPolicy(StrEnum):
+    propagate = "Propagate"
+    omit = "Omit"
+    raise_ = "Raise"
 
 FC_SIGNIFICANCE_COLUMNS = ["Protein ID", "fc_z_score", "fc_significance"]
 CORRECTED_P_VALUES_COLUMNS = [
