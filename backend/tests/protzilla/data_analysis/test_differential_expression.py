@@ -425,6 +425,7 @@ def test_differential_expression_t_test_with_silac_ratios():
         log_base="None",
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=0.05,
+        omit_nans=True,
     )
 
     assert not out[DataKey.CORRECTED_P_VALUES_DF].empty
@@ -436,6 +437,68 @@ def test_differential_expression_t_test_with_silac_ratios():
     assert (
         round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 2) == -0.44
     )
+
+
+@pytest.fixture
+def nan_intensity_data():
+    """Intensity data where one sample per group contains a NaN value."""
+    protein_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Protein1", "Gene1", 18.0],
+            ["Sample2", "Protein1", "Gene1", np.nan],
+            ["Sample3", "Protein1", "Gene1", 22.0],
+            ["Sample4", "Protein1", "Gene1", 8.0],
+            ["Sample5", "Protein1", "Gene1", 10.0],
+            ["Sample6", "Protein1", "Gene1", 12.0],
+        ],
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+    metadata_df = pd.DataFrame(
+        data=[
+            ["Sample1", "Group1"],
+            ["Sample2", "Group1"],
+            ["Sample3", "Group1"],
+            ["Sample4", "Group2"],
+            ["Sample5", "Group2"],
+            ["Sample6", "Group2"],
+        ],
+        columns=["Sample", "Group"],
+    )
+    return protein_df, metadata_df
+
+
+def test_differential_expression_t_test_omit_nans(nan_intensity_data):
+    """NaN values in intensity data are always dropped before the t-test.
+    The result should be the same for both omit_nans=True and omit_nans=False,
+    and both Welch's and Student's t-test types should succeed.
+    """
+    protein_df, metadata_df = nan_intensity_data
+    common_kwargs = dict(
+        protein_df=protein_df,
+        metadata_df=metadata_df,
+        grouping="Group",
+        group1="Group1",
+        group2="Group2",
+        log_base="None",
+        multiple_testing_correction_method="Benjamini-Hochberg",
+        alpha=0.05,
+    )
+
+    for omit_nans in [True, False]:
+        for ttest_type in ["Welch's t-Test", "Student's t-Test"]:
+            out = t_test(ttest_type=ttest_type, omit_nans=omit_nans, **common_kwargs)
+            assert not out[
+                DataKey.CORRECTED_P_VALUES_DF
+            ].empty, f"ttest_type={ttest_type}, omit_nans={omit_nans}: expected a result but got empty df"
+            assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == [
+                "Protein1"
+            ]
+            # Group1 valid after dropna: [18, 22] → median 20; Group2: [8, 10, 12] → median 10
+            # log2(10/20) = -1.0
+            assert (
+                round(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0], 1)
+                == -1.0
+            )
 
 
 def test_differential_expression_anova(show_figures):

@@ -134,7 +134,7 @@ def t_test(
             group1_intensities,
             group2_intensities,
             equal_var=(ttest_type == "Student's t-Test"),
-            nan_policy="omit" if omit_nans else "propagate"
+            nan_policy="omit" if omit_nans else "propagate",
         )
 
         if not np.isnan(p):
