@@ -419,6 +419,11 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                     label="Fold-change Z-score significance",
                     value=False,
                 ),
+                CheckboxField(
+                    name="omit_nans",
+                    label="Omit NaN values",
+                    value=False,
+                ),
                 FloatField(
                     name="fc_zscore_alpha",
                     label="Z-score tail cutoff",

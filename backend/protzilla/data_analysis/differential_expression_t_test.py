@@ -40,6 +40,7 @@ def t_test(
     log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
+    omit_nans: bool = False,
 ) -> dict:
     """
     A function to conduct a two sample t-test between groups defined in the
@@ -56,6 +57,7 @@ def t_test(
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
     :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
     :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
+    :param omit_nans: If True, NaNs will be omitted when performing the calculation, defaults to False.
 
     :return: a dict containing
         - a df differentially_expressed_proteins_df in typical protzilla long format containing the t-test results
@@ -132,6 +134,7 @@ def t_test(
             group1_intensities,
             group2_intensities,
             equal_var=(ttest_type == "Student's t-Test"),
+            nan_policy="omit" if omit_nans else "propagate"
         )
 
         if not np.isnan(p):
