@@ -62,9 +62,11 @@ def t_sne(
     """
 
     input_df = protein_df
-    columns = 'Protein ID' if value == 'Sample' else 'Sample'
+    columns = "Protein ID" if value == "Sample" else "Sample"
     intensity_df_wide = (
-        long_to_wide(input_df, index=value, columns=columns) if is_long_format(input_df) else input_df.copy()
+        long_to_wide(input_df, index=value, columns=columns)
+        if is_long_format(input_df)
+        else input_df.copy()
     )
     if intensity_df_wide.isnull().sum().any():
         raise ValueError(
@@ -161,8 +163,12 @@ def umap(
 
     input_df = protein_df
 
-    columns = 'Protein ID' if value == 'Sample' else 'Sample'
-    intensity_df_wide = long_to_wide(input_df, index=value, columns=columns) if is_long_format(input_df) else input_df
+    columns = "Protein ID" if value == "Sample" else "Sample"
+    intensity_df_wide = (
+        long_to_wide(input_df, index=value, columns=columns)
+        if is_long_format(input_df)
+        else input_df
+    )
     if intensity_df_wide.isnull().sum().any():
         raise ValueError(
             "UMAP does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "

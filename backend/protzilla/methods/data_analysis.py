@@ -212,6 +212,7 @@ class DimensionReductionMetric(Enum):
     manhattan = "manhattan"
     cosine = "cosine"
 
+
 class DimensionReductionValue(Enum):
     sample = "Sample"
     protein = "Protein ID"
