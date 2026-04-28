@@ -90,6 +90,16 @@ def test_transform_long_to_wide(transform_df_long, transform_df_wide):
     pd.testing.assert_frame_equal(long_to_wide(transform_df_long), transform_df_wide)
 
 
+def test_transform_long_to_wide_protein_id_as_index(
+    transform_df_long, transform_df_wide
+):
+    result = long_to_wide(transform_df_long, index="Protein ID", columns="Sample")
+    expected = transform_df_wide.T
+    expected.index.name = "Protein ID"
+    expected.columns.name = "Sample"
+    pd.testing.assert_frame_equal(result, expected)
+
+
 def test_transform_long_to_wide_to_long(
     transform_df_long, transform_df_wide, transform_df_long_gene_name_provider
 ):
