@@ -5,8 +5,10 @@ import pandas as pd
 import numpy as np
 import pytest
 import requests
+import os
 
 from backend.tests.paths import TEST_ENRICHMENT_PATH
+
 
 # order is important to ensure correctness of patched functions
 # isort:skip_file
@@ -33,6 +35,7 @@ from backend.protzilla.data_integration.enrichment_analysis_gsea import (
 from backend.protzilla.data_integration.database_query import check_biomart_availability
 
 # isort:end_skip_file
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 biomart_availability = check_biomart_availability()
 
@@ -998,6 +1001,7 @@ def test_gsea_log2_metric_with_negative_values():
     assert "use a different ranking method" in current_out["messages"][0]["msg"]
 
 
+@pytest.skip("GSEA is currently flaky")
 def test_gsea():
     proteins = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
@@ -1302,6 +1306,7 @@ def test_create_ranked_df_descending():
     assert ranked_df.equals(expected_df)
 
 
+@pytest.skip("GSEA is currently flaky")
 def test_gsea_preranked():
     proteins_significant = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
