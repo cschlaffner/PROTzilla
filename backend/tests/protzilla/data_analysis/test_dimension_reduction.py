@@ -169,8 +169,8 @@ def test_tsne_nan_handling(df_with_nan):
 def test_tsne_perplexity(dimension_reduction_df):
     with pytest.raises(
         ValueError,
-        match="Perplexity must be less than the number of samples. In the selected dataframe there "
-        f"is {dimension_reduction_df['Sample'].nunique()} samples",
+        match="Perplexity must be less than the number of Samples. In the selected dataframe there "
+        f"are {dimension_reduction_df['Sample'].nunique()} Samples",
     ):
         _ = t_sne(
             dimension_reduction_df,
