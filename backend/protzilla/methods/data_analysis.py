@@ -212,6 +212,10 @@ class DimensionReductionMetric(Enum):
     manhattan = "manhattan"
     cosine = "cosine"
 
+class DimensionReductionValue(Enum):
+    protein = "Protein ID"
+    sample = "Sample"
+
 
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
@@ -1993,6 +1997,11 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     label="Distance metric",
                     options=DimensionReductionMetric,
                 ),
+                DropdownField(
+                    name="value",
+                    label="Values for dimension reduction",
+                    options=DimensionReductionValue,
+                ),
                 NumberField(
                     name="random_state",
                     label="Seed for random number generation",
@@ -2064,6 +2073,11 @@ class DimensionReductionUMAP(DataAnalysisStep):
                     name="metric",
                     label="Distance metric",
                     options=DimensionReductionMetric,
+                ),
+                DropdownField(
+                    name="value",
+                    label="Values for dimension reduction",
+                    options=DimensionReductionValue,
                 ),
                 NumberField(
                     name="random_state",
