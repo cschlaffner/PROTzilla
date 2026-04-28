@@ -5,6 +5,7 @@ from backend.protzilla.constants.option_types import (
     SimpleImputerStrategyType,
 )
 from backend.protzilla.constants.data_types import ClassificationType
+from backend.tests.protzilla.data_analysis.test_protein_coverage import metadata_df
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -367,8 +368,11 @@ def clustergram_plot(
 def prot_quant_plot(
     protein_df: pd.DataFrame,
     protein_group: str,
+    metadata_df: pd.DataFrame,
     similarity: float = 1.0,
     similarity_measure: str = "euclidean distance",
+    metadata_column: str = "Group",
+    second_column: str | None = None,
 ) -> dict:
     """
     A function to create a graph visualising protein quantifications across all samples
@@ -385,11 +389,29 @@ def prot_quant_plot(
     :param similarity: similarity score of the chosen similarity measurement method.
     :return: returns a dictionary containing a list with a plotly figure
     """
+    if metadata_column not in metadata_df.columns:
+        raise ValueError(
+            f"Column '{metadata_column}' not found in metadata. "
+            f"Available columns: {list(metadata_df.columns)}"
+        )
 
+    # New check
+    if second_column and second_column == metadata_column:
+        raise ValueError(
+            f"The grouping column and the ordering column must be different "
+            f"(both are set to '{metadata_column}'). "
+            f"Either pick a different column for ordering, or leave the ordering field empty."
+        )
+
+    if second_column and second_column not in metadata_df.columns:
+        raise ValueError(
+            f"Column '{second_column}' not found in metadata. "
+            f"Available columns: {list(metadata_df.columns)}"
+        )
     protein_wide_df = (
         long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     )
-
+    metadata_column = "Group"
     if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")
     elif similarity_measure == "euclidean distance" and similarity < 0:
@@ -402,12 +424,67 @@ def prot_quant_plot(
         raise ValueError("Similarity for cosine similarity should be between -1 and 1")
 
     fig = go.Figure()
+# Drop NaNs and preserve order of first appearance
+    unique = metadata_df[metadata_column].dropna().unique()
+
+    if len(unique) == 0:
+        raise ValueError(
+            f"Metadata column '{metadata_column}' contains no valid group values."
+        )
+
+    # Map each group to a color, cycling through the palette if needed
+# Primary + secondary anchors first, then the rest of the sequence (skipping duplicates)
+    palette = [
+        PLOT_PRIMARY_COLOR,
+        PLOT_COLOR_SEQUENCE[2],
+       PLOT_COLOR_SEQUENCE[3],
+       PLOT_COLOR_SEQUENCE[4]
+    ]
 
     color_mapping = {
-        "A": PLOT_PRIMARY_COLOR,
-        "C": PLOT_COLOR_SEQUENCE[2],
+        group: palette[i % len(palette)] for i, group in enumerate(unique)
     }
+    sample_to_group = dict(zip(metadata_df["Sample"], metadata_df[metadata_column]))
 
+    sample_to_time = (
+        dict(zip(metadata_df["Sample"], metadata_df[second_column]))
+        if second_column else {}
+    )
+
+    def time_key(s):
+        """Secondary sort key: numeric if possible, else string; missing values go last."""
+        t = sample_to_time.get(s)
+        if t is None or (isinstance(t, float) and pd.isna(t)):
+            return (1, 0.0, "")
+        try:
+            return (0, float(t), "")
+        except (ValueError, TypeError):
+            return (0, 0.0, str(t))
+
+    import re
+
+    def natural_key(s):
+        # splits "P10" → ("P", 10), "P3" → ("P", 3), so digits sort numerically
+        return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", str(s))]
+
+    group_order = {group: i for i, group in enumerate(unique)}
+
+    protein_wide_df = protein_wide_df.reindex(
+        sorted(
+            protein_wide_df.index,
+            key=lambda s: (
+                group_order.get(sample_to_group.get(s), len(group_order)),
+                time_key(s) if second_column else natural_key(s),
+                s,
+            ),
+        )
+    )
+    # Find positions where the group changes — these are the boundaries
+    ordered_groups = [sample_to_group.get(s) for s in protein_wide_df.index]
+    boundary_indices = [
+        i for i in range(1, len(ordered_groups))
+        if ordered_groups[i] != ordered_groups[i - 1]
+    ]
     lower_upper_x = []
     lower_upper_y = []
 
@@ -488,25 +565,16 @@ def prot_quant_plot(
         )
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color=color_mapping.get("A")),
-            name="Experimental Group",
+    for group in unique:
+        fig.add_trace(
+            go.Scatter(
+                x=[None],
+                y=[None],
+                mode="markers",
+                marker=dict(color=color_mapping[group]),
+                name=f"{group} Group",
+            )
         )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color=color_mapping.get("C")),
-            name="Control Group",
-        )
-    )
 
     fig.update_layout(
         title=f"Intensity of {formatted_protein_name} in all samples",
@@ -522,10 +590,10 @@ def prot_quant_plot(
             tickmode="array",
             tickangle=0,
             tickvals=protein_wide_df.index,
-            ticktext=[
-                f"<span style='font-size: 10px; color:{color_mapping.get(label[0], 'black')}'><b>•</b></span>"
-                for label in protein_wide_df.index
-            ],
+        ticktext=[
+            f"<span style='font-size: 10px; color:{color_mapping.get(sample_to_group.get(label), 'black')}'><b>•</b></span>"
+            for label in protein_wide_df.index
+        ],
         ),
         autosize=True,
         margin=dict(l=100, r=300, t=100, b=100),
@@ -536,7 +604,24 @@ def prot_quant_plot(
             orientation="v",
         ),
     )
+    for i in boundary_indices:
+        # Place the line halfway between sample i-1 and sample i
+        fig.add_vline(
+            x=i - 0.5,
+            line=dict(color="gray", dash="dash", width=1),
+        )
+    if second_column:
+    ordered_groups = [sample_to_group.get(s) for s in protein_wide_df.index]
+    ordered_second = [sample_to_second.get(s) for s in protein_wide_df.index]
 
+    for i in range(1, len(protein_wide_df.index)):
+        same_group = ordered_groups[i] == ordered_groups[i - 1]
+        second_changed = ordered_second[i] != ordered_second[i - 1]
+        if same_group and second_changed:
+            fig.add_vline(
+                x=i - 0.5,
+                line=dict(color="lightgray", dash="dot", width=1),
+            )
     return dict(plots=[fig])
 
 

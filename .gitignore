@@ -116,3 +116,6 @@ dmypy.json
 
 /src/
 
+backend/user_data/example_dataset/meta_nan.csv
+backend/user_data/example_dataset/meta.csv
+backend/user_data/example_dataset/meta.csv

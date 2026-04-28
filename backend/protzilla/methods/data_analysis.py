@@ -1019,6 +1019,14 @@ class PlotProtQuant(DataAnalysisPlotStep):
             label="Protein Quantification Plot",
             input_fields=[
                 DropdownField(
+                name="metadata_column",
+                label="Metadata column used to group and order samples",
+                ),
+                DropdownField(
+                    name="second_column",
+                    label="Metadata column used to order samples within each group (e.g. timepoint, optional)",
+                ),
+                DropdownField(
                     name="protein_group",
                     label="Protein group: choose highlighted protein group",
                 ),
@@ -1042,10 +1050,21 @@ class PlotProtQuant(DataAnalysisPlotStep):
 
     @override
     def modify_form(self, run: Run) -> None:
+        # Populate metadata_column dropdown from the metadata dataframe's columns
+        metadata_source, source_handle = self.input_source(run.steps, DataKey.METADATA_DF)
+        if metadata_source is not None and source_handle is not None:
+            choices = form_helper.get_choices_for_metadata(
+                run,
+                instance_identifier=metadata_source,
+                include_sample=False,
+                output_key=source_handle,
+            )
+            for field_name in ("metadata_column", "second_column"):
+                self.form[field_name].set_options(choices)
+
         self.set_protein_ids_options(
             run, protein_ids_field_name="protein_group", input_key=DataKey.PROTEIN_DF
         )
-
         if (
             self.form["similarity_measure"].value
             == SimilarityMeasure.cosine_similarity.value
