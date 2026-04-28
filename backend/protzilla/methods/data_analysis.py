@@ -213,8 +213,8 @@ class DimensionReductionMetric(Enum):
     cosine = "cosine"
 
 class DimensionReductionValue(Enum):
-    protein = "Protein ID"
     sample = "Sample"
+    protein = "Protein ID"
 
 
 class DataAnalysisStep(Step, ABC):
