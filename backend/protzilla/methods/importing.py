@@ -53,14 +53,9 @@ class ImportingStep(Step, ABC):
 
     def modify_form(self, run: Run):
         if run.steps.current_step.calculation_status == "complete":
-            self.form.input_fields[self.index_of_file_input()].value = None
-
-    def index_of_file_input(self):
-        """
-        Returns the index of the FileInput that should be reset by modify_form. This method
-        must be overridden if the FileInput is not index 0.
-        """
-        return 0
+            for field in self.form.input_fields:
+                if isinstance(field, FileInput):
+                    field.value = None
 
 
 class ArbitraryCSVImport(ImportingStep):
