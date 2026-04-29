@@ -8,6 +8,7 @@ _forward_mapping: list[Step] = [
     importing.ArbitraryCSVImport,
     importing.DiannImport,
     importing.MaxQuantImport,
+    importing.MSGFPlusImport,
     importing.MsFraggerImport,
     importing.MetadataImport,
     importing.MetadataColumnAssignment,

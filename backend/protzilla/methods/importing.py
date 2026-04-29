@@ -21,6 +21,7 @@ from backend.protzilla.importing.ms_data_import import (
     diann_import,
     max_quant_import,
     ms_fragger_import,
+    msgf_plus_import,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.run import Run
@@ -120,6 +121,51 @@ class MaxQuantImport(ImportingStep):
         )
 
     calc_method = staticmethod(max_quant_import)
+
+
+class MSGFPlusImport(ImportingStep):
+    display_name = "MS-GF+ results Import"
+    operation = "Protein Data Import"
+    method_description = "Import the result file form from MS-GF+"
+
+    output_keys = [DataKey.PROTEIN_DF]
+
+    def create_form(self):
+        return Form(
+            label="MS-GF+ result Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="MS-GF+ tsv file (result.tsv)",
+                    value=None,
+                    accept=".tsv",
+                ),
+                # DropdownField(
+                #     name="intensity_name",
+                #     label="Intensity parameter",
+                #     value=IntensityType.IBAQ.value,
+                #     options=IntensityType,
+                # ),
+                CheckboxField(
+                    name="ignore_only_identified_by_site",
+                    label="Ignore proteins only identified by site",
+                    value=False,
+                ),
+                CheckboxField(
+                    name="map_to_uniprot",
+                    label="Map to Uniprot IDs using Biomart (online)",
+                    value=False,
+                ),
+                # DropdownField(
+                #     name="aggregation_method",
+                #     label="Aggregation method used to aggregate duplicate values for protein groups",
+                #     value=AggregationMethods.sum.value,
+                #     options=AggregationMethods,
+                # ),
+            ],
+        )
+
+    calc_method = staticmethod(msgf_plus_import)
 
 
 class DiannImport(ImportingStep):

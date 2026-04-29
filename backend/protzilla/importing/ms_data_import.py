@@ -77,6 +77,45 @@ def max_quant_import(
         )
 
 
+def msgf_plus_import(
+    file_path: Path,
+    map_to_uniprot=False,
+    ignore_only_identified_by_site: bool = False,
+) -> dict:
+    """
+    edited copy from max_quant_import to implement msgf+ import, not yet an operational working function
+    """
+    try:
+        df = pd.read_csv(
+            file_path,
+            sep="\t",
+            low_memory=False,
+            na_values=["", 0],
+            keep_default_na=True,
+        )
+        proteins = df["Protein"]
+
+        return transform_and_clean(
+            intensity_df,
+            intensity_name,
+            map_to_uniprot,
+            aggregation_method,
+            ignore_only_identified_by_site,
+        )
+
+    except Exception as e:
+        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid MS-GF+ file."
+        return dict(
+            messages=[
+                dict(
+                    level=logging.ERROR,
+                    msg=msg,
+                    trace=format_trace(traceback.format_exception(e)),
+                )
+            ]
+        )
+
+
 def ms_fragger_import(
     file_path: Path,
     intensity_name: str,
