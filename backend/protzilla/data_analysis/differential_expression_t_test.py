@@ -65,7 +65,8 @@ def vectorized_t_test(
     (unequal-variance, Welch-Satterthwaite df) variants. All array arguments
     must be 1-D arrays of equal length where each element corresponds to one
     protein group. The implementation is equivalent to calling
-    ``scipy.stats.ttest_ind`` per protein but avoids the Python-level loop.
+    ``scipy.stats.ttest_ind`` per protein but avoids the Python-level loop and is much faster
+    because all operations are vectorized.
 
     :param group1_counts: per-protein observation counts for group 1 (float array, ddof excluded)
     :param group2_counts: per-protein observation counts for group 2 (float array, ddof excluded)
@@ -206,7 +207,7 @@ def t_test(
 
     protein_df["id"] = protein_df.groupby(["Protein ID", grouping]).cumcount()
 
-    protein_df_wide = protein_df.pivot(
+    protein_df_wide = protein_df.dropna(subset=[intensity_name]).pivot(
         index=["Protein ID", "id"], columns=grouping, values=intensity_name
     )
 
@@ -218,7 +219,7 @@ def t_test(
         n="count", mean="mean", var="var", median="median"
     )
 
-    valid_mask = (statistics_group1["n"] > 2) & (statistics_group2["n"] > 2)
+    valid_mask = (statistics_group1["n"] >= 2) & (statistics_group2["n"] >= 2)
     if (~valid_mask).any() and not exists_message(
         messages, INVALID_PROTEINGROUP_DATA_MSG
     ):
@@ -322,7 +323,7 @@ def t_test(
         fc_significance_df=ttest_results[FC_SIGNIFICANCE_COLUMNS],
         corrected_alpha=OutputItem(
             output_type=OutputType.FLOAT,
-            value=ttest_results["corrected_alpha"].loc[0],
+            value=float(ttest_results["corrected_alpha"].loc[0]),
         ),
         messages=messages,
     )
