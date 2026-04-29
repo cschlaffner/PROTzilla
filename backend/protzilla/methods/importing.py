@@ -479,6 +479,7 @@ class CrosslinkingImport(ImportingStep):
                     name="file_path",
                     label="Crosslinking Data file (.xlsx or .csv)",
                     value=None,
+                    accept=".xlsx,.csv",
                 ),
                 TextField(
                     name="organism_ids",
@@ -567,26 +568,31 @@ class UploadMultimerPredictions(ImportingStep):
                     name="amino_acid_sequences",
                     label="Amino acid sequences of proteins in the prediction (required)",
                     value=None,
+                    accept=".fasta,.fa,.faa",
                 ),
                 FileInput(
                     name="cif_file",
                     label="CIF file (required)",
                     value=None,
+                    accept=".cif,.mmcif",
                 ),
                 FileInput(
                     name="confidence_file",
                     label="Confidence summary json file (required)",
                     value=None,
+                    accept=".json",
                 ),
                 FileInput(
                     name="full_data_file",
                     label="Full data json file (required)",
                     value=None,
+                    accept=".json",
                 ),
                 FileInput(
                     name="job_request_file",
                     label="Job request json file (required)",
                     value=None,
+                    accept=".json",
                 ),
                 CheckboxField(
                     name="persist_upload",
