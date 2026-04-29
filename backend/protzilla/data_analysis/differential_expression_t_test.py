@@ -78,8 +78,7 @@ def vectorized_t_test(
     """
     if ttest_type == "Student's t-Test":
         pooled_vars = (
-            (group1_counts - 1) * group1_vars
-            + (group2_counts - 1) * group2_vars
+            (group1_counts - 1) * group1_vars + (group2_counts - 1) * group2_vars
         ) / (group1_counts + group2_counts - 2)
         standard_errors = np.sqrt(
             pooled_vars * (1.0 / group1_counts + 1.0 / group2_counts)
@@ -88,9 +87,7 @@ def vectorized_t_test(
     else:
         group1_var_count_ratios = group1_vars / group1_counts
         group2_var_count_ratios = group2_vars / group2_counts
-        standard_errors = np.sqrt(
-            group1_var_count_ratios + group2_var_count_ratios
-        )
+        standard_errors = np.sqrt(group1_var_count_ratios + group2_var_count_ratios)
         degrees_of_freedom = (
             group1_var_count_ratios + group2_var_count_ratios
         ) ** 2 / (
@@ -163,9 +160,7 @@ def t_test(
                 columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
-            corrected_p_values_df=pd.DataFrame(
-                columns=CORRECTED_P_VALUES_COLUMNS
-            ),
+            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
             t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
             log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
             fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
@@ -285,9 +280,7 @@ def t_test(
                 columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
-            corrected_p_values_df=pd.DataFrame(
-                columns=CORRECTED_P_VALUES_COLUMNS
-            ),
+            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
             t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
             log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
             fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
@@ -296,9 +289,7 @@ def t_test(
         )
 
     ttest_results["fc_z_score"], ttest_results["fc_significance"] = (
-        get_z_score_based_fold_change_significance(
-            ttest_results["log2_fold_change"]
-        )
+        get_z_score_based_fold_change_significance(ttest_results["log2_fold_change"])
     )
 
     ttest_results["corrected_p_value"], ttest_results["corrected_alpha"] = (
