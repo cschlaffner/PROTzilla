@@ -1342,7 +1342,9 @@ def test_gsea_preranked(mock_gseapy_prerank):
     mock_res2d = expected_enrichment_df.drop(columns=["Lead_proteins"])
     mock_prerank_result = MagicMock()
     mock_prerank_result.res2d = mock_res2d
-    mock_prerank_result.ranking = expected_ranking  # pd.Series; .to_frame().squeeze() == expected_ranking
+    mock_prerank_result.ranking = (
+        expected_ranking  # pd.Series; .to_frame().squeeze() == expected_ranking
+    )
     mock_gseapy_prerank.return_value = mock_prerank_result
 
     current_out = gsea_preranked(

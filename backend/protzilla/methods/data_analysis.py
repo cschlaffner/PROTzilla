@@ -11,6 +11,7 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import (
     MultipleTestingCorrectionMethod,
     PValueColumnName,
+    NanPolicy,
 )
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -406,6 +407,12 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
                     name="fc_zscore_filter",
                     label="Fold-change Z-score significance",
                     value=False,
+                ),
+                DropdownField(
+                    name="nan_policy",
+                    label="NaN policy",
+                    options=NanPolicy,
+                    value=NanPolicy.raise_,
                 ),
                 FloatField(
                     name="fc_zscore_alpha",

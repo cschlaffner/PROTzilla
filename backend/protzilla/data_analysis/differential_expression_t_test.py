@@ -61,6 +61,7 @@ def t_test(
     log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
+    nan_policy: str = "raise",
 ) -> dict:
     """
     A function to conduct a two sample t-test between groups defined in the
@@ -77,6 +78,7 @@ def t_test(
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
     :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
     :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
+    :param nan_policy: Defines how to handle input NaNs.
 
     :return: a dict containing
         - a df differentially_expressed_proteins_df in typical protzilla long format containing the t-test results
@@ -142,17 +144,13 @@ def t_test(
             intensity_name
         ]
 
-        group1_intensities = group1_intensities.dropna()
-        group2_intensities = group2_intensities.dropna()
-        if len(group1_intensities) < 2 or len(group2_intensities) < 2:
-            if not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
-                messages.append(INVALID_PROTEINGROUP_DATA_MSG)
-            continue
+        
 
         t, p = stats.ttest_ind(
             group1_intensities,
             group2_intensities,
             equal_var=(ttest_type == "Student's t-Test"),
+            nan_policy=nan_policy.lower(),
         )
 
         if not np.isnan(p):
