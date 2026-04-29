@@ -24,10 +24,6 @@ from .differential_expression_helper import (
 )
 
 
-def _is_valid(value):
-    return value != 0 and not np.isnan(value)
-
-
 def get_z_score_based_fold_change_significance(
     fold_changes: pd.Series,
 ) -> tuple[pd.Series, pd.Series]:
@@ -89,11 +85,20 @@ def vectorized_t_test(
         group1_var_count_ratios = group1_vars / group1_counts
         group2_var_count_ratios = group2_vars / group2_counts
         standard_errors = np.sqrt(group1_var_count_ratios + group2_var_count_ratios)
-        degrees_of_freedom = (
-            group1_var_count_ratios + group2_var_count_ratios
-        ) ** 2 / (
-            group1_var_count_ratios**2 / (group1_counts - 1)
-            + group2_var_count_ratios**2 / (group2_counts - 1)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            degrees_of_freedom = (
+                group1_var_count_ratios + group2_var_count_ratios
+            ) ** 2 / (
+                group1_var_count_ratios**2 / (group1_counts - 1)
+                + group2_var_count_ratios**2 / (group2_counts - 1)
+            )
+        # When both variances are 0 the Satterthwaite formula is 0/0=NaN.
+        # Equal variances (both zero) is the equal-variance case, so fall back to Student's df.
+        student_degrees_of_freedom = group1_counts + group2_counts - 2
+        degrees_of_freedom = np.where(
+            np.isnan(degrees_of_freedom),
+            student_degrees_of_freedom,
+            degrees_of_freedom,
         )
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -142,16 +147,7 @@ def t_test(
         - a list messages, containing messages for the user
     """
 
-    assert grouping in metadata_df.columns
-    messages = []
-
-    if ttest_type not in ["Student's t-Test", "Welch's t-Test"]:
-        messages.append(
-            {
-                "level": logging.WARNING,
-                "msg": """t-Test type must be either "Student's t-Test" or "Welch's t-Test".""",
-            }
-        )
+    def empty_result(messages):
         return dict(
             differentially_expressed_proteins_df=pd.DataFrame(
                 columns=protein_df.columns.tolist()
@@ -168,6 +164,18 @@ def t_test(
             corrected_alpha=alpha,
             messages=messages,
         )
+
+    assert grouping in metadata_df.columns
+    messages = []
+
+    if ttest_type not in ["Student's t-Test", "Welch's t-Test"]:
+        messages.append(
+            {
+                "level": logging.WARNING,
+                "msg": """t-Test type must be either "Student's t-Test" or "Welch's t-Test".""",
+            }
+        )
+        return empty_result(messages)
 
     # User input handling
     unique_groups = metadata_df[grouping].unique()
@@ -210,6 +218,15 @@ def t_test(
     protein_df_wide = protein_df.dropna(subset=[intensity_name]).pivot(
         index=["Protein ID", "id"], columns=grouping, values=intensity_name
     )
+
+    if group1 not in protein_df_wide.columns or group2 not in protein_df_wide.columns:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for t-test analysis.",
+            }
+        )
+        return empty_result(messages)
 
     grouped_dfs = protein_df_wide.groupby("Protein ID")
     statistics_group1 = grouped_dfs[group1].agg(
@@ -272,22 +289,7 @@ def t_test(
                 "msg": "No valid protein groups found for t-test analysis.",
             }
         )
-        return dict(
-            differentially_expressed_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist()
-                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
-            ),
-            significant_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist()
-                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
-            ),
-            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
-            t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
-            log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
-            fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
-            corrected_alpha=alpha,
-            messages=messages,
-        )
+        return empty_result(messages)
 
     ttest_results["fc_z_score"], ttest_results["fc_significance"] = (
         get_z_score_based_fold_change_significance(ttest_results["log2_fold_change"])
@@ -323,7 +325,7 @@ def t_test(
         fc_significance_df=ttest_results[FC_SIGNIFICANCE_COLUMNS],
         corrected_alpha=OutputItem(
             output_type=OutputType.FLOAT,
-            value=float(ttest_results["corrected_alpha"].loc[0]),
+            value=float(ttest_results["corrected_alpha"].iloc[0]),
         ),
         messages=messages,
     )
