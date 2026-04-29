@@ -904,6 +904,12 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for coloring",
                 ),
+                DropdownField(
+                    name="sample_name",
+                    label="Choose the column that contains the sample information",
+                    value=DimensionReductionValue.sample.value,
+                    options=DimensionReductionValue,
+                ),
             ],
         )
 
@@ -919,6 +925,7 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                     run,
                     instance_identifier=metadata_source,
                     include_sample=False,
+                    required=False,
                     output_key=source_handle,
                 )
             )
