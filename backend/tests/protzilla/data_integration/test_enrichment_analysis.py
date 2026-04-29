@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import time
 import pandas as pd
@@ -998,7 +998,13 @@ def test_gsea_log2_metric_with_negative_values():
     assert "use a different ranking method" in current_out["messages"][0]["msg"]
 
 
-def test_gsea():
+@patch("gseapy.gsea")
+def test_gsea(mock_gseapy_gsea):
+    """
+    Patch gseapy.gsea so the test does not require a live Enrichr connection.
+    The mock returns the pre-saved expected result, and the test verifies that
+    the function post-processes it correctly (adds Lead_proteins, filters groups, etc.).
+    """
     proteins = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_intensity_df.csv",
         index_col=0,
@@ -1009,6 +1015,14 @@ def test_gsea():
     )
 
     mock_mapping_df = pd.read_csv(TEST_ENRICHMENT_PATH / "gene_mapping.csv")
+
+    # Build the mock gseapy result from the pre-saved expected data.
+    # Lead_proteins is not part of gseapy's output — the function adds it afterwards.
+    mock_res2d = expected_enrichment_df.drop(columns=["Lead_proteins"])
+    mock_gsea_result = MagicMock()
+    mock_gsea_result.res2d = mock_res2d
+    mock_gsea_result.ranking = pd.Series(dtype=float, name="ranking")
+    mock_gseapy_gsea.return_value = mock_gsea_result
 
     current_out = gsea(
         protein_df=proteins,
@@ -1302,7 +1316,13 @@ def test_create_ranked_df_descending():
     assert ranked_df.equals(expected_df)
 
 
-def test_gsea_preranked():
+@patch("gseapy.prerank")
+def test_gsea_preranked(mock_gseapy_prerank):
+    """
+    Patch gseapy.prerank so the test does not require a live Enrichr connection.
+    The mock returns the pre-saved expected result, and the test verifies that
+    the function post-processes it correctly (adds Lead_proteins, filters groups, etc.).
+    """
     proteins_significant = pd.read_csv(
         TEST_ENRICHMENT_PATH / "input-t_test-significant_proteins_pvalues_df.csv",
         index_col=0,
@@ -1316,6 +1336,14 @@ def test_gsea_preranked():
     )
 
     mock_mapping_df = pd.read_csv(TEST_ENRICHMENT_PATH / "gene_mapping.csv")
+
+    # Build the mock gseapy result from the pre-saved expected data.
+    # Lead_proteins is not part of gseapy's output — the function adds it afterwards.
+    mock_res2d = expected_enrichment_df.drop(columns=["Lead_proteins"])
+    mock_prerank_result = MagicMock()
+    mock_prerank_result.res2d = mock_res2d
+    mock_prerank_result.ranking = expected_ranking  # pd.Series; .to_frame().squeeze() == expected_ranking
+    mock_gseapy_prerank.return_value = mock_prerank_result
 
     current_out = gsea_preranked(
         protein_df=proteins_significant,
