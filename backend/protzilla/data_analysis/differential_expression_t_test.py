@@ -127,55 +127,74 @@ def t_test(
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
-    proteins = protein_df["Protein ID"].unique()
-    p_values = []
-    valid_protein_groups = []
-    log2_fold_changes = []
-    t_statistic = []
-    fc_significance_df = pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS)
-    for protein in proteins:
-        single_protein_df = protein_df[protein_df["Protein ID"] == protein]
-        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][
-            intensity_name
-        ]
-        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][
-            intensity_name
-        ]
+    protein_df["id"] = protein_df.groupby(["Protein ID", grouping]).cumcount()
 
-        group1_intensities = group1_intensities.dropna()
-        group2_intensities = group2_intensities.dropna()
-        if len(group1_intensities) < 2 or len(group2_intensities) < 2:
-            if not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
-                messages.append(INVALID_PROTEINGROUP_DATA_MSG)
-            continue
+    protein_df_wide = protein_df.pivot(
+        index=["Protein ID", "id"], columns=grouping, values=intensity_name
+    )
 
-        t, p = stats.ttest_ind(
-            group1_intensities,
-            group2_intensities,
-            equal_var=(ttest_type == "Student's t-Test"),
+    grp = protein_df_wide.groupby("Protein ID")
+    stats_g1 = grp[group1].agg(
+        n="count", mean="mean", var="var", median="median"
+    )
+    stats_g2 = grp[group2].agg(
+        n="count", mean="mean", var="var", median="median"
+    )
+
+    valid_mask = (stats_g1["n"] > 2) & (stats_g2["n"] > 2)
+    if (~valid_mask).any() and not exists_message(
+        messages, INVALID_PROTEINGROUP_DATA_MSG
+    ):
+        messages.append(INVALID_PROTEINGROUP_DATA_MSG)
+
+    vg1 = stats_g1[valid_mask]
+    vg2 = stats_g2[valid_mask]
+
+    n1_arr = vg1["n"].to_numpy(dtype=float)
+    n2_arr = vg2["n"].to_numpy(dtype=float)
+    mean1_arr = vg1["mean"].to_numpy()
+    mean2_arr = vg2["mean"].to_numpy()
+    var1_arr = vg1["var"].to_numpy()
+    var2_arr = vg2["var"].to_numpy()
+
+    if ttest_type == "Student's t-Test":
+        pooled_var = ((n1_arr - 1) * var1_arr + (n2_arr - 1) * var2_arr) / (
+            n1_arr + n2_arr - 2
+        )
+        se = np.sqrt(pooled_var * (1.0 / n1_arr + 1.0 / n2_arr))
+        df_arr = n1_arr + n2_arr - 2
+    else:
+        vn1 = var1_arr / n1_arr
+        vn2 = var2_arr / n2_arr
+        se = np.sqrt(vn1 + vn2)
+        df_arr = (vn1 + vn2) ** 2 / (
+            vn1**2 / (n1_arr - 1) + vn2**2 / (n2_arr - 1)
         )
 
-        if not np.isnan(p):
-            if log_base:
-                log2_fold_change = (
-                    np.median(group2_intensities) - np.median(group1_intensities)
-                ) * np.log2(log_base)
-            else:
-                log2_fold_change = np.log2(
-                    np.median(group2_intensities) / np.median(group1_intensities)
-                )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t_arr = (mean1_arr - mean2_arr) / se
+        p_arr = 2 * stats.t.sf(np.abs(t_arr), df_arr)
 
-            valid_protein_groups.append(protein)
-            p_values.append(p)
-            t_statistic.append(t)
-            log2_fold_changes.append(log2_fold_change)
-        elif not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
-            messages.append(INVALID_PROTEINGROUP_DATA_MSG)
-        else:
-            # if the protein has a NaN value in a sample, we just skip it
-            pass
+    med1_arr = vg1["median"].to_numpy()
+    med2_arr = vg2["median"].to_numpy()
+    if log_base:
+        fc_arr = (med2_arr - med1_arr) * np.log2(log_base)
+    else:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            fc_arr = np.log2(med2_arr / med1_arr)
 
-    if len(valid_protein_groups) == 0:
+    ttest_results = pd.DataFrame(
+        {
+            "Protein ID": vg1.index,
+            "n1": n1_arr.astype(int),
+            "n2": n2_arr.astype(int),
+            "t_statistic": t_arr,
+            "p_value": p_arr,
+            "log2_fold_change": fc_arr,
+        }
+    ).dropna(subset=["p_value"])
+
+    if len(ttest_results) == 0:
         messages.append(
             {
                 "level": logging.ERROR,
@@ -191,7 +210,9 @@ def t_test(
                 columns=protein_df.columns.tolist()
                 + ["corrected_p_value", "log2_fold_change", "t_statistic"]
             ),
-            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
+            corrected_p_values_df=pd.DataFrame(
+                columns=CORRECTED_P_VALUES_COLUMNS
+            ),
             t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
             log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
             fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
@@ -199,63 +220,43 @@ def t_test(
             messages=messages,
         )
 
-    fc_z_scores, fc_z_p_values = get_z_score_based_fold_change_significance(
-        pd.Series(log2_fold_changes)
+    ttest_results["fc_z_score"], ttest_results["fc_significance"] = (
+        get_z_score_based_fold_change_significance(
+            ttest_results["log2_fold_change"]
+        )
     )
 
-    fc_significance_df = pd.DataFrame(
-        list(zip(valid_protein_groups, fc_z_scores, fc_z_p_values)),
-        columns=FC_SIGNIFICANCE_COLUMNS,
+    ttest_results["corrected_p_value"], ttest_results["corrected_alpha"] = (
+        apply_multiple_testing_correction(
+            p_values=ttest_results["p_value"],
+            method=multiple_testing_correction_method,
+            alpha=alpha,
+        )
     )
 
-    (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
-        p_values=p_values,
-        method=multiple_testing_correction_method,
-        alpha=alpha,
+    differentially_expressed_proteins_df = pd.merge(
+        ttest_results, protein_df, on="Protein ID", how="left"
     )
 
-    corrected_p_values_df = pd.DataFrame(
-        list(zip(valid_protein_groups, corrected_p_values)),
-        columns=CORRECTED_P_VALUES_COLUMNS,
-    )
-    log2_fold_change_df = pd.DataFrame(
-        list(zip(valid_protein_groups, log2_fold_changes)),
-        columns=LOG2_FOLD_CHANGE_COLUMNS,
-    )
-    t_statistic_df = pd.DataFrame(
-        list(zip(valid_protein_groups, t_statistic)),
-        columns=T_STATISTIC_COLUMNS,
+    significant_proteins_df = differentially_expressed_proteins_df.query(
+        "corrected_p_value <= corrected_alpha"
     )
 
-    dataframes = [
-        corrected_p_values_df,
-        log2_fold_change_df,
-        t_statistic_df,
-        fc_significance_df,
-    ]
-
-    for df in dataframes:
-        protein_df = pd.merge(protein_df, df, on="Protein ID", how="left")
-
-    differentially_expressed_proteins_df = protein_df.loc[
-        protein_df["Protein ID"].isin(valid_protein_groups)
-    ]
-
-    significant_proteins_df = differentially_expressed_proteins_df[
-        differentially_expressed_proteins_df["corrected_p_value"] <= corrected_alpha
-    ]
-    if fc_zscore_filter and not fc_significance_df.empty:
-        significant_proteins_df = significant_proteins_df[
-            significant_proteins_df["fc_significance"] <= fc_zscore_alpha
-        ]
+    if fc_zscore_filter:
+        significant_proteins_df = significant_proteins_df.query(
+            "fc_significance <= @fc_zscore_alpha"
+        )
 
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
-        corrected_p_values_df=corrected_p_values_df,
-        t_statistic_df=t_statistic_df,
-        log2_fold_change_df=log2_fold_change_df,
-        fc_significance_df=fc_significance_df,
-        corrected_alpha=OutputItem(output_type=OutputType.FLOAT, value=corrected_alpha),
+        corrected_p_values_df=ttest_results[CORRECTED_P_VALUES_COLUMNS],
+        t_statistic_df=ttest_results[T_STATISTIC_COLUMNS],
+        log2_fold_change_df=ttest_results[LOG2_FOLD_CHANGE_COLUMNS],
+        fc_significance_df=ttest_results[FC_SIGNIFICANCE_COLUMNS],
+        corrected_alpha=OutputItem(
+            output_type=OutputType.FLOAT,
+            value=ttest_results["corrected_alpha"].loc[0],
+        ),
         messages=messages,
     )
