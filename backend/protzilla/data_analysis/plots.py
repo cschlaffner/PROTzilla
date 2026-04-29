@@ -38,6 +38,7 @@ def scatter_plot(
     input_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None = None,
     metadata_column: str | None = None,
+    sample_name: str = "Sample",
 ) -> dict:
     """
     Function to create a scatter plot from data.
@@ -49,6 +50,7 @@ def scatter_plot(
     :param metadata_column: the name of the column in `metadata_df` that contains the
         group information for each sample. This parameter is required if `metadata_df`
         is provided.
+    :param sample_name: the name of the sample column, should be the same name for the input_df and the metadata_df
 
     :return: returns a dictionary containing a list with a plotly figure and/or a list of messages
     """
@@ -58,19 +60,24 @@ def scatter_plot(
                 "The column selected for annotation is not present in the corresponding metadata dataframe.",
             )
 
+    if sample_name not in input_df.columns:
+        raise ValueError(
+            f"The column {sample_name} selected for annotation is not present in the corresponding input dataframe.",
+        )
+
     intensity_df = input_df.copy()
     if isinstance(metadata_df, pd.DataFrame):
         intensity_df = pd.merge(
             intensity_df,
-            metadata_df[["Sample", metadata_column]],
-            on="Sample",
+            metadata_df[[sample_name, metadata_column]],
+            on=sample_name,
             how="left",
         )
     else:
         # Mock a metadata column here so that we can treat dfs with and without metadata the same way
         metadata_column = "mock_metadata_column"
         intensity_df[metadata_column] = None
-    intensity_df = intensity_df.drop(columns="Sample")
+    intensity_df = intensity_df.drop(columns=sample_name)
 
     color_col = (
         metadata_column if intensity_df[metadata_column].notnull().any() else None
