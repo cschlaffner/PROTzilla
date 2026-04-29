@@ -621,8 +621,12 @@ def test_t_test_nan_policy_omit_skips_nan_samples_and_computes_result(
         # dropna() runs before pivot, so medians are from clean data — fold change is valid.
         # Group1 clean=[18.0, 22.0]→median=20.0, Group2=[8.0,10.0,12.0]→median=10.0 → log2(10/20)=-1.0
         fc = out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0]
-        assert not np.isnan(fc), f"ttest_type={ttest_type}: fold change should be valid after NaN rows are omitted"
-        assert round(fc, 1) == -1.0, f"ttest_type={ttest_type}: expected fold change -1.0, got {fc}"
+        assert not np.isnan(
+            fc
+        ), f"ttest_type={ttest_type}: fold change should be valid after NaN rows are omitted"
+        assert (
+            round(fc, 1) == -1.0
+        ), f"ttest_type={ttest_type}: expected fold change -1.0, got {fc}"
 
 
 def test_t_test_nan_policy_propagate_excludes_protein_with_any_nan(nan_intensity_data):
