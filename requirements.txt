@@ -7,7 +7,7 @@ dash-bio==1.0.2
 debugpy==1.8.18
 Django==5.2.8
 django-cors-headers==4.9.0
-gseapy==1.1.10
+gseapy==1.2.1
 isort==7.0.0
 joblib==1.2.0
 kaleido~=0.1
