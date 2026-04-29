@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 import pytest
+from scipy import stats
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_analysis.differential_expression import (
@@ -17,6 +18,7 @@ from backend.protzilla.data_analysis.differential_expression import (
 from backend.protzilla.data_analysis.plots import create_volcano_plot
 from protzilla.data_analysis.differential_expression_t_test import (
     get_z_score_based_fold_change_significance,
+    vectorized_t_test,
 )
 from tests.paths import TEST_AML_DATA_PATH
 
@@ -1448,3 +1450,286 @@ def test_differential_expression_kruskal_wallis_on_ptm_empty_p_values():
         and "No valid ptms found for Kruskal-Wallis test analysis" in message["msg"]
         for message in current_out["messages"]
     )
+
+
+# --- vectorized_t_test unit tests ---
+
+
+def _group_stats(data):
+    """Return (counts, means, vars) for a list of values as float scalars."""
+    a = np.array(data, dtype=float)
+    return float(len(a)), float(np.mean(a)), float(np.var(a, ddof=1))
+
+
+def test_vectorized_t_test_student_matches_scipy():
+    group1_data = [18.0, 20.0, 22.0]
+    group2_data = [8.0, 10.0, 12.0]
+    group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+    group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+
+    t_statistics, p_values = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([group1_means]),
+        np.array([group2_means]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Student's t-Test",
+    )
+
+    expected_t, expected_p = stats.ttest_ind(group1_data, group2_data, equal_var=True)
+    assert round(float(t_statistics[0]), 6) == round(expected_t, 6)
+    assert round(float(p_values[0]), 6) == round(expected_p, 6)
+
+
+def test_vectorized_t_test_welch_matches_scipy():
+    group1_data = [18.0, 20.0, 22.0]
+    group2_data = [8.0, 10.0, 12.0]
+    group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+    group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+
+    t_statistics, p_values = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([group1_means]),
+        np.array([group2_means]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Welch's t-Test",
+    )
+
+    expected_t, expected_p = stats.ttest_ind(group1_data, group2_data, equal_var=False)
+    assert round(float(t_statistics[0]), 6) == round(expected_t, 6)
+    assert round(float(p_values[0]), 6) == round(expected_p, 6)
+
+
+def test_vectorized_t_test_multiple_proteins():
+    proteins = [
+        ([18.0, 20.0, 22.0], [8.0, 10.0, 12.0]),
+        ([1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]),
+        ([100.0, 200.0, 150.0], [99.0, 198.0, 152.0]),
+    ]
+    group1_counts_list, group2_counts_list = [], []
+    group1_means_list, group2_means_list = [], []
+    group1_vars_list, group2_vars_list = [], []
+    expected_t_student, expected_p_student = [], []
+    expected_t_welch, expected_p_welch = [], []
+
+    for group1_data, group2_data in proteins:
+        group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+        group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+        group1_counts_list.append(group1_counts)
+        group2_counts_list.append(group2_counts)
+        group1_means_list.append(group1_means)
+        group2_means_list.append(group2_means)
+        group1_vars_list.append(group1_vars)
+        group2_vars_list.append(group2_vars)
+        et, ep = stats.ttest_ind(group1_data, group2_data, equal_var=True)
+        expected_t_student.append(et)
+        expected_p_student.append(ep)
+        et, ep = stats.ttest_ind(group1_data, group2_data, equal_var=False)
+        expected_t_welch.append(et)
+        expected_p_welch.append(ep)
+
+    t_student, p_student = vectorized_t_test(
+        np.array(group1_counts_list),
+        np.array(group2_counts_list),
+        np.array(group1_means_list),
+        np.array(group2_means_list),
+        np.array(group1_vars_list),
+        np.array(group2_vars_list),
+        "Student's t-Test",
+    )
+    t_welch, p_welch = vectorized_t_test(
+        np.array(group1_counts_list),
+        np.array(group2_counts_list),
+        np.array(group1_means_list),
+        np.array(group2_means_list),
+        np.array(group1_vars_list),
+        np.array(group2_vars_list),
+        "Welch's t-Test",
+    )
+
+    for i in range(len(proteins)):
+        assert round(float(t_student[i]), 6) == round(expected_t_student[i], 6)
+        assert round(float(p_student[i]), 6) == round(expected_p_student[i], 6)
+        assert round(float(t_welch[i]), 6) == round(expected_t_welch[i], 6)
+        assert round(float(p_welch[i]), 6) == round(expected_p_welch[i], 6)
+
+
+def test_vectorized_t_test_identical_means():
+    # When means are equal the t-statistic must be 0 and p-value 1.0
+    group1_counts, group1_means, group1_vars = 5.0, 3.0, 2.0
+    group2_counts, group2_means, group2_vars = 5.0, 3.0, 2.0
+
+    for ttest_type in ["Student's t-Test", "Welch's t-Test"]:
+        t_statistics, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        assert float(t_statistics[0]) == 0.0
+        assert round(float(p_values[0]), 10) == 1.0
+
+
+def test_vectorized_t_test_t_statistic_sign():
+    # group1 > group2 → positive t; group1 < group2 → negative t
+    group1_counts, group2_counts = 5.0, 5.0
+    group1_vars, group2_vars = 1.0, 1.0
+
+    t_pos, _ = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([10.0]),
+        np.array([5.0]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Student's t-Test",
+    )
+    t_neg, _ = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([5.0]),
+        np.array([10.0]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Student's t-Test",
+    )
+    assert float(t_pos[0]) > 0
+    assert float(t_neg[0]) < 0
+    assert round(float(t_pos[0]), 10) == round(-float(t_neg[0]), 10)
+
+
+def test_vectorized_t_test_zero_variance_same_mean_produces_nan():
+    # Both groups are constant and equal → se=0, t=0/0=NaN, p=NaN
+    group1_counts, group1_means, group1_vars = 5.0, 3.0, 0.0
+    group2_counts, group2_means, group2_vars = 5.0, 3.0, 0.0
+
+    for ttest_type in ["Student's t-Test", "Welch's t-Test"]:
+        t_statistics, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        assert np.isnan(float(t_statistics[0]))
+        assert np.isnan(float(p_values[0]))
+
+
+def test_vectorized_t_test_zero_variance_different_mean_produces_inf_t():
+    # Both groups are constant but different means → se=0, t=±inf, p=0
+    group1_counts, group1_means, group1_vars = 5.0, 3.0, 0.0
+    group2_counts, group2_means, group2_vars = 5.0, 7.0, 0.0
+
+    for ttest_type in ["Student's t-Test", "Welch's t-Test"]:
+        t_statistics, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        assert np.isinf(float(t_statistics[0]))
+        assert float(p_values[0]) == 0.0
+
+
+def test_vectorized_t_test_unequal_sample_sizes():
+    group1_data = [1.0, 2.0, 3.0, 4.0, 5.0]
+    group2_data = [6.0, 7.0, 8.0]
+    group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+    group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+
+    for ttest_type, equal_var in [
+        ("Student's t-Test", True),
+        ("Welch's t-Test", False),
+    ]:
+        t_statistics, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        expected_t, expected_p = stats.ttest_ind(
+            group1_data, group2_data, equal_var=equal_var
+        )
+        assert round(float(t_statistics[0]), 6) == round(expected_t, 6)
+        assert round(float(p_values[0]), 6) == round(expected_p, 6)
+
+
+def test_vectorized_t_test_unequal_variances_gives_different_results():
+    # Welch's and Student's should diverge when variances differ substantially
+    group1_data = [1.0, 1.1, 0.9, 1.0, 1.05]
+    group2_data = [10.0, 1.0, 50.0, 2.0, 30.0]
+    group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+    group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+
+    _, p_student = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([group1_means]),
+        np.array([group2_means]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Student's t-Test",
+    )
+    _, p_welch = vectorized_t_test(
+        np.array([group1_counts]),
+        np.array([group2_counts]),
+        np.array([group1_means]),
+        np.array([group2_means]),
+        np.array([group1_vars]),
+        np.array([group2_vars]),
+        "Welch's t-Test",
+    )
+    assert float(p_student[0]) != float(p_welch[0])
+
+
+def test_vectorized_t_test_nan_variance_propagates():
+    # var=NaN (e.g. n=1, undefined sample variance) → t and p should both be NaN
+    group1_counts, group1_means, group1_vars = 1.0, 5.0, float("nan")
+    group2_counts, group2_means, group2_vars = 5.0, 3.0, 1.0
+
+    for ttest_type in ["Student's t-Test", "Welch's t-Test"]:
+        t_statistics, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        assert np.isnan(float(t_statistics[0]))
+        assert np.isnan(float(p_values[0]))
+
+
+def test_vectorized_t_test_highly_significant():
+    # Very separated groups with low variance → p-value should be very small
+    group1_data = [1.0, 1.1, 0.9, 1.0, 1.05, 0.95]
+    group2_data = [1000.0, 1001.0, 999.5, 1000.5, 1000.2, 999.8]
+    group1_counts, group1_means, group1_vars = _group_stats(group1_data)
+    group2_counts, group2_means, group2_vars = _group_stats(group2_data)
+
+    for ttest_type in ["Student's t-Test", "Welch's t-Test"]:
+        _, p_values = vectorized_t_test(
+            np.array([group1_counts]),
+            np.array([group2_counts]),
+            np.array([group1_means]),
+            np.array([group2_means]),
+            np.array([group1_vars]),
+            np.array([group2_vars]),
+            ttest_type,
+        )
+        assert float(p_values[0]) < 1e-10
