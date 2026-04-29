@@ -476,8 +476,11 @@ def test_differential_expression_t_test_with_silac_ratios():
         round(out[DataKey.CORRECTED_P_VALUES_DF]["corrected_p_value"].iloc[0], 4)
         == 0.0513
     )
-    # Fold change is NaN because np.median([1.2, NaN, 1.1]) = NaN (not nanmedian).
-    assert np.isnan(out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0])
+    # dropna() runs before pivot, so medians are from clean data — fold change is valid.
+    # Group1 clean=[1.2, 1.1]→median=1.15, Group2 clean=[0.8, 0.9]→median=0.85
+    fc = out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0]
+    assert not np.isnan(fc)
+    assert round(fc, 4) == round(np.log2(0.85 / 1.15), 4)
 
 
 @pytest.fixture
@@ -615,10 +618,11 @@ def test_t_test_nan_policy_omit_skips_nan_samples_and_computes_result(
             DataKey.CORRECTED_P_VALUES_DF
         ].empty, f"ttest_type={ttest_type}: Protein1 should be included after NaN samples are omitted"
         assert out[DataKey.CORRECTED_P_VALUES_DF]["Protein ID"].tolist() == ["Protein1"]
-        # Fold change is NaN because np.median([18.0, NaN, 22.0]) = NaN (not nanmedian).
-        assert np.isnan(
-            out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0]
-        ), f"ttest_type={ttest_type}: expected NaN fold change (median does not skip NaN)"
+        # dropna() runs before pivot, so medians are from clean data — fold change is valid.
+        # Group1 clean=[18.0, 22.0]→median=20.0, Group2=[8.0,10.0,12.0]→median=10.0 → log2(10/20)=-1.0
+        fc = out[DataKey.LOG2_FOLD_CHANGE_DF]["log2_fold_change"].iloc[0]
+        assert not np.isnan(fc), f"ttest_type={ttest_type}: fold change should be valid after NaN rows are omitted"
+        assert round(fc, 1) == -1.0, f"ttest_type={ttest_type}: expected fold change -1.0, got {fc}"
 
 
 def test_t_test_nan_policy_propagate_excludes_protein_with_any_nan(nan_intensity_data):
