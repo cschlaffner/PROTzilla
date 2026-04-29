@@ -74,17 +74,23 @@ def vectorized_t_test(
     :return: tuple of (t_statistics, p_values) — two-tailed p-values from the t-distribution
     """
     if ttest_type == "Student's t-Test":
+        # Pooled variance: weighted average of both sample variances, weights = (n - 1)
         pooled_vars = (
             (group1_counts - 1) * group1_vars + (group2_counts - 1) * group2_vars
         ) / (group1_counts + group2_counts - 2)
+        # SE of the difference of means under the equal-variance assumption
         standard_errors = np.sqrt(
             pooled_vars * (1.0 / group1_counts + 1.0 / group2_counts)
         )
+        # df = total observations minus one per group
         degrees_of_freedom = group1_counts + group2_counts - 2
     else:
+        # s²/n terms used throughout the Welch formulas
         group1_var_count_ratios = group1_vars / group1_counts
         group2_var_count_ratios = group2_vars / group2_counts
+        # SE of the difference of means without assuming equal variances
         standard_errors = np.sqrt(group1_var_count_ratios + group2_var_count_ratios)
+        # Welch-Satterthwaite df: (s1²/n1 + s2²/n2)² / ((s1²/n1)²/(n1-1) + (s2²/n2)²/(n2-1))
         with np.errstate(divide="ignore", invalid="ignore"):
             degrees_of_freedom = (
                 group1_var_count_ratios + group2_var_count_ratios
@@ -102,6 +108,7 @@ def vectorized_t_test(
         )
 
     with np.errstate(divide="ignore", invalid="ignore"):
+        # t = (mean1 - mean2) / SE; two-tailed p from the survival function of |t|
         t_statistics = (group1_means - group2_means) / standard_errors
         p_values = 2 * stats.t.sf(np.abs(t_statistics), degrees_of_freedom)
     return t_statistics, p_values
