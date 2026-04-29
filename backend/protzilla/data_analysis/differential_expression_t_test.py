@@ -144,8 +144,6 @@ def t_test(
             intensity_name
         ]
 
-        
-
         t, p = stats.ttest_ind(
             group1_intensities,
             group2_intensities,
