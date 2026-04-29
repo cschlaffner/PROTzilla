@@ -32,6 +32,7 @@ def get_choices_for_metadata(
     instance_identifier: StepID,
     output_key: DataKey,
     include_sample: bool = True,
+    required: bool = False,
 ) -> list[Option]:
     metadata_df = run.steps.get_step_output(
         output_key=output_key, instance_identifier=instance_identifier
@@ -43,7 +44,8 @@ def get_choices_for_metadata(
         if include_sample
         else [column for column in metadata_df.columns.unique() if column != "Sample"]
     )
-    return to_choices(columns)
+
+    return to_choices(columns, required=required)
 
 
 def get_choices_for_groups(
