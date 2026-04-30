@@ -177,6 +177,7 @@ def create_histograms(
     min_value: float = None,
     max_value: float = None,
     one_bin_per_int: bool = False,
+    split_x_axis_at: float = None
 ) -> Figure:
     """
     A function to create a histogram for visualisation
@@ -227,63 +228,119 @@ def create_histograms(
     if max_value is None:
         max_value = np.nanmax([values_a.max(), values_b.max()])
 
-    if one_bin_per_int:
-        min_value = math.floor(min_value)
-        max_value = math.ceil(max_value)
-        binsize_a = 1
-        binsize_b = 1
-    else:
-        number_of_bins = 100
-        if len(values_a) > 0:
-            binsize_a = (
-                values_a.max(skipna=True) - values_a.min(skipna=True)
-            ) / number_of_bins
-        else:
-            binsize_a = 1  # default value of 1 in case that values_a is empty
-        if len(values_b) > 0:
-            binsize_b = (
-                values_b.max(skipna=True) - values_b.min(skipna=True)
-            ) / number_of_bins
-        else:
-            binsize_b = 1  # default value of 1 in case that values_b is empty
+    # Logic for Split Axis (Linear -> Log)
+    if split_x_axis_at is not None and visual_transformation == "linear":
+        fig = make_subplots(
+            rows=1, cols=2,
+            shared_yaxes=True,
+            horizontal_spacing=0.02,
+            column_widths=[0.5, 0.5]
+        )
 
-    if overlay and len(values_a) > 0 and len(values_b) > 0:
-        binsize_a = binsize_b = max(binsize_a, binsize_b)
+        def add_split_traces(values, name, color, show_legend):
+            # Split data
+            v_lin = values[values <= split_x_axis_at]
+            v_log = values[values > split_x_axis_at]
 
-    trace0 = go.Histogram(
-        x=values_a,
-        marker_color=PLOT_PRIMARY_COLOR,
-        name=name_a,
-        xbins=dict(start=min_value, end=max_value, size=binsize_a),
-    )
-    trace1 = go.Histogram(
-        x=values_b,
-        marker_color=PLOT_SECONDARY_COLOR,
-        name=name_b,
-        xbins=dict(start=min_value, end=max_value, size=binsize_b),
-    )
-    if not overlay:
-        fig = make_subplots(rows=1, cols=2)
-        fig.add_trace(trace0, 1, 1)
-        fig.add_trace(trace1, 1, 2)
-        if visual_transformation == "log10":
-            fig.update_layout(
-                xaxis=generate_tics(0, max_value, True),
-                xaxis2=generate_tics(0, max_value, True),
-            )
-    else:
-        fig = go.Figure()
-        fig.add_trace(trace0)
-        fig.add_trace(trace1)
+            # Trace for linear part
+            fig.add_trace(go.Histogram(
+                x=v_lin, name=name, marker_color=color,
+                xbins=dict(start=min_value, end=split_x_axis_at),
+                legendgroup=name, showlegend=show_legend
+            ), row=1, col=1)
+
+            # Trace for log part
+            fig.add_trace(go.Histogram(
+                x=v_log, name=name, marker_color=color,
+                xbins=dict(start=split_x_axis_at, end=max_value),
+                legendgroup=name, showlegend=False
+            ), row=1, col=2)
+
+
+        add_split_traces(values_a, name_a, PLOT_PRIMARY_COLOR, True)
+        add_split_traces(values_b, name_b, PLOT_SECONDARY_COLOR, True)
+
+        fig.update_xaxes(title_text=f"{x_title} (Linear)", range=[min_value, split_x_axis_at], row=1, col=1,
+                         showline=True,
+                         mirror=False,
+                         zeroline=False
+                         )
+        fig.update_xaxes(
+            title_text=f"{x_title} (Log)",
+            type="log",
+            # Use log10 of the values for the range array!
+            range=[np.log10(split_x_axis_at), np.log10(max_value)],
+            row=1, col=2,
+            showline=True,
+            mirror=False,
+            zeroline=False
+        )
         fig.update_layout(barmode="overlay")
         fig.update_traces(opacity=0.75)
-        if visual_transformation == "log10":
-            fig.update_layout(xaxis=generate_tics(0, max_value, True))
+
+        # Add the // break marks
+        fig.add_shape(type="line", xref="paper", yref="paper", x0=0.5, y0=-0.02, x1=0.52, y1=0.02,
+                      line=dict(width=2))
+        fig.add_shape(type="line", xref="paper", yref="paper", x0=0.48, y0=-0.02, x1=0.5, y1=0.02,
+                      line=dict(width=2))
+    else:
+        if one_bin_per_int:
+            min_value = math.floor(min_value)
+            max_value = math.ceil(max_value)
+            binsize_a = 1
+            binsize_b = 1
+        else:
+            number_of_bins = 100
+            if len(values_a) > 0:
+                binsize_a = (
+                    values_a.max(skipna=True) - values_a.min(skipna=True)
+                ) / number_of_bins
+            else:
+                binsize_a = 1  # default value of 1 in case that values_a is empty
+            if len(values_b) > 0:
+                binsize_b = (
+                    values_b.max(skipna=True) - values_b.min(skipna=True)
+                ) / number_of_bins
+            else:
+                binsize_b = 1  # default value of 1 in case that values_b is empty
+
+        if overlay and len(values_a) > 0 and len(values_b) > 0:
+            binsize_a = binsize_b = max(binsize_a, binsize_b)
+
+        trace0 = go.Histogram(
+            x=values_a,
+            marker_color=PLOT_PRIMARY_COLOR,
+            name=name_a,
+            xbins=dict(start=min_value, end=max_value, size=binsize_a),
+        )
+        trace1 = go.Histogram(
+            x=values_b,
+            marker_color=PLOT_SECONDARY_COLOR,
+            name=name_b,
+            xbins=dict(start=min_value, end=max_value, size=binsize_b),
+        )
+        if not overlay:
+            fig = make_subplots(rows=1, cols=2)
+            fig.add_trace(trace0, 1, 1)
+            fig.add_trace(trace1, 1, 2)
+            if visual_transformation == "log10":
+                fig.update_layout(
+                    xaxis=generate_tics(0, max_value, True),
+                    xaxis2=generate_tics(0, max_value, True),
+                )
+        else:
+            fig = go.Figure()
+            fig.add_trace(trace0)
+            fig.add_trace(trace1)
+            fig.update_layout(barmode="overlay")
+            fig.update_traces(opacity=0.75)
+            if visual_transformation == "log10":
+                fig.update_layout(xaxis=generate_tics(0, max_value, True))
+            fig.update_xaxes(title=x_title)
+            fig.update_yaxes(title=y_title, rangemode="tozero")
 
     wrapped_title = "<br>".join(textwrap.wrap(heading, width=50))
     fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
-    fig.update_xaxes(title=x_title)
-    fig.update_yaxes(title=y_title, rangemode="tozero")
 
     fig.update_layout(margin_pad=20)
 

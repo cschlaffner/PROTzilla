@@ -796,12 +796,14 @@ def diagrams_of_crosslinking_validation_data(
             min_value=hist_min,
             max_value=hist_max,
             one_bin_per_int=True,
+            split_x_axis_at= crosslinker_length if accepted_deviation_upper_bound is None else crosslinker_length+accepted_deviation_upper_bound
         )
         add_vertical_line_with_annotation_in_legend(
             fig=histogram,
             dash="solid",
             annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
+            column=1
         )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
@@ -847,6 +849,7 @@ def diagrams_of_crosslinking_validation_data(
                 dash="dash",
                 annotation=f"allowed deviation upper bound",
                 x_value=crosslinker_length + accepted_deviation_upper_bound,
+                column=1
             )
             if (
                 math.floor(mean_minus_two_std)
@@ -865,6 +868,7 @@ def diagrams_of_crosslinking_validation_data(
                 dash="dash",
                 annotation=f"allowed deviation lower bound",
                 x_value=crosslinker_length - accepted_deviation_lower_bound,
+                column=1
             )
             if (
                 math.floor(mean_minus_two_std)

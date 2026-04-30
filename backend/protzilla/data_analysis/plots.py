@@ -588,6 +588,7 @@ def add_vertical_line_with_annotation_in_legend(
     annotation: str,
     x_value: float,
     color: str = PLOT_PRIMARY_COLOR,
+    column: int = None
 ) -> None:
     """
     Adds a vertical line to a Plotly figure and includes a corresponding entry in the legend
@@ -601,7 +602,7 @@ def add_vertical_line_with_annotation_in_legend(
     :return: None
     """
     # add vertical line
-    fig.add_vline(x=x_value, line_color=color, line_dash=dash, line_width=2)
+    fig.add_vline(x=x_value, line_color=color, line_dash=dash, line_width=2, col=column)
     # add annotation of the line to the legend
     fig.add_trace(
         go.Scatter(
