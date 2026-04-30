@@ -138,7 +138,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <SectionButton
               id={"crosslink-defaults"}
               isActive={selectedSetting === "crosslink-defaults"}
-              icon={"prot_structure"}
+              icon={"handleCrosslinkingIcon"}
               text={"Cross-Links Defaults"}
               onPress={() => {
                 handleSwitchSection("crosslink-defaults");
