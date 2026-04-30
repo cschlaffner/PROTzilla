@@ -591,10 +591,14 @@ def update_cl_default(request):
         cl_name = data.get("cl_name")
         cl_length = data.get("cl_length") if data.get("cl_length") != "" else 0
         cl_upper_deviation = (
-            data.get("cl_upper_deviation") if data.get("cl_length") != "" else 0
+            data.get("cl_upper_deviation")
+            if data.get("cl_upper_deviation") != ""
+            else 0
         )
         cl_lower_deviation = (
-            data.get("cl_lower_deviation") if data.get("cl_length") != "" else 0
+            data.get("cl_lower_deviation")
+            if data.get("cl_lower_deviation") != ""
+            else 0
         )
 
         cl_default_dict = {
@@ -625,10 +629,26 @@ def update_cl_default(request):
 
 def delete_cl_default(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        cl_name = data.get("cl_name")
-        defaults_operator = DefaultsOperator()
-        defaults_operator.delete_default(cl_name)
+        try:
+            data = json.loads(request.body)
+            cl_name = data.get("cl_name")
+            defaults_operator = DefaultsOperator()
+            defaults_operator.delete_default(cl_name)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Default values deleted successfully.",
+                },
+                status=200,
+            )
+        except Exception:
+            return JsonResponse(
+                {"success": False, "message": "Error occured while deleting."},
+                status=405,
+            )
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method"}, status=405
+    )
 
 
 # <--- Databases --->
