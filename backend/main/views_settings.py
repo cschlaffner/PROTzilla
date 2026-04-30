@@ -32,6 +32,7 @@ from backend.protzilla.data_integration.database_query import (
     uniprot_databases,
 )
 from backend.protzilla.disk_operator import YamlOperator
+from backend.protzilla.disk_operator import DefaultsOperator
 from backend.main.views_helper import load_yaml_from_file
 from backend.protzilla.constants.paths import (
     CUSTOM_PLOT_SETTINGS_FILE_STEM,
@@ -576,6 +577,58 @@ def delete_multimer_structure(request):
         csv_file_path=AF_MULTIMER_METADATA_CSV_PATH,
         request=request,
     )
+
+
+def get_cl_defaults(request):
+    default_operator = DefaultsOperator()
+    defaults = default_operator.get_all_defaults()
+    return JsonResponse(defaults, safe=False)
+
+
+def update_cl_default(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        cl_name = data.get("cl_name")
+        cl_length = data.get("cl_length") if data.get("cl_length") != "" else 0
+        cl_upper_deviation = (
+            data.get("cl_upper_deviation") if data.get("cl_length") != "" else 0
+        )
+        cl_lower_deviation = (
+            data.get("cl_lower_deviation") if data.get("cl_length") != "" else 0
+        )
+
+        cl_default_dict = {
+            "cl_length": cl_length,
+            "cl_upper_deviation": cl_upper_deviation,
+            "cl_lower_deviation": cl_lower_deviation,
+        }
+        try:
+            defaults_operator = DefaultsOperator()
+            defaults_operator.write_default(name=cl_name, value=cl_default_dict)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": (f"Default values updated successfully. "),
+                },
+                status=200,
+            )
+        except Exception:
+            return JsonResponse(
+                {"success": False, "message": "Default values could not be updated."},
+                status=405,
+            )
+    else:
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+
+def delete_cl_default(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        cl_name = data.get("cl_name")
+        defaults_operator = DefaultsOperator()
+        defaults_operator.delete_default(cl_name)
 
 
 # <--- Databases --->

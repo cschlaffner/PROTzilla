@@ -116,6 +116,21 @@ urlpatterns = [
         name="delete_multimer_structure",
     ),
     path(
+        "api/get_cl_defaults",
+        views_settings.get_cl_defaults,
+        name="get_cl_defaults",
+    ),
+    path(
+        "api/update_cl_default",
+        views_settings.update_cl_default,
+        name="update_cl_default",
+    ),
+    path(
+        "api/delete_cl_default",
+        views_settings.delete_cl_default,
+        name="delete_cl_default",
+    ),
+    path(
         "api/load_ptm_settings",
         views_settings.load_ptm_settings,
         name="load_ptm_settings",
