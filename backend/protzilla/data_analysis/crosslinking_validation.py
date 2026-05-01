@@ -794,18 +794,14 @@ def diagrams_of_crosslinking_validation_data(
             + 1
         )
         histogram = create_cl_validation_histogram(
-            dataframe_a=df_valid,
-            dataframe_b=df_invalid,
-            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
-            heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
-            x_title="Distance (Å)",
-            y_title="Count",
-            overlay=True,
-            relevant_column_a="alphafold_distance",
-            relevant_column_b="alphafold_distance",
-            one_bin_per_int=True,
-            split_x_axis_at= crosslinker_length if accepted_deviation_upper_bound is None else crosslinker_length+accepted_deviation_upper_bound
+            distances_valid = df_valid["alphafold_distance"],
+            distances_invalid = df_invalid["alphafold_distance"],
+            title_valid = f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            title_invalid = f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+            heading = f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
+            xaxis_label = "Distance (Å)",
+            yaxis_label = "Count",
+            split_x_axis_at = crosslinker_length if accepted_deviation_upper_bound is None else crosslinker_length+accepted_deviation_upper_bound
         )
         add_vertical_line_with_annotation_in_legend(
             fig=histogram,
@@ -1019,35 +1015,27 @@ def multimer_diagrams(
         crosslinker_information=crosslinker_information,
     )
 
-
-# Warning: 100% AI generated
+# Warning: Mostly AI generated
 def create_cl_validation_histogram(
-    dataframe_a: pd.DataFrame,
-    dataframe_b: pd.DataFrame,
-    name_a: str = "",
-    name_b: str = "",
+    distances_valid: pd.Series,
+    distances_invalid: pd.Series,
+    split_x_axis_at: float,
+    title_valid: str = "Valid Crosslinks",
+    title_invalid: str = "Invalid Crosslinks",
     heading: str = "",
-    y_title: str = "",
-    x_title: str = "",
-    overlay: bool = False,
-    relevant_column_a: str = None,
-    relevant_column_b: str = None,
-    one_bin_per_int: bool = False,
-    split_x_axis_at: float = None
+    xaxis_label: str = "",
+    yaxis_label: str = "",
 ):
     """
-    A function to create a histogram for visualisation
-    of distributions. Assumes that you are comparing two dataframes
-    (for example before and after filtering/normalisation) and creates
-    a visualisation for each one.
+    TODO: Proper docstring
     """
     
     # It is good practice to drop NaNs before calculating bins/histograms
-    values_a = dataframe_a[relevant_column_a].dropna()
-    values_b = dataframe_b[relevant_column_b].dropna()
+    distances_valid.dropna(inplace=True)
+    distances_invalid.dropna(inplace=True)
 
-    min_value = np.nanmin([values_a.min(), values_b.min()])
-    max_value = np.nanmax([values_a.max(), values_b.max()])
+    min_distance: float = np.min([distances_valid.min(), distances_invalid.min()])
+    max_distance: float = np.max([distances_valid.max(), distances_invalid.max()])
 
     fig = make_subplots(
         rows=1, cols=2,
@@ -1058,15 +1046,15 @@ def create_cl_validation_histogram(
 
     # --- Pre-calculate shared bins for BOTH datasets ---
     # 1. Linear Bins
-    lin_start = math.floor(min_value)
+    lin_start = math.floor(min_distance)
     lin_end = math.ceil(split_x_axis_at)
     if lin_end <= lin_start:
         lin_end = lin_start + 1
     lin_bins = np.arange(lin_start, lin_end + 1, 1)
 
     # 2. Log Bins
-    # We must ensure max_value > split_x_axis_at to avoid math domain errors
-    safe_max = max(max_value, split_x_axis_at * 1.01)
+    # We must ensure max_distance > split_x_axis_at to avoid math domain errors
+    safe_max = max(max_distance, split_x_axis_at * 1.01)
     log_start = np.log10(split_x_axis_at)
     log_end = np.log10(safe_max)
     log_bins_transformed = np.arange(log_start, log_end + 0.1, 0.1)
@@ -1074,7 +1062,7 @@ def create_cl_validation_histogram(
     # Pre-compute the actual linear numbers of the log bins for the hover template
     log_bins_linear = 10 ** log_bins_transformed
 
-    def add_split_traces(values, name, color, show_legend):
+    def add_split_traces(values: pd.Series, name: str, color: str, show_legend: bool):
         # Split data
         v_lin = values[values <= split_x_axis_at]
         v_log_raw = values[values > split_x_axis_at]
@@ -1085,7 +1073,7 @@ def create_cl_validation_histogram(
         # Pair up the left and right edges for the hover box
         customdata_lin = np.stack((lin_bins[:-1], lin_bins[1:]), axis=-1)
 
-        fig.add_trace(go.Bar(
+        _ = fig.add_trace(go.Bar(
             x=lin_bins[:-1],
             y=counts_lin,
             width=1,          # Match the bin size in np.arange
@@ -1102,7 +1090,7 @@ def create_cl_validation_histogram(
         counts_log, _ = np.histogram(v_log_transformed, bins=log_bins_transformed)
         customdata_log = np.stack((log_bins_linear[:-1], log_bins_linear[1:]), axis=-1)
 
-        fig.add_trace(go.Bar(
+        _ = fig.add_trace(go.Bar(
             x=log_bins_transformed[:-1],
             y=counts_log,
             width=0.1,        # Match the bin size in np.arange
@@ -1116,171 +1104,52 @@ def create_cl_validation_histogram(
             hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:,.0f} to %{customdata[1]:,.0f}<br>Count: %{y}<extra></extra>"
         ), row=1, col=2)
 
-    # Assuming PLOT_PRIMARY_COLOR and PLOT_SECONDARY_COLOR are defined globally in your script
-    # We will use strings here as placeholders just in case
-    primary_color = getattr(globals(), 'PLOT_PRIMARY_COLOR', '#636EFA')
-    secondary_color = getattr(globals(), 'PLOT_SECONDARY_COLOR', '#EF553B')
-
-    add_split_traces(values_a, name_a, primary_color, True)
-    add_split_traces(values_b, name_b, secondary_color, True)
+    add_split_traces(distances_valid, title_valid, PLOT_PRIMARY_COLOR, True)
+    add_split_traces(distances_invalid, title_invalid, PLOT_SECONDARY_COLOR, True)
 
     # Update Axes Formatting
-    fig.update_xaxes(
-        title_text=f"{x_title} (Linear)",
-        range=[math.floor(min_value), split_x_axis_at],
+    _ = fig.update_xaxes(
+        title_text=f"{xaxis_label} (Linear)",
+        range=[math.floor(min_distance), split_x_axis_at],
         row=1, col=1,
         showline=True,
         mirror=False,
         zeroline=False
     )
 
-    max_log = math.ceil(np.log10(max_value))
-    start_log = math.floor(np.log10(split_x_axis_at))
-    
-    split_str = f"{split_x_axis_at:g}"
-    
     # Always include the split origin as the first tick
     tick_vals = [np.log10(split_x_axis_at)]
-    tick_text = [split_str]
+    tick_text = [str(split_x_axis_at)]
 
     # Calculate how many exponents we need to cover the maximum delta
-    max_delta = max_value - split_x_axis_at
+    max_delta = max_distance - split_x_axis_at
     if max_delta > 0:
         max_i = int(math.ceil(np.log10(max_delta)))
         for i in range(1, max_i + 1):
-            val = split_x_axis_at + 10**i
+            val: float = split_x_axis_at + math.pow(10, i)
             # Add the exact log position for the tick, and the formatted text
             tick_vals.append(np.log10(val))
-            # tick_text.append(f"{split_str}+1e{i}")
             tick_text.append(f"{(split_x_axis_at + 10**i):.2f}")
 
-    fig.update_xaxes(
-        title_text=f"{x_title} (Log)",
+    _ = fig.update_xaxes(
+        title_text=f"{xaxis_label} (Log)",
         tickvals=tick_vals,
         ticktext=tick_text,
         row=1, col=2,
         showline=True,
         mirror=False,
         zeroline=False
-    )    # Note: barmode="overlay" works perfectly with go.Bar as well
-    fig.update_layout(barmode="overlay", yaxis_title=y_title)
+    )
+    _ = fig.update_layout(barmode="overlay", yaxis_title=yaxis_label)
     fig.update_traces(opacity=0.75)
 
     wrapped_title = "<br>".join(textwrap.wrap(heading, width=50))
-    fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
+    _ = fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
 
-    fig.update_layout(margin_pad=10)
+    _ = fig.update_layout(margin_pad=10)
 
     # Disable toggling of the visibility of the traces by clicking on the legend
     fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, xanchor="left", x=1.05))
     
     return fig
 
-def create_cl_validation_histogram_notslop(
-    dataframe_a: pd.DataFrame,
-    dataframe_b: pd.DataFrame,
-    name_a: str = "",
-    name_b: str = "",
-    heading: str = "",
-    y_title: str = "",
-    x_title: str = "",
-    overlay: bool = False,
-    relevant_column_a: str = None,
-    relevant_column_b: str = None,
-    one_bin_per_int: bool = False,
-    split_x_axis_at: float = None
-) -> Figure:
-    """
-    A function to create a histogram for visualisation
-    of distributions. Assumes that you are comparing two dataframes
-    (for example before and after filtering/normalisation) and creates
-    a visualisation for each one.
-
-    :param dataframe_a: First dataframe in protzilla long format for\
-    first histogram
-    :param dataframe_b: Second dataframe in protzilla long format\
-    for second histogram
-
-    :param name_a: Name of first histogram
-    :param name_b: Name of second histogram
-    :param heading: Header or title for the graph (optional)
-    :param y_title: Optional y axis title for graphs.
-    :param x_title: Optional x axis title for graphs.
-    :param overlay: Specifies whether to draw one Histogram with overlay or two separate histograms
-    :param relevant_column_a: Which column of dataframe_a should be used for the histogram. If None, the default_intensity_column will be used.
-    :param relevant_column_b: Which column of dataframe_b should be used for the histogram. If None, the default_intensity_column will be used.
-    :param one_bin_per_int: If set to True, min_value will be rounded down to the next int and max_value will be rounded up to the next int and there will\
-    be max_value-min_value many bins.
-
-    :return: returns a histogram of the data
-    """
-    values_a = dataframe_a[relevant_column_a]
-    values_b = dataframe_b[relevant_column_b]
-
-    min_value = np.nanmin([values_a.min(), values_b.min()])
-    max_value = np.nanmax([values_a.max(), values_b.max()])
-
-    # Logic for Split Axis (Linear -> Log)
-    fig = make_subplots(
-        rows=1, cols=2,
-        shared_yaxes=True,
-        horizontal_spacing=0.1,
-        column_widths=[0.5, 0.5]
-    )
-
-    def add_split_traces(values, name, color, show_legend):
-        # Split data
-        v_lin = values[values <= split_x_axis_at]
-        v_log_raw = values[values > split_x_axis_at]
-        v_log_transformed = np.log10(v_log_raw)   
-
-        # Trace for linear part
-        fig.add_trace(go.Histogram(
-            x=v_lin, name=name, marker_color=color,
-            xbins=dict(start=math.floor(min_value), end=math.ceil(split_x_axis_at), size=1),
-            legendgroup=name, showlegend=show_legend
-        ), row=1, col=1)
-
-        # Trace for log part
-        fig.add_trace(go.Histogram(
-            x=v_log_transformed, name=name, marker_color=color,
-            xbins=dict(start=np.log10(split_x_axis_at), end=np.log10(v_log_raw.max()), size=0.1),
-            legendgroup=name, showlegend=show_legend
-        ), row=1, col=2)
-
-    add_split_traces(values_a, name_a, PLOT_PRIMARY_COLOR, True)
-    add_split_traces(values_b, name_b, PLOT_SECONDARY_COLOR, True)
-
-    fig.update_xaxes(title_text=f"{x_title} (Linear)", range=[math.floor(min_value), split_x_axis_at], row=1, col=1,
-                     showline=True,
-                     mirror=False,
-                     zeroline=False
-                     )
-
-    max_log = math.ceil(np.log10(max_value))
-    start_log = math.floor(np.log10(split_x_axis_at))
-
-    tick_vals = list(range(start_log, max_log + 1))
-    # tick_vals = [np.log10(split_x_axis_at) + i for i in tick_vals]
-    tick_text = [f"+ 10^{i}" for i in tick_vals]
-
-    fig.update_xaxes(
-        title_text=f"{x_title} (Log)",
-        tickvals=tick_vals,
-        ticktext=tick_text,
-        row=1, col=2,
-        showline=True,
-        mirror=False,
-        zeroline=False
-    )
-    fig.update_layout(barmode="overlay")
-    fig.update_traces(opacity=0.75)
-
-    wrapped_title = "<br>".join(textwrap.wrap(heading, width=50))
-    fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
-
-    fig.update_layout(margin_pad=10)
-
-    # Disable toggling of the visibility of the traces by clicking on the legend
-    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, xanchor="left", x=1.05))
-    return fig
