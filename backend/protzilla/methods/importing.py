@@ -45,7 +45,7 @@ from backend.protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
-from protzilla.importing.query_generation import generate_alphafold_query_json
+from backend.protzilla.importing.query_generation import generate_alphafold_query_json
 
 
 class ImportingStep(Step, ABC):

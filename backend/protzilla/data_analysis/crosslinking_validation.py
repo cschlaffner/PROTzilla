@@ -35,6 +35,7 @@ from backend.protzilla.constants.colors import (
     PLOT_SECONDARY_COLOR,
 )
 
+
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     """
     Returns the atom of an amino acid residue that is considered reactive for
@@ -702,7 +703,7 @@ def _get_tick_values_with_lines(fig, min_value, max_value):
 def diagrams_of_crosslinking_validation_data(
     validated_df: pd.DataFrame,
     structures_to_validate: list[str],
-    crosslinker_information: pd.DataFrame,
+    crosslinker_information: dict[str, list[float]],
 ) -> list[Figure]:
     """
     Creates for each crosslinker histogram plots summarizing the distribution (AlphaFold-)predicted distances
@@ -767,52 +768,27 @@ def diagrams_of_crosslinking_validation_data(
             accepted_deviation_upper_bound,
             accepted_deviation_lower_bound,
         ) = crosslinker_information[crosslinker]
-        # make sure that the crosslinker length is always shown
-        hist_min = math.floor(
-            min(
-                crosslinker_length - accepted_deviation_lower_bound,
-                np.nanmin(
-                    [
-                        df_valid["alphafold_distance"].min(),
-                        df_invalid["alphafold_distance"].min(),
-                    ]
-                ),
-            )
-            - 1
-        )
-        hist_max = math.ceil(
-            max(
-                crosslinker_length + accepted_deviation_upper_bound,
-                np.nanmax(
-                    [
-                        df_valid["alphafold_distance"].max(),
-                        df_invalid["alphafold_distance"].max(),
-                    ]
-                ),
-            )
-            + 1
-        )
+
         histogram = create_cl_validation_histogram(
-            distances_valid = df_valid["alphafold_distance"],
-            distances_invalid = df_invalid["alphafold_distance"],
-            title_valid = f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            title_invalid = f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
-            heading = f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
-            xaxis_label = "Distanc in Å",
-            yaxis_label = "Count",
-            split_x_axis_at = crosslinker_length if accepted_deviation_upper_bound is None else crosslinker_length+accepted_deviation_upper_bound
-        )
-        add_vertical_line_with_annotation_in_legend(
-            fig=histogram,
-            dash="solid",
-            annotation=f"{crosslinker} length: {crosslinker_length}Å",
-            x_value=crosslinker_length,
-            column=1
+            distances_valid=df_valid["alphafold_distance"],
+            distances_invalid=df_invalid["alphafold_distance"],
+            title_valid=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
+            title_invalid=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+            heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
+            xaxis_label="Distanc in Å",
+            yaxis_label="Count",
+            split_x_axis_at=(
+                crosslinker_length
+                if accepted_deviation_upper_bound is None
+                else crosslinker_length + accepted_deviation_upper_bound
+            ),
         )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         if len(crosslinker_df) == 1:
-            standard_deviation_predicted_lengths = 0.0
+            standard_deviation_predicted_lengths = (
+                0.0  # .std() would return nan if there is only one entry
+            )
         else:
             standard_deviation_predicted_lengths = crosslinker_df[
                 "alphafold_distance"
@@ -820,8 +796,8 @@ def diagrams_of_crosslinking_validation_data(
         mean_plus_two_std = (
             mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
         )
-        mean_minus_two_std = max(
-            0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
+        mean_minus_two_std = np.maximum(
+            0.0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
         )
 
         histogram_two_standard_deviations = create_histograms(
@@ -851,9 +827,9 @@ def diagrams_of_crosslinking_validation_data(
             add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
-                annotation=f"allowed deviation upper bound",
+                annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
                 x_value=crosslinker_length + accepted_deviation_upper_bound,
-                column=1
+                column=1,
             )
             if (
                 math.floor(mean_minus_two_std)
@@ -863,16 +839,16 @@ def diagrams_of_crosslinking_validation_data(
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
-                    annotation=f"allowed deviation upper bound",
+                    annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
                     x_value=crosslinker_length + accepted_deviation_upper_bound,
                 )
         if accepted_deviation_lower_bound != 0:
             add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
-                annotation=f"allowed deviation lower bound",
+                annotation=f"allowed deviation lower bound: {accepted_deviation_lower_bound}Å",
                 x_value=crosslinker_length - accepted_deviation_lower_bound,
-                column=1
+                column=1,
             )
             if (
                 math.floor(mean_minus_two_std)
@@ -882,12 +858,9 @@ def diagrams_of_crosslinking_validation_data(
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
-                    annotation=f"allowed deviation lower bound",
+                    annotation=f"allowed deviation lower bound: {accepted_deviation_lower_bound}Å",
                     x_value=crosslinker_length - accepted_deviation_lower_bound,
                 )
-        # histogram.update_xaxes(
-        #     **_get_tick_values_with_lines(histogram, hist_min, hist_max)
-        # )
         histogram_two_standard_deviations.update_xaxes(
             **_get_tick_values_with_lines(
                 histogram_two_standard_deviations, mean_minus_two_std, mean_plus_two_std
@@ -1014,6 +987,7 @@ def multimer_diagrams(
         crosslinker_information=crosslinker_information,
     )
 
+
 # Warning: Mostly AI generated
 def create_cl_validation_histogram(
     distances_valid: pd.Series,
@@ -1040,7 +1014,7 @@ def create_cl_validation_histogram(
     :param yaxis_label: Label for the shared y-axis.
     :return: A Plotly Figure object containing the split histogram visualization.
     """
-    
+
     # It is good practice to drop NaNs before calculating bins/histograms
     distances_valid.dropna(inplace=True)
     distances_invalid.dropna(inplace=True)
@@ -1049,10 +1023,11 @@ def create_cl_validation_histogram(
     max_distance: float = np.nanmax([distances_valid.max(), distances_invalid.max()])
 
     fig = make_subplots(
-        rows=1, cols=2,
+        rows=1,
+        cols=2,
         shared_yaxes=True,
         horizontal_spacing=0.1,
-        column_widths=[0.5, 0.5]
+        column_widths=[0.5, 0.5],
     )
 
     # --- Pre-calculate shared bins for BOTH datasets ---
@@ -1069,9 +1044,9 @@ def create_cl_validation_histogram(
     log_start = np.log10(split_x_axis_at)
     log_end = np.log10(safe_max)
     log_bins_transformed = np.arange(log_start, log_end + 0.1, 0.1)
-    
+
     # Pre-compute the actual linear numbers of the log bins for the hover template
-    log_bins_linear = 10 ** log_bins_transformed
+    log_bins_linear = 10**log_bins_transformed
 
     def add_split_traces(values: pd.Series, name: str, color: str, show_legend: bool):
         # Split data
@@ -1084,36 +1059,44 @@ def create_cl_validation_histogram(
         # Pair up the left and right edges for the hover box
         customdata_lin = np.stack((lin_bins[:-1], lin_bins[1:]), axis=-1)
 
-        _ = fig.add_trace(go.Bar(
-            x=lin_bins[:-1],
-            y=counts_lin,
-            width=1,          # Match the bin size in np.arange
-            offset=0,         # Force bars to start exactly at the bin edge
-            name=name,
-            marker_color=color,
-            legendgroup=name,
-            showlegend=show_legend,
-            customdata=customdata_lin,
-            hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:g} to %{customdata[1]:g}<br>Count: %{y}<extra></extra>"
-        ), row=1, col=1)
+        _ = fig.add_trace(
+            go.Bar(
+                x=lin_bins[:-1],
+                y=counts_lin,
+                width=1,  # Match the bin size in np.arange
+                offset=0,  # Force bars to start exactly at the bin edge
+                name=name,
+                marker_color=color,
+                legendgroup=name,
+                showlegend=show_legend,
+                customdata=customdata_lin,
+                hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:g} to %{customdata[1]:g}<br>Count: %{y}<extra></extra>",
+            ),
+            row=1,
+            col=1,
+        )
 
         # --- Calculate Histogram for Log Part ---
         counts_log, _ = np.histogram(v_log_transformed, bins=log_bins_transformed)
         customdata_log = np.stack((log_bins_linear[:-1], log_bins_linear[1:]), axis=-1)
 
-        _ = fig.add_trace(go.Bar(
-            x=log_bins_transformed[:-1],
-            y=counts_log,
-            width=0.1,        # Match the bin size in np.arange
-            offset=0,
-            name=name,
-            marker_color=color,
-            legendgroup=name,
-            showlegend=False, # Legend handled by linear part
-            customdata=customdata_log,
-            # Format numbers cleanly with commas using `,.0f` or `g`
-            hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:,.0f} to %{customdata[1]:,.0f}<br>Count: %{y}<extra></extra>"
-        ), row=1, col=2)
+        _ = fig.add_trace(
+            go.Bar(
+                x=log_bins_transformed[:-1],
+                y=counts_log,
+                width=0.1,  # Match the bin size in np.arange
+                offset=0,
+                name=name,
+                marker_color=color,
+                legendgroup=name,
+                showlegend=False,  # Legend handled by linear part
+                customdata=customdata_log,
+                # Format numbers cleanly with commas using `,.0f` or `g`
+                hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:,.0f} to %{customdata[1]:,.0f}<br>Count: %{y}<extra></extra>",
+            ),
+            row=1,
+            col=2,
+        )
 
     add_split_traces(distances_valid, title_valid, PLOT_PRIMARY_COLOR, True)
     add_split_traces(distances_invalid, title_invalid, PLOT_SECONDARY_COLOR, True)
@@ -1122,10 +1105,11 @@ def create_cl_validation_histogram(
     _ = fig.update_xaxes(
         title_text=f"{xaxis_label} (Linear)",
         range=[math.floor(min_distance), split_x_axis_at],
-        row=1, col=1,
+        row=1,
+        col=1,
         showline=True,
         mirror=False,
-        zeroline=False
+        zeroline=False,
     )
 
     # Always include the split origin as the first tick
@@ -1146,10 +1130,11 @@ def create_cl_validation_histogram(
         title_text=f"{xaxis_label} (Log)",
         tickvals=tick_vals,
         ticktext=tick_text,
-        row=1, col=2,
+        row=1,
+        col=2,
         showline=True,
         mirror=False,
-        zeroline=False
+        zeroline=False,
     )
     _ = fig.update_layout(barmode="overlay", yaxis_title=yaxis_label)
     fig.update_traces(opacity=0.75)
@@ -1160,7 +1145,8 @@ def create_cl_validation_histogram(
     _ = fig.update_layout(margin_pad=10)
 
     # Disable toggling of the visibility of the traces by clicking on the legend
-    fig.update_layout(legend=dict(itemclick=False, itemdoubleclick=False, xanchor="left", x=1.05))
-    
-    return fig
+    fig.update_layout(
+        legend=dict(itemclick=False, itemdoubleclick=False, xanchor="left", x=1.05)
+    )
 
+    return fig
