@@ -701,16 +701,15 @@ def _get_tick_values_with_lines(fig, min_value, max_value):
 
 def diagrams_of_crosslinking_validation_data(
     validated_df: pd.DataFrame,
-    structures_to_validate: str,
+    structures_to_validate: list[str],
     crosslinker_information: pd.DataFrame,
 ) -> list[Figure]:
     """
-    Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
-    cross-links based on the (AlphaFold-)predicted distances compared to crosslinker lengths and
-    allowed deviations.
+    Creates for each crosslinker histogram plots summarizing the distribution (AlphaFold-)predicted distances
+    matching or not matching the crosslinker lengths and allowed deviations.
 
     For each crosslinker, two histograms are generated:
-    - One covering the full distance range.
+    - One covering the full distance range (combining a linear and a logarithmic axis).
     - One restricted to the range of mean ± 2 standard deviations of the predicted distances.
 
     Both histograms include vertical reference lines indicating the
@@ -719,22 +718,22 @@ def diagrams_of_crosslinking_validation_data(
     Additionally, a bar plot is created summarizing the total number of cross-links that match
     or do not match the predicted structure across all analyzed crosslinkers.
 
-    :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
-                            distances, crosslinker identifiers, and validation results.
-    :param structure_metadata_df: Dataframe containing metadata.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
-    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
-    :param amino_acid_sequences_df: DataFrame containing the protein sequence
+    :param validated_df: pd.DataFrame consisting of the crosslinker_df enriched with information like
+            the belonging AlphaFold predicted distance ('alphafold_distance') or whether the AlphaFold
+            prediction matches the crosslinker length ('valid_crosslink').
+    :param structures_to_validate: List of protein names, the names of the proteins whose predictions we
+            validated.
     :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
              figures (mean ± 2 standard deviations first, full range second), followed by a final
              bar plot summarizing valid and invalid cross-links across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
     if validated_df.empty:
-        return {}
+        return []
     validated_df = validated_df.dropna(subset=["valid_crosslink"])
 
     figures = []
@@ -799,7 +798,7 @@ def diagrams_of_crosslinking_validation_data(
             title_valid = f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
             title_invalid = f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
             heading = f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
-            xaxis_label = "Distance (Å)",
+            xaxis_label = "Distanc in Å",
             yaxis_label = "Count",
             split_x_axis_at = crosslinker_length if accepted_deviation_upper_bound is None else crosslinker_length+accepted_deviation_upper_bound
         )
@@ -1027,7 +1026,19 @@ def create_cl_validation_histogram(
     yaxis_label: str = "",
 ):
     """
-    TODO: Proper docstring
+    Creates a split-axis histogram for displaying distances predicted by AlphaFold.
+    The left panel uses a linear axis, the right panel uses a logarithmic one.
+
+    :param distances_valid: Pandas Series containing distances matching the crosslinker length.
+    :param distances_invalid: Pandas Series containing distances not matching the crosslinker length.
+    :param split_x_axis_at: Threshold distance at which the x-axis transitions from
+                            linear (left panel) to logarithmic (right panel).
+    :param title_valid: Legend label for valid crosslinks. Defaults to "Valid Crosslinks".
+    :param title_invalid: Legend label for invalid crosslinks. Defaults to "Invalid Crosslinks".
+    :param heading: Title of the overall figure. Can be a long string and will be wrapped.
+    :param xaxis_label: Label for the x-axis (applied to both panels with scale annotations).
+    :param yaxis_label: Label for the shared y-axis.
+    :return: A Plotly Figure object containing the split histogram visualization.
     """
     
     # It is good practice to drop NaNs before calculating bins/histograms
