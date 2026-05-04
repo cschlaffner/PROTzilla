@@ -2377,11 +2377,18 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
         for crosslinker in crosslinkers:
             field_name = f"{crosslinker}_length"
             if field_name not in form:
-                cl_defaults = run.disk_operator.defaults.read_default(crosslinker)
-                if cl_defaults:
-                    length_default = cl_defaults["cl_length"]
-                    upper_deviation_default = cl_defaults["cl_upper_deviation"]
-                    lower_deviation_default = cl_defaults["cl_lower_deviation"]
+                cl_defaults = (
+                    run.disk_operator.defaults.read_default("crosslinker_lengths") or {}
+                )
+                specific_cl_defaults = cl_defaults.get(crosslinker, {})
+                if specific_cl_defaults:
+                    length_default = specific_cl_defaults.get("cl_length")
+                    upper_deviation_default = specific_cl_defaults.get(
+                        "cl_upper_deviation"
+                    )
+                    lower_deviation_default = specific_cl_defaults.get(
+                        "cl_lower_deviation"
+                    )
                 else:
                     length_default = 0
                     upper_deviation_default = 0

@@ -579,9 +579,12 @@ def delete_multimer_structure(request):
     )
 
 
+# <--- Crosslink defaults --->
+
+
 def get_cl_defaults(request):
     default_operator = DefaultsOperator()
-    defaults = default_operator.get_all_defaults()
+    defaults = default_operator.read_default(name="crosslinker_lengths")
     return JsonResponse(defaults, safe=False)
 
 
@@ -602,13 +605,17 @@ def update_cl_default(request):
         )
 
         cl_default_dict = {
-            "cl_length": cl_length,
-            "cl_upper_deviation": cl_upper_deviation,
-            "cl_lower_deviation": cl_lower_deviation,
+            cl_name: {
+                "cl_length": cl_length,
+                "cl_upper_deviation": cl_upper_deviation,
+                "cl_lower_deviation": cl_lower_deviation,
+            }
         }
         try:
             defaults_operator = DefaultsOperator()
-            defaults_operator.write_default(name=cl_name, value=cl_default_dict)
+            defaults_operator.write_default(
+                name="crosslinker_lengths", value=cl_default_dict
+            )
             return JsonResponse(
                 {
                     "success": True,
@@ -633,7 +640,11 @@ def delete_cl_default(request):
             data = json.loads(request.body)
             cl_name = data.get("cl_name")
             defaults_operator = DefaultsOperator()
-            defaults_operator.delete_default(cl_name)
+            cl_defaults = defaults_operator.read_default(name="crosslinker_lengths")
+            del cl_defaults[cl_name]
+            defaults_operator.write_default(
+                name="crosslinker_lengths", value=cl_defaults
+            )
             return JsonResponse(
                 {
                     "success": True,
