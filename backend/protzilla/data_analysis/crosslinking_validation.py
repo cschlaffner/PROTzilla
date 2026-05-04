@@ -1034,8 +1034,8 @@ def create_cl_validation_histogram(
     distances_valid.dropna(inplace=True)
     distances_invalid.dropna(inplace=True)
 
-    min_distance: float = np.min([distances_valid.min(), distances_invalid.min()])
-    max_distance: float = np.max([distances_valid.max(), distances_invalid.max()])
+    min_distance: float = np.nanmin([distances_valid.min(), distances_invalid.min()])
+    max_distance: float = np.nanmax([distances_valid.max(), distances_invalid.max()])
 
     fig = make_subplots(
         rows=1, cols=2,
