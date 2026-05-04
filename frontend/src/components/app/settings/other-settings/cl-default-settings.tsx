@@ -25,11 +25,14 @@ interface CrosslinkDefaultProps {
   handleDelete?: () => void;
 }
 
-type ApiCrosslinkDefaults = Record<string, {
-  cl_length: number;
-  cl_upper_deviation: number;
-  cl_lower_deviation: number;
-}>;
+type ApiCrosslinkDefaults = Record<
+  string,
+  {
+    cl_length: number;
+    cl_upper_deviation: number;
+    cl_lower_deviation: number;
+  }
+>;
 
 const CrosslinkDefaultContainer = styled.div`
   display: flex;
@@ -65,7 +68,7 @@ const CrosslinkDefaultEntry = ({
             `length: ${String(cl_length)} | ` +
             `accepted upper deviation: ${String(cl_upper_deviation)} | ` +
             `accepted lower deviation: ${String(cl_lower_deviation)}`
-            }
+          }
         />
       </CrosslinkDefaultInfo>
       <SecondaryButton icon={"trash"} isCautious={true} onPress={handleDelete} />
@@ -81,7 +84,7 @@ export const CrosslinkDefaultUpload = () => {
 
   const fetchCrosslinkDefaults = async () => {
     const crosslinkDefaults = (await callApi("get_cl_defaults")) as ApiCrosslinkDefaults | null;
-    
+
     if (crosslinkDefaults) {
       const transformedList: CrosslinkDefaultProps[] = Object.entries(crosslinkDefaults).map(
         ([name, properties]) => ({
@@ -89,7 +92,7 @@ export const CrosslinkDefaultUpload = () => {
           cl_length: properties.cl_length,
           cl_upper_deviation: properties.cl_upper_deviation,
           cl_lower_deviation: properties.cl_lower_deviation,
-        })
+        }),
       );
       setCrosslinkDefaultList(transformedList);
     }
@@ -166,9 +169,7 @@ export const CrosslinkDefaultUpload = () => {
       />
       <SectionTitle
         baseComponent={"h6"}
-        description={
-          "Add new default, update and delete them here."
-        }
+        description={"Add new default, update and delete them here."}
         style={{ paddingBottom: "8px" }}
       />
 
@@ -214,16 +215,9 @@ export const CrosslinkDefaultUpload = () => {
           );
         }}
       />
-      <CrosslinkDefaultTitle
-        baseComponent={"h2"}
-        title={"Cross-Link Defaults"}
-      />
+      <CrosslinkDefaultTitle baseComponent={"h2"} title={"Cross-Link Defaults"} />
       {crosslinkDefaultList.length === 0 ? (
-        <Text
-          text={
-            "No default values for any cross-links yet."
-          }
-        />
+        <Text text={"No default values for any cross-links yet."} />
       ) : (
         <CrosslinkDefaultList>
           {crosslinkDefaultList.map((ps) => (
