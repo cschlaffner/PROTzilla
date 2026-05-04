@@ -1113,7 +1113,7 @@ def create_cl_validation_histogram(
             val: float = split_x_axis_at + math.pow(10, i)
             # Add the exact log position for the tick, and the formatted text
             tick_vals.append(np.log10(val))
-            tick_text.append(f"{(split_x_axis_at + 10**i):.2f}".rstrip("0").rstrip("."))
+            tick_text.append(f"{(split_x_axis_at + 10**i):.4g}")
 
     _ = fig.update_xaxes(
         title_text=f"{xaxis_label} (Log)",
