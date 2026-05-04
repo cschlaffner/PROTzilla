@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from unittest.mock import patch, Mock
 from requests.exceptions import Timeout
-from protzilla.importing.crosslinking_import import (
+from backend.protzilla.importing.crosslinking_import import (
     aggregate_data,
     remove_brackets_from_peptide,
     get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format,
@@ -105,7 +105,7 @@ def test_process_uniprot_response_id_to_gene_name():
 
 
 def test_uniprot_lookup_successful_request_but_no_results(monkeypatch):
-    from protzilla.importing.crosslinking_import import uniprot_lookup
+    from backend.protzilla.importing.crosslinking_import import uniprot_lookup
 
     def mock_execute(*args, **kwargs):
         mock = Mock()
@@ -204,7 +204,7 @@ def test_get_missing_protein_designation():
 def test_process_organism_id_from_text_field(
     monkeypatch, input_string, mock_result, expected
 ):
-    from protzilla.importing.crosslinking_import import (
+    from backend.protzilla.importing.crosslinking_import import (
         process_organism_id_from_text_field,
     )
 
@@ -232,7 +232,7 @@ def test_aggregate_failed_proteins_for_display():
         }
     )
 
-    from protzilla.importing.crosslinking_import import (
+    from backend.protzilla.importing.crosslinking_import import (
         aggregate_failed_proteins_for_display,
     )
 

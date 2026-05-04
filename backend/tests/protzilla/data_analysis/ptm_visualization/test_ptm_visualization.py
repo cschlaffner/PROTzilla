@@ -9,19 +9,19 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     get_detected_modifications,
     create_overview_ptm_visualization,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
     create_bar_ptm_visualization,
 )
-from protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
+from backend.protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
     create_details_ptm_visualization,
 )
-from tests.paths import (
+from backend.tests.paths import (
     TEST_PTM_VISUALIZATION_PATH,
     TEST_FASTA_PATH,
     TEST_PEPTIDES_PATH,
     TEST_METADATA_PATH,
 )
-from tests.protzilla.data_analysis.ptm_visualization.ptm_vis_test_utils import (
+from backend.tests.protzilla.data_analysis.ptm_visualization.ptm_vis_test_utils import (
     get_evidence_df,
     get_metadata_df,
     mock_settings_file,

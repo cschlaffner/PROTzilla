@@ -15,10 +15,10 @@ from backend.protzilla.data_analysis.differential_expression import (
     kruskal_wallis_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.plots import create_volcano_plot
-from protzilla.data_analysis.differential_expression_t_test import (
+from backend.protzilla.data_analysis.differential_expression_t_test import (
     get_z_score_based_fold_change_significance,
 )
-from tests.paths import TEST_AML_DATA_PATH
+from backend.tests.paths import TEST_AML_DATA_PATH
 
 
 @pytest.fixture

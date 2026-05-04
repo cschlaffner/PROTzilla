@@ -683,7 +683,11 @@ def _get_tick_values_with_lines(fig, min_value, max_value):
         if shape.type == "line" and shape.x0 == shape.x1
     ]
 
-    step_size = pow(10, math.floor(np.log10(max_value - min_value)))
+    step_size = (
+        pow(10, math.floor(np.log10(max_value - min_value)))
+        if max_value - min_value > 0
+        else 1
+    )
     first_step = math.ceil(min_value / step_size) * step_size
     last_step = math.ceil(max_value / step_size) * step_size + 3 * step_size
     tick_values = list(np.arange(first_step, last_step, step_size))
@@ -783,6 +787,13 @@ def diagrams_of_crosslinking_validation_data(
                 else crosslinker_length + accepted_deviation_upper_bound
             ),
         )
+        add_vertical_line_with_annotation_in_legend(
+            fig=histogram,
+            dash="solid",
+            annotation=f"{crosslinker} length: {crosslinker_length}Å",
+            x_value=crosslinker_length,
+            column=1,
+        )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         if len(crosslinker_df) == 1:
@@ -869,32 +880,8 @@ def diagrams_of_crosslinking_validation_data(
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
-    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
-    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
-    valid_intra_total = (
-        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
-    ).sum()
-    valid_inter_total = (
-        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
-    ).sum()
-    invalid_intra_total = (
-        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
-    ).sum()
-    invalid_inter_total = (
-        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
-    ).sum()
-
-    bar_plot_over_all_checked_crosslinks = create_bar_plot(
-        values_of_sectors=[
-            valid_crosslinks,
-            invalid_crosslinks,
-        ],
-        names_of_sectors=[
-            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
-            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
-        ],
-        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
-        y_title="Number of Cross-Links",
+    bar_plot_over_all_checked_crosslinks = _create_summarizing_cl_validation_bar_plot(
+        validated_df, structures_to_validate_str
     )
     figures.append(bar_plot_over_all_checked_crosslinks)
 
@@ -1150,3 +1137,35 @@ def create_cl_validation_histogram(
     )
 
     return fig
+
+
+def _create_summarizing_cl_validation_bar_plot(
+    validated_df: pd.DataFrame, structures_to_validate_str: str
+) -> Figure:
+    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
+    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
+    valid_intra_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    valid_inter_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+    invalid_intra_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    invalid_inter_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+
+    return create_bar_plot(
+        values_of_sectors=[
+            valid_crosslinks,
+            invalid_crosslinks,
+        ],
+        names_of_sectors=[
+            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
+        ],
+        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
+        y_title="Number of Cross-Links",
+    )
