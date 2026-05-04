@@ -282,7 +282,7 @@ def create_histograms(
         fig.update_xaxes(title=x_title)
         fig.update_yaxes(title=y_title, rangemode="tozero")
 
-    wrapped_title = "<br>".join(textwrap.wrap(heading, width=50))
+    wrapped_title = "<br>".join(textwrap.wrap(heading, width=60))
     fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
 
     fig.update_layout(margin_pad=20)

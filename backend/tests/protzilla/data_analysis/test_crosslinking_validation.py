@@ -711,7 +711,6 @@ def test_diagrams_calls_with_correct_parameters(
         "backend.protzilla.data_analysis.crosslinking_validation.create_bar_plot"
     ) as mock_bar:
 
-        # mock_hist.side_effect = lambda **kwargs: f"hist_{kwargs['heading']}"
         mock_hist.return_value = Figure()
         mock_bar.return_value = "bar_fig"
 
@@ -726,8 +725,10 @@ def test_diagrams_calls_with_correct_parameters(
 
         # Check histogram call parameters for crosslinker ±2 std
         hist_call = mock_hist.call_args_list[0].kwargs
-        assert hist_call["name_a"] == "Valid Crosslinks (intra: 1, inter: 1)"
-        assert hist_call["name_b"] == "Invalid Crosslinks (intra: 1, inter: 1)"
+        assert hist_call["name_a"] == "Predictions matching CLs (intra: 1, inter: 1)"
+        assert (
+            hist_call["name_b"] == "Predictions not matching CLs (intra: 1, inter: 1)"
+        )
         assert (
             hist_call["heading"]
             == "Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ"

@@ -776,10 +776,10 @@ def diagrams_of_crosslinking_validation_data(
         histogram = create_cl_validation_histogram(
             distances_valid=df_valid["alphafold_distance"],
             distances_invalid=df_invalid["alphafold_distance"],
-            title_valid=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            title_invalid=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+            title_valid=f"Predictions matching CLs (intra: {valid_intra}, inter: {valid_inter})",
+            title_invalid=f"Predictions not matching CLs (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
-            xaxis_label="Distanc in Å",
+            xaxis_label="Distance in Å",
             yaxis_label="Count",
             split_x_axis_at=(
                 crosslinker_length
@@ -814,8 +814,8 @@ def diagrams_of_crosslinking_validation_data(
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+            name_a=f"Predictions matching CLs (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Predictions not matching CLs (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
             x_title="Distance (Å)",
             y_title="Count",
@@ -833,6 +833,7 @@ def diagrams_of_crosslinking_validation_data(
             annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
         )
+        histogram_two_standard_deviations.update_layout(width=900)
 
         if accepted_deviation_upper_bound != 0:
             add_vertical_line_with_annotation_in_legend(
@@ -980,8 +981,8 @@ def create_cl_validation_histogram(
     distances_valid: pd.Series,
     distances_invalid: pd.Series,
     split_x_axis_at: float,
-    title_valid: str = "Valid Crosslinks",
-    title_invalid: str = "Invalid Crosslinks",
+    title_valid: str = "Predictions matching CLs",
+    title_invalid: str = "Predictions not matching CLs",
     heading: str = "",
     xaxis_label: str = "",
     yaxis_label: str = "",
@@ -994,8 +995,8 @@ def create_cl_validation_histogram(
     :param distances_invalid: Pandas Series containing distances not matching the crosslinker length.
     :param split_x_axis_at: Threshold distance at which the x-axis transitions from
                             linear (left panel) to logarithmic (right panel).
-    :param title_valid: Legend label for valid crosslinks. Defaults to "Valid Crosslinks".
-    :param title_invalid: Legend label for invalid crosslinks. Defaults to "Invalid Crosslinks".
+    :param title_valid: Legend label for valid crosslinks. Defaults to "Predictions matching CLs".
+    :param title_invalid: Legend label for invalid crosslinks. Defaults to "Predictions not matching CLs".
     :param heading: Title of the overall figure. Can be a long string and will be wrapped.
     :param xaxis_label: Label for the x-axis (applied to both panels with scale annotations).
     :param yaxis_label: Label for the shared y-axis.
@@ -1016,6 +1017,7 @@ def create_cl_validation_histogram(
         horizontal_spacing=0.1,
         column_widths=[0.5, 0.5],
     )
+    fig.update_layout(width=900)
 
     # --- Pre-calculate shared bins for BOTH datasets ---
     # 1. Linear Bins
@@ -1111,7 +1113,7 @@ def create_cl_validation_histogram(
             val: float = split_x_axis_at + math.pow(10, i)
             # Add the exact log position for the tick, and the formatted text
             tick_vals.append(np.log10(val))
-            tick_text.append(f"{(split_x_axis_at + 10**i):.2f}")
+            tick_text.append(f"{(split_x_axis_at + 10**i):.2f}".rstrip("0").rstrip("."))
 
     _ = fig.update_xaxes(
         title_text=f"{xaxis_label} (Log)",
@@ -1126,7 +1128,7 @@ def create_cl_validation_histogram(
     _ = fig.update_layout(barmode="overlay", yaxis_title=yaxis_label)
     fig.update_traces(opacity=0.75)
 
-    wrapped_title = "<br>".join(textwrap.wrap(heading, width=50))
+    wrapped_title = "<br>".join(textwrap.wrap(heading, width=60))
     _ = fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
 
     _ = fig.update_layout(margin_pad=10)
