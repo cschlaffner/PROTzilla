@@ -1003,6 +1003,9 @@ def create_cl_validation_histogram(
     :return: A Plotly Figure object containing the split histogram visualization.
     """
 
+    if split_x_axis_at <= 0.0:
+        raise ValueError("x-axis split must be at x > 0")
+
     # It is good practice to drop NaNs before calculating bins/histograms
     distances_valid.dropna(inplace=True)
     distances_invalid.dropna(inplace=True)
