@@ -65,46 +65,77 @@ export function overrideLabels(plugin: PluginUIContext) {
     addProvider: (p: LabelProvider) => void;
   };
 
-  const defaultLabelProviders = [...labelManager.providers];
+  const defaultProviders = [...labelManager.providers];
   labelManager.providers = [];
 
-  plugin.managers.lociLabels.addProvider({
+  const getDefaultLabel = (loci: any) =>
+    defaultProviders
+      .map((p) => p.label(loci))
+      .filter(Boolean)
+      .join(" | ");
+
+  const getAtomIdsFromLoci = (loci: any): string[] => {
+    const ids: string[] = [];
+
+    for (const element of loci.elements) {
+      const { indices, unit } = element;
+      const atoms = unit.model.atomicHierarchy.atoms.label_atom_id;
+
+      for (let i = 0; i < OrderedSet.size(indices); i++) {
+        const idx = OrderedSet.getAt(indices, i);
+        ids.push(String(atoms.value(idx)));
+      }
+    }
+
+    return [...new Set(ids)];
+  };
+
+  const findMatchingAtomPair = (ids: string[]) => {
+    // since the atom-pair of one crosslink is always XL...A, XL...B those are the two ids we need
+    // (there can be atoms of other crosslinks at the exact same place, which is why they are listed here)
+    const getNumber = (id: string) => /\d+/.exec(id)?.[0];
+
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        if (getNumber(ids[i]) === getNumber(ids[j])) {
+          return [ids[i], ids[j]] as const;
+        }
+      }
+    }
+    return undefined;
+  };
+
+  labelManager.addProvider({
     label: (loci) => {
       if (loci.kind !== "element-loci") {
-        return defaultLabelProviders
-          .map((p) => p.label(loci))
-          .filter(Boolean)
-          .join(" | ");
+        return getDefaultLabel(loci);
       }
-
-      const structureElements = loci.elements[0];
-      const firstElement = OrderedSet.getAt(structureElements.indices, 0);
 
       const crosslinkerGroups = (plugin as PluginWithCrosslinks).crosslinkerGroups;
       if (!crosslinkerGroups) {
-        return defaultLabelProviders
-          .map((p) => p.label(loci))
-          .filter(Boolean)
-          .join(" | ");
+        return getDefaultLabel(loci);
       }
 
-      const atomId =
-        structureElements.unit.model.atomicHierarchy.atoms.label_atom_id.value(firstElement);
+      const atomIds = getAtomIdsFromLoci(loci);
+      const pair = findMatchingAtomPair(atomIds);
 
-      const crosslinkerGroupWithAtomIds = Object.entries(crosslinkerGroups).find(([, ids]) =>
-        ids.includes(atomId),
+      if (!pair) {
+        return getDefaultLabel(loci);
+      }
+
+      const [atomId1, atomId2] = pair;
+
+      const match = Object.entries(crosslinkerGroups).find(
+        ([, ids]) => ids.includes(atomId1) && ids.includes(atomId2),
       );
 
-      if (crosslinkerGroupWithAtomIds) {
-        const [crosslinkerGroupName] = crosslinkerGroupWithAtomIds as [CrosslinkerType, string[]];
-        const stringColor = getCrosslinkerColor(crosslinkerGroupName);
-        return `<span style="color:${stringColor}">${crosslinkerGroupName}</span>`;
+      if (!match) {
+        return getDefaultLabel(loci);
       }
 
-      return defaultLabelProviders
-        .map((p) => p.label(loci))
-        .filter(Boolean)
-        .join(" | ");
+      const [groupName] = match as [CrosslinkerType, string[]];
+      const color = getCrosslinkerColor(groupName);
+      return `<span style="color:${color}">${groupName}</span>`;
     },
   });
 }
