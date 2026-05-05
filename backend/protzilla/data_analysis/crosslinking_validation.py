@@ -1168,9 +1168,9 @@ def _create_summarizing_cl_validation_bar_plot(
             invalid_crosslinks,
         ],
         names_of_sectors=[
-            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
-            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
+            f"Crosslinks matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Crosslinks not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
         ],
-        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
-        y_title="Number of Cross-Links",
+        heading=f"All Crosslinks used for validation of {structures_to_validate_str}",
+        y_title="Number of Crosslinks",
     )
