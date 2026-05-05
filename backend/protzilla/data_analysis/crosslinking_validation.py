@@ -23,7 +23,7 @@ from backend.protzilla.steps import OutputItem, OutputType
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     """
     Returns the atom of an amino acid residue that is considered reactive for
-    cross-linking. Currently, this always returns the central alpha carbon (CA).
+    crosslinking. Currently, this always returns the central alpha carbon (CA).
 
     :param amino_acid_type: code of the amino acid
 
@@ -42,7 +42,7 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     chain_id: str,
 ) -> tuple[float, float, float]:
     """
-    Returns the Cartesian coordinates of the atom to which the cross-linker is
+    Returns the Cartesian coordinates of the atom to which the crosslinker is
     bound for a given amino acid residue in a protein structure.
 
     :param amino_acid_position_where_crosslinker_bound: 1-based position of the amino acid residue
@@ -174,7 +174,7 @@ def add_protein_crosslink_positions_to_df(
      If either peptide cannot be matched in its corresponding protein sequence, the row
      is removed and a warning message is recorded.
 
-     :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+     :param input_crosslinking_df: DataFrame containing crosslinking data with at least the following columns:
                             - 'Peptide1': first peptide sequence
                             - 'Peptide2': second peptide sequence
                             - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
@@ -491,12 +491,12 @@ def validate_with_angstrom_deviation(
     structures_to_validate: list,
 ) -> dict:
     """
-    Validates cross-links by comparing the cross-linker lengths with the distances between the linked
-    amino acids in the AlphaFold protein structure. A cross-link is regarded as valid if it matches the AlphaFold data,
-    so if the distance between the connected amino acids in AlphaFold is less than (cross-linker length + the upper allowed deviation)
-    and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
+    Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
+    amino acids in the AlphaFold protein structure. A crosslink is regarded as valid if it matches the AlphaFold data,
+    so if the distance between the connected amino acids in AlphaFold is less than (crosslinker length + the upper allowed deviation)
+    and more than (crosslinker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
-    :param crosslinking_df: DataFrame containing the cross-linking data to validate.
+    :param crosslinking_df: DataFrame containing the crosslinking data to validate.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of three floats:
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
@@ -520,7 +520,7 @@ def validate_with_angstrom_deviation(
 
     # Check if dataframe is empty
     if relevant_crosslinks_df.empty:
-        msg = "There are no cross links between the structures to validate."
+        msg = "There are no crosslinks between the structures to validate."
         messages = [dict(level=logging.WARNING, msg=msg)]
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
@@ -540,7 +540,7 @@ def validate_with_angstrom_deviation(
     )
 
     if relevant_crosslinks_df.empty:
-        msg = "There are no cross links between the structures to validate."
+        msg = "There are no crosslinks between the structures to validate."
         messages = [dict(level=logging.WARNING, msg=msg)]
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
@@ -654,7 +654,7 @@ def diagrams_of_crosslinking_validation_data(
 ) -> list[Figure]:
     """
     Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
-    cross-links based on the (AlphaFold-)predicted distances compared to crosslinker lengths and
+    crosslinks based on the (AlphaFold-)predicted distances compared to crosslinker lengths and
     allowed deviations.
 
     For each crosslinker, two histograms are generated:
@@ -664,10 +664,10 @@ def diagrams_of_crosslinking_validation_data(
     Both histograms include vertical reference lines indicating the
     crosslinker length and, if applicable, the upper and/or lower accepted deviation bounds.
 
-    Additionally, a bar plot is created summarizing the total number of cross-links that match
+    Additionally, a bar plot is created summarizing the total number of crosslinks that match
     or do not match the predicted structure across all analyzed crosslinkers.
 
-    :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
+    :param crosslinking_df: DataFrame containing crosslinking data, including AlphaFold-predicted
                             distances, crosslinker identifiers, and validation results.
     :param structure_metadata_df: Dataframe containing metadata.
     :param crosslinker_information: Contains for each Crosslinker:
@@ -678,7 +678,7 @@ def diagrams_of_crosslinking_validation_data(
     :param amino_acid_sequences_df: DataFrame containing the protein sequence
     :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
              figures (mean ± 2 standard deviations first, full range second), followed by a final
-             bar plot summarizing valid and invalid cross-links across all crosslinkers.
+             bar plot summarizing valid and invalid crosslinks across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
     if validated_df.empty:
@@ -835,11 +835,11 @@ def diagrams_of_crosslinking_validation_data(
             invalid_crosslinks,
         ],
         names_of_sectors=[
-            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
-            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
+            f"Crosslinks matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Crosslinks not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
         ],
-        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
-        y_title="Number of Cross-Links",
+        heading=f"All Crosslinks used for validation of {structures_to_validate_str}",
+        y_title="Number of Crosslinks",
     )
     figures.append(bar_plot_over_all_checked_crosslinks)
 
