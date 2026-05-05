@@ -35,7 +35,7 @@ const FALLBACK_TOO_MANY_COLUMNS = [
     id: "error_too_many_columns2",
   },
 ];
-const MAX_COLUMNS = 10;
+const MAX_COLUMNS = 25;
 
 export const DataTable: React.FC<DataTableProps> = ({
   runName,
