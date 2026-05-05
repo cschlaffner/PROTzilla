@@ -788,7 +788,9 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
     def base_message():
         if file_type == ".csv":
             organism_names_string = ", ".join(scientific_organism_names)
-            return f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
+            return (
+                f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
+            )
         return f"{len(good_df)} crosslinks"
 
     if good_df.empty:
