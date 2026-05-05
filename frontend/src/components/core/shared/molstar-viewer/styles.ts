@@ -1,4 +1,4 @@
-import { color } from "@protzilla/theme";
+import { color, font, fontSize, fontWeight } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 export const Container = styled.div`
@@ -10,7 +10,7 @@ export const Container = styled.div`
   gap: 1rem;
 `;
 
-const molstarTheme = {
+export const molstarTheme = {
   primary: color("protzillaDarkBlue"),
   surface: color("protzillaLightGray"),
   hover: color("secondaryHover"),
@@ -247,4 +247,22 @@ export const CanvasWrapper = styled.div`
       background: ${molstarTheme.error} !important;
     }
   }
+`;
+
+export const LegendContainer = styled.div`
+  position: absolute;
+  bottom: 0vh;
+  right: 1.5vh;
+
+  background: ${molstarTheme.surface};
+  color: ${molstarTheme.primary};
+
+  padding: 1vh;
+  font-family: ${font("defaultWithFallbacks")};
+  font-size: ${fontSize("h6")};
+  font-weight: ${fontWeight("default")};
+  border-radius: 0px;
+
+  pointer-events: none;
+  z-index: 10;
 `;
