@@ -16,7 +16,7 @@ import {
 } from "../../../core/shared/icon/icons";
 
 // --- Constants ---
-const NODE_WIDTH = 260;
+const NODE_WIDTH = 280;
 const NODE_HEIGHT = 70;
 const HANDLE_ICON_SIZE = 26;
 const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
@@ -38,13 +38,19 @@ const StyledNode = styled.div`
 `;
 
 const StatusIndicatorWrapper = styled.div`
-  position: absolute;
-  left: -35px; /* Pulls it outside to the left */
-  top: 50%;
-  transform: translateY(-50%);
+  /* Removed absolute positioning */
+  flex-shrink: 0;
+  margin-right: 8px; /* Spacing between status and operation icon */
   display: flex;
   align-items: center;
   justify-content: center;
+
+  /* Optional: Adjust size of status icon if needed */
+  & > svg,
+  & > span {
+    width: 20px !important;
+    height: 20px !important;
+  }
 `;
 
 const OperationIconWrapper = styled.div`
