@@ -548,14 +548,14 @@ class UploadMultimerPredictions(ImportingStep):
             input_fields=[
                 TextField(
                     name="entry_id",
-                    label="Entry ID of the prediction to be loaded into the run.",
+                    label="Entry ID of the prediction to be loaded into the run. (required)",
                 ),
                 InfoField(
                     label="The entry ID should be a unique name given to the uploaded prediction.",
                 ),
                 TextField(
                     name="uniprot_ids",
-                    label="Protein IDs of all proteins used in the sequence. ",
+                    label="Protein IDs of all proteins used in the sequence.",
                 ),
                 InfoField(
                     label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9."

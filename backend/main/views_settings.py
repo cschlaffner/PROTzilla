@@ -355,6 +355,7 @@ def get_monomer_structure(request):
     ]
 
     df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+    df = df.fillna("")
 
     df_infos = df.rename(
         columns={
@@ -470,6 +471,7 @@ def get_multimer_structure(request):
         "model_used",
     ]
     df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+    df = df.fillna("")
 
     df_infos = df.rename(
         columns={

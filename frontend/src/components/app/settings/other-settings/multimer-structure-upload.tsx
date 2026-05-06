@@ -202,7 +202,7 @@ export const MultimerStructureUpload = () => {
             {
               type: "text",
               name: "model_used",
-              label: "AlphaFold Model used to predict the structure (required)",
+              label: "AlphaFold Model used to predict the structure",
               isVisible: true,
             },
             {
