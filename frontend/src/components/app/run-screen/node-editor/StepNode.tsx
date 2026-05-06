@@ -116,31 +116,13 @@ const triangleStyle = (direction: HandleDirection) => ({
   backgroundColor: "#1d1d1d",
 });
 
-const stepOperationIconMap: Partial<Record<string, string>> = {
-  classification: "stepClassification",
-  clustering: "stepClustering",
-  dimension_reduction: "stepDimensionReduction",
-  filter_samples: "stepFilter",
-  filter_proteins: "stepFilter",
-  filter_peptides: "stepFilter",
-  filter_psms: "stepFilter",
-  gene_ontology: "stepGO",
-  gsea: "stepGSEA",
-  imputation: "stepImputation",
-  modification_quantification: "stepModificationQuantification",
-  normalization: "stepNormalization",
-  differential_expression: "stepStatisticalTest",
-  transformation: "stepTransformation",
-  ptm_visualization: "stepPTMVisualization",
-};
-
 export default function StepNode({ data }: NodeProps<StepNodeType>) {
   const onElementClick = () => {
     data.navigateOrRefreshSteps(data.step.id);
   };
 
   const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "white";
-  const operationIcon = stepOperationIconMap[data.step.operation] ?? (data.section as IconType);
+  const nodeIcon = data.section as IconType;
   const statusIcon: DefaultColoredIconType = data.step.status;
 
   return (
@@ -156,7 +138,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
       {/* Larger Operation Icon */}
       <OperationIconWrapper>
-        <Icon icon={operationIcon as IconType} />
+        <Icon icon={nodeIcon as IconType} />
       </OperationIconWrapper>
 
       {/* Wrapped Text Content */}
