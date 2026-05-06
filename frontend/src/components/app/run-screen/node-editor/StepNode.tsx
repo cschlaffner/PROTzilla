@@ -144,7 +144,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
       {/* Larger Operation Icon */}
       <OperationIconWrapper>
-        <Icon icon={nodeIcon as IconType} />
+        <Icon icon={nodeIcon} />
       </OperationIconWrapper>
 
       {/* Wrapped Text Content */}

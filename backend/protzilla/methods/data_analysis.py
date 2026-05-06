@@ -1342,9 +1342,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
     display_name = "Clustering (HAC)"
-    method_description = (
-        "Performs hierarchical agglomerative clustering (HAC) utilising a bottom-up approach"
-    )
+    method_description = "Performs hierarchical agglomerative clustering (HAC) utilising a bottom-up approach"
 
     output_keys = [
         "model",
