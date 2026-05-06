@@ -794,14 +794,15 @@ def diagrams_of_crosslinking_validation_data(
             x_value=crosslinker_length,
             column=1,
         )
-        # assumes that accepted_deviation_upper_bound = 0, if not set
-        add_vertical_line_with_annotation_in_legend(
-            fig=histogram,
-            dash="dash",
-            annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
-            x_value=np.log10(crosslinker_length + accepted_deviation_upper_bound),
-            column=2,
-        )
+        if accepted_deviation_upper_bound == 0:
+            # also add rightmost line (upper_bound/CL length to right subplot)
+            histogram.add_vline(
+                x=np.log10(crosslinker_length),
+                line_color=PLOT_PRIMARY_COLOR,
+                line_dash="solid",
+                line_width=2,
+                col=2,
+            )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         if len(crosslinker_df) == 1:
@@ -850,6 +851,14 @@ def diagrams_of_crosslinking_validation_data(
                 annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
                 x_value=crosslinker_length + accepted_deviation_upper_bound,
                 column=1,
+            )
+            # also add rightmost line (upper_bound/CL length to right subplot)
+            histogram.add_vline(
+                x=np.log10(crosslinker_length + accepted_deviation_upper_bound),
+                line_color=PLOT_PRIMARY_COLOR,
+                line_dash="dash",
+                line_width=2,
+                col=2,
             )
             if (
                 math.floor(mean_minus_two_std)
