@@ -794,6 +794,14 @@ def diagrams_of_crosslinking_validation_data(
             x_value=crosslinker_length,
             column=1,
         )
+        # assumes that accepted_deviation_upper_bound = 0, if not set
+        add_vertical_line_with_annotation_in_legend(
+            fig=histogram,
+            dash="dash",
+            annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
+            x_value=np.log10(crosslinker_length + accepted_deviation_upper_bound),
+            column=2,
+        )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         if len(crosslinker_df) == 1:
@@ -817,7 +825,7 @@ def diagrams_of_crosslinking_validation_data(
             name_a=f"Predictions matching CLs (intra: {valid_intra}, inter: {valid_inter})",
             name_b=f"Predictions not matching CLs (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
-            x_title="Distance (Å)",
+            x_title="Distance in Å",
             y_title="Count",
             overlay=True,
             visual_transformation="linear",
@@ -1119,7 +1127,7 @@ def create_cl_validation_histogram(
             tick_text.append(f"{(split_x_axis_at + 10**i):.4g}")
 
     _ = fig.update_xaxes(
-        title_text=f"{xaxis_label} (Log)",
+        title_text=f"{xaxis_label} (Log10)",
         tickvals=tick_vals,
         ticktext=tick_text,
         row=1,
