@@ -6,12 +6,12 @@ import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 import React, { useEffect, useRef, useState } from "react";
 
-import { addTrimeshPolyhedron } from "./molstar-trimesh-adapter";
+import { addTrimeshMesh } from "./molstar-trimesh-adapter";
 import { MolstarViewerProps } from "./molstar-viewer.props";
 import { addCrosslinks, handleError } from "./molstar-viewer.service";
 import { CanvasWrapper, Container } from "./styles";
 
-const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, polyhedron }) => {
+const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, trimeshMeshes }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const notify = useNotification();
@@ -49,12 +49,14 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, poly
           await addCrosslinks(plugin, cifText, crosslinks);
         }
 
-        if (polyhedron !== undefined) {
-          await addTrimeshPolyhedron(plugin, polyhedron, {
-            color: 0x8a2be2,
-            alpha: 0.5,
-            label: "Protein Convex Hull",
-          });
+        if (trimeshMeshes !== undefined) {
+          for (const trimeshMesh of trimeshMeshes) {
+            await addTrimeshMesh(plugin, trimeshMesh.mesh, {
+              color: trimeshMesh.color,
+              alpha: trimeshMesh.alpha,
+              label: trimeshMesh.label,
+            });
+          }
         }
 
         setIsLoading(false);
@@ -75,7 +77,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, poly
         }
       }
     };
-  }, [cifText, crosslinks, notify, polyhedron]);
+  }, [cifText, crosslinks, notify, trimeshMeshes]);
 
   return (
     <Container>

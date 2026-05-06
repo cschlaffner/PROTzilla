@@ -161,7 +161,7 @@ export const RunScreen: React.FC = () => {
       structureEntryId: response.data.structureEntryId,
       cifString: response.data.cifString,
       crosslinks: response.data.crosslinks,
-      polyhedron: response.data.polyhedron,
+      trimeshMeshes: response.data.trimeshMeshes,
     }),
     [],
   );
@@ -390,7 +390,7 @@ export const RunScreen: React.FC = () => {
             <MolstarViewer
               cifText={viz.cifString}
               crosslinks={viz.crosslinks}
-              polyhedron={viz.polyhedron}
+              trimeshMeshes={viz.trimeshMeshes}
             />
           </StyledContentDiv>
         ))

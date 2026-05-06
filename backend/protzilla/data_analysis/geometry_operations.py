@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from scipy.spatial import ConvexHull
-from typing import TYPE_CHECKING
+import trimesh
 
-if TYPE_CHECKING:
-    from trimesh import Trimesh
+COORDINATE_COLUMNS = [
+    "_atom_site.Cartn_x",
+    "_atom_site.Cartn_y",
+    "_atom_site.Cartn_z",
+]
 
 
 def _resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
@@ -87,7 +89,7 @@ def extract_points_from_cif(
     return points
 
 
-def build_convex_hull(points: np.ndarray) -> Trimesh:
+def build_convex_hull(points: np.ndarray) -> trimesh.Trimesh:
     """
     Build a 3D convex hull mesh from a point cloud.
     """
@@ -102,61 +104,50 @@ def build_convex_hull(points: np.ndarray) -> Trimesh:
             "At least four distinct points are required to build a 3D convex hull."
         )
 
-    import trimesh
-
-    return trimesh.convex.convex_hull(
-        points, qhull_options="QJ"
-    )  # Maybe QJ is stupid here? Ill have to look into it
+    return trimesh.convex.convex_hull(points, qhull_options="QJ")
 
 
-def convex_hull_polyhedron_from_cif(cif_df: pd.DataFrame) -> dict:
-    """
-    Build a convex hull from all atom coordinates in a CIF DataFrame
-    and return it as triangle mesh lists for frontend visualization.
-    """
+def mesh_to_polyhedron(mesh: trimesh.Trimesh) -> dict:
+    return {
+        "vertices": mesh.vertices.tolist(),
+        "faces": mesh.faces.tolist(),
+    }
 
-    required_columns = [
-        "_atom_site.Cartn_x",
-        "_atom_site.Cartn_y",
-        "_atom_site.Cartn_z",
-    ]
-    missing_columns = [column for column in required_columns if column not in cif_df.columns]
-    if missing_columns:
+
+def point_cloud_to_polyhedron(points: np.ndarray) -> dict:
+    return mesh_to_polyhedron(build_convex_hull(points))
+
+
+def calculate_centroid(points: np.ndarray) -> np.ndarray:
+    if points.ndim != 2 or points.shape[1] != 3:
+        raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
+    if len(points) == 0:
+        raise ValueError("At least one point is required to calculate a centroid.")
+
+    return points.mean(axis=0)
+
+
+def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
+    if points.ndim != 2 or points.shape[1] != 3:
+        raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
+    if len(points) == 0:
+        raise ValueError("At least one point is required to calculate a maximum distance.")
+    if reference_point.shape != (3,):
         raise ValueError(
-            f"CIF DataFrame is missing required columns for convex hull creation: {missing_columns}"
+            f"Expected reference_point with shape (3,), got {reference_point.shape}."
         )
 
-    coordinates = (
-        cif_df[required_columns]
-        .apply(pd.to_numeric, errors="coerce")
-        .dropna()
-        .drop_duplicates()
-        .to_numpy()
-    )
-
-    try:
-        hull = build_convex_hull(coordinates)
-        return {
-            "vertices": hull.vertices.tolist(),
-            "faces": hull.faces.tolist(),
-        }
-    except ModuleNotFoundError:
-        hull = ConvexHull(coordinates)
-        used_vertex_indices = np.unique(hull.simplices)
-        remap = {old: new for new, old in enumerate(used_vertex_indices)}
-        faces = [[remap[index] for index in face] for face in hull.simplices.tolist()]
-        vertices = coordinates[used_vertex_indices]
-        return {
-            "vertices": vertices.tolist(),
-            "faces": faces,
-        }
+    distances = np.linalg.norm(points - reference_point, axis=1)
+    return points[np.argmax(distances)]
 
 
 def meshes_intersect(
-    mesh_a: Trimesh, mesh_b: Trimesh, distance_tolerance: float = 1e-9
+    mesh_a: trimesh.Trimesh,
+    mesh_b: trimesh.Trimesh,
+    distance_tolerance: float = 1e-9,
 ) -> bool:
     """
-    Determine whether two triangle meshes intersect or touch.
+    Determine whether two meshes intersect or touch.
     """
 
     from trimesh.collision import CollisionManager
@@ -166,9 +157,9 @@ def meshes_intersect(
     return manager.min_distance_single(mesh_b) <= distance_tolerance
 
 
-def meshes_distance(mesh_a: Trimesh, mesh_b: Trimesh) -> float:
+def meshes_distance(mesh_a: trimesh.Trimesh, mesh_b: trimesh.Trimesh) -> float:
     """
-    Calculate the minimum euclidean distance between two triangle meshes.
+    Calculate the minimum euclidean distance between two meshes.
     """
 
     from trimesh.collision import CollisionManager
@@ -177,65 +168,3 @@ def meshes_distance(mesh_a: Trimesh, mesh_b: Trimesh) -> float:
     manager.add_object("mesh_a", mesh_a)
     distance = float(manager.min_distance_single(mesh_b))
     return max(distance, 0.0)
-
-
-def bodies_intersect_from_cif(
-    cif_df: pd.DataFrame,
-    residue_range_a: tuple[int, int],
-    residue_range_b: tuple[int, int],
-    chain_id: str | None = None,
-) -> dict:
-    """
-    Build two convex bodies from CIF residue ranges and test whether they intersect.
-
-    :param cif_df: DataFrame containing mmCIF atom_site coordinates
-    :param residue_range_a: inclusive residue range for the first body
-    :param residue_range_b: inclusive residue range for the second body
-    :param chain_id: optional chain identifier used for both bodies
-    :return: summary dictionary with hull sizes and the intersection result
-    """
-
-    points_a = extract_points_from_cif(cif_df, residue_range_a, chain_id=chain_id)
-    points_b = extract_points_from_cif(cif_df, residue_range_b, chain_id=chain_id)
-
-    hull_a = build_convex_hull(points_a)
-    hull_b = build_convex_hull(points_b)
-
-    return {
-        "intersects": meshes_intersect(hull_a, hull_b),
-        "n_atoms_a": len(points_a),
-        "n_atoms_b": len(points_b),
-        "n_hull_vertices_a": len(hull_a.vertices),
-        "n_hull_vertices_b": len(hull_b.vertices),
-    }
-
-
-def bodies_distance_from_cif(
-    cif_df: pd.DataFrame,
-    residue_range_a: tuple[int, int],
-    residue_range_b: tuple[int, int],
-    chain_id: str | None = None,
-) -> dict:
-    """
-    Build two convex bodies from CIF residue ranges and calculate their distance.
-
-    :param cif_df: DataFrame containing mmCIF atom_site coordinates
-    :param residue_range_a: inclusive residue range for the first body
-    :param residue_range_b: inclusive residue range for the second body
-    :param chain_id: optional chain identifier used for both bodies
-    :return: summary dictionary with hull sizes and the minimum distance
-    """
-
-    points_a = extract_points_from_cif(cif_df, residue_range_a, chain_id=chain_id)
-    points_b = extract_points_from_cif(cif_df, residue_range_b, chain_id=chain_id)
-
-    hull_a = build_convex_hull(points_a)
-    hull_b = build_convex_hull(points_b)
-
-    return {
-        "distance": meshes_distance(hull_a, hull_b),
-        "n_atoms_a": len(points_a),
-        "n_atoms_b": len(points_b),
-        "n_hull_vertices_a": len(hull_a.vertices),
-        "n_hull_vertices_b": len(hull_b.vertices),
-    }

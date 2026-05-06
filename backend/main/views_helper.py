@@ -6,9 +6,7 @@ import pandas as pd
 from typing import Optional, List, Dict
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
-from backend.protzilla.data_analysis.geometry_operations import (
-    convex_hull_polyhedron_from_cif,
-)
+from backend.protzilla.data_analysis.amino_acid_spheres import calculate_amino_acid_spheres
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import Step
 from backend.protzilla.step_manager import StepManager
@@ -211,12 +209,9 @@ def create_visualization(
         cif_string = ""
 
     result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
-
-    try:
-        result["polyhedron"] = convex_hull_polyhedron_from_cif(cif_df)
-    except (ValueError, TypeError, ModuleNotFoundError, ImportError):
-        pass
-
+    
+    result["trimeshMeshes"] = calculate_amino_acid_spheres(cif_df)
+    
     if crosslinking_df is not None:
         result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
 
