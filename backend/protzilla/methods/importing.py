@@ -50,7 +50,7 @@ class ImportingStep(Step, ABC):
 
 
 class ArbitraryCSVImport(ImportingStep):
-    display_name: str = "Arbitrary CSV import"
+    display_name: str = "Arbitrary CSV"
     operation: StepOperation = StepOperation.DEBUG
     method_description: str = "For debugging purposes. Imports any CSV as a dataframe"
 
@@ -81,7 +81,7 @@ class ProteinImportingStep(ImportingStep, ABC):
 
 
 class MaxQuantImport(ProteinImportingStep):
-    display_name = "MaxQuant Protein Groups Import"
+    display_name = "MaxQuant Protein Groups"
     method_description = "Import the protein groups file form output of MaxQuant"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -125,7 +125,7 @@ class MaxQuantImport(ProteinImportingStep):
 
 
 class DiannImport(ProteinImportingStep):
-    display_name = "DIA-NN Import"
+    display_name = "DIA-NN Proteins"
     method_description = "DIA-NN data import"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -158,7 +158,7 @@ class DiannImport(ProteinImportingStep):
 
 
 class MsFraggerImport(ProteinImportingStep):
-    display_name = "MS Fragger Combined Protein Import"
+    display_name = "MSFragger Combined Proteins"
     method_description = (
         "Import the combined_protein.tsv file form output of MS Fragger"
     )
@@ -198,7 +198,7 @@ class MsFraggerImport(ProteinImportingStep):
 
 
 class MetadataImport(MetadataImportingStep):
-    display_name = "Metadata Import"
+    display_name = "Metadata"
     method_description = "Import metadata"
 
     output_keys = [DataKey.METADATA_DF]
@@ -289,7 +289,7 @@ class MetadataColumnAssignment(MetadataImportingStep):
 
 
 class PeptideImport(ImportingStep):
-    display_name = "MaxQuant Peptide Import"
+    display_name = "MaxQuant Peptides"
     operation = StepOperation.PEPTIDE_IMPORT
     method_description = "Import peptide data"
 
@@ -322,7 +322,7 @@ class PeptideImport(ImportingStep):
 
 
 class EvidenceImport(ImportingStep):
-    display_name = "MaxQuant Evidence Import"
+    display_name = "MaxQuant Evidence File"
     operation = StepOperation.PSM_IMPORT
     method_description = "Import an evidence file"
 
@@ -355,7 +355,7 @@ class EvidenceImport(ImportingStep):
 
 
 class FastaImport(ImportingStep):
-    display_name = "Fasta Protein Sequence Import"
+    display_name = "FASTA Protein Sequences"
     operation = StepOperation.FASTA_IMPORT
     method_description = "Import a fasta file containing protein sequences."
 
@@ -377,7 +377,7 @@ class FastaImport(ImportingStep):
 
 
 class ExampleDatasetImport(ImportingStep):
-    display_name = "Example Dataset Import"
+    display_name = "Example Dataset"
     operation = StepOperation.EXAMPLE_IMPORT
     method_description = (
         "Import the proteins, peptides, and metadata of the PRIDE repository PXD014997, which belongs to the following "

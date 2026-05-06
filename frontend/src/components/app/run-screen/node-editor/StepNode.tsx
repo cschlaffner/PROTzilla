@@ -16,7 +16,7 @@ import {
 } from "../../../core/shared/icon/icons";
 
 // --- Constants ---
-const NODE_WIDTH = 280;
+const NODE_WIDTH = 285;
 const NODE_HEIGHT = 70;
 const HANDLE_ICON_SIZE = 26;
 const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;

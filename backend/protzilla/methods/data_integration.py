@@ -135,7 +135,7 @@ class DataIntegrationPlotStep(DataIntegrationStep, ABC):
 
 
 class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
-    display_name = "GO analysis with STRING"
+    display_name = "GO Analysis (STRING API)"
     method_description = "Online GO analysis using STRING API"
 
     def create_form(self):
@@ -203,7 +203,7 @@ class EnrichmentAnalysisGOAnalysisWithString(EnrichmentAnalysisGOStep):
 
 
 class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
-    display_name = "GO analysis with Enrichr"
+    display_name = "GO Analysis (Enrichr API)"
     method_description = "Online GO analysis using Enrichr API"
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_with_Enrichr)
@@ -348,7 +348,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
 
 
 class EnrichmentAnalysisGOAnalysisOffline(EnrichmentAnalysisGOStep):
-    display_name = "GO analysis offline"
+    display_name = "GO Analysis (Offline)"
     method_description = "Offline GO Analysis using a hypergeometric test"
 
     calc_method = staticmethod(enrichment_analysis.GO_analysis_offline)
@@ -579,7 +579,7 @@ class EnrichmentAnalysisWithGSEA(EnrichmentAnalysisStep):
 
 
 class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
-    display_name = "GSEA preranked"
+    display_name = "GSEA (Preranked)"
     method_description = "Maps proteins to genes and performs GSEA according using provided numerical column for ranking"
 
     operation: StepOperation = StepOperation.GSEA
@@ -697,7 +697,7 @@ class EnrichmentAnalysisWithPrerankedGSEA(EnrichmentAnalysisStep):
 
 
 class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
-    display_name = "Gene mapping"
+    display_name = "Gene Mapping"
     operation: StepOperation = StepOperation.DATABASE_INTEGRATION
     method_description = "Map protein groups to genes"
 
@@ -728,7 +728,7 @@ class DatabaseIntegrationByGeneMapping(DataIntegrationStep):
 
 
 class DatabaseIntegrationByUniprot(DataIntegrationStep):
-    display_name = "Uniprot"
+    display_name = "Add Uniprot Data"
     operation: StepOperation = StepOperation.DATABASE_INTEGRATION
     method_description = "Add Uniprot data to a dataframe"
 
@@ -760,7 +760,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
 
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
-    display_name = "Bar plot for GO enrichment analysis"
+    display_name = "GO Results (Bar Plot)"
     method_description = "Creates a bar plot from GO enrichment data"
     operation: StepOperation = StepOperation.GENE_ONTOLOGY
     output_keys = []
@@ -817,8 +817,8 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
 
 class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
-    display_name = "Dot plot for GO enrichment analysis (offline & with Enrichr) "
-    method_description = "Creates a categorical scatter plot from GO enrichment data"
+    display_name = "GO Results (Dot Plot)"
+    method_description = "Creates a categorical scatter plot from GO enrichment data gathered via offline or Enrichr GO Analysis"
     operation: StepOperation = StepOperation.GENE_ONTOLOGY
 
     output_keys = []
@@ -892,7 +892,7 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
 
 class PlotGSEADotPlot(DataIntegrationPlotStep):
-    display_name = "Dot plot for (pre-ranked) GSEA"
+    display_name = "GSEA Results (Dot Plot)"
     method_description = "Creates a categorical scatter plot from GSEA data"
 
     operation: StepOperation = StepOperation.GSEA
@@ -954,7 +954,7 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
 
 class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
-    display_name = "Enrichment plot for (pre-ranked) GSEA"
+    display_name = "GSEA Results (Enrichment Plot)"
     method_description = "Creates an enrichment plot from (pre-ranked) GSEA data with the enrichment score, ranked_metric, gene rank and hits"
 
     operation: StepOperation = StepOperation.GSEA
