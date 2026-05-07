@@ -604,17 +604,16 @@ def update_cl_default(request):
             else 0
         )
 
-        cl_default_dict = {
-            cl_name: {
+        try:
+            defaults_operator = DefaultsOperator()
+            all_cl_defaults = defaults_operator.read_default(name="crosslinker_lengths")
+            all_cl_defaults[cl_name] = {
                 "cl_length": cl_length,
                 "cl_upper_deviation": cl_upper_deviation,
                 "cl_lower_deviation": cl_lower_deviation,
             }
-        }
-        try:
-            defaults_operator = DefaultsOperator()
             defaults_operator.write_default(
-                name="crosslinker_lengths", value=cl_default_dict
+                name="crosslinker_lengths", value=all_cl_defaults
             )
             return JsonResponse(
                 {
