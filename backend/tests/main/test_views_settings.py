@@ -24,7 +24,7 @@ def test_get_cl_defaults(monkeypatch):
     request.method = "GET"
 
     mock_defaults_operator = mock.Mock()
-    mock_defaults_operator.get_all_defaults.return_value = {
+    mock_defaults_operator.read_default.return_value = {
         "DSSO": {
             "cl_length": 10.3,
             "cl_upper_deviation": 1.0,
@@ -59,16 +59,19 @@ def test_update_cl_default_success(monkeypatch):
     request.body = json.dumps(payload).encode("utf-8")
 
     mock_defaults_operator = mock.Mock()
+    mock_defaults_operator.read_default.return_value = {}
     monkeypatch.setattr(PATCH_PATH, lambda: mock_defaults_operator)
 
     response = update_cl_default(request)
 
     mock_defaults_operator.write_default.assert_called_once_with(
-        name="DSSO",
+        name="crosslinker_lengths",
         value={
-            "cl_length": 10.3,
-            "cl_upper_deviation": 1.0,
-            "cl_lower_deviation": 1.2,
+            "DSSO": {
+                "cl_length": 10.3,
+                "cl_upper_deviation": 1.0,
+                "cl_lower_deviation": 1.2,
+            }
         },
     )
     assert response.status_code == 200
@@ -102,11 +105,17 @@ def test_delete_cl_default_success(monkeypatch):
     request.body = json.dumps(payload).encode("utf-8")
 
     mock_defaults_operator = mock.Mock()
+    mock_defaults_operator.read_default.return_value = {
+        "DSSO": {"cl_length": 10.3}
+    }
     monkeypatch.setattr(PATCH_PATH, lambda: mock_defaults_operator)
 
     response = delete_cl_default(request)
 
-    mock_defaults_operator.delete_default.assert_called_once_with("DSSO")
+    mock_defaults_operator.write_default.assert_called_once_with(
+        name="crosslinker_lengths",
+        value={}
+    )
 
     assert response.status_code == 200
     response_data = json.loads(response.content.decode("utf-8"))
