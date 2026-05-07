@@ -139,7 +139,7 @@ export const Settings: React.FC<SettingsProps> = ({
               id={"crosslink-defaults"}
               isActive={selectedSetting === "crosslink-defaults"}
               icon={"handleCrosslinkingIcon"}
-              text={"Cross-Links Defaults"}
+              text={"Crosslinks Defaults"}
               onPress={() => {
                 handleSwitchSection("crosslink-defaults");
               }}

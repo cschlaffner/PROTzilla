@@ -143,14 +143,14 @@ export const CrosslinkDefaultUpload = () => {
     });
     if (response?.success) {
       notify({
-        title: "Cross Link default deleted",
+        title: "Crosslink default deleted",
         message: response.message as string,
         type: "success",
         isClosingAutomatically: true,
       });
     } else {
       notify({
-        title: "Cross Link default deletion failed",
+        title: "Crosslink default deletion failed",
         message: response?.message ?? "Unknown error",
         type: "error",
         isClosingAutomatically: true,
@@ -164,7 +164,7 @@ export const CrosslinkDefaultUpload = () => {
     <div>
       <SectionTitle
         baseComponent={"h2"}
-        title={"Add a default for a specific Cross-Link"}
+        title={"Add a default for a specific crosslink"}
         style={{ paddingBottom: "4px" }}
       />
       <SectionTitle
@@ -183,25 +183,25 @@ export const CrosslinkDefaultUpload = () => {
             {
               type: "text",
               name: "cl_name",
-              label: "Name of the Cross-Link",
+              label: "Name of the crosslink",
               isVisible: true,
             },
             {
               type: "number",
               name: "cl_length",
-              label: "Length of the specified Cross-Link:",
+              label: "Length of the specified crosslink:",
               isVisible: true,
             },
             {
               type: "number",
               name: "cl_upper_deviation",
-              label: "Upper deviation of the specified Cross-Link:",
+              label: "Upper deviation of the specified crosslink:",
               isVisible: true,
             },
             {
               type: "number",
               name: "cl_lower_deviation",
-              label: "Lower deviation of the specified Cross-Link:",
+              label: "Lower deviation of the specified crosslink:",
               isVisible: true,
             },
           ],
@@ -215,9 +215,9 @@ export const CrosslinkDefaultUpload = () => {
           );
         }}
       />
-      <CrosslinkDefaultTitle baseComponent={"h2"} title={"Cross-Link Defaults"} />
+      <CrosslinkDefaultTitle baseComponent={"h2"} title={"Crosslink Defaults"} />
       {crosslinkDefaultList.length === 0 ? (
-        <Text text={"No default values for any cross-links yet."} />
+        <Text text={"No default values for any crosslinks yet."} />
       ) : (
         <CrosslinkDefaultList>
           {crosslinkDefaultList.map((ps) => (
