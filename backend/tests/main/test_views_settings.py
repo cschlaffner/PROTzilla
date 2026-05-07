@@ -105,16 +105,13 @@ def test_delete_cl_default_success(monkeypatch):
     request.body = json.dumps(payload).encode("utf-8")
 
     mock_defaults_operator = mock.Mock()
-    mock_defaults_operator.read_default.return_value = {
-        "DSSO": {"cl_length": 10.3}
-    }
+    mock_defaults_operator.read_default.return_value = {"DSSO": {"cl_length": 10.3}}
     monkeypatch.setattr(PATCH_PATH, lambda: mock_defaults_operator)
 
     response = delete_cl_default(request)
 
     mock_defaults_operator.write_default.assert_called_once_with(
-        name="crosslinker_lengths",
-        value={}
+        name="crosslinker_lengths", value={}
     )
 
     assert response.status_code == 200
