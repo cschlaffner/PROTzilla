@@ -437,7 +437,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
     assert isinstance(messages, list)
     assert len(messages) >= 1
     assert messages[0].get("level") is not None
-    assert "There are no cross links between the structures to validate." in messages[
+    assert "There are no crosslinks between the structures to validate." in messages[
         0
     ].get("msg", "")
 
