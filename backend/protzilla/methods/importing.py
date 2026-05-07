@@ -422,7 +422,7 @@ class ExampleDatasetImport(ImportingStep):
         self.output_keys = self.output_keys = (
             [
                 DataKey.METADATA_DF,
-                DataKey.PEPTIDE_DF,
+                DataKey.PSM_DF,
                 DataKey.PROTEIN_DF,
             ]
             if import_peptide_data_field.value
