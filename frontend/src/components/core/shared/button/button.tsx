@@ -560,27 +560,27 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
   ...params
 }) => {
   const [isLoading, setLoading] = useState(false);
-  const [data, setData] = useState([]);
 
   const downloadCSV = async () => {
     setLoading(true);
+    let fetchedRows: any[] = [];
 
     try {
       const response = await callApiWithParameters("get_current_step_table_data/", {
         run_name: runName,
         table_label: tableLabel,
       });
-      setData(response.rows);
+      fetchedRows = response.rows;
     } catch (error) {
       console.error("Failed to fetch table data:", error);
     } finally {
       setLoading(false);
     }
 
-    if (data.length === 0) return;
+    if (fetchedRows.length === 0) return;
 
-    const header = Object.keys(data[0]);
-    const rows = data.map((row) =>
+    const header = Object.keys(fetchedRows[0]);
+    const rows = fetchedRows.map((row) =>
       header
         .map((key) => {
           const value = row[key];
