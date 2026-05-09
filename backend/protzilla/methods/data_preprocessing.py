@@ -489,8 +489,20 @@ class TransformationLog(DataPreprocessingStep):
                     value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
             ],
         )
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
 
     calc_method = staticmethod(transformation.by_log)
     plot_method = staticmethod(transformation.by_log_plot)
@@ -513,6 +525,12 @@ class TransformationInversion(DataPreprocessingStep):
 class NormalisationStep(DataPreprocessingStep, ABC):
     operation = "normalisation"
     output_keys = [DataKey.PROTEIN_DF]
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
 
 
 class NormalisationByZScore(NormalisationStep):
@@ -540,6 +558,12 @@ class NormalisationByZScore(NormalisationStep):
                     label="Visual transformation",
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
+                ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
                 ),
             ],
         )
@@ -573,6 +597,12 @@ class NormalisationByTotalSum(NormalisationStep):
                     label="Visual transformation",
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
+                ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
                 ),
             ],
         )
@@ -616,6 +646,12 @@ class NormalisationByMedian(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
             ],
         )
 
@@ -650,6 +686,12 @@ class NormalisationByWidthAdjustment(NormalisationStep):
                     label="Visual transformation",
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
+                ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
                 ),
             ],
         )
@@ -694,6 +736,12 @@ class NormalisationByReferenceProtein(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
             ],
         )
 
@@ -731,7 +779,16 @@ class ImputationStep(DataPreprocessingStep, ABC):
             value=BarAndPieChart.PIE_CHART.value,
             options=BarAndPieChart,
         ),
+        CheckboxField(
+            name="show_outliers", label="Show outliers", value=True, isVisible=True
+        ),
     ]
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
 
 
 class ImputationByMinPerDataset(ImputationStep):
