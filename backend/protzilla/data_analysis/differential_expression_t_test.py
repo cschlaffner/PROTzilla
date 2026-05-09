@@ -315,7 +315,6 @@ def t_test(
     )
 
     # Drop unused columns and reorder for backwards compatibility
-    # differentially_expressed_proteins_df = differentially_expressed_proteins_df.drop(columns=["n1", "n2", "p_value", "id"])
     differentially_expressed_proteins_df = differentially_expressed_proteins_df[
         [
             "Sample",
