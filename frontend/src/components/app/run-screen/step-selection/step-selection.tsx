@@ -130,6 +130,18 @@ const StepDescriptionDropdown = styled.div`
   max-width: 95%;
 `;
 
+const OperationIconWrapper = styled.div`
+  flex-shrink: 0;
+  margin-right: 12px;
+
+  /* Targeting the Icon component specifically to make it larger */
+  & > svg,
+  & > span {
+    width: 40px !important;
+    height: 40px !important;
+  }
+`;
+
 export const StepSelection: React.FC<StepSelectionProps> = ({
   runName,
   section,
@@ -314,8 +326,12 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
                         return (
                           <div key={operation}>
-                            <Icon icon={icon} />
-                            <SectionTitle baseComponent={"h3"} description={title}></SectionTitle>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <OperationIconWrapper>
+                                <Icon icon={icon} />
+                              </OperationIconWrapper>
+                              <SectionTitle baseComponent={"h3"} description={title} />
+                            </div>
                             <div style={{ padding: "10px 10px 10px 20px" }}>
                               {stepsGroupedByOperation[operation].map((item, index) => (
                                 <StepWrapper key={`step_${String(index)}`}>
@@ -351,8 +367,21 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       })
                   ) : (
                     <div>
-                      <Icon icon={(stepOperationIconMap[listMode] as IconType) ?? (section as IconType)} />
-                      <SectionTitle baseComponent={"h3"} description={stepsGroupedByOperation[listMode]?.[0].operation_display_name ?? ""}></SectionTitle>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <OperationIconWrapper>
+                          <Icon
+                            icon={
+                              (stepOperationIconMap[listMode] as IconType) ?? (section as IconType)
+                            }
+                          />
+                        </OperationIconWrapper>
+                        <SectionTitle
+                          baseComponent={"h3"}
+                          description={
+                            stepsGroupedByOperation[listMode]?.[0].operation_display_name ?? ""
+                          }
+                        ></SectionTitle>
+                      </div>
                       <div style={{ padding: "10px 10px 10px 20px" }}>
                         {activeStepList.map((item, index) => (
                           <StepWrapper key={`step_${String(index)}`}>
