@@ -206,8 +206,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
       result[allSteps].push(step);
     }
 
-    console.log(result);
-
     return result;
   }, [allStepsList]);
 
@@ -320,15 +318,14 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     Object.keys(stepsGroupedByOperation)
                       .filter((op) => op !== allSteps)
                       .map((operation) => {
-                        const icon =
-                          (stepOperationIconMap[operation] as IconType) ?? (section as IconType);
+                        const icon = stepOperationIconMap[operation] ?? (section as IconType);
                         const title = stepsGroupedByOperation[operation][0].operation_display_name;
 
                         return (
                           <div key={operation}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                               <OperationIconWrapper>
-                                <Icon icon={icon} />
+                                <Icon icon={icon as IconType} />
                               </OperationIconWrapper>
                               <SectionTitle baseComponent={"h3"} description={title} />
                             </div>
@@ -371,14 +368,17 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                         <OperationIconWrapper>
                           <Icon
                             icon={
-                              (stepOperationIconMap[listMode] as IconType) ?? (section as IconType)
+                              // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                              (stepOperationIconMap[listMode as string] ?? section) as IconType
                             }
                           />
                         </OperationIconWrapper>
                         <SectionTitle
                           baseComponent={"h3"}
                           description={
-                            stepsGroupedByOperation[listMode]?.[0].operation_display_name ?? ""
+                            // eslint-disable-next-line
+                            stepsGroupedByOperation[listMode as string]?.[0]
+                              .operation_display_name || ""
                           }
                         ></SectionTitle>
                       </div>
