@@ -126,6 +126,7 @@ def t_test(
     log_base: LogBaseWithNoneType = LogBaseWithNoneType.NONE,
     fc_zscore_filter: bool = False,
     fc_zscore_alpha: float = 0.05,
+    nan_policy: str = "raise",
 ) -> dict:
     """
     A function to conduct a two sample t-test between groups defined in the
@@ -142,6 +143,12 @@ def t_test(
     :param log_base: in case the data was previously log transformed this parameter contains the base as a string
     :param fc_zscore_filter: whether to apply a fold-change Z-score significance filter in addition to the p-value
     :param fc_zscore_alpha: the p-value cutoff (tail probability) for the fold-change Z-score significance
+    :param nan_policy: How to handle NaN values in intensity data.
+        - 'raise' (default): raise ValueError if any NaN is present.
+        - 'omit': silently drop NaN rows before computing statistics.
+          Both p-values and fold changes are computed from clean (NaN-free) data.
+        - 'propagate': proteins with any NaN in either group are excluded from
+          the results (their t-statistic and p-value become NaN and are filtered out).
 
     :return: a dict containing
         - a df differentially_expressed_proteins_df in typical protzilla long format containing the t-test results
@@ -150,7 +157,8 @@ def t_test(
         - a df log2_fold_change, containing the log2 fold changes per protein,
         - a df t_statistic_df, containing the t-statistic per protein,
         - a df fc_significance_df, containing the fold-change z-scores and their tail probabilities,
-        - a float corrected_alpha, containing the alpha value after application of multiple testing correction (depending on the selected multiple testing correction method corrected_alpha may be equal to alpha),
+        - a float corrected_alpha, containing the alpha value after application of multiple testing correction
+          (depending on the selected multiple testing correction method corrected_alpha may be different from alpha)
         - a list messages, containing messages for the user
     """
 
@@ -174,6 +182,9 @@ def t_test(
 
     assert grouping in metadata_df.columns
     messages = []
+
+    # Normalise nan_policy so both 'Omit' and 'omit' are accepted
+    nan_policy_lower = nan_policy.lower()
 
     if ttest_type not in ["Student's t-Test", "Welch's t-Test"]:
         messages.append(
@@ -222,9 +233,32 @@ def t_test(
 
     protein_df["id"] = protein_df.groupby(["Protein ID", grouping]).cumcount()
 
-    protein_df_wide = protein_df.dropna(subset=[intensity_name]).pivot(
-        index=["Protein ID", "id"], columns=grouping, values=intensity_name
-    )
+    # ------------------------------------------------------------------ #
+    # NaN handling: gate the pivot on the chosen nan_policy               #
+    # ------------------------------------------------------------------ #
+    if nan_policy_lower == "raise":
+        if protein_df[intensity_name].isna().any():
+            raise ValueError(
+                f"Input data contains NaN values in column '{intensity_name}'. "
+                "Set nan_policy='omit' to drop them silently or "
+                "nan_policy='propagate' to exclude affected proteins from results."
+            )
+        protein_df_wide = protein_df.pivot(
+            index=["Protein ID", "id"], columns=grouping, values=intensity_name
+        )
+    elif nan_policy_lower == "omit":
+        # Drop NaN rows before pivoting so that all per-protein statistics
+        # (including medians used for fold-change) are computed from clean data.
+        protein_df_wide = protein_df.dropna(subset=[intensity_name]).pivot(
+            index=["Protein ID", "id"], columns=grouping, values=intensity_name
+        )
+    else:  # propagate
+        # Keep NaN values in the wide table. pandas agg skips NaN by default,
+        # so we explicitly detect affected proteins and null their statistics
+        # afterwards, causing their p-values to be NaN and be filtered out.
+        protein_df_wide = protein_df.pivot(
+            index=["Protein ID", "id"], columns=grouping, values=intensity_name
+        )
 
     if group1 not in protein_df_wide.columns or group2 not in protein_df_wide.columns:
         messages.append(
@@ -242,6 +276,16 @@ def t_test(
     statistics_group2 = grouped_dfs[group2].agg(
         n="count", mean="mean", var="var", median="median"
     )
+
+    # For 'propagate': null out statistics for proteins that have any NaN in
+    # either group so that vectorized_t_test produces NaN p-values for them.
+    if nan_policy_lower == "propagate":
+        has_nan_g1 = grouped_dfs[group1].apply(lambda s: s.isna().any())
+        has_nan_g2 = grouped_dfs[group2].apply(lambda s: s.isna().any())
+        propagate_mask = has_nan_g1 | has_nan_g2
+        if propagate_mask.any():
+            statistics_group1.loc[propagate_mask, :] = np.nan
+            statistics_group2.loc[propagate_mask, :] = np.nan
 
     valid_mask = (statistics_group1["n"] >= 2) & (statistics_group2["n"] >= 2)
     if (~valid_mask).any() and not exists_message(
