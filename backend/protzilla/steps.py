@@ -166,7 +166,8 @@ class Step(ABC):
             "method_name": cls.__name__,
             "section": cls.section,
             "display_name": cls.display_name,
-            "operation": step_operation_display_name.get(cls.operation)
+            "operation": cls.operation,
+            "operation_display_name": step_operation_display_name.get(cls.operation)
             or name_to_title(cls.operation),
             "method_description": cls.method_description,
         }
