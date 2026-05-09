@@ -302,7 +302,7 @@ def t_test(
         get_z_score_based_fold_change_significance(ttest_results["log2_fold_change"])
     )
 
-    ttest_results["corrected_p_value"], ttest_results["corrected_alpha"] = (
+    ttest_results["corrected_p_value"], corrected_alpha = (
         apply_multiple_testing_correction(
             p_values=ttest_results["p_value"],
             method=multiple_testing_correction_method,
@@ -314,8 +314,25 @@ def t_test(
         ttest_results, protein_df, on="Protein ID", how="left"
     )
 
+    # Drop unused columns and reorder for backwards compatibility
+    # differentially_expressed_proteins_df = differentially_expressed_proteins_df.drop(columns=["n1", "n2", "p_value", "id"])
+    differentially_expressed_proteins_df = differentially_expressed_proteins_df[
+        [
+            "Sample",
+            "Protein ID",
+            "Gene",
+            default_intensity_column(differentially_expressed_proteins_df),
+            "Group",
+            "corrected_p_value",
+            "log2_fold_change",
+            "t_statistic",
+            "fc_z_score",
+            "fc_significance",
+        ]
+    ]
+
     significant_proteins_df = differentially_expressed_proteins_df.query(
-        "corrected_p_value <= corrected_alpha"
+        "corrected_p_value <= @corrected_alpha"
     )
 
     if fc_zscore_filter:
@@ -332,7 +349,7 @@ def t_test(
         fc_significance_df=ttest_results[FC_SIGNIFICANCE_COLUMNS],
         corrected_alpha=OutputItem(
             output_type=OutputType.FLOAT,
-            value=float(ttest_results["corrected_alpha"].iloc[0]),
+            value=float(corrected_alpha),
         ),
         messages=messages,
     )
