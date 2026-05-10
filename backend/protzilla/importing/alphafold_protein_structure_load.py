@@ -16,6 +16,13 @@ import re
 
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.protzilla_logging import logger
+from backend.protzilla.constants.cif_columns import (
+    ATOM_SITE_PREFIX,
+    ATOM_SITE_COLUMNS,
+    ATOM_SITE_COLUMNS_NUMERIC,
+    CHEM_COMP_PREFIX,
+    CHEM_COMP_COLUMNS,
+)
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
 from backend.protzilla.utilities.utilities import copy_file_to_directory
@@ -108,26 +115,54 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
 
     block = doc.sole_block()
 
-    cat_name = "_atom_site."
-    if cat_name not in block.get_mmcif_category_names():
+    if ATOM_SITE_PREFIX not in block.get_mmcif_category_names():
         return pd.DataFrame()
 
-    table = block.find_mmcif_category(cat_name)
+    atom_site_table = block.find_mmcif_category(ATOM_SITE_PREFIX)
 
-    columns = list(table.tags)
-    nrows = len(table)
-    data = {}
-    for j, col in enumerate(columns):
-        col_values = []
-        for i in range(nrows):
-            row = table[i]
-            if j < len(row):
-                col_values.append(row[j])
-            else:
-                col_values.append(None)
-        data[col] = col_values
+    atom_site_df = pd.DataFrame(
+        list(atom_site_table),
+        columns=list(atom_site_table.tags),
+        dtype=pd.StringDtype(),
+    )
 
-    return pd.DataFrame(data)
+    # convert to numeric dtype for numeric columns present in the dataframe
+    present_numeric_columns = [
+        column for column in ATOM_SITE_COLUMNS_NUMERIC if column in atom_site_table.tags
+    ]
+    atom_site_df[present_numeric_columns] = atom_site_df[present_numeric_columns].apply(
+        pd.to_numeric, errors="coerce"
+    )
+
+    atom_site_df = atom_site_df.convert_dtypes()
+
+    if CHEM_COMP_PREFIX not in block.get_mmcif_category_names():
+        raise ValueError(
+            f"Required table with prefix {CHEM_COMP_PREFIX} not found in {path}"
+        )
+
+    chem_comp_table = block.find_mmcif_category(CHEM_COMP_PREFIX)
+
+    chem_comp_df = pd.DataFrame(
+        list(chem_comp_table),
+        columns=list(chem_comp_table.tags),
+        dtype=pd.StringDtype(),
+    )[[CHEM_COMP_COLUMNS.ID, CHEM_COMP_COLUMNS.MON_NSTD_FLAG]]
+
+    # convert flags to native booleans
+    bool_map = {"y": True, "n": False, ".": pd.NA}
+
+    chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] = (
+        chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].map(bool_map).astype("boolean")
+    )
+
+    # merge on the comp_id and drop the duplicate column
+    return atom_site_df.merge(
+        chem_comp_df,
+        how="left",
+        left_on=ATOM_SITE_COLUMNS.LABEL_COMP_ID,
+        right_on=CHEM_COMP_COLUMNS.ID,
+    ).drop(CHEM_COMP_COLUMNS.ID, axis=1)
 
 
 def get_correct_af_directories(
