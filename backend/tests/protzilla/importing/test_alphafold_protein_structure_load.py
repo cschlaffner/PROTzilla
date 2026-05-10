@@ -31,6 +31,12 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     check_success_of_get_df,
 )
 from backend.protzilla.constants import paths
+from backend.protzilla.constants.cif_columns import (
+    ATOM_SITE_PREFIX,
+    ATOM_SITE_COLUMNS,
+    CHEM_COMP_COLUMNS,
+)
+from backend.protzilla.constants.data_types import DataKey
 
 
 def test_to_fasta_default_header_and_newline():
@@ -92,11 +98,18 @@ def test_read_alphafold_mmcif_valid_atom_site(tmp_path):
         """
 data_test
 loop_
+_chem_comp.id
+_chem_comp.mon_nstd_flag
+SER y
+#
+loop_
 _atom_site.id
 _atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
 _atom_site.Cartn_x
-N N 1.0
-CA C 2.0
+1 N N SER 1.0
+2 C CA SER 2.0
 """
     )
 
@@ -104,14 +117,19 @@ CA C 2.0
 
     assert isinstance(df, pd.DataFrame)
     assert list(df.columns) == [
-        "_atom_site.id",
-        "_atom_site.type_symbol",
-        "_atom_site.Cartn_x",
+        ATOM_SITE_COLUMNS.ID,
+        ATOM_SITE_COLUMNS.TYPE_SYMBOL,
+        ATOM_SITE_COLUMNS.LABEL_ATOM_ID,
+        ATOM_SITE_COLUMNS.LABEL_COMP_ID,
+        ATOM_SITE_COLUMNS.CARTN_X,
+        CHEM_COMP_COLUMNS.MON_NSTD_FLAG,
     ]
     assert len(df) == 2
-    assert df["_atom_site.id"].tolist() == ["N", "CA"]
-    assert df["_atom_site.type_symbol"].tolist() == ["N", "C"]
-    assert df["_atom_site.Cartn_x"].tolist() == ["1.0", "2.0"]
+    assert df[ATOM_SITE_COLUMNS.ID].tolist() == [1, 2]
+    assert df[ATOM_SITE_COLUMNS.TYPE_SYMBOL].tolist() == ["N", "C"]
+    assert df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].tolist() == ["N", "CA"]
+    assert df[ATOM_SITE_COLUMNS.CARTN_X].tolist() == [1.0, 2.0]
+    assert df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].tolist() == [True, True]
 
 
 def test_fetch_alphafold_protein_structure_wrong_uniprot_id():
@@ -129,11 +147,11 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
     assert out.keys() == {
-        "structure_metadata_df",
-        "cif_df",
-        "pae_matrix",
-        "plddt_df",
-        "amino_acid_sequences_df",
+        DataKey.STRUCTURE_METADATA_DF,
+        DataKey.CIF_DF,
+        DataKey.PAE_MATRIX,
+        DataKey.PLDDT_DF,
+        DataKey.AMINO_ACID_SEQUENCES_DF,
         "messages",
         "visualization",
     }
@@ -148,16 +166,16 @@ def test_fetch_alphafold_monomer_metadata(tmp_path, monkeypatch):
     )
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
-    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
-    assert not out["structure_metadata_df"].empty
-    assert out["structure_metadata_df"].iloc[0]["uniprot_accession"] == "Q8WP00"
+    assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
+    assert not out[DataKey.STRUCTURE_METADATA_DF].empty
+    assert out[DataKey.STRUCTURE_METADATA_DF].iloc[0]["uniprot_accession"] == "Q8WP00"
     assert (
-        out["structure_metadata_df"].iloc[0]["model_created_date"]
+        out[DataKey.STRUCTURE_METADATA_DF].iloc[0]["model_created_date"]
         == "2025-08-01T00:00:00Z"
     )
-    assert out["structure_metadata_df"].iloc[0]["gene"] == "PRM1"
+    assert out[DataKey.STRUCTURE_METADATA_DF].iloc[0]["gene"] == "PRM1"
     assert (
-        out["structure_metadata_df"].iloc[0]["model_used"]
+        out[DataKey.STRUCTURE_METADATA_DF].iloc[0]["model_used"]
         == "AlphaFold Monomer v2.0 pipeline"
     )
 
@@ -199,20 +217,20 @@ def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
 
     out = fetch_alphafold_protein_structure("Q8WP00", persist_upload=True)
 
-    cif_df = out["cif_df"]
+    cif_df = out[DataKey.CIF_DF]
     assert isinstance(cif_df, pd.DataFrame)
     assert not cif_df.empty
-    assert any(col.startswith("_atom_site.") for col in cif_df.columns)
+    assert any(col.startswith(ATOM_SITE_PREFIX) for col in cif_df.columns)
 
-    pae_matrix = out["pae_matrix"]
+    pae_matrix = out[DataKey.PAE_MATRIX]
     assert isinstance(pae_matrix, OutputItem)
     assert len(pae_matrix.value) != 0
 
-    plddt_df = out["plddt_df"]
+    plddt_df = out[DataKey.PLDDT_DF]
     assert isinstance(plddt_df, pd.DataFrame)
     assert not plddt_df.empty
 
-    seq_df = out["amino_acid_sequences_df"]
+    seq_df = out[DataKey.AMINO_ACID_SEQUENCES_DF]
     assert isinstance(seq_df, pd.DataFrame)
     assert not seq_df.empty
 
@@ -282,11 +300,18 @@ def test_get_prot_structure_dfs_success(tmp_path, monkeypatch):
         """
 data_test
 loop_
+_chem_comp.id
+_chem_comp.mon_nstd_flag
+SER y
+#
+loop_
 _atom_site.id
 _atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
 _atom_site.Cartn_x
-N N 1.0
-CA C 2.0
+1 N N SER 1.0
+2 C CA SER 2.0
 """
     )
 
@@ -305,34 +330,41 @@ CA C 2.0
 
     out = get_monomer_structure_dfs("Q8WP00")
 
-    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
-    assert not out["structure_metadata_df"].empty
-    assert out["structure_metadata_df"].iloc[0]["entry_id"] == "Q8WP00"
+    assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
+    assert not out[DataKey.STRUCTURE_METADATA_DF].empty
+    assert out[DataKey.STRUCTURE_METADATA_DF].iloc[0]["entry_id"] == "Q8WP00"
 
-    assert isinstance(out["cif_df"], pd.DataFrame)
-    assert not out["cif_df"].empty
-    assert list(out["cif_df"].columns) == [
-        "_atom_site.id",
-        "_atom_site.type_symbol",
-        "_atom_site.Cartn_x",
+    cif_df = out[DataKey.CIF_DF]
+    assert isinstance(cif_df, pd.DataFrame)
+    assert not cif_df.empty
+    assert list(cif_df.columns) == [
+        ATOM_SITE_COLUMNS.ID,
+        ATOM_SITE_COLUMNS.TYPE_SYMBOL,
+        ATOM_SITE_COLUMNS.LABEL_ATOM_ID,
+        ATOM_SITE_COLUMNS.LABEL_COMP_ID,
+        ATOM_SITE_COLUMNS.CARTN_X,
+        CHEM_COMP_COLUMNS.MON_NSTD_FLAG,
     ]
-    assert out["cif_df"]["_atom_site.id"].tolist() == ["N", "CA"]
-    assert out["cif_df"]["_atom_site.type_symbol"].tolist() == ["N", "C"]
-    assert out["cif_df"]["_atom_site.Cartn_x"].tolist() == ["1.0", "2.0"]
+    assert len(cif_df) == 2
+    assert cif_df[ATOM_SITE_COLUMNS.ID].tolist() == [1, 2]
+    assert cif_df[ATOM_SITE_COLUMNS.TYPE_SYMBOL].tolist() == ["N", "C"]
+    assert cif_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].tolist() == ["N", "CA"]
+    assert cif_df[ATOM_SITE_COLUMNS.CARTN_X].tolist() == [1.0, 2.0]
+    assert cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].tolist() == [True, True]
 
-    assert isinstance(out["pae_matrix"], OutputItem)
-    assert isinstance(out["pae_matrix"].value, np.ndarray)
-    assert out["pae_matrix"].value == 0.1 # 0D array (only one value) TODO: Change this to something more reasonable? idk
+    assert isinstance(out[DataKey.PAE_MATRIX], OutputItem)
+    assert isinstance(out[DataKey.PAE_MATRIX].value, np.ndarray)
+    assert out[DataKey.PAE_MATRIX].value == 0.1 # 0D array (only one value) TODO: Change this to something more reasonable? idk
 
-    assert isinstance(out["plddt_df"], pd.DataFrame)
-    assert not out["plddt_df"].empty
-    assert out["plddt_df"]["residueNumber"].tolist() == [1]
-    assert out["plddt_df"]["confidenceScore"].tolist() == [90]
+    assert isinstance(out[DataKey.PLDDT_DF], pd.DataFrame)
+    assert not out[DataKey.PLDDT_DF].empty
+    assert out[DataKey.PLDDT_DF]["residueNumber"].tolist() == [1]
+    assert out[DataKey.PLDDT_DF]["confidenceScore"].tolist() == [90]
 
-    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
-    assert not out["amino_acid_sequences_df"].empty
-    assert out["amino_acid_sequences_df"]["Protein ID"].tolist() == ["Q8WP00-1"]
-    assert out["amino_acid_sequences_df"]["Protein Sequence"].tolist() == ["AAAA"]
+    assert isinstance(out[DataKey.AMINO_ACID_SEQUENCES_DF], pd.DataFrame)
+    assert not out[DataKey.AMINO_ACID_SEQUENCES_DF].empty
+    assert out[DataKey.AMINO_ACID_SEQUENCES_DF]["Protein ID"].tolist() == ["Q8WP00-1"]
+    assert out[DataKey.AMINO_ACID_SEQUENCES_DF]["Protein Sequence"].tolist() == ["AAAA"]
 
     assert any(d.get("level") == logging.INFO for d in out["messages"]) or any(
         "Successfully loaded" in d.get("msg", "") for d in out["messages"]
@@ -423,11 +455,13 @@ def test_get_amino_acid_sequences_df_and_handle_files(tmp_path, monkeypatch):
     out = handle_alphafold_files(
         {}, "P", "TESTSEQ", metadata_df, "P", persist_upload=False
     )
-    assert "amino_acid_sequences_df" in out
-    assert isinstance(out["cif_df"], pd.DataFrame) and out["cif_df"].empty
-    assert isinstance(out["pae_df"], pd.DataFrame) and out["pae_df"].empty
-    assert isinstance(out["plddt_df"], pd.DataFrame) and out["plddt_df"].empty
-    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
+    assert DataKey.AMINO_ACID_SEQUENCES_DF in out
+    assert isinstance(out[DataKey.CIF_DF], pd.DataFrame) and out[DataKey.CIF_DF].empty
+    assert isinstance(out[DataKey.PAE_DF], pd.DataFrame) and out[DataKey.PAE_DF].empty
+    assert (
+        isinstance(out[DataKey.PLDDT_DF], pd.DataFrame) and out[DataKey.PLDDT_DF].empty
+    )
+    assert isinstance(out[DataKey.AMINO_ACID_SEQUENCES_DF], pd.DataFrame)
 
 
 def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
@@ -442,6 +476,11 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     cif.write_text(
         """
         data_test
+        loop_
+        _chem_comp.id
+        _chem_comp.mon_nstd_flag
+        SER y
+        #
         loop_
         _atom_site.id
         _atom_site.label_atom_id
@@ -514,47 +553,49 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
         persist_upload=True,
     )
 
+    assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
     # check metadata contents
-    mdf = out["structure_metadata_df"]
-    assert isinstance(mdf, pd.DataFrame)
+    mdf = out[DataKey.STRUCTURE_METADATA_DF]
     assert mdf.iloc[0]["entry_id"] == "M1"
     assert mdf.iloc[0]["uniprot_ids"] == ["X", "Y"]
     assert mdf.iloc[0]["model_used"] == "m"
 
     # cif contents
-    cif_df = out["cif_df"]
+    cif_df = out[DataKey.CIF_DF]
     assert isinstance(cif_df, pd.DataFrame)
     assert list(cif_df.columns) == [
-        "_atom_site.id", 
-        "_atom_site.label_atom_id", 
-        "_atom_site.auth_asym_id", 
-        "_atom_site.label_seq_id",
-        "_atom_site.B_iso_or_equiv",
+        ATOM_SITE_COLUMNS.ID,
+        ATOM_SITE_COLUMNS.TYPE_SYMBOL,
+        ATOM_SITE_COLUMNS.LABEL_ATOM_ID,
+        ATOM_SITE_COLUMNS.LABEL_COMP_ID,
+        CHEM_COMP_COLUMNS.MON_NSTD_FLAG,
     ]
-    # assert cif_df["_atom_site.id"].tolist() == list(range(1, 7))
-    assert cif_df["_atom_site.label_atom_id"].tolist() == ["N", "CA", "CA", "O", "N", "CA"]
-    assert cif_df["_atom_site.auth_asym_id"].tolist() == ["A"] * 4 + ["B"] * 2
-    assert cif_df["_atom_site.B_iso_or_equiv"].tolist() == [99.99, 67.76, 33.65, 5.52, 0, 13.37]
+    assert cif_df[ATOM_SITE_COLUMNS.ID].tolist() == list(range(1, 7))
+    assert cif_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].tolist() == ["N", "CA", "CA", "O", "N", "CA"]
+    assert cif_df[ATOM_SITE_COLUMNS.AUTH_ASYM_ID].tolist() == ["A"] * 4 + ["B"] * 2
+    assert cif_df[ATOM_SITE_COLUMNS.B_ISO_OR_EQUIV].tolist() == [99.99, 67.76, 33.65, 5.52, 0, 13.37]
+    assert cif_df[ATOM_SITE_COLUMNS.LABEL_COMP_ID].tolist() == ["SER"]
+    assert cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].tolist() == [True]
 
     # confidence JSON
-    conf_df = out["confidence_df"]
+    conf_df = out[DataKey.CONFIDENCE_DF]
     assert isinstance(conf_df, pd.DataFrame)
     assert conf_df["chain_iptm"].tolist() == [0.42, 0.89]
 
     # full data normalization
-    full_df = out["full_data_df"]
+    full_df = out[DataKey.FULL_DATA_DF]
     assert isinstance(full_df, pd.DataFrame)
     assert list(full_df.columns) == ["random_column"]
     assert full_df.iloc[0]["random_column"] == [1, 2]
 
     # job request JSON
-    job_df = out["job_request_df"]
+    job_df = out[DataKey.JOB_REQUEST_DF]
     assert isinstance(job_df, pd.DataFrame)
     assert job_df.iloc[0]["name"] == "test_job"
     assert job_df.iloc[0]["dialect"] == "alphafoldserver"
 
     # sequences
-    seqs = out["amino_acid_sequences_df"]
+    seqs = out[DataKey.AMINO_ACID_SEQUENCES_DF]
     assert isinstance(seqs, pd.DataFrame)
     assert seqs["Protein Sequence"].tolist() == ["AAAA"]
     assert any(str(v).startswith("X") for v in seqs["Protein ID"].tolist())
@@ -640,7 +681,9 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     fasta = tmp_path / "seqs.fasta"
     fasta.write_text(">alpha|X\nAAAA\n")
     cif = tmp_path / "m.cif"
-    cif.write_text("data_test\nloop_\n_atom_site.id\nN\n")
+    cif.write_text(
+        "data_test\nloop_\n_chem_comp.id\n_chem_comp.mon_nstd_flag\nSER y\nloop_\n#\n_atom_site.id\n_atom_site.label_comp_id\nN SER\n"
+    )
     conf = tmp_path / "conf.json"
     conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
     full = tmp_path / "full.json"
@@ -681,10 +724,10 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     )
 
     # verify dataframes are returned
-    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
-    assert isinstance(out["cif_df"], pd.DataFrame)
-    assert isinstance(out["job_request_df"], pd.DataFrame)
-    assert out["job_request_df"].iloc[0]["name"] == "test_job_2"
+    assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.CIF_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.JOB_REQUEST_DF], pd.DataFrame)
+    assert out[DataKey.JOB_REQUEST_DF].iloc[0]["name"] == "test_job_2"
     # directory should still exist (created for the entry)
     upload_dir = tmp_path / "M2"
     assert not upload_dir.exists()
@@ -720,7 +763,9 @@ def test_get_prot_structure_dfs_missing_fasta(tmp_path, monkeypatch):
 
     # create CIF but no FASTA
     cif = prot_dir / "test.cif"
-    cif.write_text("data_test\nloop_\n_atom_site.id\nN\n")
+    cif.write_text(
+        "data_test\nloop_\n_chem_comp.id\n_chem_comp.mon_nstd_flag\nSER y\nloop_\n#\n_atom_site.id\n_atom_site.label_comp_id\nN SER\n"
+    )
 
     with pytest.raises(FileNotFoundError, match="No FASTA file found"):
         get_monomer_structure_dfs("NOFASTA")
@@ -740,7 +785,9 @@ def test_get_prot_structure_dfs_missing_json(tmp_path, monkeypatch):
 
     # create CIF and FASTA but no JSON
     cif = prot_dir / "test.cif"
-    cif.write_text("data_test\nloop_\n_atom_site.id\nN\n")
+    cif.write_text(
+        "data_test\nloop_\n_chem_comp.id\n_chem_comp.mon_nstd_flag\nSER y\nloop_\n#\n_atom_site.id\n_atom_site.label_comp_id\nN SER\n"
+    )
 
     fasta = prot_dir / "test.fasta"
     # valid header for parse_fasta_id (expects at least one "|" in the id)
@@ -848,18 +895,30 @@ def test_get_cif_df_from_disk_multiple_cif_warns(tmp_path):
         """
 data_test
 loop_
+_chem_comp.id 
+_chem_comp.mon_nstd_flag 
+SER y
+# 
+loop_
 _atom_site.id
 _atom_site.type_symbol
-N N
+_atom_site.label_comp_id
+N N SER
 """
     )
     cif2.write_text(
         """
 data_test
 loop_
+_chem_comp.id 
+_chem_comp.mon_nstd_flag 
+SER y
+# 
+loop_
 _atom_site.id
 _atom_site.type_symbol
-CA C
+_atom_site.label_comp_id
+CA C SER
 """
     )
 
@@ -900,9 +959,15 @@ def test_get_multimer_structure_dfs_success(tmp_path, monkeypatch):
         """
 data_test
 loop_
+_chem_comp.id 
+_chem_comp.mon_nstd_flag 
+SER y
+# 
+loop_
 _atom_site.id
 _atom_site.type_symbol
-N N
+_atom_site.label_comp_id
+N N SER
 """
     )
 
@@ -937,17 +1002,17 @@ N N
     )
 
     out = get_multimer_structure_dfs("M1")
-    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
-    assert isinstance(out["cif_df"], pd.DataFrame)
-    assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
-    assert isinstance(out["confidence_df"], pd.DataFrame)
-    assert isinstance(out["full_data_df"], pd.DataFrame)
-    assert isinstance(out["job_request_df"], pd.DataFrame)
+    assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.CIF_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.AMINO_ACID_SEQUENCES_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.CONFIDENCE_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.FULL_DATA_DF], pd.DataFrame)
+    assert isinstance(out[DataKey.JOB_REQUEST_DF], pd.DataFrame)
 
-    assert "chain_iptm" in out["confidence_df"].columns
-    assert "pae" in out["full_data_df"].columns
-    assert out["job_request_df"].iloc[0]["name"] == "multimer_job"
-    assert out["job_request_df"].iloc[0]["version"] == 3
+    assert "chain_iptm" in out[DataKey.CONFIDENCE_DF].columns
+    assert "pae" in out[DataKey.FULL_DATA_DF].columns
+    assert out[DataKey.JOB_REQUEST_DF].iloc[0]["name"] == "multimer_job"
+    assert out[DataKey.JOB_REQUEST_DF].iloc[0]["version"] == 3
 
     assert any(m.get("level") == logging.INFO for m in out["messages"]) or any(
         "Successfully loaded" in str(m.get("msg", "")) for m in out["messages"]
@@ -984,9 +1049,15 @@ def test_get_multimer_structure_dfs_json_fallback_warns(tmp_path, monkeypatch):
         """
 data_test
 loop_
+_chem_comp.id 
+_chem_comp.mon_nstd_flag 
+SER y
+# 
+loop_
 _atom_site.id
 _atom_site.type_symbol
-N N
+_atom_site.label_comp_id
+N N SER
 """
     )
 
