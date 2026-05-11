@@ -355,6 +355,7 @@ def monomer_validation(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
+    plddt_df: pd.DataFrame,
 ) -> dict:
     """
     Validates crosslinking data for a monomeric protein structure by checking
@@ -376,11 +377,14 @@ def monomer_validation(
         structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
+        plddt_df=plddt_df,
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=[protein_id],
     )
 
+def monomer_validation_with_pae():
+    pass
 
 def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
     """
@@ -485,6 +489,7 @@ def validate_with_angstrom_deviation(
     crosslinker_information: dict[str, list[float]],
     structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
+    plddt_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     valid_ids: dict,
     id_column_name: str,
@@ -500,6 +505,7 @@ def validate_with_angstrom_deviation(
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of three floats:
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
+    :param plddt_df: DataFrame containing the local AlphaFold pLDDT values for each residue.
     :param amino_acid_sequences_df: Dataframe that contains all known amino acid sequences.
     :param valid_ids: Dictionary mapping protein IDs to their valid chain/entity identifiers in the CIF data.
     :param id_column_name: The column name in the cif_df to use for matching against valid_ids.
@@ -558,6 +564,8 @@ def validate_with_angstrom_deviation(
         protein_sequence2 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
+        plddt_at_position1 = plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0]["confidenceScore"]
+        plddt_at_position2 = plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0]["confidenceScore"]
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
@@ -599,6 +607,8 @@ def validate_with_angstrom_deviation(
                 "valid_crosslink": valid,
                 "crosslinker_position1": crosslink.crosslinker_position1,
                 "crosslinker_position2": crosslink.crosslinker_position2,
+                "plddt_at_position1": plddt_at_position1,
+                "plddt_at_position2": plddt_at_position2,
             }
         )
 
@@ -608,6 +618,8 @@ def validate_with_angstrom_deviation(
         "valid_crosslink",
         "crosslinker_position1",
         "crosslinker_position2",
+        "plddt_at_position1",
+        "plddt_at_position2",
     ]
 
     relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[

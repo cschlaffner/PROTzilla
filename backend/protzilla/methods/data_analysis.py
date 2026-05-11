@@ -93,6 +93,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     monomer_diagrams,
     multimer_diagrams,
     monomer_validation,
+    monomer_validation_with_pae,
     multimer_validation,
 )
 from backend.protzilla.run import Run
@@ -2432,7 +2433,7 @@ class CrosslinkingValidationWithAngstromDeviation(
     operation = "Crosslinking Validation"
     method_description = "Validates crosslinks within the one protein structure based on the difference between the length of the crosslinker and the distance between the amino acids which were connected by the crosslinker. (in Ångström)"
     calc_method = staticmethod(monomer_validation)
-    plot_method = staticmethod(monomer_diagrams)
+    # plot_method = staticmethod(monomer_diagrams)
 
     def create_form(self):
         return Form(label="Ångström Deviation - Monomer", input_fields=[])
