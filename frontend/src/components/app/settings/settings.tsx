@@ -148,7 +148,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <SectionButton
               id={"crosslink-colors"}
               isActive={selectedSetting === "crosslink-colors"}
-              icon={"handleCrosslinkingIcon"}
+              icon={"colorBrush"}
               text={"Crosslink Colours"}
               onPress={() => {
                 handleSwitchSection("crosslink-colors");

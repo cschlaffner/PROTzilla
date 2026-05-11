@@ -13,6 +13,7 @@ export { default as chevronUp } from "./chevron-up.svg?react";
 export { default as clipboard } from "./clipboard.svg?react";
 export { default as close } from "./close.svg?react";
 export { default as complete } from "./complete.svg?react";
+export { default as colorBrush } from "./color_brush.svg?react";
 export { default as data_analysis } from "./data_analysis.svg?react";
 export { default as data_integration } from "./data_integration.svg?react";
 export { default as data_preprocessing } from "./data_preprocessing.svg?react";
