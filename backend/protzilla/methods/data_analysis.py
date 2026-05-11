@@ -3,6 +3,7 @@ from typing_extensions import override
 import ast
 
 from backend.protzilla.constants.option_types import (
+    CrosslinkingValidationCriterion,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
 )
@@ -70,6 +71,7 @@ from backend.protzilla.form import (
     MultiSelectField,
     NumberField,
     TextField,
+    FormDivider,
 )
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
@@ -2436,7 +2438,20 @@ class CrosslinkingValidationWithAngstromDeviation(
     # plot_method = staticmethod(monomer_diagrams)
 
     def create_form(self):
-        return Form(label="Ångström Deviation - Monomer", input_fields=[])
+        return Form(
+            label="Ångström Deviation For Monomer Structures",
+            input_fields=[
+                DropdownField(
+                    name="validation_criterion",
+                    label="Validation criterion",
+                    options=CrosslinkingValidationCriterion,
+                    value=CrosslinkingValidationCriterion.manual_bounds,
+                ),
+                FormDivider(
+                    label="Crosslinker lengths and bounds",
+                    ),
+            ],
+        )
 
 
 class CrosslinkingValidationWithAngstromDeviationForMultimer(

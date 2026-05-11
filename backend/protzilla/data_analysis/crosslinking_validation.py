@@ -2,6 +2,9 @@ import itertools
 import ast
 import math
 
+from typing import TYPE_CHECKING
+
+from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
 import numpy as np
 import re
@@ -355,7 +358,9 @@ def monomer_validation(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
+    pae_df: pd.DataFrame,
     plddt_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion
 ) -> dict:
     """
     Validates crosslinking data for a monomeric protein structure by checking
@@ -367,6 +372,8 @@ def monomer_validation(
                                     allowed distance boundaries (e.g., [min_dist, max_dist]).
     :param cif_df: DataFrame containing mmCIF information.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
+    :param pae_df: DataFrame containing AlphaFold PAE data.
+    :param plddt_df: DataFrame containing AlphaFold pLDDT data.
     :return: A dictionary containing the validation results and distance metrics.
     """
     protein_id = structure_metadata_df["uniprot_accession"].iloc[0]
@@ -377,14 +384,18 @@ def monomer_validation(
         structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
+        pae_df=pae_df,
         plddt_df=plddt_df,
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=[protein_id],
+        validation_criterion=validation_criterion
     )
+
 
 def monomer_validation_with_pae():
     pass
+
 
 def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
     """
@@ -490,10 +501,12 @@ def validate_with_angstrom_deviation(
     structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
     plddt_df: pd.DataFrame,
+    pae_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     valid_ids: dict,
     id_column_name: str,
     structures_to_validate: list,
+    validation_criterion: CrosslinkingValidationCriterion
 ) -> dict:
     """
     Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
@@ -506,6 +519,7 @@ def validate_with_angstrom_deviation(
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
     :param plddt_df: DataFrame containing the local AlphaFold pLDDT values for each residue.
+    :param pae_df: DataFrame containing the PAE values for each residue pair.
     :param amino_acid_sequences_df: Dataframe that contains all known amino acid sequences.
     :param valid_ids: Dictionary mapping protein IDs to their valid chain/entity identifiers in the CIF data.
     :param id_column_name: The column name in the cif_df to use for matching against valid_ids.
@@ -555,6 +569,9 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
 
+    pae_string = str(pae_df["predicted_aligned_error"].iloc[0])
+    pae_matrix = np.array(ast.literal_eval(pae_string))
+
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
         protein_id1 = crosslink.Protein_id1
         protein_id2 = crosslink.Protein_id2
@@ -564,8 +581,19 @@ def validate_with_angstrom_deviation(
         protein_sequence2 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
-        plddt_at_position1 = plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0]["confidenceScore"]
-        plddt_at_position2 = plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0]["confidenceScore"]
+        plddt_at_position1 = plddt_df.query(
+            "residueNumber == @crosslink.crosslinker_position1"
+        ).iloc[0]["confidenceScore"]
+        plddt_at_position2 = plddt_df.query(
+            "residueNumber == @crosslink.crosslinker_position2"
+        ).iloc[0]["confidenceScore"]
+
+        pae_x_position1 = pae_matrix[
+            crosslink.crosslinker_position1, crosslink.crosslinker_position2
+        ]  # Using position1 as scored residue
+        pae_x_position2 = pae_matrix[
+            crosslink.crosslinker_position2, crosslink.crosslinker_position1
+        ]  # Using position2 as scored residue
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
@@ -587,13 +615,30 @@ def validate_with_angstrom_deviation(
                 f"Missing required information regarding crosslinker length "
                 f"and/or accepted deviation for crosslinker '{crosslink.Crosslinker}'."
             )
-        # Fallback to default deviation bounds when not explicitly provided
-        accepted_distance_lower_bound = crosslinker_length - (
-            accepted_deviation_lower_bound or crosslinker_length
-        )
-        accepted_distance_upper_bound = (
-            accepted_deviation_upper_bound or float("inf")
-        ) + crosslinker_length
+
+        accepted_distance_lower_bound: float = 0.0
+        accepted_distance_upper_bound: float = 0.0
+
+        match validation_criterion:
+            case CrosslinkingValidationCriterion.manual_bounds.value:
+                # Fallback to default deviation bounds when not explicitly provided
+                accepted_distance_lower_bound = crosslinker_length - (
+                    accepted_deviation_lower_bound or crosslinker_length
+                )
+                accepted_distance_upper_bound = (
+                    accepted_deviation_upper_bound or float("inf")
+                ) + crosslinker_length
+
+
+            case CrosslinkingValidationCriterion.max_pae.value:
+                pae_tolerance = max(pae_x_position1, pae_x_position2)
+                accepted_distance_lower_bound = float(max(crosslinker_length - pae_tolerance, 0.0))
+                accepted_distance_upper_bound = float(crosslinker_length + pae_tolerance)
+
+            case CrosslinkingValidationCriterion.min_pae.value:
+                pae_tolerance = min(pae_x_position1, pae_x_position2)
+                accepted_distance_lower_bound = float(max(crosslinker_length - pae_tolerance, 0.0))
+                accepted_distance_upper_bound = float(crosslinker_length + pae_tolerance)
 
         valid = (
             accepted_distance_lower_bound
@@ -609,6 +654,8 @@ def validate_with_angstrom_deviation(
                 "crosslinker_position2": crosslink.crosslinker_position2,
                 "plddt_at_position1": plddt_at_position1,
                 "plddt_at_position2": plddt_at_position2,
+                "pae_x_position1": pae_x_position1,
+                "pae_x_position2": pae_x_position2,
             }
         )
 
@@ -620,6 +667,8 @@ def validate_with_angstrom_deviation(
         "crosslinker_position2",
         "plddt_at_position1",
         "plddt_at_position2",
+        "pae_x_position1",
+        "pae_x_position2",
     ]
 
     relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[

@@ -59,6 +59,10 @@ class PValueColumnName(StrEnum):
     protein_id = "Protein ID"
     ptm = "PTM"
 
+class CrosslinkingValidationCriterion(Enum):
+    manual_bounds = "Manual Bounds (set below)"
+    max_pae = "CL length +/- maximum PAE between sites"
+    min_pae = "CL length +/- minimum PAE between sites"
 
 FC_SIGNIFICANCE_COLUMNS = ["Protein ID", "fc_z_score", "fc_significance"]
 CORRECTED_P_VALUES_COLUMNS = [
