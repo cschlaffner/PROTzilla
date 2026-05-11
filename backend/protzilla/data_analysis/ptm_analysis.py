@@ -3,6 +3,7 @@ import pandas as pd
 import re
 
 from backend.protzilla.utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.ptm_helper import get_all_ptm_atoms_with_coordinates, get_center_points_and_radius_for_each_ptm
 
 
 def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
@@ -91,3 +92,9 @@ def from_string(mod_string: str) -> tuple[int, str]:
     name = name[1:] if name[0] == " " else name
 
     return amount, name
+
+
+def ptm_validation(cif_df: pd.DataFrame):
+    ptm_list = get_all_ptm_atoms_with_coordinates(cif_df)
+    ptm_list = get_center_points_and_radius_for_each_ptm(ptm_list)
+    return {"ptm_validation_df": pd.DataFrame(ptm_list)}
