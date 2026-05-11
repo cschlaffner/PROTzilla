@@ -4,6 +4,7 @@ import { useState } from "react";
 import { styled } from "styled-components";
 
 import {
+  CrosslinkColors,
   CrosslinkDefaultUpload,
   DatabaseSettings,
   GitHub,
@@ -145,6 +146,15 @@ export const Settings: React.FC<SettingsProps> = ({
               }}
             />
             <SectionButton
+              id={"crosslink-colors"}
+              isActive={selectedSetting === "crosslink-colors"}
+              icon={"handleCrosslinkingIcon"}
+              text={"Crosslink Colours"}
+              onPress={() => {
+                handleSwitchSection("crosslink-colors");
+              }}
+            />
+            <SectionButton
               id={"github"}
               isActive={selectedSetting === "github"}
               text={"About Us"}
@@ -163,6 +173,7 @@ export const Settings: React.FC<SettingsProps> = ({
             {selectedSetting === "monomer-structure-upload" && <MonomerStructureUpload />}
             {selectedSetting === "multimer-structure-upload" && <MultimerStructureUpload />}
             {selectedSetting === "crosslink-defaults" && <CrosslinkDefaultUpload />}
+            {selectedSetting === "crosslink-colors" && <CrosslinkColors />}
             {selectedSetting === "github" && <GitHub />}
           </SpecificSettings>
           <DiscardModal

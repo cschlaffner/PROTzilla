@@ -6,7 +6,7 @@ import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
 
 import { MolstarViewerProps } from "./molstar-viewer.props";
-import { addCrosslinks, handleError } from "./molstar-viewer.service";
+import { addCrosslinks, handleError, initCrosslinkColors } from "./molstar-viewer.service";
 import { CanvasWrapper, Container } from "./styles";
 import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 
@@ -45,7 +45,8 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
 
         // add crosslinks to structure, if available
         if (crosslinks !== undefined) {
-          await addCrosslinks(plugin, cifText, crosslinks);
+          const crosslinkColors = await initCrosslinkColors();
+          await addCrosslinks(plugin, cifText, crosslinks, crosslinkColors);
         }
 
         setIsLoading(false);

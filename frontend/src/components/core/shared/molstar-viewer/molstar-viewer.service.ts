@@ -1,4 +1,5 @@
 import { useNotification } from "@protzilla/app";
+import { callApi } from "@protzilla/utils";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { MolScriptBuilder as MS } from "molstar/lib/mol-script/language/builder";
 
@@ -7,12 +8,13 @@ import {
   CrosslinkerType,
   generateCrosslinkCIF,
 } from "./crosslinker-processing";
-import { CROSSLINKER_COLORS } from "./molstar-viewer.config";
+import { CROSSLINK_DEFAULT_COLORS, CrosslinkColors } from "./molstar-viewer.config";
 
 export async function addCrosslinks(
   plugin: PluginUIContext,
   cifText: string,
   crosslinks: CrosslinkerInformation[],
+  crosslinkColors: CrosslinkColors,
 ) {
   const { crosslinkerCifText: crosslinkerCifText, crosslinkerGroups: crosslinkerGroups } =
     generateCrosslinkCIF(cifText, crosslinks);
@@ -42,11 +44,28 @@ export async function addCrosslinks(
       await plugin.builders.structure.representation.addRepresentation(component, {
         type: "line",
         color: "uniform",
-        colorParams: { value: CROSSLINKER_COLORS[type] },
+        colorParams: { value: crosslinkColors[type] },
       });
     }
   }
 }
+
+export const initCrosslinkColors = async (): Promise<CrosslinkColors> => {
+  try {
+    const userColors = await callApi("get_cl_colors");
+
+    if (userColors && Object.keys(userColors).length > 0) {
+      return {
+        ...CROSSLINK_DEFAULT_COLORS,
+        ...userColors,
+      };
+    }
+
+    return CROSSLINK_DEFAULT_COLORS;
+  } catch {
+    return CROSSLINK_DEFAULT_COLORS;
+  }
+};
 
 export function handleError(
   error: unknown,
