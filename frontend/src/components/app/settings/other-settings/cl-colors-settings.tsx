@@ -282,10 +282,10 @@ export const CrosslinkColors = () => {
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
         onConfirm={() => {
-          void handleResetToDefaults;
+          void handleResetToDefaults();
         }}
         title={
-          `All crosslink colours will be resetted to the developer defaults.` +
+          `All crosslink colours will be reset to the developer defaults.` +
           `Your currently selected colours will be permanently deleted. Would you like to proceed?`
         }
       />
