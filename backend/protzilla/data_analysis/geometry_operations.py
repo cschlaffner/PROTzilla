@@ -146,6 +146,22 @@ def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.n
     distances = np.linalg.norm(points - reference_point, axis=1)
     return points[np.argmax(distances)]
 
+def find_farthest_point_fdw(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
+    """
+    Calculate the point, whose fdw-"Bubble" is most distant to a reference point.
+    """
+    if points.ndim != 2 or points.shape[1] != 3:
+        raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
+    if len(points) == 0:
+        raise ValueError("At least one point is required to calculate a maximum distance.")
+    if reference_point.shape != (3,):
+        raise ValueError(
+            f"Expected reference_point with shape (3,), got {reference_point.shape}."
+        )
+
+    distances = np.linalg.norm(points - reference_point, axis=1)
+    return points[np.argmax(distances)]
+
 
 def meshes_intersect(
     mesh_a: trimesh.Trimesh,

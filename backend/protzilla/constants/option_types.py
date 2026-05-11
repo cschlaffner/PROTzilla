@@ -14,6 +14,7 @@ class LogBaseWithNoneType(StrEnum):
     LOG2 = "log2"
     LOG10 = "log10"
     # i hate this ~T
+    # lmao ~R
     NONE = "None"
 
 
