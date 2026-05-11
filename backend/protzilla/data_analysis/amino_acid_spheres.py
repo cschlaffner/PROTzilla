@@ -5,7 +5,7 @@ import pandas as pd
 import trimesh
 
 from backend.protzilla.data_analysis.geometry_operations import (
-    calculate_centroid,
+    calculate_center_point,
     extract_points_from_cif,
     find_farthest_point,
     mesh_to_polyhedron,
@@ -34,7 +34,7 @@ def calculate_amino_acid_spheres(
             residue_range=(residue_position, residue_position),
             chain_id=chain_id,
         )
-        center = calculate_centroid(residue_points)
+        center = calculate_center_point(residue_points)
         furthest_point = find_farthest_point(residue_points, center)
         radius = float(np.linalg.norm(furthest_point - center))
 

@@ -118,7 +118,10 @@ def point_cloud_to_polyhedron(points: np.ndarray) -> dict:
     return mesh_to_polyhedron(build_convex_hull(points))
 
 
-def calculate_centroid(points: np.ndarray) -> np.ndarray:
+def calculate_center_point(points: np.ndarray) -> np.ndarray:
+    """
+    Calculate the center point of a point cloud. 
+    """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
     if len(points) == 0:
@@ -128,6 +131,9 @@ def calculate_centroid(points: np.ndarray) -> np.ndarray:
 
 
 def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
+    """
+    Calculate the farthest point inside a point cloud from a reference point. 
+    """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
     if len(points) == 0:
