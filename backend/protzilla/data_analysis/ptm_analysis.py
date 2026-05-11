@@ -3,7 +3,10 @@ import pandas as pd
 import re
 
 from backend.protzilla.utilities.transform_dfs import long_to_wide
-from backend.protzilla.utilities.ptm_helper import get_all_ptm_atoms_with_coordinates, get_center_points_and_radius_for_each_ptm
+from backend.protzilla.utilities.ptm_helper import (
+    get_all_ptm_atoms_with_coordinates,
+    get_center_points_and_radius_for_each_ptm,
+)
 
 
 def ptms_per_sample(psm_df: pd.DataFrame) -> dict:

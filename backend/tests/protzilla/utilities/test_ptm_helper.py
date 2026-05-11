@@ -1,7 +1,11 @@
 import pandas as pd
-from backend.protzilla.utilities.ptm_helper import get_all_ptm_atoms_with_coordinates, get_center_points_and_radius_for_each_ptm
+from backend.protzilla.utilities.ptm_helper import (
+    get_all_ptm_atoms_with_coordinates,
+    get_center_points_and_radius_for_each_ptm,
+)
 import pytest
 import numpy as np
+
 
 def test_get_all_ptm_atoms_with_coordinates():
     data = {
@@ -19,34 +23,24 @@ def test_get_all_ptm_atoms_with_coordinates():
     result = get_all_ptm_atoms_with_coordinates(cif_df)
 
     assert len(result) == 1
-    
+
     ptm = result[0]
     assert ptm["ptm_name"] == "SEP"
     assert ptm["chain"] == "B"
     assert ptm["position"] == 42
-    
+
     atoms = ptm["atoms"]
     assert len(atoms) == 2
-    
-    assert atoms[0] == {
-        "atom_name": "P",
-        "x": 10.0,
-        "y": 10.1,
-        "z": 10.2
-    }
-    
-    assert atoms[1] == {
-        "atom_name": "O1P",
-        "x": 11.0,
-        "y": 11.1,
-        "z": 11.2
-    }
+
+    assert atoms[0] == {"atom_name": "P", "x": 10.0, "y": 10.1, "z": 10.2}
+
+    assert atoms[1] == {"atom_name": "O1P", "x": 11.0, "y": 11.1, "z": 11.2}
 
 
 def test_get_center_points_and_radius_for_each_ptm():
     ptm_list = [
         {
-            "ptm_name": "SYM", 
+            "ptm_name": "SYM",
             "chain": "A",
             "position": 1,
             "atoms": [
@@ -54,32 +48,32 @@ def test_get_center_points_and_radius_for_each_ptm():
                 {"atom_name": "A2", "x": -1.0, "y": 0.0, "z": 0.0},
                 {"atom_name": "A3", "x": 0.0, "y": 1.0, "z": 0.0},
                 {"atom_name": "A4", "x": 0.0, "y": -1.0, "z": 0.0},
-            ]
+            ],
         },
         {
-            "ptm_name": "SGL", 
+            "ptm_name": "SGL",
             "chain": "B",
             "position": 2,
             "atoms": [
                 {"atom_name": "A1", "x": 5.0, "y": 5.0, "z": 5.0},
-            ]
+            ],
         },
         {
-            "ptm_name": "AB", 
+            "ptm_name": "AB",
             "chain": "C",
             "position": 3,
             "atoms": [
                 {"atom_name": "A1", "x": 12.0, "y": 10.0, "z": 8.0},
                 {"atom_name": "A2", "x": 8.0, "y": 10.0, "z": 7.0},
                 {"atom_name": "A3", "x": 10.0, "y": 10.0, "z": 15.0},
-            ]
-        }
+            ],
+        },
     ]
 
     result_list = get_center_points_and_radius_for_each_ptm(ptm_list)
 
     ptm_1 = result_list[0]
-    
+
     result_list = get_center_points_and_radius_for_each_ptm(ptm_list)
 
     ptm_1 = result_list[0]
@@ -91,8 +85,8 @@ def test_get_center_points_and_radius_for_each_ptm():
     assert pytest.approx(ptm_2["radius"], 1e-6) == 0.0
 
     ptm_3 = result_list[2]
-    
+
     expected_center = [10.0, 10.0, 10.0]
     np.testing.assert_allclose(ptm_3["center_point"], expected_center, atol=1e-6)
-    
+
     assert pytest.approx(ptm_3["radius"], 1e-6) == 5.0

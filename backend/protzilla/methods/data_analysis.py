@@ -95,9 +95,7 @@ from protzilla.data_analysis.crosslinking_validation import (
     monomer_validation,
     multimer_validation,
 )
-from protzilla.data_analysis.ptm_analysis import(
-    ptm_validation
-)
+from protzilla.data_analysis.ptm_analysis import ptm_validation
 
 
 class TTestType(Enum):
