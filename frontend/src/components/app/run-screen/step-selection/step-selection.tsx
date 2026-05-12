@@ -137,8 +137,8 @@ const OperationIconWrapper = styled.div`
   /* Targeting the Icon component specifically to make it larger */
   & > svg,
   & > span {
-    width: 40px !important;
-    height: 40px !important;
+    width: 30px !important;
+    height: 30px !important;
   }
 `;
 
