@@ -322,7 +322,7 @@ class PeptideImport(ImportingStep):
 
 
 class EvidenceImport(ImportingStep):
-    display_name = "MaxQuant Evidence File"
+    display_name = "MaxQuant Evidence"
     operation = StepOperation.PSM_IMPORT
     method_description = "Import an evidence file"
 
