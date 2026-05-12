@@ -2,7 +2,7 @@ import itertools
 import ast
 import math
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
@@ -360,7 +360,7 @@ def monomer_validation(
     amino_acid_sequences_df: pd.DataFrame,
     pae_df: pd.DataFrame,
     plddt_df: pd.DataFrame,
-    validation_criterion: CrosslinkingValidationCriterion
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
     """
     Validates crosslinking data for a monomeric protein structure by checking
@@ -389,7 +389,7 @@ def monomer_validation(
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=[protein_id],
-        validation_criterion=validation_criterion
+        validation_criterion=validation_criterion,
     )
 
 
@@ -506,7 +506,7 @@ def validate_with_angstrom_deviation(
     valid_ids: dict,
     id_column_name: str,
     structures_to_validate: list,
-    validation_criterion: CrosslinkingValidationCriterion
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
     """
     Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
@@ -629,16 +629,57 @@ def validate_with_angstrom_deviation(
                     accepted_deviation_upper_bound or float("inf")
                 ) + crosslinker_length
 
-
             case CrosslinkingValidationCriterion.max_pae.value:
                 pae_tolerance = max(pae_x_position1, pae_x_position2)
-                accepted_distance_lower_bound = float(max(crosslinker_length - pae_tolerance, 0.0))
-                accepted_distance_upper_bound = float(crosslinker_length + pae_tolerance)
+                accepted_distance_lower_bound = float(
+                    max(crosslinker_length - pae_tolerance, 0.0)
+                )
+                accepted_distance_upper_bound = float(
+                    crosslinker_length + pae_tolerance
+                )
 
             case CrosslinkingValidationCriterion.min_pae.value:
                 pae_tolerance = min(pae_x_position1, pae_x_position2)
-                accepted_distance_lower_bound = float(max(crosslinker_length - pae_tolerance, 0.0))
-                accepted_distance_upper_bound = float(crosslinker_length + pae_tolerance)
+                accepted_distance_lower_bound = float(
+                    max(crosslinker_length - pae_tolerance, 0.0)
+                )
+                accepted_distance_upper_bound = float(
+                    crosslinker_length + pae_tolerance
+                )
+
+            case CrosslinkingValidationCriterion.plddt_adjusted.value:
+                cl_half = crosslinker_length / 2
+
+                get_plddt_factor: Callable[[float], float] = lambda plddt: 1 - (
+                    plddt / 100
+                )
+
+                # Strict mode: plDDT of 0 (factor 1) allows +/- half length for each half
+                # get_cl_half_tolerated_length_range: Callable[
+                #     [float, float], tuple[float, float]
+                # ] = lambda cl_half, plddt_factor: (
+                #     cl_half * (1 - plddt_factor),
+                #     cl_half * (1 + plddt_factor),
+                # )
+
+                # Less strict mode: plDDT of 0 (factor 1) allows +/- total CL length for each half
+                # TODO: The calculations below get ugly when plDDT < 50 because we'd get negative lengths
+                get_cl_half_tolerated_length_range: Callable[
+                    [float, float], tuple[float, float]
+                ] = lambda cl_half, plddt_factor: (
+                    cl_half * 2 * (1 - plddt_factor),
+                    cl_half * 2 * (1 + plddt_factor),
+                )
+
+                plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
+                plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)
+
+                cl_half1_min, cl_half1_max = get_cl_half_tolerated_length_range(cl_half, plddt_factor_pos1)
+                cl_half2_min, cl_half2_max = get_cl_half_tolerated_length_range(cl_half, plddt_factor_pos2)
+
+                accepted_distance_lower_bound = cl_half1_min + cl_half2_min
+                accepted_distance_upper_bound = cl_half1_max + cl_half2_max
+
 
         valid = (
             accepted_distance_lower_bound

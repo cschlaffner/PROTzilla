@@ -2449,7 +2449,7 @@ class CrosslinkingValidationWithAngstromDeviation(
                 ),
                 FormDivider(
                     label="Crosslinker lengths and bounds",
-                    ),
+                ),
             ],
         )
 
