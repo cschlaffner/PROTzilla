@@ -299,7 +299,7 @@ class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
 
 
 class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
-    display_name = "Diff. Expression (ANOVA)"
+    display_name = "Diff. Expression: ANOVA"
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
@@ -345,7 +345,7 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
-    display_name = "Diff. Expression (t-Test)"
+    display_name = "Diff. Expression: t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
@@ -426,7 +426,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
-    display_name = "Diff. Expression (Linear Model)"
+    display_name = "Diff. Expression: Linear Model"
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
@@ -485,7 +485,7 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensityStep):
-    display_name = "Diff. Expression (Mann-Whitney Test)"
+    display_name = "Diff. Expression: Mann-Whitney Test"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -554,7 +554,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
 
 
 class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
-    display_name = "PTM Diff. Exp. (Mann-Whitney Test)"
+    display_name = "PTM Diff. Exp.: Mann-Whitney Test"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -625,7 +625,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
 class DifferentialExpressionKruskalWallisOnIntensity(
     DifferentialExpressionIntensityStep
 ):
-    display_name = "Diff. Expression (Kruskal-Wallis Test)"
+    display_name = "Diff. Expression: Kruskal-Wallis Test"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -676,7 +676,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(
 
 
 class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
-    display_name = "PTM Diff. Exp. (Kruskal-Wallis Test)"
+    display_name = "PTM Diff. Exp.: Kruskal-Wallis Test"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -1114,7 +1114,7 @@ class ClusteringStep(PositiveLabelStep, ABC):
 
 
 class ClusteringKMeans(ClusteringStep):
-    display_name = "Clustering (KMeans)"
+    display_name = "Clustering: KMeans"
     method_description = "Partitions a number of samples in k clusters using k-means"
 
     output_keys = [
@@ -1231,7 +1231,7 @@ class ClusteringKMeans(ClusteringStep):
 
 
 class ClusteringExpectationMaximisation(ClusteringStep):
-    display_name = "Clustering (EM)"
+    display_name = "Clustering: EM"
     method_description = "Expectation Maximisation (EM) is a clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
 
     output_keys = [
@@ -1341,7 +1341,7 @@ class ClusteringExpectationMaximisation(ClusteringStep):
 
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
-    display_name = "Clustering (HAC)"
+    display_name = "Clustering: HAC"
     method_description = "Performs hierarchical agglomerative clustering (HAC) utilising a bottom-up approach"
 
     output_keys = [
@@ -1441,7 +1441,7 @@ class ClassificationStep(PositiveLabelStep, ABC):
 
 
 class ClassificationRandomForest(ClassificationStep):
-    display_name = "Classification (Random Forest)"
+    display_name = "Classification: Random Forest"
     method_description = "A random forest is a meta estimator that fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting."
 
     output_keys = [
@@ -1654,7 +1654,7 @@ class ClassificationRandomForest(ClassificationStep):
 
 
 class ClassificationSVM(ClassificationStep):
-    display_name = "Classification (SVM)"
+    display_name = "Classification: SVM"
     method_description = "A support vector machine (SVM) constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification."
 
     output_keys = [
@@ -1948,7 +1948,7 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
 
 
 class DimensionReductionTSNE(DataAnalysisStep):
-    display_name = "Dimension Reduction (t-SNE)"
+    display_name = "Dimension Reduction: t-SNE"
     operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using t-SNE"
 
@@ -2016,7 +2016,7 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
 
 class DimensionReductionUMAP(DataAnalysisStep):
-    display_name = "Dimension Reduction (UMAP)"
+    display_name = "Dimension Reduction: UMAP"
     operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using UMAP"
 
@@ -2278,7 +2278,7 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
 
 
 class PTMOverviewVisualization(_PTMVisualizationStep):
-    display_name = "PTM Visualisation (Overview Plot)"
+    display_name = "PTM Visualisation: Overview Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms)"
     )
@@ -2314,7 +2314,7 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):
-    display_name = "PTM Visualisation (Bar Plot)"
+    display_name = "PTM Visualisation: Bar Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
         "shows PTM frequency across groups as a bar plot."
@@ -2330,7 +2330,7 @@ class PTMBarVisualization(_PTMVisualizationWithGroups):
 
 
 class PTMDetailsVisualization(_PTMVisualizationWithGroups):
-    display_name = "PTM Visualisation (Details Plot)"
+    display_name = "PTM Visualisation: Details Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
         "shows PTM and cleavage frequency across groups as heatmaps."

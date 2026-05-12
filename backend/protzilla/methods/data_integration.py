@@ -760,7 +760,7 @@ class DatabaseIntegrationByUniprot(DataIntegrationStep):
 
 
 class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
-    display_name = "GO Results (Bar Plot)"
+    display_name = "GO Results: Bar Plot"
     method_description = "Creates a bar plot from GO enrichment data"
     operation: StepOperation = StepOperation.GENE_ONTOLOGY
     output_keys = []
@@ -817,7 +817,7 @@ class PlotGOEnrichmentBarPlot(DataIntegrationPlotStep):
 
 
 class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
-    display_name = "GO Results (Dot Plot)"
+    display_name = "GO Results: Dot Plot"
     method_description = "Creates a categorical scatter plot from GO enrichment data gathered via offline or Enrichr GO Analysis"
     operation: StepOperation = StepOperation.GENE_ONTOLOGY
 
@@ -892,7 +892,7 @@ class PlotGOEnrichmentDotPlot(DataIntegrationPlotStep):
 
 
 class PlotGSEADotPlot(DataIntegrationPlotStep):
-    display_name = "GSEA Results (Dot Plot)"
+    display_name = "GSEA Results: Dot Plot"
     method_description = "Creates a categorical scatter plot from GSEA data"
 
     operation: StepOperation = StepOperation.GSEA
@@ -954,7 +954,7 @@ class PlotGSEADotPlot(DataIntegrationPlotStep):
 
 
 class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
-    display_name = "GSEA Results (Enrichment Plot)"
+    display_name = "GSEA Results: Enrichment Plot"
     method_description = "Creates an enrichment plot from (pre-ranked) GSEA data with the enrichment score, ranked_metric, gene rank and hits"
 
     operation: StepOperation = StepOperation.GSEA

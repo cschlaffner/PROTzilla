@@ -59,7 +59,7 @@ class FilterPsmStep(DataPreprocessingStep, ABC):
 
 
 class FilterProteinsBySamplesMissing(FilterProteinsStep):
-    display_name = "Filter Proteins (Missing Samples)"
+    display_name = "Filter Proteins: Missing Samples"
     method_description = (
         "Filter proteins based on the amount of samples with nan values"
     )
@@ -90,7 +90,7 @@ class FilterProteinsBySamplesMissing(FilterProteinsStep):
 
 
 class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
-    display_name = "Filter Proteins (# Values / Group)"
+    display_name = "Filter Proteins: #Values / Group"
     method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
@@ -118,7 +118,7 @@ class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
 
 
 class FilterProteinsByProteinIDs(FilterProteinsStep):
-    display_name = "Filter Proteins (Specific IDs)"
+    display_name = "Filter Proteins: Specific IDs"
     method_description = "Filter by protein ids entered by user"
 
     def create_form(self):
@@ -148,7 +148,7 @@ class FilterProteinsByProteinIDs(FilterProteinsStep):
 
 
 class FilterProteinsKeepNmostSignificantProteins(FilterProteinsStep):
-    display_name = "Filter Proteins (Keep n Most Significant)"
+    display_name = "Filter Proteins: Keep n Most Significant"
     method_description = (
         "Filter to keep the n most significant proteins (with the lowest p-values)"
     )
@@ -171,7 +171,7 @@ class FilterProteinsKeepNmostSignificantProteins(FilterProteinsStep):
 
 
 class FilterByProteinsCount(FilterSamplesStep):
-    display_name = "Filter Samples (# Proteins / Sample)"
+    display_name = "Filter Samples: #Proteins / Sample"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
@@ -201,7 +201,7 @@ class FilterByProteinsCount(FilterSamplesStep):
 
 
 class FilterPeptidesByPEPThreshold(FilterPeptidesStep):
-    display_name = "Filter Peptides (PEP Threshold)"
+    display_name = "Filter Peptides: PEP Threshold"
     method_description = "Filter peptides by PEP-threshold"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -232,7 +232,7 @@ class FilterPeptidesByPEPThreshold(FilterPeptidesStep):
 
 
 class FilterPeptidesByExistingProteins(FilterPeptidesStep):
-    display_name = "Filter Peptides (Existing Proteins)"
+    display_name = "Filter Peptides: Existing Proteins"
     method_description = "Filter peptides by existing proteins"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -249,7 +249,7 @@ class FilterPeptidesByExistingProteins(FilterPeptidesStep):
 
 
 class FilterPeptidesByExistingSamples(FilterPeptidesStep):
-    display_name = "Filter Peptides (Existing Samples)"
+    display_name = "Filter Peptides: Existing Samples"
     method_description = "Filter peptides by existing samples"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -266,7 +266,7 @@ class FilterPeptidesByExistingSamples(FilterPeptidesStep):
 
 
 class FilterPsmByPEPThreshold(FilterPsmStep):
-    display_name = "Filter PSMs (PEP Threshold)"
+    display_name = "Filter PSMs: PEP Threshold"
     method_description = "Filter PSM by PEP-threshold"
 
     def create_form(self):
@@ -296,7 +296,7 @@ class FilterPsmByPEPThreshold(FilterPsmStep):
 
 
 class FilterPsmByExistingProteins(FilterPsmStep):
-    display_name = "Filter PSMs (Existing Proteins)"
+    display_name = "Filter PSMs: Existing Proteins"
     method_description = "Filter PSM by existing proteins"
 
     def create_form(self):
@@ -310,7 +310,7 @@ class FilterPsmByExistingProteins(FilterPsmStep):
 
 
 class FilterPsmByExistingSamples(FilterPsmStep):
-    display_name = "Filter PSMs (Existing Samples)"
+    display_name = "Filter PSMs: Existing Samples"
     method_description = "Filter PSM by existing samples"
 
     def create_form(self):
@@ -324,7 +324,7 @@ class FilterPsmByExistingSamples(FilterPsmStep):
 
 
 class FilterSamplesByProteinsMissing(FilterSamplesStep):
-    display_name = "Filter Samples (Missing Proteins)"
+    display_name = "Filter Samples: Missing Proteins"
     method_description = (
         "Filter samples based on the amount of proteins with nan values"
     )
@@ -355,7 +355,7 @@ class FilterSamplesByProteinsMissing(FilterSamplesStep):
 
 
 class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
-    display_name = "Filter Samples (Sum of Intensities)"
+    display_name = "Filter Samples: Sum of Intensities"
     method_description = "Filter Samples (Sum of Protein Intensities)"
 
     def create_form(self):
@@ -385,7 +385,7 @@ class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
 
 
 class OutlierDetectionByPCA(OutlierDetectionStep):
-    display_name = "Outlier Detection (PCA)"
+    display_name = "Outlier Detection: PCA"
     method_description = "Detect outliers using PCA"
 
     def create_form(self):
@@ -417,7 +417,7 @@ class OutlierDetectionByPCA(OutlierDetectionStep):
 
 
 class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
-    display_name = "Outlier Detection (Local Outlier Factor)"
+    display_name = "Outlier Detection: Local Outlier Factor"
     method_description = "Detect outliers using the local outlier factor"
 
     def create_form(self):
@@ -440,7 +440,7 @@ class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
 
 
 class OutlierDetectionByIsolationForest(OutlierDetectionStep):
-    display_name = "Outlier Detection (Isolation Forest)"
+    display_name = "Outlier Detection: Isolation Forest"
     method_description = "Detect outliers using Isolation Forest"
 
     def create_form(self):
@@ -463,7 +463,7 @@ class OutlierDetectionByIsolationForest(OutlierDetectionStep):
 
 
 class TransformationLog(DataPreprocessingStep):
-    display_name = "Transformation (Log)"
+    display_name = "Transformation: Log"
     operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by log"
 
@@ -498,7 +498,7 @@ class TransformationLog(DataPreprocessingStep):
 
 
 class TransformationInversion(DataPreprocessingStep):
-    display_name = "Transformation (Inversion)"
+    display_name = "Transformation: Inversion"
     operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by inversion"
 
@@ -517,7 +517,7 @@ class NormalisationStep(DataPreprocessingStep, ABC):
 
 
 class NormalisationByZScore(NormalisationStep):
-    display_name = "Normalisation (Z-Score)"
+    display_name = "Normalisation: Z-Score"
     method_description = "Normalise data by Z-Score"
 
     def create_form(self):
@@ -550,7 +550,7 @@ class NormalisationByZScore(NormalisationStep):
 
 
 class NormalisationByTotalSum(NormalisationStep):
-    display_name = "Normalisaton (Total Sum)"
+    display_name = "Normalisaton: Total Sum"
     method_description = "Normalise data by total sum"
 
     def create_form(self):
@@ -583,7 +583,7 @@ class NormalisationByTotalSum(NormalisationStep):
 
 
 class NormalisationByMedian(NormalisationStep):
-    display_name = "Normalisation (Median)"
+    display_name = "Normalisation: Median"
     method_description = "Normalise data by median"
 
     def create_form(self):
@@ -625,7 +625,7 @@ class NormalisationByMedian(NormalisationStep):
 
 
 class NormalisationByWidthAdjustment(NormalisationStep):
-    display_name = "Normalisation (Width Adjustment)"
+    display_name = "Normalisation: Width Adjustment"
     method_description = "Normalise data by asymmetric quartile width adjustment"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -660,7 +660,7 @@ class NormalisationByWidthAdjustment(NormalisationStep):
 
 
 class NormalisationByReferenceProtein(NormalisationStep):
-    display_name = "Normalisation (Reference Protein)"
+    display_name = "Normalisation: Reference Protein"
     method_description = "Normalise data by reference protein"
 
     def create_form(self):
@@ -736,7 +736,7 @@ class ImputationStep(DataPreprocessingStep, ABC):
 
 
 class ImputationByMinPerDataset(ImputationStep):
-    display_name = "Imputation (Min per Dataset)"
+    display_name = "Imputation: Min per Dataset"
     method_description = "Impute missing values by the minimum per dataset"
 
     def create_form(self):
@@ -768,7 +768,7 @@ class ImputationByMinPerDataset(ImputationStep):
 
 
 class ImputationByMinPerProtein(ImputationStep):
-    display_name = "Imputation (Min per Protein)"
+    display_name = "Imputation: Min per Protein"
     method_description = "Impute missing values by the minimum per protein"
 
     def create_form(self):
@@ -800,7 +800,7 @@ class ImputationByMinPerProtein(ImputationStep):
 
 
 class ImputationByMinPerSample(ImputationStep):
-    display_name = "Imputation (Min per Sample)"
+    display_name = "Imputation: Min per Sample"
     method_description = "Impute missing values by the minimum per sample"
 
     def create_form(self):
@@ -829,7 +829,7 @@ class ImputationByMinPerSample(ImputationStep):
 
 
 class SimpleImputationPerProtein(ImputationStep):
-    display_name = "Imputation (per Protein)"
+    display_name = "Imputation: per Protein"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
@@ -856,7 +856,7 @@ class SimpleImputationPerProtein(ImputationStep):
 
 
 class ImputationByKNN(ImputationStep):
-    display_name = "Imputation (kNN)"
+    display_name = "Imputation: kNN"
     method_description = (
         "A function to perform value imputation based on KNN (k-nearest neighbors). Imputes missing "
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
@@ -886,7 +886,7 @@ class ImputationByKNN(ImputationStep):
 
 
 class ImputationByNormalDistributionSampling(ImputationStep):
-    display_name = "Imputation (Normal Dist. Sampling)"
+    display_name = "Imputation: Normal Dist. Sampling"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
     def create_form(self):
@@ -964,7 +964,7 @@ class GroupReplicates(Step):
 
 class FilterMetadataByExistingSamples(Step):
     section = Section.DATA_PREPROCESSING
-    display_name = "Filter Metadata (Existing Samples)"
+    display_name = "Filter Metadata: Existing Samples"
     operation: StepOperation = StepOperation.SIMPLIFICATION
     method_description = (
         "Only keep metadata of samples also represented in protein data"
