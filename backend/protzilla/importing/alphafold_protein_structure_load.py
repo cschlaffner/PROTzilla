@@ -862,6 +862,16 @@ def upload_multimer_prediction(
         will propagate after cleanup of any temporary directory.
     """
 
+    if not entry_id:
+        msg = "The entry Id cannot be empty or None."
+        logger.error(msg)
+        raise ValueError(msg)
+
+    if not uniprot_ids:
+        msg = "Uniprot Ids cannot be empty or None."
+        logger.error(msg)
+        raise ValueError(msg)
+
     messages = []
 
     temp_dir, work_dir = get_correct_af_directories(
@@ -878,7 +888,7 @@ def upload_multimer_prediction(
         "entry_id": entry_id,
         "uniprot_ids": uniprot_ids_as_list,
         "model_created_date": timestamp,
-        "model_used": model_used,
+        "model_used": "" if model_used is None else model_used,
     }
 
     try:
