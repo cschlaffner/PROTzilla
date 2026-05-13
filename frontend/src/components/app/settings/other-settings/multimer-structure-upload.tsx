@@ -189,7 +189,7 @@ export const MultimerStructureUpload = () => {
             {
               type: "text",
               name: "uniprot_ids",
-              label: "Protein IDs of all proteins used in the sequence:",
+              label: "Protein IDs of all proteins used in the sequence: (required)",
               isVisible: true,
             },
             {

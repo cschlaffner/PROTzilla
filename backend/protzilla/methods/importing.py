@@ -555,7 +555,7 @@ class UploadMultimerPredictions(ImportingStep):
                 ),
                 TextField(
                     name="uniprot_ids",
-                    label="Protein IDs of all proteins used in the sequence.",
+                    label="Protein IDs of all proteins used in the sequence. (required)",
                 ),
                 InfoField(
                     label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9."
