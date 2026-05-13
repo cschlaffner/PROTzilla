@@ -10,7 +10,7 @@ import numpy as np
 from plotly.io import to_json
 
 import pandas as pd
-from django.http import JsonResponse, FileResponse
+from django.http import HttpResponse, JsonResponse, FileResponse
 from django.http.request import HttpRequest
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -55,6 +55,10 @@ hidden_outputs = ["messages"]
 def get_csrf_token(request):
     csrf_token = get_token(request)
     return JsonResponse({"csrfToken": csrf_token, "message": "CSRF cookie set."})
+
+
+def healthcheck(request):
+    return HttpResponse("Healthy", content_type="text/plain")
 
 
 def run_information_list(request):
