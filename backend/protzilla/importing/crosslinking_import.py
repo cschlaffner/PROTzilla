@@ -782,17 +782,19 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
         else:
             raise ValueError(f"Unsupported file type: {file_path.suffix}")
     except Exception as e:
-        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid cross linking file."
+        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid crosslinking file."
         return error_output(msg, trace=format_trace(traceback.format_exception(e)))
 
     def base_message():
         if file_type == ".csv":
             organism_names_string = ", ".join(scientific_organism_names)
-            return f"{len(good_df)} cross-links for the {organism_names_string} organism(s)"
-        return f"{len(good_df)} cross-links"
+            return (
+                f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
+            )
+        return f"{len(good_df)} crosslinks"
 
     if good_df.empty:
-        msg = f"No cross-links could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
+        msg = f"No crosslinks could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
         messages = [dict(level=logging.ERROR, msg=msg)]
     elif failed_df.empty:
         msg = f"Successfully imported data of {base_message()}."
