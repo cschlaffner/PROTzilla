@@ -160,6 +160,50 @@ class Base64Operator:
                 file.write(data)
 
 
+class DefaultsOperator:
+    def __init__(self):
+        self.yaml_operator = YamlOperator()
+
+    def read_default(self, name: str) -> any:
+        with ErrorHandler():
+            if not self.defaults_file.exists():
+                return None
+            defaults = self.yaml_operator.read(self.defaults_file) or {}
+            return defaults.get(name)
+
+    def write_default(self, name: str, value: any) -> None:
+        with ErrorHandler():
+            if not self.defaults_file.parent.exists():
+                self.defaults_file.parent.mkdir(parents=True, exist_ok=True)
+            defaults = {}
+            if self.defaults_file.exists():
+                defaults = self.yaml_operator.read(self.defaults_file) or {}
+            defaults[name] = value
+            self.yaml_operator.write(self.defaults_file, defaults)
+
+    def delete_default(self, name: str) -> None:
+        with ErrorHandler():
+            if not self.defaults_file.exists():
+                return
+            defaults = self.yaml_operator.read(self.defaults_file) or {}
+            if name in defaults:
+                del defaults[name]
+                self.yaml_operator.write(self.defaults_file, defaults)
+
+    def get_all_defaults(self):
+        """Reads all default values from disk. Returns an empty dict if the file doesn't exist."""
+        with ErrorHandler():
+            if not self.defaults_file.exists():
+                return {}
+
+            defaults = self.yaml_operator.read(self.defaults_file)
+            return defaults or {}
+
+    @property
+    def defaults_file(self) -> Path:
+        return paths.USER_DATA_PATH / "defaults.yaml"
+
+
 RUN_FILE = "run.yaml"
 
 
@@ -190,6 +234,7 @@ class DiskOperator:
         self.dataframe_operator = DataFrameOperator()
         self.artifact_operator = ArtifactOperator()
         self.base64_operator = Base64Operator()
+        self.defaults = DefaultsOperator()
 
     def read_run(self, file: Path | None = None) -> StepManager:
         with ErrorHandler():

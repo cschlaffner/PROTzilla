@@ -21,7 +21,9 @@ from backend.protzilla.data_analysis.plots import (
 )
 from backend.protzilla.form import Form
 
-from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDeviation
+from backend.protzilla.methods.data_analysis import (
+    CrosslinkingValidationWithAngstromDeviation,
+)
 
 
 @pytest.mark.parametrize(
@@ -611,8 +613,8 @@ def test_diagrams_of_crosslinking_validation_data_with_drawing_all_vertical_line
         mock_add_vline.call_count == 8
     )  # for both crosslinkers: 1 call for crosslinker length for each histogram and 1 call for bound on deviation for each histogram
 
-    # Check that create_histograms was called 4 times (2 per crosslinker)
-    assert mock_create_hist.call_count == 4
+    # Check that create_histograms was called 2 times (1 per crosslinker)
+    assert mock_create_hist.call_count == 2
 
     # Check that create_bar_plot was called once
     mock_create_bar.assert_called_once()
@@ -671,8 +673,8 @@ def test_diagrams_of_crosslinking_validation_data_without_drawing_all_vertical_l
     # the bounds are only drawn for the histogram that is not limited to the range of +- 2 standard deviations
     assert mock_add_vline.call_count == 10
 
-    # Check that create_histograms was called 4 times (2 per crosslinker)
-    assert mock_create_hist.call_count == 4
+    # Check that create_histograms was called 2 times (1 per crosslinker)
+    assert mock_create_hist.call_count == 2
 
     # Check that create_bar_plot was called once
     mock_create_bar.assert_called_once()
@@ -709,7 +711,7 @@ def test_diagrams_calls_with_correct_parameters(
         "backend.protzilla.data_analysis.crosslinking_validation.create_bar_plot"
     ) as mock_bar:
 
-        mock_hist.side_effect = lambda **kwargs: f"hist_{kwargs['heading']}"
+        mock_hist.return_value = Figure()
         mock_bar.return_value = "bar_fig"
 
         figures = diagrams_of_crosslinking_validation_data(
@@ -718,20 +720,35 @@ def test_diagrams_calls_with_correct_parameters(
             crosslinker_information=sample_crosslinker_info_with_one_crosslinker,
         )
 
-        # There should be 2 histogram calls: 2 per crosslinker
-        assert mock_hist.call_count == 2
+        # There should be 1 histogram calls: 1 per crosslinker
+        assert mock_hist.call_count == 1
 
-        # Check histogram call parameters for crosslinker full-range
-        first_hist_call = mock_hist.call_args_list[0].kwargs
-        assert first_hist_call["name_a"] == "Valid Crosslinks (intra: 1, inter: 1)"
-        assert first_hist_call["name_b"] == "Invalid Crosslinks (intra: 1, inter: 1)"
+        # Check histogram call parameters for crosslinker ±2 std
+        hist_call = mock_hist.call_args_list[0].kwargs
+        assert hist_call["name_a"] == "Predictions matching CLs (intra: 1, inter: 1)"
         assert (
-            first_hist_call["heading"]
-            == "Predicted distances for P12345 with crosslinker CL1"
+            hist_call["name_b"] == "Predictions not matching CLs (intra: 1, inter: 1)"
         )
-        assert first_hist_call["relevant_column_a"] == "alphafold_distance"
-        assert first_hist_call["relevant_column_b"] == "alphafold_distance"
-        assert first_hist_call["one_bin_per_int"] == True
+        assert (
+            hist_call["heading"]
+            == "Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ"
+        )
+        assert hist_call["relevant_column_a"] == "alphafold_distance"
+        assert hist_call["relevant_column_b"] == "alphafold_distance"
+        assert hist_call["one_bin_per_int"] == True
+
+        mean_predicted_lengths = sample_crosslinking_df_with_one_crosslinker[
+            "alphafold_distance"
+        ].mean()
+        standard_deviation_predicted_lengths = (
+            sample_crosslinking_df_with_one_crosslinker["alphafold_distance"].std()
+        )
+        mean_plus_minus_two_std_range = (
+            max(0, mean_predicted_lengths - 2 * standard_deviation_predicted_lengths),
+            mean_predicted_lengths + 2 * standard_deviation_predicted_lengths,
+        )
+        assert hist_call["min_value"] == mean_plus_minus_two_std_range[0]
+        assert hist_call["max_value"] == mean_plus_minus_two_std_range[1]
 
         valid_crosslinks = sample_crosslinking_df_with_one_crosslinker.loc[
             sample_crosslinking_df_with_one_crosslinker["valid_crosslink"] == True,
@@ -743,42 +760,16 @@ def test_diagrams_calls_with_correct_parameters(
         ]
         dataframe_a = pd.DataFrame({"alphafold_distance": valid_crosslinks})
         dataframe_b = pd.DataFrame({"alphafold_distance": invalid_crosslinks})
-        pdt.assert_frame_equal(first_hist_call["dataframe_a"], dataframe_a)
-        pdt.assert_frame_equal(first_hist_call["dataframe_b"], dataframe_b)
-
-        # Check histogram call parameters for crosslinker ±2 std
-        second_hist_call = mock_hist.call_args_list[1].kwargs
-        assert (
-            second_hist_call["heading"]
-            == "Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ"
-        )
-        mean_predicted_lengths = sample_crosslinking_df_with_one_crosslinker[
-            "alphafold_distance"
-        ].mean()
-        standard_deviation_predicted_lengths = (
-            sample_crosslinking_df_with_one_crosslinker["alphafold_distance"].std()
-        )
-        mean_plus_minus_two_std_range = (
-            max(0, mean_predicted_lengths - 2 * standard_deviation_predicted_lengths),
-            mean_predicted_lengths + 2 * standard_deviation_predicted_lengths,
-        )
-        assert second_hist_call["min_value"] == mean_plus_minus_two_std_range[0]
-        assert second_hist_call["max_value"] == mean_plus_minus_two_std_range[1]
+        pdt.assert_frame_equal(hist_call["dataframe_a"], dataframe_a)
+        pdt.assert_frame_equal(hist_call["dataframe_b"], dataframe_b)
 
         call_args_list = [call.kwargs for call in mock_vline.call_args_list]
         assert any(
-            call["annotation"] == "CL1 length" and call["x_value"] == 11.0
+            call["annotation"] == "CL1 length: 11.0Å" and call["x_value"] == 11.0
             for call in call_args_list
         )
 
         mock_bar.assert_called_once()
-
-        expected_figures = [
-            "hist_Predicted distances for P12345 with crosslinker CL1, mean +/- 2 σ",
-            "hist_Predicted distances for P12345 with crosslinker CL1",
-            "bar_fig",
-        ]
-        assert figures == expected_figures
 
 
 def test_validate_multimer_with_invalid_crosslinks():

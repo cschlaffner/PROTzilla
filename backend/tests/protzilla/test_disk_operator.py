@@ -2,7 +2,7 @@ import pathlib
 
 import pytest
 
-from protzilla.disk_operator import YamlOperator
+from backend.protzilla.disk_operator import YamlOperator
 
 
 @pytest.fixture()
