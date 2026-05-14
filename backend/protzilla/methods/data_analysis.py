@@ -89,9 +89,11 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     create_overview_ptm_visualization,
     get_detected_modifications,
 )
-from protzilla.data_analysis.crosslinking_validation import (
-    validate_with_angstrom_deviation,
-    diagrams_of_crosslinking_validation_data,
+from backend.protzilla.data_analysis.crosslinking_validation import (
+    monomer_diagrams,
+    multimer_diagrams,
+    monomer_validation,
+    multimer_validation,
 )
 from backend.protzilla.run import Run
 from backend.protzilla.methods.importing import (
@@ -2279,12 +2281,12 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
                 hasStepButtons=False,
             ),
             FileInput(
-                name="fasta_file_path",
-                label="FASTA file",
+                name="fasta_file_path", label="FASTA file", accept=".fasta,.fa,.faa"
             ),
             FileInput(
                 name="regions_file_path",
                 label="Metadata used to define regions",
+                accept=".csv",
             ),
             InfoField(
                 label="The file for regions should be a CSV file with the following columns: name, region_end, "
@@ -2368,9 +2370,6 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
     output_keys = ["crosslinking_result_df"]
     internal_inputs = {"crosslinker_information"}
 
-    plot_method = staticmethod(diagrams_of_crosslinking_validation_data)
-    calc_method = staticmethod(validate_with_angstrom_deviation)
-
     def _get_crosslinker_names_from_crosslinker_df(
         self, steps: StepManager
     ) -> list[str]:
@@ -2392,12 +2391,12 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
                 )
                 upper_bound_length_deviation_field = FloatField(
                     name=f"{crosslinker}_upper_accepted_deviation",
-                    label=f"Upper bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    label=f"Upper bound on the accepted deviation for {crosslinker} Crosslinks in Ångström (0 equals no bound)",
                     min=0,
                 )
                 lower_bound_length_deviation_field = FloatField(
                     name=f"{crosslinker}_lower_accepted_deviation",
-                    label=f"Lower bound on the accepted deviation for {crosslinker} Cross-Links in Ångström (0 equals no bound)",
+                    label=f"Lower bound on the accepted deviation for {crosslinker} Crosslinks in Ångström (0 equals no bound)",
                     min=0,
                 )
                 form.add_field(crosslinker_length_field)
@@ -2430,8 +2429,10 @@ class CrosslinkingValidationWithAngstromDeviation(
     CrosslinkingValidationWithAngstromStep
 ):
     display_name = "Ångström Deviation For Monomer Structures"
-    operation = "Cross Linking Validation"
-    method_description = "Validates cross links within the one protein structure based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+    operation = "Crosslinking Validation"
+    method_description = "Validates crosslinks within the one protein structure based on the difference between the length of the crosslinker and the distance between the amino acids which were connected by the crosslinker. (in Ångström)"
+    calc_method = staticmethod(monomer_validation)
+    plot_method = staticmethod(monomer_diagrams)
 
     def create_form(self):
         return Form(label="Ångström Deviation - Monomer", input_fields=[])
@@ -2441,8 +2442,10 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
     CrosslinkingValidationWithAngstromStep
 ):
     display_name = "Ångström Deviation For Multimer Structures"
-    operation = "Cross Linking Validation"
-    method_description = "Validates cross links between proteins based on the difference between the length of the cross linker and the distance between the amino acids which were connected by the cross linker. (in Ångström)"
+    operation = "Crosslinking Validation"
+    method_description = "Validates crosslinks between proteins based on the difference between the length of the crosslinker and the distance between the amino acids which were connected by the crosslinker. (in Ångström)"
+    calc_method = staticmethod(multimer_validation)
+    plot_method = staticmethod(multimer_diagrams)
 
     def create_form(self):
         return Form(

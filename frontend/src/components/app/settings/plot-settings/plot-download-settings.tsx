@@ -25,10 +25,10 @@ import {
 } from "../../../core/";
 
 const StyledModal = styled(Modal)`
-  width: fit-content;
-  max-width: 100%;
-  height: fit-content;
-  max-height: 100vh;
+  overflow: auto;
+  max-width: 95vw;
+  max-height: 95vh;
+  width: 100%;
 `;
 
 const SettingsDiv = styled.div`
@@ -69,8 +69,9 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   layout,
 }) => {
   const {
+    isLoading,
     settings,
-    loadSettings,
+    resetSettingsToDefault,
     saveSettings,
     computeDisplaySizes,
     setComputedSettings,
@@ -141,8 +142,12 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     onClose();
   };
   const handleReset = () => {
-    void loadSettings("plots_default");
-    settings.title = prevTitle;
+    void (async () => {
+      const hasReset = await resetSettingsToDefault();
+      if (hasReset) {
+        handleSettingChange("title", prevTitle);
+      }
+    })();
   };
   const handleSaving = () => {
     void saveSettings();
@@ -259,13 +264,15 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
         </Col>
         <Col md={5}>
           <StyledDiv>
-            <PlotComponent
-              data={plot.data}
-              layout={plot.layout}
-              hasBorder={true}
-              hasResizing={false}
-              divId={divId}
-            />
+            {!isLoading && (
+              <PlotComponent
+                data={plot.data}
+                layout={plot.layout}
+                hasBorder={true}
+                hasResizing={false}
+                divId={divId}
+              />
+            )}
           </StyledDiv>
         </Col>
       </Row>

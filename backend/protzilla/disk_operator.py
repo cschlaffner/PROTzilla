@@ -6,7 +6,7 @@ import os
 import shutil
 import traceback
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
 
 import pandas as pd
 import yaml
@@ -67,6 +67,20 @@ def output_type_constructor(loader, node):
 
 yaml.add_representer(OutputType, output_type_representer)
 yaml.add_constructor("!OutputType", output_type_constructor)
+
+
+def path_representer(dumper, path):
+    return dumper.represent_scalar("!file_path", path.as_posix())
+
+
+def path_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return Path(value)
+
+
+yaml.add_representer(PosixPath, path_representer)
+yaml.add_representer(WindowsPath, path_representer)
+yaml.add_constructor("!file_path", path_constructor)
 
 
 class YamlOperator:

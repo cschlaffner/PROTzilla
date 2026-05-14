@@ -21,6 +21,7 @@ def test_get_all_possible_step_names():
         "FilterProteinsBySamplesMissing",
         "FilterProteinsByNumberOfValuesPerGroup",
         "FilterProteinsByProteinIDs",
+        "FilterProteinsKeepNmostSignificantProteins",
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",

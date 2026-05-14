@@ -45,7 +45,7 @@ from backend.protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
-from protzilla.importing.query_generation import generate_alphafold_query_json
+from backend.protzilla.importing.query_generation import generate_alphafold_query_json
 
 
 class ImportingStep(Step, ABC):
@@ -53,14 +53,9 @@ class ImportingStep(Step, ABC):
 
     def modify_form(self, run: Run):
         if run.steps.current_step.calculation_status == "complete":
-            self.form.input_fields[self.index_of_file_input()].value = None
-
-    def index_of_file_input(self):
-        """
-        Returns the index of the FileInput that should be reset by modify_form. This method
-        must be overridden if the FileInput is not index 0.
-        """
-        return 0
+            for field in self.form.input_fields:
+                if isinstance(field, FileInput):
+                    field.value = None
 
 
 class ArbitraryCSVImport(ImportingStep):
@@ -78,6 +73,7 @@ class ArbitraryCSVImport(ImportingStep):
                     name="file_path",
                     label="CSV file",
                     value=None,
+                    accept=".csv",
                 )
             ],
         )
@@ -105,6 +101,7 @@ class MaxQuantImport(ImportingStep):
                     name="file_path",
                     label="MaxQuant intensities file (proteinGroups.txt)",
                     value=None,
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -149,6 +146,7 @@ class DiannImport(ImportingStep):
                     name="file_path",
                     label="DIA-NN intensities file (*.pg_matrix.tsv)",
                     value=None,
+                    accept="txt,.tsv",
                 ),
                 CheckboxField(
                     name="map_to_uniprot",
@@ -183,6 +181,7 @@ class MsFraggerImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="MSFragger intensities file (combined_proteins.tsv)",
+                    accept=".txt,.tsv",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -220,6 +219,7 @@ class MetadataImport(MetadataImportingStep):
                 FileInput(
                     name="file_path",
                     label="Metadata file",
+                    accept=".csv,.xlsx,.psv,.tsv",
                 ),
                 DropdownField(
                     name="feature_orientation",
@@ -311,6 +311,7 @@ class PeptideImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Peptide file",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -343,6 +344,7 @@ class EvidenceImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Evidence file",
+                    accept=".txt",
                 ),
                 DropdownField(
                     name="intensity_name",
@@ -377,6 +379,7 @@ class FastaImport(ImportingStep):
                 FileInput(
                     name="file_path",
                     label="Fasta file",
+                    accept=".fasta,.fa,.faa",
                 ),
             ],
         )
@@ -419,7 +422,7 @@ class ExampleDatasetImport(ImportingStep):
         self.output_keys = self.output_keys = (
             [
                 DataKey.METADATA_DF,
-                DataKey.PEPTIDE_DF,
+                DataKey.PSM_DF,
                 DataKey.PROTEIN_DF,
             ]
             if import_peptide_data_field.value
@@ -476,6 +479,7 @@ class CrosslinkingImport(ImportingStep):
                     name="file_path",
                     label="Crosslinking Data file (.xlsx or .csv)",
                     value=None,
+                    accept=".xlsx,.csv",
                 ),
                 TextField(
                     name="organism_ids",
@@ -534,6 +538,7 @@ class UploadMultimerPredictions(ImportingStep):
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,
+        DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 
@@ -550,10 +555,10 @@ class UploadMultimerPredictions(ImportingStep):
                 ),
                 TextField(
                     name="uniprot_ids",
-                    label="Protein IDs of all proteins used in the sequence.",
+                    label="Protein IDs of all proteins used in the sequence. ",
                 ),
                 InfoField(
-                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9"
+                    label="Please provide a list of Protein IDs separated by a comma \n e.g.: P68871, P69905, Q5VSL9."
                 ),
                 TextField(
                     name="model_used",
@@ -563,21 +568,31 @@ class UploadMultimerPredictions(ImportingStep):
                     name="amino_acid_sequences",
                     label="Amino acid sequences of proteins in the prediction (required)",
                     value=None,
+                    accept=".fasta,.fa,.faa",
                 ),
                 FileInput(
                     name="cif_file",
                     label="CIF file (required)",
                     value=None,
+                    accept=".cif,.mmcif",
                 ),
                 FileInput(
                     name="confidence_file",
                     label="Confidence summary json file (required)",
                     value=None,
+                    accept=".json",
                 ),
                 FileInput(
                     name="full_data_file",
                     label="Full data json file (required)",
                     value=None,
+                    accept=".json",
+                ),
+                FileInput(
+                    name="job_request_file",
+                    label="Job request json file (required)",
+                    value=None,
+                    accept=".json",
                 ),
                 CheckboxField(
                     name="persist_upload",
@@ -600,6 +615,7 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
         DataKey.CIF_DF,
         DataKey.CONFIDENCE_DF,
         DataKey.FULL_DATA_DF,
+        DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
     ]
 

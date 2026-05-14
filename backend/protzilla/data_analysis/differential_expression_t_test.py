@@ -28,6 +28,27 @@ def _is_valid(value):
     return value != 0 and not np.isnan(value)
 
 
+def get_z_score_based_fold_change_significance(
+    fold_changes: pd.Series,
+) -> tuple[pd.Series, pd.Series]:
+    # Reimplementation of the fold-change Z-score significance as described in
+    # https://pubs.acs.org/doi/10.1021/pr1009977
+    median = np.median(fold_changes)
+    sd_lower = median - np.percentile(fold_changes, 15.87)
+    sd_upper = np.percentile(fold_changes, 84.13) - median
+
+    def calc_z_score(ratio):
+        if ratio > median:
+            return (ratio - median) / sd_upper
+        else:
+            return (median - ratio) / sd_lower
+
+    z_scores = fold_changes.apply(calc_z_score)
+    z_score_p_value = 1 - stats.norm.cdf(z_scores)
+
+    return z_scores, z_score_p_value
+
+
 def t_test(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -178,15 +199,12 @@ def t_test(
             messages=messages,
         )
 
-    fc_mean = np.mean(log2_fold_changes)
-    fc_std = np.std(log2_fold_changes)
-    if fc_std == 0 or np.isnan(fc_std):
-        z_scores = np.zeros(len(log2_fold_changes))
-    else:
-        z_scores = np.abs((np.array(log2_fold_changes) - fc_mean) / fc_std)
-    fc_significance = 1 - stats.norm.cdf(z_scores)
+    fc_z_scores, fc_z_p_values = get_z_score_based_fold_change_significance(
+        pd.Series(log2_fold_changes)
+    )
+
     fc_significance_df = pd.DataFrame(
-        list(zip(valid_protein_groups, z_scores, fc_significance)),
+        list(zip(valid_protein_groups, fc_z_scores, fc_z_p_values)),
         columns=FC_SIGNIFICANCE_COLUMNS,
     )
 

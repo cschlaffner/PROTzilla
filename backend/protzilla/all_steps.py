@@ -24,6 +24,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterProteinsByNumberOfValuesPerGroup,
     data_preprocessing.FilterProteinsByProteinIDs,
+    data_preprocessing.FilterProteinsKeepNmostSignificantProteins,
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
     data_preprocessing.FilterSamplesByProteinIntensitiesSum,
@@ -100,6 +101,7 @@ _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
     data_integration.DatabaseIntegrationByUniprot,
     data_integration.PlotGSEAEnrichmentPlot,
+    data_analysis.PTMsProteinAndPerSample,
 ]
 
 

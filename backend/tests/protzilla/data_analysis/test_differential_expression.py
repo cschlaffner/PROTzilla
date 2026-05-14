@@ -15,6 +15,19 @@ from backend.protzilla.data_analysis.differential_expression import (
     kruskal_wallis_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.plots import create_volcano_plot
+from protzilla.data_analysis.differential_expression_t_test import (
+    get_z_score_based_fold_change_significance,
+)
+from tests.paths import TEST_AML_DATA_PATH
+
+
+@pytest.fixture
+def z_score_significance_data():
+    # The data within the dataset stems directly form the supplementary material of the original AML paper
+    fold_changes_z_score_df = pd.read_csv(
+        TEST_AML_DATA_PATH / "fold_changes_zscores.csv"
+    )
+    return fold_changes_z_score_df
 
 
 @pytest.fixture
@@ -256,6 +269,22 @@ def test_differential_expression_welch_t_test(diff_expr_test_data, show_figures)
     )
 
 
+def test_z_score_significance_calculation(z_score_significance_data):
+    _, z_score_significance = get_z_score_based_fold_change_significance(
+        z_score_significance_data["fold_change"]
+    )
+    expected_z_score_significance = z_score_significance_data["z_score_significance"]
+    # Our calcluation doesn't match the reported numbers perfectly. However, this is probably due to internal things
+    # that are out of our control (rounding errors, implementations that differ between programming languaes, etc.)
+    pd.testing.assert_series_equal(
+        pd.Series(z_score_significance),
+        expected_z_score_significance,
+        check_names=False,
+        check_exact=False,
+        atol=1e-4,
+    )
+
+
 def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_data):
     test_intensity_df, test_metadata_df = diff_expr_test_data
     test_alpha = 0.05
@@ -271,10 +300,11 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
         multiple_testing_correction_method="Benjamini-Hochberg",
         alpha=test_alpha,
         fc_zscore_filter=True,
-        fc_zscore_alpha=0.25,
+        fc_zscore_alpha=0.08,
     )
 
-    # Fold-change Z-score filter should keep only Protein1 (Protein4 drops because fc_significance is too high)
+    # Fold-change Z-score filter should keep only Protein1 (The others will be dropped because fc_significance is
+    # too high)
     fc_significance = current_out["fc_significance_df"]
     assert not fc_significance.empty
     assert (
@@ -284,7 +314,7 @@ def test_differential_expression_t_test_with_fc_zscore_filter(diff_expr_test_dat
             ].iloc[0],
             2,
         )
-        == 0.07
+        == 0.08
     )
     assert list(
         current_out[DataKey.SIGNIFICANT_PROTEINS_DF]["Protein ID"].unique()

@@ -271,15 +271,15 @@ def extract_relevant_crosslink_information(
     :param crosslinking_df: DataFrame with columns
         'crosslinker_position1',
         'crosslinker_position2',
-        'chain_id1',
-        'chain_id2',
+        'Chain_id1',
+        'Chain_id2',
         'valid_crosslink',
         'Is_intra_crosslink',
     :return: List of dicts with keys
         'crosslinkerPosition1',
         'crosslinkerPosition2',
-        'chainId1',
-        'chainId2',
+        'ChainId1',
+        'ChainId2',
         'isValid',
         'isIntraCrosslink',
     """
@@ -292,8 +292,8 @@ def extract_relevant_crosslink_information(
         # Since we already need those chain ids to calculate correct distances in the validation,
         # it would be unnecessary to determine those again in the visualization.
         # Therefore we use placeholders for now and need to change the following, when the validation is extended:
-        chain_id1 = "A"  # row.get("chain_id1")
-        chain_id2 = "A"  # row.get("chain_id2")
+        chain_id1 = row.get("Chain_id1")
+        chain_id2 = row.get("Chain_id2")
         is_valid = row.get("valid_crosslink")
         is_intra_crosslink = row.get("Is_intra_crosslink")
         if pd.notnull(position1) and pd.notnull(position2) and pd.notnull(is_valid):
