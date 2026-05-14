@@ -712,7 +712,7 @@ def get_downloads_from_step(request: HttpRequest):
         {
             "success": True,
             "message": "Got the available download(s) for the step",
-            "data": downloads,
+            "data": {"json_downloads": downloads},
         }
     )
 
