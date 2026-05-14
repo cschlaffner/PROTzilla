@@ -30,7 +30,7 @@ def test_generate_alphafold_multimer_json_query_for_multiple_proteins(mock_get):
 
     assert len(downloads) == 1
     key = list(downloads.keys())[0]
-    assert key == "name"
+    assert key == "name.json"
 
     parsed_json = downloads[key][0]
 
