@@ -581,12 +581,12 @@ def validate_with_angstrom_deviation(
         protein_sequence2 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
-        plddt_at_position1 = plddt_df.query(
+        plddt_at_position1 = float(plddt_df.query(
             "residueNumber == @crosslink.crosslinker_position1"
-        ).iloc[0]["confidenceScore"]
-        plddt_at_position2 = plddt_df.query(
+        ).iloc[0]["confidenceScore"])
+        plddt_at_position2 = float(plddt_df.query(
             "residueNumber == @crosslink.crosslinker_position2"
-        ).iloc[0]["confidenceScore"]
+        ).iloc[0]["confidenceScore"])
 
         pae_x_position1 = pae_matrix[
             crosslink.crosslinker_position1, crosslink.crosslinker_position2
@@ -648,38 +648,19 @@ def validate_with_angstrom_deviation(
                 )
 
             case CrosslinkingValidationCriterion.plddt_adjusted.value:
-                cl_half = crosslinker_length / 2
-
                 get_plddt_factor: Callable[[float], float] = lambda plddt: 1 - (
                     plddt / 100
-                )
-
-                # Strict mode: plDDT of 0 (factor 1) allows +/- half length for each half
-                # get_cl_half_tolerated_length_range: Callable[
-                #     [float, float], tuple[float, float]
-                # ] = lambda cl_half, plddt_factor: (
-                #     cl_half * (1 - plddt_factor),
-                #     cl_half * (1 + plddt_factor),
-                # )
-
-                # Less strict mode: plDDT of 0 (factor 1) allows +/- total CL length for each half
-                # TODO: The calculations below get ugly when plDDT < 50 because we'd get negative lengths
-                get_cl_half_tolerated_length_range: Callable[
-                    [float, float], tuple[float, float]
-                ] = lambda cl_half, plddt_factor: (
-                    cl_half * 2 * (1 - plddt_factor),
-                    cl_half * 2 * (1 + plddt_factor),
                 )
 
                 plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
                 plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)
 
-                cl_half1_min, cl_half1_max = get_cl_half_tolerated_length_range(cl_half, plddt_factor_pos1)
-                cl_half2_min, cl_half2_max = get_cl_half_tolerated_length_range(cl_half, plddt_factor_pos2)
+                max_half_tolerance = crosslinker_length # Note: This is quite lenient
+                tolerance_pos1 = plddt_factor_pos1 * max_half_tolerance
+                tolerance_pos2 = plddt_factor_pos2 * max_half_tolerance
 
-                accepted_distance_lower_bound = cl_half1_min + cl_half2_min
-                accepted_distance_upper_bound = cl_half1_max + cl_half2_max
-
+                accepted_distance_lower_bound = max(crosslinker_length - tolerance_pos1 - tolerance_pos2, 0)
+                accepted_distance_upper_bound = crosslinker_length + tolerance_pos1 + tolerance_pos2
 
         valid = (
             accepted_distance_lower_bound
