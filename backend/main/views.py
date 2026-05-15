@@ -311,6 +311,7 @@ def import_run(request):
         )
 
 
+# Note: unused
 def add_plot(request):
     if request.method == "POST":
         data = json.loads(request.body)

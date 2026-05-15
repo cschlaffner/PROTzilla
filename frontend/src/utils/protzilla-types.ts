@@ -40,7 +40,7 @@ export interface Step {
       y: number;
     };
   };
-  method_name: string;
+  operation: string;
   status: StepStatus;
 }
 

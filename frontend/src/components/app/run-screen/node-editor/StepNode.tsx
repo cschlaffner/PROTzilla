@@ -15,6 +15,76 @@ import {
   handleSequencesIcon,
 } from "../../../core/shared/icon/icons";
 
+// --- Constants ---
+const NODE_WIDTH = 285;
+const NODE_HEIGHT = 70;
+const HANDLE_ICON_SIZE = 26;
+const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
+const FALLBACK_TRIANGLE_SIZE = Math.round(HANDLE_ICON_SIZE * 0.6);
+
+// --- Styled Components ---
+
+const StyledNode = styled.div`
+  width: ${NODE_WIDTH}px;
+  height: ${NODE_HEIGHT}px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 2px solid #1d1d1d;
+  border-radius: 8px;
+  background-color: white;
+  box-sizing: border-box; /* Ensures padding doesn't affect the fixed width */
+`;
+
+const StatusIndicatorWrapper = styled.div`
+  /* Removed absolute positioning */
+  flex-shrink: 0;
+  margin-right: 8px; /* Spacing between status and operation icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Optional: Adjust size of status icon if needed */
+  & > svg,
+  & > span {
+    width: 20px !important;
+    height: 20px !important;
+  }
+`;
+
+const OperationIconWrapper = styled.div`
+  flex-shrink: 0;
+  margin-right: 12px;
+
+  /* Targeting the Icon component specifically to make it larger */
+  & > svg,
+  & > span {
+    width: 40px !important;
+    height: 40px !important;
+  }
+`;
+
+const TextContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+
+  /* Text wrapping logic */
+  & span {
+    white-space: normal;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limits text to 2 lines to maintain node height */
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
+  }
+`;
+
+// --- Helpers & Maps ---
+
 type HandleDirection = "Input" | "Output" | "None";
 
 export interface HoveredHandleMeta {
@@ -44,10 +114,6 @@ const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
   psm_df: handlePsmIcon,
 };
 
-const HANDLE_ICON_SIZE = 26;
-const HANDLE_ICON_OFFSET = HANDLE_ICON_SIZE / 2;
-const FALLBACK_TRIANGLE_SIZE = Math.round(HANDLE_ICON_SIZE * 0.6);
-
 const triangleStyle = (direction: HandleDirection) => ({
   width: FALLBACK_TRIANGLE_SIZE,
   height: FALLBACK_TRIANGLE_SIZE,
@@ -56,62 +122,42 @@ const triangleStyle = (direction: HandleDirection) => ({
   backgroundColor: "#1d1d1d",
 });
 
-const StyledNode = styled.div`
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 15px;
-  padding-bottom: 15px;
-  display: flex;
-  align-itmes: center;
-  position: relative;
-  border: 2px solid black;
-  border-radius: 5px;
-`;
-
-const TextContainer = styled.div`
-  display: flex;
-  gap: 5px;
-  marginleft: "auto";
-  max-width: 225px;
-  whitespace: normal;
-  line-height: 150%;
-  max-height: 4.5em;
-`;
-
 export default function StepNode({ data }: NodeProps<StepNodeType>) {
-  // const onClick = useCallback((evt) => {
-  //   console.log(evt.target.value);
-  // }, []);
-
   const onElementClick = () => {
-    console.log(data.step.name); // TODO: still required?
     data.navigateOrRefreshSteps(data.step.id);
   };
 
-  const icon: DefaultColoredIconType = data.step.status;
-  const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "";
+  const nodeBgColour = data.isSelected ? defaultPalette.protzillaLightGray : "white";
+  const nodeIcon = data.section as IconType;
+  const statusIcon: DefaultColoredIconType = data.step.status;
 
   return (
     <StyledNode
-      className={`step-node`}
+      className="step-node"
       style={{ backgroundColor: nodeBgColour }}
       onClick={onElementClick}
     >
-      <Icon icon={data.section as IconType} style={{ flexShrink: 0, marginRight: "10px" }} />
-      <DefaultColoredIcon icon={icon} style={{ flexShrink: 0 }} />
-      <TextContainer style={{ marginLeft: "5px" }}>
-        <ContentText
-          text={`${data.step.method_name} : ${data.step.name}`}
-          style={{ userSelect: "none" }}
-        />
+      {/* Status Indicator outside the node */}
+      <StatusIndicatorWrapper>
+        <DefaultColoredIcon icon={statusIcon} />
+      </StatusIndicatorWrapper>
+
+      {/* Larger Operation Icon */}
+      <OperationIconWrapper>
+        <Icon icon={nodeIcon} />
+      </OperationIconWrapper>
+
+      {/* Wrapped Text Content */}
+      <TextContainer>
+        <ContentText text={data.step.name} style={{ userSelect: "none", fontSize: "18px" }} />
       </TextContainer>
 
-      {/*Target (input) handles*/}
+      {/* Input handles */}
       {data.step.input_keys.map((input, index) => {
         const InputIcon = DATA_TYPE_ICON_MAP[input];
         return (
           <Handle
-            key={index}
+            key={`in-${String(index)}`}
             type="target"
             position={Position.Top}
             id={input}
@@ -159,12 +205,12 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
         );
       })}
 
-      {/*Source (ouput) handles*/}
+      {/* Output handles */}
       {data.step.output_keys.map((output, index) => {
         const OutputIcon = DATA_TYPE_ICON_MAP[output];
         return (
           <Handle
-            key={index}
+            key={`out-${String(index)}`}
             type="source"
             position={Position.Bottom}
             id={output}

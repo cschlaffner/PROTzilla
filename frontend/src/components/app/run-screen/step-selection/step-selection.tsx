@@ -1,6 +1,8 @@
+import type { IconType } from "@protzilla/core";
 import {
   Button,
   GrayButton,
+  Icon,
   IconButton,
   iconColor,
   Modal,
@@ -29,9 +31,28 @@ export interface StepItem {
   section: string;
   display_name: string;
   operation: string;
+  operation_display_name: string;
   method_description: string;
   calculation_status: string;
 }
+
+const stepOperationIconMap: Partial<Record<string, string>> = {
+  classification: "stepClassification",
+  clustering: "stepClustering",
+  dimension_reduction: "stepDimensionReduction",
+  filter_samples: "stepFilter",
+  filter_proteins: "stepFilter",
+  filter_peptides: "stepFilter",
+  filter_psms: "stepFilter",
+  gene_ontology: "stepGO",
+  gsea: "stepGSEA",
+  imputation: "stepImputation",
+  modification_quantification: "stepModificationQuantification",
+  normalization: "stepNormalization",
+  differential_expression: "stepStatisticalTest",
+  transformation: "stepTransformation",
+  ptm_visualization: "stepPTMVisualization",
+};
 
 const fetchStepList = async (): Promise<StepItem[]> => {
   return callApi("step_list/");
@@ -107,6 +128,18 @@ const StepDescriptionDropdown = styled.div`
   padding: ${spacing("small")};
   background-color: ${color("backgroundOffset")};
   max-width: 95%;
+`;
+
+const OperationIconWrapper = styled.div`
+  flex-shrink: 0;
+  margin-right: 12px;
+
+  /* Targeting the Icon component specifically to make it larger */
+  & > svg,
+  & > span {
+    width: 30px !important;
+    height: 30px !important;
+  }
 `;
 
 export const StepSelection: React.FC<StepSelectionProps> = ({
@@ -252,17 +285,23 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
           <BorderDiv>
             <MakeRowDiv>
               <SectionSelection>
-                {operationModes.map((mode: string) => (
-                  <SectionButton
-                    key={mode}
-                    isActive={listMode === mode}
-                    onPress={() => {
-                      selectList(mode);
-                      setVisibleDescription(null);
-                    }}
-                    text={mode}
-                  ></SectionButton>
-                ))}
+                {operationModes.map((mode: string) => {
+                  const buttonLabel =
+                    mode === "All steps"
+                      ? "All Steps"
+                      : (stepsGroupedByOperation[mode][0]?.operation_display_name ?? "Unknown");
+                  return (
+                    <SectionButton
+                      key={mode}
+                      isActive={listMode === mode}
+                      onPress={() => {
+                        selectList(mode);
+                        setVisibleDescription(null);
+                      }}
+                      text={buttonLabel}
+                    ></SectionButton>
+                  );
+                })}
               </SectionSelection>
               <div>
                 {allStepsList.length === 0 ? (
@@ -278,44 +317,71 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                   {listMode === allSteps ? (
                     Object.keys(stepsGroupedByOperation)
                       .filter((op) => op !== allSteps)
-                      .map((operation) => (
-                        <div key={operation}>
-                          <SectionTitle baseComponent={"h3"} description={operation}></SectionTitle>
-                          <div style={{ padding: "10px 10px 10px 20px" }}>
-                            {stepsGroupedByOperation[operation].map((item, index) => (
-                              <StepWrapper key={`step_${String(index)}`}>
-                                <LightGrayButton
-                                  style={{
-                                    textAlign: "left",
-                                    justifyContent: "left",
-                                  }}
-                                  onPress={() => void handleAddStep(runName, item.method_name)}
-                                  key={index}
-                                  text={item.display_name}
-                                />
-                                <HelpButton
-                                  icon={"help"}
-                                  onPress={() => {
-                                    setVisibleDescription(
-                                      visibleDescription === item.method_name
-                                        ? null
-                                        : item.method_name,
-                                    );
-                                  }}
-                                />
-                                {visibleDescription === item.method_name && (
-                                  <StepDescriptionDropdown>
-                                    {item.method_description}
-                                  </StepDescriptionDropdown>
-                                )}
-                              </StepWrapper>
-                            ))}
+                      .map((operation) => {
+                        const icon = stepOperationIconMap[operation] ?? (section as IconType);
+                        const title = stepsGroupedByOperation[operation][0].operation_display_name;
+
+                        return (
+                          <div key={operation}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <OperationIconWrapper>
+                                <Icon icon={icon as IconType} />
+                              </OperationIconWrapper>
+                              <SectionTitle baseComponent={"h3"} description={title} />
+                            </div>
+                            <div style={{ padding: "10px 10px 10px 20px" }}>
+                              {stepsGroupedByOperation[operation].map((item, index) => (
+                                <StepWrapper key={`step_${String(index)}`}>
+                                  <LightGrayButton
+                                    style={{
+                                      textAlign: "left",
+                                      justifyContent: "left",
+                                    }}
+                                    onPress={() => void handleAddStep(runName, item.method_name)}
+                                    key={index}
+                                    text={item.display_name}
+                                  />
+                                  <HelpButton
+                                    icon={"help"}
+                                    onPress={() => {
+                                      setVisibleDescription(
+                                        visibleDescription === item.method_name
+                                          ? null
+                                          : item.method_name,
+                                      );
+                                    }}
+                                  />
+                                  {visibleDescription === item.method_name && (
+                                    <StepDescriptionDropdown>
+                                      {item.method_description}
+                                    </StepDescriptionDropdown>
+                                  )}
+                                </StepWrapper>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                   ) : (
                     <div>
-                      <SectionTitle baseComponent={"h3"} description={listMode}></SectionTitle>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <OperationIconWrapper>
+                          <Icon
+                            icon={
+                              // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                              (stepOperationIconMap[listMode as string] ?? section) as IconType
+                            }
+                          />
+                        </OperationIconWrapper>
+                        <SectionTitle
+                          baseComponent={"h3"}
+                          description={
+                            // eslint-disable-next-line
+                            stepsGroupedByOperation[listMode as string]?.[0]
+                              .operation_display_name || ""
+                          }
+                        ></SectionTitle>
+                      </div>
                       <div style={{ padding: "10px 10px 10px 20px" }}>
                         {activeStepList.map((item, index) => (
                           <StepWrapper key={`step_${String(index)}`}>
