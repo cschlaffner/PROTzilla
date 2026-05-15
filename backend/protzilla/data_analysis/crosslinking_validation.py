@@ -581,18 +581,22 @@ def validate_with_angstrom_deviation(
         protein_sequence2 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
-        plddt_at_position1 = float(plddt_df.query(
-            "residueNumber == @crosslink.crosslinker_position1"
-        ).iloc[0]["confidenceScore"])
-        plddt_at_position2 = float(plddt_df.query(
-            "residueNumber == @crosslink.crosslinker_position2"
-        ).iloc[0]["confidenceScore"])
+        plddt_at_position1 = float(
+            plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0][
+                "confidenceScore"
+            ]
+        )
+        plddt_at_position2 = float(
+            plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0][
+                "confidenceScore"
+            ]
+        )
 
         pae_x_position1 = pae_matrix[
-            crosslink.crosslinker_position1, crosslink.crosslinker_position2
+            crosslink.crosslinker_position1 - 1, crosslink.crosslinker_position2 - 1
         ]  # Using position1 as scored residue
         pae_x_position2 = pae_matrix[
-            crosslink.crosslinker_position2, crosslink.crosslinker_position1
+            crosslink.crosslinker_position2 - 1, crosslink.crosslinker_position1 - 1
         ]  # Using position2 as scored residue
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
@@ -655,12 +659,16 @@ def validate_with_angstrom_deviation(
                 plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
                 plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)
 
-                max_half_tolerance = crosslinker_length # Note: This is quite lenient
+                max_half_tolerance = crosslinker_length  # Note: This is quite lenient
                 tolerance_pos1 = plddt_factor_pos1 * max_half_tolerance
                 tolerance_pos2 = plddt_factor_pos2 * max_half_tolerance
 
-                accepted_distance_lower_bound = max(crosslinker_length - tolerance_pos1 - tolerance_pos2, 0)
-                accepted_distance_upper_bound = crosslinker_length + tolerance_pos1 + tolerance_pos2
+                accepted_distance_lower_bound = max(
+                    crosslinker_length - tolerance_pos1 - tolerance_pos2, 0
+                )
+                accepted_distance_upper_bound = (
+                    crosslinker_length + tolerance_pos1 + tolerance_pos2
+                )
 
         valid = (
             accepted_distance_lower_bound

@@ -1,4 +1,5 @@
 import pandas as pd
+from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pytest
 import logging
 from unittest.mock import patch, MagicMock
@@ -33,7 +34,9 @@ from protzilla.methods.data_analysis import CrosslinkingValidationWithAngstromDe
         (6.01, False),  # outside bounds
     ],
 )
-def test_validate_with_angstrom_deviation(distance, expected):
+def test_monomer_validation(distance, expected):
+    crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Length 5 Å ± 1 Å
+
     # Fake AlphaFold Data with chain IDs
     cif_df = pd.DataFrame(
         {
@@ -68,9 +71,23 @@ def test_validate_with_angstrom_deviation(distance, expected):
         {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
     )
 
-    crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Länge 5 Å ± 1 Å
     valid_ids = {"P12345": ["P12345"]}
     structures_to_validate = ["P12345"]
+
+    pae_df_noerror = pd.DataFrame(
+        {
+            "predicted_aligned_error": ["[[0, 0], [0, 0]]"],
+            "max_predicted_aligned_error": [31.75],
+        }
+    )
+
+    plddt_df_noerror = pd.DataFrame(
+        {
+            "residueNumber": [1, 2],
+            "confidenceScore": [100, 100],
+            # confidenceCategory is not required
+        }
+    )
 
     result = validate_with_angstrom_deviation(
         crosslinking_df=crosslinking_df,
@@ -81,9 +98,12 @@ def test_validate_with_angstrom_deviation(distance, expected):
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=structures_to_validate,
+        pae_df=pae_df_noerror,
+        plddt_df=plddt_df_noerror,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
-    df = result["crosslinking_result_df"]
+    df: pd.DataFrame = result["crosslinking_result_df"]
 
     assert "alphafold_distance" in df.columns
     assert "valid_crosslink" in df.columns
@@ -93,6 +113,8 @@ def test_validate_with_angstrom_deviation(distance, expected):
     assert df.loc[0, "alphafold_distance"] == distance
     assert df.loc[0, "valid_crosslink"] == expected
     assert df.loc[0, "link_type"] == "intra"
+
+    # Validation with PAE
 
 
 def test_modify_form_creates_crosslinker_fields():
