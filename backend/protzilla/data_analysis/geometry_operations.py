@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import trimesh
 
+from backend.protzilla.constants.van_der_waals import vdw_radii
+
 COORDINATE_COLUMNS = [
     "_atom_site.Cartn_x",
     "_atom_site.Cartn_y",
@@ -27,7 +29,7 @@ def extract_points_from_cif(
     cif_df: pd.DataFrame,
     residue_range: tuple[int, int],
     chain_id: str | None = None,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Extract Cartesian atom coordinates in a residue range from a CIF DataFrame.
 
@@ -41,6 +43,7 @@ def extract_points_from_cif(
 
     required_columns = {
         "_atom_site.label_seq_id",
+        "_atom_site.type_symbol",
         "_atom_site.Cartn_x",
         "_atom_site.Cartn_y",
         "_atom_site.Cartn_z",
@@ -70,8 +73,17 @@ def extract_points_from_cif(
     residue_ids = filtered_df["_atom_site.label_seq_id"].astype(int)
     filtered_df = filtered_df[(residue_ids >= start) & (residue_ids <= end)]
 
+    atom_data = filtered_df[
+        [
+            "_atom_site.Cartn_x",
+            "_atom_site.Cartn_y",
+            "_atom_site.Cartn_z",
+            "_atom_site.type_symbol",
+        ]
+    ].drop_duplicates()
+
     points = (
-        filtered_df[
+        atom_data[
             [
                 "_atom_site.Cartn_x",
                 "_atom_site.Cartn_y",
@@ -79,14 +91,20 @@ def extract_points_from_cif(
             ]
         ]
         .astype(float)
-        .drop_duplicates()
+        .to_numpy()
+    )
+    elements = (
+        atom_data["_atom_site.type_symbol"]
+        .astype(str)
+        .str.strip()
+        .str.capitalize()
         .to_numpy()
     )
 
     if len(points) == 0:
         raise ValueError("No atom coordinates found.")
 
-    return points
+    return points, elements
 
 
 def build_convex_hull(points: np.ndarray) -> trimesh.Trimesh:
@@ -146,7 +164,9 @@ def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.n
     distances = np.linalg.norm(points - reference_point, axis=1)
     return points[np.argmax(distances)]
 
-def find_farthest_point_fdw(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
+def find_farthest_point_vdw(
+    points: np.ndarray, elements: np.ndarray, reference_point: np.ndarray
+) -> tuple[np.ndarray, float]:
     """
     Calculate the point, whose fdw-"Bubble" is most distant to a reference point.
     """
@@ -159,8 +179,11 @@ def find_farthest_point_fdw(points: np.ndarray, reference_point: np.ndarray) -> 
             f"Expected reference_point with shape (3,), got {reference_point.shape}."
         )
 
-    distances = np.linalg.norm(points - reference_point, axis=1)
-    return points[np.argmax(distances)]
+    radii = np.array([vdw_radii[element] for element in elements], dtype=float)
+
+    distances = np.linalg.norm(points - reference_point, axis=1) + radii
+    max_index = np.argmax(distances)
+    return points[max_index], float(distances[max_index])
 
 
 def meshes_intersect(

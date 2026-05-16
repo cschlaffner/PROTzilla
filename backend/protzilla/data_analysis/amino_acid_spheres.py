@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 import trimesh
 
 from backend.protzilla.data_analysis.geometry_operations import (
     calculate_center_point,
     extract_points_from_cif,
-    find_farthest_point,
+    find_farthest_point_vdw,
     mesh_to_polyhedron,
 )
 
@@ -29,14 +28,13 @@ def calculate_amino_acid_spheres(
 
     spheres = []
     for residue_position in residue_positions: # TODO: This can certainly be made more efficient
-        residue_points = extract_points_from_cif(
+        residue_points, residue_elements = extract_points_from_cif(
             cif_df,
             residue_range=(residue_position, residue_position),
             chain_id=chain_id,
         )
         center = calculate_center_point(residue_points)
-        furthest_point = find_farthest_point(residue_points, center)
-        radius = float(np.linalg.norm(furthest_point - center))
+        _, radius = find_farthest_point_vdw(residue_points, residue_elements, center)
 
         sphere = trimesh.creation.icosphere(subdivisions=subdivisions, radius=radius)
         sphere.apply_translation(center)
