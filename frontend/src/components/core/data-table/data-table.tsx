@@ -8,6 +8,7 @@ import {
   GridFooterContainerProps,
   GridPagination,
   GridPaginationModel,
+  GridSortModel,
 } from "@mui/x-data-grid";
 import { baseTheme, getMuiTheme } from "@protzilla/theme";
 import { callApiWithParameters, TableRecord } from "@protzilla/utils";
@@ -53,6 +54,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [currentRows, setCurrentRows] = useState<TableRecord[]>([]);
   const [totalRowCount, setTotalRowCount] = useState(0);
   const [isLoading, setLoading] = useState(false);
+  const [sortModel, setSortModel] = useState<GridSortModel>([]);
 
   // Fetch data when pagination changes
   useEffect(() => {
@@ -68,6 +70,8 @@ export const DataTable: React.FC<DataTableProps> = ({
           table_label: tableLabel,
           start_index: startIndex,
           end_index: endIndex,
+          sort_field: sortModel[0]?.field,
+          sort_direction: sortModel[0]?.sort ?? "asc",
         });
 
         if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
@@ -85,7 +89,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     };
 
     void fetchData();
-  }, [paginationModel, tableLabel, runName]);
+  }, [paginationModel, sortModel, tableLabel, runName]);
 
   const columns = useMemo(() => {
     if (currentRows.length === 0) return [];
@@ -123,6 +127,9 @@ export const DataTable: React.FC<DataTableProps> = ({
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         pageSizeOptions={pageSizeOptions}
+        sortingMode="server"
+        sortModel={sortModel}
+        onSortModelChange={setSortModel}
         sx={{
           width: "100%",
           height: "100%",
@@ -132,7 +139,6 @@ export const DataTable: React.FC<DataTableProps> = ({
         slots={{
           footer: CustomFooter,
         }}
-        disableColumnSorting
         disableColumnFilter
       />
     </ThemeProvider>
