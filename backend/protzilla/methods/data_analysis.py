@@ -95,6 +95,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     monomer_validation,
     multimer_validation,
 )
+from protzilla.data_analysis.ptm_analysis import ptm_validation
 
 
 class TTestType(Enum):
@@ -2474,4 +2475,18 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
                     label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
                 )
             ],
+        )
+
+
+class PtmValidation(DataAnalysisStep):
+    display_name = "PTM Validation"
+    operation = "Peptide analysis"
+    method_description = "Validates PTMs in protein structure predictions."
+    output_keys = ["ptm_validation_df"]
+    calc_method = staticmethod(ptm_validation)
+
+    def create_form(self):
+        return Form(
+            label="PTM Validation",
+            input_fields=[],
         )
