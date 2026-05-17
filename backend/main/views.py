@@ -683,62 +683,18 @@ def get_step_plots(request):
         )
 
 
-# # TODO: Move somewhere else
-# def _step_output_as_serialised_table(
-#     label: str, _data: pd.DataFrame | Any, index_delims: tuple[int, int] = (None, None)
-# ) -> list[dict]:
-#     """
-#     Returns the output data of a step as a list of dicts in "records" orientaion, like this:
-#     [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
-#     Also delimits the return according to index_delims.
-#     If the output could not be serialised, None is returned
-#
-#     :param label: The label of the step output to serialise
-#     :param _data: The data associated with the output
-#     :param index_delims: tuple used as slice begin and end indices to delimit the output
-#     """
-#     start_index = index_delims[0]
-#     end_index = index_delims[1]
-#
-#     # Note: using [None:None] as a slice returns the entire collection
-#     if isinstance(_data, pd.DataFrame):
-#         data = _data.iloc[start_index:end_index].copy()
-#
-#         # Safer than just adding the new column. We assume __id_col is not
-#         # a column name anyone would use
-#         if "id" in data.columns:
-#             data.rename(columns={"id": "__id_col"}, inplace=True)
-#
-#         data["id"] = data.index
-#         cleaned_data = data.replace(np.nan, None)
-#         return cleaned_data.to_dict(orient="records")
-#
-#     # Serialise compatible lists
-#     # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
-#     # Potential fix: Just do not use lists bro???
-#     elif (
-#         ("_df" not in label) and (label not in hidden_outputs) and (type(_data) == list)
-#     ):
-#         data = pd.DataFrame({label: _data[start_index:end_index]})
-#         data["id"] = data.index
-#         cleaned_data = data.replace(np.nan, None)
-#         return cleaned_data.to_dict(orient="records")
-#
-#     else:
-#         return None
-
 # TODO: Move somewhere else
 def _step_output_as_serialised_table(
     label: str, _data: pd.DataFrame | Any
 ) -> list[dict]:
     """
-        Returns the output data of a step as a list of dicts in "records" orientaion, like this:
-        [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
-        Also delimits the return according to index_delims.
-        If the output could not be serialised, None is returned
+    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+    Also delimits the return according to index_delims.
+    If the output could not be serialised, None is returned
 
-        :param label: The label of the step output to serialise
-        :param _data: The data associated with the output
+    :param label: The label of the step output to serialise
+    :param _data: The data associated with the output
     """
     if isinstance(_data, pd.DataFrame):
         data = _data.copy()
@@ -767,6 +723,7 @@ def _step_output_as_serialised_table(
 
     else:
         return None
+
 
 def get_png_from_step(request: HttpRequest):
     """
@@ -816,6 +773,8 @@ def get_current_step_table_data(request):
     end_index = data.get("end_index")
     sort_field = data.get("sort_field")
     sort_direction = data.get("sort_direction", "asc")
+    filters_raw = data.get("filters", "[]")
+    filters = json.loads(filters_raw)
 
     response = {"success": False, "message": None, "rows": None, "total_row_count": 0}
 
@@ -831,8 +790,19 @@ def get_current_step_table_data(request):
         return JsonResponse(response, status=404)
 
     if isinstance(step_output, pd.DataFrame):
+        for f in filters:
+            field = f.get("field")
+            value = f.get("value")
 
-        # SORT ONLY IF USER REQUESTED IT
+            if not field or value is None:
+                continue
+
+            col = step_output[field].astype(str)
+
+            step_output = step_output[
+                col.str.contains(str(value), case=False, na=False)
+            ]
+
         if sort_field:
             step_output = step_output.sort_values(
                 by=sort_field,
@@ -842,7 +812,6 @@ def get_current_step_table_data(request):
 
         response["total_row_count"] = len(step_output)
 
-        # PAGINATION
         paginated_output = step_output.iloc[start_index:end_index]
 
         serialised_output = _step_output_as_serialised_table(
@@ -850,9 +819,9 @@ def get_current_step_table_data(request):
             paginated_output,
         )
     elif (
-            ("_df" not in table_label)
-            and (table_label not in hidden_outputs)
-            and (type(step_output) == list)
+        ("_df" not in table_label)
+        and (table_label not in hidden_outputs)
+        and (type(step_output) == list)
     ):
         if sort_field:
             try:
@@ -865,17 +834,12 @@ def get_current_step_table_data(request):
 
         response["total_row_count"] = len(step_output)
 
-        # PAGINATION
         paginated_output = step_output[start_index:end_index]
 
         serialised_output = _step_output_as_serialised_table(
             table_label,
             paginated_output,
         )
-
-        #
-        # UNSUPPORTED TYPES
-        #
     else:
         serialised_output = None
 
@@ -890,6 +854,7 @@ def get_current_step_table_data(request):
         response["rows"] = serialised_output
 
     return JsonResponse(response)
+
 
 def get_current_step_output_labels(request):
     """

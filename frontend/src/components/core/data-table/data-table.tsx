@@ -4,6 +4,7 @@ import {
   DataGrid,
   GridColDef,
   GridColumnVisibilityModel,
+  GridFilterModel,
   GridFooterContainer,
   GridFooterContainerProps,
   GridPagination,
@@ -55,6 +56,17 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [totalRowCount, setTotalRowCount] = useState(0);
   const [isLoading, setLoading] = useState(false);
   const [sortModel, setSortModel] = useState<GridSortModel>([]);
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({
+    items: [],
+  });
+  const [columns, setColumns] = useState<GridColDef[]>([]);
+
+  // necessary for updating which columns exist when switching between tables
+  useEffect(() => {
+    setColumns([]);
+    setFilterModel({ items: [] });
+    setSortModel([]);
+  }, [tableLabel]);
 
   // Fetch data when pagination changes
   useEffect(() => {
@@ -72,7 +84,29 @@ export const DataTable: React.FC<DataTableProps> = ({
           end_index: endIndex,
           sort_field: sortModel[0]?.field,
           sort_direction: sortModel[0]?.sort ?? "asc",
+          filters: JSON.stringify(filterModel.items),
         });
+
+        if (response.rows.length > 0 && columns.length === 0) {
+          const generatedColumns = Object.keys(response.rows[0]).map((key) => {
+            const isNumeric = response.rows.every(
+              (row: TableRecord) => typeof row[key] === "number" || row[key] === null,
+            );
+
+            return {
+              field: key,
+              headerName: key,
+              flex: 1,
+              type: isNumeric ? "number" : "string",
+              align: "left",
+              headerAlign: "left",
+              filterable: true,
+              valueFormatter: (value: unknown) => value ?? "NaN",
+            } as GridColDef;
+          });
+
+          setColumns(generatedColumns);
+        }
 
         if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
           setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
@@ -89,27 +123,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     };
 
     void fetchData();
-  }, [paginationModel, sortModel, tableLabel, runName]);
-
-  const columns = useMemo(() => {
-    if (currentRows.length === 0) return [];
-
-    return Object.keys(currentRows[0]).map((key) => {
-      const isNumeric = currentRows.every(
-        (row) => typeof row[key] === "number" || row[key] === null,
-      );
-      return {
-        field: key,
-        headerName: key,
-        flex: 1,
-        type: isNumeric ? "number" : "string",
-        align: "left",
-        headerAlign: "left",
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        valueFormatter: (value) => value ?? "NaN",
-      } as GridColDef;
-    });
-  }, [currentRows]);
+  }, [paginationModel, sortModel, filterModel, tableLabel, runName]);
 
   const theme = useMemo(() => getMuiTheme(), []);
   const height = parseInt(baseTheme.sizes.tableRow, 10);
@@ -130,6 +144,9 @@ export const DataTable: React.FC<DataTableProps> = ({
         sortingMode="server"
         sortModel={sortModel}
         onSortModelChange={setSortModel}
+        filterMode="server"
+        filterModel={filterModel}
+        onFilterModelChange={setFilterModel}
         sx={{
           width: "100%",
           height: "100%",
@@ -139,7 +156,6 @@ export const DataTable: React.FC<DataTableProps> = ({
         slots={{
           footer: CustomFooter,
         }}
-        disableColumnFilter
       />
     </ThemeProvider>
   );
