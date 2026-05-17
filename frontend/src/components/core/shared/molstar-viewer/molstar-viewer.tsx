@@ -3,14 +3,15 @@ import { SectionTitle } from "@protzilla/core";
 import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
+import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 import React, { useEffect, useRef, useState } from "react";
 
+import { addTrimeshMesh } from "./molstar-trimesh-adapter";
 import { MolstarViewerProps } from "./molstar-viewer.props";
 import { addCrosslinks, handleError } from "./molstar-viewer.service";
 import { CanvasWrapper, Container } from "./styles";
-import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 
-const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) => {
+const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, trimeshMeshes }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const notify = useNotification();
@@ -48,6 +49,16 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
           await addCrosslinks(plugin, cifText, crosslinks);
         }
 
+        if (trimeshMeshes !== undefined) {
+          for (const trimeshMesh of trimeshMeshes) {
+            await addTrimeshMesh(plugin, trimeshMesh.mesh, {
+              color: trimeshMesh.color,
+              alpha: trimeshMesh.alpha,
+              label: trimeshMesh.label,
+            });
+          }
+        }
+
         setIsLoading(false);
       } catch (error: unknown) {
         handleError(error, "MolstarViewer Error:", notify);
@@ -66,7 +77,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         }
       }
     };
-  }, [cifText, crosslinks, notify]);
+  }, [cifText, crosslinks, notify, trimeshMeshes]);
 
   return (
     <Container>

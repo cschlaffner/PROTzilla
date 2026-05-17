@@ -102,6 +102,7 @@ _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
     data_integration.DatabaseIntegrationByUniprot,
     data_integration.PlotGSEAEnrichmentPlot,
+    data_analysis.PTMsProteinAndPerSample,
 ]
 
 
