@@ -11,11 +11,19 @@ import {
   GridPaginationModel,
   GridSortModel,
 } from "@mui/x-data-grid";
-import { baseTheme, getMuiTheme } from "@protzilla/theme";
+import { baseTheme, getMuiTheme, spacing } from "@protzilla/theme";
 import { callApiWithParameters, TableRecord } from "@protzilla/utils";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { styled } from "styled-components";
 
 import { DataTableProps } from "./data-table.props";
+import { CSVButton } from "../shared";
+
+const StyledCSVButton = styled(CSVButton)`
+  width: auto;
+  align-self: flex-end;
+  margin-top: ${spacing("buttonGap")};
+`;
 
 export const CustomFooter: React.FC<GridFooterContainerProps> = () => {
   return (
@@ -60,12 +68,14 @@ export const DataTable: React.FC<DataTableProps> = ({
     items: [],
   });
   const [columns, setColumns] = useState<GridColDef[]>([]);
+  const columnsInitializedRef = useRef(false);
 
   // necessary for updating which columns exist when switching between tables
   useEffect(() => {
     setColumns([]);
     setFilterModel({ items: [] });
     setSortModel([]);
+    columnsInitializedRef.current = false;
   }, [tableLabel]);
 
   // Fetch data when pagination changes
@@ -87,7 +97,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           filters: JSON.stringify(filterModel.items),
         });
 
-        if (response.rows.length > 0 && columns.length === 0) {
+        if (response.rows.length > 0 && !columnsInitializedRef.current) {
           const generatedColumns = Object.keys(response.rows[0]).map((key) => {
             const isNumeric = response.rows.every(
               (row: TableRecord) => typeof row[key] === "number" || row[key] === null,
@@ -106,6 +116,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           });
 
           setColumns(generatedColumns);
+          columnsInitializedRef.current = true;
         }
 
         if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
@@ -156,6 +167,13 @@ export const DataTable: React.FC<DataTableProps> = ({
         slots={{
           footer: CustomFooter,
         }}
+      />
+      <StyledCSVButton
+        runName={runName}
+        tableLabel={tableLabel}
+        fileName={tableLabel}
+        sortModel={sortModel}
+        filterModel={filterModel}
       />
     </ThemeProvider>
   );

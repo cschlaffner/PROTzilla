@@ -557,6 +557,8 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
   runName,
   tableLabel,
   fileName = "data.csv",
+  sortModel,
+  filterModel,
   ...params
 }) => {
   const [isLoading, setLoading] = useState(false);
@@ -569,6 +571,9 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
       const response = await callApiWithParameters("get_current_step_table_data/", {
         run_name: runName,
         table_label: tableLabel,
+        sort_field: sortModel[0]?.field,
+        sort_direction: sortModel[0]?.sort ?? "asc",
+        filters: JSON.stringify(filterModel.items),
       });
       fetchedRows = response.rows;
     } catch (error) {
@@ -584,7 +589,6 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
       header
         .map((key) => {
           const value = row[key];
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (value == null) return "NaN";
           // Value will be explicitly converted via String()
           const stringified = typeof value === "object" ? JSON.stringify(value) : String(value);
