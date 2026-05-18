@@ -174,6 +174,7 @@ class InfoField(_baseField):
     """
     A field to show additional information for a specific field to the user.
     """
+
     name: str = "info-field"
     label: str = ""
     value: str | None = None
