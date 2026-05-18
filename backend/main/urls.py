@@ -131,6 +131,16 @@ urlpatterns = [
         name="delete_cl_default",
     ),
     path(
+        "api/get_cl_colors",
+        views_settings.get_cl_colors,
+        name="get_cl_colors",
+    ),
+    path(
+        "api/update_cl_colors",
+        views_settings.update_cl_colors,
+        name="update_cl_colors",
+    ),
+    path(
         "api/load_ptm_settings",
         views_settings.load_ptm_settings,
         name="load_ptm_settings",

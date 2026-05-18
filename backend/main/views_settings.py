@@ -661,6 +661,36 @@ def delete_cl_default(request):
     )
 
 
+# <--- Crosslink colors --->
+
+
+def get_cl_colors(request):
+    operator = DefaultsOperator()
+    colors = operator.read_default(name="crosslinker_colors")
+    return JsonResponse(colors or {}, safe=False)
+
+
+def update_cl_colors(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        try:
+            operator = DefaultsOperator()
+            operator.write_default(name="crosslinker_colors", value=data)
+
+            return JsonResponse(
+                {"success": True, "message": "Colours updated successfully."},
+                status=200,
+            )
+        except Exception:
+            return JsonResponse(
+                {"success": False, "message": "Could not update colours."},
+                status=405,
+            )
+
+    return JsonResponse({"success": False, "message": "Invalid method"}, status=405)
+
+
 # <--- Databases --->
 
 

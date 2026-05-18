@@ -1,28 +1,34 @@
 import React from "react";
 
 import { CrosslinkerType } from "./crosslinker-processing";
-import { getCrosslinkerColor } from "./molstar-viewer.service";
+import { CROSSLINK_DEFAULT_COLORS, CrosslinkColors } from "./molstar-viewer.config";
+import { initCrosslinkColors } from "./molstar-viewer.service";
 import { LegendContainer } from "./styles";
 
+const legendEntries = Object.values(CrosslinkerType);
+
 export const LegendOverlay: React.FC = () => {
+  const [crosslinkerColors, setCrosslinkerColors] =
+    React.useState<CrosslinkColors>(CROSSLINK_DEFAULT_COLORS);
+
+  React.useEffect(() => {
+    void initCrosslinkColors().then(setCrosslinkerColors);
+  }, []);
+
   return (
     <LegendContainer>
-      <div>
-        <span style={{ color: getCrosslinkerColor(CrosslinkerType.ValidIntra) }}>■</span>{" "}
-        {CrosslinkerType.ValidIntra}{" "}
-      </div>
-      <div>
-        <span style={{ color: getCrosslinkerColor(CrosslinkerType.InvalidIntra) }}>■</span>{" "}
-        {CrosslinkerType.InvalidIntra}{" "}
-      </div>
-      <div>
-        <span style={{ color: getCrosslinkerColor(CrosslinkerType.ValidInter) }}>■</span>{" "}
-        {CrosslinkerType.ValidInter}{" "}
-      </div>
-      <div>
-        <span style={{ color: getCrosslinkerColor(CrosslinkerType.InvalidInter) }}>■</span>{" "}
-        {CrosslinkerType.InvalidInter}{" "}
-      </div>
+      {legendEntries.map((entry) => (
+        <div key={entry}>
+          <span
+            style={{
+              color: `#${crosslinkerColors[entry].toString(16).padStart(6, "0")}`,
+            }}
+          >
+            ■
+          </span>{" "}
+          {entry}
+        </div>
+      ))}
     </LegendContainer>
   );
 };

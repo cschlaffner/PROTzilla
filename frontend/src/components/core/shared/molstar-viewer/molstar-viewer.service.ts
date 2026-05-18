@@ -1,4 +1,5 @@
 import { useNotification } from "@protzilla/app";
+import { callApi } from "@protzilla/utils";
 import { OrderedSet } from "molstar/lib/mol-data/int";
 import { Loci } from "molstar/lib/mol-model/loci";
 import { StructureElement } from "molstar/lib/mol-model/structure";
@@ -10,7 +11,7 @@ import {
   CrosslinkerType,
   generateCrosslinkCIF,
 } from "./crosslinker-processing";
-import { CROSSLINKER_COLORS } from "./molstar-viewer.config";
+import { CROSSLINK_DEFAULT_COLORS, CrosslinkColors } from "./molstar-viewer.config";
 
 type PluginWithCrosslinks = PluginUIContext & {
   crosslinkerGroups?: Record<CrosslinkerType, string[]>;
@@ -24,6 +25,7 @@ export async function addCrosslinks(
   plugin: PluginUIContext,
   cifText: string,
   crosslinks: CrosslinkerInformation[],
+  crosslinkColors: CrosslinkColors,
 ) {
   const { crosslinkerCifText: crosslinkerCifText, crosslinkerGroups: crosslinkerGroups } =
     generateCrosslinkCIF(cifText, crosslinks);
@@ -53,15 +55,14 @@ export async function addCrosslinks(
       await plugin.builders.structure.representation.addRepresentation(component, {
         type: "line",
         color: "uniform",
-        colorParams: { value: CROSSLINKER_COLORS[type] },
+        colorParams: { value: crosslinkColors[type] },
       });
     }
   }
-
   (plugin as PluginWithCrosslinks).crosslinkerGroups = crosslinkerGroups;
 }
 
-export function overrideLabels(plugin: PluginUIContext) {
+export function overrideLabels(plugin: PluginUIContext, crosslinkColors: CrosslinkColors) {
   const labelManager = plugin.managers.lociLabels as {
     providers: LabelProvider[];
     addProvider: (p: LabelProvider) => void;
@@ -136,15 +137,28 @@ export function overrideLabels(plugin: PluginUIContext) {
       }
 
       const [groupName] = match as [CrosslinkerType, string[]];
-      const color = getCrosslinkerColor(groupName);
+      const color = `#${crosslinkColors[groupName].toString(16).padStart(6, "0")}`;
       return `<span style="color:${color}">${groupName}</span>`;
     },
   });
 }
 
-export function getCrosslinkerColor(type: CrosslinkerType) {
-  return `#${CROSSLINKER_COLORS[type].toString(16).padStart(6, "0")}`;
-}
+export const initCrosslinkColors = async (): Promise<CrosslinkColors> => {
+  try {
+    const userColors = await callApi("get_cl_colors");
+
+    if (userColors && Object.keys(userColors).length > 0) {
+      return {
+        ...CROSSLINK_DEFAULT_COLORS,
+        ...userColors,
+      };
+    }
+
+    return CROSSLINK_DEFAULT_COLORS;
+  } catch {
+    return CROSSLINK_DEFAULT_COLORS;
+  }
+};
 
 export function handleError(
   error: unknown,
