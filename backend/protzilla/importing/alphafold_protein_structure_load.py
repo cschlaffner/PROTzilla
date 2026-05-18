@@ -21,7 +21,7 @@ from backend.protzilla.constants.protzilla_logging import logger
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
 from backend.protzilla.utilities.utilities import copy_file_to_directory
-from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.steps import Output, OutputItem, OutputType
 
 
 def get_monomer_metadata_df() -> pd.DataFrame:
@@ -733,6 +733,31 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     )
 
 
+def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
+    """
+    Extracts certain data from a full_data_df, deletes the extracted columns
+    and returns the "remaining" full_data_df as well as the extracted data.
+
+    :param full_data_df: The AlphaFold3 full_data_df
+    :return dict:
+        - "full_data_df": The updated reduced full_data_df
+        - "pae_matrix": Numpy matrix with the PAE values for each residue pair
+    """
+
+    # Construct plDDT dataframe
+    # TODO: Getting pLDDT from AlphaFold3 is a bit harder as its on a per-atom level 
+    # rather than per-residue, so we'd need to extract it from the cif file
+    # (column _atom_site.B_iso_or_equiv, see https://github.com/google-deepmind/alphafold3/issues/330).
+    # Skipping this for now.
+
+    pae_matrix = np.array(full_data_df["pae"].iloc[0])
+    full_data_df = full_data_df.drop(columns=["pae"])
+    
+    return dict(
+        full_data_df=full_data_df,
+        pae_matrix=pae_matrix,
+    )
+
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     """
     Writes multimer structure data from disk of a specific entry ID into dataframes.
@@ -816,9 +841,18 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
+
+    unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
+    df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
+
+    pae_matrix = unwrapped_full_data["pae_matrix"]
+
     return dict(
         **df_dict,
         messages=messages,
+        pae_matrix=OutputItem(
+            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
+        ),
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),

@@ -2,7 +2,10 @@ import itertools
 import ast
 import math
 
+from multiprocessing.sharedctypes import Value
 from typing import TYPE_CHECKING, Callable
+
+from numpy.testing import assert_
 
 from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
@@ -459,6 +462,8 @@ def multimer_validation(
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     job_request_df: pd.DataFrame,
+    pae_matrix: np.ndarray[tuple[int, int]],
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
     """
     Validates crosslinking data for a multimeric protein complex by checking
@@ -476,6 +481,7 @@ def multimer_validation(
     :param cif_df: DataFrame containing mmCIF information.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :param job_request_df: DataFrame containing the loaded AlphaFold job request JSON.
+    :param pae_matrix: NumPy 2D array containing the PAE values for each residue pair.
     :return: A dictionary containing the validation results and distance metrics.
     """
     valid_ids = get_valid_ids_per_protein_id_from_job_request(
@@ -492,6 +498,8 @@ def multimer_validation(
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        pae_matrix=pae_matrix,
+        validation_criterion=validation_criterion,
     )
 
 
@@ -500,13 +508,13 @@ def validate_with_angstrom_deviation(
     crosslinker_information: dict[str, list[float]],
     structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
-    plddt_df: pd.DataFrame,
-    pae_matrix: np.ndarray[tuple[int, int]],
     amino_acid_sequences_df: pd.DataFrame,
     valid_ids: dict,
     id_column_name: str,
     structures_to_validate: list,
     validation_criterion: CrosslinkingValidationCriterion,
+    plddt_df: pd.DataFrame | None = None,
+    pae_matrix: np.ndarray[tuple[int, int]] | None = None,
 ) -> dict:
     """
     Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
@@ -578,23 +586,39 @@ def validate_with_angstrom_deviation(
         protein_sequence2 = get_protein_sequence_from_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
-        plddt_at_position1 = float(
-            plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0][
-                "confidenceScore"
-            ]
-        )
-        plddt_at_position2 = float(
-            plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0][
-                "confidenceScore"
-            ]
-        )
 
-        pae_x_position1 = pae_matrix[
-            crosslink.crosslinker_position1 - 1, crosslink.crosslinker_position2 - 1
-        ]  # Using position1 as scored residue
-        pae_x_position2 = pae_matrix[
-            crosslink.crosslinker_position2 - 1, crosslink.crosslinker_position1 - 1
-        ]  # Using position2 as scored residue
+        def get_site_plddts():
+            if plddt_df is None:
+                return np.nan, np.nan
+
+            plddt_at_position1 = float(
+                plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0][
+                    "confidenceScore"
+                ]
+            )
+            plddt_at_position2 = float(
+                plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0][
+                    "confidenceScore"
+                ]
+            )
+
+            return plddt_at_position1, plddt_at_position2
+        
+        def get_paes():
+            if pae_matrix is None:
+                return np.nan, np.nan
+
+            pae_x_position1 = pae_matrix[
+                crosslink.crosslinker_position1 - 1, crosslink.crosslinker_position2 - 1
+            ]  # Using position1 as scored residue
+            pae_x_position2 = pae_matrix[
+                crosslink.crosslinker_position2 - 1, crosslink.crosslinker_position1 - 1
+            ]  # Using position2 as scored residue
+
+            return pae_x_position1, pae_x_position2
+
+        plddt_at_position1, plddt_at_position2 = get_site_plddts()
+        pae_x_position1, pae_x_position2 = get_paes()
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
@@ -631,6 +655,9 @@ def validate_with_angstrom_deviation(
                 ) + crosslinker_length
 
             case CrosslinkingValidationCriterion.max_pae.value:
+                if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
+                    raise ValueError("No PAE data given.")
+
                 pae_tolerance = max(pae_x_position1, pae_x_position2)
                 accepted_distance_lower_bound = float(
                     max(crosslinker_length - pae_tolerance, 0.0)
@@ -640,6 +667,9 @@ def validate_with_angstrom_deviation(
                 )
 
             case CrosslinkingValidationCriterion.min_pae.value:
+                if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
+                    raise ValueError("No PAE data given.")
+                pae_x_position1, pae_x_position2 = get_paes()
                 pae_tolerance = min(pae_x_position1, pae_x_position2)
                 accepted_distance_lower_bound = float(
                     max(crosslinker_length - pae_tolerance, 0.0)
@@ -649,9 +679,14 @@ def validate_with_angstrom_deviation(
                 )
 
             case CrosslinkingValidationCriterion.plddt_adjusted.value:
+                if np.isnan(plddt_at_position1) or np.isnan(plddt_at_position2):
+                    raise ValueError("No pLDDT data given.")
+
                 get_plddt_factor: Callable[[float], float] = lambda plddt: 1 - (
                     plddt / 100
                 )
+
+                plddt_at_position1, plddt_at_position2 = get_site_plddts()
 
                 plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
                 plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)

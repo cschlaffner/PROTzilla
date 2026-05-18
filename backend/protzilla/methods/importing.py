@@ -617,6 +617,7 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
         DataKey.FULL_DATA_DF,
         DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
+        DataKey.PAE_MATRIX,
     ]
 
     def create_form(self):
