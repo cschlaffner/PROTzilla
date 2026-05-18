@@ -1,5 +1,7 @@
 import { useNotification } from "@protzilla/app";
 import { OrderedSet } from "molstar/lib/mol-data/int";
+import { Loci } from "molstar/lib/mol-model/loci";
+import { StructureElement } from "molstar/lib/mol-model/structure";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { MolScriptBuilder as MS } from "molstar/lib/mol-script/language/builder";
 
@@ -15,7 +17,7 @@ type PluginWithCrosslinks = PluginUIContext & {
 };
 
 interface LabelProvider {
-  label: (loci: any) => string | undefined;
+  label: (loci: Loci) => string | undefined;
 }
 
 export async function addCrosslinks(
@@ -68,13 +70,13 @@ export function overrideLabels(plugin: PluginUIContext) {
   const defaultProviders = [...labelManager.providers];
   labelManager.providers = [];
 
-  const getDefaultLabel = (loci: any) =>
+  const getDefaultLabel = (loci: Loci) =>
     defaultProviders
       .map((p) => p.label(loci))
       .filter(Boolean)
       .join(" | ");
 
-  const getAtomIdsFromLoci = (loci: any): string[] => {
+  const getAtomIdsFromLoci = (loci: StructureElement.Loci): string[] => {
     const ids: string[] = [];
 
     for (const element of loci.elements) {
@@ -83,7 +85,7 @@ export function overrideLabels(plugin: PluginUIContext) {
 
       for (let i = 0; i < OrderedSet.size(indices); i++) {
         const idx = OrderedSet.getAt(indices, i);
-        ids.push(String(atoms.value(idx)));
+        ids.push(atoms.value(idx));
       }
     }
 

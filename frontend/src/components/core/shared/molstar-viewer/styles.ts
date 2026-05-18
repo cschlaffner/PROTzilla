@@ -62,7 +62,7 @@ const lightSurfaces = `
   .msp-plugin .msp-left-panel-controls-buttons,
   .msp-plugin .msp-layout-right,
   .msp-plugin .msp-layout-left,
-  .msp-plugin .msp-highlight-info
+  .msp-plugin .msp-highlight-info,
 `;
 
 const layoutBlocks = `
@@ -76,6 +76,7 @@ const layoutBlocks = `
     .msp-animation-viewport-controls 
     .msp-animation-viewport-controls-select,
   .msp-plugin .msp-viewport-controls-panel,
+  .msp-plugin .msp-no-webgl
 `;
 
 const elementsWithDarkText = `
