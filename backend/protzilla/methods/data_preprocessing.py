@@ -495,14 +495,23 @@ class TransformationLog(DataPreprocessingStep):
                     value=True,
                     isVisible=True,
                 ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
+                    isVisible=True,
+                ),
             ],
         )
 
     def modify_form(self, run):
         if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
             self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
         else:
             self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
     calc_method = staticmethod(transformation.by_log)
     plot_method = staticmethod(transformation.by_log_plot)
@@ -529,8 +538,10 @@ class NormalisationStep(DataPreprocessingStep, ABC):
     def modify_form(self, run):
         if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
             self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
         else:
             self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
 
 class NormalisationByZScore(NormalisationStep):
@@ -563,6 +574,13 @@ class NormalisationByZScore(NormalisationStep):
                     name="show_outliers",
                     label="Show outliers",
                     value=True,
+                    isVisible=True,
+                ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
                     isVisible=True,
                 ),
             ],
@@ -602,6 +620,13 @@ class NormalisationByTotalSum(NormalisationStep):
                     name="show_outliers",
                     label="Show outliers",
                     value=True,
+                    isVisible=True,
+                ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
                     isVisible=True,
                 ),
             ],
@@ -652,6 +677,13 @@ class NormalisationByMedian(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
+                    isVisible=True,
+                ),
             ],
         )
 
@@ -691,6 +723,13 @@ class NormalisationByWidthAdjustment(NormalisationStep):
                     name="show_outliers",
                     label="Show outliers",
                     value=True,
+                    isVisible=True,
+                ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
                     isVisible=True,
                 ),
             ],
@@ -742,6 +781,13 @@ class NormalisationByReferenceProtein(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
+                InfoField(
+                    name="show_outliers_info",
+                    label="Hiding outliers changes how the chart is calculated. Hiding "
+                    "outliers will extend the whiskers to the absolute minimum and maximum "
+                    "values of your data, rather than using standard statistical boundaries.",
+                    isVisible=True,
+                ),
             ],
         )
 
@@ -782,13 +828,22 @@ class ImputationStep(DataPreprocessingStep, ABC):
         CheckboxField(
             name="show_outliers", label="Show outliers", value=True, isVisible=True
         ),
+        InfoField(
+            name="show_outliers_info",
+            label="Hiding outliers changes how the chart is calculated. Hiding "
+            "outliers will extend the whiskers to the absolute minimum and maximum "
+            "values of your data, rather than using standard statistical boundaries.",
+            isVisible=True,
+        ),
     ]
 
     def modify_form(self, run):
         if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
             self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
         else:
             self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
 
 class ImputationByMinPerDataset(ImputationStep):
