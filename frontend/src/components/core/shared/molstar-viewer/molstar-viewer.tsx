@@ -6,7 +6,13 @@ import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
 import React, { useEffect, useRef, useState } from "react";
 
 import { MolstarViewerProps } from "./molstar-viewer.props";
-import { addCrosslinks, handleError, initCrosslinkColors } from "./molstar-viewer.service";
+import {
+  addCrosslinks,
+  handleError,
+  initCrosslinkColors,
+  overrideLabels,
+} from "./molstar-viewer.service";
+import { LegendOverlay } from "./molstar-viewer.ui";
 import { CanvasWrapper, Container } from "./styles";
 import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 
@@ -47,6 +53,7 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         if (crosslinks !== undefined) {
           const crosslinkColors = await initCrosslinkColors();
           await addCrosslinks(plugin, cifText, crosslinks, crosslinkColors);
+          overrideLabels(plugin, crosslinkColors);
         }
 
         setIsLoading(false);
@@ -75,6 +82,8 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks }) =>
         <SectionTitle baseComponent="h4" description="Structure visualisation is loading..." />
       )}
       <CanvasWrapper ref={containerRef} />
+
+      {crosslinks !== undefined && <LegendOverlay />}
     </Container>
   );
 };

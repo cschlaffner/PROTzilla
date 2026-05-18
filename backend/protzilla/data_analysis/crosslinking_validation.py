@@ -1,12 +1,15 @@
 import itertools
 import ast
 import math
+from pipes import stepkinds
 
 import pandas as pd
 import numpy as np
 import re
 import logging
 
+from pandas.io.stata import stata_epoch
+import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 
 from backend.protzilla.data_preprocessing.plots import (
@@ -18,12 +21,25 @@ from backend.protzilla.data_analysis.plots import (
     add_vertical_line_with_annotation_in_legend,
 )
 from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.data_preprocessing.plots_helper import millify
+
+import textwrap
+
+from plotly.subplots import make_subplots
+
+from backend.protzilla.data_preprocessing.plots_helper import generate_tics
+from backend.protzilla.utilities.utilities import default_intensity_column
+from backend.protzilla.constants.colors import (
+    PLOT_COLOR_SEQUENCE,
+    PLOT_PRIMARY_COLOR,
+    PLOT_SECONDARY_COLOR,
+)
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
     """
     Returns the atom of an amino acid residue that is considered reactive for
-    cross-linking. Currently, this always returns the central alpha carbon (CA).
+    crosslinking. Currently, this always returns the central alpha carbon (CA).
 
     :param amino_acid_type: code of the amino acid
 
@@ -42,7 +58,7 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     chain_id: str,
 ) -> tuple[float, float, float]:
     """
-    Returns the Cartesian coordinates of the atom to which the cross-linker is
+    Returns the Cartesian coordinates of the atom to which the crosslinker is
     bound for a given amino acid residue in a protein structure.
 
     :param amino_acid_position_where_crosslinker_bound: 1-based position of the amino acid residue
@@ -174,7 +190,7 @@ def add_protein_crosslink_positions_to_df(
      If either peptide cannot be matched in its corresponding protein sequence, the row
      is removed and a warning message is recorded.
 
-     :param input_crosslinking_df: DataFrame containing cross-linking data with at least the following columns:
+     :param input_crosslinking_df: DataFrame containing crosslinking data with at least the following columns:
                             - 'Peptide1': first peptide sequence
                             - 'Peptide2': second peptide sequence
                             - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
@@ -491,12 +507,12 @@ def validate_with_angstrom_deviation(
     structures_to_validate: list,
 ) -> dict:
     """
-    Validates cross-links by comparing the cross-linker lengths with the distances between the linked
-    amino acids in the AlphaFold protein structure. A cross-link is regarded as valid if it matches the AlphaFold data,
-    so if the distance between the connected amino acids in AlphaFold is less than (cross-linker length + the upper allowed deviation)
-    and more than (cross-linker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
+    Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
+    amino acids in the AlphaFold protein structure. A crosslink is regarded as valid if it matches the AlphaFold data,
+    so if the distance between the connected amino acids in AlphaFold is less than (crosslinker length + the upper allowed deviation)
+    and more than (crosslinker length - the lower allowed deviation). If one of the bounds is zero only the other bound will be applied.
 
-    :param crosslinking_df: DataFrame containing the cross-linking data to validate.
+    :param crosslinking_df: DataFrame containing the crosslinking data to validate.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of three floats:
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
@@ -520,7 +536,7 @@ def validate_with_angstrom_deviation(
 
     # Check if dataframe is empty
     if relevant_crosslinks_df.empty:
-        msg = "There are no cross links between the structures to validate."
+        msg = "There are no crosslinks between the structures to validate."
         messages = [dict(level=logging.WARNING, msg=msg)]
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
@@ -540,7 +556,7 @@ def validate_with_angstrom_deviation(
     )
 
     if relevant_crosslinks_df.empty:
-        msg = "There are no cross links between the structures to validate."
+        msg = "There are no crosslinks between the structures to validate."
         messages = [dict(level=logging.WARNING, msg=msg)]
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
@@ -647,42 +663,82 @@ def validate_with_angstrom_deviation(
     )
 
 
+def _get_tick_values_with_lines(fig, min_value, max_value):
+    """
+    Generates tick values and labels for a Plotly figure's x-axis, ensuring that
+    the x-positions of all vertical lines in the figure are included as additional ticks.
+
+    Regular ticks are spaced evenly based on the range between min_value and max_value.
+    Vertical line positions that fall within the range and are not already covered by a regular tick
+    are appended and labeled with their rounded value.
+
+    :param fig: Plotly Figure object whose shapes are inspected for vertical lines.
+    :param min_value: Lower bound of the x-axis range.
+    :param max_value: Upper bound of the x-axis range.
+    :return: Dictionary with tickmode, tickvals, and ticktext suitable for use in update_xaxes.
+    """
+    line_x_values = [
+        shape.x0
+        for shape in fig.layout.shapes
+        if shape.type == "line" and shape.x0 == shape.x1
+    ]
+
+    step_size = (
+        pow(10, math.floor(np.log10(max_value - min_value)))
+        if max_value - min_value > 0
+        else 1
+    )
+    first_step = math.ceil(min_value / step_size) * step_size
+    last_step = math.ceil(max_value / step_size) * step_size + 3 * step_size
+    tick_values = list(np.arange(first_step, last_step, step_size))
+    tick_text = list(np.vectorize(lambda x: millify(x))(tick_values))
+
+    for x in line_x_values:
+        if x not in tick_values and min_value <= x <= max_value:
+            tick_values.append(x)
+            tick_text.append(str(round(x, 2)))
+
+    paired = sorted(zip(tick_values, tick_text))
+    tick_values, tick_text = zip(*paired)
+
+    return dict(tickmode="array", tickvals=list(tick_values), ticktext=list(tick_text))
+
+
 def diagrams_of_crosslinking_validation_data(
     validated_df: pd.DataFrame,
-    structures_to_validate: str,
-    crosslinker_information: pd.DataFrame,
+    structures_to_validate: list[str],
+    crosslinker_information: dict[str, list[float]],
 ) -> list[Figure]:
     """
-    Creates for each crosslinker histogram plots summarizing the distribution of valid and invalid
-    cross-links based on the (AlphaFold-)predicted distances compared to crosslinker lengths and
-    allowed deviations.
+    Creates for each crosslinker histogram plots summarizing the distribution (AlphaFold-)predicted distances
+    matching or not matching the crosslinker lengths and allowed deviations.
 
     For each crosslinker, two histograms are generated:
-    - One covering the full distance range.
+    - One covering the full distance range (combining a linear and a logarithmic axis).
     - One restricted to the range of mean ± 2 standard deviations of the predicted distances.
 
     Both histograms include vertical reference lines indicating the
     crosslinker length and, if applicable, the upper and/or lower accepted deviation bounds.
 
-    Additionally, a bar plot is created summarizing the total number of cross-links that match
+    Additionally, a bar plot is created summarizing the total number of crosslinks that match
     or do not match the predicted structure across all analyzed crosslinkers.
 
-    :param crosslinking_df: DataFrame containing cross-linking data, including AlphaFold-predicted
-                            distances, crosslinker identifiers, and validation results.
-    :param structure_metadata_df: Dataframe containing metadata.
     :param crosslinker_information: Contains for each Crosslinker:
                    - length_of_<Crosslinker>: float
                    - lower_accepted_deviation_for_<Crosslinker>: float
                    - upper_accepted_deviation_for_<Crosslinker>: float
-    :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms)
-    :param amino_acid_sequences_df: DataFrame containing the protein sequence
+    :param validated_df: pd.DataFrame consisting of the crosslinker_df enriched with information like
+            the belonging AlphaFold predicted distance ('alphafold_distance') or whether the AlphaFold
+            prediction matches the crosslinker length ('valid_crosslink').
+    :param structures_to_validate: List of protein names, the names of the proteins whose predictions we
+            validated.
     :return: List of Plotly Figure objects. For each crosslinker, the list contains two histogram
              figures (mean ± 2 standard deviations first, full range second), followed by a final
-             bar plot summarizing valid and invalid cross-links across all crosslinkers.
+             bar plot summarizing valid and invalid crosslinks across all crosslinkers.
     :raises KeyError: If a required crosslinker entry is missing in crosslinker_information.
     """
     if validated_df.empty:
-        return {}
+        return []
     validated_df = validated_df.dropna(subset=["valid_crosslink"])
 
     figures = []
@@ -716,30 +772,43 @@ def diagrams_of_crosslinking_validation_data(
             accepted_deviation_upper_bound,
             accepted_deviation_lower_bound,
         ) = crosslinker_information[crosslinker]
-        histogram = create_histograms(
-            dataframe_a=df_valid,
-            dataframe_b=df_invalid,
-            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+
+        histogram = create_cl_validation_histogram(
+            distances_valid=df_valid["alphafold_distance"],
+            distances_invalid=df_invalid["alphafold_distance"],
+            title_valid=f"Predictions matching CLs (intra: {valid_intra}, inter: {valid_inter})",
+            title_invalid=f"Predictions not matching CLs (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}",
-            x_title="Distance (Å)",
-            y_title="Count",
-            overlay=True,
-            visual_transformation="linear",
-            relevant_column_a="alphafold_distance",
-            relevant_column_b="alphafold_distance",
-            one_bin_per_int=True,
+            xaxis_label="Distance in Å",
+            yaxis_label="Count",
+            split_x_axis_at=(
+                crosslinker_length
+                if accepted_deviation_upper_bound is None
+                else crosslinker_length + accepted_deviation_upper_bound
+            ),
         )
         add_vertical_line_with_annotation_in_legend(
             fig=histogram,
             dash="solid",
-            annotation=f"{crosslinker} length",
+            annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
+            column=1,
         )
+        if accepted_deviation_upper_bound == 0:
+            # also add rightmost line (upper_bound/CL length to right subplot)
+            histogram.add_vline(
+                x=np.log10(crosslinker_length),
+                line_color=PLOT_PRIMARY_COLOR,
+                line_dash="solid",
+                line_width=2,
+                col=2,
+            )
 
         mean_of_predicted_lengths = crosslinker_df["alphafold_distance"].mean()
         if len(crosslinker_df) == 1:
-            standard_deviation_predicted_lengths = 0.0
+            standard_deviation_predicted_lengths = (
+                0.0  # .std() would return nan if there is only one entry
+            )
         else:
             standard_deviation_predicted_lengths = crosslinker_df[
                 "alphafold_distance"
@@ -747,17 +816,17 @@ def diagrams_of_crosslinking_validation_data(
         mean_plus_two_std = (
             mean_of_predicted_lengths + 2 * standard_deviation_predicted_lengths
         )
-        mean_minus_two_std = max(
-            0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
+        mean_minus_two_std = np.maximum(
+            0.0, mean_of_predicted_lengths - 2 * standard_deviation_predicted_lengths
         )
 
         histogram_two_standard_deviations = create_histograms(
             dataframe_a=df_valid,
             dataframe_b=df_invalid,
-            name_a=f"Valid Crosslinks (intra: {valid_intra}, inter: {valid_inter})",
-            name_b=f"Invalid Crosslinks (intra: {invalid_intra}, inter: {invalid_inter})",
+            name_a=f"Predictions matching CLs (intra: {valid_intra}, inter: {valid_inter})",
+            name_b=f"Predictions not matching CLs (intra: {invalid_intra}, inter: {invalid_inter})",
             heading=f"Predicted distances for {structures_to_validate_str} with crosslinker {crosslinker}, mean +/- 2 σ",
-            x_title="Distance (Å)",
+            x_title="Distance in Å",
             y_title="Count",
             overlay=True,
             visual_transformation="linear",
@@ -770,16 +839,26 @@ def diagrams_of_crosslinking_validation_data(
         add_vertical_line_with_annotation_in_legend(
             fig=histogram_two_standard_deviations,
             dash="solid",
-            annotation=f"{crosslinker} length",
+            annotation=f"{crosslinker} length: {crosslinker_length}Å",
             x_value=crosslinker_length,
         )
+        histogram_two_standard_deviations.update_layout(width=900)
 
         if accepted_deviation_upper_bound != 0:
             add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
-                annotation=f"allowed deviation upper bound",
+                annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
                 x_value=crosslinker_length + accepted_deviation_upper_bound,
+                column=1,
+            )
+            # also add rightmost line (upper_bound/CL length to right subplot)
+            histogram.add_vline(
+                x=np.log10(crosslinker_length + accepted_deviation_upper_bound),
+                line_color=PLOT_PRIMARY_COLOR,
+                line_dash="dash",
+                line_width=2,
+                col=2,
             )
             if (
                 math.floor(mean_minus_two_std)
@@ -789,15 +868,16 @@ def diagrams_of_crosslinking_validation_data(
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
-                    annotation=f"allowed deviation upper bound",
+                    annotation=f"allowed deviation upper bound: {accepted_deviation_upper_bound}Å",
                     x_value=crosslinker_length + accepted_deviation_upper_bound,
                 )
         if accepted_deviation_lower_bound != 0:
             add_vertical_line_with_annotation_in_legend(
                 fig=histogram,
                 dash="dash",
-                annotation=f"allowed deviation lower bound",
+                annotation=f"allowed deviation lower bound: {accepted_deviation_lower_bound}Å",
                 x_value=crosslinker_length - accepted_deviation_lower_bound,
+                column=1,
             )
             if (
                 math.floor(mean_minus_two_std)
@@ -807,39 +887,19 @@ def diagrams_of_crosslinking_validation_data(
                 add_vertical_line_with_annotation_in_legend(
                     fig=histogram_two_standard_deviations,
                     dash="dash",
-                    annotation=f"allowed deviation lower bound",
+                    annotation=f"allowed deviation lower bound: {accepted_deviation_lower_bound}Å",
                     x_value=crosslinker_length - accepted_deviation_lower_bound,
                 )
-
+        histogram_two_standard_deviations.update_xaxes(
+            **_get_tick_values_with_lines(
+                histogram_two_standard_deviations, mean_minus_two_std, mean_plus_two_std
+            )
+        )
         figures.append(histogram_two_standard_deviations)
         figures.append(histogram)
 
-    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
-    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
-    valid_intra_total = (
-        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
-    ).sum()
-    valid_inter_total = (
-        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
-    ).sum()
-    invalid_intra_total = (
-        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
-    ).sum()
-    invalid_inter_total = (
-        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
-    ).sum()
-
-    bar_plot_over_all_checked_crosslinks = create_bar_plot(
-        values_of_sectors=[
-            valid_crosslinks,
-            invalid_crosslinks,
-        ],
-        names_of_sectors=[
-            f"Cross-Links matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
-            f"Cross-Links not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
-        ],
-        heading=f"All Cross-Links used for validation of {structures_to_validate_str}",
-        y_title="Number of Cross-Links",
+    bar_plot_over_all_checked_crosslinks = _create_summarizing_cl_validation_bar_plot(
+        validated_df, structures_to_validate_str
     )
     figures.append(bar_plot_over_all_checked_crosslinks)
 
@@ -930,4 +990,204 @@ def multimer_diagrams(
         validated_df=validated_df,
         structures_to_validate=structures_to_validate,
         crosslinker_information=crosslinker_information,
+    )
+
+
+# Warning: Mostly AI generated
+def create_cl_validation_histogram(
+    distances_valid: pd.Series,
+    distances_invalid: pd.Series,
+    split_x_axis_at: float,
+    title_valid: str = "Predictions matching CLs",
+    title_invalid: str = "Predictions not matching CLs",
+    heading: str = "",
+    xaxis_label: str = "",
+    yaxis_label: str = "",
+):
+    """
+    Creates a split-axis histogram for displaying distances predicted by AlphaFold.
+    The left panel uses a linear axis, the right panel uses a logarithmic one.
+
+    :param distances_valid: Pandas Series containing distances matching the crosslinker length.
+    :param distances_invalid: Pandas Series containing distances not matching the crosslinker length.
+    :param split_x_axis_at: Threshold distance at which the x-axis transitions from
+                            linear (left panel) to logarithmic (right panel).
+    :param title_valid: Legend label for valid crosslinks. Defaults to "Predictions matching CLs".
+    :param title_invalid: Legend label for invalid crosslinks. Defaults to "Predictions not matching CLs".
+    :param heading: Title of the overall figure. Can be a long string and will be wrapped.
+    :param xaxis_label: Label for the x-axis (applied to both panels with scale annotations).
+    :param yaxis_label: Label for the shared y-axis.
+    :return: A Plotly Figure object containing the split histogram visualization.
+    """
+
+    if split_x_axis_at <= 0.0:
+        raise ValueError("x-axis split must be at x > 0")
+
+    # It is good practice to drop NaNs before calculating bins/histograms
+    distances_valid.dropna(inplace=True)
+    distances_invalid.dropna(inplace=True)
+
+    min_distance: float = np.nanmin([distances_valid.min(), distances_invalid.min()])
+    max_distance: float = np.nanmax([distances_valid.max(), distances_invalid.max()])
+
+    fig = make_subplots(
+        rows=1,
+        cols=2,
+        shared_yaxes=True,
+        horizontal_spacing=0.1,
+        column_widths=[0.5, 0.5],
+    )
+    fig.update_layout(width=900)
+
+    # --- Pre-calculate shared bins for BOTH datasets ---
+    # 1. Linear Bins
+    lin_start = math.floor(min_distance)
+    lin_end = math.ceil(split_x_axis_at)
+    if lin_end <= lin_start:
+        lin_end = lin_start + 1
+    lin_bins = np.arange(lin_start, lin_end + 1, 1)
+
+    # 2. Log Bins
+    # We must ensure max_distance > split_x_axis_at to avoid math domain errors
+    safe_max = max(max_distance, split_x_axis_at * 1.01)
+    log_start = np.log10(split_x_axis_at)
+    log_end = np.log10(safe_max)
+    log_bins_transformed = np.arange(log_start, log_end + 0.1, 0.1)
+
+    # Pre-compute the actual linear numbers of the log bins for the hover template
+    log_bins_linear = 10**log_bins_transformed
+
+    def add_split_traces(values: pd.Series, name: str, color: str, show_legend: bool):
+        # Split data
+        v_lin = values[values <= split_x_axis_at]
+        v_log_raw = values[values > split_x_axis_at]
+        v_log_transformed = np.log10(v_log_raw)
+
+        # --- Calculate Histogram for Linear Part ---
+        counts_lin, _ = np.histogram(v_lin, bins=lin_bins)
+        # Pair up the left and right edges for the hover box
+        customdata_lin = np.stack((lin_bins[:-1], lin_bins[1:]), axis=-1)
+
+        _ = fig.add_trace(
+            go.Bar(
+                x=lin_bins[:-1],
+                y=counts_lin,
+                width=1,  # Match the bin size in np.arange
+                offset=0,  # Force bars to start exactly at the bin edge
+                name=name,
+                marker_color=color,
+                legendgroup=name,
+                showlegend=show_legend,
+                customdata=customdata_lin,
+                hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:g} to %{customdata[1]:g}<br>Count: %{y}<extra></extra>",
+            ),
+            row=1,
+            col=1,
+        )
+
+        # --- Calculate Histogram for Log Part ---
+        counts_log, _ = np.histogram(v_log_transformed, bins=log_bins_transformed)
+        customdata_log = np.stack((log_bins_linear[:-1], log_bins_linear[1:]), axis=-1)
+
+        _ = fig.add_trace(
+            go.Bar(
+                x=log_bins_transformed[:-1],
+                y=counts_log,
+                width=0.1,  # Match the bin size in np.arange
+                offset=0,
+                name=name,
+                marker_color=color,
+                legendgroup=name,
+                showlegend=False,  # Legend handled by linear part
+                customdata=customdata_log,
+                # Format numbers cleanly with commas using `,.0f` or `g`
+                hovertemplate="<b>%{data.name}</b><br>Range: %{customdata[0]:,.0f} to %{customdata[1]:,.0f}<br>Count: %{y}<extra></extra>",
+            ),
+            row=1,
+            col=2,
+        )
+
+    add_split_traces(distances_valid, title_valid, PLOT_PRIMARY_COLOR, True)
+    add_split_traces(distances_invalid, title_invalid, PLOT_SECONDARY_COLOR, True)
+
+    # Update Axes Formatting
+    _ = fig.update_xaxes(
+        title_text=f"{xaxis_label} (Linear)",
+        range=[math.floor(min_distance), split_x_axis_at],
+        row=1,
+        col=1,
+        showline=True,
+        mirror=False,
+        zeroline=False,
+    )
+
+    # Always include the split origin as the first tick
+    tick_vals = [np.log10(split_x_axis_at)]
+    tick_text = [str(split_x_axis_at)]
+
+    # Calculate how many exponents we need to cover the maximum delta
+    max_delta = max_distance - split_x_axis_at
+    if max_delta > 0:
+        max_i = int(math.ceil(np.log10(max_delta)))
+        for i in range(1, max_i + 1):
+            val: float = split_x_axis_at + math.pow(10, i)
+            # Add the exact log position for the tick, and the formatted text
+            tick_vals.append(np.log10(val))
+            tick_text.append(f"{(split_x_axis_at + 10**i):.4g}")
+
+    _ = fig.update_xaxes(
+        title_text=f"{xaxis_label} (Log10)",
+        tickvals=tick_vals,
+        ticktext=tick_text,
+        row=1,
+        col=2,
+        showline=True,
+        mirror=False,
+        zeroline=False,
+    )
+    _ = fig.update_layout(barmode="overlay", yaxis_title=yaxis_label)
+    fig.update_traces(opacity=0.75)
+
+    wrapped_title = "<br>".join(textwrap.wrap(heading, width=60))
+    _ = fig.update_layout(title={"text": f"<b>{wrapped_title}</b>"})
+
+    _ = fig.update_layout(margin_pad=10)
+
+    # Disable toggling of the visibility of the traces by clicking on the legend
+    fig.update_layout(
+        legend=dict(itemclick=False, itemdoubleclick=False, xanchor="left", x=1.05)
+    )
+
+    return fig
+
+
+def _create_summarizing_cl_validation_bar_plot(
+    validated_df: pd.DataFrame, structures_to_validate_str: str
+) -> Figure:
+    valid_crosslinks = (validated_df["valid_crosslink"]).sum()
+    invalid_crosslinks = (~validated_df["valid_crosslink"]).sum()
+    valid_intra_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    valid_inter_total = (
+        (validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+    invalid_intra_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "intra")
+    ).sum()
+    invalid_inter_total = (
+        (~validated_df["valid_crosslink"]) & (validated_df["link_type"] == "inter")
+    ).sum()
+
+    return create_bar_plot(
+        values_of_sectors=[
+            valid_crosslinks,
+            invalid_crosslinks,
+        ],
+        names_of_sectors=[
+            f"Crosslinks matching predicted data (intra: {valid_intra_total}, inter: {valid_inter_total})",
+            f"Crosslinks not matching predicted data (intra: {invalid_intra_total}, inter: {invalid_inter_total})",
+        ],
+        heading=f"All Crosslinks used for validation of {structures_to_validate_str}",
+        y_title="Number of Crosslinks",
     )

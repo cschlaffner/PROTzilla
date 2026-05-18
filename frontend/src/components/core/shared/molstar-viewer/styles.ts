@@ -1,4 +1,4 @@
-import { color } from "@protzilla/theme";
+import { color, font, fontSize, fontWeight } from "@protzilla/theme";
 import { styled } from "styled-components";
 
 export const Container = styled.div`
@@ -10,7 +10,7 @@ export const Container = styled.div`
   gap: 1rem;
 `;
 
-const molstarTheme = {
+export const molstarTheme = {
   primary: color("protzillaDarkBlue"),
   surface: color("protzillaLightGray"),
   hover: color("secondaryHover"),
@@ -62,7 +62,7 @@ const lightSurfaces = `
   .msp-plugin .msp-left-panel-controls-buttons,
   .msp-plugin .msp-layout-right,
   .msp-plugin .msp-layout-left,
-  .msp-plugin .msp-highlight-info
+  .msp-plugin .msp-highlight-info,
 `;
 
 const layoutBlocks = `
@@ -76,6 +76,7 @@ const layoutBlocks = `
     .msp-animation-viewport-controls 
     .msp-animation-viewport-controls-select,
   .msp-plugin .msp-viewport-controls-panel,
+  .msp-plugin .msp-no-webgl
 `;
 
 const elementsWithDarkText = `
@@ -247,4 +248,22 @@ export const CanvasWrapper = styled.div`
       background: ${molstarTheme.error} !important;
     }
   }
+`;
+
+export const LegendContainer = styled.div`
+  position: absolute;
+  bottom: 0vh;
+  right: 1.5vh;
+
+  background: ${molstarTheme.surface};
+  color: ${molstarTheme.primary};
+
+  padding: 1vh;
+  font-family: ${font("defaultWithFallbacks")};
+  font-size: ${fontSize("h6")};
+  font-weight: ${fontWeight("default")};
+  border-radius: 0px;
+
+  pointer-events: none;
+  z-index: 10;
 `;
