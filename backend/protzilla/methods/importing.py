@@ -438,9 +438,9 @@ class AlphaFoldPredictionLoad(ImportingStep):
     output_keys = [
         DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
-        DataKey.PAE_DF,
         DataKey.PLDDT_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
+        DataKey.PAE_MATRIX,
     ]
 
     plot_method = None
@@ -503,7 +503,7 @@ class ImportMonomerStructurePredictionFromDisk(ImportingStep):
     output_keys = [
         DataKey.STRUCTURE_METADATA_DF,
         DataKey.CIF_DF,
-        DataKey.PAE_DF,
+        DataKey.PAE_MATRIX,
         DataKey.PLDDT_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
     ]

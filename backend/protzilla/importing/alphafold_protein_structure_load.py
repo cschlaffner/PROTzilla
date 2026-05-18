@@ -11,6 +11,8 @@ import json
 from datetime import datetime, timezone
 import gemmi
 import pandas as pd
+import numpy as np
+import ast
 import requests
 import re
 
@@ -426,8 +428,15 @@ def fetch_alphafold_protein_structure(
         messages.append(dict(level=logging.WARNING, msg=message))
         data_for_visualization = None
 
+    pae_string = str(df_dict["pae_df"]["predicted_aligned_error"].iloc[0])
+    pae_matrix = np.array(ast.literal_eval(pae_string))
+    del df_dict["pae_df"]
+
     return dict(
         **df_dict,
+        pae_matrix=OutputItem(
+            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
+        ),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
@@ -702,12 +711,21 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "amino_acid_sequences_df": amino_acid_sequences_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
+
     data_for_visualization = {
         "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
+
+    pae_string = str(df_dict["pae_df"]["predicted_aligned_error"].iloc[0])
+    pae_matrix = np.array(ast.literal_eval(pae_string))
+    del df_dict["pae_df"]
+
     return dict(
         **df_dict,
+        pae_matrix=OutputItem(
+            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
+        ),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
