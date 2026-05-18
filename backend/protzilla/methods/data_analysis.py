@@ -89,6 +89,8 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     get_detected_modifications,
 )
 
+from backend.protzilla.data_analysis.batch_effect_correction import combat_correction
+
 
 class TTestType(Enum):
     welchs_t_test = "Welch's t-Test"
@@ -2342,4 +2344,23 @@ class PTMDetailsVisualization(_PTMVisualizationWithGroups):
         return Form(
             label="PTM Details Visualization",
             input_fields=_PTMVisualizationWithGroups.get_form_fields(),
+        )
+
+
+class BatchEffectCorrectionStep(DataAnalysisStep, ABC):
+    operation: StepOperation = StepOperation.BATCH_EFFECT_CORRECTION
+
+class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
+    display_name = "Batch Effect Correction: ComBat"
+    method_description = (
+        #TODO: 
+        "Description ComBat"
+    )
+    output_keys = ["protein_df"]
+    calc_method = staticmethod(combat_correction)
+
+    def create_form(self):
+        return Form(
+            label="Batch Effect Correction: ComBat",
+            input_fields=[],
         )

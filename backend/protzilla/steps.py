@@ -69,6 +69,7 @@ class StepOperation(StrEnum):
     DIMENSION_REDUCTION = "dimension_reduction"
     MODIFICATION_QUANTIFICATION = "modification_quantification"
     PTM_VISUALIZATION = "ptm_visualization"
+    BATCH_EFFECT_CORRECTION = "batch_effect_correction"
 
     DATABASE_INTEGRATION = "database_integration"
     ENRICHMENT_ANALYSIS = "enrichment_analysis"
