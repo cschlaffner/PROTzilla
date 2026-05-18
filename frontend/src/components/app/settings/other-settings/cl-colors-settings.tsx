@@ -138,8 +138,8 @@ export const CrosslinkColors = () => {
         notify({
           title: "Invalid colour input",
           message:
-            `Invalid value for ${key}.` +
-            "Please enter a valid colour-code" +
+            `Invalid value for ${key}. ` +
+            "Please enter a valid colour-code " +
             "(e.g. #FF00AA or 0xFF00AA or 6-digit hex code).",
           type: "error",
           isClosingAutomatically: true,
@@ -215,13 +215,13 @@ export const CrosslinkColors = () => {
     <div>
       <SectionTitle
         baseComponent={"h2"}
-        title={"Select colors for the different variants of crosslinks"}
+        title={"Select colours for types of crosslinks"}
         style={{ paddingBottom: "4px" }}
       />
       <SectionTitle
         baseComponent={"h6"}
         description={
-          "Select custom colors for selected or all variants of crosslinks" +
+          "Select custom colours for selected or all types of crosslinks " +
           "or revert back to the default here."
         }
         style={{ paddingBottom: "8px" }}
