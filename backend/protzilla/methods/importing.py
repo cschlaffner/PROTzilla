@@ -669,7 +669,7 @@ class AlphaFoldQueryJsonGeneration(Step):
                 ),
                 InfoField(
                     label="For each entered ID a number should be entered.\n"
-                    "Numbers should be should be space- or comma-separated."
+                    "Numbers should be space- or comma-separated."
                 ),
                 NumberField(
                     name="model_seed",

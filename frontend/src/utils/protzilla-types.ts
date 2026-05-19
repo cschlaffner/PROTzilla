@@ -32,7 +32,7 @@ export interface Image {
 }
 
 export interface Download {
-  data: Record<string, unknown>;
+  json_downloads: Record<string, unknown>;
 }
 
 export interface Visualization {
