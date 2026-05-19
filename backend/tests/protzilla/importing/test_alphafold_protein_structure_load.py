@@ -1,9 +1,11 @@
+from backend.protzilla.steps import OutputItem
 import pandas as pd
 import pytest
 import json
 import logging
 import shutil
 from pathlib import Path
+import numpy as np
 
 
 from backend.protzilla.importing.alphafold_protein_structure_load import (
@@ -129,7 +131,7 @@ def test_fetch_alphafold_returned_keys(tmp_path, monkeypatch):
     assert out.keys() == {
         "structure_metadata_df",
         "cif_df",
-        "pae_df",
+        "pae_matrix",
         "plddt_df",
         "amino_acid_sequences_df",
         "messages",
@@ -202,9 +204,9 @@ def test_fetch_alphafold_dfs_exist(tmp_path, monkeypatch):
     assert not cif_df.empty
     assert any(col.startswith("_atom_site.") for col in cif_df.columns)
 
-    pae_df = out["pae_df"]
-    assert isinstance(pae_df, pd.DataFrame)
-    assert not pae_df.empty
+    pae_matrix = out["pae_matrix"]
+    assert isinstance(pae_matrix, OutputItem)
+    assert len(pae_matrix.value) != 0
 
     plddt_df = out["plddt_df"]
     assert isinstance(plddt_df, pd.DataFrame)
@@ -318,9 +320,9 @@ CA C 2.0
     assert out["cif_df"]["_atom_site.type_symbol"].tolist() == ["N", "C"]
     assert out["cif_df"]["_atom_site.Cartn_x"].tolist() == ["1.0", "2.0"]
 
-    assert isinstance(out["pae_df"], pd.DataFrame)
-    assert not out["pae_df"].empty
-    assert out["pae_df"]["predicted_aligned_error"].tolist() == [0.1]
+    assert isinstance(out["pae_matrix"], OutputItem)
+    assert isinstance(out["pae_matrix"].value, np.ndarray)
+    assert out["pae_matrix"].value == 0.1 # 0D array (only one value) TODO: Change this to something more reasonable? idk
 
     assert isinstance(out["plddt_df"], pd.DataFrame)
     assert not out["plddt_df"].empty
@@ -428,6 +430,7 @@ def test_get_amino_acid_sequences_df_and_handle_files(tmp_path, monkeypatch):
     assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
 
 
+# TODO: Add PAE handling here
 def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path)
 
@@ -447,7 +450,7 @@ N N
     conf = tmp_path / "conf.json"
     conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
     full = tmp_path / "full.json"
-    full.write_text('{"a": [1,2]}')
+    full.write_text('{"a": [1,2]}') 
     job_request = tmp_path / "job_request.json"
     job_request.write_text(
         json.dumps(
