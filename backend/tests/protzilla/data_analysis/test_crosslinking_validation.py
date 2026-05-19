@@ -6,6 +6,7 @@ from unittest.mock import patch, MagicMock
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import pandas.testing as pdt
+import numpy
 
 
 from backend.protzilla.data_analysis.crosslinking_validation import (
@@ -41,6 +42,7 @@ def test_monomer_validation(distance, expected):
     cif_df = pd.DataFrame(
         {
             "_atom_site.label_atom_id": ["CA", "CA"],
+            "_atom_site.label_asym_id": ["A", "A"],
             "_atom_site.label_seq_id": [1, 2],
             "_atom_site.Cartn_x": [0, distance],
             "_atom_site.Cartn_y": [0, 0],
@@ -81,10 +83,13 @@ def test_monomer_validation(distance, expected):
         }
     )
 
+    pae_matrix_noerror = numpy.array([[0, 0], [0, 0]])
+
     plddt_df_noerror = pd.DataFrame(
         {
             "residueNumber": [1, 2],
             "confidenceScore": [100, 100],
+            "chainID": ["A", "A"],
             # confidenceCategory is not required
         }
     )
@@ -98,7 +103,7 @@ def test_monomer_validation(distance, expected):
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=structures_to_validate,
-        pae_df=pae_df_noerror,
+        pae_matrix=pae_matrix_noerror,
         plddt_df=plddt_df_noerror,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
@@ -115,6 +120,7 @@ def test_monomer_validation(distance, expected):
     assert df.loc[0, "link_type"] == "intra"
 
     # Validation with PAE
+    # TODO: Proper cases with error
 
 
 def test_modify_form_creates_crosslinker_fields():
@@ -373,6 +379,7 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -448,6 +455,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -519,6 +527,7 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -858,6 +867,7 @@ def test_validate_multimer_with_invalid_crosslinks():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
     result_df = out["crosslinking_result_df"]
@@ -1034,6 +1044,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
     result_df = out["crosslinking_result_df"]

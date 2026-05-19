@@ -748,6 +748,9 @@ def validate_with_angstrom_deviation(
                     crosslinker_length + tolerance_pos1 + tolerance_pos2
                 )
 
+            case _:
+                raise ValueError("Invalid validation strategy")
+
         valid = (
             accepted_distance_lower_bound
             <= predicted_distance
