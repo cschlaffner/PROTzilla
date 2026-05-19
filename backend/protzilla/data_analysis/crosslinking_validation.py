@@ -457,6 +457,7 @@ def multimer_validation(
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     job_request_df: pd.DataFrame,
+    plddt_df: pd.DataFrame,
     pae_matrix: np.ndarray[tuple[int, int]],
     validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
@@ -476,6 +477,7 @@ def multimer_validation(
     :param cif_df: DataFrame containing mmCIF information.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :param job_request_df: DataFrame containing the loaded AlphaFold job request JSON.
+    :param plddt_df: DataFrame containing per-residue pLDDT values.
     :param pae_matrix: NumPy 2D array containing the PAE values for each residue pair.
     :return: A dictionary containing the validation results and distance metrics.
     """
@@ -494,6 +496,7 @@ def multimer_validation(
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
         pae_matrix=pae_matrix,
+        plddt_df=plddt_df,
         validation_criterion=validation_criterion,
     )
 

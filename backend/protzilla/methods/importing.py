@@ -540,6 +540,8 @@ class UploadMultimerPredictions(ImportingStep):
         DataKey.FULL_DATA_DF,
         DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
+        DataKey.PAE_MATRIX,
+        DataKey.PLDDT_DF,
     ]
 
     def create_form(self):
@@ -618,6 +620,7 @@ class ImportMultimerStructurePredictionFromDisk(ImportingStep):
         DataKey.JOB_REQUEST_DF,
         DataKey.AMINO_ACID_SEQUENCES_DF,
         DataKey.PAE_MATRIX,
+        DataKey.PLDDT_DF,
     ]
 
     def create_form(self):

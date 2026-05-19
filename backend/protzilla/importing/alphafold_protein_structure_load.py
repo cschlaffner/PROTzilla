@@ -1014,13 +1014,24 @@ def upload_multimer_prediction(
         }
 
         if not any(df.empty for df in df_dict.values()):
-            success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
-            logger.info(success_msg)
-            messages.append(dict(level=logging.INFO, msg=success_msg))
+
+            unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
+            df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
+
+            pae_matrix=OutputItem(
+                output_type=OutputType.JOBLIB_ARTIFACT, value=unwrapped_full_data["pae_matrix"]
+            )
+            df_dict["pae_matrix"] = pae_matrix
+            df_dict["plddt_df"] = get_plddt_from_cif(df_dict["cif_df"])
+
             data_for_visualization = {
                 "structure_entry_id": entry_id,
                 "cif_df": cif_df,
             }
+
+            success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+            logger.info(success_msg)
+            messages.append(dict(level=logging.INFO, msg=success_msg))
         else:
             message = f"Could not load AlphaFold data for entry '{entry_id}'"
             logger.warning(message)
