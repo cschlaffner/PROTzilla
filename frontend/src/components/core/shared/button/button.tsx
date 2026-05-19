@@ -12,6 +12,7 @@ import { Tooltip, useTooltipScheduling } from "../tooltip";
 import {
   ButtonProps,
   ButtonRef,
+  CIFDownloadButtonProps,
   CSVButtonProps,
   StatusButtonProps,
   ToggleableButtonProps,
@@ -615,4 +616,30 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
       {...params}
     />
   );
+};
+
+export const CIFDownloadButton: React.FC<CIFDownloadButtonProps> = ({
+  cifString,
+  fileName = "structure.cif",
+  ...params
+}) => {
+  const downloadCIF = () => {
+    const blob = new Blob([cifString], {
+      type: "chemical/x-cif",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  };
+
+  return <SecondaryButton text="Download CIF" onPress={downloadCIF} {...params} />;
 };

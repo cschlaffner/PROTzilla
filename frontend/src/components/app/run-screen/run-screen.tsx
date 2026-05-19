@@ -1,5 +1,6 @@
 import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
+  CIFDownloadButton,
   CSVButton,
   DataTable,
   FlexColumn,
@@ -387,6 +388,12 @@ export const RunScreen: React.FC = () => {
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
           <StyledContentDiv key={viz.structureEntryId}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "8px" }}>
+              <CIFDownloadButton
+                cifString={viz.cifString}
+                fileName={`${viz.structureEntryId}.cif`}
+              />
+            </div>
             <MolstarViewer cifText={viz.cifString} crosslinks={viz.crosslinks} />
           </StyledContentDiv>
         ))

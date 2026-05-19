@@ -75,3 +75,8 @@ export interface CSVButtonProps extends ButtonProps {
   tableLabel: string;
   fileName?: string;
 }
+
+export interface CIFDownloadButtonProps extends ButtonProps {
+  cifString: string;
+  fileName?: string;
+}
