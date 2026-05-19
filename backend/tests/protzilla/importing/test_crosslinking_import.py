@@ -113,7 +113,7 @@ def test_uniprot_lookup_successful_request_but_no_results(monkeypatch):
         return mock
 
     monkeypatch.setattr(
-        "protzilla.importing.crosslinking_import.execute_uniprot_request",
+        "backend.protzilla.importing.crosslinking_import.execute_uniprot_request",
         mock_execute,
     )
 
