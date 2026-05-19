@@ -14,6 +14,7 @@ import {
   ButtonRef,
   CSVButtonProps,
   StatusButtonProps,
+  TableDataResponse,
   ToggleableButtonProps,
 } from "./button.props";
 
@@ -565,16 +566,19 @@ export const CSVButton: React.FC<CSVButtonProps> = ({
 
   const downloadCSV = async () => {
     setLoading(true);
-    let fetchedRows: any[] = [];
+    let fetchedRows: TableDataResponse["rows"] = [];
 
     try {
-      const response = await callApiWithParameters("get_current_step_table_data/", {
-        run_name: runName,
-        table_label: tableLabel,
-        sort_field: sortModel[0]?.field,
-        sort_direction: sortModel[0]?.sort ?? "asc",
-        filters: JSON.stringify(filterModel.items),
-      });
+      const response: TableDataResponse = await callApiWithParameters(
+        "get_current_step_table_data/",
+        {
+          run_name: runName,
+          table_label: tableLabel,
+          sort_field: sortModel[0]?.field,
+          sort_direction: sortModel[0]?.sort ?? "asc",
+          filters: JSON.stringify(filterModel.items),
+        },
+      );
       fetchedRows = response.rows;
     } catch (error) {
       console.error("Failed to fetch table data:", error);

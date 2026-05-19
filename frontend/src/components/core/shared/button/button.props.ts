@@ -78,3 +78,11 @@ export interface CSVButtonProps extends ButtonProps {
   sortModel: GridSortModel;
   filterModel: GridFilterModel;
 }
+
+type TableValue = string | number | boolean | null | undefined | object;
+
+type TableRow = Record<string, TableValue>;
+
+export interface TableDataResponse {
+  rows: TableRow[];
+}
