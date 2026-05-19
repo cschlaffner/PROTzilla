@@ -395,11 +395,6 @@ def monomer_validation(
         validation_criterion=validation_criterion,
     )
 
-
-def monomer_validation_with_pae():
-    pass
-
-
 def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
     """
     Finds the Protein ID(s) for a given exact protein sequence.
@@ -509,7 +504,7 @@ def validate_with_angstrom_deviation(
     structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
-    valid_ids: dict,
+    valid_ids: dict[str, list[int]],
     id_column_name: str,
     structures_to_validate: list,
     validation_criterion: CrosslinkingValidationCriterion,
@@ -588,6 +583,7 @@ def validate_with_angstrom_deviation(
         )
 
         def get_site_plddts():
+            # TODO for multimers: get pLDDT from CIF
             if plddt_df is None:
                 return np.nan, np.nan
 
@@ -605,6 +601,7 @@ def validate_with_angstrom_deviation(
             return plddt_at_position1, plddt_at_position2
         
         def get_paes():
+            # TODO for multimers: get correct PAE index (global index, not per-chain)
             if pae_matrix is None:
                 return np.nan, np.nan
 

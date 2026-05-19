@@ -758,6 +758,30 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
         pae_matrix=pae_matrix,
     )
 
+def get_plddt_from_cif(cif_df: pd.DataFrame):
+    """
+    For use with multimers predicted using Alphafold3.
+    Returns per-residue pLDDT values for the predicted structure.
+    Note that sine AlphaFold3 uses per-atom pLDDT, we use the pLDDT for the CA atom.
+    See also https://github.com/google-deepmind/alphafold3/issues/330
+
+    :param cif_df: the cif_df holding the _atom_site table.
+    :return: DataFrame containing columns 
+                "chainID", "residueNumber", "confidenceScore", "confidenceCategory"
+    """
+    
+    filtered_cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
+    filtered_cif_df = filtered_cif_df[["_atom_site.auth_asym_id", "_atom_site.label_seq_id", "_atom_site.B_iso_or_equiv"]] 
+    filtered_cif_df = filtered_cif_df.rename(columns={
+        "_atom_site.auth_asym_id": "chainID",
+        "_atom_site.label_seq_id": "residueNumber",
+        "_atom_site.B_iso_or_equiv": "confidenceScore",
+    })
+
+    # TODO: ConfidenceCategory maybe yes?
+    
+    return filtered_cif_df
+
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     """
     Writes multimer structure data from disk of a specific entry ID into dataframes.
@@ -846,10 +870,12 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
 
     pae_matrix = unwrapped_full_data["pae_matrix"]
+    plddt_df = get_plddt_from_cif(df_dict["cif_df"])
 
     return dict(
         **df_dict,
         messages=messages,
+        plddt_df=plddt_df,
         pae_matrix=OutputItem(
             output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
         ),

@@ -95,7 +95,6 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     monomer_diagrams,
     multimer_diagrams,
     monomer_validation,
-    monomer_validation_with_pae,
     multimer_validation,
 )
 from backend.protzilla.run import Run
