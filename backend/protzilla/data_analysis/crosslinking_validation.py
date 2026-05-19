@@ -395,6 +395,7 @@ def monomer_validation(
         validation_criterion=validation_criterion,
     )
 
+
 def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
     """
     Finds the Protein ID(s) for a given exact protein sequence.
@@ -448,6 +449,47 @@ def get_valid_ids_per_protein_id_from_job_request(
                     valid_ids.setdefault(protein_id, []).append(unique_id)
                     unique_id += 1
     return valid_ids
+
+
+def get_global_residue_index(
+    position_within_protein: int,  # 1-based index
+    chain_id: str,
+    cif_df: pd.DataFrame,
+):
+    """
+    For multimer PAE lookup: For a position within a given protein in a chain,
+    get the global 0-based residue index used to find that position in the PAE matrix.
+
+    Note: This assumes that the order of AAs in the _atom_site table corresponds
+    to the order of residues in the pae matrix and thus the other residue-based tables in
+    the cif.
+
+    :param position_within_protein: index of the amino acid within the protein (1-based)
+    :param chain_id: the chain ID of the protein within the complex
+    :param cif_df: DataFrame containing the _atom_site table of the complex structure
+    """
+
+    # Get table with only unique chain and sequence IDs and infer global index
+    index_lookup_df = (
+        cif_df[["_atom_site.label_asym_id", "_atom_site.label_seq_id"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    index_lookup_df.reset_index(inplace=True)
+
+    index_lookup_df = index_lookup_df[
+        index_lookup_df["_atom_site.label_asym_id"] == chain_id
+    ]
+    index_lookup_df = index_lookup_df[
+        index_lookup_df["_atom_site.label_seq_id"] == position_within_protein
+    ]
+
+    if len(index_lookup_df) != 1:
+        raise ValueError(
+            "Invalid input: CIF contains multiple atoms mapped to same chain/sequence ID pair!"
+        )
+
+    return index_lookup_df["index"].iloc[0]
 
 
 def multimer_validation(
@@ -585,39 +627,45 @@ def validate_with_angstrom_deviation(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
 
-        def get_site_plddts():
-            # TODO for multimers: get pLDDT from CIF
+        def get_site_plddts(crosslink: pd.Series):
             if plddt_df is None:
                 return np.nan, np.nan
 
             plddt_at_position1 = float(
-                plddt_df.query("residueNumber == @crosslink.crosslinker_position1").iloc[0][
-                    "confidenceScore"
-                ]
+                plddt_df.query(
+                    "residueNumber == @crosslink.crosslinker_position1 and "
+                    + "chainID == @crosslink.Chain_id1"
+                ).iloc[0]["confidenceScore"]
             )
             plddt_at_position2 = float(
-                plddt_df.query("residueNumber == @crosslink.crosslinker_position2").iloc[0][
-                    "confidenceScore"
-                ]
+                plddt_df.query(
+                    "residueNumber == @crosslink.crosslinker_position2 and "
+                    + "chainID == @crosslink.Chain_id2"
+                ).iloc[0]["confidenceScore"]
             )
 
             return plddt_at_position1, plddt_at_position2
-        
+
         def get_paes():
-            # TODO for multimers: get correct PAE index (global index, not per-chain)
             if pae_matrix is None:
                 return np.nan, np.nan
 
+            pae_index_pos1 = get_global_residue_index(
+                crosslink.crosslinker_position1, crosslink.Chain_id1, cif_df
+            )
+            pae_index_pos2 = get_global_residue_index(
+                crosslink.crosslinker_position2, crosslink.Chain_id2, cif_df
+            )
             pae_x_position1 = pae_matrix[
-                crosslink.crosslinker_position1 - 1, crosslink.crosslinker_position2 - 1
+                pae_index_pos1, pae_index_pos2
             ]  # Using position1 as scored residue
             pae_x_position2 = pae_matrix[
-                crosslink.crosslinker_position2 - 1, crosslink.crosslinker_position1 - 1
+                pae_index_pos2, pae_index_pos1
             ]  # Using position2 as scored residue
 
             return pae_x_position1, pae_x_position2
 
-        plddt_at_position1, plddt_at_position2 = get_site_plddts()
+        plddt_at_position1, plddt_at_position2 = get_site_plddts(crosslink)
         pae_x_position1, pae_x_position2 = get_paes()
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
@@ -685,8 +733,6 @@ def validate_with_angstrom_deviation(
                 get_plddt_factor: Callable[[float], float] = lambda plddt: 1 - (
                     plddt / 100
                 )
-
-                plddt_at_position1, plddt_at_position2 = get_site_plddts()
 
                 plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
                 plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)

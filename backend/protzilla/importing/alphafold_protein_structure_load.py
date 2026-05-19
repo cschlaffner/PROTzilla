@@ -330,6 +330,9 @@ def handle_alphafold_files(
         if temp_dir is not None:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+    # For consistency with multimer pLDDT
+    plddt_df["chainID"] = "A"
+
     return {
         "cif_df": cif_df,
         "pae_df": pae_df,
@@ -434,9 +437,7 @@ def fetch_alphafold_protein_structure(
 
     return dict(
         **df_dict,
-        pae_matrix=OutputItem(
-            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
-        ),
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
@@ -703,6 +704,9 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         logger.exception(msg)
         raise RuntimeError(msg) from e
 
+    # For consistency with multimer pLDDT
+    plddt_df["chainID"] = "A"
+
     df_dict = {
         "structure_metadata_df": monomer_metadata_df,
         "cif_df": cif_df,
@@ -723,9 +727,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
 
     return dict(
         **df_dict,
-        pae_matrix=OutputItem(
-            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
-        ),
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
@@ -745,18 +747,19 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
     """
 
     # Construct plDDT dataframe
-    # TODO: Getting pLDDT from AlphaFold3 is a bit harder as its on a per-atom level 
+    # TODO: Getting pLDDT from AlphaFold3 is a bit harder as its on a per-atom level
     # rather than per-residue, so we'd need to extract it from the cif file
     # (column _atom_site.B_iso_or_equiv, see https://github.com/google-deepmind/alphafold3/issues/330).
     # Skipping this for now.
 
     pae_matrix = np.array(full_data_df["pae"].iloc[0])
     full_data_df = full_data_df.drop(columns=["pae"])
-    
+
     return dict(
         full_data_df=full_data_df,
         pae_matrix=pae_matrix,
     )
+
 
 def get_plddt_from_cif(cif_df: pd.DataFrame):
     """
@@ -766,21 +769,30 @@ def get_plddt_from_cif(cif_df: pd.DataFrame):
     See also https://github.com/google-deepmind/alphafold3/issues/330
 
     :param cif_df: the cif_df holding the _atom_site table.
-    :return: DataFrame containing columns 
+    :return: DataFrame containing columns
                 "chainID", "residueNumber", "confidenceScore", "confidenceCategory"
     """
-    
+
     filtered_cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
-    filtered_cif_df = filtered_cif_df[["_atom_site.auth_asym_id", "_atom_site.label_seq_id", "_atom_site.B_iso_or_equiv"]] 
-    filtered_cif_df = filtered_cif_df.rename(columns={
-        "_atom_site.auth_asym_id": "chainID",
-        "_atom_site.label_seq_id": "residueNumber",
-        "_atom_site.B_iso_or_equiv": "confidenceScore",
-    })
+    filtered_cif_df = filtered_cif_df[
+        [
+            "_atom_site.auth_asym_id",
+            "_atom_site.label_seq_id",
+            "_atom_site.B_iso_or_equiv",
+        ]
+    ]
+    filtered_cif_df = filtered_cif_df.rename(
+        columns={
+            "_atom_site.auth_asym_id": "chainID",
+            "_atom_site.label_seq_id": "residueNumber",
+            "_atom_site.B_iso_or_equiv": "confidenceScore",
+        }
+    )
 
     # TODO: ConfidenceCategory maybe yes?
-    
+
     return filtered_cif_df
+
 
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     """
@@ -876,9 +888,7 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         **df_dict,
         messages=messages,
         plddt_df=plddt_df,
-        pae_matrix=OutputItem(
-            output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix
-        ),
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
@@ -1018,8 +1028,9 @@ def upload_multimer_prediction(
             unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
             df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
 
-            pae_matrix=OutputItem(
-                output_type=OutputType.JOBLIB_ARTIFACT, value=unwrapped_full_data["pae_matrix"]
+            pae_matrix = OutputItem(
+                output_type=OutputType.JOBLIB_ARTIFACT,
+                value=unwrapped_full_data["pae_matrix"],
             )
             df_dict["pae_matrix"] = pae_matrix
             df_dict["plddt_df"] = get_plddt_from_cif(df_dict["cif_df"])
