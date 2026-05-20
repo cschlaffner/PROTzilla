@@ -75,6 +75,7 @@ _forward_mapping: list[Step] = [
     data_analysis.PTMBarVisualization,
     data_analysis.PTMDetailsVisualization,
     data_analysis.BatchEffectCorrectionComBat,
+    data_analysis.BatchEffectCorrectionSVA,
     data_preprocessing.ImputationByMinPerSample,
     data_integration.EnrichmentAnalysisGOAnalysisWithString,
     data_integration.EnrichmentAnalysisGOAnalysisWithEnrichr,
