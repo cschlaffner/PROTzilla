@@ -20,6 +20,15 @@ from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.data_preprocessing.simplification import AggregationMethod
 
+info_field_show_outliers = InfoField(
+    name="show_outliers_info",
+    label="Hiding outliers changes how the chart is calculated. It "
+    "will extend the whiskers to the absolute minimum and maximum "
+    "values of your data instead of the standard 1.5 interquartile "
+    "range (IQR).",
+    isVisible=True,
+)
+
 
 class DataPreprocessingStep(Step, ABC):
     section = Section.DATA_PREPROCESSING
@@ -495,13 +504,7 @@ class TransformationLog(DataPreprocessingStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -576,13 +579,7 @@ class NormalisationByZScore(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -622,13 +619,7 @@ class NormalisationByTotalSum(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -677,13 +668,7 @@ class NormalisationByMedian(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -725,13 +710,7 @@ class NormalisationByWidthAdjustment(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -781,13 +760,7 @@ class NormalisationByReferenceProtein(NormalisationStep):
                     value=True,
                     isVisible=True,
                 ),
-                InfoField(
-                    name="show_outliers_info",
-                    label="Hiding outliers changes how the chart is calculated. Hiding "
-                    "outliers will extend the whiskers to the absolute minimum and maximum "
-                    "values of your data, rather than using standard statistical boundaries.",
-                    isVisible=True,
-                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -828,13 +801,7 @@ class ImputationStep(DataPreprocessingStep, ABC):
         CheckboxField(
             name="show_outliers", label="Show outliers", value=True, isVisible=True
         ),
-        InfoField(
-            name="show_outliers_info",
-            label="Hiding outliers changes how the chart is calculated. Hiding "
-            "outliers will extend the whiskers to the absolute minimum and maximum "
-            "values of your data, rather than using standard statistical boundaries.",
-            isVisible=True,
-        ),
+        info_field_show_outliers,
     ]
 
     def modify_form(self, run):
