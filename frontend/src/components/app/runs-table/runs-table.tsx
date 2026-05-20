@@ -1,4 +1,4 @@
-import { RunEditMenu } from "@protzilla/app";
+import { RunEditMenu, useNotification } from "@protzilla/app";
 import {
   DeleteModal,
   Icon,
@@ -113,6 +113,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const notify = useNotification();
 
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
@@ -171,11 +172,19 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         setIsDeleteModalOpen(false);
         setRuns(updated);
       } else {
-        alert(`Failed to delete run: ${String(response?.message ?? "Unknown error")}`);
+        notify({
+          title: "Error",
+          message: `Failed to delete run: ${String(response?.message ?? "Unknown error")}`,
+          type: "error",
+        });
       }
     } catch (error) {
       console.error("Error deleting run:", error);
-      alert("An unexpected error occurred while deleting the run.");
+      notify({
+        title: "Error",
+        message: "An unexpected error occurred while deleting the run.",
+        type: "error",
+      });
     }
   };
 
