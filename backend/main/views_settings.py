@@ -249,6 +249,7 @@ def check_and_copy_files_to_directory(file_names: list, target_dir: str):
         source_file = settings.FILE_UPLOAD_TEMP_DIR / file_name
         success, message = copy_file_to_directory(source_file, target_dir)
         if not success:
+            shutil.rmtree(target_dir, ignore_errors=True)
             return False, message
     return True, "All files successfully uploaded"
 
@@ -326,13 +327,6 @@ def extend_metadata_csv(
     metadata_df: pd.DataFrame,
 ) -> None:
     try:
-        mask = (
-            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
-        )
-        if mask.any():
-            msg = f'Entry ID "{entry_id}" not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
-            return False, msg
-
         combined = pd.concat([existing_metadata_df, metadata_df], ignore_index=True)
         combined.to_csv(metadata_csv, index=False)
         return True, f'"{metadata_csv}" updated successfully.'
@@ -356,6 +350,7 @@ def get_monomer_structure(request):
     ]
 
     df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+    df = df.fillna("")
 
     df_infos = df.rename(
         columns={
@@ -382,7 +377,24 @@ def upload_monomer_structure(request):
         pae = data.get("pae")
         fasta_file = data.get("fasta_file")
 
-        # add row to metadata csv
+        if not entry_id:
+            return JsonResponse(
+                data={
+                    "success": False,
+                    "message": "The entry Id cannot be empty or None.",
+                },
+                status=500,
+            )
+
+        if not uniprot_id:
+            return JsonResponse(
+                data={
+                    "success": False,
+                    "message": "Uniprot Id cannot be empty or None.",
+                },
+                status=500,
+            )
+
         ALPHAFOLD_MONOMER_PATH.mkdir(parents=True, exist_ok=True)
         metadata_csv = AF_MONOMER_METADATA_CSV_PATH
 
@@ -404,22 +416,18 @@ def upload_monomer_structure(request):
             "entry_id": entry_id,
             "uniprot_accession": uniprot_id,
             "model_created_date": timestamp,
-            "gene": gene,
-            "model_used": model_used,
+            "gene": "" if gene is None else gene,
+            "model_used": "" if model_used is None else model_used,
         }
 
         metadata_df = pd.DataFrame([new_row])
-        success, message = extend_metadata_csv(
-            entry_id=entry_id,
-            metadata_csv=metadata_csv,
-            existing_metadata_df=existing_metadata_df,
-            metadata_df=metadata_df,
+
+        mask = (
+            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
         )
-        if not success:
-            return JsonResponse(
-                {"success": False, "message": message},
-                status=500,
-            )
+        if mask.any():
+            msg = f'Entry ID "{entry_id}" not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
+            return False, msg
 
         #  Copy files to source directory out of temp directory
 
@@ -428,7 +436,22 @@ def upload_monomer_structure(request):
         success, message = check_and_copy_files_to_directory(
             file_names=file_names, target_dir=target_dir
         )
+
         if not success:
+            return JsonResponse(
+                {"success": False, "message": message},
+                status=500,
+            )
+
+        # add row to metadata csv
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            shutil.rmtree(target_dir, ignore_errors=True)
             return JsonResponse(
                 {"success": False, "message": message},
                 status=500,
@@ -471,6 +494,7 @@ def get_multimer_structure(request):
         "model_used",
     ]
     df = get_metadata_df(csv_file_path=metadata_csv, expected_columns=expected_columns)
+    df = df.fillna("")
 
     df_infos = df.rename(
         columns={
@@ -498,7 +522,24 @@ def upload_multimer_structure(request):
 
         ALPHAFOLD_MULTIMER_PATH.mkdir(parents=True, exist_ok=True)
 
-        # add row to metadata csv
+        if not entry_id:
+            return JsonResponse(
+                data={
+                    "success": False,
+                    "message": "The entry Id cannot be empty or None.",
+                },
+                status=500,
+            )
+
+        if not uniprot_ids:
+            return JsonResponse(
+                data={
+                    "success": False,
+                    "message": "Uniprot Ids cannot be empty or None.",
+                },
+                status=500,
+            )
+
         metadata_csv = AF_MULTIMER_METADATA_CSV_PATH
         expected_columns = [
             "entry_id",
@@ -519,21 +560,17 @@ def upload_multimer_structure(request):
             "entry_id": entry_id,
             "uniprot_ids": uniprot_ids_as_list,
             "model_created_date": timestamp,
-            "model_used": model_used,
+            "model_used": "" if model_used is None else model_used,
         }
 
         metadata_df = pd.DataFrame([new_row])
-        success, message = extend_metadata_csv(
-            entry_id=entry_id,
-            metadata_csv=metadata_csv,
-            existing_metadata_df=existing_metadata_df,
-            metadata_df=metadata_df,
+
+        mask = (
+            existing_metadata_df["entry_id"].astype(str).str.upper() == entry_id.upper()
         )
-        if not success:
-            return JsonResponse(
-                {"success": False, "message": message},
-                status=500,
-            )
+        if mask.any():
+            msg = f'Entry ID "{entry_id}" not unique. Entry IDs are compared case insensitively, so "ABC" and "abc" are treated as the same ID.'
+            return False, msg
 
         #  Copy files to source directory out of temp directory
 
@@ -549,6 +586,20 @@ def upload_multimer_structure(request):
             file_names=file_names, target_dir=target_dir
         )
         if not success:
+            return JsonResponse(
+                data={"success": False, "message": message},
+                status=500,
+            )
+
+        # add row to metadata csv
+        success, message = extend_metadata_csv(
+            entry_id=entry_id,
+            metadata_csv=metadata_csv,
+            existing_metadata_df=existing_metadata_df,
+            metadata_df=metadata_df,
+        )
+        if not success:
+            shutil.rmtree(target_dir, ignore_errors=True)
             return JsonResponse(
                 {"success": False, "message": message},
                 status=500,
