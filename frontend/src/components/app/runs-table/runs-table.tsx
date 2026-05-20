@@ -162,11 +162,21 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     setRuns(updated);
   };
 
-  const handleDeleteRun = (runName: string) => {
-    void callApiWithParameters("delete_run/", { run_name: runName });
-    const updated = runs.filter((run) => run.run_name !== runName);
-    setIsDeleteModalOpen(false);
-    setRuns(updated);
+  const handleDeleteRun = async (runName: string) => {
+    try {
+      const response = await callApiWithParameters("delete_run/", { run_name: runName });
+
+      if (response?.success) {
+        const updated = runs.filter((run) => run.run_name !== runName);
+        setIsDeleteModalOpen(false);
+        setRuns(updated);
+      } else {
+        alert(`Failed to delete run: ${String(response?.message ?? "Unknown error")}`);
+      }
+    } catch (error) {
+      console.error("Error deleting run:", error);
+      alert("An unexpected error occurred while deleting the run.");
+    }
   };
 
   const handleContinueRun = (runName: string) => {
@@ -331,7 +341,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         title={`Delete run "${actionRunName}"?`}
         isOpen={isDeleteModalOpen}
         onConfirm={() => {
-          handleDeleteRun(actionRunName);
+          void handleDeleteRun(actionRunName);
         }}
         onClose={() => {
           setIsDeleteModalOpen(false);
