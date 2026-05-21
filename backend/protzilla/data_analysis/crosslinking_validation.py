@@ -1033,6 +1033,7 @@ def monomer_diagrams(
                                   first row's 'uniprot_accession' is used as the target.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of
                                     three floats: [length, upper_bound, lower_bound].
+    :param validation_criterion: The validation criterion used for validation.
     :return: A list of Figure objects visualizing the crosslinking validation data.
     """
     structures_to_validate = [structure_metadata_df["uniprot_accession"].iloc[0]]
@@ -1066,29 +1067,25 @@ def monomer_diagrams(
 
 
 def multimer_diagrams(
-    crosslinking_df: pd.DataFrame,
-    structure_metadata_df: pd.DataFrame,
+    output_crosslinking_result_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
-    cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     job_request_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> list[Figure]:
     """
     Generates visual diagrams to evaluate crosslinking validation results
     for a multimeric protein complex.
 
     This function parses an AlphaFold job request to determine the valid chain
-    compositions. It then runs `multimer_validation` to filter and validate
-    the relevant crosslinks, extracting the result to generate structural
-    distance and validation plots.
+    compositions and uses the passed result from the validation.
 
-    :param crosslinking_df: DataFrame containing the full set of crosslinks.
-    :param structure_metadata_df: DataFrame containing structural metadata.
+    :param output_crosslinking_result_df: DataFrame containing the CL validation results.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of
                                     three floats: [length, upper_bound, lower_bound].
-    :param cif_df: DataFrame containing parsed mmCIF structural coordinate data.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :param job_request_df: DataFrame containing the loaded AlphaFold job request JSON.
+    :param validation_criterion: The validation criterion used for validation.
     :return: A list of Figure objects visualizing the crosslinking validation data.
     """
     valid_ids = get_valid_ids_per_protein_id_from_job_request(
@@ -1096,17 +1093,29 @@ def multimer_diagrams(
     )
     structures_to_validate = list(valid_ids.keys())
 
-    validated_df = multimer_validation(
-        crosslinking_df,
-        structure_metadata_df,
-        crosslinker_information,
-        cif_df,
-        amino_acid_sequences_df,
-        job_request_df,
-    )["crosslinking_result_df"]
+    match validation_criterion:
+        case CrosslinkingValidationCriterion.manual_bounds.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
 
-    return diagrams_of_crosslinking_validation_data(
-        validated_df=validated_df,
-        structures_to_validate=structures_to_validate,
-        crosslinker_information=crosslinker_information,
-    )
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.max_pae.value | CrosslinkingValidationCriterion.min_pae.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        case _:
+            return []

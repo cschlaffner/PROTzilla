@@ -2460,7 +2460,7 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
     operation = "Crosslinking Validation"
     method_description = "Validates crosslinks between proteins based on the difference between the length of the crosslinker and the distance between the amino acids which were connected by the crosslinker. (in Ångström)"
     calc_method = staticmethod(multimer_validation)
-    # plot_method = staticmethod(multimer_diagrams)
+    plot_method = staticmethod(multimer_diagrams)
 
     def create_form(self):
         return Form(
