@@ -128,7 +128,6 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
             else:
                 col_values.append(None)
         data[col] = col_values
-
     return pd.DataFrame(data)
 
 

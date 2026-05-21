@@ -430,7 +430,6 @@ def test_get_amino_acid_sequences_df_and_handle_files(tmp_path, monkeypatch):
     assert isinstance(out["amino_acid_sequences_df"], pd.DataFrame)
 
 
-# TODO: Add PAE handling here
 def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path)
 
@@ -438,19 +437,30 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     fasta = tmp_path / "seqs.fasta"
     fasta.write_text(">alpha|X\nAAAA\n")
     cif = tmp_path / "m.cif"
+    # Note that we only write the absolutely necessary columns here
+    # Also this is not biologically plausible
     cif.write_text(
         """
-data_test
-loop_
-_atom_site.id
-_atom_site.type_symbol
-N N
-"""
+        data_test
+        loop_
+        _atom_site.id
+        _atom_site.label_atom_id
+        _atom_site.auth_asym_id
+        _atom_site.label_seq_id
+        _atom_site.B_iso_or_equiv
+        1 N     A 1 99.99
+        2 CA    A 1 67.76
+        3 CA    A 2 33.65
+        4 O     A 2 5.52
+        5 N     B 1 0
+        6 CA    B 1 13.37
+        #
+        """
     )
     conf = tmp_path / "conf.json"
-    conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
+    conf.write_text('{"chain_iptm": [0.42, 0.89]}') # Note that we do not use these metrics anywhere
     full = tmp_path / "full.json"
-    full.write_text('{"a": [1,2]}') 
+    full.write_text('{"random_column": [1,2], "pae": [[1, 2], [3, 4]]}') 
     job_request = tmp_path / "job_request.json"
     job_request.write_text(
         json.dumps(
@@ -461,11 +471,18 @@ N N
                     "sequences": [
                         {
                             "proteinChain": {
-                                "sequence": "AAAA",
+                                "sequence": "PE",
                                 "count": 1,
                                 "useStructureTemplate": True,
                             }
-                        }
+                        },
+                        {
+                            "proteinChain": {
+                                "sequence": "T",
+                                "count": 1,
+                                "useStructureTemplate": True,
+                            }
+                        },
                     ],
                     "dialect": "alphafoldserver",
                     "version": 3,
@@ -487,7 +504,7 @@ N N
 
     out = upload_multimer_prediction(
         entry_id="M1",
-        uniprot_ids="X",
+        uniprot_ids="X, Y",
         model_used="m",
         amino_acid_sequences=fasta,
         cif_file=cif,
@@ -497,30 +514,38 @@ N N
         persist_upload=True,
     )
 
-    assert isinstance(out["structure_metadata_df"], pd.DataFrame)
     # check metadata contents
     mdf = out["structure_metadata_df"]
+    assert isinstance(mdf, pd.DataFrame)
     assert mdf.iloc[0]["entry_id"] == "M1"
-    assert mdf.iloc[0]["uniprot_ids"] == ["X"]
+    assert mdf.iloc[0]["uniprot_ids"] == ["X", "Y"]
     assert mdf.iloc[0]["model_used"] == "m"
 
     # cif contents
     cif_df = out["cif_df"]
     assert isinstance(cif_df, pd.DataFrame)
-    assert list(cif_df.columns) == ["_atom_site.id", "_atom_site.type_symbol"]
-    assert cif_df["_atom_site.id"].tolist() == ["N"]
-    assert cif_df["_atom_site.type_symbol"].tolist() == ["N"]
+    assert list(cif_df.columns) == [
+        "_atom_site.id", 
+        "_atom_site.label_atom_id", 
+        "_atom_site.auth_asym_id", 
+        "_atom_site.label_seq_id",
+        "_atom_site.B_iso_or_equiv",
+    ]
+    # assert cif_df["_atom_site.id"].tolist() == list(range(1, 7))
+    assert cif_df["_atom_site.label_atom_id"].tolist() == ["N", "CA", "CA", "O", "N", "CA"]
+    assert cif_df["_atom_site.auth_asym_id"].tolist() == ["A"] * 4 + ["B"] * 2
+    assert cif_df["_atom_site.B_iso_or_equiv"].tolist() == [99.99, 67.76, 33.65, 5.52, 0, 13.37]
 
     # confidence JSON
     conf_df = out["confidence_df"]
     assert isinstance(conf_df, pd.DataFrame)
-    assert conf_df["residueNumber"].tolist() == [1]
-    assert conf_df["confidenceScore"].tolist() == [99]
+    assert conf_df["chain_iptm"].tolist() == [0.42, 0.89]
 
     # full data normalization
     full_df = out["full_data_df"]
     assert isinstance(full_df, pd.DataFrame)
-    assert full_df.iloc[0]["a"] == [1, 2]
+    assert list(full_df.columns) == ["random_column"]
+    assert full_df.iloc[0]["random_column"] == [1, 2]
 
     # job request JSON
     job_df = out["job_request_df"]
