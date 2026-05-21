@@ -662,12 +662,12 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
         _atom_site.label_comp_id
         _atom_site.auth_asym_id
         _atom_site.label_seq_id
-        1 N     SER A 1 
-        2 CA    SER A 1 
-        3 CA    SER A 2 
-        4 O     SER A 2 
-        5 N     GLY B 1 
-        6 CA    GLY B 1 
+        1 N     SER A 1
+        2 CA    SER A 1
+        3 CA    SER A 2
+        4 O     SER A 2
+        5 N     GLY B 1
+        6 CA    GLY B 1
         #
         """
     )

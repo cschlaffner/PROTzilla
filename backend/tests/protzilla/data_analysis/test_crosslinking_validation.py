@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import pandas.testing as pdt
-import numpy
+import numpy as np
 
 
 from backend.protzilla.data_analysis.crosslinking_validation import (
@@ -37,7 +37,7 @@ from backend.protzilla.methods.data_analysis import (
         (6.01, False),  # outside bounds
     ],
 )
-def test_monomer_validation(distance, expected):
+def test_monomer_validation_baseline_manual_bounds(distance, expected):
     crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Length 5 Å ± 1 Å
 
     # Fake AlphaFold Data with chain IDs
@@ -78,15 +78,6 @@ def test_monomer_validation(distance, expected):
     valid_ids = {"P12345": ["P12345"]}
     structures_to_validate = ["P12345"]
 
-    pae_df_noerror = pd.DataFrame(
-        {
-            "predicted_aligned_error": ["[[0, 0], [0, 0]]"],
-            "max_predicted_aligned_error": [31.75],
-        }
-    )
-
-    pae_matrix_noerror = numpy.array([[0, 0], [0, 0]])
-
     plddt_df_noerror = pd.DataFrame(
         {
             "residueNumber": [1, 2],
@@ -105,8 +96,6 @@ def test_monomer_validation(distance, expected):
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=structures_to_validate,
-        pae_matrix=pae_matrix_noerror,
-        plddt_df=plddt_df_noerror,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds.value,
     )
 
@@ -121,8 +110,159 @@ def test_monomer_validation(distance, expected):
     assert df.loc[0, "valid_crosslink"] == expected
     assert df.loc[0, "link_type"] == "intra"
 
-    # Validation with PAE
-    # TODO: Proper cases with error
+
+@pytest.mark.parametrize(
+    "distance, expected",
+    [
+        (4.99, False),
+        (5.0, True),
+        (5.1, False),
+    ],
+)
+def test_cl_validation_pae_noerrror(distance, expected):
+    crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Length 5 Å (± 1 Å)
+    pae_matrix = np.array([[np.nan, 0], [0, np.nan]])
+
+    # Fake AlphaFold Data with chain IDs
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA", "CA"],
+            "_atom_site.label_asym_id": ["A", "A"],
+            "_atom_site.label_seq_id": [1, 2],
+            "_atom_site.Cartn_x": [0, distance],
+            "_atom_site.Cartn_y": [0, 0],
+            "_atom_site.Cartn_z": [0, 0],
+            "_atom_site.auth_asym_id": ["A", "A"],
+            "_atom_site.pdbx_sifts_xref_db_acc": ["P12345", "P12345"],
+        }
+    )
+
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P12345-1"], "Protein Sequence": ["AB"]}
+    )
+
+    # Fake Crosslink Data
+    crosslinking_df = pd.DataFrame(
+        {
+            "Protein_id1": ["P12345"],
+            "Protein_id2": ["P12345"],
+            "Peptide1": ["A"],
+            "Peptide2": ["B"],
+            "CL_position_within_peptide1": [0],
+            "CL_position_within_peptide2": [0],
+            "Crosslinker": ["DSS"],
+        }
+    )
+
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
+    )
+
+    valid_ids = {"P12345": ["P12345"]}
+    structures_to_validate = ["P12345"]
+
+    result = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        valid_ids=valid_ids,
+        id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
+        structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.min_pae.value,
+        pae_matrix=pae_matrix,
+    )
+
+    df: pd.DataFrame = result["crosslinking_result_df"]
+    assert df.loc[0, "valid_crosslink"] == expected
+
+
+@pytest.mark.parametrize(
+    "distance, expected_min, expected_max",
+    [
+        (2.0, False, False),
+        (3.0, False, True),
+        (4.0, True, True),
+        (5.0, True, True),
+        (6.0, True, True),
+        (7.0, False, True),
+        (8.0, False, False),
+    ],
+)
+def test_cl_validation_pae_haserror(distance, expected_min, expected_max):
+    crosslinker_information = {"DSS": [5.0, 1.0, 1.0]}  # Length 5 Å (± 1 Å)
+    pae_matrix = np.array([[np.nan, 1], [2, np.nan]])
+
+    # Fake AlphaFold Data with chain IDs
+    cif_df = pd.DataFrame(
+        {
+            "_atom_site.label_atom_id": ["CA", "CA"],
+            "_atom_site.label_asym_id": ["A", "A"],
+            "_atom_site.label_seq_id": [1, 2],
+            "_atom_site.Cartn_x": [0, distance],
+            "_atom_site.Cartn_y": [0, 0],
+            "_atom_site.Cartn_z": [0, 0],
+            "_atom_site.auth_asym_id": ["A", "A"],
+            "_atom_site.pdbx_sifts_xref_db_acc": ["P12345", "P12345"],
+        }
+    )
+
+    amino_acid_sequences_df = pd.DataFrame(
+        {"Protein ID": ["P12345-1"], "Protein Sequence": ["AB"]}
+    )
+
+    # Fake Crosslink Data
+    crosslinking_df = pd.DataFrame(
+        {
+            "Protein_id1": ["P12345"],
+            "Protein_id2": ["P12345"],
+            "Peptide1": ["A"],
+            "Peptide2": ["B"],
+            "CL_position_within_peptide1": [0],
+            "CL_position_within_peptide2": [0],
+            "Crosslinker": ["DSS"],
+        }
+    )
+
+    structure_metadata_df = pd.DataFrame(
+        {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
+    )
+
+    valid_ids = {"P12345": ["P12345"]}
+    structures_to_validate = ["P12345"]
+
+    result_min = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        valid_ids=valid_ids,
+        id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
+        structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.min_pae.value,
+        pae_matrix=pae_matrix,
+    )
+
+    df: pd.DataFrame = result_min["crosslinking_result_df"]
+    assert df.loc[0, "valid_crosslink"] == expected_min
+
+    result_max = validate_with_angstrom_deviation(
+        crosslinking_df=crosslinking_df,
+        structure_metadata_df=structure_metadata_df,
+        crosslinker_information=crosslinker_information,
+        cif_df=cif_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        valid_ids=valid_ids,
+        id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
+        structures_to_validate=structures_to_validate,
+        validation_criterion=CrosslinkingValidationCriterion.max_pae.value,
+        pae_matrix=pae_matrix,
+    )
+
+    df: pd.DataFrame = result_max["crosslinking_result_df"]
+    assert df.loc[0, "valid_crosslink"] == expected_max
 
 
 def test_modify_form_creates_crosslinker_fields():
