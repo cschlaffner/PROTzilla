@@ -319,6 +319,7 @@ def test_normalisation_by_z_score(
         "Boxplot",
         "Sample",
         "log10",
+        True,
     )[0]
     if show_figures:
         fig.show()
@@ -342,6 +343,7 @@ def test_normalisation_by_median(
         "Boxplot",
         "Sample",
         "log10",
+        True,
     )[0]
     if show_figures:
         fig.show()
@@ -373,6 +375,7 @@ def test_totalsum_normalisation(
         "Boxplot",
         "Sample",
         "log10",
+        True,
     )[0]
     if show_figures:
         fig.show()
@@ -406,6 +409,7 @@ def test_ref_protein_normalisation(
         "Boxplot",
         "Sample",
         "log10",
+        True,
     )[0]
     if show_figures:
         fig.show()
@@ -438,6 +442,7 @@ def test_width_adjustment_normalisation(normalisation_df, show_figures):
         "Boxplot",
         "Sample",
         "log10",
+        True,
     )[0]
     if show_figures:
         fig.show()
