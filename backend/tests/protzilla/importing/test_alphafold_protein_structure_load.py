@@ -354,7 +354,9 @@ _atom_site.Cartn_x
 
     assert isinstance(out[DataKey.PAE_MATRIX], OutputItem)
     assert isinstance(out[DataKey.PAE_MATRIX].value, np.ndarray)
-    assert out[DataKey.PAE_MATRIX].value == 0.1 # 0D array (only one value) TODO: Change this to something more reasonable? idk
+    assert (
+        out[DataKey.PAE_MATRIX].value == 0.1
+    )  # 0D array (only one value) TODO: Change this to something more reasonable? idk
 
     assert isinstance(out[DataKey.PLDDT_DF], pd.DataFrame)
     assert not out[DataKey.PLDDT_DF].empty
@@ -457,7 +459,7 @@ def test_get_amino_acid_sequences_df_and_handle_files(tmp_path, monkeypatch):
     )
     assert DataKey.AMINO_ACID_SEQUENCES_DF in out
     assert isinstance(out[DataKey.CIF_DF], pd.DataFrame) and out[DataKey.CIF_DF].empty
-    assert isinstance(out[DataKey.PAE_DF], pd.DataFrame) and out[DataKey.PAE_DF].empty
+    assert isinstance(out["pae_df"], pd.DataFrame) and out["pae_df"].empty
     assert (
         isinstance(out[DataKey.PLDDT_DF], pd.DataFrame) and out[DataKey.PLDDT_DF].empty
     )
@@ -480,26 +482,30 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
         _chem_comp.id
         _chem_comp.mon_nstd_flag
         SER y
+        GLY y
         #
         loop_
         _atom_site.id
         _atom_site.label_atom_id
+        _atom_site.label_comp_id
         _atom_site.auth_asym_id
         _atom_site.label_seq_id
         _atom_site.B_iso_or_equiv
-        1 N     A 1 99.99
-        2 CA    A 1 67.76
-        3 CA    A 2 33.65
-        4 O     A 2 5.52
-        5 N     B 1 0
-        6 CA    B 1 13.37
+        1 N     SER A 1 99.99
+        2 CA    SER A 1 67.76
+        3 CA    SER A 2 33.65
+        4 O     SER A 2 5.52
+        5 N     GLY B 1 0
+        6 CA    GLY B 1 13.37
         #
         """
     )
     conf = tmp_path / "conf.json"
-    conf.write_text('{"chain_iptm": [0.42, 0.89]}') # Note that we do not use these metrics anywhere
+    conf.write_text(
+        '{"chain_iptm": [0.42, 0.89]}'
+    )  # Note that we do not use these metrics anywhere
     full = tmp_path / "full.json"
-    full.write_text('{"random_column": [1,2], "pae": [[1, 2], [3, 4]]}') 
+    full.write_text('{"random_column": [1,2], "pae": [[1, 2], [3, 4]]}')
     job_request = tmp_path / "job_request.json"
     job_request.write_text(
         json.dumps(
@@ -565,17 +571,33 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     assert isinstance(cif_df, pd.DataFrame)
     assert list(cif_df.columns) == [
         ATOM_SITE_COLUMNS.ID,
-        ATOM_SITE_COLUMNS.TYPE_SYMBOL,
         ATOM_SITE_COLUMNS.LABEL_ATOM_ID,
         ATOM_SITE_COLUMNS.LABEL_COMP_ID,
+        ATOM_SITE_COLUMNS.AUTH_ASYM_ID,
+        ATOM_SITE_COLUMNS.LABEL_SEQ_ID,
+        ATOM_SITE_COLUMNS.B_ISO_OR_EQUIV,
         CHEM_COMP_COLUMNS.MON_NSTD_FLAG,
     ]
     assert cif_df[ATOM_SITE_COLUMNS.ID].tolist() == list(range(1, 7))
-    assert cif_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].tolist() == ["N", "CA", "CA", "O", "N", "CA"]
+    assert cif_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].tolist() == [
+        "N",
+        "CA",
+        "CA",
+        "O",
+        "N",
+        "CA",
+    ]
     assert cif_df[ATOM_SITE_COLUMNS.AUTH_ASYM_ID].tolist() == ["A"] * 4 + ["B"] * 2
-    assert cif_df[ATOM_SITE_COLUMNS.B_ISO_OR_EQUIV].tolist() == [99.99, 67.76, 33.65, 5.52, 0, 13.37]
-    assert cif_df[ATOM_SITE_COLUMNS.LABEL_COMP_ID].tolist() == ["SER"]
-    assert cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].tolist() == [True]
+    assert cif_df[ATOM_SITE_COLUMNS.B_ISO_OR_EQUIV].tolist() == [
+        99.99,
+        67.76,
+        33.65,
+        5.52,
+        0,
+        13.37,
+    ]
+    assert cif_df[ATOM_SITE_COLUMNS.LABEL_COMP_ID].tolist() == ["SER"] * 4 + ["GLY"] * 2
+    assert cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].tolist() == [True] * 6
 
     # confidence JSON
     conf_df = out[DataKey.CONFIDENCE_DF]
@@ -600,6 +622,24 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     assert seqs["Protein Sequence"].tolist() == ["AAAA"]
     assert any(str(v).startswith("X") for v in seqs["Protein ID"].tolist())
 
+    # pLDDT values
+    plddt_df = out[DataKey.PLDDT_DF]
+    assert isinstance(plddt_df, pd.DataFrame)
+    assert list(plddt_df.columns) == ["chainID", "residueNumber", "confidenceScore"]
+    assert plddt_df["confidenceScore"].tolist() == [
+        67.76,
+        33.65,
+        13.37,
+    ]  # Keep only CA atoms
+
+    # PAE values
+    pae_matrix = out[DataKey.PAE_MATRIX].value
+    assert isinstance(pae_matrix, np.ndarray)
+    assert pae_matrix[0, 0] == 1
+    assert pae_matrix[0, 1] == 2
+    assert pae_matrix[1, 0] == 3
+    assert pae_matrix[1, 1] == 4
+
     upload_dir = tmp_path / "M1"
     assert upload_dir.exists()
     assert any(upload_dir.glob("*.fasta")) or any(upload_dir.glob("*.fa"))
@@ -608,8 +648,6 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
 
 
 # Additional comprehensive tests for error cases and edge cases
-
-
 def test_get_monomer_metadata_df_existing_csv(tmp_path, monkeypatch):
     """Test reading existing monomer metadata CSV"""
     csv_path = tmp_path / "alphafold_monomer_metadata.csv"
@@ -674,7 +712,10 @@ def test_to_fasta_lowercase_conversion():
 
 
 def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
-    """Test upload_multimer_prediction with persist_upload=False"""
+    """
+    Test upload_multimer_prediction with persist_upload=False.
+    Also tests full_data without PAE values
+    """
     monkeypatch.setattr(paths, "ALPHAFOLD_MONOMER_PATH", tmp_path)
     monkeypatch.setattr(paths, "ALPHAFOLD_MULTIMER_PATH", tmp_path)
 
@@ -727,6 +768,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     assert isinstance(out[DataKey.STRUCTURE_METADATA_DF], pd.DataFrame)
     assert isinstance(out[DataKey.CIF_DF], pd.DataFrame)
     assert isinstance(out[DataKey.JOB_REQUEST_DF], pd.DataFrame)
+    assert out[DataKey.PAE_MATRIX].value is None
     assert out[DataKey.JOB_REQUEST_DF].iloc[0]["name"] == "test_job_2"
     # directory should still exist (created for the entry)
     upload_dir = tmp_path / "M2"
@@ -1010,7 +1052,7 @@ N N SER
     assert isinstance(out[DataKey.JOB_REQUEST_DF], pd.DataFrame)
 
     assert "chain_iptm" in out[DataKey.CONFIDENCE_DF].columns
-    assert "pae" in out[DataKey.FULL_DATA_DF].columns
+    assert "pae" not in out[DataKey.FULL_DATA_DF].columns
     assert out[DataKey.JOB_REQUEST_DF].iloc[0]["name"] == "multimer_job"
     assert out[DataKey.JOB_REQUEST_DF].iloc[0]["version"] == 3
 

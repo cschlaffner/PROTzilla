@@ -1082,7 +1082,7 @@ def monomer_diagrams(
     output_crosslinking_result_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
-    validation_criterion: CrosslinkingValidationCriterion
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> list[Figure]:
     """
     Generates visual diagrams to evaluate crosslinking validation results
@@ -1107,7 +1107,10 @@ def monomer_diagrams(
             )
 
         # TODO: Separate Issue #429
-        case CrosslinkingValidationCriterion.max_pae.value | CrosslinkingValidationCriterion.min_pae.value:
+        case (
+            CrosslinkingValidationCriterion.max_pae.value
+            | CrosslinkingValidationCriterion.min_pae.value
+        ):
             return diagrams_of_crosslinking_validation_data(
                 validated_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
@@ -1162,7 +1165,10 @@ def multimer_diagrams(
             )
 
         # TODO: Separate Issue #429
-        case CrosslinkingValidationCriterion.max_pae.value | CrosslinkingValidationCriterion.min_pae.value:
+        case (
+            CrosslinkingValidationCriterion.max_pae.value
+            | CrosslinkingValidationCriterion.min_pae.value
+        ):
             return diagrams_of_crosslinking_validation_data(
                 validated_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
@@ -1179,6 +1185,7 @@ def multimer_diagrams(
 
         case _:
             return []
+
 
 # Warning: Mostly AI generated
 def create_cl_validation_histogram(

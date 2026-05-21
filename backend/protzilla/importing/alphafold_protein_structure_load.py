@@ -781,8 +781,11 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
         - "pae_matrix": Numpy matrix with the PAE values for each residue pair
     """
 
-    pae_matrix = np.array(full_data_df["pae"].iloc[0])
-    full_data_df = full_data_df.drop(columns=["pae"])
+    try:
+        pae_matrix = np.array(full_data_df["pae"].iloc[0])
+        full_data_df = full_data_df.drop(columns=["pae"])
+    except KeyError:
+        pae_matrix = None
 
     return dict(
         full_data_df=full_data_df,
@@ -790,7 +793,7 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
     )
 
 
-def get_plddt_from_cif(cif_df: pd.DataFrame):
+def get_plddt_from_cif(cif_df: pd.DataFrame) -> pd.DataFrame | None:
     """
     For use with multimers predicted using Alphafold3.
     Returns per-residue pLDDT values for the predicted structure.
@@ -802,23 +805,26 @@ def get_plddt_from_cif(cif_df: pd.DataFrame):
                 "chainID", "residueNumber", "confidenceScore", "confidenceCategory"
     """
 
-    filtered_cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
-    filtered_cif_df = filtered_cif_df[
-        [
-            "_atom_site.auth_asym_id",
-            "_atom_site.label_seq_id",
-            "_atom_site.B_iso_or_equiv",
+    try:
+        filtered_cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
+        filtered_cif_df = filtered_cif_df[
+            [
+                "_atom_site.auth_asym_id",
+                "_atom_site.label_seq_id",
+                "_atom_site.B_iso_or_equiv",
+            ]
         ]
-    ]
-    filtered_cif_df = filtered_cif_df.rename(
-        columns={
-            "_atom_site.auth_asym_id": "chainID",
-            "_atom_site.label_seq_id": "residueNumber",
-            "_atom_site.B_iso_or_equiv": "confidenceScore",
-        }
-    )
+        filtered_cif_df = filtered_cif_df.rename(
+            columns={
+                "_atom_site.auth_asym_id": "chainID",
+                "_atom_site.label_seq_id": "residueNumber",
+                "_atom_site.B_iso_or_equiv": "confidenceScore",
+            }
+        )
+        return filtered_cif_df
 
-    return filtered_cif_df
+    except KeyError:
+        return None
 
 
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
@@ -910,6 +916,14 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
 
     pae_matrix = unwrapped_full_data["pae_matrix"]
     plddt_df = get_plddt_from_cif(df_dict["cif_df"])
+
+    if plddt_df is None:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=f"Could not parse pLDDT values from CIF file. File is likely malformed!",
+            )
+        )
 
     return dict(
         **df_dict,
@@ -1072,6 +1086,13 @@ def upload_multimer_prediction(
             df_dict["pae_matrix"] = pae_matrix
             df_dict["plddt_df"] = get_plddt_from_cif(df_dict["cif_df"])
 
+            if df_dict["plddt_df"] is None:
+                messages.append(
+                    dict(
+                        level=logging.WARNING,
+                        msg=f"Could not parse pLDDT values from CIF file. File is likely malformed!",
+                    )
+                )
             data_for_visualization = {
                 "structure_entry_id": entry_id,
                 "cif_df": cif_df,
