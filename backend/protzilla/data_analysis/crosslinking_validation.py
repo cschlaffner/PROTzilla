@@ -1019,43 +1019,50 @@ def diagrams_of_crosslinking_validation_data(
 
 
 def monomer_diagrams(
-    crosslinking_df: pd.DataFrame,
+    output_crosslinking_result_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
-    cif_df: pd.DataFrame,
-    amino_acid_sequences_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion
 ) -> list[Figure]:
     """
     Generates visual diagrams to evaluate crosslinking validation results
     for a monomeric protein structure.
 
-    This function acts as a wrapper that first runs the crosslink validation
-    step via `monomer_validation`. It then extracts the resulting dataframe
-    of validated crosslinks and passes it to the diagram generator to create
-    the final plots.
-
-    :param crosslinking_df: DataFrame containing the full set of crosslinks.
+    :param output_crosslinking_result_df: DataFrame containing the CL validation results.
     :param structure_metadata_df: DataFrame containing structural metadata; the
                                   first row's 'uniprot_accession' is used as the target.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of
                                     three floats: [length, upper_bound, lower_bound].
-    :param cif_df: DataFrame containing parsed mmCIF structural coordinate data.
-    :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :return: A list of Figure objects visualizing the crosslinking validation data.
     """
     structures_to_validate = [structure_metadata_df["uniprot_accession"].iloc[0]]
-    validated_df = monomer_validation(
-        crosslinking_df,
-        structure_metadata_df,
-        crosslinker_information,
-        cif_df,
-        amino_acid_sequences_df,
-    )["crosslinking_result_df"]
-    return diagrams_of_crosslinking_validation_data(
-        validated_df=validated_df,
-        structures_to_validate=structures_to_validate,
-        crosslinker_information=crosslinker_information,
-    )
+
+    match validation_criterion:
+        case CrosslinkingValidationCriterion.manual_bounds.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.max_pae.value | CrosslinkingValidationCriterion.min_pae.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        case _:
+            return []
 
 
 def multimer_diagrams(
