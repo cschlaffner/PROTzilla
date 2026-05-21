@@ -97,13 +97,6 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     monomer_validation,
     multimer_validation,
 )
-from backend.protzilla.run import Run
-from backend.protzilla.methods.importing import (
-    ImportMonomerStructurePredictionFromDisk,
-    AlphaFoldPredictionLoad,
-    ImportMultimerStructurePredictionFromDisk,
-    UploadMultimerPredictions,
-)
 
 
 class TTestType(Enum):
@@ -2386,20 +2379,39 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
         for crosslinker in crosslinkers:
             field_name = f"{crosslinker}_length"
             if field_name not in form:
+                cl_defaults = (
+                    run.disk_operator.defaults.read_default("crosslinker_lengths") or {}
+                )
+                specific_cl_defaults = cl_defaults.get(crosslinker, {})
+                if specific_cl_defaults:
+                    length_default = specific_cl_defaults.get("cl_length")
+                    upper_deviation_default = specific_cl_defaults.get(
+                        "cl_upper_deviation"
+                    )
+                    lower_deviation_default = specific_cl_defaults.get(
+                        "cl_lower_deviation"
+                    )
+                else:
+                    length_default = 0
+                    upper_deviation_default = 0
+                    lower_deviation_default = 0
                 crosslinker_length_field = FloatField(
                     name=field_name,
                     label=f"Length of {crosslinker} in Ångström",
                     min=0,
+                    value=length_default,
                 )
                 upper_bound_length_deviation_field = FloatField(
                     name=f"{crosslinker}_upper_accepted_deviation",
                     label=f"Upper bound on the accepted deviation for {crosslinker} Crosslinks in Ångström (0 equals no bound)",
                     min=0,
+                    value=upper_deviation_default,
                 )
                 lower_bound_length_deviation_field = FloatField(
                     name=f"{crosslinker}_lower_accepted_deviation",
                     label=f"Lower bound on the accepted deviation for {crosslinker} Crosslinks in Ångström (0 equals no bound)",
                     min=0,
+                    value=lower_deviation_default,
                 )
                 form.add_field(crosslinker_length_field)
                 form.add_field(upper_bound_length_deviation_field)
@@ -2438,7 +2450,7 @@ class CrosslinkingValidationWithAngstromDeviation(
 
     def create_form(self):
         return Form(
-            label="Ångström Deviation For Monomer Structures",
+            label="Ångström Deviation - Monomer",
             input_fields=[
                 DropdownField(
                     name="validation_criterion",
@@ -2449,6 +2461,9 @@ class CrosslinkingValidationWithAngstromDeviation(
                 FormDivider(
                     label="Crosslinker lengths and bounds",
                 ),
+                InfoField(
+                    label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
+                )
             ],
         )
 
@@ -2475,5 +2490,8 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
                 FormDivider(
                     label="Crosslinker lengths and bounds",
                 ),
+                InfoField(
+                    label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
+                )
             ],
         )

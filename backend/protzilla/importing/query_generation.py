@@ -101,5 +101,7 @@ def generate_alphafold_query_json(
     )
     return dict(
         messages=messages,
-        downloads=OutputItem(output_type=OutputType.DOWNLOAD, value={name: [query]}),
+        downloads=OutputItem(
+            output_type=OutputType.DOWNLOAD, value={f"{name}.json": [query]}
+        ),
     )

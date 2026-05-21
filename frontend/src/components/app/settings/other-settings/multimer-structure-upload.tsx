@@ -189,7 +189,7 @@ export const MultimerStructureUpload = () => {
             {
               type: "text",
               name: "uniprot_ids",
-              label: "Protein IDs of all proteins used in the sequence (required):",
+              label: "Protein IDs of all proteins used in the sequence: (required)",
               isVisible: true,
             },
             {
@@ -202,7 +202,7 @@ export const MultimerStructureUpload = () => {
             {
               type: "text",
               name: "model_used",
-              label: "AlphaFold Model used to predict the structure (required)",
+              label: "AlphaFold Model used to predict the structure",
               isVisible: true,
             },
             {

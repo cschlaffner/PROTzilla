@@ -182,7 +182,7 @@ export const RunScreen: React.FC = () => {
   const transformDownload = useCallback(
     (output: StepOutputInfo, response: ApiResponse<Download>) => ({
       title: output.label,
-      data: response.data.data,
+      data: response.data.json_downloads,
     }),
     [],
   );

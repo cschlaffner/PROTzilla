@@ -200,13 +200,13 @@ export const MonomerStructureUpload = () => {
             {
               type: "text",
               name: "model_used",
-              label: "Alphafold Version Number (required):",
+              label: "Alphafold Version Number:",
               isVisible: true,
             },
             {
               type: "text",
               name: "gene",
-              label: "Gene Name (required):",
+              label: "Gene Name:",
               isVisible: true,
             },
             {
