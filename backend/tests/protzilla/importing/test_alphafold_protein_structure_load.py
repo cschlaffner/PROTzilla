@@ -646,6 +646,46 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
     assert any(upload_dir.glob("*.json"))
     assert any(upload_dir.glob("*.cif"))
 
+    # Test no plDDT Data -> plddt_df should be None
+    cif.write_text(
+        """
+        data_test
+        loop_
+        _chem_comp.id
+        _chem_comp.mon_nstd_flag
+        SER y
+        GLY y
+        #
+        loop_
+        _atom_site.id
+        _atom_site.label_atom_id
+        _atom_site.label_comp_id
+        _atom_site.auth_asym_id
+        _atom_site.label_seq_id
+        1 N     SER A 1 
+        2 CA    SER A 1 
+        3 CA    SER A 2 
+        4 O     SER A 2 
+        5 N     GLY B 1 
+        6 CA    GLY B 1 
+        #
+        """
+    )
+
+    out = upload_multimer_prediction(
+        entry_id="M1",
+        uniprot_ids="X, Y",
+        model_used="m",
+        amino_acid_sequences=fasta,
+        cif_file=cif,
+        confidence_file=conf,
+        full_data_file=full,
+        job_request_file=job_request,
+        persist_upload=True,
+    )
+
+    assert out[DataKey.PLDDT_DF] is None
+
 
 # Additional comprehensive tests for error cases and edge cases
 def test_get_monomer_metadata_df_existing_csv(tmp_path, monkeypatch):
