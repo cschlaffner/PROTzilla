@@ -359,7 +359,7 @@ def by_knn_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -379,7 +379,7 @@ def by_normal_distribution_sampling_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -399,7 +399,7 @@ def by_simple_imputer_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -419,7 +419,7 @@ def by_min_per_sample_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -439,7 +439,7 @@ def by_min_per_protein_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -459,7 +459,7 @@ def by_min_per_dataset_plot(
     graph_type_quantities,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,

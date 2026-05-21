@@ -272,6 +272,7 @@ def test_log2_transformation(
         method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
         "Protein ID",
+        True,
     )[0]
     if show_figures:
         fig.show()
@@ -338,6 +339,7 @@ def test_log10_transformation(
         method_output[DataKey.PROTEIN_DF],
         "Boxplot",
         "Protein ID",
+        True,
     )[0]
     if show_figures:
         fig.show()

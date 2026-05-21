@@ -328,7 +328,7 @@ def by_z_score_plot(
     graph_type,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -346,7 +346,7 @@ def by_median_plot(
     graph_type,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -364,7 +364,7 @@ def by_totalsum_plot(
     graph_type,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -382,7 +382,7 @@ def by_reference_protein_plot(
     graph_type,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
@@ -400,7 +400,7 @@ def by_width_adjustment_plot(
     graph_type,
     group_by,
     visual_transformation,
-    show_outliers,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
         protein_df,
