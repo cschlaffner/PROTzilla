@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from backend.protzilla.data_analysis.geometry_operations import find_farthest_point_vdw
+
 
 def get_all_ptm_atoms_with_coordinates(cif_df: pd.DataFrame) -> list:
     """
@@ -21,6 +23,7 @@ def get_all_ptm_atoms_with_coordinates(cif_df: pd.DataFrame) -> list:
         atoms_subset = atom_group[
             [
                 "_atom_site.label_atom_id",
+                "_atom_site.type_symbol",
                 "_atom_site.Cartn_x",
                 "_atom_site.Cartn_y",
                 "_atom_site.Cartn_z",
@@ -28,10 +31,14 @@ def get_all_ptm_atoms_with_coordinates(cif_df: pd.DataFrame) -> list:
         ].rename(
             columns={
                 "_atom_site.label_atom_id": "atom_name",
+                "_atom_site.type_symbol": "element",
                 "_atom_site.Cartn_x": "x",
                 "_atom_site.Cartn_y": "y",
                 "_atom_site.Cartn_z": "z",
             }
+        )
+        atoms_subset["element"] = (
+            atoms_subset["element"].astype(str).str.strip().str.capitalize()
         )
 
         atoms_data = atoms_subset.to_dict(orient="records")
@@ -82,13 +89,15 @@ def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.n
 def get_center_points_and_radius_for_each_ptm(ptm_list: list) -> list:
     for ptm in ptm_list:
         coords = [[atom["x"], atom["y"], atom["z"]] for atom in ptm["atoms"]]
+        elements = [atom["element"] for atom in ptm["atoms"]]
 
         coords_array = np.array(coords, dtype=np.float32)
+        elements_array = np.array(elements)
 
         center_point = calculate_center_point(coords_array)
-        farthest_point = find_farthest_point(coords_array, center_point)
-
-        radius = np.linalg.norm(farthest_point - center_point)
+        _, radius = find_farthest_point_vdw(
+            coords_array, elements_array, center_point
+        )
 
         ptm["center_point"] = center_point.tolist()
         ptm["radius"] = float(radius)
