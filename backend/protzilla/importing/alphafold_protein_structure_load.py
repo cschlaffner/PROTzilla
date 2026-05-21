@@ -746,12 +746,6 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
         - "pae_matrix": Numpy matrix with the PAE values for each residue pair
     """
 
-    # Construct plDDT dataframe
-    # TODO: Getting pLDDT from AlphaFold3 is a bit harder as its on a per-atom level
-    # rather than per-residue, so we'd need to extract it from the cif file
-    # (column _atom_site.B_iso_or_equiv, see https://github.com/google-deepmind/alphafold3/issues/330).
-    # Skipping this for now.
-
     pae_matrix = np.array(full_data_df["pae"].iloc[0])
     full_data_df = full_data_df.drop(columns=["pae"])
 
@@ -788,8 +782,6 @@ def get_plddt_from_cif(cif_df: pd.DataFrame):
             "_atom_site.B_iso_or_equiv": "confidenceScore",
         }
     )
-
-    # TODO: ConfidenceCategory maybe yes?
 
     return filtered_cif_df
 
