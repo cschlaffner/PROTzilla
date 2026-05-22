@@ -17,6 +17,7 @@ import logging
 from pandas.io.stata import stata_epoch
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
+import plotly.express as px
 
 from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
@@ -1078,6 +1079,65 @@ def diagrams_of_crosslinking_validation_data(
     return figures
 
 
+def cl_scatterplots_pae(
+    cl_results_df: pd.DataFrame,
+    structures_to_validate: list[str],
+    crosslinker_information: dict[str, list[float]],
+    validation_criterion: CrosslinkingValidationCriterion,
+) -> list[Figure]:
+
+    figures: list[Figure] = []
+
+    def get_relevant_pae_value(
+        pae_x_1: float,
+        pae_x_2: float,
+        validation_criterion: CrosslinkingValidationCriterion,
+    ):
+        if validation_criterion == CrosslinkingValidationCriterion.max_pae.value:
+            return max(pae_x_1, pae_x_2)
+        elif validation_criterion == CrosslinkingValidationCriterion.min_pae.value:
+            return min(pae_x_1, pae_x_2)
+        else:
+            raise ValueError("Illegal validation criterion for PAE plot")
+
+    cl_results_df["measured_distance"] = cl_results_df.apply(
+        lambda row: crosslinker_information[row["Crosslinker"]][0], axis=1
+    )
+    cl_results_df["distance_delta"] = abs(
+        cl_results_df["measured_distance"] - cl_results_df["alphafold_distance"]
+    )
+    cl_results_df["relevant_pae"] = cl_results_df.apply(
+            lambda row: get_relevant_pae_value(row["pae_x_position1"], row["pae_x_position2"], validation_criterion), axis=1
+    )
+
+    y_label = "Max. PAE between binding sites" if validation_criterion == CrosslinkingValidationCriterion.max_pae.value else "Min. PAE between binding sites"
+
+    fig = px.scatter(
+        cl_results_df,
+        y="relevant_pae",
+        x="distance_delta",
+        color="valid_crosslink",
+        color_discrete_map={
+            False: "red",
+            True: "blue",
+        },
+        labels={
+            "relevant_pae": y_label,
+            "distance_delta": "Deviation from CL length in predicted structure (Å)",
+            "valid_crosslink": "CL matches structure prediction",
+            "measured_distance": "CL length",
+            "Crosslinker": "CL type",
+            },
+        log_x=True,
+        title="Identified Crosslinks",
+        hover_data=["relevant_pae", "distance_delta", "Crosslinker", "measured_distance"]
+    )
+
+    figures.append(fig)
+
+    return figures
+
+
 def monomer_diagrams(
     output_crosslinking_result_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
@@ -1106,15 +1166,15 @@ def monomer_diagrams(
                 crosslinker_information=crosslinker_information,
             )
 
-        # TODO: Separate Issue #429
         case (
             CrosslinkingValidationCriterion.max_pae.value
             | CrosslinkingValidationCriterion.min_pae.value
         ):
-            return diagrams_of_crosslinking_validation_data(
-                validated_df=output_crosslinking_result_df,
+            return cl_scatterplots_pae(
+                cl_results_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
                 crosslinker_information=crosslinker_information,
+                validation_criterion=validation_criterion,
             )
 
         # TODO: Separate Issue #429
