@@ -1,4 +1,4 @@
-current_step_id: s00024_ExampleDatasetImport
+current_step_id: s00021_PlotClustergram
 df_mode: Standard
 graph_edges:
 - !!python/tuple
@@ -59,46 +59,45 @@ graph_edges:
 id_clock: 24
 steps:
 - form_inputs: {}
-  inputs: {}
   instance_identifier: s00017_TransformationInversion
   type: TransformationInversion
   visual_data:
     node_position:
-      x: -256.3887430491057
-      y: -182.53113148487623
+      x: 240.0
+      y: 304.0
 - form_inputs:
     graph_type: Boxplot
     group_by: None
     log_base: log2
-  inputs: {}
+    show_outliers: true
   instance_identifier: s00018_TransformationLog
   type: TransformationLog
   visual_data:
     node_position:
-      x: -238.11672528144226
-      y: -72.52980712595655
+      x: 240.0
+      y: 456.0
 - form_inputs:
     graph_type: Boxplot
     group_by: None
+    show_outliers: true
     visual_transformation: log10
-  inputs: {}
   instance_identifier: s00019_NormalisationByWidthAdjustment
   type: NormalisationByWidthAdjustment
   visual_data:
     node_position:
-      x: -305.1725846997794
-      y: 47.89704244166941
+      x: 240.0
+      y: 608.0
 - form_inputs:
     graph_type: Pie chart
     min_amount: 5
-  inputs: {}
   instance_identifier: s00020_FilterProteinsByNumberOfValuesPerGroup
   type: FilterProteinsByNumberOfValuesPerGroup
   visual_data:
     node_position:
-      x: -195.05443977856737
-      y: 157.54469025999737
+      x: 160.0
+      y: 760.0
 - form_inputs:
+    dendrogram_line_width: 1
     flip_axes: true
     heatmap_high_color: '#67001f'
     heatmap_high_color_limit: 3.5
@@ -106,48 +105,44 @@ steps:
     heatmap_low_color: '#053061'
     heatmap_low_color_limit: -2.5
     imputation_strategy: mean
-    metadata_column: null
+    metadata_column: Group
     use_custom_color_scale: true
-  inputs: {}
   instance_identifier: s00021_PlotClustergram
   type: PlotClustergram
   visual_data:
     node_position:
-      x: 103.5167979883891
-      y: 350.5697288158512
+      x: 0.0
+      y: 1064.0
 - form_inputs:
     alpha: 0.05
     fc_zscore_alpha: 0.05
     fc_zscore_filter: true
-    group1: null
-    group2: null
-    grouping: null
+    group1: REL-FREE
+    group2: RELAPSE
+    grouping: Group
     log_base: log2
     multiple_testing_correction_method: None
     ttest_type: Welch's t-Test
-  inputs: {}
   instance_identifier: s00022_DifferentialExpressionTTest
   type: DifferentialExpressionTTest
   visual_data:
     node_position:
-      x: -115.31021351610049
-      y: 262.06125298534624
+      x: 80.0
+      y: 912.0
 - form_inputs:
     graph_type: Pie chart
     min_amount: 1
-  inputs: {}
   instance_identifier: s00023_FilterProteinsByNumberOfValuesPerGroup
   type: FilterProteinsByNumberOfValuesPerGroup
   visual_data:
     node_position:
-      x: -246.08834066154702
-      y: -318.73233114768027
+      x: 240.0
+      y: 152.0
 - form_inputs:
     import_peptide_data: false
-  inputs: {}
   instance_identifier: s00024_ExampleDatasetImport
   type: ExampleDatasetImport
   visual_data:
     node_position:
-      x: 46.25253332298831
-      y: -499.2083768998393
+      x: 0.0
+      y: 0.0
