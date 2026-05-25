@@ -764,16 +764,27 @@ def get_current_step_table_data(request):
     if isinstance(step_output, pd.DataFrame):
         for f in filters:
             field = f.get("field")
+            operator = f.get("operator")
             value = f.get("value")
 
             if not field or value is None:
                 continue
 
-            col = step_output[field].astype(str)
-
-            step_output = step_output[
-                col.str.contains(str(value), case=False, na=False)
-            ]
+            col = step_output[field]
+            if operator == "contains":
+                step_output = step_output[
+                    col.astype(str).str.contains(str(value), case=False, na=False)
+                ]
+            elif operator == "equals":
+                step_output = step_output[
+                    col.astype(str).str.lower() == str(value).lower()
+                ]
+            elif operator == "=":
+                step_output = step_output[col == float(value)]
+            elif operator == ">":
+                step_output = step_output[col > float(value)]
+            elif operator == "<":
+                step_output = step_output[col < float(value)]
 
         if sort_field:
             step_output = step_output.sort_values(

@@ -2,6 +2,8 @@ import { Box } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import {
   DataGrid,
+  getGridNumericOperators,
+  getGridStringOperators,
   GridColDef,
   GridColumnVisibilityModel,
   GridFilterModel,
@@ -46,6 +48,14 @@ const FALLBACK_TOO_MANY_COLUMNS = [
   },
 ];
 const MAX_COLUMNS = 25;
+
+const stringOperators = getGridStringOperators().filter(
+  (op) => op.value === "contains" || op.value === "equals",
+);
+
+const numericOperators = getGridNumericOperators().filter(
+  (op) => op.value === "=" || op.value === ">" || op.value === "<",
+);
 
 export const DataTable: React.FC<DataTableProps> = ({
   runName,
@@ -111,6 +121,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               align: "left",
               headerAlign: "left",
               filterable: true,
+              filterOperators: isNumeric ? numericOperators : stringOperators,
               valueFormatter: (value: unknown) => value ?? "NaN",
             } as GridColDef;
           });
