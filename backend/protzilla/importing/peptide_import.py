@@ -49,12 +49,14 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
 
         if "Sample" not in df.columns:
             # Ensure required id columns are present
-            missing = [c for c in MAX_QUANT_PEPTIDE_COLUMNS if c not in df.columns]
+            missing = [
+                c.value for c in MAX_QUANT_PEPTIDE_COLUMNS if c not in df.columns
+            ]
             if missing:
                 msg = f"Peptide file is missing required columns: {missing}"
                 return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
-            id_df = df[MAX_QUANT_PEPTIDE_COLUMNS]
+            id_df = df[list(MAX_QUANT_PEPTIDE_COLUMNS)]
             disallowed_suffixes = r"(variability|count|type|peptides)"
             if intensity_name in (
                 IntensityType.RATIO_HL.value,
@@ -77,7 +79,7 @@ def peptide_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dict
             ]
             tidy_peptide_df = pd.melt(
                 pd.concat([id_df, intensity_df], axis=1),
-                id_vars=MAX_QUANT_PEPTIDE_COLUMNS,
+                id_vars=list(MAX_QUANT_PEPTIDE_COLUMNS),
                 var_name="Sample",
                 value_name="Intensity",
             )
@@ -144,7 +146,7 @@ def evidence_import(file_path: Path, intensity_name: str, map_to_uniprot) -> dic
     try:
         assert Path(file_path).is_file(), f"Cannot find Peptide File at {file_path}"
 
-        id_columns = MAX_QUANT_EVIDENCE_COLUMNS + [intensity_name]
+        id_columns = list(MAX_QUANT_EVIDENCE_COLUMNS) + [intensity_name]
 
         # Apparently MaxQuant evidence file headers can be capitalized in title case or sentence case so we have to find
         # a way around it by using the select_column function. However, it's not as straightforward as just capitalizing,
