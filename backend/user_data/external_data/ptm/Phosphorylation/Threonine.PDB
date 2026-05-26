@@ -1,0 +1,47 @@
+HEADER    AA0038                                  31-Mar-01                     
+COMPND    O-phospho-L-threonine                                                 
+REVDAT 001   30-Sep-99                                                          
+REVDAT 002   31-Dec-00                                                          
+REVDAT 003   31-Mar-01                                                          
+REMARK 001 Copyright (C) 2001 John S. Garavelli                                 
+REMARK 002 This model is provisional.                                           
+ATOM      1  N   Thr     1       0.000   0.000   0.000                          
+ATOM      2  HN  Thr     1      -0.320  -0.323   0.871                          
+ATOM      3  CA  Thr     1       1.454   0.000   0.000                          
+ATOM      4  HA  Thr     1       1.789  -0.509  -0.911                          
+ATOM      5  C   Thr     1       1.899  -0.874   1.219                          
+ATOM      6  O   Thr     1       1.135  -0.971   2.187                          
+ATOM      7  CB  Thr     1       2.063   1.417   0.000                          
+ATOM      8  HB  Thr     1       1.810   1.841  -0.973                          
+ATOM      9  OG1 Thr     1       3.500   1.357   0.030                          
+ATOM     10  CG2 Thr     1       1.580   2.411   1.033                          
+ATOM     11  HG2 Thr     1       2.106   3.357   0.911                          
+ATOM     12  HG3 Thr     1       0.507   2.587   0.936                          
+ATOM     13  HG4 Thr     1       1.781   2.028   2.038                          
+ATOM     14  P   PO3     1       3.952   0.582  -1.246                          
+ATOM     15  O1P PO3     1       4.745  -0.694  -0.825                          
+ATOM     16  O2P PO3     1       4.864   1.499  -2.116                          
+ATOM     17  O3P PO3     1       2.696   0.163  -2.072                          
+ATOM     18  HO2 PO3     1       5.160   0.959  -2.953                          
+ATOM     19  HO3 PO3     1       5.044  -1.188  -1.689                          
+TER      20                                                                     
+CONECT    1    2    3                                                           
+CONECT    2    1                                                                
+CONECT    3    1    4    5    7                                                 
+CONECT    4    3                                                                
+CONECT    5    3    6                                                           
+CONECT    6    5                                                                
+CONECT    7    3    8    9   10                                                 
+CONECT    8    7                                                                
+CONECT    9    7   14                                                           
+CONECT   10    7   11   12   13                                                 
+CONECT   11   10                                                                
+CONECT   12   10                                                                
+CONECT   13   10                                                                
+CONECT   14    9   15   16   17                                                 
+CONECT   15   14   19                                                           
+CONECT   16   14   18                                                           
+CONECT   17   14                                                                
+CONECT   18   16                                                                
+CONECT   19   15                                                                
+END                                                                             

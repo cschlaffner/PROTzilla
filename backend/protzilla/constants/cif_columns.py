@@ -1,4 +1,8 @@
+import gemmi
+import pandas as pd
 from enum import StrEnum
+
+from backend.protzilla.constants.paths import PTM_PATH
 
 
 ATOM_SITE_PREFIX = "_atom_site."
@@ -61,3 +65,69 @@ class CHEM_COMP_COLUMNS(StrEnum):
     PDBX_SYNONYMS = f"{CHEM_COMP_PREFIX}pdbx_synonyms"
     FORMULA = f"{CHEM_COMP_PREFIX}formula"
     FORMULA_WEIGHT = f"{CHEM_COMP_PREFIX}formula_weight"
+
+
+class KnownPTM(StrEnum):
+    """
+    Enum holding all PTM pairings currently supported by the PTM insertion into cif files.
+    Allows for construction via
+        KnownPTM.from_strings("Acetylation", "Lysine")
+    and path retrieval through .get_cif() on a constructed member
+    """
+
+    ACETYLATION_LYSINE = "Acetylation/Lysine"
+    CITRULLINATION_ARGININE = "Citrullination/Arginine"
+    METHYLATION_ARGININE = "Methylation/Arginine"
+    METHYLATION_LYSINE = "Methylation/Lysine"
+    PHOSPHORYLATION_SERINE = "Phosphorylation/Serine"
+    PHOSPHORYLATION_THREONINE = "Phosphorylation/Threonine"
+    PHOSPHORYLATION_TYROSINE = "Phosphorylation/Tyrosine"
+    UBIQUITINATION_LYSINE = "Ubiquitination/Lysine"
+
+    def get_cif(self) -> pd.DataFrame:
+        """
+        Retrieves the cif_df of the PTM
+        """
+        path = (PTM_PATH / self.value).with_suffix(".cif")
+
+        doc = gemmi.cif.read_file(str(path))
+
+        if len(doc) == 0:
+            raise ValueError(f"No CIF blocks found in file: {path}")
+
+        block = doc.sole_block()
+
+        if ATOM_SITE_PREFIX not in block.get_mmcif_category_names():
+            return pd.DataFrame()
+
+        atom_site_table = block.find_mmcif_category(ATOM_SITE_PREFIX)
+
+        atom_site_df = pd.DataFrame(
+            list(atom_site_table),
+            columns=list(atom_site_table.tags),
+            dtype=pd.StringDtype(),
+        )
+
+        # convert to numeric dtype for numeric columns present in the dataframe
+        present_numeric_columns = [
+            column for column in ATOM_SITE_COLUMNS_NUMERIC if column in atom_site_table.tags
+        ]
+        atom_site_df[present_numeric_columns] = atom_site_df[present_numeric_columns].apply(
+            pd.to_numeric, errors="coerce"
+        )
+
+        atom_site_df = atom_site_df.convert_dtypes()
+
+        return atom_site_df
+
+    @classmethod
+    def from_strings(cls, modification: str, residue: str) -> "KnownPTM":
+        """
+        Factory method for known PTMs, by passing the modification and residue
+        """
+        try:
+            return cls(f"{modification}/{residue}")
+        except ValueError:
+            raise ValueError(
+                f"There is currently no PTM data for {modification} on {residue}"
+            )

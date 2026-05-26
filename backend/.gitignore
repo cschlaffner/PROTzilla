@@ -13,6 +13,10 @@
 !user_data/workflows/.test-run-empty.yaml
 !user_data/example_dataset
 
+# PTM cif files - necessary to explicitly include parent
+!user_data/external_data/
+user_data/external_data/alphafold
+
 # Uploads (e.g. Uniprot databases)
 /uploads/*
 
