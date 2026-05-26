@@ -2376,11 +2376,18 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
         # TODO:
         "Description SVA (and warning that we do not quite use SVA)"
     )
-    output_keys = ["protein_df"]
+    output_keys = ["protein_df", "surrogate_variable_df"]
     calc_method = staticmethod(sva_correction)
 
     def create_form(self):
         return Form(
             label="Batch Effect Correction: SVA",
-            input_fields=[],
+            input_fields=[
+                NumberField(
+                    name="n_surrogate_variables",
+                    label="The number of unknown factors to be filtered out.",
+                    min=0,
+                    value=3,
+                ),
+            ],
         )
