@@ -4,9 +4,7 @@ import traceback
 from zipfile import ZipFile
 import re
 import logging
-from typing import Any
 
-import numpy as np
 from plotly.io import to_json
 
 import pandas as pd
@@ -42,6 +40,7 @@ from backend.main.views_helper import (
     get_displayed_steps,
     parameters_from_post,
     sanitize_name,
+    _dataframe_as_datagrid_rows,
 )
 from backend.protzilla.all_steps import get_all_possible_steps
 
@@ -687,51 +686,6 @@ def get_step_plots(request):
         )
 
 
-# TODO: Move somewhere else
-def _step_output_as_serialised_table(
-    label: str, _data: pd.DataFrame | Any, index_delims: tuple[int, int] = (None, None)
-) -> list[dict]:
-    """
-    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
-    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
-    Also delimits the return according to index_delims.
-    If the output could not be serialised, None is returned
-
-    :param label: The label of the step output to serialise
-    :param _data: The data associated with the output
-    :param index_delims: tuple used as slice begin and end indices to delimit the output
-    """
-    start_index = index_delims[0]
-    end_index = index_delims[1]
-
-    # Note: using [None:None] as a slice returns the entire collection
-    if isinstance(_data, pd.DataFrame):
-        data = _data.iloc[start_index:end_index].copy()
-
-        # Safer than just adding the new column. We assume __id_col is not
-        # a column name anyone would use
-        if "id" in data.columns:
-            data.rename(columns={"id": "__id_col"}, inplace=True)
-
-        data["id"] = data.index
-        cleaned_data = data.replace(np.nan, None)
-        return cleaned_data.to_dict(orient="records")
-
-    # Serialise compatible lists
-    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
-    # Potential fix: Just do not use lists bro???
-    elif (
-        ("_df" not in label) and (label not in hidden_outputs) and (type(_data) == list)
-    ):
-        data = pd.DataFrame({label: _data[start_index:end_index]})
-        data["id"] = data.index
-        cleaned_data = data.replace(np.nan, None)
-        return cleaned_data.to_dict(orient="records")
-
-    else:
-        return None
-
-
 def get_png_from_step(request: HttpRequest):
     """
     API call. Returns a base64-encoded PNG of a step output to the front-end
@@ -764,8 +718,8 @@ def get_png_from_step(request: HttpRequest):
 
 def get_current_step_table_data(request):
     """
-    API call. Returns a specific delimited slice of data from a specified table
-    of the current step's outputs.
+    API call. Returns a specific delimited and optionally filtered and/or sorted slice of data
+    from a specified table of the current step's outputs.
     """
     if request.method != "POST":
         return JsonResponse(
@@ -778,9 +732,17 @@ def get_current_step_table_data(request):
     table_label = data.get("table_label")
     start_index = data.get("start_index")
     end_index = data.get("end_index")
-    index_delims = (start_index, end_index)
+    sort_field = data.get("sort_field")
+    sort_direction = data.get("sort_direction", "asc")
+    filters_raw = data.get("filters", "[]")
+    filters = json.loads(filters_raw)
 
-    response = {"success": False, "message": None, "rows": None, "total_row_count": 0}
+    response: dict[str, object | None] = {
+        "success": False,
+        "message": None,
+        "rows": None,
+        "total_row_count": 0,
+    }
 
     run = Run(run_name)
 
@@ -793,9 +755,55 @@ def get_current_step_table_data(request):
         response["message"] = "Requested step output not found"
         return JsonResponse(response, status=404)
 
-    serialised_output = _step_output_as_serialised_table(
-        table_label, step_output, index_delims
-    )
+    # Serialise compatible lists
+    # TODO #49 this should be refactored to be stored somewhere and not be calculated on every call (can take a few seconds)
+    # Potential fix: Do not use lists?
+    if (
+        ("_df" not in table_label)
+        and (table_label not in hidden_outputs)
+        and (type(step_output) == list)
+    ):
+        step_output = pd.DataFrame({table_label: step_output})
+
+    if isinstance(step_output, pd.DataFrame):
+        for f in filters:
+            field = f.get("field")
+            operator = f.get("operator")
+            value = f.get("value")
+
+            if not field or value is None:
+                continue
+
+            col = step_output[field]
+            if operator == "contains":
+                step_output = step_output[
+                    col.astype(str).str.contains(str(value), case=False, na=False)
+                ]
+            elif operator == "equals":
+                step_output = step_output[
+                    col.astype(str).str.lower() == str(value).lower()
+                ]
+            elif operator == "=":
+                step_output = step_output[col == float(value)]
+            elif operator == ">":
+                step_output = step_output[col > float(value)]
+            elif operator == "<":
+                step_output = step_output[col < float(value)]
+
+        if sort_field:
+            step_output = step_output.sort_values(
+                by=sort_field,
+                ascending=(sort_direction == "asc"),
+                na_position="last",
+            )
+
+        response["total_row_count"] = len(step_output)
+
+        paginated_output = step_output.iloc[start_index:end_index]
+
+        serialised_output = _dataframe_as_datagrid_rows(paginated_output)
+    else:
+        serialised_output = None
 
     if serialised_output is None:
         response["rows"] = [
@@ -806,8 +814,6 @@ def get_current_step_table_data(request):
     else:
         response["success"] = True
         response["rows"] = serialised_output
-
-    response["total_row_count"] = len(step_output)
 
     return JsonResponse(response)
 
