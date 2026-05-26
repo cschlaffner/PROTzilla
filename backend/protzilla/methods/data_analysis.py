@@ -2417,6 +2417,10 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
                 form.add_field(upper_bound_length_deviation_field)
                 form.add_field(lower_bound_length_deviation_field)
 
+            bounds_visible = form["validation_criterion"].value == CrosslinkingValidationCriterion.manual_bounds.value
+            form[f"{crosslinker}_upper_accepted_deviation"].isVisible = bounds_visible
+            form[f"{crosslinker}_lower_accepted_deviation"].isVisible = bounds_visible
+
     def collect_crosslinking_information(self, steps: StepManager, inputs) -> dict:
         # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
         crosslinker_to_length_and_deviation = {}
