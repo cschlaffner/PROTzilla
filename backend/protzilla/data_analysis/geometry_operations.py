@@ -13,7 +13,7 @@ COORDINATE_COLUMNS = [
 ]
 
 
-def _resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
+def resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
     """
     Return the preferred chain identifier column if present in the CIF DataFrame.
     """
@@ -62,7 +62,7 @@ def extract_points_from_cif(
 
     filtered_df = cif_df.copy()
 
-    chain_column = _resolve_chain_column(filtered_df)
+    chain_column = resolve_chain_column(filtered_df)
     if chain_id is not None:
         if chain_column is None:
             raise ValueError(
@@ -184,6 +184,25 @@ def find_farthest_point_vdw(
     distances = np.linalg.norm(points - reference_point, axis=1) + radii
     max_index = np.argmax(distances)
     return points[max_index], float(distances[max_index])
+
+
+def find_intersecting_spheres(
+    spheres: list[dict],
+    reference_sphere: dict,
+) -> list[dict]:
+    reference_center = np.array(reference_sphere["center"], dtype=float)
+    reference_radius = float(reference_sphere["radius"])
+
+    intersecting_spheres = []
+    for sphere in spheres:
+        center = np.array(sphere["center"], dtype=float)
+        radius = float(sphere["radius"])
+        distance = np.linalg.norm(center - reference_center)
+
+        if distance <= reference_radius + radius:
+            intersecting_spheres.append(sphere)
+
+    return intersecting_spheres
 
 
 def meshes_intersect(
