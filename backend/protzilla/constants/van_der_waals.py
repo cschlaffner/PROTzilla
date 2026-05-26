@@ -2,7 +2,6 @@ vdw_radii = {
     """
     Van der Waals radius in Ångström
     """
-
     "H": 1.20,
     "He": 1.43,
     "Li": 2.12,

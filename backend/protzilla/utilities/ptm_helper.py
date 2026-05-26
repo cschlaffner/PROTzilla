@@ -95,9 +95,7 @@ def get_center_points_and_radius_for_each_ptm(ptm_list: list) -> list:
         elements_array = np.array(elements)
 
         center_point = calculate_center_point(coords_array)
-        _, radius = find_farthest_point_vdw(
-            coords_array, elements_array, center_point
-        )
+        _, radius = find_farthest_point_vdw(coords_array, elements_array, center_point)
 
         ptm["center_point"] = center_point.tolist()
         ptm["radius"] = float(radius)

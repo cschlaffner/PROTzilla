@@ -177,9 +177,7 @@ def find_ptm_amino_acid_sphere_collisions(
                 <= ignored_neighbors
             )
         ]
-        intersecting_spheres = find_intersecting_spheres(
-            checked_spheres, ptm_sphere
-        )
+        intersecting_spheres = find_intersecting_spheres(checked_spheres, ptm_sphere)
 
         collisions.append(
             {

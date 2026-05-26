@@ -138,7 +138,7 @@ def point_cloud_to_polyhedron(points: np.ndarray) -> dict:
 
 def calculate_center_point(points: np.ndarray) -> np.ndarray:
     """
-    Calculate the center point of a point cloud. 
+    Calculate the center point of a point cloud.
     """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
@@ -150,12 +150,14 @@ def calculate_center_point(points: np.ndarray) -> np.ndarray:
 
 def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
     """
-    Calculate the farthest point inside a point cloud from a reference point. 
+    Calculate the farthest point inside a point cloud from a reference point.
     """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
     if len(points) == 0:
-        raise ValueError("At least one point is required to calculate a maximum distance.")
+        raise ValueError(
+            "At least one point is required to calculate a maximum distance."
+        )
     if reference_point.shape != (3,):
         raise ValueError(
             f"Expected reference_point with shape (3,), got {reference_point.shape}."
@@ -163,6 +165,7 @@ def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.n
 
     distances = np.linalg.norm(points - reference_point, axis=1)
     return points[np.argmax(distances)]
+
 
 def find_farthest_point_vdw(
     points: np.ndarray, elements: np.ndarray, reference_point: np.ndarray
@@ -173,7 +176,9 @@ def find_farthest_point_vdw(
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
     if len(points) == 0:
-        raise ValueError("At least one point is required to calculate a maximum distance.")
+        raise ValueError(
+            "At least one point is required to calculate a maximum distance."
+        )
     if reference_point.shape != (3,):
         raise ValueError(
             f"Expected reference_point with shape (3,), got {reference_point.shape}."

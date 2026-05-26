@@ -212,12 +212,12 @@ def create_visualization(
         cif_string = ""
 
     result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
-    
+
     result["trimeshMeshes"] = calculate_amino_acid_spheres(
         cif_df, only_intersecting_ptms=True, ignored_neighbors=0
     )
     result["trimeshMeshes"].extend(calculate_ptm_spheres(cif_df))
-    
+
     if crosslinking_df is not None:
         result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
 
