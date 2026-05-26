@@ -39,7 +39,7 @@ def create_pie_plot(
     )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
-    fig.update_traces(hovertemplate="%{label} <br>Amount: %{value}")
+    fig.update_traces(hovertemplate="%{label} <br>Amount: %{value}", sort=False)
     return fig
 
 
