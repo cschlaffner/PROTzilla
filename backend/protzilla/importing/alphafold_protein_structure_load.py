@@ -479,6 +479,80 @@ def fetch_alphafold_protein_structure(
         ),
     )
 
+def reduce_pae_to_per_amino_acid(
+    pae_matrix: np.ndarray,
+    token_res_ids: list[int],
+    cif_df: pd.DataFrame,
+):
+    """
+    Reduces AlphaFold3 PAE matrices (per-token) to AlphaFold2 PAE matrices (per-amino acid).
+    If the number of tokens mapping to one AA equals the number of atoms (common for predicted PTMs),
+    the CA token gets used. Otherwise, the first token gets used.
+    Required for predictions with PTMs!
+
+    :param pae_matrix: the per-token PAE matrix
+    :param token_res_ids: the token_res_ids table from the AF3 full_data json
+    :param cif_df: the atom_site table as a dataframe
+
+    :return: the per-AA/per-residue PAE matrix
+    """
+
+    indices_to_delete = []
+
+    current_idx = 0
+    runs = []
+
+    current_chain_idx = 0
+    # Get all runs (start_token_idx, len, chain_idx, res_id) of same res ids into one list
+    while current_idx < len(token_res_ids):
+        start_token_idx = current_idx
+        res_id = token_res_ids[start_token_idx]
+        length = 1
+
+        if res_id == 1:
+            current_chain_idx += 1
+
+        while True:
+            current_idx += 1
+            if current_idx < len(token_res_ids) and token_res_ids[current_idx] == res_id:
+                length += 1
+            else:
+                break
+
+        runs.append((start_token_idx, length, current_chain_idx, res_id))
+
+    for start_token_idx, length, chain_idx, res_id in runs:
+        if length == 1:
+            continue
+    
+        # Get corresponding entries of _atom_site table for the token
+        relevant_cif_df = cif_df[cif_df["_atom_site.label_entity_id"] == str(chain_idx)]
+        relevant_cif_df = relevant_cif_df[relevant_cif_df["_atom_site.label_seq_id"] == res_id]
+
+        keep_offset = 0 # Relative index to keep within duplicate tokens for one amino acid. Default: first token
+
+        # If we have one token per atom, we try to take the CA atom
+        if len(relevant_cif_df) == length:
+            # Reset index twice to get 0..length enumeration for atoms in index
+            relevant_cif_df.reset_index(drop=True, inplace=True)
+            relevant_cif_df.reset_index(inplace=True)
+
+            relevant_cif_df = relevant_cif_df[relevant_cif_df["_atom_site.label_atom_id"] == "CA"]
+            # 0 or 2+ CA atoms -> default
+            if len(relevant_cif_df) == 1:
+                keep_offset = int(relevant_cif_df.iloc[0]["index"])
+
+        for duplicate_idx in range(0, length):
+            if duplicate_idx != keep_offset:
+                indices_to_delete.append(start_token_idx + duplicate_idx)
+
+    # Apply deletion
+    mask = np.ones(len(pae_matrix), dtype=bool)
+    mask[indices_to_delete] = False
+    pae_matrix = pae_matrix[np.ix_(mask, mask)]
+
+    return pae_matrix
+
 
 def get_all_available_entry_ids_of_monomer_metadata() -> list[str]:
     """ "
@@ -760,6 +834,7 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
     pae_matrix = np.array(ast.literal_eval(pae_string))
     del df_dict["pae_df"]
 
+
     return dict(
         **df_dict,
         pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
@@ -779,6 +854,7 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
     :return dict:
         - "full_data_df": The updated reduced full_data_df
         - "pae_matrix": Numpy matrix with the PAE values for each residue pair
+        - "token_res_ids": List with the token -> AA mappings
     """
 
     try:
@@ -787,9 +863,17 @@ def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
     except KeyError:
         pae_matrix = None
 
+    try:
+        token_res_ids = np.array(full_data_df["token_res_ids"].iloc[0])
+        full_data_df = full_data_df.drop(columns=["token_res_ids"])
+    except KeyError as e:
+        raise KeyError("Prediction data does not contain required prediction token to amino acid mapping.") from e
+    
+
     return dict(
         full_data_df=full_data_df,
         pae_matrix=pae_matrix,
+        token_res_ids=token_res_ids,
     )
 
 
@@ -915,7 +999,10 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
     df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
 
     pae_matrix = unwrapped_full_data["pae_matrix"]
+    token_res_ids = unwrapped_full_data["token_res_ids"]
     plddt_df = get_plddt_from_cif(df_dict["cif_df"])
+
+    pae_matrix = reduce_pae_to_per_amino_acid(pae_matrix, token_res_ids, df_dict["cif_df"])
 
     if plddt_df is None:
         messages.append(
@@ -1079,9 +1166,15 @@ def upload_multimer_prediction(
             unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
             df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
 
+            pae_matrix = reduce_pae_to_per_amino_acid(
+                unwrapped_full_data["pae_matrix"],
+                unwrapped_full_data["token_res_ids"],
+                df_dict["cif_df"],
+            )
+
             pae_matrix = OutputItem(
                 output_type=OutputType.JOBLIB_ARTIFACT,
-                value=unwrapped_full_data["pae_matrix"],
+                value=pae_matrix,
             )
             df_dict["pae_matrix"] = pae_matrix
             df_dict["plddt_df"] = get_plddt_from_cif(df_dict["cif_df"])
