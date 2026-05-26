@@ -1,12 +1,8 @@
 import itertools
 import ast
 import math
-from pipes import stepkinds
 
-from multiprocessing.sharedctypes import Value
-from typing import TYPE_CHECKING, Callable
-
-from numpy.testing import assert_
+from typing import Callable
 
 from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
@@ -14,7 +10,6 @@ import numpy as np
 import re
 import logging
 
-from pandas.io.stata import stata_epoch
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import plotly.express as px
