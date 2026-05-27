@@ -53,3 +53,14 @@ class PSM_DF_COLUMNS(StrEnum):
     # During the evidence import, Leading razor protein is renamed to Protein ID
     PROTEIN_ID = "Protein ID"
     SAMPLE = "Sample"
+
+
+class MODIFICATION_COLUMNS(StrEnum):
+    """
+    Enum containing all column names expected in a modification_df
+    """
+
+    PROTEIN_ID = "Protein ID"
+    MODIFICATION = "Modification"
+    PROTEIN_LOCATION = "Protein Location"
+    RESIDUE = "Residue"
