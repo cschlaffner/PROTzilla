@@ -1079,6 +1079,7 @@ def diagrams_of_crosslinking_validation_data(
 
     return figures
 
+
 def cl_scatterplots_plddt(
     cl_results_df: pd.DataFrame,
     structures_to_validate: list[str],
@@ -1094,7 +1095,8 @@ def cl_scatterplots_plddt(
         cl_results_df["measured_distance"] - cl_results_df["alphafold_distance"]
     )
     cl_results_df["avg_plddt"] = cl_results_df.apply(
-            lambda row: np.average([row["plddt_at_position1"], row["plddt_at_position2"]]), axis=1
+        lambda row: np.average([row["plddt_at_position1"], row["plddt_at_position2"]]),
+        axis=1,
     )
 
     y_label = "Avg. pLDDT at binding sites"
@@ -1104,43 +1106,55 @@ def cl_scatterplots_plddt(
     valid_cls = cl_results_df[cl_results_df["valid_crosslink"]]
     invalid_cls = cl_results_df[~cl_results_df["valid_crosslink"]]
 
-    hovertemplate = "%{customdata[0]} (Length %{customdata[1]}Å)" + \
-        "<br>Predicted distance: %{customdata[2]:.2f}Å " + \
-        "(off by %{customdata[3]:.2f}Å)" + \
-        "<br>Accepted distance range %{customdata[4]:.2f} - %{customdata[5]:.2f} Å" + \
-        "<extra></extra>"
+    hovertemplate = (
+        "%{customdata[0]} (Length %{customdata[1]}Å)"
+        + "<br>Predicted distance: %{customdata[2]:.2f}Å "
+        + "(off by %{customdata[3]:.2f}Å)"
+        + "<br>Accepted distance range %{customdata[4]:.2f} - %{customdata[5]:.2f} Å"
+        + "<extra></extra>"
+    )
 
-    fig.add_trace(go.Scatter(
-        x = valid_cls["distance_delta"],
-        y = valid_cls["avg_plddt"],
-        customdata = np.stack((
-            valid_cls['Crosslinker'], 
-            valid_cls['measured_distance'],
-            valid_cls['alphafold_distance'],
-            valid_cls['distance_delta'],
-            valid_cls['accepted_distance_lower_bound'],
-            valid_cls['accepted_distance_upper_bound'],
-        ), axis=-1),
-        mode = 'markers',
-        name = "CLs matching prediction",
-        hovertemplate = hovertemplate,
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=valid_cls["distance_delta"],
+            y=valid_cls["avg_plddt"],
+            customdata=np.stack(
+                (
+                    valid_cls["Crosslinker"],
+                    valid_cls["measured_distance"],
+                    valid_cls["alphafold_distance"],
+                    valid_cls["distance_delta"],
+                    valid_cls["accepted_distance_lower_bound"],
+                    valid_cls["accepted_distance_upper_bound"],
+                ),
+                axis=-1,
+            ),
+            mode="markers",
+            name="CLs matching prediction",
+            hovertemplate=hovertemplate,
+        )
+    )
 
-    fig.add_trace(go.Scatter(
-        x = invalid_cls["distance_delta"],
-        y = invalid_cls["avg_plddt"],
-        customdata = np.stack((
-            invalid_cls['Crosslinker'], 
-            invalid_cls['measured_distance'],
-            invalid_cls['alphafold_distance'],
-            invalid_cls['distance_delta'],
-            invalid_cls['accepted_distance_lower_bound'],
-            invalid_cls['accepted_distance_upper_bound'],
-        ), axis=-1),
-        mode = 'markers',
-        name = "CLs not matching prediction",
-        hovertemplate = hovertemplate,
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=invalid_cls["distance_delta"],
+            y=invalid_cls["avg_plddt"],
+            customdata=np.stack(
+                (
+                    invalid_cls["Crosslinker"],
+                    invalid_cls["measured_distance"],
+                    invalid_cls["alphafold_distance"],
+                    invalid_cls["distance_delta"],
+                    invalid_cls["accepted_distance_lower_bound"],
+                    invalid_cls["accepted_distance_upper_bound"],
+                ),
+                axis=-1,
+            ),
+            mode="markers",
+            name="CLs not matching prediction",
+            hovertemplate=hovertemplate,
+        )
+    )
 
     # X axis range should start as close to 0 as reasonable and extend to max value
     min_dist_delta = min(cl_results_df["distance_delta"])
@@ -1151,7 +1165,7 @@ def cl_scatterplots_plddt(
         xmin = np.log10(min_dist_delta)
 
     xmax = np.log10(max_dist_delta)
-    xmax += np.log10(1.2) # reasonable padding
+    xmax += np.log10(1.2)  # reasonable padding
 
     # Y axis must start at 0 and extend to max avg pLDDT + padding
     ymin = 0
@@ -1171,12 +1185,11 @@ def cl_scatterplots_plddt(
         range=[ymin, ymax],
     )
 
-
     fig.update_layout(
         title=dict(
             text=f"Identified Crosslinks vs. Predicted Structure ({', '.join(structures_to_validate)})"
         ),
-        showlegend=True
+        showlegend=True,
     )
 
     figures.append(fig)
@@ -1212,52 +1225,70 @@ def cl_scatterplots_pae(
         cl_results_df["measured_distance"] - cl_results_df["alphafold_distance"]
     )
     cl_results_df["relevant_pae"] = cl_results_df.apply(
-            lambda row: get_relevant_pae_value(row["pae_x_position1"], row["pae_x_position2"], validation_criterion), axis=1
+        lambda row: get_relevant_pae_value(
+            row["pae_x_position1"], row["pae_x_position2"], validation_criterion
+        ),
+        axis=1,
     )
 
-    y_label = "Max. PAE between binding sites" if validation_criterion == CrosslinkingValidationCriterion.max_pae.value else "Min. PAE between binding sites"
-
+    y_label = (
+        "Max. PAE between binding sites"
+        if validation_criterion == CrosslinkingValidationCriterion.max_pae.value
+        else "Min. PAE between binding sites"
+    )
 
     fig = go.Figure()
 
     valid_cls = cl_results_df[cl_results_df["valid_crosslink"]]
     invalid_cls = cl_results_df[~cl_results_df["valid_crosslink"]]
 
-    hovertemplate = "%{customdata[0]} (Length %{customdata[1]}Å)" + \
-        "<br>Predicted distance: %{customdata[2]:.2f}Å " + \
-        "(off by %{customdata[3]:.2f}Å)" + \
-        "<br>PAE %{customdata[4]:.2f}Å" + \
-        "<extra></extra>"
+    hovertemplate = (
+        "%{customdata[0]} (Length %{customdata[1]}Å)"
+        + "<br>Predicted distance: %{customdata[2]:.2f}Å "
+        + "(off by %{customdata[3]:.2f}Å)"
+        + "<br>PAE %{customdata[4]:.2f}Å"
+        + "<extra></extra>"
+    )
 
-    fig.add_trace(go.Scatter(
-        x = valid_cls["distance_delta"],
-        y = valid_cls["relevant_pae"],
-        customdata = np.stack((
-            valid_cls['Crosslinker'], 
-            valid_cls['measured_distance'],
-            valid_cls['alphafold_distance'],
-            valid_cls['distance_delta'],
-            valid_cls['relevant_pae'],
-        ), axis=-1),
-        mode = 'markers',
-        name = "CLs matching prediction",
-        hovertemplate = hovertemplate
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=valid_cls["distance_delta"],
+            y=valid_cls["relevant_pae"],
+            customdata=np.stack(
+                (
+                    valid_cls["Crosslinker"],
+                    valid_cls["measured_distance"],
+                    valid_cls["alphafold_distance"],
+                    valid_cls["distance_delta"],
+                    valid_cls["relevant_pae"],
+                ),
+                axis=-1,
+            ),
+            mode="markers",
+            name="CLs matching prediction",
+            hovertemplate=hovertemplate,
+        )
+    )
 
-    fig.add_trace(go.Scatter(
-        x = invalid_cls["distance_delta"],
-        y = invalid_cls["relevant_pae"],
-        customdata = np.stack((
-            invalid_cls['Crosslinker'], 
-            invalid_cls['measured_distance'],
-            invalid_cls['alphafold_distance'],
-            invalid_cls['distance_delta'],
-            invalid_cls['relevant_pae'],
-        ), axis=-1),
-        mode = 'markers',
-        name = "CLs not matching prediction",
-        hovertemplate = hovertemplate,
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=invalid_cls["distance_delta"],
+            y=invalid_cls["relevant_pae"],
+            customdata=np.stack(
+                (
+                    invalid_cls["Crosslinker"],
+                    invalid_cls["measured_distance"],
+                    invalid_cls["alphafold_distance"],
+                    invalid_cls["distance_delta"],
+                    invalid_cls["relevant_pae"],
+                ),
+                axis=-1,
+            ),
+            mode="markers",
+            name="CLs not matching prediction",
+            hovertemplate=hovertemplate,
+        )
+    )
 
     # X axis range should start as close to 0 as reasonable and extend to max value
     min_dist_delta = min(cl_results_df["distance_delta"])
@@ -1268,7 +1299,7 @@ def cl_scatterplots_pae(
         xmin = np.log10(min_dist_delta)
 
     xmax = np.log10(max_dist_delta)
-    xmax += np.log10(1.2) # reasonable padding
+    xmax += np.log10(1.2)  # reasonable padding
 
     # Y axis must start at 0 and extend to max relevant PAE + padding
     ymin = 0
@@ -1287,7 +1318,6 @@ def cl_scatterplots_pae(
         title_text=y_label,
         range=[ymin, ymax],
     )
-
 
     fig.update_layout(
         title=dict(
