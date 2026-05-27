@@ -204,7 +204,7 @@ export const RunScreen: React.FC = () => {
     (output: StepOutputInfo, response: ApiResponse<Image>) => ({
       title: output.label,
       alt: output.label,
-      data: "data:image/png;base64," + response.data.data,
+      data: "data:image/png;base64," + response.data.base64image,
     }),
     [],
   );

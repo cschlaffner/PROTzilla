@@ -820,7 +820,9 @@ def get_png_from_step(request: HttpRequest):
         )
 
     content = output.decode("utf-8")
-    return JsonResponse({"success": True, "message": "OK", "data": content})
+    return JsonResponse(
+        {"success": True, "message": "OK", "data": {"base64image": content}}
+    )
 
 
 def get_current_step_table_data(request):
