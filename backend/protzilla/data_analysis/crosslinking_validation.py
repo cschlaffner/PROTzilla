@@ -4,6 +4,8 @@ import math
 
 from typing import Callable
 
+from pandas.core.generic import validate_inclusive
+
 from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
 import numpy as np
@@ -1107,25 +1109,72 @@ def cl_scatterplots_pae(
 
     y_label = "Max. PAE between binding sites" if validation_criterion == CrosslinkingValidationCriterion.max_pae.value else "Min. PAE between binding sites"
 
-    fig = px.scatter(
-        cl_results_df,
-        y="relevant_pae",
-        x="distance_delta",
-        color="valid_crosslink",
-        color_discrete_map={
-            False: "red",
-            True: "blue",
-        },
-        labels={
-            "relevant_pae": y_label,
-            "distance_delta": "Deviation from CL length in predicted structure (Å)",
-            "valid_crosslink": "CL matches structure prediction",
-            "measured_distance": "CL length",
-            "Crosslinker": "CL type",
-            },
-        log_x=True,
-        title="Identified Crosslinks",
-        hover_data=["relevant_pae", "distance_delta", "Crosslinker", "measured_distance"]
+
+    fig = go.Figure()
+
+    valid_cls = cl_results_df[cl_results_df["valid_crosslink"]]
+    invalid_cls = cl_results_df[~cl_results_df["valid_crosslink"]]
+
+    fig.add_trace(go.Scatter(
+        x = valid_cls["distance_delta"],
+        y = valid_cls["relevant_pae"],
+        customdata = np.stack((
+            valid_cls['Crosslinker'], 
+            valid_cls['measured_distance'],
+            valid_cls['distance_delta'],
+            valid_cls['relevant_pae'],
+        ), axis=-1),
+        mode = 'markers',
+        name = "CLs matching prediction",
+        hovertemplate = "%{customdata[0]} (Length %{customdata[1]}Å)<br>Prediction off by %{customdata[2]:.2f}Å<br>PAE %{customdata[3]:.2f}Å<extra></extra>",
+        hoverinfo="none"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x = invalid_cls["distance_delta"],
+        y = invalid_cls["relevant_pae"],
+        customdata = np.stack((
+            invalid_cls['Crosslinker'], 
+            invalid_cls['measured_distance'],
+            invalid_cls['distance_delta'],
+            invalid_cls['relevant_pae'],
+        ), axis=-1),
+        mode = 'markers',
+        name = "CLs not matching prediction",
+        hovertemplate = "%{customdata[0]} (Length %{customdata[1]}Å)<br>Prediction off by %{customdata[2]:.2f}Å<br>PAE %{customdata[3]:.2f}Å<extra></extra>",
+        hoverinfo="none"
+    ))
+
+    # X axis range should start as close to 0 as reasonable and extend to max value
+    min_dist_delta = min(cl_results_df["distance_delta"])
+    max_dist_delta = max(cl_results_df["distance_delta"])
+
+    xmin = -1
+    if np.log10(xmin) > min_dist_delta:
+        xmin = np.log10(min_dist_delta)
+
+    xmax = np.log10(max_dist_delta)
+    xmax += np.log10(1.2) # reasonable padding
+
+
+    fig.update_xaxes(
+        type="log",
+        title_text="Deviation from CL length in predicted structure (Å) (log scaled)",
+        tickmode="linear",
+        tick0=0,
+        dtick=np.log10(2),
+        range=[xmin, xmax],
+    )
+
+    fig.update_yaxes(
+        title_text=y_label,
+    )
+
+
+    fig.update_layout(
+        title=dict(
+            text=f"Identified Crosslinks vs. Predicted Structure ({', '.join(structures_to_validate)})"
+        ),
     )
 
     figures.append(fig)
@@ -1219,15 +1268,15 @@ def multimer_diagrams(
                 crosslinker_information=crosslinker_information,
             )
 
-        # TODO: Separate Issue #429
         case (
             CrosslinkingValidationCriterion.max_pae.value
             | CrosslinkingValidationCriterion.min_pae.value
         ):
-            return diagrams_of_crosslinking_validation_data(
-                validated_df=output_crosslinking_result_df,
+            return cl_scatterplots_pae(
+                cl_results_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
                 crosslinker_information=crosslinker_information,
+                validation_criterion=validation_criterion,
             )
 
         # TODO: Separate Issue #429
