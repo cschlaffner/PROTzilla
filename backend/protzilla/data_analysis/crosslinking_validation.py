@@ -4,8 +4,6 @@ import math
 
 from typing import Callable
 
-from pandas.core.generic import validate_inclusive
-
 from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
 import numpy as np
