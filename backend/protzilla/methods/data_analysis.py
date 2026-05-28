@@ -2488,5 +2488,14 @@ class PtmValidation(DataAnalysisStep):
     def create_form(self):
         return Form(
             label="PTM Validation",
-            input_fields=[],
+            input_fields=[
+                NumberField(
+                    name="ignored_neighbors",
+                    label="Number of PTM residue neighbors to ignore",
+                    value=0,
+                    min=0,
+                    step=1,
+                    hasStepButtons=True,
+                )
+            ],
         )

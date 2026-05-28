@@ -191,6 +191,8 @@ def create_visualization(
     cif_df: pd.DataFrame,
     structure_entry_id: str,
     crosslinking_df: Optional[pd.DataFrame] = None,
+    include_ptm_spheres: bool = False,
+    ignored_neighbors: int = 0,
 ) -> dict:
     """
     Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its structure entry ID.
@@ -213,10 +215,13 @@ def create_visualization(
 
     result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
 
-    result["trimeshMeshes"] = calculate_amino_acid_spheres(
-        cif_df, only_intersecting_ptms=True, ignored_neighbors=0
-    )
-    result["trimeshMeshes"].extend(calculate_ptm_spheres(cif_df))
+    if include_ptm_spheres:
+        result["trimeshMeshes"] = calculate_amino_acid_spheres(
+            cif_df,
+            only_intersecting_ptms=True,
+            ignored_neighbors=int(ignored_neighbors),
+        )
+        result["trimeshMeshes"].extend(calculate_ptm_spheres(cif_df))
 
     if crosslinking_df is not None:
         result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
