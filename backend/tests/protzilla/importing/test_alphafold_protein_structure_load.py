@@ -505,7 +505,7 @@ def test_upload_multimer_prediction_basic(tmp_path, monkeypatch):
         '{"chain_iptm": [0.42, 0.89]}'
     )  # Note that we do not use these metrics anywhere
     full = tmp_path / "full.json"
-    full.write_text('{"random_column": [1,2], "pae": [[1, 2], [3, 4]]}')
+    full.write_text('{"random_column": [1,2], "pae": [[1, 2], [3, 4]]}, "token_res_ids": [1, 2, 1]')
     job_request = tmp_path / "job_request.json"
     job_request.write_text(
         json.dumps(
@@ -768,7 +768,7 @@ def test_upload_multimer_prediction_no_persist(tmp_path, monkeypatch):
     conf = tmp_path / "conf.json"
     conf.write_text('[{"residueNumber":1, "confidenceScore":99}]')
     full = tmp_path / "full.json"
-    full.write_text('{"a": [1,2]}')
+    full.write_text('{"a": [1,2], "token_res_ids": [1]}')
     job_request = tmp_path / "job_request.json"
     job_request.write_text(
         json.dumps(
@@ -1060,7 +1060,7 @@ N N SER
     full_data = prot_dir / "full.json"
     job_request = prot_dir / "job_request.json"
     confidence.write_text(json.dumps({"chain_iptm": [0.75]}))
-    full_data.write_text(json.dumps({"pae": [[0.1, 0.2], [0.3, 0.4]]}))
+    full_data.write_text(json.dumps({"pae": [[0.1, 0.2], [0.3, 0.4]], "token_res_ids": [1]}))
     job_request.write_text(
         json.dumps(
             [
