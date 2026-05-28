@@ -14,11 +14,20 @@ from backend.protzilla.data_preprocessing import (
     simplification,
 )
 from backend.protzilla.form import *
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.data_preprocessing.simplification import AggregationMethod
+
+info_field_show_outliers = InfoField(
+    name="show_outliers_info",
+    label="Hiding outliers changes how the chart is calculated. It "
+    "will extend the whiskers to the absolute minimum and maximum "
+    "values of your data instead of the standard 1.5 interquartile "
+    "range (IQR).",
+    isVisible=True,
+)
 
 
 class DataPreprocessingStep(Step, ABC):
@@ -36,26 +45,30 @@ class DataPreprocessingStep(Step, ABC):
 
 class FilterSamplesStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
-    operation = "filter_samples"
+    operation: StepOperation = StepOperation.FILTER_SAMPLES
 
 
 class FilterProteinsStep(DataPreprocessingStep, ABC):
     output_keys = [DataKey.PROTEIN_DF]
-    operation = "filter_proteins"
+    operation: StepOperation = StepOperation.FILTER_PROTEINS
+
+
+class FilterPeptidesStep(DataPreprocessingStep, ABC):
+    operation: StepOperation = StepOperation.FILTER_PEPTIDES
 
 
 class OutlierDetectionStep(DataPreprocessingStep, ABC):
-    operation = "outlier_detection"
     output_keys = [DataKey.PROTEIN_DF]
+    operation: StepOperation = StepOperation.OUTLIER_DETECTION
 
 
 class FilterPsmStep(DataPreprocessingStep, ABC):
-    operation = "filter_PSM"
     output_keys = [DataKey.PSM_DF]
+    operation: StepOperation = StepOperation.FILTER_PSMS
 
 
 class FilterProteinsBySamplesMissing(FilterProteinsStep):
-    display_name = "By samples missing"
+    display_name = "Filter Proteins: Missing Samples"
     method_description = (
         "Filter proteins based on the amount of samples with nan values"
     )
@@ -86,7 +99,7 @@ class FilterProteinsBySamplesMissing(FilterProteinsStep):
 
 
 class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
-    display_name = "By number of values per group"
+    display_name = "Filter Proteins: #Values / Group"
     method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
 
     def create_form(self):
@@ -114,7 +127,7 @@ class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
 
 
 class FilterProteinsByProteinIDs(FilterProteinsStep):
-    display_name = "By protein ids"
+    display_name = "Filter Proteins: Specific IDs"
     method_description = "Filter by protein ids entered by user"
 
     def create_form(self):
@@ -144,7 +157,7 @@ class FilterProteinsByProteinIDs(FilterProteinsStep):
 
 
 class FilterProteinsKeepNmostSignificantProteins(FilterProteinsStep):
-    display_name = "Keep n most significant proteins"
+    display_name = "Filter Proteins: Keep n Most Significant"
     method_description = (
         "Filter to keep the n most significant proteins (with the lowest p-values)"
     )
@@ -167,7 +180,7 @@ class FilterProteinsKeepNmostSignificantProteins(FilterProteinsStep):
 
 
 class FilterByProteinsCount(FilterSamplesStep):
-    display_name = "By protein count"
+    display_name = "Filter Samples: #Proteins / Sample"
     method_description = "Filter by protein count per sample"
 
     def create_form(self):
@@ -196,9 +209,8 @@ class FilterByProteinsCount(FilterSamplesStep):
     plot_method = staticmethod(filter_samples.by_protein_count_plot)
 
 
-class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
-    display_name = "PEP threshold"
-    operation = "filter_peptides"
+class FilterPeptidesByPEPThreshold(FilterPeptidesStep):
+    display_name = "Filter Peptides: PEP Threshold"
     method_description = "Filter peptides by PEP-threshold"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -228,9 +240,8 @@ class FilterPeptidesByPEPThreshold(DataPreprocessingStep):
     plot_method = staticmethod(filter_peptides_or_psm.filter_peptides_by_pep_value_plot)
 
 
-class FilterPeptidesByExistingProteins(DataPreprocessingStep):
-    display_name = "By existing proteins"
-    operation = "filter_peptides"
+class FilterPeptidesByExistingProteins(FilterPeptidesStep):
+    display_name = "Filter Peptides: Existing Proteins"
     method_description = "Filter peptides by existing proteins"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -246,9 +257,8 @@ class FilterPeptidesByExistingProteins(DataPreprocessingStep):
     plot_method = staticmethod(filter_peptides_or_psm.peptide_filtering_pie_plot)
 
 
-class FilterPeptidesByExistingSamples(DataPreprocessingStep):
-    display_name = "By existing samples"
-    operation = "filter_peptides"
+class FilterPeptidesByExistingSamples(FilterPeptidesStep):
+    display_name = "Filter Peptides: Existing Samples"
     method_description = "Filter peptides by existing samples"
     output_keys = [DataKey.PEPTIDE_DF]
 
@@ -265,7 +275,7 @@ class FilterPeptidesByExistingSamples(DataPreprocessingStep):
 
 
 class FilterPsmByPEPThreshold(FilterPsmStep):
-    display_name = "PEP threshold"
+    display_name = "Filter PSMs: PEP Threshold"
     method_description = "Filter PSM by PEP-threshold"
 
     def create_form(self):
@@ -295,7 +305,7 @@ class FilterPsmByPEPThreshold(FilterPsmStep):
 
 
 class FilterPsmByExistingProteins(FilterPsmStep):
-    display_name = "By existing proteins"
+    display_name = "Filter PSMs: Existing Proteins"
     method_description = "Filter PSM by existing proteins"
 
     def create_form(self):
@@ -309,7 +319,7 @@ class FilterPsmByExistingProteins(FilterPsmStep):
 
 
 class FilterPsmByExistingSamples(FilterPsmStep):
-    display_name = "By existing samples"
+    display_name = "Filter PSMs: Existing Samples"
     method_description = "Filter PSM by existing samples"
 
     def create_form(self):
@@ -323,7 +333,7 @@ class FilterPsmByExistingSamples(FilterPsmStep):
 
 
 class FilterSamplesByProteinsMissing(FilterSamplesStep):
-    display_name = "By proteins missing"
+    display_name = "Filter Samples: Missing Proteins"
     method_description = (
         "Filter samples based on the amount of proteins with nan values"
     )
@@ -354,8 +364,8 @@ class FilterSamplesByProteinsMissing(FilterSamplesStep):
 
 
 class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
-    display_name = "By sum of intensities"
-    method_description = "Filter by sum of protein intensities per sample"
+    display_name = "Filter Samples: Sum of Intensities"
+    method_description = "Filter Samples (Sum of Protein Intensities)"
 
     def create_form(self):
         return Form(
@@ -384,7 +394,7 @@ class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
 
 
 class OutlierDetectionByPCA(OutlierDetectionStep):
-    display_name = "PCA"
+    display_name = "Outlier Detection: PCA"
     method_description = "Detect outliers using PCA"
 
     def create_form(self):
@@ -416,7 +426,7 @@ class OutlierDetectionByPCA(OutlierDetectionStep):
 
 
 class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
-    display_name = "Local outlier factor"
+    display_name = "Outlier Detection: Local Outlier Factor"
     method_description = "Detect outliers using the local outlier factor"
 
     def create_form(self):
@@ -439,7 +449,7 @@ class OutlierDetectionByLocalOutlierFactor(OutlierDetectionStep):
 
 
 class OutlierDetectionByIsolationForest(OutlierDetectionStep):
-    display_name = "Isolation Forest"
+    display_name = "Outlier Detection: Isolation Forest"
     method_description = "Detect outliers using Isolation Forest"
 
     def create_form(self):
@@ -462,8 +472,8 @@ class OutlierDetectionByIsolationForest(OutlierDetectionStep):
 
 
 class TransformationLog(DataPreprocessingStep):
-    display_name = "Log"
-    operation = "transformation"
+    display_name = "Transformation: Log"
+    operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by log"
 
     def create_form(self):
@@ -489,16 +499,31 @@ class TransformationLog(DataPreprocessingStep):
                     value=GroupBy.NO_GROUPING.value,
                     options=GroupBy,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
     calc_method = staticmethod(transformation.by_log)
     plot_method = staticmethod(transformation.by_log_plot)
 
 
 class TransformationInversion(DataPreprocessingStep):
-    display_name = "Inversion"
-    operation = "transformation"
+    display_name = "Transformation: Inversion"
+    operation: StepOperation = StepOperation.TRANSFORMATION
     method_description = "Transform data by inversion"
 
     def create_form(self):
@@ -511,12 +536,20 @@ class TransformationInversion(DataPreprocessingStep):
 
 
 class NormalisationStep(DataPreprocessingStep, ABC):
-    operation = "normalisation"
+    operation: StepOperation = StepOperation.NORMALIZATION
     output_keys = [DataKey.PROTEIN_DF]
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
 
 class NormalisationByZScore(NormalisationStep):
-    display_name = "Z-Score"
+    display_name = "Normalisation: Z-Score"
     method_description = "Normalise data by Z-Score"
 
     def create_form(self):
@@ -541,6 +574,13 @@ class NormalisationByZScore(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -549,7 +589,7 @@ class NormalisationByZScore(NormalisationStep):
 
 
 class NormalisationByTotalSum(NormalisationStep):
-    display_name = "Total sum"
+    display_name = "Normalisaton: Total Sum"
     method_description = "Normalise data by total sum"
 
     def create_form(self):
@@ -574,6 +614,13 @@ class NormalisationByTotalSum(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -582,7 +629,7 @@ class NormalisationByTotalSum(NormalisationStep):
 
 
 class NormalisationByMedian(NormalisationStep):
-    display_name = "Median"
+    display_name = "Normalisation: Median"
     method_description = "Normalise data by median"
 
     def create_form(self):
@@ -616,6 +663,13 @@ class NormalisationByMedian(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -624,7 +678,7 @@ class NormalisationByMedian(NormalisationStep):
 
 
 class NormalisationByWidthAdjustment(NormalisationStep):
-    display_name = "Width adjustment"
+    display_name = "Normalisation: Width Adjustment"
     method_description = "Normalise data by asymmetric quartile width adjustment"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -651,6 +705,13 @@ class NormalisationByWidthAdjustment(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -659,7 +720,7 @@ class NormalisationByWidthAdjustment(NormalisationStep):
 
 
 class NormalisationByReferenceProtein(NormalisationStep):
-    display_name = "Reference protein"
+    display_name = "Normalisation: Reference Protein"
     method_description = "Normalise data by reference protein"
 
     def create_form(self):
@@ -694,6 +755,13 @@ class NormalisationByReferenceProtein(NormalisationStep):
                     value=VisualTransformations.LOG10.value,
                     options=VisualTransformations,
                 ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
             ],
         )
 
@@ -702,7 +770,7 @@ class NormalisationByReferenceProtein(NormalisationStep):
 
 
 class ImputationStep(DataPreprocessingStep, ABC):
-    operation = "imputation"
+    operation: StepOperation = StepOperation.IMPUTATION
     output_keys = [DataKey.PROTEIN_DF]
 
     plot_input_fields: Sequence[FormField] = [
@@ -731,11 +799,23 @@ class ImputationStep(DataPreprocessingStep, ABC):
             value=BarAndPieChart.PIE_CHART.value,
             options=BarAndPieChart,
         ),
+        CheckboxField(
+            name="show_outliers", label="Show outliers", value=True, isVisible=True
+        ),
+        info_field_show_outliers,
     ]
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
 
 
 class ImputationByMinPerDataset(ImputationStep):
-    display_name = "Min per dataset"
+    display_name = "Imputation: Min per Dataset"
     method_description = "Impute missing values by the minimum per dataset"
 
     def create_form(self):
@@ -767,7 +847,7 @@ class ImputationByMinPerDataset(ImputationStep):
 
 
 class ImputationByMinPerProtein(ImputationStep):
-    display_name = "Min per protein"
+    display_name = "Imputation: Min per Protein"
     method_description = "Impute missing values by the minimum per protein"
 
     def create_form(self):
@@ -799,7 +879,7 @@ class ImputationByMinPerProtein(ImputationStep):
 
 
 class ImputationByMinPerSample(ImputationStep):
-    display_name = "Min per sample"
+    display_name = "Imputation: Min per Sample"
     method_description = "Impute missing values by the minimum per sample"
 
     def create_form(self):
@@ -828,7 +908,7 @@ class ImputationByMinPerSample(ImputationStep):
 
 
 class SimpleImputationPerProtein(ImputationStep):
-    display_name = "Protein"
+    display_name = "Imputation: per Protein"
     method_description = (
         "Imputation methods include imputation by mean, median and mode. Implements the "
         "sklearn.SimpleImputer class"
@@ -855,7 +935,7 @@ class SimpleImputationPerProtein(ImputationStep):
 
 
 class ImputationByKNN(ImputationStep):
-    display_name = "kNN"
+    display_name = "Imputation: kNN"
     method_description = (
         "A function to perform value imputation based on KNN (k-nearest neighbors). Imputes missing "
         "values for each sample based on intensity-wise similar samples. Two samples are close if "
@@ -885,7 +965,7 @@ class ImputationByKNN(ImputationStep):
 
 
 class ImputationByNormalDistributionSampling(ImputationStep):
-    display_name = "Normal distribution sampling"
+    display_name = "Imputation: Normal Dist. Sampling"
     method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
 
     def create_form(self):
@@ -928,7 +1008,7 @@ class ImputationByNormalDistributionSampling(ImputationStep):
 class GroupReplicates(Step):
     section = Section.DATA_PREPROCESSING
     display_name = "Group Replicates"
-    operation = "simplification"
+    operation: StepOperation = StepOperation.SIMPLIFICATION
     method_description = "Aggregate intensities of proteins from replicate runs."
     output_keys = [DataKey.PROTEIN_DF]
 
@@ -963,8 +1043,8 @@ class GroupReplicates(Step):
 
 class FilterMetadataByExistingSamples(Step):
     section = Section.DATA_PREPROCESSING
-    display_name = "Filter metadata by existing samples"
-    operation = "simplification"
+    display_name = "Filter Metadata: Existing Samples"
+    operation: StepOperation = StepOperation.SIMPLIFICATION
     method_description = (
         "Only keep metadata of samples also represented in protein data"
     )

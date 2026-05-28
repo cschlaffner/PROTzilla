@@ -24,10 +24,6 @@ from .differential_expression_helper import (
 )
 
 
-def _is_valid(value):
-    return value != 0 and not np.isnan(value)
-
-
 def get_z_score_based_fold_change_significance(
     fold_changes: pd.Series,
 ) -> tuple[pd.Series, pd.Series]:
@@ -49,6 +45,75 @@ def get_z_score_based_fold_change_significance(
     return z_scores, z_score_p_value
 
 
+def vectorized_t_test(
+    group1_counts,
+    group2_counts,
+    group1_means,
+    group2_means,
+    group1_vars,
+    group2_vars,
+    ttest_type,
+):
+    """
+    Compute two-sample t-tests for multiple protein groups simultaneously.
+
+    Implements both Student's (equal-variance, pooled) and Welch's
+    (unequal-variance, Welch-Satterthwaite df) variants. All array arguments
+    must be 1-D arrays of equal length where each element corresponds to one
+    protein group. The implementation is equivalent to calling
+    ``scipy.stats.ttest_ind`` per protein but avoids the Python-level loop and is much faster
+    because all operations are vectorized.
+
+    :param group1_counts: per-protein observation counts for group 1 (float array, ddof excluded)
+    :param group2_counts: per-protein observation counts for group 2 (float array, ddof excluded)
+    :param group1_means: per-protein sample means for group 1
+    :param group2_means: per-protein sample means for group 2
+    :param group1_vars: per-protein sample variances (ddof=1) for group 1
+    :param group2_vars: per-protein sample variances (ddof=1) for group 2
+    :param ttest_type: "Student's t-Test" for equal-variance, any other value for Welch's t-Test
+    :return: tuple of (t_statistics, p_values) — two-tailed p-values from the t-distribution
+    """
+    if ttest_type == "Student's t-Test":
+        # Pooled variance: weighted average of both sample variances, weights = (n - 1)
+        pooled_vars = (
+            (group1_counts - 1) * group1_vars + (group2_counts - 1) * group2_vars
+        ) / (group1_counts + group2_counts - 2)
+        # SE of the difference of means under the equal-variance assumption
+        standard_errors = np.sqrt(
+            pooled_vars * (1.0 / group1_counts + 1.0 / group2_counts)
+        )
+        # df = total observations minus one per group
+        degrees_of_freedom = group1_counts + group2_counts - 2
+    else:
+        # s²/n terms used throughout the Welch formulas
+        group1_var_count_ratios = group1_vars / group1_counts
+        group2_var_count_ratios = group2_vars / group2_counts
+        # SE of the difference of means without assuming equal variances
+        standard_errors = np.sqrt(group1_var_count_ratios + group2_var_count_ratios)
+        # Welch-Satterthwaite df: (s1²/n1 + s2²/n2)² / ((s1²/n1)²/(n1-1) + (s2²/n2)²/(n2-1))
+        with np.errstate(divide="ignore", invalid="ignore"):
+            degrees_of_freedom = (
+                group1_var_count_ratios + group2_var_count_ratios
+            ) ** 2 / (
+                group1_var_count_ratios**2 / (group1_counts - 1)
+                + group2_var_count_ratios**2 / (group2_counts - 1)
+            )
+        # When both variances are 0 the Satterthwaite formula is 0/0=NaN.
+        # Equal variances (both zero) is the equal-variance case, so fall back to Student's df.
+        student_degrees_of_freedom = group1_counts + group2_counts - 2
+        degrees_of_freedom = np.where(
+            np.isnan(degrees_of_freedom),
+            student_degrees_of_freedom,
+            degrees_of_freedom,
+        )
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        # t = (mean1 - mean2) / SE; two-tailed p from the survival function of |t|
+        t_statistics = (group1_means - group2_means) / standard_errors
+        p_values = 2 * stats.t.sf(np.abs(t_statistics), degrees_of_freedom)
+    return t_statistics, p_values
+
+
 def t_test(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -66,9 +131,9 @@ def t_test(
     A function to conduct a two sample t-test between groups defined in the
     clinical data. The t-test is conducted on the level of each protein.
     The p-values are corrected for multiple testing.
-    :param ttest_type: the type of t-test to be used. Either "Student's t-Test" or "Welch's t-Test"
     :param protein_df: the dataframe that should be tested in long format
     :param metadata_df: the dataframe that contains the clinical data
+    :param ttest_type: the type of t-test to be used. Either "Student's t-Test" or "Welch's t-Test"
     :param grouping: the column name of the grouping variable in the metadata_df
     :param group1: the name of the first group for the t-test
     :param group2: the name of the second group for the t-test
@@ -89,8 +154,36 @@ def t_test(
         - a list messages, containing messages for the user
     """
 
+    def empty_result(messages):
+        return dict(
+            differentially_expressed_proteins_df=pd.DataFrame(
+                columns=protein_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            significant_proteins_df=pd.DataFrame(
+                columns=protein_df.columns.tolist()
+                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
+            ),
+            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
+            t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
+            log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
+            fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
+            corrected_alpha=alpha,
+            messages=messages,
+        )
+
     assert grouping in metadata_df.columns
     messages = []
+
+    if ttest_type not in ["Student's t-Test", "Welch's t-Test"]:
+        messages.append(
+            {
+                "level": logging.WARNING,
+                "msg": """t-Test type must be either "Student's t-Test" or "Welch's t-Test".""",
+            }
+        )
+        return empty_result(messages)
+
     # User input handling
     unique_groups = metadata_df[grouping].unique()
     # Check if group1 is in unique_groups, if not assign the first unique group
@@ -127,135 +220,135 @@ def t_test(
 
     log_base = _map_log_base(log_base)  # now log_base in [2, 10, None]
 
-    proteins = protein_df["Protein ID"].unique()
-    p_values = []
-    valid_protein_groups = []
-    log2_fold_changes = []
-    t_statistic = []
-    fc_significance_df = pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS)
-    for protein in proteins:
-        single_protein_df = protein_df[protein_df["Protein ID"] == protein]
-        group1_intensities = single_protein_df[single_protein_df[grouping] == group1][
-            intensity_name
-        ]
-        group2_intensities = single_protein_df[single_protein_df[grouping] == group2][
-            intensity_name
-        ]
+    protein_df["id"] = protein_df.groupby(["Protein ID", grouping]).cumcount()
 
-        group1_intensities = group1_intensities.dropna()
-        group2_intensities = group2_intensities.dropna()
-        if len(group1_intensities) < 2 or len(group2_intensities) < 2:
-            if not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
-                messages.append(INVALID_PROTEINGROUP_DATA_MSG)
-            continue
+    protein_df_wide = protein_df.dropna(subset=[intensity_name]).pivot(
+        index=["Protein ID", "id"], columns=grouping, values=intensity_name
+    )
 
-        t, p = stats.ttest_ind(
-            group1_intensities,
-            group2_intensities,
-            equal_var=(ttest_type == "Student's t-Test"),
-        )
-
-        if not np.isnan(p):
-            if log_base:
-                log2_fold_change = (
-                    np.median(group2_intensities) - np.median(group1_intensities)
-                ) * np.log2(log_base)
-            else:
-                log2_fold_change = np.log2(
-                    np.median(group2_intensities) / np.median(group1_intensities)
-                )
-
-            valid_protein_groups.append(protein)
-            p_values.append(p)
-            t_statistic.append(t)
-            log2_fold_changes.append(log2_fold_change)
-        elif not exists_message(messages, INVALID_PROTEINGROUP_DATA_MSG):
-            messages.append(INVALID_PROTEINGROUP_DATA_MSG)
-        else:
-            # if the protein has a NaN value in a sample, we just skip it
-            pass
-
-    if len(valid_protein_groups) == 0:
+    if group1 not in protein_df_wide.columns or group2 not in protein_df_wide.columns:
         messages.append(
             {
                 "level": logging.ERROR,
                 "msg": "No valid protein groups found for t-test analysis.",
             }
         )
-        return dict(
-            differentially_expressed_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist()
-                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
-            ),
-            significant_proteins_df=pd.DataFrame(
-                columns=protein_df.columns.tolist()
-                + ["corrected_p_value", "log2_fold_change", "t_statistic"]
-            ),
-            corrected_p_values_df=pd.DataFrame(columns=CORRECTED_P_VALUES_COLUMNS),
-            t_statistic_df=pd.DataFrame(columns=T_STATISTIC_COLUMNS),
-            log2_fold_change_df=pd.DataFrame(columns=LOG2_FOLD_CHANGE_COLUMNS),
-            fc_significance_df=pd.DataFrame(columns=FC_SIGNIFICANCE_COLUMNS),
-            corrected_alpha=alpha,
-            messages=messages,
+        return empty_result(messages)
+
+    grouped_dfs = protein_df_wide.groupby("Protein ID")
+    statistics_group1 = grouped_dfs[group1].agg(
+        n="count", mean="mean", var="var", median="median"
+    )
+    statistics_group2 = grouped_dfs[group2].agg(
+        n="count", mean="mean", var="var", median="median"
+    )
+
+    valid_mask = (statistics_group1["n"] >= 2) & (statistics_group2["n"] >= 2)
+    if (~valid_mask).any() and not exists_message(
+        messages, INVALID_PROTEINGROUP_DATA_MSG
+    ):
+        messages.append(INVALID_PROTEINGROUP_DATA_MSG)
+
+    valid_statistics_group1 = statistics_group1[valid_mask]
+    valid_statistics_group2 = statistics_group2[valid_mask]
+
+    # Statistics grouped by protein
+    group1_counts = valid_statistics_group1["n"].to_numpy(dtype=float)
+    group2_counts = valid_statistics_group2["n"].to_numpy(dtype=float)
+    group1_means = valid_statistics_group1["mean"].to_numpy()
+    group2_means = valid_statistics_group2["mean"].to_numpy()
+    group1_vars = valid_statistics_group1["var"].to_numpy()
+    group2_vars = valid_statistics_group2["var"].to_numpy()
+    group1_medians = valid_statistics_group1["median"].to_numpy()
+    group2_medians = valid_statistics_group2["median"].to_numpy()
+
+    t_statistics, p_values = vectorized_t_test(
+        group1_counts,
+        group2_counts,
+        group1_means,
+        group2_means,
+        group1_vars,
+        group2_vars,
+        ttest_type,
+    )
+
+    if log_base:
+        fc_arr = (group2_medians - group1_medians) * np.log2(log_base)
+    else:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            fc_arr = np.log2(group2_medians / group1_medians)
+
+    ttest_results = pd.DataFrame(
+        {
+            "Protein ID": valid_statistics_group1.index,
+            "n1": group1_counts.astype(int),
+            "n2": group2_counts.astype(int),
+            "t_statistic": t_statistics,
+            "p_value": p_values,
+            "log2_fold_change": fc_arr,
+        }
+    ).dropna(subset=["p_value"])
+
+    if len(ttest_results) == 0:
+        messages.append(
+            {
+                "level": logging.ERROR,
+                "msg": "No valid protein groups found for t-test analysis.",
+            }
         )
+        return empty_result(messages)
 
-    fc_z_scores, fc_z_p_values = get_z_score_based_fold_change_significance(
-        pd.Series(log2_fold_changes)
+    ttest_results["fc_z_score"], ttest_results["fc_significance"] = (
+        get_z_score_based_fold_change_significance(ttest_results["log2_fold_change"])
     )
 
-    fc_significance_df = pd.DataFrame(
-        list(zip(valid_protein_groups, fc_z_scores, fc_z_p_values)),
-        columns=FC_SIGNIFICANCE_COLUMNS,
+    ttest_results["corrected_p_value"], corrected_alpha = (
+        apply_multiple_testing_correction(
+            p_values=ttest_results["p_value"],
+            method=multiple_testing_correction_method,
+            alpha=alpha,
+        )
     )
 
-    (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
-        p_values=p_values,
-        method=multiple_testing_correction_method,
-        alpha=alpha,
+    differentially_expressed_proteins_df = pd.merge(
+        ttest_results, protein_df, on="Protein ID", how="left"
     )
 
-    corrected_p_values_df = pd.DataFrame(
-        list(zip(valid_protein_groups, corrected_p_values)),
-        columns=CORRECTED_P_VALUES_COLUMNS,
-    )
-    log2_fold_change_df = pd.DataFrame(
-        list(zip(valid_protein_groups, log2_fold_changes)),
-        columns=LOG2_FOLD_CHANGE_COLUMNS,
-    )
-    t_statistic_df = pd.DataFrame(
-        list(zip(valid_protein_groups, t_statistic)),
-        columns=T_STATISTIC_COLUMNS,
-    )
-
-    dataframes = [
-        corrected_p_values_df,
-        log2_fold_change_df,
-        t_statistic_df,
-        fc_significance_df,
-    ]
-
-    for df in dataframes:
-        protein_df = pd.merge(protein_df, df, on="Protein ID", how="left")
-
-    differentially_expressed_proteins_df = protein_df.loc[
-        protein_df["Protein ID"].isin(valid_protein_groups)
-    ]
-
-    significant_proteins_df = differentially_expressed_proteins_df[
-        differentially_expressed_proteins_df["corrected_p_value"] <= corrected_alpha
-    ]
-    if fc_zscore_filter and not fc_significance_df.empty:
-        significant_proteins_df = significant_proteins_df[
-            significant_proteins_df["fc_significance"] <= fc_zscore_alpha
+    # Drop unused columns and reorder for backwards compatibility
+    differentially_expressed_proteins_df = differentially_expressed_proteins_df[
+        [
+            "Sample",
+            "Protein ID",
+            "Gene",
+            default_intensity_column(differentially_expressed_proteins_df),
+            "Group",
+            "corrected_p_value",
+            "log2_fold_change",
+            "t_statistic",
+            "fc_z_score",
+            "fc_significance",
         ]
+    ]
+
+    significant_proteins_df = differentially_expressed_proteins_df.query(
+        "corrected_p_value <= @corrected_alpha"
+    )
+
+    if fc_zscore_filter:
+        significant_proteins_df = significant_proteins_df.query(
+            "fc_significance <= @fc_zscore_alpha"
+        )
 
     return dict(
         differentially_expressed_proteins_df=differentially_expressed_proteins_df,
         significant_proteins_df=significant_proteins_df,
-        corrected_p_values_df=corrected_p_values_df,
-        t_statistic_df=t_statistic_df,
-        log2_fold_change_df=log2_fold_change_df,
-        fc_significance_df=fc_significance_df,
-        corrected_alpha=OutputItem(output_type=OutputType.FLOAT, value=corrected_alpha),
+        corrected_p_values_df=ttest_results[CORRECTED_P_VALUES_COLUMNS],
+        t_statistic_df=ttest_results[T_STATISTIC_COLUMNS],
+        log2_fold_change_df=ttest_results[LOG2_FOLD_CHANGE_COLUMNS],
+        fc_significance_df=ttest_results[FC_SIGNIFICANCE_COLUMNS],
+        corrected_alpha=OutputItem(
+            output_type=OutputType.FLOAT,
+            value=float(corrected_alpha),
+        ),
         messages=messages,
     )

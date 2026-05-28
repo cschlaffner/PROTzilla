@@ -33,12 +33,10 @@ const OptionsList = styled.ul`
   box-sizing: border-box;
   list-style: none;
   margin-top: 0;
-  overflow-y: auto;
   padding: 0;
   position: absolute;
   width: 100%;
   z-index: 1000;
-  max-height: calc(6 * ${size("inputFieldHeightDefault")});
 `;
 
 const OptionItem = styled.li`
@@ -71,6 +69,21 @@ const OptionItem = styled.li`
   }
 `;
 
+const SearchContainer = styled.div`
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+`;
+
+const OptionsScrollArea = styled.div`
+  overflow-y: auto;
+  max-height: calc(6 * ${size("inputFieldHeightDefault")});
+`;
+
 export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
   function DropdownInputField({ options, value, onChange, ...props }) {
     const getCurrentOption = (): { label: string; value: string } => {
@@ -80,6 +93,12 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
 
     const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(
       getCurrentOption(),
+    );
+
+    const [search, setSearch] = useState("");
+
+    const filteredOptions = options.filter((option) =>
+      option.label.toLowerCase().includes(search.toLowerCase()),
     );
 
     // Sync state with props whenever options or value changes
@@ -107,6 +126,12 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
       disable,
       isOpen,
     );
+
+    useEffect(() => {
+      if (!isOpen) {
+        setSearch("");
+      }
+    }, [isOpen]);
 
     const handleChange = (option: { label: string; value: string }) => {
       setSelectedOption(option);
@@ -142,20 +167,33 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
 
         {isOpen && (
           <OptionsList ref={dropdownRef}>
-            {options.length > 0 ? (
-              options.map((option) => (
-                <OptionItem
-                  key={option.value}
-                  onClick={() => {
-                    handleChange(option);
-                  }}
-                >
-                  {option.label}
-                </OptionItem>
-              ))
-            ) : (
-              <OptionItem>No results</OptionItem>
-            )}
+            <SearchContainer>
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                }}
+                placeholder="Search..."
+              />
+            </SearchContainer>
+
+            <OptionsScrollArea>
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((option) => (
+                  <OptionItem
+                    key={option.value}
+                    onClick={() => {
+                      handleChange(option);
+                    }}
+                  >
+                    {option.label}
+                  </OptionItem>
+                ))
+              ) : (
+                <OptionItem>No results</OptionItem>
+              )}
+            </OptionsScrollArea>
           </OptionsList>
         )}
       </DropdownContainer>

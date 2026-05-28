@@ -35,7 +35,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     get_multimer_structure_dfs,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.importing.crosslinking_import import crosslinking_import
 from backend.protzilla.run import Run
 from backend.protzilla.importing.example_dataset_import import example_dataset_import
@@ -59,8 +59,8 @@ class ImportingStep(Step, ABC):
 
 
 class ArbitraryCSVImport(ImportingStep):
-    display_name: str = "Arbitrary CSV import"
-    operation: str = "(DEBUG)"
+    display_name: str = "Arbitrary CSV"
+    operation: StepOperation = StepOperation.DEBUG
     method_description: str = "For debugging purposes. Imports any CSV as a dataframe"
 
     output_keys: list[DataKey] = [DataKey.DEBUG]
@@ -82,13 +82,15 @@ class ArbitraryCSVImport(ImportingStep):
 
 
 class MetadataImportingStep(ImportingStep, ABC):
+    operation: StepOperation = StepOperation.METADATA_IMPORT
 
-    operation = "metadataimport"
+
+class ProteinImportingStep(ImportingStep, ABC):
+    operation: StepOperation = StepOperation.PROTEIN_IMPORT
 
 
-class MaxQuantImport(ImportingStep):
-    display_name = "MaxQuant Protein Groups Import"
-    operation = "Protein Data Import"
+class MaxQuantImport(ProteinImportingStep):
+    display_name = "MaxQuant Protein Groups"
     method_description = "Import the protein groups file form output of MaxQuant"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -131,9 +133,8 @@ class MaxQuantImport(ImportingStep):
     calc_method = staticmethod(max_quant_import)
 
 
-class DiannImport(ImportingStep):
-    display_name = "DIA-NN Import"
-    operation = "Protein Data Import"
+class DiannImport(ProteinImportingStep):
+    display_name = "DIA-NN Proteins"
     method_description = "DIA-NN data import"
 
     output_keys = [DataKey.PROTEIN_DF]
@@ -165,9 +166,8 @@ class DiannImport(ImportingStep):
     calc_method = staticmethod(diann_import)
 
 
-class MsFraggerImport(ImportingStep):
-    display_name = "MS Fragger Combined Protein Import"
-    operation = "Protein Data Import"
+class MsFraggerImport(ProteinImportingStep):
+    display_name = "MSFragger Combined Proteins"
     method_description = (
         "Import the combined_protein.tsv file form output of MS Fragger"
     )
@@ -207,7 +207,7 @@ class MsFraggerImport(ImportingStep):
 
 
 class MetadataImport(MetadataImportingStep):
-    display_name = "Metadata Import"
+    display_name = "Metadata"
     method_description = "Import metadata"
 
     output_keys = [DataKey.METADATA_DF]
@@ -298,8 +298,8 @@ class MetadataColumnAssignment(MetadataImportingStep):
 
 
 class PeptideImport(ImportingStep):
-    display_name = "MaxQuant Peptide Import"
-    operation = "peptide_import"
+    display_name = "MaxQuant Peptides"
+    operation = StepOperation.PEPTIDE_IMPORT
     method_description = "Import peptide data"
 
     output_keys = [DataKey.PEPTIDE_DF]
@@ -331,8 +331,8 @@ class PeptideImport(ImportingStep):
 
 
 class EvidenceImport(ImportingStep):
-    display_name = "MaxQuant Evidence Import"
-    operation = "peptide_import"
+    display_name = "MaxQuant Evidence"
+    operation = StepOperation.PSM_IMPORT
     method_description = "Import an evidence file"
 
     output_keys = [DataKey.PSM_DF]
@@ -364,8 +364,8 @@ class EvidenceImport(ImportingStep):
 
 
 class FastaImport(ImportingStep):
-    display_name = "Fasta Protein Sequence Import"
-    operation = "fasta_import"
+    display_name = "FASTA Protein Sequences"
+    operation = StepOperation.FASTA_IMPORT
     method_description = "Import a fasta file containing protein sequences."
 
     output_keys = [DataKey.FASTA_DF]
@@ -386,8 +386,8 @@ class FastaImport(ImportingStep):
 
 
 class ExampleDatasetImport(ImportingStep):
-    display_name = "Example Dataset Import"
-    operation = "example_import"
+    display_name = "Example Dataset"
+    operation = StepOperation.EXAMPLE_IMPORT
     method_description = (
         "Import the proteins, peptides, and metadata of the PRIDE repository PXD014997, which belongs to the following "
         "paper:\n\n"

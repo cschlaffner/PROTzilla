@@ -1,6 +1,5 @@
 import { Navbar, NodeEditor, PlotDownloadSettings } from "@protzilla/app";
 import {
-  CSVButton,
   DataTable,
   FlexColumn,
   FlexRow,
@@ -70,12 +69,6 @@ const StyledContentContainer = styled.div`
 const StyledContentDiv = styled.div`
   display: flex;
   flex-direction: column;
-`;
-
-const StyledCSVButton = styled(CSVButton)`
-  width: auto;
-  align-self: flex-end;
-  margin-top: ${spacing("buttonGap")};
 `;
 
 const FooterText = styled.div`
@@ -399,7 +392,6 @@ export const RunScreen: React.FC = () => {
   const singleTableComponent = (tableLabel: string) => (
     <StyledContentDiv>
       <DataTable runName={runName} tableLabel={tableLabel} />
-      <StyledCSVButton runName={runName} tableLabel={tableLabel} fileName={tableLabel} />
     </StyledContentDiv>
   );
 

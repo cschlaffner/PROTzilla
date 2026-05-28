@@ -1,3 +1,4 @@
+import { GridFilterModel, GridSortModel } from "@mui/x-data-grid";
 import type { Color } from "@protzilla/theme";
 import type { UIStateProps } from "@protzilla/utils";
 import type React from "react";
@@ -74,4 +75,14 @@ export interface CSVButtonProps extends ButtonProps {
   runName: string;
   tableLabel: string;
   fileName?: string;
+  sortModel: GridSortModel;
+  filterModel: GridFilterModel;
+}
+
+type TableValue = string | number | boolean | null | undefined | object;
+
+type TableRow = Record<string, TableValue>;
+
+export interface TableDataResponse {
+  rows: TableRow[];
 }

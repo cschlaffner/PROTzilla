@@ -22,6 +22,7 @@ from . import views, views_settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("healthcheck/", views.healthcheck, name="healthcheck"),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views.run_information_list, name="run_information"),
     path("api/step_list/", views.all_steps, name="step_list"),

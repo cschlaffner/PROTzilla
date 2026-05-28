@@ -73,7 +73,7 @@ from backend.protzilla.form import (
     TextField,
     FormDivider,
 )
-from backend.protzilla.steps import Step, Section
+from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.step_manager import StepManager
 from backend.protzilla.data_analysis.protein_coverage import (
     plot_protein_coverage,
@@ -300,17 +300,15 @@ class DataAnalysisStep(Step, ABC):
 
 
 class DifferentialExpressionIntensityStep(DataAnalysisStep, ABC):
-
-    operation = "differential_expression"
+    operation: StepOperation = StepOperation.DIFFERENTIAL_EXPRESSION
 
 
 class DifferentialExpressionPTMStep(DataAnalysisStep, ABC):
-
-    operation = "Peptide analysis"
+    operation: StepOperation = StepOperation.PEPTIDE_ANALYSIS
 
 
 class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
-    display_name = "ANOVA"
+    display_name = "Diff. Expression: ANOVA"
     method_description = "A function that uses ANOVA to test the difference between two or more groups defined in the clinical data. The ANOVA test is conducted on the level of each protein. The p-values are corrected for multiple testing."
 
     output_keys = [
@@ -356,7 +354,7 @@ class DifferentialExpressionANOVA(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
-    display_name = "t-Test"
+    display_name = "Diff. Expression: t-Test"
     method_description = "A function to conduct a two sample t-test between groups defined in the clinical data. The t-test is conducted on the level of each protein. The p-values are corrected for multiple testing. The fold change is calculated by group2/group1."
 
     output_keys = [
@@ -437,7 +435,7 @@ class DifferentialExpressionTTest(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
-    display_name = "Linear Model"
+    display_name = "Diff. Expression: Linear Model"
     method_description = "A function to fit a linear model using ordinary least squares for each protein. The linear model fits the protein intensities on Y axis and the grouping on X for group1 X=-1 and group2 X=1. The p-values are corrected for multiple testing."
 
     output_keys = [
@@ -496,7 +494,7 @@ class DifferentialExpressionLinearModel(DifferentialExpressionIntensityStep):
 
 
 class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensityStep):
-    display_name = "Mann-Whitney Test"
+    display_name = "Diff. Expression: Mann-Whitney Test"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -565,7 +563,7 @@ class DifferentialExpressionMannWhitneyOnIntensity(DifferentialExpressionIntensi
 
 
 class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
-    display_name = "Mann-Whitney Test"
+    display_name = "PTM Diff. Exp.: Mann-Whitney Test"
     method_description = (
         "A function to conduct a Mann-Whitney U test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -636,7 +634,7 @@ class DifferentialExpressionMannWhitneyOnPTM(DifferentialExpressionPTMStep):
 class DifferentialExpressionKruskalWallisOnIntensity(
     DifferentialExpressionIntensityStep
 ):
-    display_name = "Kruskal-Wallis Test"
+    display_name = "Diff. Expression: Kruskal-Wallis Test"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -687,7 +685,7 @@ class DifferentialExpressionKruskalWallisOnIntensity(
 
 
 class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
-    display_name = "Kruskal-Wallis Test"
+    display_name = "PTM Diff. Exp.: Kruskal-Wallis Test"
     method_description = (
         "A function to conduct a Kruskal-Wallis test between groups defined in the clinical data."
         "The p-values are corrected for multiple testing."
@@ -738,8 +736,7 @@ class DifferentialExpressionKruskalWallisOnPTM(DifferentialExpressionPTMStep):
 
 
 class DataAnalysisPlotStep(DataAnalysisStep, ABC):
-
-    operation = "plot"
+    operation: StepOperation = StepOperation.PLOT
 
 
 class PlotVolcano(DataAnalysisPlotStep):
@@ -930,7 +927,6 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
-    operation = "plot"
     method_description = (
         "Creates a 2D clustergram from data using the samples on one axis and the proteins on the "
         "other axis. The data is clustered using euclidean distances for hierarchical clustering."
@@ -962,6 +958,13 @@ class PlotClustergram(DataAnalysisPlotStep):
                     name="heatmap_legend_title",
                     label="Heatmap legend title",
                     value="Heatmap legend",
+                ),
+                NumberField(
+                    name="dendrogram_line_width",
+                    label="Dendrogram line width",
+                    value=2,
+                    min=1,
+                    hasStepButtons=True,
                 ),
                 CheckboxField(
                     name="use_custom_color_scale",
@@ -1097,8 +1100,8 @@ class PositiveLabelStep(DataAnalysisStep, ABC):
 
 
 class PlotROC(DataAnalysisPlotStep):
-    display_name = "Receiver Operating Characteristic curve"
-    method_description = "The ROC curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
+    display_name = "ROC Curve Plot"
+    method_description = "The Receiver Operating Characteristic (ROC) curve helps assess the model's ability to discriminate between positive and negative classes and determine an optimal threshold for decision making"
 
     plot_method = staticmethod(roc_plot)
 
@@ -1110,7 +1113,7 @@ class PlotROC(DataAnalysisPlotStep):
 
 
 class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
-    display_name = "Precision Recall"
+    display_name = "Precision Recall Curve Plot"
     method_description = "The precision-recall curve shows the tradeoff between precision and recall for different threshold"
 
     plot_method = staticmethod(precision_recall_plot)
@@ -1123,11 +1126,11 @@ class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
 
 
 class ClusteringStep(PositiveLabelStep, ABC):
-    operation = "clustering"
+    operation: StepOperation = StepOperation.CLUSTERING
 
 
 class ClusteringKMeans(ClusteringStep):
-    display_name = "KMeans"
+    display_name = "Clustering: KMeans"
     method_description = "Partitions a number of samples in k clusters using k-means"
 
     output_keys = [
@@ -1244,8 +1247,8 @@ class ClusteringKMeans(ClusteringStep):
 
 
 class ClusteringExpectationMaximisation(ClusteringStep):
-    display_name = "Expectation-maximization (EM)"
-    method_description = "A clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
+    display_name = "Clustering: EM"
+    method_description = "Expectation Maximisation (EM) is a clustering algorithm that seeks to find the maximum likelihood estimates for a mixture of multivariate Gaussian distributions"
 
     output_keys = [
         "model",
@@ -1354,10 +1357,8 @@ class ClusteringExpectationMaximisation(ClusteringStep):
 
 
 class ClusteringHierarchicalAgglomerative(ClusteringStep):
-    display_name = "Hierarchical Agglomerative Clustering"
-    method_description = (
-        "Performs hierarchical clustering utilizing a bottom-up approach"
-    )
+    display_name = "Clustering: HAC"
+    method_description = "Performs hierarchical agglomerative clustering (HAC) utilising a bottom-up approach"
 
     output_keys = [
         "model",
@@ -1450,13 +1451,13 @@ class ClusteringHierarchicalAgglomerative(ClusteringStep):
 
 
 class ClassificationStep(PositiveLabelStep, ABC):
-    operation = "classification"
+    operation: StepOperation = StepOperation.CLASSIFICATION
 
     positive_label_is_required: bool = False
 
 
 class ClassificationRandomForest(ClassificationStep):
-    display_name = "Random Forest"
+    display_name = "Classification: Random Forest"
     method_description = "A random forest is a meta estimator that fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting."
 
     output_keys = [
@@ -1669,8 +1670,8 @@ class ClassificationRandomForest(ClassificationStep):
 
 
 class ClassificationSVM(ClassificationStep):
-    display_name = "Support Vector Machine"
-    method_description = "A support vector machine constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification."
+    display_name = "Classification: SVM"
+    method_description = "A support vector machine (SVM) constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification."
 
     output_keys = [
         "model",
@@ -1939,8 +1940,8 @@ class ClassificationSVM(ClassificationStep):
 
 
 class ModelEvaluationClassificationModel(DataAnalysisStep):
-    display_name = "Evaluation of classification models"
-    operation = "model_evaluation"
+    display_name = "Classification Model Evaluation"
+    operation: StepOperation = StepOperation.MODEL_EVALUATION
     method_description = "Assessing an already trained classification model on separate testing data using widely used scoring metrics"
 
     output_keys = ["scores_df"]
@@ -1963,8 +1964,8 @@ class ModelEvaluationClassificationModel(DataAnalysisStep):
 
 
 class DimensionReductionTSNE(DataAnalysisStep):
-    display_name = "t-SNE"
-    operation = "dimension_reduction"
+    display_name = "Dimension Reduction: t-SNE"
+    operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using t-SNE"
 
     output_keys = ["embedded_data"]
@@ -2031,8 +2032,8 @@ class DimensionReductionTSNE(DataAnalysisStep):
 
 
 class DimensionReductionUMAP(DataAnalysisStep):
-    display_name = "UMAP"
-    operation = "dimension_reduction"
+    display_name = "Dimension Reduction: UMAP"
+    operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using UMAP"
 
     output_keys = ["embedded_data"]
@@ -2134,7 +2135,7 @@ class BaseFLEXLF(DataAnalysisStep, ABC):
 
 class FLEXIQuantLF(BaseFLEXLF):
     display_name = "FLEXIQuant-LF"
-    operation = "modification_quantification"
+    operation: StepOperation = StepOperation.MODIFICATION_QUANTIFICATION
     method_description = (
         "FLEXIQuant-LF is an unbiased, label-free computational tool to indirectly detect modified "
         "peptides and to quantify the degree of modification based solely on the unmodified peptide "
@@ -2170,7 +2171,7 @@ class FLEXIQuantLF(BaseFLEXLF):
 
 class MultiFLEXLF(BaseFLEXLF):
     display_name = "MultiFLEX-LF"
-    operation = "modification_quantification"
+    operation: StepOperation = StepOperation.MODIFICATION_QUANTIFICATION
     method_description = (
         "Quantifies the extent of protein modifications in proteomics data by using robust linear "
         "regression to compare modified and unmodified peptide precursors and facilitates the "
@@ -2216,12 +2217,11 @@ class MultiFLEXLF(BaseFLEXLF):
 
 
 class PeptideAnalysisStep(DataAnalysisStep, ABC):
-    operation = "Peptide analysis"
+    operation: StepOperation = StepOperation.PEPTIDE_ANALYSIS
 
 
 class PTMsPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample"
-    operation = "Peptide analysis"
     method_description = (
         "Analyze the post-translational modifications (PTMs) of a single protein of interest. "
         "This function requires a peptide dataframe with PTM information."
@@ -2242,7 +2242,6 @@ class PTMsPerSample(PeptideAnalysisStep):
 
 class PTMsProteinAndPerSample(PeptideAnalysisStep):
     display_name = "PTMs per Sample and Protein"
-    operation = "Peptide analysis"
     method_description = (
         "Analyze the post-translational modifications (PTMs) of all Proteins. "
         "This function requires a peptide dataframe with PTM information."
@@ -2263,6 +2262,7 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
 
 class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
+    operation: StepOperation = StepOperation.PTM_VISUALIZATION
 
     @classmethod
     def get_form_fields(cls) -> list[FormField]:
@@ -2294,7 +2294,7 @@ class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
 
 
 class PTMOverviewVisualization(_PTMVisualizationStep):
-    display_name = "PTM Visualization - Overview Plot"
+    display_name = "PTM Visualisation: Overview Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms)"
     )
@@ -2330,7 +2330,7 @@ class _PTMVisualizationWithGroups(_PTMVisualizationStep):
 
 
 class PTMBarVisualization(_PTMVisualizationWithGroups):
-    display_name = "PTM Visualization - Bar Plot"
+    display_name = "PTM Visualisation: Bar Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
         "shows PTM frequency across groups as a bar plot."
@@ -2346,7 +2346,7 @@ class PTMBarVisualization(_PTMVisualizationWithGroups):
 
 
 class PTMDetailsVisualization(_PTMVisualizationWithGroups):
-    display_name = "PTM Visualization - Details Plot"
+    display_name = "PTM Visualisation: Details Plot"
     method_description = (
         "Visualizes selected PTMs on a given protein sequence (including isoforms). Additionally, "
         "shows PTM and cleavage frequency across groups as heatmaps."
