@@ -53,7 +53,7 @@ const DATA_TYPE_ICON_MAP: Partial<Record<string, HandleIcon>> = {
   full_data_df: handleFullDataIcon,
   gene_mapping_df: handleDnaIcon,
   metadata_df: handleMetadataIcon,
-  pae_df: handlePaeIcon,
+  pae_matrix: handlePaeIcon,
   peptide_df: handlePeptidesIcon,
   plddt_df: handlePlddtIcon,
   protein_df: handleProteinIcon,

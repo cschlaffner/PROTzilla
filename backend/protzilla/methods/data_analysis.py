@@ -3,6 +3,7 @@ from typing_extensions import override
 import ast
 
 from backend.protzilla.constants.option_types import (
+    CrosslinkingValidationCriterion,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
 )
@@ -70,6 +71,7 @@ from backend.protzilla.form import (
     MultiSelectField,
     NumberField,
     TextField,
+    FormDivider,
 )
 from backend.protzilla.steps import Step, Section
 from backend.protzilla.step_manager import StepManager
@@ -2415,6 +2417,13 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
                 form.add_field(upper_bound_length_deviation_field)
                 form.add_field(lower_bound_length_deviation_field)
 
+            bounds_visible = (
+                form["validation_criterion"].value
+                == CrosslinkingValidationCriterion.manual_bounds.value
+            )
+            form[f"{crosslinker}_upper_accepted_deviation"].isVisible = bounds_visible
+            form[f"{crosslinker}_lower_accepted_deviation"].isVisible = bounds_visible
+
     def collect_crosslinking_information(self, steps: StepManager, inputs) -> dict:
         # although crosslinker_information is not a dataframe we need to insert the user information regarding the crosslinks as a dictionary into the inputs
         crosslinker_to_length_and_deviation = {}
@@ -2450,9 +2459,18 @@ class CrosslinkingValidationWithAngstromDeviation(
         return Form(
             label="Ångström Deviation - Monomer",
             input_fields=[
+                DropdownField(
+                    name="validation_criterion",
+                    label="Validation criterion",
+                    options=CrosslinkingValidationCriterion,
+                    value=CrosslinkingValidationCriterion.manual_bounds,
+                ),
+                FormDivider(
+                    label="Crosslinker lengths and bounds",
+                ),
                 InfoField(
                     label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
-                )
+                ),
             ],
         )
 
@@ -2470,8 +2488,17 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
         return Form(
             label="Ångström Deviation - Multimer",
             input_fields=[
+                DropdownField(
+                    name="validation_criterion",
+                    label="Validation criterion",
+                    options=CrosslinkingValidationCriterion,
+                    value=CrosslinkingValidationCriterion.manual_bounds,
+                ),
+                FormDivider(
+                    label="Crosslinker lengths and bounds",
+                ),
                 InfoField(
                     label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
-                )
+                ),
             ],
         )

@@ -1,14 +1,15 @@
 import itertools
 import ast
 import math
-from pipes import stepkinds
 
+from typing import Callable
+
+from backend.protzilla.constants.option_types import CrosslinkingValidationCriterion
 import pandas as pd
 import numpy as np
 import re
 import logging
 
-from pandas.io.stata import stata_epoch
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 
@@ -371,6 +372,9 @@ def monomer_validation(
     crosslinker_information: dict[str, list[float]],
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
+    pae_matrix: np.ndarray[tuple[int, int]],
+    plddt_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
     """
     Validates crosslinking data for a monomeric protein structure by checking
@@ -382,6 +386,8 @@ def monomer_validation(
                                     allowed distance boundaries (e.g., [min_dist, max_dist]).
     :param cif_df: DataFrame containing mmCIF information.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
+    :param pae_matrix: NumPy 2D array containing AlphaFold PAE data.
+    :param plddt_df: DataFrame containing AlphaFold pLDDT data.
     :return: A dictionary containing the validation results and distance metrics.
     """
     protein_id = structure_metadata_df["uniprot_accession"].iloc[0]
@@ -392,9 +398,12 @@ def monomer_validation(
         structure_metadata_df=structure_metadata_df,
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
+        pae_matrix=pae_matrix,
+        plddt_df=plddt_df,
         valid_ids=valid_ids,
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=[protein_id],
+        validation_criterion=validation_criterion,
     )
 
 
@@ -453,6 +462,47 @@ def get_valid_ids_per_protein_id_from_job_request(
     return valid_ids
 
 
+def get_global_residue_index(
+    position_within_protein: int,  # 1-based index
+    chain_id: str,
+    cif_df: pd.DataFrame,
+):
+    """
+    For multimer PAE lookup: For a position within a given protein in a chain,
+    get the global 0-based residue index used to find that position in the PAE matrix.
+
+    Note: This assumes that the order of AAs in the _atom_site table corresponds
+    to the order of residues in the pae matrix and thus the other residue-based tables in
+    the cif.
+
+    :param position_within_protein: index of the amino acid within the protein (1-based)
+    :param chain_id: the chain ID of the protein within the complex
+    :param cif_df: DataFrame containing the _atom_site table of the complex structure
+    """
+
+    # Get table with only unique chain and sequence IDs and infer global index
+    index_lookup_df = (
+        cif_df[["_atom_site.label_asym_id", "_atom_site.label_seq_id"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    index_lookup_df.reset_index(inplace=True)
+
+    index_lookup_df = index_lookup_df[
+        index_lookup_df["_atom_site.label_asym_id"] == chain_id
+    ]
+    index_lookup_df = index_lookup_df[
+        index_lookup_df["_atom_site.label_seq_id"] == position_within_protein
+    ]
+
+    if len(index_lookup_df) != 1:
+        raise ValueError(
+            "Invalid input: CIF contains multiple atoms mapped to same chain/sequence ID pair!"
+        )
+
+    return index_lookup_df["index"].iloc[0]
+
+
 def multimer_validation(
     crosslinking_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
@@ -460,6 +510,9 @@ def multimer_validation(
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     job_request_df: pd.DataFrame,
+    plddt_df: pd.DataFrame,
+    pae_matrix: np.ndarray[tuple[int, int]],
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> dict:
     """
     Validates crosslinking data for a multimeric protein complex by checking
@@ -477,6 +530,8 @@ def multimer_validation(
     :param cif_df: DataFrame containing mmCIF information.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :param job_request_df: DataFrame containing the loaded AlphaFold job request JSON.
+    :param plddt_df: DataFrame containing per-residue pLDDT values.
+    :param pae_matrix: NumPy 2D array containing the PAE values for each residue pair.
     :return: A dictionary containing the validation results and distance metrics.
     """
     valid_ids = get_valid_ids_per_protein_id_from_job_request(
@@ -493,6 +548,9 @@ def multimer_validation(
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        pae_matrix=pae_matrix,
+        plddt_df=plddt_df,
+        validation_criterion=validation_criterion,
     )
 
 
@@ -502,9 +560,12 @@ def validate_with_angstrom_deviation(
     structure_metadata_df: pd.DataFrame,
     cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
-    valid_ids: dict,
+    valid_ids: dict[str, list[int]],
     id_column_name: str,
     structures_to_validate: list,
+    validation_criterion: CrosslinkingValidationCriterion,
+    plddt_df: pd.DataFrame | None = None,
+    pae_matrix: np.ndarray[tuple[int, int]] | None = None,
 ) -> dict:
     """
     Validates crosslinks by comparing the crosslinker lengths with the distances between the linked
@@ -516,6 +577,8 @@ def validate_with_angstrom_deviation(
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of three floats:
                                     [crosslinker_length, upper_accepted_deviation, lower_accepted_deviation].
     :param cif_df: DataFrame containing CIF information (predicted coordinates of all the protein's atoms).
+    :param plddt_df: DataFrame containing the local AlphaFold pLDDT values for each residue.
+    :param pae_matrix: NumPy 2D array containing the PAE values for each residue pair.
     :param amino_acid_sequences_df: Dataframe that contains all known amino acid sequences.
     :param valid_ids: Dictionary mapping protein IDs to their valid chain/entity identifiers in the CIF data.
     :param id_column_name: The column name in the cif_df to use for matching against valid_ids.
@@ -575,6 +638,47 @@ def validate_with_angstrom_deviation(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
         )
 
+        def get_site_plddts(crosslink: pd.Series):
+            if plddt_df is None:
+                return np.nan, np.nan
+
+            plddt_at_position1 = float(
+                plddt_df.query(
+                    "residueNumber == @crosslink.crosslinker_position1 and "
+                    + "chainID == @crosslink.Chain_id1"
+                ).iloc[0]["confidenceScore"]
+            )
+            plddt_at_position2 = float(
+                plddt_df.query(
+                    "residueNumber == @crosslink.crosslinker_position2 and "
+                    + "chainID == @crosslink.Chain_id2"
+                ).iloc[0]["confidenceScore"]
+            )
+
+            return plddt_at_position1, plddt_at_position2
+
+        def get_paes():
+            if pae_matrix is None:
+                return np.nan, np.nan
+
+            pae_index_pos1 = get_global_residue_index(
+                crosslink.crosslinker_position1, crosslink.Chain_id1, cif_df
+            )
+            pae_index_pos2 = get_global_residue_index(
+                crosslink.crosslinker_position2, crosslink.Chain_id2, cif_df
+            )
+            pae_x_position1 = pae_matrix[
+                pae_index_pos1, pae_index_pos2
+            ]  # Using position1 as scored residue
+            pae_x_position2 = pae_matrix[
+                pae_index_pos2, pae_index_pos1
+            ]  # Using position2 as scored residue
+
+            return pae_x_position1, pae_x_position2
+
+        plddt_at_position1, plddt_at_position2 = get_site_plddts(crosslink)
+        pae_x_position1, pae_x_position2 = get_paes()
+
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
             amino_acid_position2=crosslink.crosslinker_position2,
@@ -595,13 +699,68 @@ def validate_with_angstrom_deviation(
                 f"Missing required information regarding crosslinker length "
                 f"and/or accepted deviation for crosslinker '{crosslink.Crosslinker}'."
             )
-        # Fallback to default deviation bounds when not explicitly provided
-        accepted_distance_lower_bound = crosslinker_length - (
-            accepted_deviation_lower_bound or crosslinker_length
-        )
-        accepted_distance_upper_bound = (
-            accepted_deviation_upper_bound or float("inf")
-        ) + crosslinker_length
+
+        accepted_distance_lower_bound: float = 0.0
+        accepted_distance_upper_bound: float = 0.0
+
+        match validation_criterion:
+            case CrosslinkingValidationCriterion.manual_bounds.value:
+                # Fallback to default deviation bounds when not explicitly provided
+                accepted_distance_lower_bound = crosslinker_length - (
+                    accepted_deviation_lower_bound or crosslinker_length
+                )
+                accepted_distance_upper_bound = (
+                    accepted_deviation_upper_bound or float("inf")
+                ) + crosslinker_length
+
+            case CrosslinkingValidationCriterion.max_pae.value:
+                if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
+                    raise ValueError("No PAE data given.")
+
+                pae_tolerance = max(pae_x_position1, pae_x_position2)
+                accepted_distance_lower_bound = float(
+                    max(crosslinker_length - pae_tolerance, 0.0)
+                )
+                accepted_distance_upper_bound = float(
+                    crosslinker_length + pae_tolerance
+                )
+
+            case CrosslinkingValidationCriterion.min_pae.value:
+                if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
+                    raise ValueError("No PAE data given.")
+                pae_x_position1, pae_x_position2 = get_paes()
+                pae_tolerance = min(pae_x_position1, pae_x_position2)
+                accepted_distance_lower_bound = float(
+                    max(crosslinker_length - pae_tolerance, 0.0)
+                )
+                accepted_distance_upper_bound = float(
+                    crosslinker_length + pae_tolerance
+                )
+
+            case CrosslinkingValidationCriterion.plddt_adjusted.value:
+                if np.isnan(plddt_at_position1) or np.isnan(plddt_at_position2):
+                    raise ValueError("No pLDDT data given.")
+
+                get_plddt_factor: Callable[[float], float] = lambda plddt: 1 - (
+                    plddt / 100
+                )
+
+                plddt_factor_pos1 = get_plddt_factor(plddt_at_position1)
+                plddt_factor_pos2 = get_plddt_factor(plddt_at_position2)
+
+                max_half_tolerance = crosslinker_length  # Note: This is quite lenient
+                tolerance_pos1 = plddt_factor_pos1 * max_half_tolerance
+                tolerance_pos2 = plddt_factor_pos2 * max_half_tolerance
+
+                accepted_distance_lower_bound = max(
+                    crosslinker_length - tolerance_pos1 - tolerance_pos2, 0
+                )
+                accepted_distance_upper_bound = (
+                    crosslinker_length + tolerance_pos1 + tolerance_pos2
+                )
+
+            case _:
+                raise ValueError("Invalid validation strategy")
 
         valid = (
             accepted_distance_lower_bound
@@ -615,6 +774,10 @@ def validate_with_angstrom_deviation(
                 "valid_crosslink": valid,
                 "crosslinker_position1": crosslink.crosslinker_position1,
                 "crosslinker_position2": crosslink.crosslinker_position2,
+                "plddt_at_position1": plddt_at_position1,
+                "plddt_at_position2": plddt_at_position2,
+                "pae_x_position1": pae_x_position1,
+                "pae_x_position2": pae_x_position2,
             }
         )
 
@@ -624,6 +787,10 @@ def validate_with_angstrom_deviation(
         "valid_crosslink",
         "crosslinker_position1",
         "crosslinker_position2",
+        "plddt_at_position1",
+        "plddt_at_position2",
+        "pae_x_position1",
+        "pae_x_position2",
     ]
 
     relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[
@@ -907,69 +1074,76 @@ def diagrams_of_crosslinking_validation_data(
 
 
 def monomer_diagrams(
-    crosslinking_df: pd.DataFrame,
+    output_crosslinking_result_df: pd.DataFrame,
     structure_metadata_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
-    cif_df: pd.DataFrame,
-    amino_acid_sequences_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> list[Figure]:
     """
     Generates visual diagrams to evaluate crosslinking validation results
     for a monomeric protein structure.
 
-    This function acts as a wrapper that first runs the crosslink validation
-    step via `monomer_validation`. It then extracts the resulting dataframe
-    of validated crosslinks and passes it to the diagram generator to create
-    the final plots.
-
-    :param crosslinking_df: DataFrame containing the full set of crosslinks.
+    :param output_crosslinking_result_df: DataFrame containing the CL validation results.
     :param structure_metadata_df: DataFrame containing structural metadata; the
                                   first row's 'uniprot_accession' is used as the target.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of
                                     three floats: [length, upper_bound, lower_bound].
-    :param cif_df: DataFrame containing parsed mmCIF structural coordinate data.
-    :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
+    :param validation_criterion: The validation criterion used for validation.
     :return: A list of Figure objects visualizing the crosslinking validation data.
     """
     structures_to_validate = [structure_metadata_df["uniprot_accession"].iloc[0]]
-    validated_df = monomer_validation(
-        crosslinking_df,
-        structure_metadata_df,
-        crosslinker_information,
-        cif_df,
-        amino_acid_sequences_df,
-    )["crosslinking_result_df"]
-    return diagrams_of_crosslinking_validation_data(
-        validated_df=validated_df,
-        structures_to_validate=structures_to_validate,
-        crosslinker_information=crosslinker_information,
-    )
+
+    match validation_criterion:
+        case CrosslinkingValidationCriterion.manual_bounds.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case (
+            CrosslinkingValidationCriterion.max_pae.value
+            | CrosslinkingValidationCriterion.min_pae.value
+        ):
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        case _:
+            return []
 
 
 def multimer_diagrams(
-    crosslinking_df: pd.DataFrame,
-    structure_metadata_df: pd.DataFrame,
+    output_crosslinking_result_df: pd.DataFrame,
     crosslinker_information: dict[str, list[float]],
-    cif_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     job_request_df: pd.DataFrame,
+    validation_criterion: CrosslinkingValidationCriterion,
 ) -> list[Figure]:
     """
     Generates visual diagrams to evaluate crosslinking validation results
     for a multimeric protein complex.
 
     This function parses an AlphaFold job request to determine the valid chain
-    compositions. It then runs `multimer_validation` to filter and validate
-    the relevant crosslinks, extracting the result to generate structural
-    distance and validation plots.
+    compositions and uses the passed result from the validation.
 
-    :param crosslinking_df: DataFrame containing the full set of crosslinks.
-    :param structure_metadata_df: DataFrame containing structural metadata.
+    :param output_crosslinking_result_df: DataFrame containing the CL validation results.
     :param crosslinker_information: Dictionary mapping crosslinker names to a list of
                                     three floats: [length, upper_bound, lower_bound].
-    :param cif_df: DataFrame containing parsed mmCIF structural coordinate data.
     :param amino_acid_sequences_df: DataFrame containing known amino acid sequences.
     :param job_request_df: DataFrame containing the loaded AlphaFold job request JSON.
+    :param validation_criterion: The validation criterion used for validation.
     :return: A list of Figure objects visualizing the crosslinking validation data.
     """
     valid_ids = get_valid_ids_per_protein_id_from_job_request(
@@ -977,20 +1151,35 @@ def multimer_diagrams(
     )
     structures_to_validate = list(valid_ids.keys())
 
-    validated_df = multimer_validation(
-        crosslinking_df,
-        structure_metadata_df,
-        crosslinker_information,
-        cif_df,
-        amino_acid_sequences_df,
-        job_request_df,
-    )["crosslinking_result_df"]
+    match validation_criterion:
+        case CrosslinkingValidationCriterion.manual_bounds.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
 
-    return diagrams_of_crosslinking_validation_data(
-        validated_df=validated_df,
-        structures_to_validate=structures_to_validate,
-        crosslinker_information=crosslinker_information,
-    )
+        # TODO: Separate Issue #429
+        case (
+            CrosslinkingValidationCriterion.max_pae.value
+            | CrosslinkingValidationCriterion.min_pae.value
+        ):
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        # TODO: Separate Issue #429
+        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+            return diagrams_of_crosslinking_validation_data(
+                validated_df=output_crosslinking_result_df,
+                structures_to_validate=structures_to_validate,
+                crosslinker_information=crosslinker_information,
+            )
+
+        case _:
+            return []
 
 
 # Warning: Mostly AI generated

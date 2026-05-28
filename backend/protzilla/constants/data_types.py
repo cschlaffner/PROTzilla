@@ -23,7 +23,7 @@ class DataKey(StrEnum):
     GENE_MAPPING_DF = "gene_mapping_df"
     CIF_DF = "cif_df"
     AMINO_ACID_SEQUENCES_DF = "amino_acid_sequences_df"
-    PAE_DF = "pae_df"  # pae = predicted aligned error
+    PAE_MATRIX = "pae_matrix"  # pae = predicted aligned error
     PLDDT_DF = "plddt_df"  # plddt = predicted local distance difference test
     CROSSLINKING_DF = "crosslinking_df"
     CONFIDENCE_DF = "confidence_df"
