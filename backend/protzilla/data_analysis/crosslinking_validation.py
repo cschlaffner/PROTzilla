@@ -1083,6 +1083,17 @@ def cl_scatterplots_plddt(
     structures_to_validate: list[str],
     crosslinker_information: dict[str, list[float]],
 ) -> list[Figure]:
+    """
+    Scatter plot for crosslinking validation data. Displays the deviation from the predicted structure
+    on the x-axis (log scaled) and the average pLDDT at the binding sites on the y-axis.
+    A dot is placed for each crosslinker identified.
+
+    :param cl_results_df: The results from the crosslinking validation step
+    :param structures_to_validate: the protein IDs included in the validation
+    :param crosslinker_information: the name: (length, upper devation, lower deviation) bounds for each CL.
+
+    :return: The Plot
+    """
 
     figures: list[Figure] = []
 
@@ -1201,6 +1212,18 @@ def cl_scatterplots_pae(
     crosslinker_information: dict[str, list[float]],
     validation_criterion: CrosslinkingValidationCriterion,
 ) -> list[Figure]:
+    """
+    Scatter plot for crosslinking validation data. Displays the deviation from the predicted structure
+    on the x-axis (log scaled) and the PAE value used for validation (min/max) between the binding sites on the y-axis.
+    A dot is placed for each crosslinker identified.
+
+    :param cl_results_df: The results from the crosslinking validation step
+    :param structures_to_validate: the protein IDs included in the validation
+    :param crosslinker_information: the name: (length, upper devation, lower deviation) bounds for each CL
+    :param validation_criterion: the validation criterion used for the validation
+
+    :return: The Plot
+    """
 
     figures: list[Figure] = []
 
