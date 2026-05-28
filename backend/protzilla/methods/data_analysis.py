@@ -2469,7 +2469,7 @@ class CrosslinkingValidationWithAngstromDeviation(
                     label="Crosslinker lengths and bounds",
                 ),
                 InfoField(
-                    label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
+                    label="Set default crosslink lengths and their upper/lower deviations in settings under 'Crosslinks Defaults'.",
                 ),
             ],
         )
@@ -2498,7 +2498,7 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
                     label="Crosslinker lengths and bounds",
                 ),
                 InfoField(
-                    label="Set default cross-link lengths and their upper/lower deviations in settings under 'Cross-Links Defaults'.",
+                    label="Set default crosslink lengths and their upper/lower deviations in settings under 'Crosslinks Defaults'.",
                 ),
             ],
         )
