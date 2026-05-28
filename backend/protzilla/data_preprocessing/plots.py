@@ -39,7 +39,7 @@ def create_pie_plot(
     )
 
     fig.update_layout(title={"text": f"<b>{heading}</b>"})
-    fig.update_traces(hovertemplate="%{label} <br>Amount: %{value}")
+    fig.update_traces(hovertemplate="%{label} <br>Amount: %{value}", sort=False)
     return fig
 
 
@@ -86,6 +86,7 @@ def create_box_plots(
     x_title: str = "",
     group_by: str = "None",
     visual_transformation: str = "linear",
+    show_outliers: bool = True,
 ) -> Figure:
     """
     A function to create a boxplot for visualisation
@@ -118,6 +119,7 @@ def create_box_plots(
         )
     intensity_name_a = default_intensity_column(dataframe_a)
     intensity_name_b = default_intensity_column(dataframe_b)
+    outlier_parameter = "outliers" if show_outliers else False
     if group_by in {"Sample", "Protein ID"}:
         fig = make_subplots(rows=1, cols=2)
         trace0 = go.Box(
@@ -125,12 +127,14 @@ def create_box_plots(
             x=dataframe_a[group_by],
             marker_color=PLOT_PRIMARY_COLOR,
             name=name_a,
+            boxpoints=outlier_parameter,
         )
         trace1 = go.Box(
             y=dataframe_b[intensity_name_b],
             x=dataframe_b[group_by],
             marker_color=PLOT_SECONDARY_COLOR,
             name=name_b,
+            boxpoints=outlier_parameter,
         )
         fig.add_trace(trace0, 1, 1)
         fig.add_trace(trace1, 1, 2)
@@ -142,11 +146,13 @@ def create_box_plots(
             y=dataframe_a[intensity_name_a],
             marker_color=PLOT_PRIMARY_COLOR,
             name=name_a,
+            boxpoints=outlier_parameter,
         )
         trace1 = go.Box(
             y=dataframe_b[intensity_name_b],
             marker_color=PLOT_SECONDARY_COLOR,
             name=name_b,
+            boxpoints=outlier_parameter,
         )
         fig.add_trace(trace0, 1, 1)
         fig.add_trace(trace1, 1, 2)

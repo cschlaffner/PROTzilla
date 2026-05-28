@@ -323,46 +323,98 @@ def by_reference_protein(
 
 
 def by_z_score_plot(
-    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    protein_df,
+    output_protein_df,
+    graph_type,
+    group_by,
+    visual_transformation,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
-        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+        protein_df,
+        output_protein_df,
+        graph_type,
+        group_by,
+        visual_transformation,
+        show_outliers,
     )
 
 
 def by_median_plot(
-    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    protein_df,
+    output_protein_df,
+    graph_type,
+    group_by,
+    visual_transformation,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
-        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+        protein_df,
+        output_protein_df,
+        graph_type,
+        group_by,
+        visual_transformation,
+        show_outliers,
     )
 
 
 def by_totalsum_plot(
-    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    protein_df,
+    output_protein_df,
+    graph_type,
+    group_by,
+    visual_transformation,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
-        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+        protein_df,
+        output_protein_df,
+        graph_type,
+        group_by,
+        visual_transformation,
+        show_outliers,
     )
 
 
 def by_reference_protein_plot(
-    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    protein_df,
+    output_protein_df,
+    graph_type,
+    group_by,
+    visual_transformation,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
-        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+        protein_df,
+        output_protein_df,
+        graph_type,
+        group_by,
+        visual_transformation,
+        show_outliers,
     )
 
 
 def by_width_adjustment_plot(
-    protein_df, output_protein_df, graph_type, group_by, visual_transformation
+    protein_df,
+    output_protein_df,
+    graph_type,
+    group_by,
+    visual_transformation,
+    show_outliers=True,
 ):
     return _build_box_hist_plot(
-        protein_df, output_protein_df, graph_type, group_by, visual_transformation
+        protein_df,
+        output_protein_df,
+        graph_type,
+        group_by,
+        visual_transformation,
+        show_outliers,
     )
 
 
-def _build_box_hist_plot(df, result_df, graph_type, group_by, visual_transformation):
+def _build_box_hist_plot(
+    df, result_df, graph_type, group_by, visual_transformation, show_outliers=True
+):
     if graph_type == "Boxplot":
         fig = create_box_plots(
             dataframe_a=df,
@@ -374,6 +426,7 @@ def _build_box_hist_plot(df, result_df, graph_type, group_by, visual_transformat
             y_title="Intensity",
             group_by=group_by,
             visual_transformation=visual_transformation,
+            show_outliers=show_outliers,
         )
     if graph_type == "Histogram":
         fig = create_histograms(

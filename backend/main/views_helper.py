@@ -1,7 +1,9 @@
 import re
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+import pandas as pd
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.disk_operator import YamlOperator
@@ -176,3 +178,28 @@ def load_yaml_from_file(path: Path) -> str:
         raise FileNotFoundError(f"File {path} does not exist.")
     with path.open("r") as f:
         return f.read()
+
+
+def _dataframe_as_datagrid_rows(_data: pd.DataFrame) -> list[dict] | None:
+    """
+    Converts dataframes from step outputs into a DataGrid-compatible row format for the frontend.
+    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+    If the output could not be serialised, None is returned.
+    An id column based on index will be added.
+
+    :param _data: The data associated with the output
+    """
+    if isinstance(_data, pd.DataFrame):
+        data = _data.copy()
+
+        # Safer than just adding the new column. We assume __id_col is not
+        # a column name anyone would use
+        if "id" in data.columns:
+            data.rename(columns={"id": "__id_col"}, inplace=True)
+
+        data["id"] = data.index
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
+    else:
+        return None

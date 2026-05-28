@@ -227,6 +227,7 @@ def clustergram_plot(
     flip_axes: bool,
     metadata_column: str | None = None,
     heatmap_legend_title: str | None = None,
+    dendrogram_line_width: int = 2,
     use_custom_color_scale: bool = False,
     heatmap_low_color_limit: float | None = None,
     heatmap_low_color: str | None = None,
@@ -260,6 +261,7 @@ def clustergram_plot(
     :param heatmap_low_color: color used for the smallest mapped values
     :param heatmap_high_color_limit: (if use_custom_color_scale) the threshold for which
         all greater values take heatmap_high_color
+    :param dendrogram_line_width: the width of the lines in the dendrogram
     :param heatmap_high_color: color used for the greatest mapped values
 
     return: returns a dictionary containing a list with a plotly figure and/or a list of messages
@@ -333,7 +335,7 @@ def clustergram_plot(
             row_colors=row_colors,
             row_colors_to_label_dict=color_label_dict,
             column_labels=input_df_wide.columns.values.tolist(),
-            line_width=2,
+            line_width=dendrogram_line_width,
             color_map=px.colors.diverging.RdBu_r,
             hidden_labels=["row", "col"],
             custom_color_scale=custom_color_scale,

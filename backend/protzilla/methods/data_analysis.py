@@ -955,6 +955,13 @@ class PlotClustergram(DataAnalysisPlotStep):
                     label="Heatmap legend title",
                     value="Heatmap legend",
                 ),
+                NumberField(
+                    name="dendrogram_line_width",
+                    label="Dendrogram line width",
+                    value=2,
+                    min=1,
+                    hasStepButtons=True,
+                ),
                 CheckboxField(
                     name="use_custom_color_scale",
                     label="Use custom color scale",

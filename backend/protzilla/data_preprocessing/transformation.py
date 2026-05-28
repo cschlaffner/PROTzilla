@@ -85,7 +85,9 @@ def by_log(
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
 
 
-def by_log_plot(protein_df, output_protein_df, graph_type, group_by):
+def by_log_plot(
+    protein_df, output_protein_df, graph_type, group_by, show_outliers=True
+):
     if graph_type == "Boxplot":
         fig = create_box_plots(
             dataframe_a=protein_df,
@@ -95,6 +97,7 @@ def by_log_plot(protein_df, output_protein_df, graph_type, group_by):
             heading="Distribution of Protein Intensities",
             group_by=group_by,
             y_title="Intensity",
+            show_outliers=show_outliers,
         )
     if graph_type == "Histogram":
         fig = create_histograms(
