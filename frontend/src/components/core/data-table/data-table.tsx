@@ -78,19 +78,25 @@ export const DataTable: React.FC<DataTableProps> = ({
     items: [],
   });
   const [columns, setColumns] = useState<GridColDef[]>([]);
+  
   const columnsInitializedRef = useRef(false);
+  const isFallbackRef = useRef(false);
 
-  // necessary for updating which columns exist when switching between tables
+  // Reset state when switching between tables
   useEffect(() => {
     setColumns([]);
+    setCurrentRows([]);
     setFilterModel({ items: [] });
     setSortModel([]);
     columnsInitializedRef.current = false;
+    isFallbackRef.current = false;
   }, [tableLabel]);
 
-  // Fetch data when pagination changes
+  // Fetch data when pagination, sorts, or filters change
   useEffect(() => {
     const fetchData = async () => {
+      if (isFallbackRef.current) return;
+
       setLoading(true);
 
       const startIndex = paginationModel.page * paginationModel.pageSize;
@@ -107,7 +113,35 @@ export const DataTable: React.FC<DataTableProps> = ({
           filters: JSON.stringify(filterModel.items),
         });
 
-        if (response.rows.length > 0 && !columnsInitializedRef.current && Object.keys(response.rows[0]).length <= MAX_COLUMNS) {
+        // 1. Column Generation & Fallback Logic (Only runs once per table)
+        if (!columnsInitializedRef.current && response.rows.length > 0) {
+          const numCols = Object.keys(response.rows[0]).length;
+
+          // Handle Too Many Columns (Fallback)
+          if (numCols > MAX_COLUMNS) {
+            const generatedColumns = Object.keys(FALLBACK_TOO_MANY_COLUMNS[0]).map((key) => {
+              return {
+                field: key,
+                headerName: key,
+                flex: 1,
+                type: "string",
+                align: "left",
+                headerAlign: "left",
+                sortable: false, // Prevent users from sorting fallback rows
+                filterable: false, // Prevent users from filtering fallback rows
+              } as GridColDef;
+            });
+
+            setColumns(generatedColumns);
+            setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
+            setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
+            
+            columnsInitializedRef.current = true;
+            isFallbackRef.current = true;
+            return;
+          } 
+          
+          // Handle Normal Columns
           const generatedColumns = Object.keys(response.rows[0]).map((key) => {
             const isNumeric = response.rows.every(
               (row: TableRecord) => typeof row[key] === "number" || row[key] === null,
@@ -127,29 +161,15 @@ export const DataTable: React.FC<DataTableProps> = ({
           });
 
           setColumns(generatedColumns);
-          setCurrentRows(response.rows);
           columnsInitializedRef.current = true;
+          isFallbackRef.current = false;
         }
 
-        else if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
-          const generatedColumns = Object.keys(FALLBACK_TOO_MANY_COLUMNS[0]).map((key) => {
-            return {
-              field: key,
-              headerName: key,
-              flex: 1,
-              type: "string",
-              align: "left",
-              headerAlign: "left",
-              filterable: true,
-              filterOperators: stringOperators,
-              valueFormatter: (value: unknown) => value ?? "NaN",
-            } as GridColDef;
-          });
+        if(!isFallbackRef.current) {
+          setCurrentRows(response.rows);
+          setTotalRowCount(response.total_row_count);
+        }
 
-          setColumns(generatedColumns);
-          setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
-          setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
-        } 
 
       } catch (error) {
         console.error("Failed to fetch table data:", error);
