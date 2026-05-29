@@ -78,7 +78,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     items: [],
   });
   const [columns, setColumns] = useState<GridColDef[]>([]);
-  
+
   const columnsInitializedRef = useRef(false);
   const isFallbackRef = useRef(false);
 
@@ -113,7 +113,6 @@ export const DataTable: React.FC<DataTableProps> = ({
           filters: JSON.stringify(filterModel.items),
         });
 
-        // 1. Column Generation & Fallback Logic (Only runs once per table)
         if (!columnsInitializedRef.current && response.rows.length > 0) {
           const numCols = Object.keys(response.rows[0]).length;
 
@@ -127,20 +126,20 @@ export const DataTable: React.FC<DataTableProps> = ({
                 type: "string",
                 align: "left",
                 headerAlign: "left",
-                sortable: false, // Prevent users from sorting fallback rows
-                filterable: false, // Prevent users from filtering fallback rows
+                sortable: false,
+                filterable: false,
               } as GridColDef;
             });
 
             setColumns(generatedColumns);
             setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
             setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
-            
+
             columnsInitializedRef.current = true;
             isFallbackRef.current = true;
             return;
-          } 
-          
+          }
+
           // Handle Normal Columns
           const generatedColumns = Object.keys(response.rows[0]).map((key) => {
             const isNumeric = response.rows.every(
@@ -165,12 +164,13 @@ export const DataTable: React.FC<DataTableProps> = ({
           isFallbackRef.current = false;
         }
 
-        if(!isFallbackRef.current) {
+        // This is NOT unnecessary! The fallback just doesn't work if
+        // we don't do this
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!isFallbackRef.current) {
           setCurrentRows(response.rows);
           setTotalRowCount(response.total_row_count);
         }
-
-
       } catch (error) {
         console.error("Failed to fetch table data:", error);
       } finally {
