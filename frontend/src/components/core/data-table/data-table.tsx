@@ -107,7 +107,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           filters: JSON.stringify(filterModel.items),
         });
 
-        if (response.rows.length > 0 && !columnsInitializedRef.current) {
+        if (response.rows.length > 0 && !columnsInitializedRef.current && Object.keys(response.rows[0]).length <= MAX_COLUMNS) {
           const generatedColumns = Object.keys(response.rows[0]).map((key) => {
             const isNumeric = response.rows.every(
               (row: TableRecord) => typeof row[key] === "number" || row[key] === null,
@@ -127,16 +127,30 @@ export const DataTable: React.FC<DataTableProps> = ({
           });
 
           setColumns(generatedColumns);
+          setCurrentRows(response.rows);
           columnsInitializedRef.current = true;
         }
 
-        if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
+        else if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
+          const generatedColumns = Object.keys(FALLBACK_TOO_MANY_COLUMNS[0]).map((key) => {
+            return {
+              field: key,
+              headerName: key,
+              flex: 1,
+              type: "string",
+              align: "left",
+              headerAlign: "left",
+              filterable: true,
+              filterOperators: stringOperators,
+              valueFormatter: (value: unknown) => value ?? "NaN",
+            } as GridColDef;
+          });
+
+          setColumns(generatedColumns);
           setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
           setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
-        } else {
-          setCurrentRows(response.rows);
-          setTotalRowCount(response.total_row_count);
-        }
+        } 
+
       } catch (error) {
         console.error("Failed to fetch table data:", error);
       } finally {
