@@ -12,6 +12,7 @@ def test_get_all_possible_step_names():
         "EvidenceImport",
         "ExampleDatasetImport",
         "FastaImport",
+        "CifImport",
         "AlphaFoldPredictionLoad",
         "CrosslinkingImport",
         "AlphaFoldQueryJsonGeneration",
@@ -92,6 +93,7 @@ def test_get_all_possible_step_names():
         "ArbitraryCSVImport",
         "CrosslinkingValidationWithAngstromDeviation",
         "CrosslinkingValidationWithAngstromDeviationForMultimer",
+        "AddPTMsFromEvidenceToPrediction"
     }
 
     steps = get_all_possible_steps()
