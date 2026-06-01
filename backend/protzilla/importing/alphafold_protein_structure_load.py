@@ -154,7 +154,9 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
     )[[CHEM_COMP_COLUMNS.ID, CHEM_COMP_COLUMNS.MON_NSTD_FLAG]]
 
     chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] = (
-        chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].map(CIF_BOOL_MAP).astype("boolean")
+        chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG]
+        .map(CIF_BOOL_MAP)
+        .astype("boolean")
     )
 
     # merge on the comp_id and drop the duplicate column
