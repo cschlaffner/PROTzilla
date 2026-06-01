@@ -198,6 +198,14 @@ def delete_run(request):
 
         try:
             if run_name in Run._instances:
+                # there are the following three cases:
+                # 1. The run is in memory and healthy: We successfully retrieve it and
+                #    use its delete method to clean up state and release file locks.
+                # 2. The run is in memory but corrupted: Instantiation fails,
+                #    so we catch the exception, forcefully evict it from the cache,
+                #    and wipe the folder directly.
+                # 3. (Handled by the else block) The run is NOT in memory: We bypass
+                #    instantiation entirely to save resources and directly wipe the folder.
                 try:
                     run = Run(run_name)
                     run.delete_run()
