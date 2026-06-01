@@ -92,6 +92,7 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
 from backend.protzilla.data_analysis.batch_effect_correction import (
     combat_correction,
     sva_correction,
+    loess_correction,
 )
 
 
@@ -2381,7 +2382,7 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     display_name = "Batch Effect Correction: SVA"
     method_description = (
         # TODO:
-        "Description SVA (and warning that we do not quite use SVA)"
+        "Description SVA"
     )
     output_keys = ["protein_df", "surrogate_variable_df"]
     calc_method = staticmethod(sva_correction)
@@ -2389,5 +2390,21 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     def create_form(self):
         return Form(
             label="Batch Effect Correction: SVA",
+            input_fields=[],
+        )
+
+
+class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
+    display_name = "Batch Effect Correction: LOESS"
+    method_description = (
+        # TODO:
+        "Description LOESS (and warning that we do not quite use SVA)"
+    )
+    output_keys = ["protein_df"]
+    calc_method = staticmethod(loess_correction)
+
+    def create_form(self):
+        return Form(
+            label="Batch Effect Correction: LOESS",
             input_fields=[],
         )

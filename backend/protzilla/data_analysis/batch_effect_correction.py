@@ -332,3 +332,7 @@ def sva_correction(protein_df: pd.DataFrame, metadata_df: pd.DataFrame):
     )
 
     return {"protein_df": protein_df, "surrogate_variable_df": surrogate_variable_df}
+
+
+def loess_correction(protein_df: pd.DataFrame, metadata_df: pd.DataFrame):
+    return {"protein_df": protein_df}
