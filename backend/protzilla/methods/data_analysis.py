@@ -2389,12 +2389,5 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     def create_form(self):
         return Form(
             label="Batch Effect Correction: SVA",
-            input_fields=[
-                NumberField(
-                    name="n_surrogate_variables",
-                    label="The number of unknown factors to be filtered out.",
-                    min=0,
-                    value=3,
-                ),
-            ],
+            input_fields=[],
         )

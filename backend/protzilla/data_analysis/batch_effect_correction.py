@@ -5,6 +5,8 @@ from sklearn import linear_model
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 import numpy as np
 from sklearn.decomposition import PCA
+from scipy.stats import f
+from statsmodels.stats.multitest import fdrcorrection
 
 
 # <---- helper functions ---->
@@ -137,6 +139,159 @@ def add_sv_columns_to_df(sv_columns: list, df: pd.DataFrame):
     return df
 
 
+def calculate_n_sv_be(
+    wide_protein_df: pd.DataFrame, groups: list, seed: int | None = None, B: int = 20
+):
+    # TODO: Write a good doc string, right now I will base this function on the original R
+    # implementation which you can find here: https://rdrr.io/bioc/sva/src/R/num.sv.R
+    # I should make sure to also mention that the function builds on the approach by Buja
+    # and Eyuboglu 1992 and not Leek
+
+    # TODO: Ask Chris whether I should include variance filter
+    dat = (wide_protein_df.T).values
+    mod = groups
+    n_rows, n_columns = dat.shape
+    H = mod @ np.linalg.inv(mod.T @ mod) @ mod.T
+    res = dat - (H @ dat.T).T
+    # default for R for full_matrices is False, np default is True
+    U, S, Vh = np.linalg.svd(res, full_matrices=False)
+    ndf = int(min(n_rows, n_columns) - np.trace(H))
+    dstat = (S[:ndf] ** 2) / np.sum(S[:ndf] ** 2)
+    dstat0 = np.zeros((int(B), ndf))
+    for i in range(B):
+        # in R they do the shuffling weirdly different because apply in R transposes
+        # the matrix and they have to transpose it back and that is why they do it
+        # on the rows and do the shuffling along the columns
+        res0 = np.apply_along_axis(np.random.permutation, axis=1, arr=res)
+        res0 = res0 - (H @ res0.T).T
+        U0, S0, Vh0 = np.linalg.svd(res0, full_matrices=False)
+        dstat0[i, :] = (S0[:ndf] ** 2) / np.sum(S0[:ndf] ** 2)
+    psv = np.ones(n_columns)
+    for i in range(ndf):
+        psv[i] = np.mean(dstat0[:, i] >= dstat[i])
+    for i in range(1, ndf):
+        psv[i] = max(psv[i - 1], psv[i])
+    nsv = np.sum(psv <= 0.10)
+    return int(nsv)
+
+
+def calculate_n_sv_leek(wide_protein_df: pd.DataFrame, groups: list):
+    # TODO: Write a good doc string, right now I will base this function on the original R
+    # implementation which you can find here: https://rdrr.io/bioc/sva/src/R/num.sv.R
+    # I should make sure to also mention that the function builds on the approach by Leek
+    # and not Buja and Eyuboglu 1992
+
+    # TODO: Ask Chris whether I should include variance filter
+    dat = wide_protein_df.T
+    mod = groups
+    n_rows, n_columns = dat.shape
+    a = np.linspace(0, 2, 100)
+    n = np.floor(n_columns / 10)
+    rhat = np.zeros((100, 10))
+    P = np.eye(n_columns) - mod @ np.linalg.inv(mod.T @ mod) @ mod.T
+    for j in range(1, 11):
+        dats = dat.iloc[0 : int(j * n), :]
+        eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
+        sigbar = eigenvalues[n_columns - 1] / (j * n)
+        R = dats @ P
+        wm = (1 / (j * n)) * R.T @ R - P * sigbar
+        eigenvalues, eigenvector = np.linalg.eigh(wm)
+        thresholds = a * (j * n) ** (-1 / 3) * n_rows
+        counts = np.sum(eigenvalues > thresholds[:, np.newaxis], axis=1)
+        rhat[:, j - 1] = counts
+    # ddof is necessary because numpy and R have different defaults on how to calculate variance
+    ss = np.var(rhat, axis=1, ddof=1)
+    bumpstart = np.argmax(ss > (2 * ss[0]))
+    drop_condition = ss < (0.5 * ss[0])
+    drop_condition[: bumpstart + 1] = False
+    start = np.argmax(drop_condition)
+
+    spike_condition = ss > ss[0]
+    spike_condition[: start + 1] = False
+    finish = np.argmax(spike_condition)
+
+    if not finish:
+        raise RuntimeError(
+            "The Leek method fails because it cannot converge. The batch effects in your "
+            "data are probably too subtle to detect by this method. Try to use the "
+            "permutation based version by Buja and Eyuboglu 1992 instead."
+        )
+
+    stable_estimates = rhat[start : finish + 1, 9]
+    vals, counts = np.unique(stable_estimates, return_counts=True)
+    n_sv = vals[np.argmax(counts)]
+    return n_sv
+
+
+def f_pvalue(dat: np.matrix, mod: np.matrix, mod0: np.matrix):
+    n_rows, n_columns = dat.shape
+    df1 = mod.shape[1]
+    df0 = mod0.shape[1]
+
+    # calculate for biological signal
+    primary_variables_model = linear_model.LinearRegression()
+    primary_variables_model.fit(mod, dat.T)
+    primary_variable_signal = primary_variables_model.predict(mod)
+    resid = dat.T - primary_variable_signal
+    rss1 = (resid * resid).sum(axis=1)
+
+    # calculate for non-biological signal
+    sv_model = linear_model.LinearRegression()
+    sv_model.fit(mod0, dat.T)
+    sv_signal = sv_model.predict(mod0)
+    resid0 = dat.T - sv_signal
+    rss0 = (resid0 * resid0).sum(axis=1)
+
+    fstats = ((rss0 - rss1) / (df1 - df0)) / (rss1 / (n_columns - df1))
+    p = f.sf(fstats, dfn=(df1 - df0), dfd=(n_columns - df1))
+    return p
+
+
+def irwsva(
+    wide_protein_df: pd.DataFrame, groups: list, n_surrogate_variables: int, B: int = 5
+):
+    dat = (wide_protein_df.T).values
+    mod0 = np.ones((len(groups), 1))
+    mod = np.hstack([mod0, groups])
+    n_rows, n_columns = dat.shape
+    # first we take out the effect of the primary variable so we only have BE
+    # and other unknown sources of variation in our values
+    primary_variables_model = linear_model.LinearRegression()
+    primary_variables_model.fit(mod, dat.T)
+    primary_variable_signal = primary_variables_model.predict(mod)
+    resid = dat.T - primary_variable_signal
+
+    # Next, we need to perform SVD (in the original SVA, but we can use PCA as well)
+    pca_model = PCA(n_components=n_surrogate_variables)
+    vv = pca_model.fit_transform(resid)
+
+    ndf = n_columns - mod.shape[1]
+    pprob = np.ones(n_rows)
+    one = np.ones(n_columns)
+    Id = np.eye(n_columns)
+    df1 = mod.shape[1] + n_surrogate_variables
+    df0 = mod0.shape[1] + n_surrogate_variables
+
+    for i in range(B):
+        mod_b = np.hstack([mod, vv[:, 0:n_surrogate_variables]])
+        mod0_b = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
+        ptmp = f_pvalue(dat, mod_b, mod0_b)
+        pprob_b = 1 - fdrcorrection(ptmp)[1]
+
+        mod_gam = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
+        mod0_gam = np.hstack([mod0])
+        ptmp = f_pvalue(dat, mod_gam, mod0_gam)
+        pprob_gam = 1 - fdrcorrection(ptmp)[1]
+
+        pprob = pprob_gam * (1 - pprob_b)
+        dats = dat.T * pprob.reshape(-1, 1)
+        dats = dats - np.mean(dats, axis=1, keepdims=True)
+        eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
+    U, S, Vh = np.linalg.svd(dats, full_matrices=False)
+    sv = Vh.T[:, 0:n_surrogate_variables]
+    return sv
+
+
 # <---- BECAs ---->
 
 
@@ -152,26 +307,22 @@ def combat_correction(protein_df: pd.DataFrame, metadata_df: pd.DataFrame):
     return {"protein_df": batch_corrected_protein_df}
 
 
-def sva_correction(
-    protein_df: pd.DataFrame, metadata_df: pd.DataFrame, n_surrogate_variables
-):
+def sva_correction(protein_df: pd.DataFrame, metadata_df: pd.DataFrame):
     # X has wide format and y is simply the label / primary variable
     wide_protein_df, groups = get_training_data_and_target_values(
         protein_df=protein_df, metadata_df=metadata_df
     )
-    # first we take out the effect of the primary variable so we only have BE
-    # and other unknown sources of variation in our values
-    primary_variables_model = linear_model.LinearRegression()
-    primary_variables_model.fit(groups, wide_protein_df)
-    primary_variable_signal = primary_variables_model.predict(groups)
-    cleaned_values = wide_protein_df - primary_variable_signal
-
-    # Next, we need to perform SVD (in the original SVA, but we can use PCA as well)
-    pca_model = PCA(n_components=n_surrogate_variables)
-    sv = pca_model.fit_transform(cleaned_values)
+    # TODO: let users decide which methods
+    n_surrogate_variables = calculate_n_sv_be(wide_protein_df, groups)
+    sv = irwsva(
+        wide_protein_df=wide_protein_df,
+        groups=groups,
+        n_surrogate_variables=n_surrogate_variables,
+    )
 
     # Now, we add the surrogate variables to a df that also contains protein ids and samples
     sv_transposed = np.array(sv).T
+    n_surrogate_variables = len(sv_transposed)
 
     wide_surrogate_variable_df = add_sv_columns_to_df(sv_transposed, wide_protein_df)
     # this still contains the gene information after the wide_to_long transformation
