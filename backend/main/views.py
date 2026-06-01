@@ -196,21 +196,33 @@ def delete_run(request):
         run_name = data.get("run_name")
 
         try:
-            if run_name not in Run._instances:
-                delete_run_folder(run_name)
+            if run_name in Run._instances:
+                # there are the following three cases:
+                # 1. The run is in memory and healthy: We successfully retrieve it and
+                #    use its delete method to clean up state and release file locks.
+                # 2. The run is in memory but corrupted: Instantiation fails,
+                #    so we catch the exception, forcefully evict it from the cache,
+                #    and wipe the folder directly.
+                # 3. (Handled by the else block) The run is NOT in memory: We bypass
+                #    instantiation entirely to save resources and directly wipe the folder.
+                try:
+                    run = Run(run_name)
+                    run.delete_run()
+                except Exception:
+                    Run._instances.pop(run_name, None)
+                    delete_run_folder(run_name)
             else:
-                run = Run(run_name)
-                run.delete_run()
+                delete_run_folder(run_name)
 
             return JsonResponse({"success": True, "message": "Deleted run"})
         except Exception as e:
-            traceback.print_exc()  # not sure if it still needs to be here
             return JsonResponse(
                 {
                     "success": False,
-                    "message": format_trace(traceback.format_exception(e)),
+                    "message": str(e),
+                    "traceback": format_trace(traceback.format_exception(e)),
                 },
-                status=404,
+                status=500,
             )
     else:
         return JsonResponse(

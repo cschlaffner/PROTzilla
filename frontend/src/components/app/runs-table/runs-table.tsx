@@ -1,4 +1,4 @@
-import { RunEditMenu } from "@protzilla/app";
+import { RunEditMenu, useNotification } from "@protzilla/app";
 import {
   DeleteModal,
   Icon,
@@ -113,6 +113,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const notify = useNotification();
 
   const { handlePointerEnter, handlePointerLeave, showTooltip, mouseAnchor } =
     useTooltipScheduling(true);
@@ -162,11 +163,29 @@ export const RunsTable: React.FC<RunsTableProps> = ({
     setRuns(updated);
   };
 
-  const handleDeleteRun = (runName: string) => {
-    void callApiWithParameters("delete_run/", { run_name: runName });
-    const updated = runs.filter((run) => run.run_name !== runName);
-    setIsDeleteModalOpen(false);
-    setRuns(updated);
+  const handleDeleteRun = async (runName: string) => {
+    try {
+      const response = await callApiWithParameters("delete_run/", { run_name: runName });
+
+      if (response?.success) {
+        const updated = runs.filter((run) => run.run_name !== runName);
+        setIsDeleteModalOpen(false);
+        setRuns(updated);
+      } else {
+        notify({
+          title: "Error",
+          message: `Failed to delete run: ${String(response?.message ?? "Unknown error")}`,
+          type: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting run:", error);
+      notify({
+        title: "Error",
+        message: "An unexpected error occurred while deleting the run.",
+        type: "error",
+      });
+    }
   };
 
   const handleContinueRun = (runName: string) => {
@@ -331,7 +350,7 @@ export const RunsTable: React.FC<RunsTableProps> = ({
         title={`Delete run "${actionRunName}"?`}
         isOpen={isDeleteModalOpen}
         onConfirm={() => {
-          handleDeleteRun(actionRunName);
+          void handleDeleteRun(actionRunName);
         }}
         onClose={() => {
           setIsDeleteModalOpen(false);
