@@ -269,7 +269,7 @@ def replace_residue_with_ptm(
     # Depending on whether the residue is at either terminal of the chain,
     # we want to keep the terminal atoms that are only present at the N- and C-terminal
     old_atom_names = set(old_residue_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID])
-    is_leaving = modified_residue_df["_leaving_flag"] == "Y"
+    is_leaving = modified_residue_df["_leaving_flag"] == True
     is_in_old = modified_residue_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID].isin(
         old_atom_names
     )
