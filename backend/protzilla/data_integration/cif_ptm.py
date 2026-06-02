@@ -1,9 +1,13 @@
 import logging
+import re
 from typing import cast
 
 import pandas as pd
 import gemmi
 
+from backend.protzilla.data_analysis.crosslinking_validation import (
+    _get_structure_entry_id,
+)
 from backend.protzilla.constants.cif_columns import (
     ATOM_SITE_COLUMNS,
     ATOM_SITE_COLUMNS_NUMERIC,
@@ -44,7 +48,12 @@ def parse_protein_ids(structure_metadata_df: pd.DataFrame) -> list[str]:
     ids: list[str] = (
         [structure_metadata_df.iloc[0][MONOMER_ID_COLUMN_NAME]]
         if is_monomer
-        else cast(list[str], structure_metadata_df.loc[0, MULTIMER_ID_COLUMN_NAME])
+        else re.findall(
+            r"'(.+?)'",
+            structure_metadata_df.reset_index(drop=True).loc[
+                0, MULTIMER_ID_COLUMN_NAME
+            ],
+        )
     )
 
     return ids
@@ -236,7 +245,7 @@ def load_ptm_df(ptm: KnownPTM) -> pd.DataFrame:
 
 
 def replace_residue_with_ptm(
-    cif_df: pd.DataFrame, index: int, ptm: KnownPTM
+    cif_df: pd.DataFrame, index: int, ptm: KnownPTM, entity_id: int
 ) -> pd.DataFrame:
     """
     Replaces the residue at a specific location with a modified residue
@@ -247,7 +256,10 @@ def replace_residue_with_ptm(
     :returns: The modified cif_df
     """
 
-    residue_mask = cif_df[ATOM_SITE_COLUMNS.AUTH_SEQ_ID] == index
+    # select the correct index of the correct entity
+    residue_mask = (cif_df[ATOM_SITE_COLUMNS.AUTH_SEQ_ID] == index) & (
+        cif_df[ATOM_SITE_COLUMNS.LABEL_ENTITY_ID] == entity_id
+    )
     old_residue_df = cif_df[residue_mask].reset_index(drop=True)
     unchanged_rows = cif_df[~residue_mask]
     cut_idx = residue_mask.to_numpy().nonzero()[0][0]
@@ -338,22 +350,34 @@ def add_ptms_from_evidence_to_cif(
         for protein_id in ids
     }
 
+    # Map protein IDs to their label_entity_id in the cif_df
+    # order corresponds to the order in the fasta
+    protein_to_entity: dict[str, int] = {}
+    for i, protein_id in enumerate(amino_acid_sequences_df["Protein ID"]):
+        # normalize without isoform suffix
+        protein_id = re.match(r"(\w+)-\d+", protein_id).group(1)
+        protein_to_entity[protein_id] = i + 1
+
     modification_df = evidence_to_modifications(psm_df, protein_sequences)
 
     unknown_ptms = set[tuple[str, str]]()
     modification_counter = 0
     for _, row in modification_df.iterrows():
-        _, location, modification, residue = row
+        protein_id, location, modification, residue = row
+        entity_id = protein_to_entity[protein_id]
         try:
             ptm = KnownPTM.from_strings(modification, residue)
         except ValueError:
             unknown_ptms.add((modification, residue))
             continue
         if ptm in selected_ptms:
-            cif_df = replace_residue_with_ptm(cif_df, location, ptm)
+            cif_df = replace_residue_with_ptm(cif_df, location, ptm, entity_id)
             modification_counter += 1
 
-    data_for_visualization = {"structure_entry_id": ids, DataKey.CIF_DF: cif_df}
+    data_for_visualization = {
+        "structure_entry_id": _get_structure_entry_id(structure_metadata_df),
+        DataKey.CIF_DF: cif_df,
+    }
 
     messages = [
         {
