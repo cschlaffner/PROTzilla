@@ -25,6 +25,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     get_residue_positions_in_protein,
     get_protein_sequence_from_df,
 )
+from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.ptm_helpers import (
     clean_mod_list_of_numbers,
     extract_mods,
@@ -249,7 +250,7 @@ def replace_residue_with_ptm(
     residue_mask = cif_df[ATOM_SITE_COLUMNS.AUTH_SEQ_ID] == index
     old_residue_df = cif_df[residue_mask].reset_index(drop=True)
     unchanged_rows = cif_df[~residue_mask]
-    cut_idx = residue_mask.values.nonzero()[0][0]
+    cut_idx = residue_mask.to_numpy().nonzero()[0][0]
 
     modified_residue_df = load_ptm_df(ptm)
 
@@ -304,7 +305,7 @@ def add_ptms_from_evidence_to_cif(
     psm_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     selected_ptm_names: list[str],
-) -> dict[str, pd.DataFrame | list[dict[str, str | int]]]:
+) -> dict[str, pd.DataFrame | OutputItem | list[dict[str, str | int]]]:
 
     if not selected_ptm_names:
         return {
@@ -352,6 +353,8 @@ def add_ptms_from_evidence_to_cif(
             cif_df = replace_residue_with_ptm(cif_df, location, ptm)
             modification_counter += 1
 
+    data_for_visualization = {"structure_entry_id": ids, DataKey.CIF_DF: cif_df}
+
     messages = [
         {
             "level": logging.INFO,
@@ -369,5 +372,6 @@ def add_ptms_from_evidence_to_cif(
     return {
         DataKey.MODIFICATION_DF.value: modification_df,
         DataKey.CIF_DF.value: cif_df,
+        "visualization": OutputItem(OutputType.VISUALIZATION, data_for_visualization),
         "messages": messages,
     }
