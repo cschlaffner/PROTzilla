@@ -85,6 +85,9 @@ def evidence_to_modifications(
         ignore_index=True
     )
 
+    if psm_df.empty:
+        return pd.DataFrame()
+
     # Create long dataframe with modification, location, residue from wide psm_df with modifications
 
     psm_df["mod_tuple"] = psm_df.apply(
