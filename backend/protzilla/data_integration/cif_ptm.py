@@ -297,14 +297,8 @@ def replace_residue_with_ptm(
     # Reindex to match original columns
     modified_residue_df = modified_residue_df.reindex(columns=cif_df.columns)
 
-    # Reassign sequential atom IDs since the amount likely changed
-    start_id = int(old_residue_df[ATOM_SITE_COLUMNS.ID].iloc[0])
-    modified_residue_df[ATOM_SITE_COLUMNS.ID] = range(
-        start_id, start_id + len(modified_residue_df)
-    )
-
     # Stitch the rows back together
-    return pd.concat(
+    result = pd.concat(
         [
             unchanged_rows.iloc[:cut_idx],
             modified_residue_df,
@@ -312,6 +306,10 @@ def replace_residue_with_ptm(
         ],
         ignore_index=True,
     )
+
+    result[ATOM_SITE_COLUMNS.ID] = range(1, len(result) + 1)
+
+    return result
 
 
 def add_ptms_from_evidence_to_cif(
