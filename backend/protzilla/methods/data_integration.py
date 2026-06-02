@@ -995,7 +995,7 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
 
 
 class AddPTMsFromEvidenceToPrediction(DataIntegrationStep):
-    operation = "ptm_alphafold"
+    operation = "ptm_insertion"
     display_name = "Add PTMs from Evidence to Alphafold CIF"
     method_description = (
         "Integrate observed PTMs from evidence to predicted AlphaFold structures"
