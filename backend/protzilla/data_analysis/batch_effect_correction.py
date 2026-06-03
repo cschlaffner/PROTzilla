@@ -256,8 +256,8 @@ def calculate_n_sv_be(
     else:
         random_state = np.random.RandomState()
     for i in range(B):
-        # R handles shuffling differently: it transposes the matrix and then performs the shuffling 
-        # therefore the original R implementation of num.sv performs the shuffling on the rows and then 
+        # R handles shuffling differently: it transposes the matrix and then performs the shuffling
+        # therefore the original R implementation of num.sv performs the shuffling on the rows and then
         # transpose it back to columns, in Python we can directly do the shuffling along the columns
         res0 = np.apply_along_axis(random_state.permutation, axis=1, arr=res)
         res0 = res0 - (H @ res0.T).T
@@ -377,7 +377,7 @@ def irwsva(
     approach. The implementation is based on the algorithm implemented in the R package sva
     which implements SVA. One can find the original implementation here: https://rdrr.io/bioc/sva/src/R/irwsva.build.R
 
-    :param dat: the data matrix with the variables in rows and samples in columns 
+    :param dat: the data matrix with the variables in rows and samples in columns
         type: np.ndarray
     :param mod: the model matrix being used to fit the data
         type: np.ndarray
@@ -460,7 +460,9 @@ def combat_correction(
 
 
 def sva_correction(
-    protein_df: pd.DataFrame, metadata_df: pd.DataFrame, num_sv_method: str = NumSVMethods.be
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    num_sv_method: str = NumSVMethods.be,
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm SVA (Surrogate Variable Algorithm).
@@ -479,8 +481,10 @@ def sva_correction(
     elif num_sv_method == NumSVMethods.leek.value:
         n_surrogate_variables = calculate_n_sv_leek(wide_protein_df, groups)
     else:
-        raise ValueError("No valid option to calculate the optimal number of surrogate variables selected.")
-    
+        raise ValueError(
+            "No valid option to calculate the optimal number of surrogate variables selected."
+        )
+
     sv = irwsva(
         wide_protein_df=wide_protein_df,
         groups=groups,

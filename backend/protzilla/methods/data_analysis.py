@@ -11,7 +11,7 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import (
     MultipleTestingCorrectionMethod,
     PValueColumnName,
-    NumSVMethods
+    NumSVMethods,
 )
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -2416,12 +2416,10 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
             label="Batch Effect Correction: LOESS",
             input_fields=[
                 DropdownField(
-                    name="group_column",
-                    label="Name of the group column in metadata"
+                    name="group_column", label="Name of the group column in metadata"
                 ),
                 MultiSelectField(
-                    name="qc_group_names",
-                    label="Quality Control group names"
+                    name="qc_group_names", label="Quality Control group names"
                 ),
             ],
         )
@@ -2431,8 +2429,6 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
         super().modify_form(run=run)
 
         self.set_grouping_options(run=run, column_field_name="group_column")
-        self.set_selected_groups_options(run=run, column_field="group_column", group_field="qc_group_names")
-
-
-        
-        
+        self.set_selected_groups_options(
+            run=run, column_field="group_column", group_field="qc_group_names"
+        )
