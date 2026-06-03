@@ -2,6 +2,7 @@ import logging
 
 from backend.protzilla.constants.option_types import (
     PValueColumnName,
+    SimilarityMeasure,
     SimpleImputerStrategyType,
 )
 from backend.protzilla.constants.data_types import ClassificationType
@@ -370,7 +371,7 @@ def prot_quant_plot(
     protein_df: pd.DataFrame,
     protein_group: str,
     similarity: float = 1.0,
-    similarity_measure: str = "euclidean distance",
+    similarity_measure: SimilarityMeasure = SimilarityMeasure.euclidean_distance,
 ) -> dict:
     """
     A function to create a graph visualising protein quantifications across all samples
@@ -388,17 +389,24 @@ def prot_quant_plot(
     :return: returns a dictionary containing a list with a plotly figure
     """
 
+    try:
+        similarity_measure = SimilarityMeasure(similarity_measure)
+    except ValueError:
+        raise ValueError(
+            f"Unknown similarity measure. Accepted values are {[item.value for item in SimilarityMeasure]}"
+        )
+
     protein_wide_df = (
         long_to_wide(protein_df) if is_long_format(protein_df) else protein_df
     )
 
     if protein_group not in protein_wide_df.columns:
         raise ValueError("Please select a valid protein group.")
-    elif similarity_measure == "euclidean distance" and similarity < 0:
+    elif similarity_measure == SimilarityMeasure.euclidean_distance and similarity < 0:
         raise ValueError(
             "Similarity for euclidean distance should be greater than or equal to 0."
         )
-    elif similarity_measure == "cosine similarity" and (
+    elif similarity_measure == SimilarityMeasure.cosine_similarity and (
         similarity < -1 or similarity > 1
     ):
         raise ValueError("Similarity for cosine similarity should be between -1 and 1")
@@ -437,7 +445,7 @@ def prot_quant_plot(
     similar_groups = []
     for group_to_compare in protein_wide_df.columns:
         if group_to_compare != protein_group:
-            if similarity_measure == "euclidean distance":
+            if similarity_measure == SimilarityMeasure.euclidean_distance:
                 distance = euclidean_distances(
                     stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
                     stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
@@ -447,7 +455,7 @@ def prot_quant_plot(
                     stats.zscore(protein_wide_df[protein_group]).reshape(1, -1),
                     stats.zscore(protein_wide_df[group_to_compare]).reshape(1, -1),
                 )[0][0]
-            if similarity_measure == "euclidean distance":
+            if similarity_measure == SimilarityMeasure.euclidean_distance:
                 if distance <= similarity:
                     similar_groups.append(group_to_compare)
             else:

@@ -130,7 +130,7 @@ steps:
 - form_inputs:
     protein_group: A0A0B4J2A2
     similarity: 1
-    similarity_measure: euclidean distance
+    similarity_measure: Euclidean Distance
   inputs: {}
   instance_identifier: PlotProtQuant_1
   type: PlotProtQuant

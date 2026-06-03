@@ -11,6 +11,7 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import (
     MultipleTestingCorrectionMethod,
     PValueColumnName,
+    SimilarityMeasure,
 )
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -119,11 +120,6 @@ class ProteinsOfInterest(Enum):
 class DynamicProteinFill(Enum):
     # TODO: Add the dynamic protein fill options
     pass
-
-
-class SimilarityMeasure(Enum):
-    euclidean_distance = "Euclidean Distance"
-    cosine_similarity = "Cosine Similarity"
 
 
 class ModelSelection(Enum):
