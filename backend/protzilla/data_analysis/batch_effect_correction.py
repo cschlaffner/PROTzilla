@@ -165,6 +165,7 @@ def get_training_data_and_target_values(
 
 
 # currently unused
+# could be useful if we want the surrogate variables listed for each protein even though they are only for each sample
 def sv_wide_to_long(
     wide_df: pd.DataFrame, original_long_df: pd.DataFrame, n_surrogate_variables: int
 ) -> pd.DataFrame:
@@ -497,11 +498,9 @@ def sva_correction(
         groups=groups,
         n_surrogate_variables=n_surrogate_variables,
     )
-
-    # Now, we add the surrogate variables to a df that also contains protein ids and samples
+    # turn sv to column
     sv_transposed = np.array(sv).T
-    n_surrogate_variables = len(sv_transposed)
-
+    # create sv dataframe
     samples_in_order = wide_protein_df.index
     sv_df = create_sv_dataframe(sv_transposed, samples_in_order)
 
