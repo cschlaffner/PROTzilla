@@ -49,6 +49,9 @@ class MultipleTestingCorrectionMethod(StrEnum):
     bonferroni = "Bonferroni"
     none = "None"
 
+class NumSVMethods(Enum):
+    be = "Permutation-Based Parallel Analysis by Buja and Eyuboglu 1992"
+    leek = "Asymptotic Approach by Leek"
 
 class VisualTransformations(StrEnum):
     LOG10 = "log10"

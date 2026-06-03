@@ -11,6 +11,7 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import (
     MultipleTestingCorrectionMethod,
     PValueColumnName,
+    NumSVMethods
 )
 from backend.protzilla.data_analysis.classification import random_forest, svm
 from backend.protzilla.data_analysis.clustering import (
@@ -2384,13 +2385,20 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
         # TODO:
         "Description SVA"
     )
-    output_keys = ["protein_df", "surrogate_variable_df"]
+    output_keys = ["protein_df"]
     calc_method = staticmethod(sva_correction)
 
     def create_form(self):
         return Form(
             label="Batch Effect Correction: SVA",
-            input_fields=[],
+            input_fields=[
+                DropdownField(
+                    name="num_sv_method",
+                    label="The method to calculate the optimal number of surrogate variables",
+                    options=NumSVMethods,
+                    value=NumSVMethods.be,
+                )
+            ],
         )
 
 
@@ -2398,7 +2406,7 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
     display_name = "Batch Effect Correction: LOESS"
     method_description = (
         # TODO:
-        "Description LOESS (and warning that we do not quite use SVA)"
+        "Description LOESS"
     )
     output_keys = ["protein_df"]
     calc_method = staticmethod(loess_correction)
@@ -2406,5 +2414,25 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
     def create_form(self):
         return Form(
             label="Batch Effect Correction: LOESS",
-            input_fields=[],
+            input_fields=[
+                DropdownField(
+                    name="group_column",
+                    label="Name of the group column in metadata"
+                ),
+                MultiSelectField(
+                    name="qc_group_names",
+                    label="Quality Control group names"
+                ),
+            ],
         )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+
+        self.set_grouping_options(run=run, column_field_name="group_column")
+        self.set_selected_groups_options(run=run, column_field="group_column", group_field="qc_group_names")
+
+
+        
+        

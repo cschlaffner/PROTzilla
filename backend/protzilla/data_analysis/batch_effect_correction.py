@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA
 from scipy.stats import f
 from statsmodels.stats.multitest import fdrcorrection
 from typing import Any
+from backend.protzilla.constants.option_types import NumSVMethods
 
 
 # <---- helper functions ---->
@@ -255,9 +256,9 @@ def calculate_n_sv_be(
     else:
         random_state = np.random.RandomState()
     for i in range(B):
-        # in R they do the shuffling weirdly different because apply in R transposes
-        # the matrix and they have to transpose it back and that is why they do it
-        # on the rows and do the shuffling along the columns
+        # R handles shuffling differently: it transposes the matrix and then performs the shuffling 
+        # therefore the original R implementation of num.sv performs the shuffling on the rows and then 
+        # transpose it back to columns, in Python we can directly do the shuffling along the columns
         res0 = np.apply_along_axis(random_state.permutation, axis=1, arr=res)
         res0 = res0 - (H @ res0.T).T
         U0, S0, Vh0 = np.linalg.svd(res0, full_matrices=False)
@@ -317,7 +318,7 @@ def calculate_n_sv_leek(wide_protein_df: pd.DataFrame, groups: list) -> int:
         raise RuntimeError(
             "The Leek method fails because it cannot converge. The batch effects in your "
             "data are probably too subtle to detect by this method. Try to use the "
-            "permutation based version by Buja and Eyuboglu 1992 instead."
+            "permutation based approach by Buja and Eyuboglu 1992 instead."
         )
 
     stable_estimates = rhat[start : finish + 1, 9]
@@ -371,21 +372,35 @@ def f_pvalue(dat: np.ndarray, mod: np.ndarray, mod0: np.ndarray) -> np.ndarray:
 def irwsva(
     wide_protein_df: pd.DataFrame, groups: list, n_surrogate_variables: int, B: int = 5
 ):
-    # TODO: Doc string
+    """
+    Calculates the surrogate variables with the iteratively re-weighted least squares
+    approach. The implementation is based on the algorithm implemented in the R package sva
+    which implements SVA. One can find the original implementation here: https://rdrr.io/bioc/sva/src/R/irwsva.build.R
+
+    :param dat: the data matrix with the variables in rows and samples in columns 
+        type: np.ndarray
+    :param mod: the model matrix being used to fit the data
+        type: np.ndarray
+    :param n_surrogate_variables: the number of surrogate variables to calculate
+        type: int | None
+    :param B: number of iterations for the algorithm to perform
+        type: int
+
+    :return: the surrogate variables in a matrix with the surrogate variables as columns and samples as rows
+    """
     dat = (wide_protein_df.T).values
     mod0 = np.ones((len(groups), 1))
     mod = np.hstack([mod0, groups])
     n_rows, n_columns = dat.shape
     # first we take out the effect of the primary variable so we only have BE
     # and other unknown sources of variation in our values
-    primary_variables_model = linear_model.LinearRegression()
-    primary_variables_model.fit(mod, dat.T)
-    primary_variable_signal = primary_variables_model.predict(mod)
+    beta, residuals, rank, s = np.linalg.lstsq(mod, dat.T, rcond=None)
+    primary_variable_signal = mod @ beta
     resid = dat.T - primary_variable_signal
+    resid = resid.T
 
-    # Next, we need to perform SVD (in the original SVA, but we can use PCA as well)
-    pca_model = PCA(n_components=n_surrogate_variables)
-    vv = pca_model.fit_transform(resid)
+    eigenvalues, eigenvector = np.linalg.eigh(resid.T @ resid)
+    vv = eigenvector
 
     # there is a lot of dead code in the original R code which I have copied here for now
     # to be able to map my code back
@@ -408,9 +423,10 @@ def irwsva(
         pprob_gam = 1 - fdrcorrection(ptmp)[1]
 
         pprob = pprob_gam * (1 - pprob_b)
-        dats = dat.T * pprob.reshape(-1, 1)
-        dats = dats - np.mean(dats, axis=1, keepdims=True)
+        dats = dat * pprob
+        dats = dats - np.mean(dats, axis=0, keepdims=True)
         eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
+        vv = eigenvector
     U, S, Vh = np.linalg.svd(dats, full_matrices=False)
     sv = Vh.T[:, 0:n_surrogate_variables]
     return sv
@@ -444,7 +460,7 @@ def combat_correction(
 
 
 def sva_correction(
-    protein_df: pd.DataFrame, metadata_df: pd.DataFrame
+    protein_df: pd.DataFrame, metadata_df: pd.DataFrame, num_sv_method: str = NumSVMethods.be
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm SVA (Surrogate Variable Algorithm).
@@ -455,12 +471,16 @@ def sva_correction(
 
     return: a dictionary containing the corrected protein data and a dataframe with the surrogate variables
     """
-    # X has wide format and y is simply the label / primary variable
     wide_protein_df, groups = get_training_data_and_target_values(
         protein_df=protein_df, metadata_df=metadata_df
     )
-    # TODO: let users decide which methods
-    n_surrogate_variables = calculate_n_sv_be(wide_protein_df, groups)
+    if num_sv_method == NumSVMethods.be.value:
+        n_surrogate_variables = calculate_n_sv_be(wide_protein_df, groups)
+    elif num_sv_method == NumSVMethods.leek.value:
+        n_surrogate_variables = calculate_n_sv_leek(wide_protein_df, groups)
+    else:
+        raise ValueError("No valid option to calculate the optimal number of surrogate variables selected.")
+    
     sv = irwsva(
         wide_protein_df=wide_protein_df,
         groups=groups,
