@@ -86,6 +86,7 @@ def example_dataset_import(import_peptide_data: bool = False) -> dict:
     metadata_import_dict = metadata_import_method(
         file_path=EXAMPLE_DATASET_METADATA_FILE,
         feature_orientation=FeatureOrientationType.COLUMNS.value,
+        comma_separated=True,
     )
     if DataKey.METADATA_DF not in metadata_import_dict:
         return metadata_import_dict

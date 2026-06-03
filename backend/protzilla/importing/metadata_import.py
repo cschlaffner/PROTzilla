@@ -107,7 +107,9 @@ def metadata_import_method(
             BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv"
         )
         meta_df.to_csv(file_path, index=False)
-        return metadata_import_method(file_path, "Columns")
+        return metadata_import_method(
+            file_path, "Columns", comma_separated=comma_separated
+        )
 
     elif str(file_path).startswith(
         f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"

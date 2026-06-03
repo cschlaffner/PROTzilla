@@ -83,6 +83,7 @@ def metadata_df():
     df = metadata_import_method(
         TEST_DATA_PATH / "import_data/metadata/metadata_AD01_CTR01.csv",
         feature_orientation="Columns",
+        comma_separated=True,
     )[DataKey.METADATA_DF]
 
     return df
