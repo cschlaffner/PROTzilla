@@ -236,6 +236,7 @@ def test_runner_imports(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "comma_separated": True,
         },
         {"percentage": 0.5, "graph_type": "Pie chart"},
         {"deviation_threshold": 2.0, "graph_type": "Pie chart"},
@@ -371,6 +372,7 @@ def test_runner_calculates(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "comma_separated": True,
         },
         {"percentage": 0.5, "graph_type": "Bar chart"},
     ]
