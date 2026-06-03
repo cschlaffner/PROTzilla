@@ -8,7 +8,9 @@ from backend.protzilla.constants.paths import BACKEND_PATH
 from backend.protzilla.utilities.utilities import random_string
 
 
-def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
+def file_importer(
+    file_path: Path, comma_separated: bool = True
+) -> tuple[pd.DataFrame, str]:
     """
     Imports a file based on its file extension and returns a pandas DataFrame or None if the file format is not
     supported / the file doesn't exist.
@@ -17,7 +19,7 @@ def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
         if file_path.suffix == ".csv":
             meta_df = pd.read_csv(
                 file_path,
-                sep=",",
+                sep="," if comma_separated else ";",
                 low_memory=False,
                 na_values=[""],
                 keep_default_na=True,
@@ -52,7 +54,9 @@ def file_importer(file_path: Path) -> tuple[pd.DataFrame, str]:
         return pd.DataFrame(), msg
 
 
-def metadata_import_method(file_path: Path, feature_orientation: str) -> dict:
+def metadata_import_method(
+    file_path: Path, feature_orientation: str, comma_separated: bool
+) -> dict:
     """
         Imports a metadata file and returns the intensity dataframe and a dict with a message if the file import failed,
         and the metadata dataframe if the import was successful.
@@ -60,7 +64,7 @@ def metadata_import_method(file_path: Path, feature_orientation: str) -> dict:
     returns: dict of DataFrame and other dict of metadata and messages
     """
     messages = []
-    meta_df, msg = file_importer(file_path)
+    meta_df, msg = file_importer(file_path, comma_separated)
     if meta_df.empty:
         return dict(
             messages=[dict(level=logging.ERROR, msg=msg)],
