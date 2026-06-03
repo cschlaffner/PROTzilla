@@ -2,7 +2,7 @@ from inmoose.pycombat import pycombat_norm
 import pandas as pd
 from backend.protzilla.utilities.utilities import default_intensity_column
 from sklearn import linear_model
-from backend.protzilla.utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 import numpy as np
 from sklearn.decomposition import PCA
 from scipy.stats import f
@@ -164,6 +164,7 @@ def get_training_data_and_target_values(
     return X, np.array(y).reshape(-1, 1)
 
 
+# currently unused
 def sv_wide_to_long(
     wide_df: pd.DataFrame, original_long_df: pd.DataFrame, n_surrogate_variables: int
 ) -> pd.DataFrame:
@@ -206,19 +207,25 @@ def sv_wide_to_long(
     return intensity_df
 
 
-def add_sv_columns_to_df(sv_columns: list, df: pd.DataFrame) -> pd.DataFrame:
+def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.DataFrame:
     """
-    Adds surrogate variables as columns to the given dataframe. The given dataframe should be in wide format.
+    Creates a surrogate variables dataframe with only Sample and their surrogate variables as columns.
 
     :param sv_columns: a list of lists containing the surrogate variable for every sample
         :type list
-    :param df: the wide format dataframe to which the surrogate variable columns should be added
-        :type pd.DataFrame
+    :param samples_in_order: samples in order of the surrogate variables
+        :type list[str]
 
-    :return: the dataframe with the added columns
+    :return: the surrogate variables dataframe
     """
+    sv_names = []
+    df = pd.DataFrame()
     for i in range(len(sv_columns)):
-        df[f"Surrogate Variable {i+1}"] = sv_columns[i]
+        sv_name = f"Surrogate Variable {i+1}"
+        sv_names.append(sv_name)
+        df[sv_name] = sv_columns[i]
+    df["Sample"] = samples_in_order
+    df = df[["Sample"] + sv_names]
     return df
 
 
@@ -495,15 +502,11 @@ def sva_correction(
     sv_transposed = np.array(sv).T
     n_surrogate_variables = len(sv_transposed)
 
-    wide_surrogate_variable_df = add_sv_columns_to_df(sv_transposed, wide_protein_df)
-    # this still contains the gene information after the wide_to_long transformation
-    # (I should think about whether I want this)
-    surrogate_variable_df = sv_wide_to_long(
-        wide_surrogate_variable_df, protein_df, n_surrogate_variables
-    )
+    samples_in_order = wide_protein_df.index
+    sv_df = create_sv_dataframe(sv_transposed, samples_in_order)
 
     # TODO: Correct the protein data!!
-    return {"protein_df": protein_df, "surrogate_variable_df": surrogate_variable_df}
+    return {"protein_df": protein_df, "surrogate_variable_df": sv_df}
 
 
 def loess_correction(protein_df: pd.DataFrame, metadata_df: pd.DataFrame):
