@@ -2397,9 +2397,18 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
                     label="The method to calculate the optimal number of surrogate variables",
                     options=NumSVMethods,
                     value=NumSVMethods.be,
-                )
+                ),
+                DropdownField(
+                    name="group_column",
+                    label="Name of the group column in metadata",
+                ),
             ],
         )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run)
+        self.set_grouping_options(run=run, column_field_name="group_column")
 
 
 class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):

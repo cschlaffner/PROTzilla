@@ -99,7 +99,9 @@ def get_batch_for_each_sample_in_order(
 
 
 def get_group_for_each_sample_in_order(
-    transformed_protein_df: pd.DataFrame, metadata_df: pd.DataFrame
+    transformed_protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    group_column: str,
 ) -> list:
     """
     Extracts the group assignment for each sample in the transformed_protein_df.
@@ -116,7 +118,7 @@ def get_group_for_each_sample_in_order(
     groups_in_order = []
     for sample in samples_in_order:
         groups_in_order.append(
-            metadata_df[metadata_df["Sample"] == sample]["Group"].iloc[0]
+            metadata_df[metadata_df["Sample"] == sample][group_column].iloc[0]
         )
     return groups_in_order
 
@@ -143,25 +145,6 @@ def turn_group_names_to_int(groups: list) -> list:
             groups_as_integer.append(max)
             max += 1
     return groups_as_integer
-
-
-def get_training_data_and_target_values(
-    protein_df: pd.DataFrame, metadata_df: pd.DataFrame
-) -> tuple[pd.DataFrame | Any]:
-    """
-    Transforms PROTzilla default dataframes into formats which can be used to train a linear regression model on
-
-    :param protein_df: the dataframe with the protein information in PROTzilla default format
-    :param metadata_df: the dataframe containing the metadata for protein_df
-
-    :return: returns a tuple of training data and target values for linear regression
-    """
-    X = long_to_wide(protein_df)
-    groups = get_group_for_each_sample_in_order(
-        transformed_protein_df=X, metadata_df=metadata_df
-    )
-    y = turn_group_names_to_int(groups)
-    return X, np.array(y).reshape(-1, 1)
 
 
 # currently unused
@@ -470,7 +453,8 @@ def combat_correction(
 def sva_correction(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
-    num_sv_method: str = NumSVMethods.be,
+    num_sv_method: str,
+    group_column: str,
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm SVA (Surrogate Variable Algorithm).
@@ -481,13 +465,19 @@ def sva_correction(
 
     return: a dictionary containing the corrected protein data and a dataframe with the surrogate variables
     """
-    wide_protein_df, groups = get_training_data_and_target_values(
-        protein_df=protein_df, metadata_df=metadata_df
+
+    wide_protein_df = long_to_wide(protein_df)
+    groups = get_group_for_each_sample_in_order(
+        transformed_protein_df=wide_protein_df,
+        metadata_df=metadata_df,
+        group_column=group_column,
     )
+    groups_int = np.array(turn_group_names_to_int(groups)).reshape(-1, 1)
+
     if num_sv_method == NumSVMethods.be.value:
-        n_surrogate_variables = calculate_n_sv_be(wide_protein_df, groups)
+        n_surrogate_variables = calculate_n_sv_be(wide_protein_df, groups_int)
     elif num_sv_method == NumSVMethods.leek.value:
-        n_surrogate_variables = calculate_n_sv_leek(wide_protein_df, groups)
+        n_surrogate_variables = calculate_n_sv_leek(wide_protein_df, groups_int)
     else:
         raise ValueError(
             "No valid option to calculate the optimal number of surrogate variables selected."
@@ -495,7 +485,7 @@ def sva_correction(
 
     sv = irwsva(
         wide_protein_df=wide_protein_df,
-        groups=groups,
+        groups=groups_int,
         n_surrogate_variables=n_surrogate_variables,
     )
     # turn sv to column
