@@ -234,14 +234,12 @@ def calculate_n_sv_be(
         type: pd.DataFrame
     :param groups: list containing the group assignments for the samples preserving their order
         type: list
-    :param seed: this parameter can be found in the original R implementation but is not being used there nor is it here
-        I keep it for now to preserve all they have done.
+    :param seed: the seed for the permutation
         type: int | None
     :param B: number of iterations to permute the data and test it against our real data
 
     :return: the number of surrogate variables
     """
-    # TODO: Ask Chris whether I should include variance filter
     dat = (wide_protein_df.T).values
     mod = groups
     n_rows, n_columns = dat.shape
@@ -287,7 +285,6 @@ def calculate_n_sv_leek(wide_protein_df: pd.DataFrame, groups: list) -> int:
 
     :return: the number of surrogate variables
     """
-    # TODO: Ask Chris whether I should include variance filter
     dat = wide_protein_df.T
     mod = groups
     n_rows, n_columns = dat.shape
@@ -329,7 +326,7 @@ def calculate_n_sv_leek(wide_protein_df: pd.DataFrame, groups: list) -> int:
     return n_sv
 
 
-def f_pvalue(dat: np.matrix, mod: np.matrix, mod0: np.matrix) -> np.ndarray:
+def f_pvalue(dat: np.ndarray, mod: np.ndarray, mod0: np.ndarray) -> np.ndarray:
     """
     Calculates f-statistics for each row of the given data matrix and compares the nested models defined
     by the design matrices for the alternative (mod) and null cases (mod0) cases. The columns of mod0 should be
@@ -340,11 +337,11 @@ def f_pvalue(dat: np.matrix, mod: np.matrix, mod0: np.matrix) -> np.ndarray:
 
 
     :param dat: the data matrix with the variables in rows and samples in columns
-        type: np.matrix
+        type: np.ndarray
     :param mod: the model matrix being used to fit the data
-        type: np.matrix
+        type: np.ndarray
     :param mod0: the null model being compared when fitting the data
-        type: np.matrix
+        type: np.ndarray
 
     :return: an array of f-statistic p-values for each row of dat
     """
@@ -434,6 +431,7 @@ def combat_correction(
 
     return: a dictionary containing the corrected protein data
     """
+    # TODO: What about parametric vs non-parametric
     transformed_protein_df = long_to_pycombat_df(protein_df=protein_df)
     batches_in_order = get_batch_for_each_sample_in_order(
         transformed_protein_df=transformed_protein_df, metadata_df=metadata_df
