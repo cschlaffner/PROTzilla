@@ -6,20 +6,31 @@ import pandas as pd
 
 from backend.protzilla.constants.paths import BACKEND_PATH
 from backend.protzilla.utilities.utilities import random_string
+from backend.protzilla.constants.option_types import Separators
 
 
 def file_importer(
-    file_path: Path, comma_separated: bool = True
+    file_path: Path,
+    separator: str,
 ) -> tuple[pd.DataFrame, str]:
     """
     Imports a file based on its file extension and returns a pandas DataFrame or None if the file format is not
     supported / the file doesn't exist.
     """
     try:
+        match separator:
+            case Separators.comma.value:
+                sep = ","
+            case Separators.semicolon.value:
+                sep = ";"
+            case Separators.tab.value:
+                sep = "\t"
+            case _:
+                sep = ","
         if file_path.suffix == ".csv":
             meta_df = pd.read_csv(
                 file_path,
-                sep="," if comma_separated else ";",
+                sep=sep,
                 low_memory=False,
                 na_values=[""],
                 keep_default_na=True,
@@ -55,7 +66,7 @@ def file_importer(
 
 
 def metadata_import_method(
-    file_path: Path, feature_orientation: str, comma_separated: bool
+    file_path: Path, feature_orientation: str, separator: str
 ) -> dict:
     """
         Imports a metadata file and returns the intensity dataframe and a dict with a message if the file import failed,
@@ -64,7 +75,7 @@ def metadata_import_method(
     returns: dict of DataFrame and other dict of metadata and messages
     """
     messages = []
-    meta_df, msg = file_importer(file_path, comma_separated)
+    meta_df, msg = file_importer(file_path, separator)
     if meta_df.empty:
         return dict(
             messages=[dict(level=logging.ERROR, msg=msg)],
@@ -107,9 +118,7 @@ def metadata_import_method(
             BACKEND_PATH / f"protzilla/importing/conversion_tmp_{random_string()}.csv"
         )
         meta_df.to_csv(file_path, index=False)
-        return metadata_import_method(
-            file_path, "Columns", comma_separated=comma_separated
-        )
+        return metadata_import_method(file_path, "Columns", separator == separator)
 
     elif str(file_path).startswith(
         f"{BACKEND_PATH}/protzilla/importing/conversion_tmp_"

@@ -218,9 +218,9 @@ class MetadataImport(MetadataImportingStep):
                     options=FeatureOrientationType,
                     value=FeatureOrientationType.COLUMNS.value,
                 ),
-                CheckboxField(
-                    name="comma_separated",
-                    label="Uploaded CSV is comma-separated (unselect if semicolon-separated)",
+                DropdownField(
+                    name="DropdownField",
+                    label="Separator",
                     value=True,
                 ),
             ],

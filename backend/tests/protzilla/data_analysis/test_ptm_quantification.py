@@ -1,3 +1,5 @@
+from tkinter.ttk import Separator
+
 import pandas as pd
 import pytest
 from statsmodels.compat.pandas import assert_frame_equal
@@ -14,6 +16,7 @@ from backend.protzilla.importing.metadata_import import metadata_import_method
 from backend.protzilla.importing.peptide_import import peptide_import
 from backend.tests.paths import TEST_DATA_PATH, TEST_PEPTIDES_PATH
 from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.constants.option_types import Separators
 
 
 @pytest.fixture(scope="module")
@@ -83,7 +86,7 @@ def metadata_df():
     df = metadata_import_method(
         TEST_DATA_PATH / "import_data/metadata/metadata_AD01_CTR01.csv",
         feature_orientation="Columns",
-        comma_separated=True,
+        separator=Separators.comma.value,
     )[DataKey.METADATA_DF]
 
     return df

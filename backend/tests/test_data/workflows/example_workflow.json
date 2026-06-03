@@ -15,7 +15,7 @@
           "method": "metadata_import_method",
           "parameters": {
             "feature_orientation": "Rows (features in rows, samples in columns)",
-            "comma_separated": true
+            "separator": "comma"
           }
         }
       ]
