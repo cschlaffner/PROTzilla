@@ -3,6 +3,8 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+from PIL.ImageShow import im
+
 import pytest
 import yaml
 
@@ -17,6 +19,7 @@ from backend.tests.paths import (
 from backend.protzilla import disk_operator
 from backend.protzilla.runner import Runner
 from runner_cli import args_parser
+from backend.protzilla.constants.option_types import Separators
 
 
 @pytest.fixture
@@ -236,6 +239,7 @@ def test_runner_imports(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         },
         {"percentage": 0.5, "graph_type": "Pie chart"},
         {"deviation_threshold": 2.0, "graph_type": "Pie chart"},
@@ -371,6 +375,7 @@ def test_runner_calculates(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         },
         {"percentage": 0.5, "graph_type": "Bar chart"},
     ]

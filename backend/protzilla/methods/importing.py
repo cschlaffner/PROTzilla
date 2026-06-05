@@ -3,6 +3,7 @@ from abc import ABC
 from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import Separators
 from backend.protzilla.form import (
     CheckboxField,
     DropdownField,
@@ -217,6 +218,12 @@ class MetadataImport(MetadataImportingStep):
                     label="Feature orientation",
                     options=FeatureOrientationType,
                     value=FeatureOrientationType.COLUMNS.value,
+                ),
+                DropdownField(
+                    name="separator",
+                    label="Separator",
+                    options=Separators,
+                    value=Separators.comma.value,
                 ),
             ],
         )
