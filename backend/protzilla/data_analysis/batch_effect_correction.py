@@ -235,6 +235,18 @@ def filter_samples_based_on_group(
     return wide_protein_df.drop(index=filter_samples)
 
 
+def get_batch_protein_dfs(
+    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame, batch_column: str
+) -> list[pd.DataFrame]:
+    batches = (
+        get_batch_for_each_sample_in_order(
+            transformed_protein_df=wide_protein_df, metadata_df=metadata_df
+        )
+    ).unique()
+
+    return []
+
+
 # <---- BECAs ---->
 
 
@@ -329,7 +341,9 @@ def loess_correction(
     metadata_df: pd.DataFrame,
     group_column: str,
     qc_group_names: list[str],
+    order: list[str],
 ) -> dict[str, pd.DataFrame]:
+    # TODO: doc string
     wide_protein_df = long_to_wide(protein_df)
     filtered_wide_protein_df = filter_samples_based_on_group(
         wide_protein_df=wide_protein_df,
@@ -337,5 +351,12 @@ def loess_correction(
         group_column=group_column,
         qc_group_names=qc_group_names,
     )
+    qc_samples = filtered_wide_protein_df.index
+    qc_samples_in_order = sorted(qc_samples, key=order.index)
+    qc_sample_values = filtered_wide_protein_df.loc[qc_samples_in_order]
+
+    all_samples = wide_protein_df.index
+    all_samples_in_order = sorted(all_samples, key=order.index)
+    all_sample_values = filtered_wide_protein_df.loc[all_samples_in_order]
 
     return {"protein_df": protein_df}
