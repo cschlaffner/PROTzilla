@@ -3,6 +3,7 @@ from abc import ABC
 from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import Separators
 from backend.protzilla.form import (
     CheckboxField,
     DropdownField,
@@ -218,10 +219,11 @@ class MetadataImport(MetadataImportingStep):
                     options=FeatureOrientationType,
                     value=FeatureOrientationType.COLUMNS.value,
                 ),
-                CheckboxField(
-                    name="comma_separated",
-                    label="Uploaded CSV is comma-separated (unselect if semicolon-separated)",
-                    value=True,
+                DropdownField(
+                    name="separator",
+                    label="Separator",
+                    options=Separators,
+                    value=Separators.comma.value,
                 ),
             ],
         )

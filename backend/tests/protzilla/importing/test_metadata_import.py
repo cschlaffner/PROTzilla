@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import Separators
 from backend.protzilla.run import Run
 from backend.tests.paths import TEST_METADATA_PATH
 from backend.protzilla.methods.importing import (
@@ -27,6 +28,7 @@ def test_metadata_import(run_imported):
         {
             "file_path": TEST_METADATA_PATH / "metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         }
     )
     run_imported.step_calculate()
@@ -51,6 +53,7 @@ def test_metadata_import_faulty_file(run_imported):
         {
             "file_path": TEST_METADATA_PATH / "metadata_sample_column_missing.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         }
     )
     run_imported.step_calculate()
@@ -114,6 +117,7 @@ def test_metadata_orientation(run_imported: Run):
         {
             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         }
     )
     run_imported.step_calculate()
@@ -122,6 +126,7 @@ def test_metadata_orientation(run_imported: Run):
         {
             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_rows.csv",
             "feature_orientation": "Rows (samples in columns, features in rows)",
+            "separator": Separators.comma.value,
         }
     )
     run_imported.step_calculate()
@@ -139,6 +144,7 @@ def test_metadata_column_assignment(run_empty):
         {
             "file_path": f"{TEST_METADATA_PATH}/metadata_cut_columns.csv",
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         }
     )
     run_empty.step_calculate()
