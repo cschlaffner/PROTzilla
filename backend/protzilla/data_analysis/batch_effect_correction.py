@@ -251,7 +251,6 @@ def combat_correction(
 
     return: a dictionary containing the corrected protein data
     """
-    # TODO: What about parametric vs non-parametric
     transformed_protein_df = long_to_pycombat_df(protein_df=protein_df)
     batches_in_order = get_batch_for_each_sample_in_order(
         transformed_protein_df=transformed_protein_df, metadata_df=metadata_df
