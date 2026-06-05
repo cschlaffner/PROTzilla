@@ -129,12 +129,7 @@ function getReactiveAtom(reactiveAtom?: string): string {
   // later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
   // then we just have to define a reactiveAtom
   if (!reactiveAtom) return "CA";
-  const mapping: Record<string, string> = {
-    K: "NZ",
-    S: "OG",
-    T: "OG1",
-  };
-  return mapping[reactiveAtom] || "CA";
+  return reactiveAtom;
 }
 
 function findAtomCoordinatesInCif(

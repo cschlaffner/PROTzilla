@@ -37,7 +37,7 @@ from backend.protzilla.constants.colors import (
 )
 
 
-def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
+def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_position: int) -> str:
     """
     Returns the atom of an amino acid residue that is considered reactive for
     crosslinking. Currently, this always returns the central alpha carbon (CA).
@@ -70,7 +70,7 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     :raises ValueError: if the specified atom cannot be found in the CIF data
     """
 
-    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type)
+    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type, amino_acid_position_where_crosslinker_bound)
     seq_ids = pd.to_numeric(cif_df["_atom_site.label_seq_id"], errors="coerce")
 
     # Filter to the exact reactive atom of the amino acid residue
@@ -227,7 +227,7 @@ def add_protein_crosslink_positions_to_df(
             amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
         )
         positions = [
-            m.start() + cl_position_within_peptide + 1
+            m.start() + cl_position_within_peptide
             for m in re.finditer(f"(?={peptide})", protein_sequence)
         ]
         return positions
@@ -422,7 +422,6 @@ def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
         return matching_rows["Protein ID"].iloc[0]
     else:
         return None
-
 
 def get_valid_ids_per_protein_id_from_job_request(
     amino_acid_sequences_df: pd.DataFrame, job_request_df: pd.DataFrame
