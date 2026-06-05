@@ -1155,7 +1155,7 @@ def cl_scatterplots_plddt(
     max_dist_delta = max(cl_results_df["distance_delta"])
 
     xmin = -1
-    if np.log10(xmin) > min_dist_delta:
+    if 10**xmin > min_dist_delta:
         xmin = np.log10(min_dist_delta)
 
     xmax = np.log10(max_dist_delta)
@@ -1287,7 +1287,7 @@ def cl_scatterplots_pae(
     max_dist_delta = max(cl_results_df["distance_delta"])
 
     xmin = -1
-    if np.log10(xmin) > min_dist_delta:
+    if 10**xmin > min_dist_delta:
         xmin = np.log10(min_dist_delta)
 
     xmax = np.log10(max_dist_delta)
