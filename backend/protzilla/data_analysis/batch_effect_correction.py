@@ -69,7 +69,9 @@ def pycombat_df_to_long(
 
 
 def get_batch_for_each_sample_in_order(
-    transformed_protein_df: pd.DataFrame, metadata_df: pd.DataFrame
+    transformed_protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    batch_column: str,
 ) -> list:
     """
     Extracts the batch name for each sample in the transformed_protein_df.
@@ -77,6 +79,7 @@ def get_batch_for_each_sample_in_order(
 
     :param transformed_protein_df: the dataframe with the samples for which the function extracts the batch assignments
     :param metadata_df: the dataframe that contains the metadata for the transformed_protein_df, including the batch assignments
+    :param batch_column: the name of the batch column in metadata
 
     :return: returns a list with the batch assignments in the order of the samples in the transformed_protein_df
     """
@@ -84,7 +87,7 @@ def get_batch_for_each_sample_in_order(
     batches_in_order = []
     for sample in samples_in_order:
         batches_in_order.append(
-            metadata_df[metadata_df["Sample"] == sample]["Batch"].iloc[0]
+            metadata_df[metadata_df["Sample"] == sample][batch_column].iloc[0]
         )
     return batches_in_order
 
@@ -240,7 +243,9 @@ def get_batch_protein_dfs(
 ) -> list[pd.DataFrame]:
     batches = (
         get_batch_for_each_sample_in_order(
-            transformed_protein_df=wide_protein_df, metadata_df=metadata_df
+            transformed_protein_df=wide_protein_df,
+            metadata_df=metadata_df,
+            batch_column=batch_column,
         )
     ).unique()
 
@@ -254,12 +259,15 @@ def combat_correction(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     par_prior: bool,
+    batch_column: str,
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm ComBat.
 
     :param protein_df: the dataframe containing the protein data
     :param metadata_df: the dataframe containing the metadata for the protein data, the metadata should include the batch assignments
+    :param par_prior: whether to perform parametric ComBat or nonparametric ComBat
+    :param batch_column: the name of the batch column in metadata
 
     return: a dictionary containing the corrected protein data
     """
@@ -342,6 +350,7 @@ def loess_correction(
     group_column: str,
     qc_group_names: list[str],
     order: list[str],
+    batch_column: str,
 ) -> dict[str, pd.DataFrame]:
     # TODO: doc string
     wide_protein_df = long_to_wide(protein_df)

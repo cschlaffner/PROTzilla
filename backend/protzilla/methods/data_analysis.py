@@ -2378,8 +2378,16 @@ class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
                     label="The batch effects can be parametrically estimated, parametric ComBat can be used (Default).",
                     value=True,
                 ),
+                DropdownField(
+                    name="batch_column", label="Name of the batch column in metadata"
+                ),
             ],
         )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+        self.set_grouping_options(run=run, column_field_name="batch_column")
 
 
 class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
@@ -2443,6 +2451,9 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
                 MultiSelectField(
                     name="qc_group_names", label="Quality Control group names"
                 ),
+                DropdownField(
+                    name="batch_column", label="Name of the batch column in metadata"
+                ),
             ],
         )
 
@@ -2454,3 +2465,4 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
         self.set_selected_groups_options(
             run=run, column_field="group_column", group_field="qc_group_names"
         )
+        self.set_grouping_options(run=run, column_field_name="batch_column")
