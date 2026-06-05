@@ -2365,26 +2365,26 @@ class BatchEffectCorrectionStep(DataAnalysisStep, ABC):
 
 class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
     display_name = "Batch Effect Correction: ComBat"
-    method_description = (
-        # TODO:
-        "Description ComBat"
-    )
+    method_description = "Corrects batch effects in the protein dataset using the method: ComBat (Johnson et al. 2007)"
     output_keys = ["protein_df"]
     calc_method = staticmethod(combat_correction)
 
     def create_form(self):
         return Form(
             label="Batch Effect Correction: ComBat",
-            input_fields=[],
+            input_fields=[
+                CheckboxField(
+                    name="par_prior",
+                    label="The batch effects can be parametrically estimated, parametric ComBat can be used (Default).",
+                    value=True,
+                ),
+            ],
         )
 
 
 class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     display_name = "Batch Effect Correction: SVA"
-    method_description = (
-        # TODO:
-        "Description SVA"
-    )
+    method_description = "Corrects batch effects in the protein dataset using the method: SVA (Leek and Storey, 2007, 2008)."
     output_keys = ["protein_df"]
     calc_method = staticmethod(sva_correction)
 
@@ -2402,6 +2402,14 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
                     name="group_column",
                     label="Name of the group column in metadata",
                 ),
+                NumberField(
+                    name="seed",
+                    label="Seed for permutations in calculation of the number of surrogate variables. (Enter -1 to have no seed specified)",
+                    value=-1,
+                    min=-1,
+                    isVisible=True,
+                    step=1,
+                ),
             ],
         )
 
@@ -2409,6 +2417,11 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     def modify_form(self, run):
         super().modify_form(run)
         self.set_grouping_options(run=run, column_field_name="group_column")
+
+        if self.form["num_sv_method"].value != NumSVMethods.be.value:
+            self.form["seed"].isVisible = False
+        else:
+            self.form["seed"].isVisible = True
 
 
 class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
