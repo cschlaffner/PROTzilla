@@ -1,13 +1,8 @@
 from inmoose.pycombat import pycombat_norm
 import pandas as pd
 from backend.protzilla.utilities.utilities import default_intensity_column
-from sklearn import linear_model
-from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
+from backend.protzilla.utilities.transform_dfs import long_to_wide
 import numpy as np
-from sklearn.decomposition import PCA
-from scipy.stats import f
-from statsmodels.stats.multitest import fdrcorrection
-from typing import Any
 from backend.protzilla.constants.option_types import NumSVMethods
 from backend.protzilla.data_analysis.sva import (
     calculate_n_sv_be,
@@ -343,6 +338,5 @@ def loess_correction(
         group_column=group_column,
         qc_group_names=qc_group_names,
     )
-    
 
     return {"protein_df": protein_df}
