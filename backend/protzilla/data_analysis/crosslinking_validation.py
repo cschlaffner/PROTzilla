@@ -1123,47 +1123,32 @@ def cl_scatterplots_plddt(
         + "<extra></extra>"
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=valid_cls["distance_delta"],
-            y=valid_cls["avg_plddt"],
-            customdata=np.stack(
-                (
-                    valid_cls["Crosslinker"],
-                    valid_cls["measured_distance"],
-                    valid_cls["alphafold_distance"],
-                    valid_cls["distance_delta"],
-                    valid_cls["accepted_distance_lower_bound"],
-                    valid_cls["accepted_distance_upper_bound"],
-                ),
-                axis=-1,
-            ),
-            mode="markers",
-            name="CLs matching prediction",
-            hovertemplate=hovertemplate,
-        )
-    )
+    tracedata = [
+        (valid_cls, "CLs matching prediction"),
+        (invalid_cls, "CLs not matching prediction"),
+    ]
 
-    fig.add_trace(
-        go.Scatter(
-            x=invalid_cls["distance_delta"],
-            y=invalid_cls["avg_plddt"],
-            customdata=np.stack(
-                (
-                    invalid_cls["Crosslinker"],
-                    invalid_cls["measured_distance"],
-                    invalid_cls["alphafold_distance"],
-                    invalid_cls["distance_delta"],
-                    invalid_cls["accepted_distance_lower_bound"],
-                    invalid_cls["accepted_distance_upper_bound"],
+    for df, trace_label in tracedata:
+        fig.add_trace(
+            go.Scatter(
+                x=df["distance_delta"],
+                y=df["avg_plddt"],
+                customdata=np.stack(
+                    (
+                        df["Crosslinker"],
+                        df["measured_distance"],
+                        df["alphafold_distance"],
+                        df["distance_delta"],
+                        df["accepted_distance_lower_bound"],
+                        df["accepted_distance_upper_bound"],
+                    ),
+                    axis=-1,
                 ),
-                axis=-1,
-            ),
-            mode="markers",
-            name="CLs not matching prediction",
-            hovertemplate=hovertemplate,
+                mode="markers",
+                name=trace_label,
+                hovertemplate=hovertemplate,
+            )
         )
-    )
 
     # X axis range should start as close to 0 as reasonable and extend to max value
     min_dist_delta = min(cl_results_df["distance_delta"])
@@ -1271,45 +1256,31 @@ def cl_scatterplots_pae(
         + "<extra></extra>"
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=valid_cls["distance_delta"],
-            y=valid_cls["relevant_pae"],
-            customdata=np.stack(
-                (
-                    valid_cls["Crosslinker"],
-                    valid_cls["measured_distance"],
-                    valid_cls["alphafold_distance"],
-                    valid_cls["distance_delta"],
-                    valid_cls["relevant_pae"],
-                ),
-                axis=-1,
-            ),
-            mode="markers",
-            name="CLs matching prediction",
-            hovertemplate=hovertemplate,
-        )
-    )
+    tracedata = [
+        (valid_cls, "CLs matching prediction"),
+        (invalid_cls, "CLs not matching prediction"),
+    ]
 
-    fig.add_trace(
-        go.Scatter(
-            x=invalid_cls["distance_delta"],
-            y=invalid_cls["relevant_pae"],
-            customdata=np.stack(
-                (
-                    invalid_cls["Crosslinker"],
-                    invalid_cls["measured_distance"],
-                    invalid_cls["alphafold_distance"],
-                    invalid_cls["distance_delta"],
-                    invalid_cls["relevant_pae"],
+    for df, trace_label in tracedata:
+        fig.add_trace(
+            go.Scatter(
+                x=df["distance_delta"],
+                y=df["relevant_pae"],
+                customdata=np.stack(
+                    (
+                        df["Crosslinker"],
+                        df["measured_distance"],
+                        df["alphafold_distance"],
+                        df["distance_delta"],
+                        df["relevant_pae"],
+                    ),
+                    axis=-1,
                 ),
-                axis=-1,
-            ),
-            mode="markers",
-            name="CLs not matching prediction",
-            hovertemplate=hovertemplate,
+                mode="markers",
+                name=trace_label,
+                hovertemplate=hovertemplate,
+            )
         )
-    )
 
     # X axis range should start as close to 0 as reasonable and extend to max value
     min_dist_delta = min(cl_results_df["distance_delta"])
