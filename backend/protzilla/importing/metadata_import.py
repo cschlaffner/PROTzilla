@@ -30,7 +30,7 @@ def file_importer(
         if file_path.suffix == ".csv":
             meta_df = pd.read_csv(
                 file_path,
-                sep=",",
+                sep=sep,
                 low_memory=False,
                 na_values=[""],
                 keep_default_na=True,
