@@ -46,44 +46,79 @@ def get_reactive_atom_of_amino_acid_residue(
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> list[str]:
     """
-    Returns the atom of an amino acid residue that is considered reactive for
-    crosslinking. Currently, this always returns the central alpha carbon (CA).
+    Returns a list of atom names of an amino acid residue that are considered
+    reactive for crosslinking, depending on amino acid type, position within
+    the peptide, and crosslinker-specific reactivity rules.
 
-    :param amino_acid_type: code of the amino acid
+    The function uses a hierarchy of rules:
+    1. If the crosslinker type is unknown, defaults to ["CA"].
+    2. Primary residue-specific reactive atoms (residue_atoms).
+    3. If the amino acid is at the N-terminus (position == 1), terminal atoms are added.
+    4. If no primary atoms are found, secondary residue-specific atoms are used.
+    5. If still empty, defaults to ["CA"].
 
-    :return: the atom identifier of the reactive atom as a string
+    :param amino_acid_type: One-letter or internal code of the amino acid residue.
+    :param amino_acid_position: Position of the amino acid within the peptide (1 = N-terminus).
+    :param crosslinker_type: Identifier of the crosslinker used in the experiment.
+    :param REACTIVE_ATOMS: Nested dictionary defining reactive atom rules per crosslinker class,
+                           residue type, and terminal/secondary categories.
+
+    :return: List of atom identifiers (e.g. ["CA", "NZ"]) considered reactive for this residue.
     """
-    # right now we always return the central C atom
-    # later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
     # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
-    try:
-        crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"][crosslinker_type]
-        return REACTIVE_ATOMS[crosslinker_class][amino_acid_type]
-    except KeyError:
+    crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"].get(crosslinker_type)
+
+    if crosslinker_class is None:
         return ["CA"]
+
+    reactive_atoms_list = []
+
+    reactive_atoms_list.extend(
+        REACTIVE_ATOMS[crosslinker_class]
+        .get("residue_atoms", {})
+        .get(amino_acid_type, [])
+    )
+
+    if amino_acid_position == 1:
+        reactive_atoms_list.extend(
+            REACTIVE_ATOMS[crosslinker_class]
+            .get("terminal_atoms", {})
+            .get("NTERM", [])
+        )
+
+    if not reactive_atoms_list: 
+        reactive_atoms_list.extend(
+            REACTIVE_ATOMS[crosslinker_class]
+            .get("secondary_residue_atoms", {})
+            .get(amino_acid_type, [])
+        )
+
+    return reactive_atoms_list or ["CA"]
 
 
 def expand_crosslinks_to_exact_binding_sites(
-    relevant_crosslinks_df: pd.DataFrame, 
-    amino_acid_sequences_df: pd.DataFrame, 
+    relevant_crosslinks_df: pd.DataFrame,  
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> pd.DataFrame:
+    """
+    Expands the crosslink df to also store the two exact reactive atoms for each crosslink. 
+    If the exact reactive atom is ambigous this row is duplicated, 
+    so that the crosslinker exists with both possible exact binding sites. 
+    
+    :param relevant_crosslinks_df: DataFrame containing crosslink-level annotations.
+                                   Must include peptide sequences and crosslink positions.
+    :param REACTIVE_ATOMS: Nested dictionary defining reactive atom rules per crosslinker class
+                           and residue type.
+
+    :return: DataFrame where each crosslink is expanded into all possible atom-level
+             binding site combinations, with added columns:
+             - reactive_atom1
+             - reactive_atom2
+    """
     
     expanded_rows = []
 
     for _, crosslink in relevant_crosslinks_df.iterrows():
-        """
-        protein_id1 = crosslink.Protein_id1
-        protein_id2 = crosslink.Protein_id2
-        protein_sequence1 = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id1
-        )
-        protein_sequence2 = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
-        )
-        amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1]
-        amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1]
-        """
         amino_acid_type1=crosslink.Peptide1[crosslink.CL_position_within_peptide1-1]
         amino_acid_type2=crosslink.Peptide2[crosslink.CL_position_within_peptide2-1]
         reactive_atoms1_list = get_reactive_atom_of_amino_acid_residue(
@@ -697,7 +732,6 @@ def validate_with_angstrom_deviation(
 
     relevant_crosslinks_df = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
-        amino_acid_sequences_df=amino_acid_sequences_df,
         REACTIVE_ATOMS=REACTIVE_ATOMS,
     )
 

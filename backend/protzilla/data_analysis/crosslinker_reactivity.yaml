@@ -7,5 +7,18 @@ crosslinker_classes:
   PhoX: AMINE-REACTIVE/NHS-ESTER
 
 AMINE-REACTIVE/NHS-ESTER: 
-  K: # lysine
-    - NZ  # lysine side chain nitrogen
+  residue_atoms:
+    K: # lysine
+      - NZ # terminal nitrogen of the lysine side chain
+
+  terminal_atoms:
+    NTERM: # first amino acid of the chain 
+      - N # backbone nitrogen of the first amino acid of the chain 
+
+  secondary_residue_atoms:
+    S: # serine 
+      - OG # hydroxyl-group
+    T: # threonine 
+      - OG1 # hydroxyl-group
+    Y: # tyrosine
+      - OH # hydroxyl-group
