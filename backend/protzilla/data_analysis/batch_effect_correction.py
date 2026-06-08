@@ -292,7 +292,7 @@ def sva_correction(
     groups = collect_col_for_sample_in_order(
         wide_protein_df=wide_protein_df,
         metadata_df=metadata_df,
-        group_column=group_column,
+        col_name=group_column,
     )
     groups_int = np.array(turn_group_names_to_int(groups)).reshape(-1, 1)
 
