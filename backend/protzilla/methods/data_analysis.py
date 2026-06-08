@@ -2440,7 +2440,7 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
                     name="num_sv_method",
                     label="The method to calculate the optimal number of surrogate variables",
                     options=NumSVMethods,
-                    value=NumSVMethods.be,
+                    value=NumSVMethods.be.value,
                 ),
                 DropdownField(
                     name="group_column",
@@ -2462,10 +2462,10 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
         super().modify_form(run)
         self.set_grouping_options(run=run, column_field_name="group_column")
 
-        if self.form["num_sv_method"].value != NumSVMethods.be.value:
-            self.form["seed"].isVisible = False
-        else:
+        if self.form["num_sv_method"].value == NumSVMethods.be.value:
             self.form["seed"].isVisible = True
+        else:
+            self.form["seed"].isVisible = False
 
 
 class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
