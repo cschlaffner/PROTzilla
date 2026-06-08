@@ -1,5 +1,5 @@
 import numpy as np
-from statsmodels.stats.multitest import fdrcorrection
+from statsmodels.stats.multitest import local_fdr
 from scipy.stats import f
 
 
@@ -174,9 +174,9 @@ def irwsva(
     dat: np.ndarray,
     mod: np.ndarray,
     mod0: np.ndarray | None,
-    n_surrogate_variables: int,
+    num_sv: int,
     B: int = 5,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """
     Calculates the surrogate variables with the iteratively re-weighted least squares
     approach. The implementation is based on the algorithm implemented in the R package sva
@@ -187,7 +187,11 @@ def irwsva(
     :param n_surrogate_variables: the number of surrogate variables to calculate
     :param B: number of iterations for the algorithm to perform
 
-    :return: the surrogate variables in a matrix with the surrogate variables as columns and samples as rows
+    :return:
+        sv: the surrogate variables in a matrix with the surrogate variables as columns and samples as rows
+        pprob_gam: posterior probabilities for each feature for how it is affected by heterogeneity
+        pprob_b: posterior probabilities for each feature for how it is affected by mod
+        num_sv: the number of surrogate variables
     """
     if mod0 is None:
         mod0 = mod[:, 0:1]
@@ -208,19 +212,19 @@ def irwsva(
     pprob = np.ones(n_rows)
     one = np.ones(n_columns)
     Id = np.eye(n_columns)
-    df1 = mod.shape[1] + n_surrogate_variables
-    df0 = mod0.shape[1] + n_surrogate_variables
+    df1 = mod.shape[1] + num_sv
+    df0 = mod0.shape[1] + num_sv
 
     for i in range(B):
-        mod_b = np.hstack([mod, vv[:, 0:n_surrogate_variables]])
-        mod0_b = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
+        mod_b = np.hstack([mod, vv[:, 0:num_sv]])
+        mod0_b = np.hstack([mod0, vv[:, 0:num_sv]])
         ptmp = f_pvalue(dat, mod_b, mod0_b)
-        pprob_b = 1 - fdrcorrection(ptmp)[1]
+        pprob_b = 1 - local_fdr(ptmp)[1]
 
-        mod_gam = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
+        mod_gam = np.hstack([mod0, vv[:, 0:num_sv]])
         mod0_gam = np.hstack([mod0])
         ptmp = f_pvalue(dat, mod_gam, mod0_gam)
-        pprob_gam = 1 - fdrcorrection(ptmp)[1]
+        pprob_gam = 1 - local_fdr(ptmp)[1]
 
         pprob = pprob_gam * (1 - pprob_b)
         dats = dat * pprob
@@ -228,5 +232,5 @@ def irwsva(
         eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
         vv = eigenvector
     U, S, Vh = np.linalg.svd(dats, full_matrices=False)
-    sv = Vh.T[:, 0:n_surrogate_variables]
-    return sv
+    sv = Vh.T[:, 0:num_sv]
+    return sv, pprob_gam, pprob_b, num_sv
