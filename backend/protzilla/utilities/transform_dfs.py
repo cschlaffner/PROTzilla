@@ -3,7 +3,9 @@ import pandas as pd
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
-def long_to_wide(intensity_df: pd.DataFrame, value_name: str | None = None) -> pd.DataFrame:
+def long_to_wide(
+    intensity_df: pd.DataFrame, value_name: str | None = None
+) -> pd.DataFrame:
     """
     This function transforms the dataframe to a wide format that
     can be more easily handled by packages such as sklearn.
