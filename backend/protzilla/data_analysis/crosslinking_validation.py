@@ -40,7 +40,7 @@ from backend.protzilla.constants.colors import (
 
 
 def get_reactive_atom_of_amino_acid_residue(
-    amino_acid_type: str, 
+    amino_acid_type: str,
     amino_acid_position: int,
     crosslinker_type: str,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
@@ -81,12 +81,10 @@ def get_reactive_atom_of_amino_acid_residue(
 
     if amino_acid_position == 1:
         reactive_atoms_list.extend(
-            REACTIVE_ATOMS[crosslinker_class]
-            .get("terminal_atoms", {})
-            .get("NTERM", [])
+            REACTIVE_ATOMS[crosslinker_class].get("terminal_atoms", {}).get("NTERM", [])
         )
 
-    if not reactive_atoms_list: 
+    if not reactive_atoms_list:
         reactive_atoms_list.extend(
             REACTIVE_ATOMS[crosslinker_class]
             .get("secondary_residue_atoms", {})
@@ -97,14 +95,14 @@ def get_reactive_atom_of_amino_acid_residue(
 
 
 def expand_crosslinks_to_exact_binding_sites(
-    relevant_crosslinks_df: pd.DataFrame,  
+    relevant_crosslinks_df: pd.DataFrame,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> pd.DataFrame:
     """
-    Expands the crosslink df to also store the two exact reactive atoms for each crosslink. 
-    If the exact reactive atom is ambigous this row is duplicated, 
-    so that the crosslinker exists with both possible exact binding sites. 
-    
+    Expands the crosslink df to also store the two exact reactive atoms for each crosslink.
+    If the exact reactive atom is ambigous this row is duplicated,
+    so that the crosslinker exists with both possible exact binding sites.
+
     :param relevant_crosslinks_df: DataFrame containing crosslink-level annotations.
                                    Must include peptide sequences and crosslink positions.
     :param REACTIVE_ATOMS: Nested dictionary defining reactive atom rules per crosslinker class
@@ -115,23 +113,23 @@ def expand_crosslinks_to_exact_binding_sites(
              - reactive_atom1
              - reactive_atom2
     """
-    
+
     expanded_rows = []
 
     for _, crosslink in relevant_crosslinks_df.iterrows():
-        amino_acid_type1=crosslink.Peptide1[crosslink.CL_position_within_peptide1-1]
-        amino_acid_type2=crosslink.Peptide2[crosslink.CL_position_within_peptide2-1]
+        amino_acid_type1 = crosslink.Peptide1[crosslink.CL_position_within_peptide1 - 1]
+        amino_acid_type2 = crosslink.Peptide2[crosslink.CL_position_within_peptide2 - 1]
         reactive_atoms1_list = get_reactive_atom_of_amino_acid_residue(
-            amino_acid_type1, 
-            crosslink.crosslinker_position1, 
-            crosslink.Crosslinker, 
-            REACTIVE_ATOMS
+            amino_acid_type1,
+            crosslink.crosslinker_position1,
+            crosslink.Crosslinker,
+            REACTIVE_ATOMS,
         )
         reactive_atoms2_list = get_reactive_atom_of_amino_acid_residue(
-            amino_acid_type2, 
-            crosslink.crosslinker_position2, 
-            crosslink.Crosslinker, 
-            REACTIVE_ATOMS
+            amino_acid_type2,
+            crosslink.crosslinker_position2,
+            crosslink.Crosslinker,
+            REACTIVE_ATOMS,
         )
 
         for reactive_atom1, reactive_atom2 in itertools.product(
@@ -145,11 +143,11 @@ def expand_crosslinks_to_exact_binding_sites(
 
     if not expanded_rows:
         return pd.DataFrame(
-            columns=list(relevant_crosslinks_df.columns) + ["reactive_atom1", "reactive_atom2"]
+            columns=list(relevant_crosslinks_df.columns)
+            + ["reactive_atom1", "reactive_atom2"]
         )
 
     return pd.DataFrame(expanded_rows).reset_index(drop=True)
-    
 
 
 def get_coordinates_of_atom_crosslinker_bound_to(
@@ -522,6 +520,7 @@ def get_protein_id_from_sequence(amino_acid_sequences_df, target_sequence):
     else:
         return None
 
+
 def get_valid_ids_per_protein_id_from_job_request(
     amino_acid_sequences_df: pd.DataFrame, job_request_df: pd.DataFrame
 ) -> dict:
@@ -736,7 +735,7 @@ def validate_with_angstrom_deviation(
     )
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
-        
+
         def get_site_plddts(crosslink: pd.Series):
             if plddt_df is None:
                 return np.nan, np.nan
