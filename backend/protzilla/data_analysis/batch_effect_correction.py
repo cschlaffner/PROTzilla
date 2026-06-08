@@ -1,6 +1,9 @@
 from inmoose.pycombat import pycombat_norm
 import pandas as pd
-from backend.protzilla.utilities.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    collect_col_for_sample_in_order,
+)
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 import numpy as np
 from backend.protzilla.constants.option_types import NumSVMethods
@@ -9,7 +12,6 @@ from backend.protzilla.data_analysis.sva import (
     calculate_n_sv_leek,
     irwsva,
 )
-from utilities.utilities import collect_col_for_sample_in_order
 
 # <---- helper functions ---->
 
@@ -252,7 +254,9 @@ def combat_correction(
     """
     transformed_protein_df = long_to_pycombat_df(protein_df=protein_df)
     batches_in_order = collect_col_for_sample_in_order(
-        wide_protein_df=transformed_protein_df.T, metadata_df=metadata_df
+        wide_protein_df=transformed_protein_df.T,
+        metadata_df=metadata_df,
+        col_name=batch_column,
     )
     batch_corrected_protein_df = pycombat_norm(
         transformed_protein_df, batches_in_order, par_prior=par_prior
