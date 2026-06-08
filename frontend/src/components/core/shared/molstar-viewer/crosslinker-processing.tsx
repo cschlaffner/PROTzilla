@@ -125,9 +125,6 @@ export function generateCrosslinkCIF(
 // ------------------------- internal helpers: -------------------------
 
 function getReactiveAtom(reactiveAtom?: string): string {
-  // right now we always return the central C atom
-  // later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
-  // then we just have to define a reactiveAtom
   if (!reactiveAtom) return "CA";
   return reactiveAtom;
 }
