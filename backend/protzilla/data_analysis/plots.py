@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 from scipy import stats
 from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
+from sklearn.decomposition import PCA
 
 from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
@@ -24,6 +25,7 @@ from backend.protzilla.utilities.clustergram import (
     AXIS_PROTEIN,
 )
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+from backend.protzilla.utilities.utilities import collect_col_for_sample_in_order
 
 colors = {
     "plot_bgcolor": "white",
@@ -580,3 +582,34 @@ def roc_plot(
     )
 
     return dict(plots=[fig])
+
+
+def pvca_plot(
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    pca_threshold: float,
+    variance_threshold: float,
+    color_col: str,
+):
+    # TODO: doc string
+    wide_protein_df = long_to_wide(protein_df)
+
+    color_column_list = collect_col_for_sample_in_order(
+        wide_protein_df=wide_protein_df, metadata_df=metadata_df, col_name=color_col
+    )
+
+    pca = PCA(n_components=pca_threshold, svd_solver="full")
+    pca_array = pca.fit_transform(wide_protein_df)
+
+    plot_df = pd.DataFrame(
+        {"PC1": pca_array[:, 0], "PC2": pca_array[:, 1], color_col: color_column_list}
+    )
+
+    fig = px.scatter(plot_df, x="PC1", y="PC2", color=color_col)
+
+    fig.update_layout(title="PCA Scatterplot", plot_bgcolor=colors["plot_bgcolor"])
+    fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+
+    # TODO: I should inform users somewhere that the data should be normalized around 0 for this plot, or is it obvious? Ask Chris
+    return {"pca_df": plot_df, "plots": [fig]}

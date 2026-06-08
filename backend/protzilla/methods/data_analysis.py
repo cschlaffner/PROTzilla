@@ -1148,8 +1148,15 @@ class PlotPVCA(DataAnalysisPlotStep):
                     max=1,
                     min=0,
                 ),
+                DropdownField(name="color_col", label="Color by:"),
             ],
         )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+
+        self.set_grouping_options(run=run, column_field_name="color_col")
 
 
 class ClusteringStep(PositiveLabelStep, ABC):
