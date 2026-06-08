@@ -12,6 +12,8 @@ import logging
 
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
+from pathlib import Path
+import yaml
 
 from backend.protzilla.data_preprocessing.plots import (
     create_histograms,
@@ -37,7 +39,12 @@ from backend.protzilla.constants.colors import (
 )
 
 
-def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_position: int) -> list:
+def get_reactive_atom_of_amino_acid_residue(
+    amino_acid_type: str, 
+    amino_acid_position: int,
+    crosslinker_type: str,
+    REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
+) -> list[str]:
     """
     Returns the atom of an amino acid residue that is considered reactive for
     crosslinking. Currently, this always returns the central alpha carbon (CA).
@@ -49,17 +56,23 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_pos
     # right now we always return the central C atom
     # later we might want to return the reactive atom of the amino acid residue of the specific amino acid type
     # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
-    return "CA"
+    try:
+        crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"][crosslinker_type]
+        return REACTIVE_ATOMS[crosslinker_class][amino_acid_type]
+    except KeyError:
+        return ["CA"]
 
 
 def expand_crosslinks_to_exact_binding_sites(
     relevant_crosslinks_df: pd.DataFrame, 
     amino_acid_sequences_df: pd.DataFrame, 
+    REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> pd.DataFrame:
     
     expanded_rows = []
 
     for _, crosslink in relevant_crosslinks_df.iterrows():
+        """
         protein_id1 = crosslink.Protein_id1
         protein_id2 = crosslink.Protein_id2
         protein_sequence1 = get_protein_sequence_from_df(
@@ -70,18 +83,34 @@ def expand_crosslinks_to_exact_binding_sites(
         )
         amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1]
         amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1]
-        reactive_atoms1 = get_reactive_atom_of_amino_acid_residue(amino_acid_type1, crosslink.crosslinker_position1)
-        reactive_atoms2 = get_reactive_atom_of_amino_acid_residue(amino_acid_type2, crosslink.crosslinker_position2)
+        """
+        amino_acid_type1=crosslink.Peptide1[crosslink.CL_position_within_peptide1-1]
+        amino_acid_type2=crosslink.Peptide2[crosslink.CL_position_within_peptide2-1]
+        reactive_atoms1_list = get_reactive_atom_of_amino_acid_residue(
+            amino_acid_type1, 
+            crosslink.crosslinker_position1, 
+            crosslink.Crosslinker, 
+            REACTIVE_ATOMS
+        )
+        reactive_atoms2_list = get_reactive_atom_of_amino_acid_residue(
+            amino_acid_type2, 
+            crosslink.crosslinker_position2, 
+            crosslink.Crosslinker, 
+            REACTIVE_ATOMS
+        )
 
-        #for each combination 
-        new_row = crosslink.copy()
-        new_row["Reactive_atom1"] = reactive_atom1
-        new_row["Reactive_atom2"] = reactive_atom2
-        expanded_rows.append(new_row)
+        for reactive_atom1, reactive_atom2 in itertools.product(
+            reactive_atoms1_list,
+            reactive_atoms2_list,
+        ):
+            new_row = crosslink.copy()
+            new_row["reactive_atom1"] = reactive_atom1
+            new_row["reactive_atom2"] = reactive_atom2
+            expanded_rows.append(new_row)
 
     if not expanded_rows:
         return pd.DataFrame(
-            columns=list(relevant_crosslinks_df.columns) + ["Reactive_atom1", "Reactive_atom2"]
+            columns=list(relevant_crosslinks_df.columns) + ["reactive_atom1", "reactive_atom2"]
         )
 
     return pd.DataFrame(expanded_rows).reset_index(drop=True)
@@ -662,21 +691,18 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
 
+    REACTIVE_ATOMS = yaml.safe_load(
+        (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
+    )
+
     relevant_crosslinks_df = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
+        REACTIVE_ATOMS=REACTIVE_ATOMS,
     )
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
-        protein_id1 = crosslink.Protein_id1
-        protein_id2 = crosslink.Protein_id2
-        protein_sequence1 = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id1
-        )
-        protein_sequence2 = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
-        )
-
+        
         def get_site_plddts(crosslink: pd.Series):
             if plddt_df is None:
                 return np.nan, np.nan
