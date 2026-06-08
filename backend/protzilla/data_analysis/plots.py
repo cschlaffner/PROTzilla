@@ -584,11 +584,10 @@ def roc_plot(
     return dict(plots=[fig])
 
 
-def pvca_plot(
+def pca_plot(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     pca_threshold: float,
-    variance_threshold: float,
     color_col: str,
 ):
     # TODO: doc string

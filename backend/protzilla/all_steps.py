@@ -59,7 +59,7 @@ _forward_mapping: list[Step] = [
     data_analysis.PlotROC,
     data_analysis.PlotScatterPlot,
     data_analysis.PlotVolcano,
-    data_analysis.PlotPVCA,
+    data_analysis.PlotPCA,
     data_analysis.ClusteringKMeans,
     data_analysis.ClusteringExpectationMaximisation,
     data_analysis.ClusteringHierarchicalAgglomerative,

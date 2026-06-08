@@ -41,7 +41,7 @@ from backend.protzilla.data_analysis.plots import (
     create_volcano_plot,
     precision_recall_plot,
     prot_quant_plot,
-    pvca_plot,
+    pca_plot,
     roc_plot,
     scatter_plot,
 )
@@ -1124,26 +1124,19 @@ class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
         )
 
 
-class PlotPVCA(DataAnalysisPlotStep):
-    display_name = "PVCA Plot"
+class PlotPCA(DataAnalysisPlotStep):
+    display_name = "PCA Plot"
     method_description = ""  # TODO: method description
 
-    plot_method = staticmethod(pvca_plot)
+    plot_method = staticmethod(pca_plot)
 
     def create_form(self):
         return Form(
-            label="Principal Variance Components Analysis",
+            label="Principal Components Analysis",
             input_fields=[
                 FloatField(
                     name="pca_threshold",
                     label="Percentage of variability the components in the PCA need to explain",
-                    value=0.9,
-                    max=1,
-                    min=0,
-                ),
-                FloatField(
-                    name="variance_threshold",
-                    label="Percentage of weight a factor needs to explain (the rest will be combined to 'Residuals' in the plot)",
                     value=0.9,
                     max=1,
                     min=0,
