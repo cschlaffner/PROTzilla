@@ -9,6 +9,7 @@ from backend.protzilla.data_analysis.sva import (
     calculate_n_sv_leek,
     irwsva,
 )
+from utilities.utilities import collect_col_for_sample_in_order
 
 # <---- helper functions ---->
 
@@ -73,6 +74,7 @@ def get_batch_for_each_sample_in_order(
     metadata_df: pd.DataFrame,
     batch_column: str,
 ) -> list:
+    # TODO: for now it is replaced by utility function, but test whether bugs are introduced
     """
     Extracts the batch name for each sample in the transformed_protein_df.
     It preserves the order of the columns in the transformed_protein_df when returning the list of batch assignments.
@@ -93,29 +95,6 @@ def get_batch_for_each_sample_in_order(
 
 
 # <- SVA ->
-
-
-def get_group_for_each_sample_in_order(
-    transformed_protein_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    group_column: str,
-) -> list:
-    """
-    Extracts the group assignment for each sample in the transformed_protein_df.
-    It preserves the order of the columns in the transformed_protein_df when returning the list of group assignments.
-
-    :param transformed_protein_df: the dataframe with the samples for which the function extracts the group assignments
-    :param metadata_df: the dataframe that contains the metadata for the transformed_protein_df, including the group assignments
-
-    :return: returns a list with the group assignments in the order of the samples in the transformed_protein_df
-    """
-    samples_in_order = transformed_protein_df.index
-    groups_in_order = []
-    for sample in samples_in_order:
-        groups_in_order.append(
-            metadata_df[metadata_df["Sample"] == sample][group_column].iloc[0]
-        )
-    return groups_in_order
 
 
 def turn_group_names_to_int(groups: list) -> list:
@@ -249,7 +228,7 @@ def get_batch_protein_dfs(
         )
     ).unique()
 
-    return []
+    return batches
 
 
 # <---- BECAs ---->
@@ -272,8 +251,8 @@ def combat_correction(
     return: a dictionary containing the corrected protein data
     """
     transformed_protein_df = long_to_pycombat_df(protein_df=protein_df)
-    batches_in_order = get_batch_for_each_sample_in_order(
-        transformed_protein_df=transformed_protein_df, metadata_df=metadata_df
+    batches_in_order = collect_col_for_sample_in_order(
+        wide_protein_df=transformed_protein_df.T, metadata_df=metadata_df
     )
     batch_corrected_protein_df = pycombat_norm(
         transformed_protein_df, batches_in_order, par_prior=par_prior
@@ -306,8 +285,8 @@ def sva_correction(
     """
 
     wide_protein_df = long_to_wide(protein_df)
-    groups = get_group_for_each_sample_in_order(
-        transformed_protein_df=wide_protein_df,
+    groups = collect_col_for_sample_in_order(
+        wide_protein_df=wide_protein_df,
         metadata_df=metadata_df,
         group_column=group_column,
     )

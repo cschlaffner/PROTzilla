@@ -153,3 +153,24 @@ def lerp(start: float, end: float, interpolation_factor: float) -> float:
     :param interpolation_factor: interpolation factor (between 0 and 1)
     """
     return (1 - interpolation_factor) * start + interpolation_factor * end
+
+
+def collect_col_for_sample_in_order(
+    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame, col_name: str
+) -> list:
+    """
+    Collects the assignment for the requested column in metadata for each sample in order.
+
+    :param wide_protein_df: the dataframe containing the protein data in wide format
+    :param metadata_df: the dataframe containing all metadata for the protein df
+    :param col_name: the name of the column from which to take the assignment
+
+    :return: the list of the assignments in the same order as the samples
+    """
+    samples_in_order = wide_protein_df.index
+    assignment_in_order = []
+    for sample in samples_in_order:
+        assignment_in_order.append(
+            metadata_df[metadata_df["Sample"] == sample][col_name].iloc[0]
+        )
+    return assignment_in_order
