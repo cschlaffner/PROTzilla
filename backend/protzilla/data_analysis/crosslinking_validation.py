@@ -37,7 +37,7 @@ from backend.protzilla.constants.colors import (
 )
 
 
-def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_position: int) -> str:
+def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_position: int) -> list:
     """
     Returns the atom of an amino acid residue that is considered reactive for
     crosslinking. Currently, this always returns the central alpha carbon (CA).
@@ -52,9 +52,45 @@ def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str, amino_acid_pos
     return "CA"
 
 
+def expand_crosslinks_to_exact_binding_sites(
+    relevant_crosslinks_df: pd.DataFrame, 
+    amino_acid_sequences_df: pd.DataFrame, 
+) -> pd.DataFrame:
+    
+    expanded_rows = []
+
+    for _, crosslink in relevant_crosslinks_df.iterrows():
+        protein_id1 = crosslink.Protein_id1
+        protein_id2 = crosslink.Protein_id2
+        protein_sequence1 = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id1
+        )
+        protein_sequence2 = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id2
+        )
+        amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1]
+        amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1]
+        reactive_atoms1 = get_reactive_atom_of_amino_acid_residue(amino_acid_type1, crosslink.crosslinker_position1)
+        reactive_atoms2 = get_reactive_atom_of_amino_acid_residue(amino_acid_type2, crosslink.crosslinker_position2)
+
+        #for each combination 
+        new_row = crosslink.copy()
+        new_row["Reactive_atom1"] = reactive_atom1
+        new_row["Reactive_atom2"] = reactive_atom2
+        expanded_rows.append(new_row)
+
+    if not expanded_rows:
+        return pd.DataFrame(
+            columns=list(relevant_crosslinks_df.columns) + ["Reactive_atom1", "Reactive_atom2"]
+        )
+
+    return pd.DataFrame(expanded_rows).reset_index(drop=True)
+    
+
+
 def get_coordinates_of_atom_crosslinker_bound_to(
     amino_acid_position_where_crosslinker_bound: int,
-    amino_acid_type: str,
+    reactive_atom: str,
     cif_df: pd.DataFrame,
     chain_id: str,
 ) -> tuple[float, float, float]:
@@ -70,20 +106,19 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     :raises ValueError: if the specified atom cannot be found in the CIF data
     """
 
-    relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type, amino_acid_position_where_crosslinker_bound)
     seq_ids = pd.to_numeric(cif_df["_atom_site.label_seq_id"], errors="coerce")
 
     # Filter to the exact reactive atom of the amino acid residue
     # where the crosslinker is bound (e.g. CA at position 45)
     cif_df = cif_df[
-        (cif_df["_atom_site.label_atom_id"] == relevant_atom)
+        (cif_df["_atom_site.label_atom_id"] == reactive_atom)
         & (seq_ids == amino_acid_position_where_crosslinker_bound)
         & (cif_df["_atom_site.auth_asym_id"] == chain_id)
     ]
 
     if cif_df.empty:
         raise ValueError(
-            f"No {relevant_atom} atom found for amino acid at position {amino_acid_position_where_crosslinker_bound} in chain {chain_id}."
+            f"No {reactive_atom} atom found for amino acid at position {amino_acid_position_where_crosslinker_bound} in chain {chain_id}."
         )
 
     row = cif_df.iloc[0]
@@ -98,8 +133,8 @@ def get_coordinates_of_atom_crosslinker_bound_to(
 def get_distance_between_two_amino_acids_in_angstrom(
     amino_acid_position1: int,
     amino_acid_position2: int,
-    amino_acid_type1: str,
-    amino_acid_type2: str,
+    reactive_atom1: str,
+    reactive_atom2: str,
     cif_df: pd.DataFrame,
     chain_id1: str,
     chain_id2: str,
@@ -121,7 +156,7 @@ def get_distance_between_two_amino_acids_in_angstrom(
     pos1 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
             amino_acid_position1,
-            amino_acid_type1,
+            reactive_atom1,
             cif_df,
             chain_id1,
         ),
@@ -131,7 +166,7 @@ def get_distance_between_two_amino_acids_in_angstrom(
     pos2 = np.array(
         get_coordinates_of_atom_crosslinker_bound_to(
             amino_acid_position2,
-            amino_acid_type2,
+            reactive_atom2,
             cif_df,
             chain_id2,
         ),
@@ -627,6 +662,11 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
 
+    relevant_crosslinks_df = expand_crosslinks_to_exact_binding_sites(
+        relevant_crosslinks_df=relevant_crosslinks_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
+    )
+
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
         protein_id1 = crosslink.Protein_id1
         protein_id2 = crosslink.Protein_id2
@@ -681,8 +721,8 @@ def validate_with_angstrom_deviation(
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
             amino_acid_position1=crosslink.crosslinker_position1,
             amino_acid_position2=crosslink.crosslinker_position2,
-            amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1],
-            amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1],
+            reactive_atom1=crosslink.reactive_atom1,
+            reactive_atom2=crosslink.reactive_atom2,
             cif_df=cif_df,
             chain_id1=crosslink.Chain_id1,
             chain_id2=crosslink.Chain_id2,
