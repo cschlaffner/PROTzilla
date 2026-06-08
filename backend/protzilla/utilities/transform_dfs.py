@@ -3,15 +3,15 @@ import pandas as pd
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
-def long_to_wide(intensity_df: pd.DataFrame, value_name: str | None = None):
+def long_to_wide(intensity_df: pd.DataFrame, value_name: str | None = None) -> pd.DataFrame:
     """
     This function transforms the dataframe to a wide format that
     can be more easily handled by packages such as sklearn.
     Each sample gets one row with all observations as columns.
 
     :param intensity_df: the dataframe that should be transformed into
-        long format
-        :type intensity_df: pd.DataFrame
+        wide format
+    :param value_name: name of the intensity column, if None the default intensity column will be used
 
     :return: returns dataframe in wide format suitable for use by
         packages such as sklearn
@@ -25,7 +25,7 @@ def long_to_wide(intensity_df: pd.DataFrame, value_name: str | None = None):
     )
 
 
-def wide_to_long(wide_df: pd.DataFrame, original_long_df: pd.DataFrame):
+def wide_to_long(wide_df: pd.DataFrame, original_long_df: pd.DataFrame) -> pd.DataFrame:
     """
     This functions transforms the dataframe from a wide
     format to the typical protzilla long format.
