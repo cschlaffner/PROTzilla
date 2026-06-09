@@ -130,7 +130,7 @@ class TestKnownPTM:
     def test_known_ptm_cif_path(self):
         ptm = KnownPTM.ACETYLATION_LYSINE
         result = ptm.get_cif_path()
-        assert result.name == "Lysine.cif" or result.name == "ALY.cif"
+        assert result.name == "Lysine.cif"
         # Parent directory should reference the modification type
         assert "Acetyl" in str(result) or "Acetylation" in str(result)
 
