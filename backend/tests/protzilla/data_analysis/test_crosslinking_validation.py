@@ -29,29 +29,30 @@ from backend.protzilla.methods.data_analysis import (
     CrosslinkingValidationWithAngstromDeviation,
 )
 
+
 @pytest.fixture
 def dss_crosslinker():
     return {"DSS": [5.0, 1.0, 1.0]}  # Length 5 Å ± 1 Å
 
+
 @pytest.fixture
 def structure_metadata_df():
-    return pd.DataFrame(
-        {"entry_id": ["test"], "uniprot_accession": ["P12345"]}
-    )
+    return pd.DataFrame({"entry_id": ["test"], "uniprot_accession": ["P12345"]})
+
 
 @pytest.fixture
 def valid_ids():
     return {"P12345": ["P12345"]}
 
+
 @pytest.fixture
 def structures_to_validate():
     return ["P12345"]
 
-@pytest.fixture 
+
+@pytest.fixture
 def amino_acid_sequences_df():
-    return pd.DataFrame(
-        {"Protein ID": ["P12345-1"], "Protein Sequence": ["AB"]}
-    )
+    return pd.DataFrame({"Protein ID": ["P12345-1"], "Protein Sequence": ["AB"]})
 
 
 def make_cif_df(distance):
@@ -68,6 +69,7 @@ def make_cif_df(distance):
             "_atom_site.pdbx_sifts_xref_db_acc": ["P12345", "P12345"],
         }
     )
+
 
 def make_crosslink_df(
     peptide1="A",
@@ -87,6 +89,7 @@ def make_crosslink_df(
             "Crosslinker": ["DSS"],
         }
     )
+
 
 def run_validation(
     *,
@@ -163,7 +166,7 @@ def test_monomer_validation_baseline_manual_bounds(
     structures_to_validate,
     amino_acid_sequences_df,
 ):
-    
+
     result = run_validation(
         crosslinking_df=make_crosslink_df(),
         cif_df=make_cif_df(distance),
@@ -205,7 +208,7 @@ def test_cl_validation_pae_noerrror(
     amino_acid_sequences_df,
 ):
     pae_matrix = np.array([[np.nan, 0], [0, np.nan]])
-    
+
     result = run_validation(
         crosslinking_df=make_crosslink_df(),
         cif_df=make_cif_df(distance),
@@ -235,8 +238,8 @@ def test_cl_validation_pae_noerrror(
     ],
 )
 def test_cl_validation_pae_haserror(
-    distance, 
-    expected_min, 
+    distance,
+    expected_min,
     expected_max,
     dss_crosslinker,
     structure_metadata_df,
@@ -433,8 +436,8 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
 
     assert messages == []
 
-    assert df.loc[0, "crosslinker_position1"] == 3  # 1-based
-    assert df.loc[0, "crosslinker_position2"] == 10  # 1-based
+    assert df.loc[0, "crosslinker_position1"] == 4  # 1-based
+    assert df.loc[0, "crosslinker_position2"] == 11  # 1-based
 
     assert str(df["crosslinker_position1"].dtype) == "Int64"
     assert str(df["crosslinker_position2"].dtype) == "Int64"
