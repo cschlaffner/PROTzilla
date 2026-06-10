@@ -16,8 +16,8 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     diagrams_of_crosslinking_validation_data,
     expand_crosslinks_to_chain_combinations,
     get_chains,
-    get_crosslink_positions_in_protein, 
-    get_protein_sequence_from_df
+    get_crosslink_positions_in_protein,
+    get_protein_sequence_from_df,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (

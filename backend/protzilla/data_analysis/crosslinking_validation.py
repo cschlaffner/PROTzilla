@@ -171,28 +171,28 @@ def get_protein_sequence_from_df(
 
 
 def get_crosslink_positions_in_protein(
-        peptide: str, 
-        protein_id: str, 
-        amino_acid_sequences_df: pd.DataFrame,
-        cl_position_within_peptide: int,
-    ) -> list:
-        """
-        Returns the 1-based positions of the crosslinked residue within the full
-        protein sequence for all occurrences of a given peptide.
+    peptide: str,
+    protein_id: str,
+    amino_acid_sequences_df: pd.DataFrame,
+    cl_position_within_peptide: int,
+) -> list:
+    """
+    Returns the 1-based positions of the crosslinked residue within the full
+    protein sequence for all occurrences of a given peptide.
 
-        :param peptide: peptide sequence to search for in the protein
-        :param protein_id: UniProt protein identifier
-        :param cl_position_within_peptide: 1-based position of the crosslinked residue within the peptide
-        :return: list of 1-based residue positions in the protein sequence
-        """
-        protein_sequence = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
-        )
-        positions = [
-            m.start() + cl_position_within_peptide
-            for m in re.finditer(f"(?={peptide})", protein_sequence)
-        ]
-        return positions
+    :param peptide: peptide sequence to search for in the protein
+    :param protein_id: UniProt protein identifier
+    :param cl_position_within_peptide: 1-based position of the crosslinked residue within the peptide
+    :return: list of 1-based residue positions in the protein sequence
+    """
+    protein_sequence = get_protein_sequence_from_df(
+        amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
+    )
+    positions = [
+        m.start() + cl_position_within_peptide
+        for m in re.finditer(f"(?={peptide})", protein_sequence)
+    ]
+    return positions
 
 
 def add_protein_crosslink_positions_to_df(
@@ -243,14 +243,14 @@ def add_protein_crosslink_positions_to_df(
         protein_id2 = crosslinker_row.Protein_id2
 
         peptide1_positions = get_crosslink_positions_in_protein(
-            peptide_sequence1, 
-            protein_id1, 
+            peptide_sequence1,
+            protein_id1,
             amino_acid_sequences_df,
             crosslinker_row.CL_position_within_peptide1,
         )
         peptide2_positions = get_crosslink_positions_in_protein(
-            peptide_sequence2, 
-            protein_id2, 
+            peptide_sequence2,
+            protein_id2,
             amino_acid_sequences_df,
             crosslinker_row.CL_position_within_peptide2,
         )
