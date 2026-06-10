@@ -44,7 +44,7 @@ def get_reactive_atom_of_amino_acid_residue(
     amino_acid_position: int,
     crosslinker_type: str,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
-) -> list[str]:
+) -> tuple[list[str], list[dict]]:
     """
     Returns a list of atom names of an amino acid residue that are considered
     reactive for crosslinking, depending on amino acid type, position within
@@ -66,10 +66,21 @@ def get_reactive_atom_of_amino_acid_residue(
     :return: List of atom identifiers (e.g. ["CA", "NZ"]) considered reactive for this residue.
     """
     # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
+    messages = []
     crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"].get(crosslinker_type)
 
     if crosslinker_class is None:
-        return ["CA"]
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg= (
+                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker" 
+                    f"binding to the amino acid {amino_acid_type}."
+                    f"Therefore the CA atom is used for the calculation of this crosslink."
+                )
+            )
+        )
+        return ["CA"], messages
 
     reactive_atoms_list = []
 
@@ -91,13 +102,26 @@ def get_reactive_atom_of_amino_acid_residue(
             .get(amino_acid_type, [])
         )
 
-    return reactive_atoms_list or ["CA"]
+    if not reactive_atoms_list:
+        reactive_atoms_list = ["CA"]
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg= (
+                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker " 
+                    f"binding to the amino acid {amino_acid_type}. "
+                    f"Therefore the CA atom is used for the calculation of this crosslink."
+                )
+            )
+        )
+
+    return reactive_atoms_list, messages
 
 
 def expand_crosslinks_to_exact_binding_sites(
     relevant_crosslinks_df: pd.DataFrame,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, list[dict]]:
     """
     Expands the crosslink df to also store the two exact reactive atoms for each crosslink.
     If the exact reactive atom is ambigous this row is duplicated,
@@ -115,22 +139,25 @@ def expand_crosslinks_to_exact_binding_sites(
     """
 
     expanded_rows = []
+    messages = []
 
     for _, crosslink in relevant_crosslinks_df.iterrows():
         amino_acid_type1 = crosslink.Peptide1[crosslink.CL_position_within_peptide1 - 1]
         amino_acid_type2 = crosslink.Peptide2[crosslink.CL_position_within_peptide2 - 1]
-        reactive_atoms1_list = get_reactive_atom_of_amino_acid_residue(
+        reactive_atoms1_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type1,
             crosslink.crosslinker_position1,
             crosslink.Crosslinker,
             REACTIVE_ATOMS,
         )
-        reactive_atoms2_list = get_reactive_atom_of_amino_acid_residue(
+        messages.extend(msg)
+        reactive_atoms2_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type2,
             crosslink.crosslinker_position2,
             crosslink.Crosslinker,
             REACTIVE_ATOMS,
         )
+        messages.extend(msg)
 
         for reactive_atom1, reactive_atom2 in itertools.product(
             reactive_atoms1_list,
@@ -141,13 +168,32 @@ def expand_crosslinks_to_exact_binding_sites(
             new_row["reactive_atom2"] = reactive_atom2
             expanded_rows.append(new_row)
 
+    messages = deduplicate_messages(messages)
+
     if not expanded_rows:
-        return pd.DataFrame(
-            columns=list(relevant_crosslinks_df.columns)
-            + ["reactive_atom1", "reactive_atom2"]
+        return (
+            pd.DataFrame(
+                columns=list(relevant_crosslinks_df.columns)
+                + ["reactive_atom1", "reactive_atom2"]
+            ),
+            messages,
         )
 
-    return pd.DataFrame(expanded_rows).reset_index(drop=True)
+    return pd.DataFrame(expanded_rows).reset_index(drop=True), messages 
+
+
+def deduplicate_messages(messages: list[dict]) -> list[dict]:
+    seen = set()
+    unique_messages = []
+
+    for message in messages:
+        key = (message["level"], message["msg"])
+
+        if key not in seen:
+            seen.add(key)
+            unique_messages.append(message)
+
+    return unique_messages
 
 
 def get_coordinates_of_atom_crosslinker_bound_to(
@@ -739,10 +785,11 @@ def validate_with_angstrom_deviation(
         (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
     )
 
-    relevant_crosslinks_df = expand_crosslinks_to_exact_binding_sites(
+    relevant_crosslinks_df, expand_messages = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
         REACTIVE_ATOMS=REACTIVE_ATOMS,
     )
+    messages.extend(expand_messages)
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
 
