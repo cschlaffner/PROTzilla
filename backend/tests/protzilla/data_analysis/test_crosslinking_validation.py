@@ -16,6 +16,8 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     diagrams_of_crosslinking_validation_data,
     expand_crosslinks_to_chain_combinations,
     get_chains,
+    get_crosslink_positions_in_protein,
+    get_protein_sequence_from_df,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
@@ -110,6 +112,38 @@ def run_validation(
         validation_criterion=validation_criterion,
         **kwargs,
     )
+
+
+def test_get_crosslink_positions_in_protein_maps_to_same_amino_acid():
+    amino_acid_sequences_df = pd.DataFrame(
+        {
+            "Protein ID": ["P12345-1"],
+            "Protein Sequence": ["ABCDEFGH"],
+        }
+    )
+
+    peptide = "CDE"
+    protein_id = "P12345"
+    cl_position_within_peptide = 2  # points to "D" in peptide
+
+    positions = get_crosslink_positions_in_protein(
+        peptide=peptide,
+        protein_id=protein_id,
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        cl_position_within_peptide=cl_position_within_peptide,
+    )
+
+    protein_sequence = get_protein_sequence_from_df(
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        protein_id=protein_id,
+    )
+
+    amino_acid_absolute = protein_sequence[positions[0] - 1]
+    amino_acid_peptide = peptide[cl_position_within_peptide - 1]
+
+    assert amino_acid_absolute == amino_acid_peptide
+    assert amino_acid_absolute == "D"
+
 
 @pytest.mark.parametrize(
     "distance, expected",
@@ -399,8 +433,8 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
 
     assert messages == []
 
-    assert df.loc[0, "crosslinker_position1"] == 2 + 1 + 1  # 1-based
-    assert df.loc[0, "crosslinker_position2"] == 8 + 2 + 1  # 1-based
+    assert df.loc[0, "crosslinker_position1"] == 3  # 1-based
+    assert df.loc[0, "crosslinker_position2"] == 10  # 1-based
 
     assert str(df["crosslinker_position1"].dtype) == "Int64"
     assert str(df["crosslinker_position2"].dtype) == "Int64"
