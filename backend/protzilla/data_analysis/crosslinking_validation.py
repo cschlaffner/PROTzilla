@@ -170,6 +170,31 @@ def get_protein_sequence_from_df(
     return matches.iloc[0]
 
 
+def get_crosslink_positions_in_protein(
+        peptide: str, 
+        protein_id: str, 
+        amino_acid_sequences_df: pd.DataFrame,
+        cl_position_within_peptide: int,
+    ) -> list:
+        """
+        Returns the 1-based positions of the crosslinked residue within the full
+        protein sequence for all occurrences of a given peptide.
+
+        :param peptide: peptide sequence to search for in the protein
+        :param protein_id: UniProt protein identifier
+        :param cl_position_within_peptide: 1-based position of the crosslinked residue within the peptide
+        :return: list of 1-based residue positions in the protein sequence
+        """
+        protein_sequence = get_protein_sequence_from_df(
+            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
+        )
+        positions = [
+            m.start() + cl_position_within_peptide
+            for m in re.finditer(f"(?={peptide})", protein_sequence)
+        ]
+        return positions
+
+
 def add_protein_crosslink_positions_to_df(
     input_crosslinking_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
@@ -194,8 +219,8 @@ def add_protein_crosslink_positions_to_df(
      :param input_crosslinking_df: DataFrame containing crosslinking data with at least the following columns:
                             - 'Peptide1': first peptide sequence
                             - 'Peptide2': second peptide sequence
-                            - 'CL_position_within_peptide1': 0-based crosslinker position within Peptide1
-                            - 'CL_position_within_peptide2': 0-based crosslinker position within Peptide2
+                            - 'CL_position_within_peptide1': 1-based crosslinker position within Peptide1
+                            - 'CL_position_within_peptide2': 1-based crosslinker position within Peptide2
      :param amino_acid_sequences_df: Dataframe that contains all amino acid sequences
      :return: tuple (updated_crosslinking_df, messages)
               - updated_crosslinking_df: input DataFrame with two new columns:
@@ -211,27 +236,6 @@ def add_protein_crosslink_positions_to_df(
     rows_to_delete = []
     messages = []
 
-    def get_crosslink_positions_in_protein(
-        peptide: str, protein_id: str, cl_position_within_peptide: int
-    ) -> list:
-        """
-        Returns the 1-based positions of the crosslinked residue within the full
-        protein sequence for all occurrences of a given peptide.
-
-        :param peptide: peptide sequence to search for in the protein
-        :param protein_id: UniProt protein identifier
-        :param cl_position_within_peptide: 1-based position of the crosslinked residue within the peptide
-        :return: list of 1-based residue positions in the protein sequence
-        """
-        protein_sequence = get_protein_sequence_from_df(
-            amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
-        )
-        positions = [
-            m.start() + cl_position_within_peptide + 1
-            for m in re.finditer(f"(?={peptide})", protein_sequence)
-        ]
-        return positions
-
     for idx, crosslinker_row in crosslinking_df.iterrows():
         peptide_sequence1 = re.escape(crosslinker_row.Peptide1)
         peptide_sequence2 = re.escape(crosslinker_row.Peptide2)
@@ -239,10 +243,16 @@ def add_protein_crosslink_positions_to_df(
         protein_id2 = crosslinker_row.Protein_id2
 
         peptide1_positions = get_crosslink_positions_in_protein(
-            peptide_sequence1, protein_id1, crosslinker_row.CL_position_within_peptide1
+            peptide_sequence1, 
+            protein_id1, 
+            amino_acid_sequences_df,
+            crosslinker_row.CL_position_within_peptide1,
         )
         peptide2_positions = get_crosslink_positions_in_protein(
-            peptide_sequence2, protein_id2, crosslinker_row.CL_position_within_peptide2
+            peptide_sequence2, 
+            protein_id2, 
+            amino_acid_sequences_df,
+            crosslinker_row.CL_position_within_peptide2,
         )
 
         all_position_combinations = list(
