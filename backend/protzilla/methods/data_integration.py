@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC
 from typing_extensions import override
 
-from backend.protzilla.constants.cif_columns import KnownPTM
+from backend.protzilla.constants.cif_constants import KnownPTM
 import restring
 import gseapy
 from backend.protzilla import form_helper

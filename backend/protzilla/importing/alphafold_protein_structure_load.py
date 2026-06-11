@@ -19,7 +19,7 @@ import re
 from backend.protzilla.constants import paths
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.constants.cif_columns import (
+from backend.protzilla.constants.cif_constants import (
     ATOM_SITE_PREFIX,
     ATOM_SITE_COLUMNS,
     ATOM_SITE_COLUMNS_NUMERIC,

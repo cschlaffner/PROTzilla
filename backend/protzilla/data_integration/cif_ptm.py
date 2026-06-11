@@ -8,7 +8,7 @@ import gemmi
 from backend.protzilla.data_analysis.crosslinking_validation import (
     _get_structure_entry_id,
 )
-from backend.protzilla.constants.cif_columns import (
+from backend.protzilla.constants.cif_constants import (
     ATOM_SITE_COLUMNS,
     ATOM_SITE_COLUMNS_NUMERIC,
     BACKBONE_ATOMS,

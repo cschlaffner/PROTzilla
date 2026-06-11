@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from backend.protzilla.constants.cif_columns import (
+from backend.protzilla.constants.cif_constants import (
     ATOM_SITE_COLUMNS,
     ATOM_SITE_COLUMNS_NUMERIC,
     BACKBONE_ATOMS,
