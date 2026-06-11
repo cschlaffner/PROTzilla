@@ -78,19 +78,25 @@ export const DataTable: React.FC<DataTableProps> = ({
     items: [],
   });
   const [columns, setColumns] = useState<GridColDef[]>([]);
-  const columnsInitializedRef = useRef(false);
 
-  // necessary for updating which columns exist when switching between tables
+  const columnsInitializedRef = useRef(false);
+  const isFallbackRef = useRef(false);
+
+  // Reset state when switching between tables
   useEffect(() => {
     setColumns([]);
+    setCurrentRows([]);
     setFilterModel({ items: [] });
     setSortModel([]);
     columnsInitializedRef.current = false;
+    isFallbackRef.current = false;
   }, [tableLabel]);
 
-  // Fetch data when pagination changes
+  // Fetch data when pagination, sorts, or filters change
   useEffect(() => {
     const fetchData = async () => {
+      if (isFallbackRef.current) return;
+
       setLoading(true);
 
       const startIndex = paginationModel.page * paginationModel.pageSize;
@@ -107,7 +113,34 @@ export const DataTable: React.FC<DataTableProps> = ({
           filters: JSON.stringify(filterModel.items),
         });
 
-        if (response.rows.length > 0 && !columnsInitializedRef.current) {
+        if (!columnsInitializedRef.current && response.rows.length > 0) {
+          const numCols = Object.keys(response.rows[0]).length;
+
+          // Handle Too Many Columns (Fallback)
+          if (numCols > MAX_COLUMNS) {
+            const generatedColumns = Object.keys(FALLBACK_TOO_MANY_COLUMNS[0]).map((key) => {
+              return {
+                field: key,
+                headerName: key,
+                flex: 1,
+                type: "string",
+                align: "left",
+                headerAlign: "left",
+                sortable: false,
+                filterable: false,
+              } as GridColDef;
+            });
+
+            setColumns(generatedColumns);
+            setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
+            setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
+
+            columnsInitializedRef.current = true;
+            isFallbackRef.current = true;
+            return;
+          }
+
+          // Handle Normal Columns
           const generatedColumns = Object.keys(response.rows[0]).map((key) => {
             const isNumeric = response.rows.every(
               (row: TableRecord) => typeof row[key] === "number" || row[key] === null,
@@ -128,12 +161,13 @@ export const DataTable: React.FC<DataTableProps> = ({
 
           setColumns(generatedColumns);
           columnsInitializedRef.current = true;
+          isFallbackRef.current = false;
         }
 
-        if (response.rows.length > 0 && Object.keys(response.rows[0]).length > MAX_COLUMNS) {
-          setCurrentRows(FALLBACK_TOO_MANY_COLUMNS);
-          setTotalRowCount(FALLBACK_TOO_MANY_COLUMNS.length);
-        } else {
+        // This is NOT unnecessary! The fallback just doesn't work if
+        // we don't do this
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!isFallbackRef.current) {
           setCurrentRows(response.rows);
           setTotalRowCount(response.total_row_count);
         }
