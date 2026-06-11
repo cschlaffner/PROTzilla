@@ -236,6 +236,7 @@ def load_ptm_df(ptm: KnownPTM) -> pd.DataFrame:
     atom_site_df[ATOM_SITE_COLUMNS.LABEL_ALT_ID] = "."
     atom_site_df[ATOM_SITE_COLUMNS.OCCUPANCY] = 1.0
     atom_site_df[ATOM_SITE_COLUMNS.B_ISO_OR_EQUIV] = pd.NA
+    atom_site_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] = False
 
     # required column for deciding what to keep in the calling context
     atom_site_df["_leaving_flag"] = chem_comp_df[CHEM_COMP_ATOM_COLUMNS.LEAVING_FLAG]
@@ -319,6 +320,13 @@ def add_ptms_from_evidence_to_cif(
     amino_acid_sequences_df: pd.DataFrame,
     selected_ptm_names: list[str],
 ) -> dict[str, pd.DataFrame | OutputItem | list[dict[str, str | int]]]:
+    """
+    Integrates PTMs from peptide-spectrum match (PSM) evidence into a CIF model
+
+    Parses modification evidence, maps each modification to its location
+    within the protein loads the corresponding modified residue, and replaces
+    the appropriate amino acid in the ``cif_df``.
+    """
 
     if not selected_ptm_names:
         return {
