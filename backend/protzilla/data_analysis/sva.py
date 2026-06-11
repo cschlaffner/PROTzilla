@@ -1,5 +1,5 @@
 import numpy as np
-from statsmodels.stats.multitest import local_fdr
+from statsmodels.stats.multitest import fdrcorrection
 from scipy.stats import f
 
 
@@ -157,13 +157,13 @@ def f_pvalue(dat: np.ndarray, mod: np.ndarray, mod0: np.ndarray) -> np.ndarray:
     beta, residuals, rank, s = np.linalg.lstsq(mod, dat.T, rcond=None)
     primary_variable_signal = mod @ beta
     resid = dat.T - primary_variable_signal
-    rss1 = (resid * resid).sum(axis=1)
+    rss1 = (resid * resid).sum(axis=0)
 
     # calculate for non-biological signal
     beta, residuals, rank, s = np.linalg.lstsq(mod0, dat.T, rcond=None)
     sv_signal = mod0 @ beta
     resid0 = dat.T - sv_signal
-    rss0 = (resid0 * resid0).sum(axis=1)
+    rss0 = (resid0 * resid0).sum(axis=0)
 
     fstats = ((rss0 - rss1) / (df1 - df0)) / (rss1 / (n_columns - df1))
     p = f.sf(fstats, dfn=(df1 - df0), dfd=(n_columns - df1))
@@ -174,7 +174,7 @@ def irwsva(
     dat: np.ndarray,
     mod: np.ndarray,
     mod0: np.ndarray | None,
-    num_sv: int,
+    n_surrogate_variables: int,
     B: int = 5,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """
@@ -212,25 +212,80 @@ def irwsva(
     pprob = np.ones(n_rows)
     one = np.ones(n_columns)
     Id = np.eye(n_columns)
-    df1 = mod.shape[1] + num_sv
-    df0 = mod0.shape[1] + num_sv
+    df1 = mod.shape[1] + n_surrogate_variables
+    df0 = mod0.shape[1] + n_surrogate_variables
 
     for i in range(B):
-        mod_b = np.hstack([mod, vv[:, 0:num_sv]])
-        mod0_b = np.hstack([mod0, vv[:, 0:num_sv]])
+        mod_b = np.hstack([mod, vv[:, 0:n_surrogate_variables]])
+        mod0_b = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
         ptmp = f_pvalue(dat, mod_b, mod0_b)
-        pprob_b = 1 - local_fdr(ptmp)[1]
+        pprob_b = 1 - fdrcorrection(ptmp)[1]
 
-        mod_gam = np.hstack([mod0, vv[:, 0:num_sv]])
+        mod_gam = np.hstack([mod0, vv[:, 0:n_surrogate_variables]])
         mod0_gam = np.hstack([mod0])
         ptmp = f_pvalue(dat, mod_gam, mod0_gam)
-        pprob_gam = 1 - local_fdr(ptmp)[1]
+        pprob_gam = 1 - fdrcorrection(ptmp)[1]
 
         pprob = pprob_gam * (1 - pprob_b)
-        dats = dat * pprob
+        dats = dat * pprob[:, None]
         dats = dats - np.mean(dats, axis=1, keepdims=True)
         eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
         vv = eigenvector
     U, S, Vh = np.linalg.svd(dats, full_matrices=False)
-    sv = Vh.T[:, 0:num_sv]
-    return sv, pprob_gam, pprob_b, num_sv
+    sv = Vh.T[:, 0:n_surrogate_variables]
+    return sv, pprob_gam, pprob_b, n_surrogate_variables
+
+
+def fsva(
+    dbdat: np.ndarray,
+    mod: np.ndarray,
+    sv: np.ndarray,
+    n_sv: int,
+    pprob_gam: np.ndarray,
+    pprob_b: np.ndarray,
+    newdat: np.ndarray | None = None,
+) -> tuple:
+    """
+    Performs frozen surrogate variable analysis as proposed in Parker, Corrada Bravo and Leek 2013.
+    It uses the surrogate variables to remove batch effects from the training database (dbdat) and optionally
+    from new data as well (newdat). The surrogate variables can be calculated by using iteratively re-weighted least squares
+    approach introduced by Leek.
+    This implementation only offers the exact method from the R code, the faster version in R uses an online approach to SVD
+    which is less accurate.
+
+    :param dbdat: the data used to find the surrogate variables with the variables in rows and samples in columns
+    :param mod: the model matrix which was used to fit the data for the surrogate variable analysis
+    :param sv: the surrogate variables from the surrogate variable analysis
+    :param n_sv: number of surrogate variables from the surrogate variable analysis
+    :param pprob_gam: posterior probabilities for each feature for how it is affected by heterogeneity from the surrogate variable analysis
+    :param pprob_b: posterior probabilities for each feature for how it is affected by mod from the surrogate variable analysis
+
+    :return: a tuple containing the following:
+        db: the cleaned training data
+        adjusted: the cleaned new data
+        newV: the surrogate variables of the new data
+    """
+    ndb = dbdat.shape[1]
+    nnew = newdat.shape[1] if newdat else 0
+    nmod = mod.shape[1]
+    ntot = ndb + nnew
+    mod = np.hstack([mod, sv])
+    gammahat = (dbdat @ mod @ np.linalg.inv(mod.T @ mod))[:, (nmod) : (nmod + n_sv)]
+    db = dbdat - gammahat @ sv.T
+    wts = ((1 - pprob_b) * pprob_gam)[:, None]
+    newV = np.zeros((nnew, n_sv))
+    for i in range(nnew):
+        tmp = np.hstack([dbdat, newdat[:, i : i + 1]])
+        tmpd = wts * tmp
+        mean_centered_tmpd = tmpd - np.mean(tmpd, axis=1, keepdims=True)
+        U, S, Vh = np.linalg.svd(mean_centered_tmpd, full_matrices=False)
+        # we can get rid of the second for loop by using the fact that the sign of correlation
+        # (cor() in the original R code) is the same as the sign of covariance which we calculate here.
+        # For that we first need to mean center the two matrices
+        v_mean_centered = Vh.T[:ndb, :n_sv] - np.mean(Vh.T[:ndb, :n_sv], axis=0)
+        sv_mean_centered = sv[:ndb, :n_sv] - np.mean(sv[:ndb, :n_sv], axis=0)
+        sgn = np.sign(np.sum(v_mean_centered * sv_mean_centered, axis=0))
+        newV[i, :] = Vh.T[ndb, :n_sv] * sgn
+    adjusted = newdat - gammahat @ newV.T
+
+    return db, adjusted, newV

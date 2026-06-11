@@ -4,13 +4,14 @@ from backend.protzilla.utilities.utilities import (
     default_intensity_column,
     collect_col_for_sample_in_order,
 )
-from backend.protzilla.utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 import numpy as np
 from backend.protzilla.constants.option_types import NumSVMethods
 from backend.protzilla.data_analysis.sva import (
     calculate_n_sv_be,
     calculate_n_sv_leek,
     irwsva,
+    fsva,
 )
 
 # <---- helper functions ---->
@@ -311,12 +312,23 @@ def sva_correction(
             "No valid option to calculate the optimal number of surrogate variables selected."
         )
 
-    sv = irwsva(
+    sv, pprob_gam, pprob_b, num_sv = irwsva(
         dat=dat,
         mod=mod,
         mod0=None,
         n_surrogate_variables=n_surrogate_variables,
     )
+    (
+        cleaned_dat,
+        _adjusted,
+        _new_sv,
+    ) = fsva(
+        dbdat=dat, mod=mod, sv=sv, n_sv=num_sv, pprob_gam=pprob_gam, pprob_b=pprob_gam
+    )
+    cleaned_wide_protein_df = pd.DataFrame(
+        cleaned_dat.T, index=wide_protein_df.index, columns=wide_protein_df.columns
+    )
+    cleaned_protein_df = wide_to_long(cleaned_wide_protein_df, protein_df)
     # turn sv to column
     sv_transposed = np.array(sv).T
     # create sv dataframe
@@ -324,7 +336,7 @@ def sva_correction(
     sv_df = create_sv_dataframe(sv_transposed, samples_in_order)
 
     # TODO: Correct the protein data!!
-    return {"protein_df": protein_df, "surrogate_variable_df": sv_df}
+    return {"protein_df": cleaned_protein_df, "surrogate_variable_df": sv_df}
 
 
 def loess_correction(
