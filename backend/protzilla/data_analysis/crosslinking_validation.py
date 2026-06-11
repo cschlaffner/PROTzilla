@@ -1094,12 +1094,16 @@ def cl_scatterplots_plddt(
 
     figures: list[Figure] = []
 
+    # Measured distance is just the CL length
     cl_results_df["measured_distance"] = cl_results_df.apply(
         lambda row: crosslinker_information[row["Crosslinker"]][0], axis=1
     )
+
+    # Difference between measured distance and predicted distance
     cl_results_df["distance_delta"] = abs(
         cl_results_df["measured_distance"] - cl_results_df["alphafold_distance"]
     )
+
     cl_results_df["avg_plddt"] = cl_results_df.apply(
         lambda row: np.average([row["plddt_at_position1"], row["plddt_at_position2"]]),
         axis=1,
