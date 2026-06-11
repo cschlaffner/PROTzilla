@@ -200,9 +200,11 @@ def clean_mod_list_of_numbers(mod_list: list[str]) -> list[str]:
 
 def simple_mod_name(mod_name: str) -> str:
     """
-    Simplify a modification name by removing leading numbers and spaces.
+    Simplify a modification name by removing leading numbers and spaces
+    as well as cutting at the first following whitespace.
     This function takes a modification name string and removes any leading
-    numeric characters and spaces to return a cleaner version of the name.
+    numeric characters and spaces and removes anything after the pure modification
+    name to return a cleaner version of the name.
     Args:
         mod_name (str): The original modification name (i.e. Oxidation (M)).
     Returns:

@@ -255,7 +255,7 @@ def replace_residue_with_ptm(
     Replaces the residue at a specific location with a modified residue
 
     :param cif_df: The cif_df to modify
-    :param index: The 1-based index in the protein of the resiude to change
+    :param index: The 1-based index in the protein of the residue to change
     :param ptm: The KnownPTM member whose structure will replace the old residue
     :returns: The modified cif_df
     """
