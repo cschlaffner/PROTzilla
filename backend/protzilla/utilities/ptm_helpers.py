@@ -13,12 +13,12 @@ def remove_brackets_before_index(s: str, cut_index: int) -> str:
     the specified cut_index position, along with any text contained within those
     brackets. Text at or after the cut_index is preserved, even if it contains
     brackets.
-    Args:
-        s (str): The input string to process.
-        cut_index (int): The index position before which brackets should be removed.
+   
+        :param s: The input string to process.
+        :param cut_index: The index position before which brackets should be removed.
                         Positions at or after this index are preserved.
-    Returns:
-        str: A new string with brackets and their contents removed from positions
+    :return:
+        A new string with brackets and their contents removed from positions
              before cut_index, while preserving all text from cut_index onwards.
     Example:
         >>> remove_brackets_before_index("hello(world)test", 5)
@@ -33,14 +33,15 @@ def remove_brackets_before_index(s: str, cut_index: int) -> str:
     cut_index -= 1
 
     depth = 0
-    while i < n:
-        if s[i] == "(" and i < cut_index:
+    while i < cut_index and i < len(s):
+        if s[i] == "(":
             depth += 1
-        elif s[i] == ")" and i < cut_index:
+        elif s[i] == ")":
             depth -= 1
-        elif depth == 0 or i >= cut_index:
+        elif depth == 0:
             result.append(s[i])
         i += 1
+    result.append(s[i:])
     return "".join(result)
 
 
@@ -53,11 +54,10 @@ def get_mods_with_positions(
     Each modification is expected to be enclosed in parentheses, e.g., "(MOD_NAME)".
     The function identifies all occurrences of each modification, records their positions,
     and removes them from the sequence.
-    Args:
-        seq (str): The sequence string containing modifications in the format "(MOD_NAME)".
-        mods (list[str]): A list of modification identifiers to search for in the sequence.
-    Returns:
-        tuple[dict[str, list[int]], str]: A tuple containing:
+
+        :param seq: The sequence string containing modifications in the format "(MOD_NAME)".
+        :param mods: A list of modification identifiers to search for in the sequence.
+    :returns: A tuple containing:
             - A dictionary mapping each modification name to a list of positions where it was found.
             - The cleaned sequence string with all modifications removed.
     Example:
@@ -99,13 +99,12 @@ def get_residues_for_mods_with_positions(
     residue at each modification position. Special handling is applied for terminal
     positions: position 0 represents the N-terminus (marked as 'N') and position equal
     to sequence length represents the C-terminus (marked as 'C').
-    Args:
-        seq (str): The amino acid sequence.
-        mods (list[str]): List of modification types to initialize in the result dictionary.
-        mod_with_pos (dict[str, list[int]]): Dictionary mapping modification types to lists
+   
+        :param seq: The amino acid sequence.
+        :param mods: List of modification types to initialize in the result dictionary.
+        :param mod_with_pos: Dictionary mapping modification types to lists
                                              of positions where they occur in the sequence.
-    Returns:
-        dict[str, list[tuple[int, str]]]: Dictionary mapping each modification type to a list
+    :return: Dictionary mapping each modification type to a list
                                           of tuples containing (position, residue) pairs.
                                           Terminal residues are represented as 'N' for N-terminus
                                           and 'C' for C-terminus.
@@ -142,11 +141,10 @@ def clear_mod_name(
     and corresponding residues. It simplifies each modification name by retaining only
     the primary identifier (the substring before the first space) and constructs a new
     dictionary with these simplified names.
-    Args:
-        mods_with_pos_residues (dict[str, list[tuple[int, str]]]): A dictionary mapping
+
+        :param mods_with_pos_residues: A dictionary mapping
             full modification names to lists of (position, residue) tuples.
-    Returns:
-        dict[str, list[tuple[int, str]]]: A new dictionary mapping simplified modification
+    returns: A new dictionary mapping simplified modification
             names to lists of (position, residue) tuples.
     """
     modnames_with_pos_residues: dict[str, list[tuple[int, str]]] = {}
@@ -161,11 +159,10 @@ def extract_mods(sequence: str, mods: list[str]) -> dict[str, list[tuple[int, st
     Extract and simplify modification data from a sequence string.
     This function identifies modifications within a sequence string, retrieves their
     positions and corresponding residues, and simplifies the modification names.
-    Args:
-        sequence (str): The sequence string containing modifications.
-        mods (list[str]): A list of modification identifiers to search for in the sequence.
-    Returns:
-        dict[str, list[tuple[int, str]]]: A dictionary mapping simplified modification
+
+        :param sequence: The sequence string containing modifications.
+        :param mods: A list of modification identifiers to search for in the sequence.
+    :returns: A dictionary mapping simplified modification
             names to lists of (position, residue) tuples.
     """
     seq = str(sequence).strip("_")
@@ -186,10 +183,9 @@ def clean_mod_list_of_numbers(mod_list: list[str]) -> list[str]:
     Remove leading numbers and spaces from modification names in a list.
     This function processes a list of modification names, stripping any leading
     numeric characters and spaces from each name.
-    Args:
-        mod_list (list[str]): A list of modification names, potentially with leading numbers.
-    Returns:
-        list[str]: A new list of modification names with leading numbers and spaces removed.
+
+        :param mod_list: A list of modification names, potentially with leading numbers.
+    :returns: A new list of modification names with leading numbers and spaces removed.
     """
     cleaned_mods = []
     for mod in mod_list:
