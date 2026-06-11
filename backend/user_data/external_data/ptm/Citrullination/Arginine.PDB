@@ -1,0 +1,54 @@
+HEADER    AA0214                                  31-Mar-01                     
+COMPND    L-citrulline                                                          
+REVDAT 001   30-Sep-99                                                          
+REVDAT 002   31-Dec-00                                                          
+REVDAT 003   31-Mar-01                                                          
+REVDAT 003   25-Feb-11                                                          
+REMARK 001 Copyright (C) 2001, 2011 John S. Garavelli                           
+REMARK 002 This model is provisional.                                           
+ATOM      1  N   Arg     1       0.000   0.000   0.000                          
+ATOM      2  HN  Arg     1      -0.375   0.166   1.010                          
+ATOM      3  CA  Arg     1       1.484   0.000   0.000                          
+ATOM      4  HA  Arg     1       1.826  -0.482  -0.935                          
+ATOM      5  C   Arg     1       2.000  -0.763   1.209                          
+ATOM      6  O   Arg     1       1.293  -0.916   2.193                          
+ATOM      7  CB  Arg     1       1.969   1.480   0.000                          
+ATOM      8  HB1 Arg     1       1.483   2.008  -0.843                          
+ATOM      9  HB2 Arg     1       1.676   1.967   0.949                          
+ATOM     10  CG  Arg     1       3.511   1.568  -0.182                          
+ATOM     11  HG1 Arg     1       4.016   1.117   0.691                          
+ATOM     12  HG2 Arg     1       3.805   1.024  -1.099                          
+ATOM     13  CD  Arg     1       3.923   3.062  -0.320                          
+ATOM     14  HD1 Arg     1       3.421   3.497  -1.206                          
+ATOM     15  HD2 Arg     1       3.607   3.617   0.582                          
+ATOM     16  NE  Arg     1       5.375   3.185  -0.489                          
+ATOM     17  HE  Arg     1       5.980   2.606   0.074                          
+ATOM     18  CZ  Arg     1       5.855   4.111  -1.382                          
+ATOM     19  OH1         1       5.093   4.811  -2.047                          
+ATOM     20  NH2 Arg     1       7.216   4.236  -1.515                          
+ATOM     21  HH1 Arg     1       7.573   4.921  -2.176                          
+ATOM     22  HH2 Arg     1       7.847   3.660  -0.967                          
+TER      23                                                                     
+CONECT    1    2    3                                                           
+CONECT    2    1                                                                
+CONECT    3    1    4    5    7                                                 
+CONECT    4    3                                                                
+CONECT    5    3    6                                                           
+CONECT    6    5                                                                
+CONECT    7    3    8    9   10                                                 
+CONECT    8    7                                                                
+CONECT    9    7                                                                
+CONECT   10    7   11   12   13                                                 
+CONECT   11   10                                                                
+CONECT   12   10                                                                
+CONECT   13   10   14   15   16                                                 
+CONECT   14   13                                                                
+CONECT   15   13                                                                
+CONECT   16   13   17   18                                                      
+CONECT   17   16                                                                
+CONECT   18   16   19   20                                                      
+CONECT   19   18                                                                
+CONECT   20   18   21   22                                                      
+CONECT   21   20                                                                
+CONECT   22   20                                                                
+END                                                                             

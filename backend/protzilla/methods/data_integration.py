@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC
 from typing_extensions import override
 
+from backend.protzilla.constants.cif_constants import KnownPTM
 import restring
 import gseapy
 from backend.protzilla import form_helper
@@ -12,6 +13,7 @@ from backend.protzilla.data_integration import (
     di_plots,
     enrichment_analysis,
 )
+from backend.protzilla.data_integration.cif_ptm import add_ptms_from_evidence_to_cif
 from backend.protzilla.data_integration.database_query import (
     biomart_database,
     uniprot_databases,
@@ -990,3 +992,28 @@ class PlotGSEAEnrichmentPlot(DataIntegrationPlotStep):
                 ),
             ],
         )
+
+
+class AddPTMsFromEvidenceToPrediction(DataIntegrationStep):
+    operation = "ptm_insertion"
+    display_name = "Add PTMs from Evidence to Alphafold CIF"
+    method_description = (
+        "Integrate observed PTMs from evidence to predicted AlphaFold structures"
+    )
+
+    output_keys = [DataKey.CIF_DF]
+
+    @override
+    def create_form(self) -> Form:
+        return Form(
+            label=self.display_name,
+            input_fields=[
+                MultiSelectField(
+                    name="selected_ptm_names",
+                    label="Select the PTMs to consider",
+                    options=KnownPTM.to_options(),
+                )
+            ],
+        )
+
+    calc_method = staticmethod(add_ptms_from_evidence_to_cif)

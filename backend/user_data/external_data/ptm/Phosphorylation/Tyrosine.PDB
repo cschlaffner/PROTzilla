@@ -1,0 +1,61 @@
+HEADER    AA0039                                  31-Mar-01                     
+COMPND    O4'-phospho-L-tyrosine                                                
+REVDAT 001   30-Sep-99                                                          
+REVDAT 002   31-Dec-00                                                          
+REVDAT 003   31-Mar-01                                                          
+REMARK 001 Copyright (C) 2001 John S. Garavelli                                 
+REMARK 002 This model is provisional.                                           
+ATOM      1  N   Tyr     1       0.000   0.000   0.000                          
+ATOM      2  HN  Tyr     1      -0.362  -0.265   0.877                          
+ATOM      3  CA  Tyr     1       1.454   0.000   0.000                          
+ATOM      4  HA  Tyr     1       1.791  -0.570  -0.868                          
+ATOM      5  C   Tyr     1       1.926  -0.806   1.242                          
+ATOM      6  O   Tyr     1       1.219  -0.812   2.251                          
+ATOM      7  CB  Tyr     1       2.105   1.386   0.000                          
+ATOM      8  HB1 Tyr     1       1.704   1.897  -0.881                          
+ATOM      9  HB2 Tyr     1       1.741   1.961   0.860                          
+ATOM     10  CG  Tyr     1       3.608   1.530   0.000                          
+ATOM     11  CD1 Tyr     1       4.178   2.865   0.059                          
+ATOM     12  HD1 Tyr     1       3.541   3.755   0.108                          
+ATOM     13  CE1 Tyr     1       5.586   3.087   0.085                          
+ATOM     14  HE1 Tyr     1       5.971   4.104   0.197                          
+ATOM     15  CD2 Tyr     1       4.562   0.434   0.000                          
+ATOM     16  HD2 Tyr     1       4.248  -0.610  -0.001                          
+ATOM     17  CE2 Tyr     1       5.971   0.650   0.010                          
+ATOM     18  HE2 Tyr     1       6.647  -0.210   0.009                          
+ATOM     19  CZ  Tyr     1       6.475   1.980   0.025                          
+ATOM     20  OH  Tyr     1       7.829   2.213  -0.130                          
+ATOM     21  P   PO3     1       8.613   1.190   0.749                          
+ATOM     22  O1P PO3     1       9.481   1.960   1.793                          
+ATOM     23  O2P PO3     1       9.539   0.325  -0.161                          
+ATOM     24  O3P PO3     1       7.603   0.264   1.495                          
+ATOM     25  HO2 PO3     1      10.056  -0.340   0.446                          
+ATOM     26  HO3 PO3     1      10.000   1.261   2.358                          
+TER      27                                                                     
+CONECT    1    2    3                                                           
+CONECT    2    1                                                                
+CONECT    3    1    4    5    7                                                 
+CONECT    4    3                                                                
+CONECT    5    3    6                                                           
+CONECT    6    5                                                                
+CONECT    7    3    8    9   10                                                 
+CONECT    8    7                                                                
+CONECT    9    7                                                                
+CONECT   10    7   11   15                                                      
+CONECT   11   10   12   13                                                      
+CONECT   12   11                                                                
+CONECT   13   11   14   19                                                      
+CONECT   14   13                                                                
+CONECT   15   10   16   17                                                      
+CONECT   16   15                                                                
+CONECT   17   15   18   19                                                      
+CONECT   18   17                                                                
+CONECT   19   13   17   20                                                      
+CONECT   20   19   21                                                           
+CONECT   21   20   22   23   24                                                 
+CONECT   22   21   26                                                           
+CONECT   23   21   25                                                           
+CONECT   24   21                                                                
+CONECT   25   23                                                                
+CONECT   26   22                                                                
+END                                                                             

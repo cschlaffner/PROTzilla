@@ -31,7 +31,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     check_success_of_get_df,
 )
 from backend.protzilla.constants import paths
-from backend.protzilla.constants.cif_columns import (
+from backend.protzilla.constants.cif_constants import (
     ATOM_SITE_PREFIX,
     ATOM_SITE_COLUMNS,
     CHEM_COMP_COLUMNS,

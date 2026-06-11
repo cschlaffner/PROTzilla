@@ -33,6 +33,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
     get_monomer_structure_dfs,
     upload_multimer_prediction,
     get_multimer_structure_dfs,
+    cif_import,
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, Section, StepOperation
@@ -428,6 +429,28 @@ class ExampleDatasetImport(ImportingStep):
             if import_peptide_data_field.value
             else [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
         )
+
+
+class CifImport(ImportingStep):
+    display_name = "CIF Import"
+    operation = "(DEBUG)"
+    method_description = "Raw CIF Import"
+    output_keys = [DataKey.CIF_DF]
+
+    @override
+    def create_form(self) -> Form:
+        return Form(
+            label="Raw CIF Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="CIF file to import data from",
+                    accept=".cif",
+                )
+            ],
+        )
+
+    calc_method = staticmethod(cif_import)
 
 
 class AlphaFoldPredictionLoad(ImportingStep):

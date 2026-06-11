@@ -17,13 +17,15 @@ import requests
 import re
 
 from backend.protzilla.constants import paths
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.protzilla_logging import logger
-from backend.protzilla.constants.cif_columns import (
+from backend.protzilla.constants.cif_constants import (
     ATOM_SITE_PREFIX,
     ATOM_SITE_COLUMNS,
     ATOM_SITE_COLUMNS_NUMERIC,
     CHEM_COMP_PREFIX,
     CHEM_COMP_COLUMNS,
+    CIF_BOOL_MAP,
 )
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
@@ -151,11 +153,10 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
         dtype=pd.StringDtype(),
     )[[CHEM_COMP_COLUMNS.ID, CHEM_COMP_COLUMNS.MON_NSTD_FLAG]]
 
-    # convert flags to native booleans
-    bool_map = {"y": True, "n": False, ".": pd.NA}
-
     chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] = (
-        chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG].map(bool_map).astype("boolean")
+        chem_comp_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG]
+        .map(CIF_BOOL_MAP)
+        .astype("boolean")
     )
 
     # merge on the comp_id and drop the duplicate column
@@ -165,6 +166,13 @@ def read_alphafold_mmcif(path: Path) -> pd.DataFrame:
         left_on=ATOM_SITE_COLUMNS.LABEL_COMP_ID,
         right_on=CHEM_COMP_COLUMNS.ID,
     ).drop(CHEM_COMP_COLUMNS.ID, axis=1)
+
+
+def cif_import(file_path: Path) -> dict[DataKey, pd.DataFrame]:
+    """
+    Method for reading in a raw cif file for debugging purposes
+    """
+    return {DataKey.CIF_DF: read_alphafold_mmcif(file_path)}
 
 
 def get_correct_af_directories(

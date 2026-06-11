@@ -15,6 +15,7 @@ _forward_mapping: list[Step] = [
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
     importing.FastaImport,
+    importing.CifImport,
     importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
     importing.AlphaFoldQueryJsonGeneration,
@@ -94,11 +95,13 @@ _forward_mapping: list[Step] = [
     data_integration.PlotGOEnrichmentDotPlot,
     data_integration.PlotGSEADotPlot,
     data_integration.PlotGSEAEnrichmentPlot,
+    data_integration.AddPTMsFromEvidenceToPrediction,
 ]
 
 # Steps excluded from UI, i.e. users cannot instantiate them
 _hidden_steps: list[Step] = [
     importing.ArbitraryCSVImport,
+    importing.CifImport,
     data_integration.DatabaseIntegrationByUniprot,
     data_integration.PlotGSEAEnrichmentPlot,
     data_analysis.PTMsProteinAndPerSample,
