@@ -29,7 +29,10 @@ import textwrap
 from plotly.subplots import make_subplots
 
 from backend.protzilla.data_preprocessing.plots_helper import generate_tics
-from backend.protzilla.utilities.utilities import default_intensity_column
+from backend.protzilla.utilities.utilities import (
+    default_intensity_column,
+    get_residue_positions_in_protein,
+)
 from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
     PLOT_PRIMARY_COLOR,
@@ -168,26 +171,6 @@ def get_protein_sequence_from_df(
         raise KeyError("Protein ID not found in the given fasta file.")
 
     return matches.iloc[0]
-
-
-def get_residue_positions_in_protein(
-    peptide: str, protein_sequence: str, position_within_peptide: int
-) -> list[int]:
-    """
-    Returns the 1-based positions of the crosslinked residue within the full
-    protein sequence for all occurrences of a given peptide.
-
-    :param peptide: peptide sequence to search for in the protein
-    :param protein_sequence: the protein sequence to search in
-    :param position_within_peptide: 1-based position of the residue within the peptide
-    :return: list of 1-based residue positions in the protein sequence
-    """
-
-    positions = [
-        m.start() + position_within_peptide + 1
-        for m in re.finditer(f"(?={peptide})", protein_sequence)
-    ]
-    return positions
 
 
 def add_protein_crosslink_positions_to_df(

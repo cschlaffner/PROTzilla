@@ -191,3 +191,23 @@ def copy_file_to_directory(source_file: Path, dest_dir: Path) -> tuple[bool, str
         message = f"Failed to copy file: {str(e)}"
         logger.error(message)
         return False, message
+
+
+def get_residue_positions_in_protein(
+    peptide: str, protein_sequence: str, position_within_peptide: int
+) -> list[int]:
+    """
+    Returns the 1-based positions of the crosslinked residue within the full
+    protein sequence for all occurrences of a given peptide.
+
+    :param peptide: peptide sequence to search for in the protein
+    :param protein_sequence: the protein sequence to search in
+    :param position_within_peptide: 1-based position of the residue within the peptide
+    :return: list of 1-based residue positions in the protein sequence
+    """
+
+    positions = [
+        m.start() + position_within_peptide + 1
+        for m in re.finditer(f"(?={peptide})", protein_sequence)
+    ]
+    return positions

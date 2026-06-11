@@ -26,7 +26,6 @@ from backend.protzilla.constants.peptide_columns import (
     PSM_DF_COLUMNS,
 )
 from backend.protzilla.data_analysis.crosslinking_validation import (
-    get_residue_positions_in_protein,
     get_protein_sequence_from_df,
 )
 from backend.protzilla.steps import OutputItem, OutputType
@@ -34,6 +33,7 @@ from backend.protzilla.utilities.ptm_helpers import (
     clean_mod_list_of_numbers,
     extract_mods,
 )
+from backend.protzilla.utilities.utilities import get_residue_positions_in_protein
 
 
 def parse_protein_ids(structure_metadata_df: pd.DataFrame) -> list[str]:
