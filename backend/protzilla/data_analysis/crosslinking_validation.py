@@ -1152,8 +1152,8 @@ def cl_scatterplots_plddt(
         )
 
     # X axis range should start as close to 0 as reasonable and extend to max value
-    min_dist_delta = min(cl_results_df["distance_delta"])
-    max_dist_delta = max(cl_results_df["distance_delta"])
+    min_dist_delta = cl_results_df["distance_delta"].min()
+    max_dist_delta = cl_results_df["distance_delta"].max()
 
     xmin = -1
     if 10**xmin > min_dist_delta:
