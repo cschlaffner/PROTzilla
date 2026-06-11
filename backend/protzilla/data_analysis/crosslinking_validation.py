@@ -705,7 +705,7 @@ def validate_with_angstrom_deviation(
         accepted_distance_upper_bound: float = 0.0
 
         match validation_criterion:
-            case CrosslinkingValidationCriterion.manual_bounds.value:
+            case CrosslinkingValidationCriterion.manual_bounds:
                 # Fallback to default deviation bounds when not explicitly provided
                 accepted_distance_lower_bound = crosslinker_length - (
                     accepted_deviation_lower_bound or crosslinker_length
@@ -714,7 +714,7 @@ def validate_with_angstrom_deviation(
                     accepted_deviation_upper_bound or float("inf")
                 ) + crosslinker_length
 
-            case CrosslinkingValidationCriterion.max_pae.value:
+            case CrosslinkingValidationCriterion.max_pae:
                 if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
                     raise ValueError("No PAE data given.")
 
@@ -726,7 +726,7 @@ def validate_with_angstrom_deviation(
                     crosslinker_length + pae_tolerance
                 )
 
-            case CrosslinkingValidationCriterion.min_pae.value:
+            case CrosslinkingValidationCriterion.min_pae:
                 if np.isnan(pae_x_position1) or np.isnan(pae_x_position2):
                     raise ValueError("No PAE data given.")
                 pae_x_position1, pae_x_position2 = get_paes()
@@ -738,7 +738,7 @@ def validate_with_angstrom_deviation(
                     crosslinker_length + pae_tolerance
                 )
 
-            case CrosslinkingValidationCriterion.plddt_adjusted.value:
+            case CrosslinkingValidationCriterion.plddt_adjusted:
                 if np.isnan(plddt_at_position1) or np.isnan(plddt_at_position2):
                     raise ValueError("No pLDDT data given.")
 
@@ -759,9 +759,6 @@ def validate_with_angstrom_deviation(
                 accepted_distance_upper_bound = (
                     crosslinker_length + tolerance_pos1 + tolerance_pos2
                 )
-
-            case _:
-                raise ValueError("Invalid validation strategy")
 
         valid = (
             accepted_distance_lower_bound
@@ -1217,9 +1214,9 @@ def cl_scatterplots_pae(
         pae_x_2: float,
         validation_criterion: CrosslinkingValidationCriterion,
     ):
-        if validation_criterion == CrosslinkingValidationCriterion.max_pae.value:
+        if validation_criterion == CrosslinkingValidationCriterion.max_pae:
             return max(pae_x_1, pae_x_2)
-        elif validation_criterion == CrosslinkingValidationCriterion.min_pae.value:
+        elif validation_criterion == CrosslinkingValidationCriterion.min_pae:
             return min(pae_x_1, pae_x_2)
         else:
             raise ValueError("Illegal validation criterion for PAE plot")
@@ -1239,7 +1236,7 @@ def cl_scatterplots_pae(
 
     y_label = (
         "Max. PAE between binding sites"
-        if validation_criterion == CrosslinkingValidationCriterion.max_pae.value
+        if validation_criterion == CrosslinkingValidationCriterion.max_pae
         else "Min. PAE between binding sites"
     )
 
@@ -1344,7 +1341,7 @@ def monomer_diagrams(
     structures_to_validate = [structure_metadata_df["uniprot_accession"].iloc[0]]
 
     match validation_criterion:
-        case CrosslinkingValidationCriterion.manual_bounds.value:
+        case CrosslinkingValidationCriterion.manual_bounds:
             return diagrams_of_crosslinking_validation_data(
                 validated_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
@@ -1352,8 +1349,8 @@ def monomer_diagrams(
             )
 
         case (
-            CrosslinkingValidationCriterion.max_pae.value
-            | CrosslinkingValidationCriterion.min_pae.value
+            CrosslinkingValidationCriterion.max_pae
+            | CrosslinkingValidationCriterion.min_pae
         ):
             return cl_scatterplots_pae(
                 cl_results_df=output_crosslinking_result_df,
@@ -1362,15 +1359,12 @@ def monomer_diagrams(
                 validation_criterion=validation_criterion,
             )
 
-        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+        case CrosslinkingValidationCriterion.plddt_adjusted:
             return cl_scatterplots_plddt(
                 cl_results_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
                 crosslinker_information=crosslinker_information,
             )
-
-        case _:
-            return []
 
 
 def multimer_diagrams(
@@ -1401,7 +1395,7 @@ def multimer_diagrams(
     structures_to_validate = list(valid_ids.keys())
 
     match validation_criterion:
-        case CrosslinkingValidationCriterion.manual_bounds.value:
+        case CrosslinkingValidationCriterion.manual_bounds:
             return diagrams_of_crosslinking_validation_data(
                 validated_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
@@ -1409,8 +1403,8 @@ def multimer_diagrams(
             )
 
         case (
-            CrosslinkingValidationCriterion.max_pae.value
-            | CrosslinkingValidationCriterion.min_pae.value
+            CrosslinkingValidationCriterion.max_pae
+            | CrosslinkingValidationCriterion.min_pae
         ):
             return cl_scatterplots_pae(
                 cl_results_df=output_crosslinking_result_df,
@@ -1419,15 +1413,12 @@ def multimer_diagrams(
                 validation_criterion=validation_criterion,
             )
 
-        case CrosslinkingValidationCriterion.plddt_adjusted.value:
+        case CrosslinkingValidationCriterion.plddt_adjusted:
             return cl_scatterplots_plddt(
                 cl_results_df=output_crosslinking_result_df,
                 structures_to_validate=structures_to_validate,
                 crosslinker_information=crosslinker_information,
             )
-
-        case _:
-            return []
 
 
 # Warning: Mostly AI generated
