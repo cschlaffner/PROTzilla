@@ -2,12 +2,12 @@ crosslinker_classes:
   DSSO: AMINE-REACTIVE/NHS-ESTER
   DSS: AMINE-REACTIVE/NHS-ESTER
   DSBU: AMINE-REACTIVE/NHS-ESTER
-  BS: AMINE-REACTIVE/NHS-ESTER
+  BS: AMINE-REACTIVE/NHS-ESTER # maybe delete later? 
   BS3: AMINE-REACTIVE/NHS-ESTER
   PhoX: AMINE-REACTIVE/NHS-ESTER
 
 AMINE-REACTIVE/NHS-ESTER: 
-  residue_atoms:
+  primary_residue_atoms:
     K: # lysine
       - NZ # terminal nitrogen of the lysine side chain
 
@@ -22,3 +22,157 @@ AMINE-REACTIVE/NHS-ESTER:
       - OG1 # hydroxyl-group
     Y: # tyrosine
       - OH # hydroxyl-group
+
+THIOL/SULFHYDRYL-REACTIVE:
+  primary_residue_atoms: 
+    C: # cysteine
+      - SG # sulfur atom of the cysteine side chain 
+
+GUANIDYL-REACTIVE: 
+  primary_residue_atoms: 
+    R: # arginine 
+      - NH1 # terminal guanidino nitrogen
+      - NH2 # terminal guanidino nitrogen 
+
+PHOTO-REACTIVE-DIAZIRINE:
+  primary_residue_atoms:
+    K: [NZ]
+      
+    R: [NH1, NH2, NE]
+
+    H: [ND1, NE2]
+
+    C: [SG]
+
+    D: [OD1, OD2]
+
+    E: [OE1, OE2]
+
+    S: [OG]
+
+    T: [OG1]
+
+    Y: [OH]
+
+    F: [CE1, CE2, CD1, CD2, CZ]
+
+    W: [NE1, CE2, CD2, CZ2, CZ3, CH2]
+
+  secondary_residue_atoms:
+    K: [CE, CD, CG, CB, CA, N, C]
+
+    R: [CZ, CD, CG, CB, CA, N, C]
+
+    H: [CG, CD2, CE1, N, CA, C]
+
+    C: [CB, CA, N, C]
+
+    D: [CB, CA, N, C]
+
+    E: [CG, CB, CA, N, C]
+
+    S: [CB, CA, N, C]
+
+    T: [CB, CA, N, C]
+
+    Y: [CE1, CE2, CD1, CD2, CZ, CG, CB, CA, N, C]
+
+    F: [CG, CB, CA, N, C]
+
+    W: [CG, CB, CA, N, C]
+
+
+PHOTO-REACTIVE-ARYLAZIDE:
+  primary_residue_atoms:
+    K: [NZ]
+
+    R: [NH1, NH2, NE]
+
+    H: [ND1, NE2]
+
+    C: [SG]
+
+    D: [OD1, OD2]
+
+    E: [OE1, OE2]
+
+    S: [OG]
+
+    T: [OG1]
+
+    Y: [OH]
+
+    F: [CE1, CE2, CD1, CD2, CZ]
+
+    W: [NE1, CE2, CD2, CZ2, CZ3, CH2]
+
+  secondary_residue_atoms:
+    K: [CE, CD, CG, CB, CA, N, C]
+
+    R: [CZ, CD, CG, CB, CA, N, C]
+
+    H: [CG, CD2, CE1, N, CA, C]
+
+    C: [CB, CA, N, C]
+
+    D: [CB, CA, N, C]
+
+    E: [CG, CB, CA, N, C]
+
+    S: [CB, CA, N, C]
+
+    T: [CB, CA, N, C]
+
+    Y: [CE1, CE2, CD1, CD2, CZ, CG, CB, CA, N, C]
+
+    F: [CG, CB, CA, N, C]
+
+    W: [CG, CB, CA, N, C]
+
+
+PHOTO-REACTIVE-BENZOPHENONE:
+  primary_residue_atoms:
+    K: [CE, CD, CG, CB]
+
+    R: [CD, CG, CB]
+
+    H: [CG, CD2, CE1]
+
+    C: [CB]
+
+    D: [CB]
+
+    E: [CG, CB]
+
+    S: [CB]
+
+    T: [CB, CG2]
+
+    Y: [CB, ring_C]
+
+    F: [ring_C]
+
+    W: [ring_C, CG]
+
+  secondary_residue_atoms: 
+    K: [NZ, CA, N, C]
+
+    R: [NE, NH1, NH2, CA, N, C]
+
+    H: [ND1, NE2, CA, N, C]
+
+    C: [SG, CA, N, C]
+
+    D: [OD1, OD2, CA, N, C]
+
+    E: [OE1, OE2, CA, N, C]
+
+    S: [OG, CA, N, C]
+
+    T: [OG1, CA, N, C]
+
+    Y: [OH, CA, N, C]
+
+    F: [CA, N, C]
+
+    W: [NE1, CA, N, C]

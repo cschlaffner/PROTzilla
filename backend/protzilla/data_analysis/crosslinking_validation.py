@@ -86,7 +86,7 @@ def get_reactive_atom_of_amino_acid_residue(
 
     reactive_atoms_list.extend(
         REACTIVE_ATOMS[crosslinker_class]
-        .get("residue_atoms", {})
+        .get("primary_residue_atoms", {})
         .get(amino_acid_type, [])
     )
 
