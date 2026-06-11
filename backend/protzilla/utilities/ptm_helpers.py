@@ -13,7 +13,7 @@ def remove_brackets_before_index(s: str, cut_index: int) -> str:
     the specified cut_index position, along with any text contained within those
     brackets. Text at or after the cut_index is preserved, even if it contains
     brackets.
-   
+
         :param s: The input string to process.
         :param cut_index: The index position before which brackets should be removed.
                         Positions at or after this index are preserved.
@@ -99,7 +99,7 @@ def get_residues_for_mods_with_positions(
     residue at each modification position. Special handling is applied for terminal
     positions: position 0 represents the N-terminus (marked as 'N') and position equal
     to sequence length represents the C-terminus (marked as 'C').
-   
+
         :param seq: The amino acid sequence.
         :param mods: List of modification types to initialize in the result dictionary.
         :param mod_with_pos: Dictionary mapping modification types to lists
