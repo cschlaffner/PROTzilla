@@ -28,11 +28,11 @@ export interface ApiResponse<T> {
 export interface Image {
   title: string;
   alt: string;
-  data: string;
+  base64image: string;
 }
 
 export interface Download {
-  data: Record<string, unknown>;
+  json_downloads: Record<string, unknown>;
 }
 
 export interface TrimeshMesh {
@@ -71,7 +71,7 @@ export interface Step {
       y: number;
     };
   };
-  method_name: string;
+  operation: string;
   status: StepStatus;
 }
 

@@ -40,6 +40,60 @@ class Section(StrEnum):
     NOT_CATEGORIZED = "others"
 
 
+class StepOperation(StrEnum):
+    """
+    Supported operations for steps (more granular categorization)
+    """
+
+    PROTEIN_IMPORT = "protein_import"
+    PEPTIDE_IMPORT = "peptide_import"
+    PSM_IMPORT = "psm_import"
+    METADATA_IMPORT = "metadata_import"
+    FASTA_IMPORT = "fasta_import"
+    EXAMPLE_IMPORT = "example_import"
+
+    FILTER_SAMPLES = "filter_samples"
+    FILTER_PROTEINS = "filter_proteins"
+    FILTER_PEPTIDES = "filter_peptides"
+    FILTER_PSMS = "filter_psms"
+    OUTLIER_DETECTION = "outlier_detection"
+    TRANSFORMATION = "transformation"
+    NORMALIZATION = "normalization"
+    IMPUTATION = "imputation"
+    SIMPLIFICATION = "simplification"
+
+    DIFFERENTIAL_EXPRESSION = "differential_expression"
+    PEPTIDE_ANALYSIS = "peptide_analysis"
+    PLOT = "plot"
+    CLUSTERING = "clustering"
+    CLASSIFICATION = "classification"
+    MODEL_EVALUATION = "model_evaluation"
+    DIMENSION_REDUCTION = "dimension_reduction"
+    MODIFICATION_QUANTIFICATION = "modification_quantification"
+    PTM_VISUALIZATION = "ptm_visualization"
+
+    DATABASE_INTEGRATION = "database_integration"
+    ENRICHMENT_ANALYSIS = "enrichment_analysis"
+    GENE_ONTOLOGY = "gene_ontology"
+    GSEA = "gsea"
+
+    NOT_CATEGORIZED = "others"
+    DEBUG = "(debug)"
+
+
+"""
+Maps internal step operation names to display names where regular mapping would fail
+"""
+step_operation_display_name = {
+    "psm_import": "PSM Import",
+    "filter_psms": "Filter PSMs",
+    "gene_ontology": "Gene Ontology (GO)",
+    "gsea": "Gene Set Enrichment Analysis (GSEA)",
+    "ptm_visualization": "PTM Visualisation",
+    "normalization": "Normalisation",
+}
+
+
 class Step(ABC):
     """
     Abstract base class for concrete step implementations
@@ -48,7 +102,7 @@ class Step(ABC):
     section: Section = Section.NOT_CATEGORIZED
     form: Form
     display_name: str = None
-    operation: str = None
+    operation: StepOperation = StepOperation.NOT_CATEGORIZED
     method_description: str = None
     visual_data: dict
     internal_inputs: set[str] = set[str]()
@@ -114,7 +168,9 @@ class Step(ABC):
             "method_name": cls.__name__,
             "section": cls.section,
             "display_name": cls.display_name,
-            "operation": name_to_title(cls.operation),
+            "operation": cls.operation,
+            "operation_display_name": step_operation_display_name.get(cls.operation)
+            or name_to_title(cls.operation),
             "method_description": cls.method_description,
         }
 

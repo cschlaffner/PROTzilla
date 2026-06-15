@@ -14,7 +14,6 @@ class LogBaseWithNoneType(StrEnum):
     LOG2 = "log2"
     LOG10 = "log10"
     # i hate this ~T
-    # lmao ~R
     NONE = "None"
 
 
@@ -59,6 +58,13 @@ class VisualTransformations(StrEnum):
 class PValueColumnName(StrEnum):
     protein_id = "Protein ID"
     ptm = "PTM"
+
+
+class CrosslinkingValidationCriterion(StrEnum):
+    manual_bounds = "Manual Bounds (set below)"
+    max_pae = "CL length +/- maximum PAE between sites"
+    min_pae = "CL length +/- minimum PAE between sites"
+    plddt_adjusted = "plDDT adjusted"
 
 
 FC_SIGNIFICANCE_COLUMNS = ["Protein ID", "fc_z_score", "fc_significance"]

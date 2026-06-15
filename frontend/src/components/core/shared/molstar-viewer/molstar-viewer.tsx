@@ -3,13 +3,19 @@ import { SectionTitle } from "@protzilla/core";
 import { createPluginUI } from "molstar/lib/mol-plugin-ui";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { renderReact18 } from "molstar/lib/mol-plugin-ui/react18";
-import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 import React, { useEffect, useRef, useState } from "react";
 
 import { addTrimeshMesh } from "./molstar-trimesh-adapter";
 import { MolstarViewerProps } from "./molstar-viewer.props";
-import { addCrosslinks, handleError } from "./molstar-viewer.service";
+import {
+  addCrosslinks,
+  handleError,
+  initCrosslinkColors,
+  overrideLabels,
+} from "./molstar-viewer.service";
+import { LegendOverlay } from "./molstar-viewer.ui";
 import { CanvasWrapper, Container } from "./styles";
+import "molstar/lib/mol-plugin-ui/skin/base/base.scss";
 
 const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, trimeshMeshes }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,7 +52,9 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, trim
 
         // add crosslinks to structure, if available
         if (crosslinks !== undefined) {
-          await addCrosslinks(plugin, cifText, crosslinks);
+          const crosslinkColors = await initCrosslinkColors();
+          await addCrosslinks(plugin, cifText, crosslinks, crosslinkColors);
+          overrideLabels(plugin, crosslinkColors);
         }
 
         if (trimeshMeshes !== undefined) {
@@ -85,6 +93,8 @@ const MolstarViewer: React.FC<MolstarViewerProps> = ({ cifText, crosslinks, trim
         <SectionTitle baseComponent="h4" description="Structure visualisation is loading..." />
       )}
       <CanvasWrapper ref={containerRef} />
+
+      {crosslinks !== undefined && <LegendOverlay />}
     </Container>
   );
 };

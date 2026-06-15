@@ -80,7 +80,7 @@ class TestRun:
         assert run_empty.current_step is not None
         assert run_empty.steps.current_location == (
             "importing",
-            "Protein Data Import",
+            "protein_import",
             "teststep01_MXQ",
         )
         assert run_empty.current_step.output[DataKey.PROTEIN_DF] is not None

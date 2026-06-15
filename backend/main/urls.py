@@ -22,6 +22,7 @@ from . import views, views_settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("healthcheck/", views.healthcheck, name="healthcheck"),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views.run_information_list, name="run_information"),
     path("api/step_list/", views.all_steps, name="step_list"),
@@ -129,6 +130,16 @@ urlpatterns = [
         "api/delete_cl_default",
         views_settings.delete_cl_default,
         name="delete_cl_default",
+    ),
+    path(
+        "api/get_cl_colors",
+        views_settings.get_cl_colors,
+        name="get_cl_colors",
+    ),
+    path(
+        "api/update_cl_colors",
+        views_settings.update_cl_colors,
+        name="update_cl_colors",
     ),
     path(
         "api/load_ptm_settings",

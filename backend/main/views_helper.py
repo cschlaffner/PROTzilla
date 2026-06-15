@@ -3,7 +3,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from typing import Optional, List, Dict
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.data_analysis.amino_acid_spheres import (
@@ -73,7 +72,7 @@ def get_step(step: Step) -> dict:
         "input_keys": step.external_input_keys,
         "output_keys": step.output_keys,
         "visual_data": step.visual_data,
-        "method_name": name_to_title(step.operation),
+        "operation": step.operation,
         "status": step.calculation_status,
     }
 
@@ -184,13 +183,38 @@ def load_yaml_from_file(path: Path) -> str:
         return f.read()
 
 
+def _dataframe_as_datagrid_rows(_data: pd.DataFrame) -> list[dict] | None:
+    """
+    Converts dataframes from step outputs into a DataGrid-compatible row format for the frontend.
+    Returns the output data of a step as a list of dicts in "records" orientaion, like this:
+    [{'col1': 1, 'col2': 0.5}, {'col1': 2, 'col2': 0.75}]
+    If the output could not be serialised, None is returned.
+    An id column based on index will be added.
+
+    :param _data: The data associated with the output
+    """
+    if isinstance(_data, pd.DataFrame):
+        data = _data.copy()
+
+        # Safer than just adding the new column. We assume __id_col is not
+        # a column name anyone would use
+        if "id" in data.columns:
+            data.rename(columns={"id": "__id_col"}, inplace=True)
+
+        data["id"] = data.index
+        cleaned_data = data.replace(np.nan, None)
+        return cleaned_data.to_dict(orient="records")
+    else:
+        return None
+
+
 # ------------------------- helper for get_step_visualization: -------------------------
 
 
 def create_visualization(
     cif_df: pd.DataFrame,
     structure_entry_id: str,
-    crosslinking_df: Optional[pd.DataFrame] = None,
+    crosslinking_df: pd.DataFrame | None = None,
     include_ptm_spheres: bool = False,
     ignored_neighbors: int = 0,
 ) -> dict:
@@ -272,7 +296,7 @@ def convert_cif_df_to_mmcif_for_visualization(
 
 def extract_relevant_crosslink_information(
     crosslinking_df: pd.DataFrame,
-) -> List[Dict[str, int]]:
+) -> list[dict[str, int]]:
     """
     For each crosslink extract its relevant information from a DataFrame.
     This includes information on where the crosslinker binds on both its ends,

@@ -11,6 +11,8 @@ import json
 from datetime import datetime, timezone
 import gemmi
 import pandas as pd
+import numpy as np
+import ast
 import requests
 import re
 
@@ -26,7 +28,7 @@ from backend.protzilla.constants.cif_columns import (
 from backend.protzilla.importing.fasta_import import fasta_import
 from backend.protzilla.networking import download_file_from_url
 from backend.protzilla.utilities.utilities import copy_file_to_directory
-from backend.protzilla.steps import OutputItem, OutputType
+from backend.protzilla.steps import Output, OutputItem, OutputType
 
 
 def get_monomer_metadata_df() -> pd.DataFrame:
@@ -363,6 +365,9 @@ def handle_alphafold_files(
         if temp_dir is not None:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+    # For consistency with multimer pLDDT
+    plddt_df["chainID"] = "A"
+
     return {
         "cif_df": cif_df,
         "pae_df": pae_df,
@@ -461,13 +466,100 @@ def fetch_alphafold_protein_structure(
         messages.append(dict(level=logging.WARNING, msg=message))
         data_for_visualization = None
 
+    pae_string = str(df_dict["pae_df"]["predicted_aligned_error"].iloc[0])
+    pae_matrix = np.array(ast.literal_eval(pae_string))
+    del df_dict["pae_df"]
+
     return dict(
         **df_dict,
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
     )
+
+
+def reduce_pae_to_per_amino_acid(
+    pae_matrix: np.ndarray,
+    token_res_ids: list[int],
+    cif_df: pd.DataFrame,
+):
+    """
+    Reduces AlphaFold3 PAE matrices (per-token) to AlphaFold2 PAE matrices (per-amino acid).
+    If the number of tokens mapping to one AA equals the number of atoms (common for predicted PTMs),
+    the CA token gets used. Otherwise, the first token gets used.
+    Required for predictions with PTMs!
+
+    :param pae_matrix: the per-token PAE matrix
+    :param token_res_ids: the token_res_ids table from the AF3 full_data json
+    :param cif_df: the atom_site table as a dataframe
+
+    :return: the per-AA/per-residue PAE matrix
+    """
+
+    indices_to_delete = []
+
+    current_idx = 0
+    runs = []
+
+    current_chain_idx = 0
+    # Get all runs (start_token_idx, len, chain_idx, res_id) of same res ids into one list
+    while current_idx < len(token_res_ids):
+        start_token_idx = current_idx
+        res_id = token_res_ids[start_token_idx]
+        length = 1
+
+        if res_id == 1:
+            current_chain_idx += 1
+
+        while True:
+            current_idx += 1
+            if (
+                current_idx < len(token_res_ids)
+                and token_res_ids[current_idx] == res_id
+            ):
+                length += 1
+            else:
+                break
+
+        runs.append((start_token_idx, length, current_chain_idx, res_id))
+
+    for start_token_idx, length, chain_idx, res_id in runs:
+        if length == 1:
+            continue
+
+        # Get corresponding entries of _atom_site table for the token
+        relevant_cif_df = cif_df[cif_df["_atom_site.label_entity_id"] == str(chain_idx)]
+        relevant_cif_df = relevant_cif_df[
+            relevant_cif_df["_atom_site.label_seq_id"] == res_id
+        ]
+
+        keep_offset = 0  # Relative index to keep within duplicate tokens for one amino acid. Default: first token
+
+        # If we have one token per atom, we try to take the CA atom
+        if len(relevant_cif_df) == length:
+            # Reset index twice to get 0..length enumeration for atoms in index
+            relevant_cif_df.reset_index(drop=True, inplace=True)
+            relevant_cif_df.reset_index(inplace=True)
+
+            relevant_cif_df = relevant_cif_df[
+                relevant_cif_df["_atom_site.label_atom_id"] == "CA"
+            ]
+            # 0 or 2+ CA atoms -> default
+            if len(relevant_cif_df) == 1:
+                keep_offset = int(relevant_cif_df.iloc[0]["index"])
+
+        for duplicate_idx in range(0, length):
+            if duplicate_idx != keep_offset:
+                indices_to_delete.append(start_token_idx + duplicate_idx)
+
+    # Apply deletion
+    mask = np.ones(len(pae_matrix), dtype=bool)
+    mask[indices_to_delete] = False
+    pae_matrix = pae_matrix[np.ix_(mask, mask)]
+
+    return pae_matrix
 
 
 def get_all_available_entry_ids_of_monomer_metadata() -> list[str]:
@@ -729,6 +821,9 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         logger.exception(msg)
         raise RuntimeError(msg) from e
 
+    # For consistency with multimer pLDDT
+    plddt_df["chainID"] = "A"
+
     df_dict = {
         "structure_metadata_df": monomer_metadata_df,
         "cif_df": cif_df,
@@ -737,17 +832,91 @@ def get_monomer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "amino_acid_sequences_df": amino_acid_sequences_df,
     }
     check_success_of_get_df(entry_id=entry_id, df_dict=df_dict, messages=messages)
+
     data_for_visualization = {
         "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
+
+    pae_string = str(df_dict["pae_df"]["predicted_aligned_error"].iloc[0])
+    pae_matrix = np.array(ast.literal_eval(pae_string))
+    del df_dict["pae_df"]
+
     return dict(
         **df_dict,
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         messages=messages,
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
     )
+
+
+def unwrap_full_data_df(full_data_df: pd.DataFrame) -> dict[str, Any]:
+    """
+    Extracts certain data from a full_data_df, deletes the extracted columns
+    and returns the "remaining" full_data_df as well as the extracted data.
+
+    :param full_data_df: The AlphaFold3 full_data_df
+    :return dict:
+        - "full_data_df": The updated reduced full_data_df
+        - "pae_matrix": Numpy matrix with the PAE values for each residue pair
+        - "token_res_ids": List with the token -> AA mappings
+    """
+
+    try:
+        pae_matrix = np.array(full_data_df["pae"].iloc[0])
+        full_data_df = full_data_df.drop(columns=["pae"])
+    except KeyError:
+        pae_matrix = None
+
+    try:
+        token_res_ids = np.array(full_data_df["token_res_ids"].iloc[0])
+        full_data_df = full_data_df.drop(columns=["token_res_ids"])
+    except KeyError as e:
+        raise KeyError(
+            "Prediction data does not contain required prediction token to amino acid mapping."
+        ) from e
+
+    return dict(
+        full_data_df=full_data_df,
+        pae_matrix=pae_matrix,
+        token_res_ids=token_res_ids,
+    )
+
+
+def get_plddt_from_cif(cif_df: pd.DataFrame) -> pd.DataFrame | None:
+    """
+    For use with multimers predicted using Alphafold3.
+    Returns per-residue pLDDT values for the predicted structure.
+    Note that sine AlphaFold3 uses per-atom pLDDT, we use the pLDDT for the CA atom.
+    See also https://github.com/google-deepmind/alphafold3/issues/330
+
+    :param cif_df: the cif_df holding the _atom_site table.
+    :return: DataFrame containing columns
+                "chainID", "residueNumber", "confidenceScore", "confidenceCategory"
+    """
+
+    try:
+        filtered_cif_df = cif_df[cif_df["_atom_site.label_atom_id"] == "CA"]
+        filtered_cif_df = filtered_cif_df[
+            [
+                "_atom_site.auth_asym_id",
+                "_atom_site.label_seq_id",
+                "_atom_site.B_iso_or_equiv",
+            ]
+        ]
+        filtered_cif_df = filtered_cif_df.rename(
+            columns={
+                "_atom_site.auth_asym_id": "chainID",
+                "_atom_site.label_seq_id": "residueNumber",
+                "_atom_site.B_iso_or_equiv": "confidenceScore",
+            }
+        )
+        return filtered_cif_df
+
+    except KeyError:
+        return None
 
 
 def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
@@ -833,9 +1002,31 @@ def get_multimer_structure_dfs(entry_id: str) -> dict[str, Any]:
         "structure_entry_id": entry_id,
         "cif_df": cif_df,
     }
+
+    unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
+    df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
+
+    pae_matrix = unwrapped_full_data["pae_matrix"]
+    token_res_ids = unwrapped_full_data["token_res_ids"]
+    plddt_df = get_plddt_from_cif(df_dict["cif_df"])
+
+    pae_matrix = reduce_pae_to_per_amino_acid(
+        pae_matrix, token_res_ids, df_dict["cif_df"]
+    )
+
+    if plddt_df is None:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=f"Could not parse pLDDT values from CIF file. File is likely malformed!",
+            )
+        )
+
     return dict(
         **df_dict,
         messages=messages,
+        plddt_df=plddt_df,
+        pae_matrix=OutputItem(output_type=OutputType.JOBLIB_ARTIFACT, value=pae_matrix),
         visualization=OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
@@ -897,6 +1088,16 @@ def upload_multimer_prediction(
         will propagate after cleanup of any temporary directory.
     """
 
+    if not entry_id:
+        msg = "The entry Id cannot be empty or None."
+        logger.error(msg)
+        raise ValueError(msg)
+
+    if not uniprot_ids:
+        msg = "Uniprot Ids cannot be empty or None."
+        logger.error(msg)
+        raise ValueError(msg)
+
     messages = []
 
     temp_dir, work_dir = get_correct_af_directories(
@@ -913,7 +1114,7 @@ def upload_multimer_prediction(
         "entry_id": entry_id,
         "uniprot_ids": uniprot_ids_as_list,
         "model_created_date": timestamp,
-        "model_used": model_used,
+        "model_used": "" if model_used is None else model_used,
     }
 
     try:
@@ -971,13 +1172,38 @@ def upload_multimer_prediction(
         }
 
         if not any(df.empty for df in df_dict.values()):
-            success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
-            logger.info(success_msg)
-            messages.append(dict(level=logging.INFO, msg=success_msg))
+
+            unwrapped_full_data = unwrap_full_data_df(df_dict["full_data_df"])
+            df_dict["full_data_df"] = unwrapped_full_data["full_data_df"]
+
+            pae_matrix = reduce_pae_to_per_amino_acid(
+                unwrapped_full_data["pae_matrix"],
+                unwrapped_full_data["token_res_ids"],
+                df_dict["cif_df"],
+            )
+
+            pae_matrix = OutputItem(
+                output_type=OutputType.JOBLIB_ARTIFACT,
+                value=pae_matrix,
+            )
+            df_dict["pae_matrix"] = pae_matrix
+            df_dict["plddt_df"] = get_plddt_from_cif(df_dict["cif_df"])
+
+            if df_dict["plddt_df"] is None:
+                messages.append(
+                    dict(
+                        level=logging.WARNING,
+                        msg=f"Could not parse pLDDT values from CIF file. File is likely malformed!",
+                    )
+                )
             data_for_visualization = {
                 "structure_entry_id": entry_id,
                 "cif_df": cif_df,
             }
+
+            success_msg = f"Successfully loaded AlphaFold data for entry '{entry_id}'"
+            logger.info(success_msg)
+            messages.append(dict(level=logging.INFO, msg=success_msg))
         else:
             message = f"Could not load AlphaFold data for entry '{entry_id}'"
             logger.warning(message)
