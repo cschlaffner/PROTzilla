@@ -1027,14 +1027,13 @@ class PlotProtQuant(DataAnalysisPlotStep):
                     value=SimilarityMeasure.euclidean_distance,
                     options=SimilarityMeasure,
                 ),
-                NumberField(
+                FloatField(
                     name="similarity",
-                    label="Similarity",
-                    value=1,
-                    min=-1,
-                    max=999,
-                    step=1,
-                    hasStepButtons=True,
+                    label="Euclidean Distance",
+                    value=1.0,
+                    min=0.0,
+                    max=999.0,
+                    step=0.1,
                 ),
             ],
         )
@@ -1059,13 +1058,13 @@ class PlotProtQuant(DataAnalysisPlotStep):
                 step=0.1,
             )
         else:
-            self.form["similarity"] = NumberField(
+            self.form["similarity"] = FloatField(
                 name="similarity",
                 label="Euclidean Distance",
-                value=1,
-                min=0,
-                max=999,
-                step=1,
+                value=1.0,
+                min=0.0,
+                max=999.0,
+                step=0.1,
             )
 
     plot_method = staticmethod(prot_quant_plot)
