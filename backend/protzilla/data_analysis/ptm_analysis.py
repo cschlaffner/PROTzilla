@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import re
+import logging
 
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 from backend.protzilla.data_analysis.amino_acid_spheres import (
@@ -106,6 +107,14 @@ def ptm_validation(
     collisions = find_ptm_amino_acid_sphere_collisions(
         cif_df, ignored_neighbors=ignored_neighbors
     )
+    messages = []
+    if not collisions:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg="No PTMs were found in the provided structure or PTM annotations are missing.",
+            )
+        )
     collision_columns = [
         "ptm_name",
         "ptm_chain",
@@ -135,4 +144,5 @@ def ptm_validation(
         "visualization": OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
+        "messages": messages,
     }
