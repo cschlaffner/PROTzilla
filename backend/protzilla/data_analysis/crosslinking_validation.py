@@ -36,6 +36,7 @@ from backend.protzilla.constants.colors import (
     PLOT_PRIMARY_COLOR,
     PLOT_SECONDARY_COLOR,
 )
+from backend.protzilla.constants.cif_columns import ATOM_SITE_COLUMNS
 
 
 def get_reactive_atom_of_amino_acid_residue(amino_acid_type: str) -> str:
@@ -72,14 +73,14 @@ def get_coordinates_of_atom_crosslinker_bound_to(
     """
 
     relevant_atom = get_reactive_atom_of_amino_acid_residue(amino_acid_type)
-    seq_ids = pd.to_numeric(cif_df["_atom_site.label_seq_id"], errors="coerce")
+    seq_ids = pd.to_numeric(cif_df[ATOM_SITE_COLUMNS.LABEL_SEQ_ID], errors="coerce")
 
     # Filter to the exact reactive atom of the amino acid residue
     # where the crosslinker is bound (e.g. CA at position 45)
     cif_df = cif_df[
-        (cif_df["_atom_site.label_atom_id"] == relevant_atom)
+        (cif_df[ATOM_SITE_COLUMNS.LABEL_ATOM_ID] == relevant_atom)
         & (seq_ids == amino_acid_position_where_crosslinker_bound)
-        & (cif_df["_atom_site.auth_asym_id"] == chain_id)
+        & (cif_df[ATOM_SITE_COLUMNS.AUTH_ASYM_ID] == chain_id)
     ]
 
     if cif_df.empty:
@@ -89,9 +90,9 @@ def get_coordinates_of_atom_crosslinker_bound_to(
 
     row = cif_df.iloc[0]
 
-    x = float(row["_atom_site.Cartn_x"])
-    y = float(row["_atom_site.Cartn_y"])
-    z = float(row["_atom_site.Cartn_z"])
+    x = float(row[ATOM_SITE_COLUMNS.CARTN_X])
+    y = float(row[ATOM_SITE_COLUMNS.CARTN_Y])
+    z = float(row[ATOM_SITE_COLUMNS.CARTN_Z])
 
     return x, y, z
 
@@ -310,7 +311,7 @@ def get_chains(
         return []
     target_ids_as_strings = [str(i) for i in target_ids]
     relevant_df = cif_df[cif_df[id_column_name].astype(str).isin(target_ids_as_strings)]
-    chain_ids = relevant_df["_atom_site.auth_asym_id"].dropna().unique().tolist()
+    chain_ids = relevant_df[ATOM_SITE_COLUMNS.AUTH_ASYM_ID].dropna().unique().tolist()
     return chain_ids
 
 
@@ -402,7 +403,7 @@ def monomer_validation(
         pae_matrix=pae_matrix,
         plddt_df=plddt_df,
         valid_ids=valid_ids,
-        id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
+        id_column_name=ATOM_SITE_COLUMNS.PDBX_SIFTS_XREF_DB_ACC,
         structures_to_validate=[protein_id],
         validation_criterion=validation_criterion,
     )
@@ -547,7 +548,7 @@ def multimer_validation(
         cif_df=cif_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         valid_ids=valid_ids,
-        id_column_name="_atom_site.label_entity_id",
+        id_column_name=ATOM_SITE_COLUMNS.LABEL_ENTITY_ID,
         structures_to_validate=structures_to_validate,
         pae_matrix=pae_matrix,
         plddt_df=plddt_df,

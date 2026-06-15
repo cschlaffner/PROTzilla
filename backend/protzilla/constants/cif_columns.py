@@ -30,6 +30,7 @@ class ATOM_SITE_COLUMNS(StrEnum):
     AUTH_ASYM_ID = f"{ATOM_SITE_PREFIX}auth_asym_id"
     AUTH_ATOM_ID = f"{ATOM_SITE_PREFIX}auth_atom_id"
     PDBX_PDB_MODEL_NUM = f"{ATOM_SITE_PREFIX}pdbx_PDB_model_num"
+    PDBX_SIFTS_XREF_DB_ACC = f"{ATOM_SITE_PREFIX}pdbx_sifts_xref_db_acc"
 
 
 ATOM_SITE_LABEL_COMP_ID = ATOM_SITE_COLUMNS.LABEL_COMP_ID

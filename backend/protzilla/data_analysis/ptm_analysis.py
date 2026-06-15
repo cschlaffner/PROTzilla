@@ -1,8 +1,13 @@
 import numpy as np
 import pandas as pd
 import re
+import logging
 
 from backend.protzilla.utilities.transform_dfs import long_to_wide
+from backend.protzilla.data_analysis.amino_acid_spheres import (
+    find_ptm_amino_acid_sphere_collisions,
+)
+from backend.protzilla.steps import OutputItem, OutputType
 
 
 def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
@@ -91,3 +96,53 @@ def from_string(mod_string: str) -> tuple[int, str]:
     name = name[1:] if name[0] == " " else name
 
     return amount, name
+
+
+def ptm_validation(
+    cif_df: pd.DataFrame,
+    structure_metadata_df: pd.DataFrame,
+    ignored_neighbors: int = 0,
+):
+    ignored_neighbors = int(ignored_neighbors)
+    collisions = find_ptm_amino_acid_sphere_collisions(
+        cif_df, ignored_neighbors=ignored_neighbors
+    )
+    messages = []
+    if not collisions:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg="No PTMs were found in the provided structure or PTM annotations are missing.",
+            )
+        )
+    collision_columns = [
+        "ptm_name",
+        "ptm_chain",
+        "ptm_position",
+        "amino_acid_chain",
+        "amino_acid_position",
+    ]
+    collision_rows = [
+        {
+            "ptm_name": collision["ptm_name"],
+            "ptm_chain": collision["chain"],
+            "ptm_position": collision["position"],
+            "amino_acid_chain": amino_acid["chain"],
+            "amino_acid_position": amino_acid["position"],
+        }
+        for collision in collisions
+        for amino_acid in collision["collisions"]
+    ]
+    data_for_visualization = {
+        "structure_entry_id": structure_metadata_df["entry_id"].iloc[0],
+        "cif_df": cif_df,
+        "include_ptm_spheres": True,
+        "ignored_neighbors": ignored_neighbors,
+    }
+    return {
+        "ptm_collisions_df": pd.DataFrame(collision_rows, columns=collision_columns),
+        "visualization": OutputItem(
+            output_type=OutputType.VISUALIZATION, value=data_for_visualization
+        ),
+        "messages": messages,
+    }
