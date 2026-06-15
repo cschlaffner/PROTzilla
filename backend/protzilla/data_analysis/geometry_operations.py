@@ -17,6 +17,9 @@ COORDINATE_COLUMNS = [
 def resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
     """
     Return the preferred chain identifier column if present in the CIF DataFrame.
+
+    :param cif_df: DataFrame containing mmCIF atom_site data
+    :return: label chain column, author chain column as fallback, or None
     """
 
     if ATOM_SITE_COLUMNS.LABEL_ASYM_ID in cif_df.columns:
@@ -94,6 +97,11 @@ def extract_points_from_cif(
 def build_convex_hull(points: np.ndarray) -> trimesh.Trimesh:
     """
     Build a 3D convex hull mesh from a point cloud.
+
+    :param points: point coordinates with shape (n, 3)
+    :return: convex hull
+    :raises ValueError: if the param points have an invalid shape or contain fewer than
+    four points
     """
 
     if points.ndim != 2 or points.shape[1] != 3:
@@ -123,6 +131,10 @@ def point_cloud_to_polyhedron(points: np.ndarray) -> dict:
 def calculate_center_point(points: np.ndarray) -> np.ndarray:
     """
     Calculate the center point of a point cloud.
+
+    :param points: point coordinates with shape (n, 3)
+    :return: arithmetic mean of all points
+    :raises ValueError: if the param points have an invalid shape or are empty
     """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
@@ -135,6 +147,11 @@ def calculate_center_point(points: np.ndarray) -> np.ndarray:
 def find_farthest_point(points: np.ndarray, reference_point: np.ndarray) -> np.ndarray:
     """
     Calculate the farthest point inside a point cloud from a reference point.
+
+    :param points: point coordinates with shape (n, 3)
+    :param reference_point: point from which distances are calculated
+    :return: point with the greatest distance from the reference point
+    :raises ValueError: if the reference point or the param points have an invalid shape or are empty
     """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
@@ -156,6 +173,12 @@ def find_farthest_point_vdw(
 ) -> tuple[np.ndarray, float]:
     """
     Calculate the point, whose fdw-"Bubble" is most distant to a reference point.
+
+    :param points: atom coordinates with shape (n, 3)
+    :param elements: element symbol mapping to each atom coordinate
+    :param reference_point: point from which distances are calculated
+    :return: farthest atom coordinate and its distance including the van der Waals radius
+    :raises ValueError: if the reference point or the param points have an invalid shape or are empty
     """
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"Expected points with shape (n, 3), got {points.shape}.")
@@ -179,6 +202,13 @@ def find_intersecting_spheres(
     spheres: list[dict],
     reference_sphere: dict,
 ) -> list[dict]:
+    """
+    Find spheres that intersect or touch a reference sphere.
+
+    :param spheres: spheres represented by center coordinates and radius
+    :param reference_sphere: sphere against which intersections are checked
+    :return: spheres intersecting or touching the reference sphere
+    """
     reference_center = np.array(reference_sphere["center"], dtype=float)
     reference_radius = float(reference_sphere["radius"])
 
@@ -201,6 +231,12 @@ def meshes_intersect(
 ) -> bool:
     """
     Determine whether two meshes intersect or touch.
+
+    :param mesh_a: first mesh
+    :param mesh_b: second mesh
+    :param distance_tolerance: maximum distance at which meshes count as touching
+    (standard is 1e-9 because of floating point error)
+    :return: whether the meshes intersect or are within the distance tolerance
     """
 
     from trimesh.collision import CollisionManager
@@ -213,6 +249,10 @@ def meshes_intersect(
 def meshes_distance(mesh_a: trimesh.Trimesh, mesh_b: trimesh.Trimesh) -> float:
     """
     Calculate the minimum euclidean distance between two meshes.
+
+    :param mesh_a: first mesh
+    :param mesh_b: second mesh
+    :return: minimum Euclidean distance between the meshes
     """
 
     from trimesh.collision import CollisionManager
