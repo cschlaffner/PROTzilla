@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     pass
 
 
-FormInputType = str | int | float | bool | list[str]
+FormInputType = str | int | float | bool | None | list[str] | PurePath | Enum
 
 # Backwards compatibility for older imports that expect `inputs` from this module.
 inputs = FormInputType
@@ -154,7 +154,7 @@ class MultiSelectWithDropdownsField(_baseField):
 
 @dataclass
 class FileInput(_baseField):
-    value: str | None = None
+    value: PurePath | None = None
     type: str = "file"
     filedata: str = ""
     accept: str | None = None
