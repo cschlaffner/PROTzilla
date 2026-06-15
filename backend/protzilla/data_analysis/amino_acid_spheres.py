@@ -111,8 +111,9 @@ def calculate_ptm_spheres(
     if CHEM_COMP_COLUMNS.MON_NSTD_FLAG not in cif_df.columns:
         return []
 
-    ptms = get_all_ptm_atoms_with_coordinates(cif_df)
-    ptms = get_center_points_and_radius_for_each_ptm(ptms)
+    ptms = get_center_points_and_radius_for_each_ptm(
+        get_all_ptm_atoms_with_coordinates(cif_df)
+    )
 
     spheres = []
     for ptm in ptms:
