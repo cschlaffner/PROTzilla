@@ -14,6 +14,7 @@ def test_get_all_ptm_atoms_with_coordinates():
         "_atom_site.label_seq_id": [10, 10, 42, 42],
         "_atom_site.label_comp_id": ["MET", "MET", "SEP", "SEP"],
         "_atom_site.label_atom_id": ["N", "CA", "P", "O1P"],
+        "_atom_site.type_symbol": ["N", "C", "P", "O"],
         "_atom_site.Cartn_x": [1.0, 2.0, 10.0, 11.0],
         "_atom_site.Cartn_y": [1.1, 2.1, 10.1, 11.1],
         "_atom_site.Cartn_z": [1.2, 2.2, 10.2, 11.2],
@@ -32,9 +33,21 @@ def test_get_all_ptm_atoms_with_coordinates():
     atoms = ptm["atoms"]
     assert len(atoms) == 2
 
-    assert atoms[0] == {"atom_name": "P", "x": 10.0, "y": 10.1, "z": 10.2}
+    assert atoms[0] == {
+        "atom_name": "P",
+        "element": "P",
+        "x": 10.0,
+        "y": 10.1,
+        "z": 10.2,
+    }
 
-    assert atoms[1] == {"atom_name": "O1P", "x": 11.0, "y": 11.1, "z": 11.2}
+    assert atoms[1] == {
+        "atom_name": "O1P",
+        "element": "O",
+        "x": 11.0,
+        "y": 11.1,
+        "z": 11.2,
+    }
 
 
 def test_get_center_points_and_radius_for_each_ptm():
@@ -69,6 +82,9 @@ def test_get_center_points_and_radius_for_each_ptm():
             ],
         },
     ]
+    for ptm in ptm_list:
+        for atom in ptm["atoms"]:
+            atom["element"] = "C"
 
     result_list = get_center_points_and_radius_for_each_ptm(ptm_list)
 
@@ -78,15 +94,15 @@ def test_get_center_points_and_radius_for_each_ptm():
 
     ptm_1 = result_list[0]
     np.testing.assert_allclose(ptm_1["center_point"], [0.0, 0.0, 0.0], atol=1e-6)
-    assert pytest.approx(ptm_1["radius"], 1e-6) == 1.0
+    assert pytest.approx(ptm_1["radius"], 1e-6) == 2.77
 
     ptm_2 = result_list[1]
     np.testing.assert_allclose(ptm_2["center_point"], [5.0, 5.0, 5.0], atol=1e-6)
-    assert pytest.approx(ptm_2["radius"], 1e-6) == 0.0
+    assert pytest.approx(ptm_2["radius"], 1e-6) == 1.77
 
     ptm_3 = result_list[2]
 
     expected_center = [10.0, 10.0, 10.0]
     np.testing.assert_allclose(ptm_3["center_point"], expected_center, atol=1e-6)
 
-    assert pytest.approx(ptm_3["radius"], 1e-6) == 5.0
+    assert pytest.approx(ptm_3["radius"], 1e-6) == 6.77
