@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 import trimesh
 
+from backend.protzilla.constants.cif_columns import (
+    ATOM_SITE_COLUMNS,
+    CHEM_COMP_COLUMNS,
+)
 from backend.protzilla.data_analysis.geometry_operations import (
     calculate_center_point,
     extract_points_from_cif,
@@ -27,7 +31,7 @@ def _calculate_residue_spheres(
         residue_df = cif_df[cif_df[chain_column] == chain_id]
 
     residue_positions = (
-        pd.to_numeric(residue_df["_atom_site.label_seq_id"], errors="coerce")
+        pd.to_numeric(residue_df[ATOM_SITE_COLUMNS.LABEL_SEQ_ID], errors="coerce")
         .dropna()
         .astype(int)
         .drop_duplicates()
@@ -104,7 +108,7 @@ def calculate_ptm_spheres(
     alpha: float = 0.35,
     subdivisions: int = 1,
 ) -> list[dict]:
-    if "_chem_comp.mon_nstd_flag" not in cif_df.columns:
+    if CHEM_COMP_COLUMNS.MON_NSTD_FLAG not in cif_df.columns:
         return []
 
     ptms = get_all_ptm_atoms_with_coordinates(cif_df)
@@ -135,10 +139,10 @@ def find_ptm_amino_acid_sphere_collisions(
     ignored_neighbors: int = 0,
     chain_id: str | None = None,
 ) -> list[dict]:
-    if "_chem_comp.mon_nstd_flag" not in cif_df.columns:
+    if CHEM_COMP_COLUMNS.MON_NSTD_FLAG not in cif_df.columns:
         return []
 
-    amino_acid_df = cif_df[cif_df["_chem_comp.mon_nstd_flag"] == True]
+    amino_acid_df = cif_df[cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] == True]
     chain_column = resolve_chain_column(amino_acid_df)
     if chain_id is not None:
         chains = [chain_id]

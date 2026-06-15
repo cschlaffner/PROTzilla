@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import trimesh
 
+from backend.protzilla.constants.cif_columns import ATOM_SITE_COLUMNS
 from backend.protzilla.constants.van_der_waals import vdw_radii
 
 COORDINATE_COLUMNS = [
-    "_atom_site.Cartn_x",
-    "_atom_site.Cartn_y",
-    "_atom_site.Cartn_z",
+    ATOM_SITE_COLUMNS.CARTN_X,
+    ATOM_SITE_COLUMNS.CARTN_Y,
+    ATOM_SITE_COLUMNS.CARTN_Z,
 ]
 
 
@@ -18,10 +19,10 @@ def resolve_chain_column(cif_df: pd.DataFrame) -> str | None:
     Return the preferred chain identifier column if present in the CIF DataFrame.
     """
 
-    if "_atom_site.label_asym_id" in cif_df.columns:
-        return "_atom_site.label_asym_id"
-    if "_atom_site.auth_asym_id" in cif_df.columns:
-        return "_atom_site.auth_asym_id"
+    if ATOM_SITE_COLUMNS.LABEL_ASYM_ID in cif_df.columns:
+        return ATOM_SITE_COLUMNS.LABEL_ASYM_ID
+    if ATOM_SITE_COLUMNS.AUTH_ASYM_ID in cif_df.columns:
+        return ATOM_SITE_COLUMNS.AUTH_ASYM_ID
     return None
 
 
@@ -42,11 +43,9 @@ def extract_points_from_cif(
     """
 
     required_columns = {
-        "_atom_site.label_seq_id",
-        "_atom_site.type_symbol",
-        "_atom_site.Cartn_x",
-        "_atom_site.Cartn_y",
-        "_atom_site.Cartn_z",
+        ATOM_SITE_COLUMNS.LABEL_SEQ_ID,
+        ATOM_SITE_COLUMNS.TYPE_SYMBOL,
+        *COORDINATE_COLUMNS,
     }
     missing_columns = sorted(required_columns - set(cif_df.columns))
     if missing_columns:
@@ -70,31 +69,16 @@ def extract_points_from_cif(
             )
         filtered_df = filtered_df[filtered_df[chain_column] == chain_id]
 
-    residue_ids = filtered_df["_atom_site.label_seq_id"].astype(int)
+    residue_ids = filtered_df[ATOM_SITE_COLUMNS.LABEL_SEQ_ID].astype(int)
     filtered_df = filtered_df[(residue_ids >= start) & (residue_ids <= end)]
 
     atom_data = filtered_df[
-        [
-            "_atom_site.Cartn_x",
-            "_atom_site.Cartn_y",
-            "_atom_site.Cartn_z",
-            "_atom_site.type_symbol",
-        ]
+        [*COORDINATE_COLUMNS, ATOM_SITE_COLUMNS.TYPE_SYMBOL]
     ].drop_duplicates()
 
-    points = (
-        atom_data[
-            [
-                "_atom_site.Cartn_x",
-                "_atom_site.Cartn_y",
-                "_atom_site.Cartn_z",
-            ]
-        ]
-        .astype(float)
-        .to_numpy()
-    )
+    points = atom_data[COORDINATE_COLUMNS].astype(float).to_numpy()
     elements = (
-        atom_data["_atom_site.type_symbol"]
+        atom_data[ATOM_SITE_COLUMNS.TYPE_SYMBOL]
         .astype(str)
         .str.strip()
         .str.capitalize()

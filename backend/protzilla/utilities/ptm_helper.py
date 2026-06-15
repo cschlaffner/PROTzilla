@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+from backend.protzilla.constants.cif_columns import (
+    ATOM_SITE_COLUMNS,
+    CHEM_COMP_COLUMNS,
+)
 from backend.protzilla.data_analysis.geometry_operations import find_farthest_point_vdw
 
 
@@ -11,30 +15,30 @@ def get_all_ptm_atoms_with_coordinates(cif_df: pd.DataFrame) -> list:
     """
     ptm_list = []
 
-    is_non_standard = cif_df["_chem_comp.mon_nstd_flag"] == False
+    is_non_standard = cif_df[CHEM_COMP_COLUMNS.MON_NSTD_FLAG] == False
     ptm_atoms_df = cif_df[is_non_standard]
 
     grouped_ptms = ptm_atoms_df.groupby(
-        ["_atom_site.label_asym_id", "_atom_site.label_seq_id"]
+        [ATOM_SITE_COLUMNS.LABEL_ASYM_ID, ATOM_SITE_COLUMNS.LABEL_SEQ_ID]
     )
 
     for (chain_id, seq_id), atom_group in grouped_ptms:
-        comp_id = atom_group["_atom_site.label_comp_id"].iloc[0]
+        comp_id = atom_group[ATOM_SITE_COLUMNS.LABEL_COMP_ID].iloc[0]
         atoms_subset = atom_group[
             [
-                "_atom_site.label_atom_id",
-                "_atom_site.type_symbol",
-                "_atom_site.Cartn_x",
-                "_atom_site.Cartn_y",
-                "_atom_site.Cartn_z",
+                ATOM_SITE_COLUMNS.LABEL_ATOM_ID,
+                ATOM_SITE_COLUMNS.TYPE_SYMBOL,
+                ATOM_SITE_COLUMNS.CARTN_X,
+                ATOM_SITE_COLUMNS.CARTN_Y,
+                ATOM_SITE_COLUMNS.CARTN_Z,
             ]
         ].rename(
             columns={
-                "_atom_site.label_atom_id": "atom_name",
-                "_atom_site.type_symbol": "element",
-                "_atom_site.Cartn_x": "x",
-                "_atom_site.Cartn_y": "y",
-                "_atom_site.Cartn_z": "z",
+                ATOM_SITE_COLUMNS.LABEL_ATOM_ID: "atom_name",
+                ATOM_SITE_COLUMNS.TYPE_SYMBOL: "element",
+                ATOM_SITE_COLUMNS.CARTN_X: "x",
+                ATOM_SITE_COLUMNS.CARTN_Y: "y",
+                ATOM_SITE_COLUMNS.CARTN_Z: "z",
             }
         )
         atoms_subset["element"] = (
