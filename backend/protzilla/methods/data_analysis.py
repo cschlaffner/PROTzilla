@@ -2482,7 +2482,7 @@ class PtmValidation(DataAnalysisStep):
     display_name = "PTM Validation"
     operation = "Peptide analysis"
     method_description = "Validates PTMs in protein structure predictions."
-    output_keys = ["ptm_validation_df"]
+    output_keys = ["ptm_collisions_df"]
     calc_method = staticmethod(ptm_validation)
 
     def create_form(self):

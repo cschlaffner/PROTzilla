@@ -131,7 +131,7 @@ def ptm_validation(
         "ignored_neighbors": ignored_neighbors,
     }
     return {
-        "ptm_validation_df": pd.DataFrame(collision_rows, columns=collision_columns),
+        "ptm_collisions_df": pd.DataFrame(collision_rows, columns=collision_columns),
         "visualization": OutputItem(
             output_type=OutputType.VISUALIZATION, value=data_for_visualization
         ),
