@@ -36,12 +36,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
 import pandas as pd
+import logging
 from scipy.interpolate import interp1d
 from statsmodels.nonparametric.smoothers_lowess import lowess
-from sklearn.model_selection import LeaveOneOut, ShuffleSplit, GridSearchCV
+from sklearn.model_selection import ShuffleSplit, GridSearchCV
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import NotFittedError
+from tqdm.auto import tqdm
 
 
 MIN_LOESS_SIZE = 4
@@ -65,7 +67,14 @@ class _LoessCorrector(BaseEstimator, RegressorMixin):
         self.interpolator_ = None
 
     def fit(self, X, y):
-        # TODO: doc string
+        """
+        Fits the (LOESS) curve using lowess.
+
+        :param X: The training input samples. Must be sorted in ascending order.
+        :param y: the intensity values of the input samples corresponding to X
+
+        :return:  the fitted estimator instance
+        """
 
         # Check that X and y have correct shape
         X, y = check_X_y(X, y)
@@ -77,6 +86,13 @@ class _LoessCorrector(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """
+        Takes the input samples and predicts the intensity values for them with the fitted LOESS curve.
+
+        :param X: the input samples
+
+        :return: the predicted values for the input samples
+        """
         if self.interpolator_ is None:
             raise NotFittedError
         xf = X.flatten()
@@ -92,6 +108,13 @@ def _get_param_grid_loess_corrector(n_qc_samples: int) -> dict:
 
     :return: the grid parameters in form of a dictionary
     """
+    if n_qc_samples < MIN_LOESS_SIZE:
+        msg = (
+            f"There are not enough quality control samples in one of the batches. The required minimum is {MIN_LOESS_SIZE} samples. "
+            f"Currently, there is at least one batch where the number of quality samples is {n_qc_samples}."
+        )
+        messages = [dict(level=logging.WARN, msg=msg)]
+        return {"frac": []}, messages
     min_frac = min(MIN_LOESS_SIZE / n_qc_samples, 1.0)
     # Limits the number of points in the grid to at most 5
     if n_qc_samples < 9:
@@ -101,31 +124,60 @@ def _get_param_grid_loess_corrector(n_qc_samples: int) -> dict:
         frac = np.linspace(min_frac, 1.0, n_points)
 
     grid_params = {"frac": frac}
-    return grid_params
+    return grid_params, []
 
 
 def correct_intra_batch_with_loess(
-    batch_wide_protein_df,
-    qc_samples_in_order,
-    qc_samples_values,
-    all_samples_in_order,
-    all_samples_values,
-) -> pd.DataFrame:
+    batch_wide_protein_df: pd.DataFrame,
+    qc_samples_in_order: list,
+    qc_samples_values: list,
+    all_samples_in_order: list,
+    all_samples_values: list,
+) -> dict:
+    """
+    Applies LOESS correction on each feature (protein) within the given batch.
+
+    :param batch_wide_protein_df: dataframe that contains the protein data for one batch in wide format
+    :param qc_samples_in_order: list of quality samples in order (within the batch)
+    :param qc_samples_values: list of quality samples values in order (within the batch)
+    :param all_samples_in_order: list of all samples in order (within the batch)
+    :param all_samples_values: list of all samples values in order (within the batch)
+
+    :return: dictionary with the adjusted batch protein data and, if there are any, messages
+    """
     corrector = _LoessCorrector()
-    cv = LeaveOneOut()
-    grid_params = _get_param_grid_loess_corrector(n_qc_samples=len(qc_samples_in_order))
+    cv = ShuffleSplit(n_splits=5, test_size=0.2)
+    grid_params, messages = _get_param_grid_loess_corrector(
+        n_qc_samples=len(qc_samples_in_order)
+    )
+    if messages:
+        return {"protein_df": batch_wide_protein_df, "messages": messages}
     scoring = "neg_mean_squared_error"
     grid = GridSearchCV(corrector, grid_params, cv=cv, scoring=scoring)
-    grid.fit(qc_samples_in_order, qc_samples_values)
-    corrector.set_params(**grid.best_params_)
-    corrector.fit(qc_samples_in_order, qc_samples_values)
+    # for now I use tqdm to keep track of the progress. Currently, loading times are several minutes. I could think about parallelizing this.
+    for protein in tqdm(
+        batch_wide_protein_df.columns, desc="Progress in fitting proteins: "
+    ):
 
-    qc_mean = qc_samples_values.mean()
-    x_qc = corrector.predict(all_samples_in_order)
-    factor = np.zeros_like(x_qc)
-    # correct nan in zero values and negative values generated during LOESS
-    is_positive = x_qc > 0
-    factor = np.divide(qc_mean, x_qc, out=factor, where=is_positive)
-    corrected = all_samples_values * factor
-    batch_wide_protein_df[all_samples_in_order] = corrected
-    return batch_wide_protein_df
+        y_qc = qc_samples_values[protein].values
+        y_all = all_samples_values[protein].values
+
+        valid_mask = ~np.isnan(y_qc)
+        if valid_mask.sum() < MIN_LOESS_SIZE:
+            continue
+
+        grid.fit(qc_samples_in_order, y_qc)
+        corrector.set_params(**grid.best_params_)
+        corrector.fit(qc_samples_in_order, y_qc)
+
+        qc_mean = np.nanmean(y_qc)
+        x_qc = corrector.predict(all_samples_in_order)
+
+        factor = np.zeros_like(x_qc)
+        is_positive = x_qc > 0
+        factor = np.divide(qc_mean, x_qc, out=factor, where=is_positive)
+
+        corrected = y_all * factor
+
+        batch_wide_protein_df[protein] = corrected
+    return {"protein_df": batch_wide_protein_df, "messages": []}
