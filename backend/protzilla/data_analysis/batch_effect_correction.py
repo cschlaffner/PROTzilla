@@ -1,5 +1,7 @@
 from inmoose.pycombat import pycombat_norm
 import pandas as pd
+from joblib import Parallel, delayed
+
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
     collect_col_for_sample_in_order,
@@ -13,6 +15,7 @@ from backend.protzilla.data_analysis.sva import (
     irwsva,
     fsva,
 )
+from backend.protzilla.data_analysis.loess import correct_intra_batch_with_loess
 
 # <---- helper functions ---->
 
@@ -70,31 +73,6 @@ def pycombat_df_to_long(
     intensity_df.insert(2, "Gene", gene_info)
 
     return intensity_df
-
-
-def get_batch_for_each_sample_in_order(
-    transformed_protein_df: pd.DataFrame,
-    metadata_df: pd.DataFrame,
-    batch_column: str,
-) -> list:
-    # TODO: for now it is replaced by utility function, but test whether bugs are introduced
-    """
-    Extracts the batch name for each sample in the transformed_protein_df.
-    It preserves the order of the columns in the transformed_protein_df when returning the list of batch assignments.
-
-    :param transformed_protein_df: the dataframe with the samples for which the function extracts the batch assignments
-    :param metadata_df: the dataframe that contains the metadata for the transformed_protein_df, including the batch assignments
-    :param batch_column: the name of the batch column in metadata
-
-    :return: returns a list with the batch assignments in the order of the samples in the transformed_protein_df
-    """
-    samples_in_order = transformed_protein_df.columns
-    batches_in_order = []
-    for sample in samples_in_order:
-        batches_in_order.append(
-            metadata_df[metadata_df["Sample"] == sample][batch_column].iloc[0]
-        )
-    return batches_in_order
 
 
 # <- SVA ->
@@ -188,50 +166,93 @@ def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.Dat
 # <--LOESS-->
 
 
-def filter_samples_based_on_group(
+def filter_samples_based_on_col(
     wide_protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
-    group_column: str,
-    qc_group_names: list[str],
+    column_name: str,
+    filter_names: list[str],
 ) -> list:
     """
-    Removes all samples from the protein dataframe that are not in one of the specified quality control groups.
+    Removes all samples from the protein dataframe that are not one of the specified assignments for the specific column.
 
     :param wide_protein_df: the dataframe in wide format (with samples as rows) which is to be filtered
     :param metadata_df: the dataframe that contains the metadata for the wide_protein_df, including the group assignments
-    :param group_column: the name of the column that specifies the group in the metadata
-    :param qc_group_names: list of all group names that should be treated as quality control groups for the LOESS correction
+    :param column_name: the name of the column that specifies the assignment in the metadata (usually group or batch)
+    :param filter_names: list of all assignment names that should be included in the returned filtered protein df
 
-    :return: returns the filtered wide_protein_df which only contains the samples which belong to one of the specified quality control groups
+    :return: returns the filtered wide_protein_df which only contains the samples which belong to one of the specified assignments
+        of the specified column
     """
     samples_in_order = wide_protein_df.index
-    groups_in_order = []
+    assignment_in_order = []
 
     for sample in samples_in_order:
-        groups_in_order.append(
-            metadata_df[metadata_df["Sample"] == sample][group_column].iloc[0]
+        assignment_in_order.append(
+            metadata_df[metadata_df["Sample"] == sample][column_name].iloc[0]
         )
 
     filter_samples = []
     for i in range(len(samples_in_order)):
-        if groups_in_order[i] not in qc_group_names:
+        if assignment_in_order[i] not in filter_names:
             filter_samples.append(samples_in_order[i])
 
     return wide_protein_df.drop(index=filter_samples)
 
 
-def get_batch_protein_dfs(
-    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame, batch_column: str
-) -> list[pd.DataFrame]:
-    batches = (
-        get_batch_for_each_sample_in_order(
-            transformed_protein_df=wide_protein_df,
-            metadata_df=metadata_df,
-            batch_column=batch_column,
-        )
-    ).unique()
+def _process_single_batch(
+    batch: str,
+    wide_protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    batch_column: str,
+    group_column: str,
+    qc_group_names: list[str],
+    order_dict: dict,
+) -> dict:
+    """
+    Corrects signal drift within a single batch with the LOESS method.
 
-    return batches
+    :param batch: name of the batch
+    :param wide_protein_df: the dataframe that contains the protein data in wide format
+    :param metadata_df: the dataframe that contains the metadata for the wide_protein_df, including order, batch and group assignment
+    :param batch_column: the name of the column that specifies the batch assignment in the metadata
+    :param group_column: the name of the column that specifies the group assignment in the metadata
+    :param qc_group_names: list of all group names that specify the quality control samples used to fit the LOESS curve
+    :param order_dict: dictionary that maps each sample name to the order number e.g. {Sample1: 0, QC_Sample1: 1, Sample2: 2, ...}
+
+    :return: dictionary with the adjusted batch specific protein dataframe and, if there are any, messages
+    """
+
+    filtered_batch_wide_protein_df = filter_samples_based_on_col(
+        wide_protein_df=wide_protein_df,
+        metadata_df=metadata_df,
+        column_name=batch_column,
+        filter_names=[batch],
+    )
+    filtered_batch_sample_wide_protein_df = filter_samples_based_on_col(
+        wide_protein_df=filtered_batch_wide_protein_df,
+        metadata_df=metadata_df,
+        column_name=group_column,
+        filter_names=qc_group_names,
+    )
+
+    qc_samples = filtered_batch_sample_wide_protein_df.index
+    qc_samples_in_order = sorted(qc_samples, key=lambda x: order_dict.get(x))
+    qc_sample_values = filtered_batch_sample_wide_protein_df.loc[qc_samples_in_order]
+
+    all_samples = filtered_batch_wide_protein_df.index
+    all_samples_in_order = sorted(all_samples, key=lambda x: order_dict.get(x))
+    all_samples_values = filtered_batch_wide_protein_df.loc[all_samples_in_order]
+
+    X_qc = np.array([order_dict[s] for s in qc_samples_in_order]).reshape(-1, 1)
+    X_all = np.array([order_dict[s] for s in all_samples_in_order]).reshape(-1, 1)
+
+    return correct_intra_batch_with_loess(
+        batch_wide_protein_df=filtered_batch_wide_protein_df,
+        qc_samples_in_order=X_qc,
+        qc_samples_values=qc_sample_values,
+        all_samples_in_order=X_all,
+        all_samples_values=all_samples_values,
+    )
 
 
 # <---- BECAs ---->
@@ -335,7 +356,6 @@ def sva_correction(
     samples_in_order = wide_protein_df.index
     sv_df = create_sv_dataframe(sv_transposed, samples_in_order)
 
-    # TODO: Correct the protein data!!
     return {"protein_df": cleaned_protein_df, "surrogate_variable_df": sv_df}
 
 
@@ -344,23 +364,57 @@ def loess_correction(
     metadata_df: pd.DataFrame,
     group_column: str,
     qc_group_names: list[str],
-    order: list[str],
     batch_column: str,
-) -> dict[str, pd.DataFrame]:
-    # TODO: doc string
+    order_column: str,
+) -> dict:
+    """
+    Corrects the batch effects in the protein data with the batch effect correction algorithm LOESS. This correction corrects the signal drift
+    within the batches. For distinct batch effect correction one should refer to ComBat or SVA.
+
+    :param protein_df: the dataframe containing the protein data
+    :param metadata_df: the dataframe containing the metadata for the protein data, the metadata should include the batch assignments, group assignments
+        and the order of the samples
+    :param group_column: the name of the column that specifies the group in the metadata
+    :param qc_group_names: the list of group names that should be taken as quality control group
+    :param batch_column: the name of the column that specifies the batch in the metadata
+    :param order_column: the name of the column that specifies the order in the metadata
+
+    return: a dictionary containing the corrected protein data and, if there any, messages
+    """
     wide_protein_df = long_to_wide(protein_df)
-    filtered_wide_protein_df = filter_samples_based_on_group(
-        wide_protein_df=wide_protein_df,
-        metadata_df=metadata_df,
-        group_column=group_column,
-        qc_group_names=qc_group_names,
+
+    metadata_df.sort_values(
+        by=[order_column],
+        ignore_index=True,
+        inplace=True,
     )
-    qc_samples = filtered_wide_protein_df.index
-    qc_samples_in_order = sorted(qc_samples, key=order.index)
-    qc_sample_values = filtered_wide_protein_df.loc[qc_samples_in_order]
 
-    all_samples = wide_protein_df.index
-    all_samples_in_order = sorted(all_samples, key=order.index)
-    all_sample_values = filtered_wide_protein_df.loc[all_samples_in_order]
+    batches = metadata_df[batch_column].unique()
 
-    return {"protein_df": protein_df}
+    order = metadata_df["Sample"].tolist()
+    order_dict = {sample: i for i, sample in enumerate(order)}
+
+    results = Parallel(n_jobs=-1, verbose=10)(
+        delayed(_process_single_batch)(
+            batch,
+            wide_protein_df,
+            metadata_df,
+            batch_column,
+            group_column,
+            qc_group_names,
+            order_dict,
+        )
+        for batch in batches
+    )
+
+    messages = []
+
+    # Reassemble the dataframe from the parallel results
+    for batch_result in results:
+        wide_protein_df.update(batch_result["protein_df"])
+        if batch_result["messages"]:
+            messages.extend(batch_result["messages"])
+
+    protein_df = wide_to_long(wide_df=wide_protein_df, original_long_df=protein_df)
+
+    return {"protein_df": protein_df, "messages": messages}
