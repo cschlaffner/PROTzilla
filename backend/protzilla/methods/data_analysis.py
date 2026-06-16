@@ -32,7 +32,12 @@ from backend.protzilla.data_analysis.differential_expression_mann_whitney import
     mann_whitney_test_on_ptm_data,
 )
 from backend.protzilla.data_analysis.differential_expression_t_test import t_test
-from backend.protzilla.data_analysis.dimension_reduction import t_sne, umap, TSNEMethod
+from backend.protzilla.data_analysis.dimension_reduction import (
+    t_sne,
+    umap,
+    TSNEMethod,
+    dimension_reduction_pca,
+)
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
@@ -41,7 +46,6 @@ from backend.protzilla.data_analysis.plots import (
     create_volcano_plot,
     precision_recall_plot,
     prot_quant_plot,
-    pca_plot,
     roc_plot,
     scatter_plot,
 )
@@ -1124,34 +1128,6 @@ class PlotPrecisionRecallCurve(DataAnalysisPlotStep):
         )
 
 
-class PlotPCA(DataAnalysisPlotStep):
-    display_name = "PCA Plot"
-    method_description = ""  # TODO: method description
-
-    plot_method = staticmethod(pca_plot)
-
-    def create_form(self):
-        return Form(
-            label="Principal Components Analysis",
-            input_fields=[
-                FloatField(
-                    name="pca_threshold",
-                    label="Percentage of variability the components in the PCA need to explain",
-                    value=0.9,
-                    max=1,
-                    min=0,
-                ),
-                DropdownField(name="color_col", label="Color by:"),
-            ],
-        )
-
-    @override
-    def modify_form(self, run):
-        super().modify_form(run=run)
-
-        self.set_grouping_options(run=run, column_field_name="color_col")
-
-
 class ClusteringStep(PositiveLabelStep, ABC):
     operation: StepOperation = StepOperation.CLUSTERING
 
@@ -2122,6 +2098,34 @@ class DimensionReductionUMAP(DataAnalysisStep):
         )
 
     calc_method = staticmethod(umap)
+
+    class DimensionReductionPCA(DataAnalysisStep):
+        display_name = "Dimension Reduction: PCA"
+        operation: StepOperation = StepOperation.DIMENSION_REDUCTION
+        method_description = "Dimension reduction of a dataframe using PCA"
+
+        plot_method = staticmethod(dimension_reduction_pca)
+
+        def create_form(self):
+            return Form(
+                label="Principal Components Analysis",
+                input_fields=[
+                    FloatField(
+                        name="pca_threshold",
+                        label="Percentage of variability the components in the PCA need to explain",
+                        value=0.9,
+                        max=1,
+                        min=0,
+                    ),
+                    DropdownField(name="color_col", label="Color by:"),
+                ],
+            )
+
+        @override
+        def modify_form(self, run):
+            super().modify_form(run=run)
+
+            self.set_grouping_options(run=run, column_field_name="color_col")
 
 
 class BaseFLEXLF(DataAnalysisStep, ABC):

@@ -2,8 +2,11 @@ from enum import Enum
 
 import pandas as pd
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
+import plotly.express as px
 
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+from backend.protzilla.utilities.utilities import collect_col_for_sample_in_order
 
 
 class TSNEMethod(Enum):
@@ -177,3 +180,53 @@ def umap(
     ).reset_index()
 
     return dict(embedded_data=embedded_data)
+
+
+colors = {
+    "plot_bgcolor": "white",
+    "gridcolor": "#F1F1F1",
+    "linecolor": "#F1F1F1",
+    "annotation_text_color": "#ffffff",
+    "annotation_proteins_of_interest": "#4A536A",
+}
+
+
+def dimension_reduction_pca(
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    pca_threshold: float,
+    color_col: str,
+):
+    """
+    A function that performs Principle Components Analysis (PCA) on the protein data. It calculates all enough
+    principle components to account for pca_threshold percent of the variance. The PCA scatter plot only visualizes
+    the first two principle components and colors the samples according to the column provided with color_col.
+
+    :param protein_df: the dataframe, from which the principle components should be induced.
+    :param metadata_df: the dataframe containing the metadata for the protein df.
+    :param pca_threshold: The percentage of variance that should be explained by the principle components.
+    :param color_col: the name of the column in metadata that should be colored in the scatter plot (e.g. Group, Batch, ...)
+
+    :return: a dictionary with the dataframe which contains the principle components and the 2D scatter plot with the first
+        two principle components
+    """
+    wide_protein_df = long_to_wide(protein_df)
+
+    color_column_list = collect_col_for_sample_in_order(
+        wide_protein_df=wide_protein_df, metadata_df=metadata_df, col_name=color_col
+    )
+
+    pca = PCA(n_components=pca_threshold, svd_solver="full")
+    pca_array = pca.fit_transform(wide_protein_df)
+
+    plot_df = pd.DataFrame(
+        {"PC1": pca_array[:, 0], "PC2": pca_array[:, 1], color_col: color_column_list}
+    )
+
+    fig = px.scatter(plot_df, x="PC1", y="PC2", color=color_col)
+
+    fig.update_layout(title="PCA Scatterplot", plot_bgcolor=colors["plot_bgcolor"])
+    fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+    fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
+
+    return {"pca_df": plot_df, "plots": [fig]}
