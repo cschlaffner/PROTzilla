@@ -2483,6 +2483,9 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
                 DropdownField(
                     name="batch_column", label="Name of the batch column in metadata"
                 ),
+                DropdownField(
+                    name="order_column", label="Name of the order column in metadata"
+                ),
             ],
         )
 
@@ -2495,3 +2498,4 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
             run=run, column_field="group_column", group_field="qc_group_names"
         )
         self.set_grouping_options(run=run, column_field_name="batch_column")
+        self.set_grouping_options(run=run, column_field_name="order_column")
