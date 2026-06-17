@@ -59,6 +59,9 @@ export async function addCrosslinks(
       });
     }
   }
+
+  await highlightCrosslinkBindingSites(plugin, crosslinks);
+
   (plugin as PluginWithCrosslinks).crosslinkerGroups = crosslinkerGroups;
 }
 
@@ -96,15 +99,21 @@ export function overrideLabels(plugin: PluginUIContext, crosslinkColors: Crossli
   const findMatchingAtomPair = (ids: string[]) => {
     // since the atom-pair of one crosslink is always XL...A, XL...B those are the two ids we need
     // (there can be atoms of other crosslinks at the exact same place, which is why they are listed here)
-    const getNumber = (id: string) => /\d+/.exec(id)?.[0];
+    const seen = new Map<string, string>();
 
-    for (let i = 0; i < ids.length; i++) {
-      for (let j = i + 1; j < ids.length; j++) {
-        if (getNumber(ids[i]) === getNumber(ids[j])) {
-          return [ids[i], ids[j]] as const;
-        }
+    for (const id of ids) {
+      const number = /\d+/.exec(id)?.[0];
+      if (!number) continue;
+
+      const other = seen.get(number);
+
+      if (other) {
+        return [other, id] as const;
       }
+
+      seen.set(number, id);
     }
+
     return undefined;
   };
 
@@ -159,6 +168,66 @@ export const initCrosslinkColors = async (): Promise<CrosslinkColors> => {
     return CROSSLINK_DEFAULT_COLORS;
   }
 };
+
+async function highlightCrosslinkBindingSites(
+  plugin: PluginUIContext,
+  crosslinks: CrosslinkerInformation[],
+) {
+  const residuesPerChain = new Map<string, Set<number>>();
+
+  function addResidue(chainId: string, seqId: number) {
+    let residues = residuesPerChain.get(chainId);
+
+    if (!residues) {
+      residues = new Set<number>();
+      residuesPerChain.set(chainId, residues);
+    }
+
+    residues.add(seqId);
+  }
+
+  for (const crosslink of crosslinks) {
+    addResidue(crosslink.chainId1, crosslink.crosslinkerPosition1);
+
+    addResidue(crosslink.chainId2, crosslink.crosslinkerPosition2);
+  }
+
+  await highlightSpecificResidues(plugin, residuesPerChain);
+}
+
+export async function highlightSpecificResidues(
+  plugin: PluginUIContext,
+  residuesPerChain: Map<string, Set<number>>,
+) {
+  const structure = plugin.managers.structure.hierarchy.current.structures[0];
+
+  const selections = [...residuesPerChain.entries()].map(([chainId, residues]) =>
+    MS.struct.generator.atomGroups({
+      "residue-test": MS.core.logic.and([
+        MS.core.set.has([MS.set(...residues), MS.ammp("label_seq_id")]),
+        MS.core.rel.eq([MS.ammp("label_asym_id"), chainId]),
+      ]),
+    }),
+  );
+
+  if (selections.length === 0) return;
+
+  const expression =
+    selections.length === 1 ? selections[0] : MS.struct.combinator.merge(selections);
+
+  const component = await plugin.builders.structure.tryCreateComponentFromExpression(
+    structure.cell,
+    expression,
+    "crosslink-binding-sites",
+  );
+
+  if (!component) return;
+
+  await plugin.builders.structure.representation.addRepresentation(component, {
+    type: "ball-and-stick",
+    color: "chain-id",
+  });
+}
 
 export function handleError(
   error: unknown,
