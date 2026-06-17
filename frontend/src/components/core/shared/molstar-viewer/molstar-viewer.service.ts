@@ -60,7 +60,7 @@ export async function addCrosslinks(
     }
   }
 
-  await highlightCrosslinkBindingSites(plugin, crosslinks, 0xff0000);
+  await highlightCrosslinkBindingSites(plugin, crosslinks);
 
   (plugin as PluginWithCrosslinks).crosslinkerGroups = crosslinkerGroups;
 }
@@ -172,7 +172,6 @@ export const initCrosslinkColors = async (): Promise<CrosslinkColors> => {
 async function highlightCrosslinkBindingSites(
   plugin: PluginUIContext,
   crosslinks: CrosslinkerInformation[],
-  color: number,
 ) {
   const residuesPerChain = new Map<string, Set<number>>();
 
@@ -193,13 +192,12 @@ async function highlightCrosslinkBindingSites(
     addResidue(crosslink.chainId2, crosslink.crosslinkerPosition2);
   }
 
-  await highlightSpecificResidues(plugin, residuesPerChain, color);
+  await highlightSpecificResidues(plugin, residuesPerChain);
 }
 
 export async function highlightSpecificResidues(
   plugin: PluginUIContext,
   residuesPerChain: Map<string, Set<number>>,
-  color: number,
 ) {
   const structure = plugin.managers.structure.hierarchy.current.structures[0];
 
@@ -227,11 +225,7 @@ export async function highlightSpecificResidues(
 
   await plugin.builders.structure.representation.addRepresentation(component, {
     type: "ball-and-stick",
-    //color: "element-symbol",
-    //color: "chain-id",
-    //color: "residue-name",
-    color: "uniform",
-    colorParams: { value: color },
+    color: "chain-id",
   });
 }
 
