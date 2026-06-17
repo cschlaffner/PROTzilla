@@ -98,8 +98,8 @@ def test_monomer_validation_baseline_manual_bounds(distance, expected):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
@@ -172,8 +172,8 @@ def test_cl_validation_pae_noerrror(distance, expected):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
@@ -243,8 +243,8 @@ def test_cl_validation_pae_haserror(distance, expected_min, expected_max):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
@@ -334,8 +334,8 @@ def test_cl_validation_plddt_noerrror(distance, expected):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
@@ -417,8 +417,8 @@ def test_cl_validation_plddt_witherror(distance, expected):
             "Protein_id2": ["P12345"],
             "Peptide1": ["A"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
             "Crosslinker": ["DSS"],
         }
     )
@@ -498,8 +498,8 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
             "Protein_id2": ["P1"],
             "Peptide1": ["ABC"],
             "Peptide2": ["DEF"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [2],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [2],
         }
     )
 
@@ -511,11 +511,11 @@ def test_add_crosslinker_positions_with_exactly_one_possible_position():
 
     assert messages == []
 
-    assert df.loc[0, "crosslinker_position1"] == 3  # 1-based
-    assert df.loc[0, "crosslinker_position2"] == 10  # 1-based
+    assert df.loc[0, "1_based_crosslinker_position1"] == 3  # 1-based
+    assert df.loc[0, "1_based_crosslinker_position2"] == 10  # 1-based
 
-    assert str(df["crosslinker_position1"].dtype) == "Int64"
-    assert str(df["crosslinker_position2"].dtype) == "Int64"
+    assert str(df["1_based_crosslinker_position1"].dtype) == "Int64"
+    assert str(df["1_based_crosslinker_position2"].dtype) == "Int64"
 
 
 def test_add_crosslinker_positions_with_more_than_one_possible_position():
@@ -525,8 +525,8 @@ def test_add_crosslinker_positions_with_more_than_one_possible_position():
             "Protein_id2": ["P1"],
             "Peptide1": ["AA"],
             "Peptide2": ["BB"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
         }
     )
 
@@ -545,8 +545,8 @@ def test_add_crosslinker_positions_with_more_than_one_possible_position():
     assert "duplicated" in messages[0]["msg"]
 
     # All rows should have valid positions
-    assert df["crosslinker_position1"].notna().all()
-    assert df["crosslinker_position2"].notna().all()
+    assert df["1_based_crosslinker_position1"].notna().all()
+    assert df["1_based_crosslinker_position2"].notna().all()
 
 
 def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
@@ -556,8 +556,8 @@ def test_add_crosslinker_positions_but_one_peptide_not_found_deletes_row():
             "Protein_id2": ["P1"],
             "Peptide1": ["ABC"],
             "Peptide2": ["DEF"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
         }
     )
 
@@ -582,8 +582,8 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
             "Protein_id2": ["P1", "P1", "P1"],
             "Peptide1": ["ABC", "XXX", "ABC"],
             "Peptide2": ["DEF", "DEF", "YYY"],
-            "CL_position_within_peptide1": [1, 1, 1],
-            "CL_position_within_peptide2": [1, 1, 1],
+            "1_based_CL_position_within_peptide1": [1, 1, 1],
+            "1_based_CL_position_within_peptide2": [1, 1, 1],
         }
     )
 
@@ -597,8 +597,8 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
     assert messages[0]["level"] == logging.WARNING
 
     # First row valid
-    assert df.loc[0, "crosslinker_position1"] == 1
-    assert df.loc[0, "crosslinker_position2"] == 4
+    assert df.loc[0, "1_based_crosslinker_position1"] == 1
+    assert df.loc[0, "1_based_crosslinker_position2"] == 4
 
     # Second and third row invalid -> df should only have one row
     assert len(df) == 1
@@ -611,8 +611,8 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
             "Protein_id2": ["P1"],
             "Peptide1": ["AAA"],
             "Peptide2": ["B"],
-            "CL_position_within_peptide1": [1],
-            "CL_position_within_peptide2": [1],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
         }
     )
 
@@ -634,8 +634,8 @@ def test_add_crosslinker_positions_with_overlapping_peptide_matches():
 
     observed_positions = set(
         zip(
-            df["crosslinker_position1"].astype(int),
-            df["crosslinker_position2"].astype(int),
+            df["1_based_crosslinker_position1"].astype(int),
+            df["1_based_crosslinker_position2"].astype(int),
         )
     )
 
@@ -666,8 +666,8 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -718,8 +718,8 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
 
     assert "alphafold_distance" in result_df.columns
     assert "valid_crosslink" in result_df.columns
-    assert "crosslinker_position1" in result_df.columns
-    assert "crosslinker_position2" in result_df.columns
+    assert "1_based_crosslinker_position1" in result_df.columns
+    assert "1_based_crosslinker_position2" in result_df.columns
     assert "link_type" in result_df.columns
     assert "Chain_id1" in result_df.columns
     assert "Chain_id2" in result_df.columns
@@ -745,8 +745,8 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -815,8 +815,8 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -863,8 +863,8 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
     # Crosslinker positions should cover the product of {1,3} x {1,3}.
     combos = set(
         zip(
-            result_df["crosslinker_position1"].astype(int).tolist(),
-            result_df["crosslinker_position2"].astype(int).tolist(),
+            result_df["1_based_crosslinker_position1"].astype(int).tolist(),
+            result_df["1_based_crosslinker_position2"].astype(int).tolist(),
         )
     )
     assert combos == {(1, 1), (1, 3), (3, 1), (3, 3)}
@@ -1143,8 +1143,8 @@ def test_validate_multimer_with_invalid_crosslinks():
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -1244,8 +1244,8 @@ def test_expand_crosslinks_to_chain_combinations_homodimer():
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -1279,8 +1279,8 @@ def test_expand_crosslinks_to_chain_combinations_heterodimer():
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )
@@ -1319,8 +1319,8 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
             "Protein_id2",
             "Peptide1",
             "Peptide2",
-            "CL_position_within_peptide1",
-            "CL_position_within_peptide2",
+            "1_based_CL_position_within_peptide1",
+            "1_based_CL_position_within_peptide2",
             "Crosslinker",
         ],
     )

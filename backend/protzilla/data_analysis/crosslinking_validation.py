@@ -206,8 +206,8 @@ def add_protein_crosslink_positions_to_df(
      sequence(s) that correspond to the crosslinked residue within each peptide. The
      protein-level positions are written to two new columns:
 
-     - 'crosslinker_position1': 1-based residue position in Protein_id1 for Peptide1.
-     - 'crosslinker_position2': 1-based residue position in Protein_id2 for Peptide2.
+     - '1_based_crosslinker_position1': 1-based residue position in Protein_id1 for Peptide1.
+     - '1_based_crosslinker_position2': 1-based residue position in Protein_id2 for Peptide2.
 
      If a peptide occurs multiple times in the corresponding protein sequence, all
      combinations of (position1, position2) are generated. The first combination is
@@ -219,19 +219,19 @@ def add_protein_crosslink_positions_to_df(
      :param input_crosslinking_df: DataFrame containing crosslinking data with at least the following columns:
                             - 'Peptide1': first peptide sequence
                             - 'Peptide2': second peptide sequence
-                            - 'CL_position_within_peptide1': 1-based crosslinker position within Peptide1
-                            - 'CL_position_within_peptide2': 1-based crosslinker position within Peptide2
+                            - '1_based_CL_position_within_peptide1': 1-based crosslinker position within Peptide1
+                            - '1_based_CL_position_within_peptide2': 1-based crosslinker position within Peptide2
      :param amino_acid_sequences_df: Dataframe that contains all amino acid sequences
      :return: tuple (updated_crosslinking_df, messages)
               - updated_crosslinking_df: input DataFrame with two new columns:
-                  - 'crosslinker_position1': 1-based crosslinker position in Peptide1
-                  - 'crosslinker_position2': 1-based crosslinker position in Peptide2
+                  - '1_based_crosslinker_position1': 1-based crosslinker position in Peptide1
+                  - '1_based_crosslinker_position2': 1-based crosslinker position in Peptide2
                   Rows are duplicated for multiple peptide matches.
               - messages: list of warning dictionaries if the peptide was not found or a row was duplicated
     """
     crosslinking_df = input_crosslinking_df.copy()
-    crosslinking_df["crosslinker_position1"] = pd.Series(dtype="Int64")
-    crosslinking_df["crosslinker_position2"] = pd.Series(dtype="Int64")
+    crosslinking_df["1_based_crosslinker_position1"] = pd.Series(dtype="Int64")
+    crosslinking_df["1_based_crosslinker_position2"] = pd.Series(dtype="Int64")
     rows_to_duplicate = {}
     rows_to_delete = []
     messages = []
@@ -246,13 +246,13 @@ def add_protein_crosslink_positions_to_df(
             peptide_sequence1,
             protein_id1,
             amino_acid_sequences_df,
-            crosslinker_row.CL_position_within_peptide1,
+            crosslinker_row["1_based_CL_position_within_peptide1"],
         )
         peptide2_positions = get_crosslink_positions_in_protein(
             peptide_sequence2,
             protein_id2,
             amino_acid_sequences_df,
-            crosslinker_row.CL_position_within_peptide2,
+            crosslinker_row["1_based_CL_position_within_peptide2"],
         )
 
         all_position_combinations = list(
@@ -268,8 +268,8 @@ def add_protein_crosslink_positions_to_df(
             continue
         crosslinker_position1, crosslinker_position2 = all_position_combinations[0]
 
-        crosslinking_df.at[idx, "crosslinker_position1"] = crosslinker_position1
-        crosslinking_df.at[idx, "crosslinker_position2"] = crosslinker_position2
+        crosslinking_df.at[idx, "1_based_crosslinker_position1"] = crosslinker_position1
+        crosslinking_df.at[idx, "1_based_crosslinker_position2"] = crosslinker_position2
         if len(all_position_combinations) > 1:
             rows_to_duplicate[idx] = all_position_combinations[1:]
 
@@ -281,8 +281,8 @@ def add_protein_crosslink_positions_to_df(
     for row_to_duplicate_idx, potential_positions in rows_to_duplicate.items():
         for potential_cl_position1, potential_cl_position2 in potential_positions:
             new_row = crosslinking_df.loc[row_to_duplicate_idx].copy()
-            new_row["crosslinker_position1"] = potential_cl_position1
-            new_row["crosslinker_position2"] = potential_cl_position2
+            new_row["1_based_crosslinker_position1"] = potential_cl_position1
+            new_row["1_based_crosslinker_position2"] = potential_cl_position2
             new_rows.append(new_row)
         messages.append(
             dict(
@@ -654,13 +654,13 @@ def validate_with_angstrom_deviation(
 
             plddt_at_position1 = float(
                 plddt_df.query(
-                    "residueNumber == @crosslink.crosslinker_position1 and "
+                    "residueNumber == @crosslink['1_based_crosslinker_position1'] and "
                     + "chainID == @crosslink.Chain_id1"
                 ).iloc[0]["confidenceScore"]
             )
             plddt_at_position2 = float(
                 plddt_df.query(
-                    "residueNumber == @crosslink.crosslinker_position2 and "
+                    "residueNumber == @crosslink['1_based_crosslinker_position2'] and "
                     + "chainID == @crosslink.Chain_id2"
                 ).iloc[0]["confidenceScore"]
             )
@@ -672,10 +672,10 @@ def validate_with_angstrom_deviation(
                 return np.nan, np.nan
 
             pae_index_pos1 = get_global_residue_index(
-                crosslink.crosslinker_position1, crosslink.Chain_id1, cif_df
+                crosslink["1_based_crosslinker_position1"], crosslink.Chain_id1, cif_df
             )
             pae_index_pos2 = get_global_residue_index(
-                crosslink.crosslinker_position2, crosslink.Chain_id2, cif_df
+                crosslink["1_based_crosslinker_position2"], crosslink.Chain_id2, cif_df
             )
             pae_x_position1 = pae_matrix[
                 pae_index_pos1, pae_index_pos2
@@ -690,10 +690,14 @@ def validate_with_angstrom_deviation(
         pae_x_position1, pae_x_position2 = get_paes()
 
         predicted_distance = get_distance_between_two_amino_acids_in_angstrom(
-            amino_acid_position1=crosslink.crosslinker_position1,
-            amino_acid_position2=crosslink.crosslinker_position2,
-            amino_acid_type1=protein_sequence1[crosslink.crosslinker_position1 - 1],
-            amino_acid_type2=protein_sequence2[crosslink.crosslinker_position2 - 1],
+            amino_acid_position1=crosslink["1_based_crosslinker_position1"],
+            amino_acid_position2=crosslink["1_based_crosslinker_position2"],
+            amino_acid_type1=protein_sequence1[
+                crosslink["1_based_crosslinker_position1"] - 1
+            ],
+            amino_acid_type2=protein_sequence2[
+                crosslink["1_based_crosslinker_position2"] - 1
+            ],
             cif_df=cif_df,
             chain_id1=crosslink.Chain_id1,
             chain_id2=crosslink.Chain_id2,
@@ -782,8 +786,12 @@ def validate_with_angstrom_deviation(
             {
                 "alphafold_distance": predicted_distance,
                 "valid_crosslink": valid,
-                "crosslinker_position1": crosslink.crosslinker_position1,
-                "crosslinker_position2": crosslink.crosslinker_position2,
+                "1_based_crosslinker_position1": crosslink[
+                    "1_based_crosslinker_position1"
+                ],
+                "1_based_crosslinker_position2": crosslink[
+                    "1_based_crosslinker_position2"
+                ],
                 "plddt_at_position1": plddt_at_position1,
                 "plddt_at_position2": plddt_at_position2,
                 "pae_x_position1": pae_x_position1,
@@ -795,19 +803,19 @@ def validate_with_angstrom_deviation(
     new_columns = [
         "alphafold_distance",
         "valid_crosslink",
-        "crosslinker_position1",
-        "crosslinker_position2",
+        "1_based_crosslinker_position1",
+        "1_based_crosslinker_position2",
         "plddt_at_position1",
         "plddt_at_position2",
         "pae_x_position1",
         "pae_x_position2",
     ]
 
-    relevant_crosslinks_df["crosslinker_position1"] = relevant_crosslinks_df[
-        "crosslinker_position1"
+    relevant_crosslinks_df["1_based_crosslinker_position1"] = relevant_crosslinks_df[
+        "1_based_crosslinker_position1"
     ].astype("Int64")
-    relevant_crosslinks_df["crosslinker_position2"] = relevant_crosslinks_df[
-        "crosslinker_position2"
+    relevant_crosslinks_df["1_based_crosslinker_position2"] = relevant_crosslinks_df[
+        "1_based_crosslinker_position2"
     ].astype("Int64")
 
     relevant_crosslinks_df[new_columns] = relevant_crosslinks_df.apply(
