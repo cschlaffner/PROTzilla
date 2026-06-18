@@ -2420,7 +2420,7 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
 
             bounds_visible = (
                 form["validation_criterion"].value
-                == CrosslinkingValidationCriterion.manual_bounds.value
+                == CrosslinkingValidationCriterion.manual_bounds
             )
             form[f"{crosslinker}_upper_accepted_deviation"].isVisible = bounds_visible
             form[f"{crosslinker}_lower_accepted_deviation"].isVisible = bounds_visible
