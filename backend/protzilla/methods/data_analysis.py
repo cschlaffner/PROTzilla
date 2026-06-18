@@ -2099,33 +2099,34 @@ class DimensionReductionUMAP(DataAnalysisStep):
 
     calc_method = staticmethod(umap)
 
-    class DimensionReductionPCA(DataAnalysisStep):
-        display_name = "Dimension Reduction: PCA"
-        operation: StepOperation = StepOperation.DIMENSION_REDUCTION
-        method_description = "Dimension reduction of a dataframe using PCA"
 
-        plot_method = staticmethod(dimension_reduction_pca)
+class DimensionReductionPCA(DataAnalysisStep):
+    display_name = "Dimension Reduction: PCA"
+    operation: StepOperation = StepOperation.DIMENSION_REDUCTION
+    method_description = "Dimension reduction of a dataframe using PCA"
 
-        def create_form(self):
-            return Form(
-                label="Principal Components Analysis",
-                input_fields=[
-                    FloatField(
-                        name="pca_threshold",
-                        label="Percentage of variability the components in the PCA need to explain",
-                        value=0.9,
-                        max=1,
-                        min=0,
-                    ),
-                    DropdownField(name="color_col", label="Color by:"),
-                ],
-            )
+    plot_method = staticmethod(dimension_reduction_pca)
 
-        @override
-        def modify_form(self, run):
-            super().modify_form(run=run)
+    def create_form(self):
+        return Form(
+            label="Principal Components Analysis",
+            input_fields=[
+                FloatField(
+                    name="pca_threshold",
+                    label="Percentage of variability the components in the PCA need to explain",
+                    value=0.9,
+                    max=1,
+                    min=0,
+                ),
+                DropdownField(name="color_col", label="Color by:"),
+            ],
+        )
 
-            self.set_grouping_options(run=run, column_field_name="color_col")
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+
+        self.set_grouping_options(run=run, column_field_name="color_col")
 
 
 class BaseFLEXLF(DataAnalysisStep, ABC):
