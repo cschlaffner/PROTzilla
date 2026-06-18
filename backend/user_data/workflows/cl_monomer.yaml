@@ -21,6 +21,16 @@ graph_edges:
   - s00005_CrosslinkingValidationWithAngstromDeviation
   - source_handle: amino_acid_sequences_df
     target_handle: amino_acid_sequences_df
+- !!python/tuple
+  - s00004_AlphaFoldPredictionLoad
+  - s00005_CrosslinkingValidationWithAngstromDeviation
+  - source_handle: pae_matrix
+    target_handle: pae_matrix
+- !!python/tuple
+  - s00004_AlphaFoldPredictionLoad
+  - s00005_CrosslinkingValidationWithAngstromDeviation
+  - source_handle: plddt_df
+    target_handle: plddt_df
 id_clock: 5
 steps:
 - calculation_status: incomplete
@@ -50,7 +60,8 @@ steps:
       x: 284.1888049686339
       y: -3.6223900627321264
 - calculation_status: incomplete
-  form_inputs: {}
+  form_inputs:
+    validation_criterion: Manual Bounds (set below)
   instance_identifier: s00005_CrosslinkingValidationWithAngstromDeviation
   messages: []
   output: {}
