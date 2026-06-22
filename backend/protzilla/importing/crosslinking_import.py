@@ -577,10 +577,10 @@ def read_ProteomeDiscoverer_XlinkX_file(
         columns=rename_columns_proteomediscoverer_xlinkx_format
     )
 
-    df["CL_position_within_peptide1"] = df["Peptide1"].apply(
+    df["1_based_CL_position_within_peptide1"] = df["Peptide1"].apply(
         get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
     )
-    df["CL_position_within_peptide2"] = df["Peptide2"].apply(
+    df["1_based_CL_position_within_peptide2"] = df["Peptide2"].apply(
         get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
     )
 
@@ -653,8 +653,8 @@ def normalize_crosslinking_df(df: pd.DataFrame) -> pd.DataFrame:
             "Crosslinker": "string",
             "Peptide1": "string",
             "Peptide2": "string",
-            "CL_position_within_peptide1": "int",
-            "CL_position_within_peptide2": "int",
+            "1_based_CL_position_within_peptide1": "int",
+            "1_based_CL_position_within_peptide2": "int",
             "Q_value": "Float64",
         }
     )

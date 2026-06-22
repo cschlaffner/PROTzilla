@@ -304,8 +304,8 @@ def extract_relevant_crosslink_information(
     As well as a boolean for its validity and wether it is an intra or inter crosslink.
 
     :param crosslinking_df: DataFrame with columns
-        'crosslinker_position1',
-        'crosslinker_position2',
+        '1_based_crosslinker_position1',
+        '1_based_crosslinker_position2',
         'Chain_id1',
         'Chain_id2',
         'valid_crosslink',
@@ -320,8 +320,8 @@ def extract_relevant_crosslink_information(
     """
     crosslinks = []
     for _, row in crosslinking_df.iterrows():
-        position1 = row.get("crosslinker_position1")
-        position2 = row.get("crosslinker_position2")
+        position1 = row.get("1_based_crosslinker_position1")
+        position2 = row.get("1_based_crosslinker_position2")
         # When the validation is extended to treat multimeres with more than one chain correctly,
         # it should ideally store chain_id1 and chain_id2 into the crosslinking_df.
         # Since we already need those chain ids to calculate correct distances in the validation,
