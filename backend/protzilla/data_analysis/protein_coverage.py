@@ -302,7 +302,7 @@ def build_coverage_plot(
         )
 
         # Peptide plot
-        # Checking for -inf because these are the result of lof-transforming 0 intensities, i.e., peptides that were
+        # Checking for -inf because these are the result of log-transforming 0 intensities, i.e., peptides that were
         # identified but not quantified. We want to plot them but assign them a default color as not to distort the
         # color scale for actual intensity values.
         current_group_intensities = [
