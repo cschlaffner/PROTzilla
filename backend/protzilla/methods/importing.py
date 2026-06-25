@@ -36,7 +36,7 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, Section, StepOperation
-from backend.protzilla.importing.crosslinking_import import crosslinking_import
+from backend.protzilla.importing.crosslinking_import import crosslinking_import, universal_crosslinking_import
 from backend.protzilla.run import Run
 from backend.protzilla.importing.example_dataset_import import example_dataset_import
 from backend.protzilla.importing.fasta_import import fasta_import
@@ -493,6 +493,37 @@ class CrosslinkingImport(ImportingStep):
         )
 
     calc_method = staticmethod(crosslinking_import)
+
+
+class UniversalCrosslinkingImport(ImportingStep):
+    display_name = "Universal Crosslinking Data Import"
+    operation = "Crosslinking Data Import"
+    method_description = "Import a file containing crosslinking data"
+
+    output_keys = [DataKey.CROSSLINKING_DF]
+
+    def create_form(self):
+        return Form(
+            label="Universal Crosslinking Data Import",
+            input_fields=[
+                FileInput(
+                    name="file_path",
+                    label="Crosslinking Data file (.xlsx or .csv)",
+                    value=None,
+                    accept=".xlsx,.csv",
+                ),
+                TextField(
+                    name="organism_ids",
+                    label="Organism IDs \n(only required when importing a file that doesn't contain UniProt Ids)",
+                    value="",
+                ),
+                InfoField(
+                    label="Please list them in the order in which they should be applied, separated by a comma \n e.g.: 9606, 10090, 10116"
+                ),
+            ],
+        )
+
+    calc_method = staticmethod(universal_crosslinking_import)
 
 
 class ImportMonomerStructurePredictionFromDisk(ImportingStep):

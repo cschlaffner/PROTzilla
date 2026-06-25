@@ -814,3 +814,7 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
         imported_rows_with_errors_df=failed_df,
         messages=messages,
     )
+
+
+def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
+    return 0
