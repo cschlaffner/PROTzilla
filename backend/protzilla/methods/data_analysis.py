@@ -37,6 +37,7 @@ from backend.protzilla.data_analysis.dimension_reduction import (
     umap,
     TSNEMethod,
     dimension_reduction_pca,
+    pca_scatter_plot,
 )
 from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
@@ -2105,7 +2106,8 @@ class DimensionReductionPCA(DataAnalysisStep):
     operation: StepOperation = StepOperation.DIMENSION_REDUCTION
     method_description = "Dimension reduction of a dataframe using PCA"
 
-    plot_method = staticmethod(dimension_reduction_pca)
+    calc_method = staticmethod(dimension_reduction_pca)
+    plot_method = staticmethod(pca_scatter_plot)
 
     def create_form(self):
         return Form(

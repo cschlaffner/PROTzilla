@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 import plotly.express as px
+import logging
 
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
 from backend.protzilla.utilities.utilities import collect_col_for_sample_in_order
@@ -199,7 +200,35 @@ def dimension_reduction_pca(
 ):
     """
     A function that performs Principle Components Analysis (PCA) on the protein data. It calculates all enough
-    principle components to account for pca_threshold percent of the variance. The PCA scatter plot only visualizes
+    principle components to account for pca_threshold percent of the variance.
+
+    :param protein_df: the dataframe, from which the principle components should be induced.
+    :param metadata_df: the dataframe containing the metadata for the protein df.
+    :param pca_threshold: The percentage of variance that should be explained by the principle components.
+    :param color_col: the name of the column in metadata that should be colored in the scatter plot (e.g. Group, Batch, ...)
+
+    :return: a dictionary with the dataframe which contains the principle components
+    """
+    wide_protein_df = long_to_wide(protein_df)
+
+    pca = PCA(n_components=pca_threshold, svd_solver="full")
+    pca_array = pca.fit_transform(wide_protein_df)
+
+    pca_df = pd.DataFrame(
+        {f"PC{i+1}": pca_array[:, i] for i in range(pca_array.shape[1])}
+    )
+
+    return {"pca_df": pca_df}
+
+
+def pca_scatter_plot(
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame,
+    pca_threshold: float,
+    color_col: str,
+):
+    """
+    Creates the scatterplot for the principle components analysis. The PCA scatter plot only visualizes
     the first two principle components and colors the samples according to the column provided with color_col.
 
     :param protein_df: the dataframe, from which the principle components should be induced.
@@ -210,17 +239,30 @@ def dimension_reduction_pca(
     :return: a dictionary with the dataframe which contains the principle components and the 2D scatter plot with the first
         two principle components
     """
-    wide_protein_df = long_to_wide(protein_df)
 
+    pca_df = dimension_reduction_pca(protein_df, metadata_df, pca_threshold, color_col)[
+        "pca_df"
+    ]
+
+    wide_protein_df = long_to_wide(protein_df)
     color_column_list = collect_col_for_sample_in_order(
         wide_protein_df=wide_protein_df, metadata_df=metadata_df, col_name=color_col
     )
 
-    pca = PCA(n_components=pca_threshold, svd_solver="full")
-    pca_array = pca.fit_transform(wide_protein_df)
+    if len(pca_df.columns) < 2:
+        return {
+            "pca_df": pca_df,
+            "plots": [px.scatter()],
+            "messages": [
+                {
+                    "level": logging.WARNING,
+                    "msg": "Cannot display the scatterplot: There are less than two principle components.",
+                }
+            ],
+        }
 
     plot_df = pd.DataFrame(
-        {"PC1": pca_array[:, 0], "PC2": pca_array[:, 1], color_col: color_column_list}
+        {"PC1": pca_df["PC1"], "PC2": pca_df["PC2"], color_col: color_column_list}
     )
 
     fig = px.scatter(plot_df, x="PC1", y="PC2", color=color_col)
@@ -229,4 +271,4 @@ def dimension_reduction_pca(
     fig.update_xaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
     fig.update_yaxes(gridcolor=colors["gridcolor"], linecolor=colors["linecolor"])
 
-    return {"pca_df": plot_df, "plots": [fig]}
+    return {"pca_df": pca_df, "plots": [fig]}
