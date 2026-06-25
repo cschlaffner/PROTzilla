@@ -17,8 +17,10 @@ from enum import Enum
 from backend.protzilla.utilities.utilities import format_trace
 from backend.protzilla.importing.import_utils import (
     columns_in_crosslinking_df,
+    columns_in_crosslinking_df_with_types,
     rename_columns_csm_format,
     rename_columns_proteomediscoverer_xlinkx_format,
+    rename_columns_universal_format,
 )
 
 
@@ -817,4 +819,118 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
 
 
 def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
-    return 0
+    try: 
+        file_type = file_path.suffix.lower()
+        if file_type == ".xlsx": 
+            df = pd.read_excel(file_path).rename(
+            columns=rename_columns_universal_format
+        )
+        elif file_type == ".csv":
+            df = pd.read_csv(file_path, low_memory=False).rename(
+            columns=rename_columns_universal_format
+        )
+        else:
+            raise ValueError(f"Unsupported file type: {file_path.suffix}")
+        
+        initial_columns = set(df.columns)
+
+        if not {"CL_position_within_peptide1", "CL_position_within_peptide2"} <= initial_columns:
+            df["CL_position_within_peptide1"] = df["Peptide1"].apply(
+                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
+            )
+            df["CL_position_within_peptide2"] = df["Peptide2"].apply(
+                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
+            )
+            df["Peptide1"] = df["Peptide1"].apply(remove_brackets_from_peptide).astype("string")
+            df["Peptide2"] = df["Peptide2"].apply(remove_brackets_from_peptide).astype("string")
+
+        for column in columns_in_crosslinking_df:
+            if column not in df.columns:
+                df[column] = pd.NA
+
+        df = df.astype(columns_in_crosslinking_df_with_types)
+            
+        has_gene_names = {"Protein1", "Protein2"} <= initial_columns
+        has_protein_ids = {"Protein_id1", "Protein_id2"} <= initial_columns
+
+        if not has_gene_names:
+            if not has_protein_ids:
+                return error_output(
+                    "The file must contain either Gene Names or Protein Ids."
+                )
+            good_df, failed_df = get_missing_protein_designation(
+                df=df,
+                existing_column="Protein_id",
+                missing_column="Protein",
+                uniprot_lookup_function=get_gene_name_from_protein_ids,
+            )
+
+        if not has_protein_ids:
+            success, organism_ids_list, scientific_organism_names, error = (
+                process_organism_id_from_text_field(organism_ids)
+            )
+            if not success:
+                if organism_ids_list:
+                    msg = f"Unsupported organism id: {organism_ids_list}. \nOrganism id validation failed with error: {error}. \nPlease provide all valid taxonomy ids."
+                else:
+                    msg = f"An error occurred while reading the organism ids: {error}. \nPlease provide all valid taxonomy ids, separated by a comma."
+                return error_output(msg)
+
+            uniprot_lookup_function_with_organism_ids = partial(
+                get_protein_ids_from_gene_name, organism_ids=organism_ids
+            )
+            good_df, failed_df = get_missing_protein_designation(
+                df=df,
+                existing_column="Protein",
+                missing_column="Protein_id",
+                uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
+            )
+
+        if {"Is_intra_crosslink"} <= initial_columns:
+            content = (
+                df["Is_intra_crosslink"]
+                .astype("string")
+                .str.strip()
+                .str.lower()
+            )
+            df["Is_intra_crosslink"] = (
+                (content.str.contains("intra", na=False) |
+                content.eq("true"))
+                .astype("boolean")
+            )
+        else: 
+            df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
+
+    except Exception as e:
+        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid crosslinking file."
+        return error_output(msg, trace=format_trace(traceback.format_exception(e)))
+    
+    def base_message():
+        if file_type == ".csv":
+            organism_names_string = ", ".join(scientific_organism_names)
+            return (
+                f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
+            )
+        return f"{len(good_df)} crosslinks"
+
+    if good_df.empty:
+        msg = f"No crosslinks could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
+        messages = [dict(level=logging.ERROR, msg=msg)]
+    elif failed_df.empty:
+        msg = f"Successfully imported data of {base_message()}."
+        messages = [dict(level=logging.INFO, msg=msg)]
+    else:
+        msg = f"Warning: {len(failed_df)} rows failed to import, however {base_message()} were successfully imported."
+        messages = [
+            dict(level=logging.WARNING, msg=msg),
+            dict(
+                level=logging.WARNING,
+                msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}",
+            ),
+        ]
+
+    return dict(
+        crosslinking_df=good_df,
+        imported_rows_with_errors_df=failed_df,
+        messages=messages,
+    )
