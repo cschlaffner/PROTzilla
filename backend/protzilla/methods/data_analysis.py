@@ -2415,6 +2415,15 @@ class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
                 DropdownField(
                     name="batch_column", label="Name of the batch column in metadata"
                 ),
+                InfoField(
+                    name="covariates_info_field",
+                    label="Group and covariates can be specified below for the ComBat calculation. This is optional but recommended. "
+                    "The group and covariates must be categorical. Example: Covariates like 'Age' must be turned into categories or excluded.",
+                ),
+                MultiSelectField(
+                    name="covariates_columns",
+                    label="Name of all covariate columns that should be included in the analysis (optional)",
+                ),
             ],
         )
 
@@ -2422,6 +2431,7 @@ class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
     def modify_form(self, run):
         super().modify_form(run=run)
         self.set_grouping_options(run=run, column_field_name="batch_column")
+        self.set_grouping_options(run=run, column_field_name="covariates_columns")
 
 
 class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
@@ -2450,6 +2460,10 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
                     name="group_column",
                     label="Name of the group column in metadata",
                 ),
+                MultiSelectField(
+                    name="covariates_columns",
+                    label="Name of all covariate columns that should be included in the analysis (optional)",
+                ),
                 NumberField(
                     name="seed",
                     label="Seed for permutations in calculation of the number of surrogate variables. (Enter -1 to have no seed specified)",
@@ -2465,6 +2479,7 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
     def modify_form(self, run):
         super().modify_form(run)
         self.set_grouping_options(run=run, column_field_name="group_column")
+        self.set_grouping_options(run=run, column_field_name="covariates_columns")
 
         if self.form["num_sv_method"].value == NumSVMethods.be.value:
             self.form["seed"].isVisible = True
