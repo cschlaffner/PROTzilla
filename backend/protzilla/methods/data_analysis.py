@@ -2434,6 +2434,12 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
         return Form(
             label="Batch Effect Correction: SVA",
             input_fields=[
+                InfoField(
+                    # TODO: improve wording below
+                    name="info-field",
+                    label="The protein data is corrected with the frozen surrogate variables analysis method using the "
+                    "surrogate variables calculated with the iteratively re-weighted least squares approach of surrogate variable analysis.",
+                ),
                 DropdownField(
                     name="num_sv_method",
                     label="The method to calculate the optimal number of surrogate variables",
