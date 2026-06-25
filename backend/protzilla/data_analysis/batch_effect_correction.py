@@ -1,6 +1,7 @@
 from inmoose.pycombat import pycombat_norm
 import pandas as pd
 from joblib import Parallel, delayed
+from patsy import DesignMatrix, dmatrix
 
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
@@ -73,6 +74,29 @@ def pycombat_df_to_long(
     intensity_df.insert(2, "Gene", gene_info)
 
     return intensity_df
+
+
+def get_covar_mod_combat(
+    pycombat_df: pd.DataFrame, metadata_df: pd.DataFrame, covar_columns: list[str]
+) -> pd.DataFrame:
+    """
+    Creates a covariates matrix for the ComBat method from the specified covariates, including only the samples from the protein data.
+
+    :param pycombat_df: dataframe containing the protein data (samples in columns, protein ids in rows)
+    :param metadata_df: metadata dataframe for the protein data
+    :param covar_columns: the columns in metadata that specify the covariates of interest
+
+    :return: dataframe with the covariates for pycombat
+    """
+    samples = pycombat_df.columns
+    # last part to keep the samples in the correct order (same as protein data) for combat
+    relevant_metadata_df = (
+        metadata_df[metadata_df["Sample"].isin(samples)]
+        .set_index("Sample")
+        .reindex(samples)
+    )
+    covar_df = relevant_metadata_df[covar_columns]
+    return covar_df
 
 
 # <- SVA ->
@@ -161,6 +185,52 @@ def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.Dat
     df["Sample"] = samples_in_order
     df = df[["Sample"] + sv_names]
     return df
+
+
+def get_covar_mod_sva(
+    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame, covar_columns: list[str]
+) -> pd.DataFrame:
+    """
+    Creates a covariates matrix for the SVA method from the specified covariates, including only the samples from the protein data.
+
+    :param wide_protein_df: dataframe containing the protein data (protein ids in columns, samples in rows)
+    :param metadata_df: metadata dataframe for the protein data
+    :param covar_columns: columns in metadata that specify the covariates of interest
+
+    :return: dataframe with the covariates for SVA
+    """
+    covar_df = get_covar_mod_combat(
+        pycombat_df=wide_protein_df.T,
+        metadata_df=metadata_df,
+        covar_columns=covar_columns,
+    )
+    return covar_df
+
+
+def turn_covar_df_into_design_matrix(
+    wide_protein_df: pd.DataFrame, covar_df: pd.DataFrame
+) -> DesignMatrix:
+    """
+    Creates a design matrix for the covariates given covariates dataframe. The function essentially does the same as
+    model.matrix() in R.
+
+    :param wide_protein_df: dataframe containing the protein data (protein ids in columns, samples in rows)
+    :param covar_df: dataframe containing only the covariates for the samples in the protein df
+
+    :return: a design matrix of the covariates
+    """
+    if covar_df is not None:
+        if covar_df.isna().any().any():
+            raise ValueError("The covariates must not contain NaN values.")
+        # rename the columns to make sure patsy does not break because it does not allow any special characters
+        covar_column_names = [f"cov{i}" for i in range(len(covar_df.columns))]
+        covar_df.columns = covar_column_names
+        covar_dm = dmatrix(
+            "+".join([f"{cv}" for cv in covar_df.columns]), data=covar_df
+        )
+    else:
+        covar_dm = dmatrix("~1", pd.DataFrame(wide_protein_df))
+    return covar_dm
 
 
 # <--LOESS-->
@@ -263,6 +333,7 @@ def combat_correction(
     metadata_df: pd.DataFrame,
     par_prior: bool,
     batch_column: str,
+    covariates_columns: list[str],
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm ComBat.
@@ -271,20 +342,29 @@ def combat_correction(
     :param metadata_df: the dataframe containing the metadata for the protein data, the metadata should include the batch assignments
     :param par_prior: whether to perform parametric ComBat or nonparametric ComBat
     :param batch_column: the name of the batch column in metadata
+    :param covariates_columns: the columns in metadata that specify the covariates of interest
 
     return: a dictionary containing the corrected protein data
     """
-    transformed_protein_df = long_to_pycombat_df(protein_df=protein_df)
+    pycombat_protein_df = long_to_pycombat_df(protein_df=protein_df)
     batches_in_order = collect_col_for_sample_in_order(
-        wide_protein_df=transformed_protein_df.T,
+        wide_protein_df=pycombat_protein_df.T,
         metadata_df=metadata_df,
         col_name=batch_column,
     )
+    covar_df = get_covar_mod_combat(
+        pycombat_df=pycombat_protein_df,
+        metadata_df=metadata_df,
+        covar_columns=covariates_columns,
+    )
     batch_corrected_protein_df = pycombat_norm(
-        transformed_protein_df, batches_in_order, par_prior=par_prior
+        pycombat_protein_df,
+        batches_in_order,
+        par_prior=par_prior,
+        covar_mod=covar_df,
     )
     batch_corrected_protein_df = pycombat_df_to_long(
-        batch_corrected_protein_df, protein_df
+        pycombat_df=batch_corrected_protein_df, original_protein_df=protein_df
     )
     return {"protein_df": batch_corrected_protein_df}
 
@@ -295,6 +375,7 @@ def sva_correction(
     num_sv_method: str,
     group_column: str,
     seed: int,
+    covariates_columns: list[str],
 ) -> dict[str, pd.DataFrame]:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm SVA (Surrogate Variable Algorithm).
@@ -306,6 +387,7 @@ def sva_correction(
     :param group_column: the name of the column that specifies the group in the metadata
     :param seed: Seed for the permutation in the permutation-based calculation of the number of surrogate variables.
         If seed is -1, it means there is no seed (seed=None).
+    :param covariates_columns: the columns in metadata that specify the covariates of interest
 
     return: a dictionary containing the corrected protein data and a dataframe with the surrogate variables
     """
@@ -316,10 +398,18 @@ def sva_correction(
         metadata_df=metadata_df,
         col_name=group_column,
     )
+    covar_mod = get_covar_mod_sva(
+        wide_protein_df=wide_protein_df,
+        metadata_df=metadata_df,
+        covar_columns=covariates_columns,
+    )
     groups_int = np.array(turn_group_names_to_int(groups)).reshape(-1, 1)
+    mod0 = turn_covar_df_into_design_matrix(
+        wide_protein_df=wide_protein_df, covar_df=covar_mod
+    )
 
     dat = (wide_protein_df.T).values
-    mod0 = np.ones((len(groups_int), 1))
+    mod0 = np.asarray(mod0)
     mod = np.hstack([mod0, groups_int])
 
     if num_sv_method == NumSVMethods.be.value:
