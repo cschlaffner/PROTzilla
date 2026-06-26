@@ -36,10 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
 import pandas as pd
-import logging
 from scipy.interpolate import interp1d
 from statsmodels.nonparametric.smoothers_lowess import lowess
-from sklearn.model_selection import ShuffleSplit, LeaveOneOut, GridSearchCV
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import NotFittedError
@@ -98,47 +96,6 @@ class _LoessCorrector(BaseEstimator, RegressorMixin):
         xf = X.flatten()
         x_interp = self.interpolator_(xf)
         return x_interp
-
-
-def _get_param_grid_loess_corrector(n_qc_samples: int) -> dict:
-    """
-    Builds a parameter grid for GridSearchCV.
-
-    :param n_qc_samples: number of quality control samples
-
-    :return: the grid parameters in form of a dictionary
-    """
-    if n_qc_samples < MIN_LOESS_SIZE:
-        msg = (
-            f"There are not enough quality control samples in one of the batches. The required minimum is {MIN_LOESS_SIZE} samples. "
-            f"Currently, there is at least one batch where the number of quality samples is {n_qc_samples}."
-        )
-        messages = [dict(level=logging.WARN, msg=msg)]
-        return {"frac": []}, messages
-    min_frac = min(MIN_LOESS_SIZE / n_qc_samples, 1.0)
-    # Limits the number of points in the grid to at most 5
-    if n_qc_samples < 9:
-        frac = np.arange(MIN_LOESS_SIZE, n_qc_samples + 1) / n_qc_samples
-    else:
-        n_points = 5
-        frac = np.linspace(min_frac, 1.0, n_points)
-
-    grid_params = {"frac": frac}
-    return grid_params, []
-
-
-def _get_cv(n_qc_samples: int):
-    """
-    Selects a cross validator according to the number of quality control samples.
-
-    :param n_qc_samples: number of quality control samples
-    :return: the cross validator for the correction
-    """
-    if n_qc_samples > 15:
-        cv = ShuffleSplit(n_splits=5, test_size=0.2)
-    else:
-        cv = LeaveOneOut()
-    return cv
 
 
 def correct_intra_batch_with_loess(
