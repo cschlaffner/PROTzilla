@@ -39,7 +39,7 @@ import pandas as pd
 import logging
 from scipy.interpolate import interp1d
 from statsmodels.nonparametric.smoothers_lowess import lowess
-from sklearn.model_selection import ShuffleSplit, GridSearchCV
+from sklearn.model_selection import ShuffleSplit, LeaveOneOut, GridSearchCV
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import NotFittedError
@@ -81,7 +81,7 @@ class _LoessCorrector(BaseEstimator, RegressorMixin):
         # Store the classes seen during fit
         x = X.flatten()
         y_fit = lowess(y, x, frac=self.frac, is_sorted=True, return_sorted=False)
-        fill = (y[0], y[-1])
+        fill = (y_fit[0], y_fit[-1])
         self.interpolator_ = interp1d(x, y_fit, fill_value=fill, bounds_error=False)
         return self
 
@@ -127,12 +127,27 @@ def _get_param_grid_loess_corrector(n_qc_samples: int) -> dict:
     return grid_params, []
 
 
+def _get_cv(n_qc_samples: int):
+    """
+    Selects a cross validator according to the number of quality control samples.
+
+    :param n_qc_samples: number of quality control samples
+    :return: the cross validator for the correction
+    """
+    if n_qc_samples > 15:
+        cv = ShuffleSplit(n_splits=5, test_size=0.2)
+    else:
+        cv = LeaveOneOut()
+    return cv
+
+
 def correct_intra_batch_with_loess(
     batch_wide_protein_df: pd.DataFrame,
-    qc_samples_in_order: list,
-    qc_samples_values: list,
-    all_samples_in_order: list,
-    all_samples_values: list,
+    qc_samples_in_order: np.ndarray,
+    qc_samples_values: np.ndarray,
+    all_samples_in_order: np.ndarray,
+    all_samples_values: np.ndarray,
+    frac: float,
 ) -> dict:
     """
     Applies LOESS correction on each feature (protein) within the given batch.
@@ -142,18 +157,13 @@ def correct_intra_batch_with_loess(
     :param qc_samples_values: list of quality samples values in order (within the batch)
     :param all_samples_in_order: list of all samples in order (within the batch)
     :param all_samples_values: list of all samples values in order (within the batch)
+    :param frac: fraction of samples around a point to fit the curve at this specific point
 
     :return: dictionary with the adjusted batch protein data and, if there are any, messages
     """
-    corrector = _LoessCorrector()
-    cv = ShuffleSplit(n_splits=5, test_size=0.2)
-    grid_params, messages = _get_param_grid_loess_corrector(
-        n_qc_samples=len(qc_samples_in_order)
-    )
-    if messages:
-        return {"protein_df": batch_wide_protein_df, "messages": messages}
-    scoring = "neg_mean_squared_error"
-    grid = GridSearchCV(corrector, grid_params, cv=cv, scoring=scoring)
+    # I decided to use a global fraction for all proteins to reduce computation time (from minutes to seconds) and reduce the probability of overfitting
+    corrector = _LoessCorrector(frac=frac)
+
     # for now I use tqdm to keep track of the progress. Currently, loading times are several minutes. I could think about parallelizing this.
     for protein in tqdm(
         batch_wide_protein_df.columns, desc="Progress in fitting proteins: "
@@ -166,18 +176,17 @@ def correct_intra_batch_with_loess(
         if valid_mask.sum() < MIN_LOESS_SIZE:
             continue
 
-        grid.fit(qc_samples_in_order, y_qc)
-        corrector.set_params(**grid.best_params_)
-        corrector.fit(qc_samples_in_order, y_qc)
+        # filter out NaNs
+        valid_y_qc = y_qc[valid_mask]
+        valid_qc_samples_in_order = qc_samples_in_order[valid_mask]
+        corrector.fit(valid_qc_samples_in_order, valid_y_qc)
 
         qc_mean = np.nanmean(y_qc)
         x_qc = corrector.predict(all_samples_in_order)
 
-        factor = np.zeros_like(x_qc)
-        is_positive = x_qc > 0
-        factor = np.divide(qc_mean, x_qc, out=factor, where=is_positive)
-
-        corrected = y_all * factor
+        # different from the tidyms implementation because we expect our data to be log transformed already
+        factor = x_qc - qc_mean
+        corrected = y_all - factor
 
         batch_wide_protein_df[protein] = corrected
     return {"protein_df": batch_wide_protein_df, "messages": []}

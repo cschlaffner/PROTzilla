@@ -277,6 +277,7 @@ def _process_single_batch(
     group_column: str,
     qc_group_names: list[str],
     order_dict: dict,
+    frac: float,
 ) -> dict:
     """
     Corrects signal drift within a single batch with the LOESS method.
@@ -288,6 +289,7 @@ def _process_single_batch(
     :param group_column: the name of the column that specifies the group assignment in the metadata
     :param qc_group_names: list of all group names that specify the quality control samples used to fit the LOESS curve
     :param order_dict: dictionary that maps each sample name to the order number e.g. {Sample1: 0, QC_Sample1: 1, Sample2: 2, ...}
+    :param frac: fraction of samples around a point to fit the curve at this specific point
 
     :return: dictionary with the adjusted batch specific protein dataframe and, if there are any, messages
     """
@@ -322,6 +324,7 @@ def _process_single_batch(
         qc_samples_values=qc_sample_values,
         all_samples_in_order=X_all,
         all_samples_values=all_samples_values,
+        frac=frac,
     )
 
 
@@ -456,6 +459,7 @@ def loess_correction(
     qc_group_names: list[str],
     batch_column: str,
     order_column: str,
+    frac: float,
 ) -> dict:
     """
     Corrects the batch effects in the protein data with the batch effect correction algorithm LOESS. This correction corrects the signal drift
@@ -493,6 +497,7 @@ def loess_correction(
             group_column,
             qc_group_names,
             order_dict,
+            frac,
         )
         for batch in batches
     )

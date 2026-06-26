@@ -2514,6 +2514,12 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
                 DropdownField(
                     name="order_column", label="Name of the order column in metadata"
                 ),
+                FloatField(
+                    name="frac",
+                    label="Fraction of samples around a point, used to fit the LOESS curve at this specific point",
+                    min=0.0,
+                    max=1.0,
+                ),
             ],
         )
 
