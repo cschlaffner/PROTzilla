@@ -21,13 +21,41 @@ from backend.protzilla.data_integration.database_query import (
 from backend.protzilla.disk_operator import YamlOperator
 from backend.main.views_helper import load_yaml_from_file
 from backend.protzilla.constants.paths import (
+    CUSTOM_AI_SETTINGS_FILE_STEM,
     CUSTOM_PLOT_SETTINGS_FILE_STEM,
+    DEFAULT_AI_SETTINGS_FILE_STEM,
     DEFAULT_PLOT_SETTINGS_FILE_STEM,
     DEFAULT_PTM_SETTINGS_FILE_STEM,
     CUSTOM_PTM_SETTINGS_FILE_STEM,
 )
 
 DATABASE_METADATA_PATH = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
+
+
+def _get_litellm():
+    import litellm
+
+    return litellm
+
+
+def _litellm_value(value):
+    return getattr(value, "value", str(value))
+
+
+def _chat_message_content(message):
+    content = getattr(message, "content", None)
+    if content is None and isinstance(message, dict):
+        content = message.get("content")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+    if content is None:
+        return ""
+    return str(content)
 
 
 def load_settings(request, default_file_stem: str):
@@ -79,6 +107,113 @@ def save_plot_settings(request):
     return JsonResponse(
         {"success": False, "message": "Only POST requests are allowed."}, status=405
     )
+
+
+# <--- AI Settings --->
+
+
+def load_ai_settings(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {"success": False, "message": "Only GET requests are allowed."}, status=405
+        )
+
+    return JsonResponse(
+        load_settings_from_file(
+            CUSTOM_AI_SETTINGS_FILE_STEM, DEFAULT_AI_SETTINGS_FILE_STEM
+        )
+    )
+
+
+def save_ai_settings(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Only POST requests are allowed."}, status=405
+        )
+
+    ai_settings = json.loads(request.body.decode("utf-8"))
+    op = YamlOperator()
+    path = SETTINGS_PATH / f"{CUSTOM_AI_SETTINGS_FILE_STEM}.yaml"
+    try:
+        op.write(path, ai_settings)
+    except:
+        return JsonResponse(
+            {"success": False, "message": "Saving failed!"}, status=400
+        )
+
+    return JsonResponse(
+        {"success": True, "message": "Settings successfully saved."}, status=200
+    )
+
+
+def send_chat_message(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Only POST requests are allowed."}, status=405
+        )
+
+    data = json.loads(request.body.decode("utf-8"))
+    messages = data.get("messages", [])
+    ai_settings = load_settings_from_file(
+        CUSTOM_AI_SETTINGS_FILE_STEM, DEFAULT_AI_SETTINGS_FILE_STEM
+    )
+    provider = ai_settings.get("provider", "")
+    model = ai_settings.get("model", "")
+    api_key = ai_settings.get("api_key", "")
+
+    if not messages or not provider or not model or not api_key:
+        return JsonResponse(
+            {"success": False, "message": "AI settings or chat message missing."},
+            status=400,
+        )
+
+    if "/" not in model and provider not in {"openai", "chatgpt"}:
+        model = f"{provider}/{model}"
+
+    try:
+        response = _get_litellm().completion(
+            model=model,
+            api_key=api_key,
+            messages=messages,
+        )
+        choice = response["choices"][0] if isinstance(response, dict) else response.choices[0]
+        message = choice["message"] if isinstance(choice, dict) else choice.message
+        answer = _chat_message_content(message)
+    except Exception as error:
+        return JsonResponse(
+            {"success": False, "message": str(error)},
+            status=400,
+        )
+
+    return JsonResponse({"success": True, "answer": answer}, status=200)
+
+
+def get_ai_providers(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {"success": False, "message": "Only GET requests are allowed."}, status=405
+        )
+
+    litellm = _get_litellm()
+    return JsonResponse(
+        [_litellm_value(provider) for provider in litellm.provider_list], safe=False
+    )
+
+
+def get_ai_models(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Only POST requests are allowed."}, status=405
+        )
+
+    data = json.loads(request.body.decode("utf-8"))
+    provider = data.get("provider", "")
+    if provider.startswith("LlmProviders."):
+        provider = provider.removeprefix("LlmProviders.").lower()
+
+    litellm = _get_litellm()
+    models = litellm.models_by_provider.get(provider, [])
+    return JsonResponse([str(model) for model in models], safe=False)
 
 
 def download_plot(request):

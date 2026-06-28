@@ -77,6 +77,40 @@ const MemoryUsageTitle = styled(Text)`
   padding-right: ${spacing("medium")};
 `;
 
+const ChatMessages = styled.div`
+  min-height: 220px;
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing("small")};
+  padding-bottom: ${spacing("small")};
+`;
+
+const ChatMessage = styled.div`
+  border: 1px solid ${color("gray")};
+  border-radius: 8px;
+  padding: ${spacing("small")};
+  background: ${color("backgroundOffset")};
+  white-space: pre-line;
+`;
+
+const ChatInput = styled.textarea`
+  width: 100%;
+  min-height: 90px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid ${color("gray")};
+  border-radius: 8px;
+  padding: ${spacing("small")};
+  font: inherit;
+`;
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export const Navbar: React.FC<NavbarProps> = ({
   showRunInformation,
   memoryUsage,
@@ -90,6 +124,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navigate = useNavigate();
   const [runName, setRunName] = useState<string>(title ?? "");
   const [isWorkflowSaveOpen, setIsWorkflowSaveOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
   // <-- Modal for run properties and edit -->
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
   const refRunSettings = useRef<HTMLDivElement>(null);
@@ -135,6 +173,37 @@ export const Navbar: React.FC<NavbarProps> = ({
     } else {
       closeSettings();
     }
+  };
+
+  const handleSendChatMessage = async () => {
+    const trimmedMessage = chatInput.trim();
+    if (!trimmedMessage) {
+      return;
+    }
+
+    const nextMessages = [...chatMessages, { role: "user" as const, content: trimmedMessage }];
+    setChatMessages(nextMessages);
+    setChatInput("");
+
+    setIsSendingChatMessage(true);
+    const response = await callApiWithParameters("send_chat_message", {
+      messages: nextMessages,
+    });
+    setIsSendingChatMessage(false);
+
+    if (response?.success && response.answer) {
+      setChatMessages((messages) => [
+        ...messages,
+        { role: "assistant", content: response.answer as string },
+      ]);
+      return;
+    }
+
+    notify({
+      title: "Chat failed",
+      message: response?.message ? String(response.message) : "The AI did not return an answer.",
+      type: "error",
+    });
   };
 
   const handleWorkflowSave = useCallback(
@@ -190,6 +259,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               <MemoryUsageTitle>{memoryUsage}</MemoryUsageTitle>
             </MemoryDiv>
           )}
+          <Button
+            icon={"chat"}
+            onPress={() => {
+              setIsChatOpen(true);
+            }}
+          />
           <Button icon={"help"} onPress={onOpenHelp} />
           <Button icon={"settings"} onPress={openSettings} />
         </NavbarRight>
@@ -221,6 +296,35 @@ export const Navbar: React.FC<NavbarProps> = ({
         onDiscard={handleDiscard}
         onClose={closeDiscardModal}
       />
+      <Modal
+        title="Chat"
+        isOpen={isChatOpen}
+        onClose={() => {
+          setIsChatOpen(false);
+        }}
+      >
+        <ChatMessages>
+          {chatMessages.map((message, index) => (
+            <ChatMessage key={index.toString()}>
+              <strong>{message.role === "user" ? "You" : "AI"}:</strong> {message.content}
+            </ChatMessage>
+          ))}
+        </ChatMessages>
+        <ChatInput
+          value={chatInput}
+          placeholder="Type a message..."
+          onChange={(event) => {
+            setChatInput(event.target.value);
+          }}
+        />
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: spacing("small") }}>
+          <Button
+            text={isSendingChatMessage ? "Sending..." : "Send"}
+            onPress={() => void handleSendChatMessage()}
+            isDisabled={isSendingChatMessage || !chatInput.trim()}
+          />
+        </div>
+      </Modal>
       <Modal
         title="Save run as a custom workflow"
         isOpen={isWorkflowSaveOpen}

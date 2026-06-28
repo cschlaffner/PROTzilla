@@ -3,7 +3,7 @@ import { spacing } from "@protzilla/theme";
 import { useState } from "react";
 import { styled } from "styled-components";
 
-import { DatabaseSettings, GitHub } from "./other-settings/";
+import { AISettings, DatabaseSettings, GitHub } from "./other-settings/";
 import { PTMVisSettings } from "./other-settings/ptm-vis-settings.tsx";
 import { PlotSettingsModal } from "./plot-settings";
 import { SettingsProps } from "./settings.props.ts";
@@ -94,6 +94,15 @@ export const Settings: React.FC<SettingsProps> = ({
               }}
             />
             <SectionButton
+              id={"ai"}
+              isActive={selectedSetting === "ai"}
+              icon={"chat"}
+              text={"AI"}
+              onPress={() => {
+                handleSwitchSection("ai");
+              }}
+            />
+            <SectionButton
               id={"database"}
               isActive={selectedSetting === "database"}
               icon={"database"}
@@ -125,6 +134,7 @@ export const Settings: React.FC<SettingsProps> = ({
             {selectedSetting === "plot" && (
               <PlotSettingsModal isOpen={isOpen} onClose={onClose} setHasChanges={setHasChanges} />
             )}
+            {selectedSetting === "ai" && <AISettings />}
             {selectedSetting === "database" && <DatabaseSettings />}
             {selectedSetting === "ptm-vis" && <PTMVisSettings />}
             {selectedSetting === "github" && <GitHub />}

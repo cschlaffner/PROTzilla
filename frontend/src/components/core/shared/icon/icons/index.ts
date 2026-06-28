@@ -10,6 +10,7 @@ export { default as chevronDown } from "./chevron-down.svg?react";
 export { default as chevronLeft } from "./chevron-left.svg?react";
 export { default as chevronRight } from "./chevron-right.svg?react";
 export { default as chevronUp } from "./chevron-up.svg?react";
+export { default as chat } from "./chat.svg?react";
 export { default as clipboard } from "./clipboard.svg?react";
 export { default as close } from "./close.svg?react";
 export { default as complete } from "./complete.svg?react";

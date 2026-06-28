@@ -14,6 +14,8 @@ UPLOAD_PATH = BACKEND_PATH / "uploads"
 
 CUSTOM_PLOT_SETTINGS_FILE_STEM = "plots"
 DEFAULT_PLOT_SETTINGS_FILE_STEM = "plots_default"
+CUSTOM_AI_SETTINGS_FILE_STEM = "ai_settings"
+DEFAULT_AI_SETTINGS_FILE_STEM = "ai_settings_default"
 CUSTOM_PTM_SETTINGS_FILE_STEM = "ptm_settings"
 DEFAULT_PTM_SETTINGS_FILE_STEM = "ptm_settings_default"
 
