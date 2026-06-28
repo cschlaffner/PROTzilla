@@ -2491,10 +2491,7 @@ class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
 
 class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
     display_name = "Batch Effect Correction: LOESS"
-    method_description = (
-        # TODO:
-        "Description LOESS"
-    )
+    method_description = "Corrects intra batch effects in the protein dataset using a LOESS based method. (Rusilowicz, Martin et al. 2016)"
     output_keys = ["protein_df"]
     calc_method = staticmethod(loess_correction)
 
