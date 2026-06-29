@@ -2119,6 +2119,7 @@ class DimensionReductionPCA(DataAnalysisStep):
                     value=0.9,
                     max=1,
                     min=0,
+                    step=0.1,
                 ),
                 DropdownField(name="color_col", label="Color by:"),
             ],
@@ -2516,6 +2517,8 @@ class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
                     label="Fraction of samples around a point, used to fit the LOESS curve at this specific point",
                     min=0.0,
                     max=1.0,
+                    step=0.1,
+                    value=0.5,
                 ),
             ],
         )
