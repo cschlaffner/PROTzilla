@@ -1,5 +1,4 @@
 from abc import ABC
-from typing import override
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
@@ -37,6 +36,7 @@ from backend.protzilla.data_analysis.model_evaluation import (
     evaluate_classification_model,
 )
 from backend.protzilla.data_analysis.plots import (
+    clusteredheatmap_plot,
     clustergram_plot,
     create_volcano_plot,
     precision_recall_plot,
@@ -959,11 +959,11 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     name="heatmap_color_scale",
                     label="Heatmap color scale",
                 ),
-                DropdownField(
+                FloatField(
                     name="heatmap_low_color_limit",
                     label="Heatmap low color limit",
                 ),
-                DropdownField(
+                FloatField(
                     name="heatmap_high_color_limit",
                     label="Heatmap high color limit",
                 ),

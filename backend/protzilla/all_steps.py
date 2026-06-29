@@ -53,6 +53,7 @@ _forward_mapping: list[Step] = [
     data_analysis.DifferentialExpressionKruskalWallisOnIntensity,
     data_analysis.DifferentialExpressionKruskalWallisOnPTM,
     data_analysis.PlotClustergram,
+    data_analysis.PlotClusteredHeatmap,
     data_analysis.PlotPrecisionRecallCurve,
     data_analysis.PlotProteinCoverage,
     data_analysis.PlotProtQuant,
