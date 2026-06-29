@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import override
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
@@ -915,6 +916,59 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                 )
             )
 
+
+class PlotClusteredHeatmap(DataAnalysisPlotStep):
+    display_name: str = "Clustered Heatmap"
+    method_description: str = "Plots protein intensities in a clustered heatmap (also sometimes called clustergram or clustermap)"
+
+    plot_method = staticmethod(clusteredheatmap_plot)
+
+    @override
+    def create_form(self) -> Form:
+        return Form(
+            label="Clustered Heatmap",
+            input_fields=[
+                MultiSelectField(
+                    name="metadata_column_samplegroupings",
+                    label="Choose the column of the metadata dataframe that should be used for sample group annotation",
+                ),
+                CheckboxField(
+                    name="flip_axes",
+                    label="Flip axis",
+                    text="Flip axes",
+                ),
+                CheckboxField(
+                    name="perform_row_clustering",
+                    label="Perform row clustering",
+                    text="Perform row clustering",
+                ),
+                CheckboxField(
+                    name="perform_column_clustering",
+                    label="Perform column clustering",
+                    text="Perform column clustering",
+                ),
+                DropdownField(
+                    name="linkage_method",
+                    label="Linkage method"
+                ),
+                DropdownField(
+                    name="distance_method",
+                    label="Distance method"
+                ),
+                DropdownField(
+                    name="heatmap_color_scale",
+                    label="Heatmap color scale",
+                ),
+                DropdownField(
+                    name="heatmap_low_color_limit",
+                    label="Heatmap low color limit",
+                ),
+                DropdownField(
+                    name="heatmap_high_color_limit",
+                    label="Heatmap high color limit",
+                ),
+            ]
+        )
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"

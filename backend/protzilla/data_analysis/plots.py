@@ -220,6 +220,28 @@ def create_volcano_plot(
         ],
     )
 
+def clusteredheatmap_plot(
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame | None,
+    flip_axes: bool = False,
+    metadata_column_samplegroupings: list[str] | None = None,
+    # Algo params
+    perform_row_clustering: bool = True,
+    perform_column_clustering: bool = True,
+    linkage_method: str = "single",
+    distance_method: str = "euclidean",
+    # Visu params
+    heatmap_color_scale: str = "RdBu_r",
+    heatmap_low_color_limit: float | None = None,
+    heatmap_high_color_limit: float | None = None,
+) -> dict:
+    
+    # c = ClusteredHeatMap()
+    c = None
+
+    fig = c.get_visualization_plotly()
+
+    return dict(plots=[fig])
 
 def clustergram_plot(
     protein_df: pd.DataFrame,
