@@ -537,9 +537,6 @@ def get_missing_protein_designation(
         uniprot_lookup_results=uniprot_lookup_results,
     )
 
-    if not good_df.empty:
-        good_df = normalize_crosslinking_df(good_df)
-
     return good_df, failed_df
 
 
@@ -597,6 +594,8 @@ def read_ProteomeDiscoverer_XlinkX_file(
         missing_column="Protein",
         uniprot_lookup_function=get_gene_name_from_protein_ids,
     )
+    if not good_df.empty:
+        good_df = normalize_crosslinking_df(good_df)
 
     return good_df, failed_df
 
@@ -640,6 +639,8 @@ def read_csm_file(
         missing_column="Protein_id",
         uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
     )
+    if not good_df.empty:
+        good_df = normalize_crosslinking_df(good_df)
 
     return good_df, failed_df
 
