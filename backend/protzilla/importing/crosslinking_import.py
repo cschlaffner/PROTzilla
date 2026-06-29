@@ -39,6 +39,10 @@ class ProteinDesignationLookupMode(Enum):
     id_to_gene_name = "id_to_gene_name"
 
 
+class ImportValidationError(Exception):
+    pass
+
+
 def aggregate_data(df: pd.DataFrame, column: str) -> set:
     """
     Extract unique values from two DataFrame columns and return them as a set.
@@ -715,6 +719,26 @@ def process_organism_id_from_text_field(
     return True, organism_ids_list, organism_names, None
 
 
+def validate_organism_ids(organism_ids):
+    success, organism_ids_list, scientific_organism_names, error = (
+        process_organism_id_from_text_field(organism_ids)
+    )
+    if success:
+        return organism_ids_list, scientific_organism_names
+    else:
+        if organism_ids_list:
+            raise ImportValidationError(
+                f"Unsupported organism id: {organism_ids_list}. \n"
+                f"Organism id validation failed with error: {error}. \n"
+                "Please provide all valid taxonomy ids."
+            )
+        else:
+            raise ImportValidationError(
+                f"An error occurred while reading the organism ids: {error}. \n"
+                "Please provide all valid taxonomy ids, separated by a comma."
+            )
+
+
 def aggregate_failed_proteins_for_display(failed_df: pd.DataFrame) -> str:
     """
     Aggregate failed protein lookups into a human-readable string.
@@ -764,31 +788,13 @@ def error_output(msg, trace: str | None = None) -> dict:
     )
 
 
-def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
-    file_type = file_path.suffix.lower()
-    try:
-        scientific_organism_names: list[str] = None
-        if file_type == ".csv":
-            success, organism_ids_list, scientific_organism_names, error = (
-                process_organism_id_from_text_field(organism_ids)
-            )
-            if not success:
-                if organism_ids_list:
-                    msg = f"Unsupported organism id: {organism_ids_list}. \nOrganism id validation failed with error: {error}. \nPlease provide all valid taxonomy ids."
-                else:
-                    msg = f"An error occurred while reading the organism ids: {error}. \nPlease provide all valid taxonomy ids, separated by a comma."
-                return error_output(msg)
-            good_df, failed_df = read_csm_file(file_path, organism_ids_list)
-        elif file_type == ".xlsx":
-            good_df, failed_df = read_ProteomeDiscoverer_XlinkX_file(file_path)
-        else:
-            raise ValueError(f"Unsupported file type: {file_path.suffix}")
-    except Exception as e:
-        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid crosslinking file."
-        return error_output(msg, trace=format_trace(traceback.format_exception(e)))
-
+def build_success_messages(
+    good_df: pd.DataFrame,
+    failed_df: pd.DataFrame,
+    scientific_organism_names: list[str] | None = None,
+) -> dict:
     def base_message():
-        if file_type == ".csv":
+        if scientific_organism_names:
             organism_names_string = ", ".join(scientific_organism_names)
             return (
                 f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
@@ -796,30 +802,91 @@ def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
         return f"{len(good_df)} crosslinks"
 
     if good_df.empty:
-        msg = f"No crosslinks could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
-        messages = [dict(level=logging.ERROR, msg=msg)]
-    elif failed_df.empty:
-        msg = f"Successfully imported data of {base_message()}."
-        messages = [dict(level=logging.INFO, msg=msg)]
-    else:
-        msg = f"Warning: {len(failed_df)} rows failed to import, however {base_message()} were successfully imported."
         messages = [
-            dict(level=logging.WARNING, msg=msg),
+            dict(
+                level=logging.ERROR,
+                msg=(
+                    "No crosslinks could be processed from this file. "
+                    f"File was read successfully, but the data of {base_message()} "
+                    "could be imported."
+                ),
+            )
+        ]
+    elif failed_df.empty:
+        messages = [
+            dict(
+                level=logging.INFO,
+                msg=f"Successfully imported data of {base_message()}.",
+            )
+        ]
+    else:
+        messages = [
             dict(
                 level=logging.WARNING,
-                msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}",
+                msg=(
+                    f"Warning: {len(failed_df)} rows failed to import, "
+                    f"however {base_message()} were successfully imported."
+                ),
+            ),
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    "Failed proteins:\n"
+                    f"{aggregate_failed_proteins_for_display(failed_df)}"
+                ),
             ),
         ]
 
-    return dict(
-        crosslinking_df=good_df,
-        imported_rows_with_errors_df=failed_df,
-        messages=messages,
-    )
+    return messages
+
+
+def run_import(import_func):
+    try:
+        good_df, failed_df, scientific_organism_names = import_func()
+
+        messages = build_success_messages(
+            good_df,
+            failed_df,
+            scientific_organism_names=scientific_organism_names,
+        )
+
+        return dict(
+            crosslinking_df=good_df,
+            imported_rows_with_errors_df=failed_df,
+            messages=messages,
+        )
+    except ImportValidationError as e:
+        return error_output(str(e))
+    except Exception as e:
+        return error_output(
+            f"An error occurred while reading the file: "
+            f"{e.__class__.__name__} {e}. "
+            "Please provide a valid crosslinking file.",
+            trace=format_trace(traceback.format_exception(e)),
+        )
+
+
+def crosslinking_import(file_path: Path, organism_ids: str) -> dict:
+    def _import():
+        file_type = file_path.suffix.lower()
+        scientific_organism_names: list[str] = None
+        if file_type == ".csv":
+            organism_ids_list, scientific_organism_names = validate_organism_ids(
+                organism_ids
+            )
+            good_df, failed_df = read_csm_file(file_path, organism_ids_list)
+        elif file_type == ".xlsx":
+            good_df, failed_df = read_ProteomeDiscoverer_XlinkX_file(file_path)
+        else:
+            raise ImportValidationError(f"Unsupported file type: {file_path.suffix}")
+
+        return good_df, failed_df, scientific_organism_names
+
+    return run_import(_import)
 
 
 def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
-    try:
+    def _import():
         file_type = file_path.suffix.lower()
         if file_type == ".xlsx":
             df = pd.read_excel(file_path).rename(
@@ -830,7 +897,7 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
                 columns=rename_columns_universal_format
             )
         else:
-            raise ValueError(f"Unsupported file type: {file_path.suffix}")
+            raise ImportValidationError(f"Unsupported file type: {file_path.suffix}")
 
         initial_columns = set(df.columns)
 
@@ -861,10 +928,13 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
 
         has_gene_names = {"Protein1", "Protein2"} <= initial_columns
         has_protein_ids = {"Protein_id1", "Protein_id2"} <= initial_columns
+        good_df = df
+        failed_df = pd.DataFrame()
+        scientific_organism_names: list[str] = None
 
         if not has_gene_names:
             if not has_protein_ids:
-                return error_output(
+                raise ImportValidationError(
                     "The file must contain either Gene Names or Protein Ids."
                 )
             good_df, failed_df = get_missing_protein_designation(
@@ -875,16 +945,9 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
             )
 
         if not has_protein_ids:
-            success, organism_ids_list, scientific_organism_names, error = (
-                process_organism_id_from_text_field(organism_ids)
+            organism_ids_list, scientific_organism_names = validate_organism_ids(
+                organism_ids
             )
-            if not success:
-                if organism_ids_list:
-                    msg = f"Unsupported organism id: {organism_ids_list}. \nOrganism id validation failed with error: {error}. \nPlease provide all valid taxonomy ids."
-                else:
-                    msg = f"An error occurred while reading the organism ids: {error}. \nPlease provide all valid taxonomy ids, separated by a comma."
-                return error_output(msg)
-
             uniprot_lookup_function_with_organism_ids = partial(
                 get_protein_ids_from_gene_name, organism_ids=organism_ids_list
             )
@@ -902,36 +965,6 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
         if not good_df.empty:
             good_df = normalize_crosslinking_df(good_df)
 
-    except Exception as e:
-        msg = f"An error occurred while reading the file: {e.__class__.__name__} {e}. Please provide a valid crosslinking file."
-        return error_output(msg, trace=format_trace(traceback.format_exception(e)))
+        return good_df, failed_df, scientific_organism_names
 
-    def base_message():
-        if file_type == ".csv":
-            organism_names_string = ", ".join(scientific_organism_names)
-            return (
-                f"{len(good_df)} crosslinks for the {organism_names_string} organism(s)"
-            )
-        return f"{len(good_df)} crosslinks"
-
-    if good_df.empty:
-        msg = f"No crosslinks could be processed from this file. File was read successfully, but the data of {base_message()} could be imported."
-        messages = [dict(level=logging.ERROR, msg=msg)]
-    elif failed_df.empty:
-        msg = f"Successfully imported data of {base_message()}."
-        messages = [dict(level=logging.INFO, msg=msg)]
-    else:
-        msg = f"Warning: {len(failed_df)} rows failed to import, however {base_message()} were successfully imported."
-        messages = [
-            dict(level=logging.WARNING, msg=msg),
-            dict(
-                level=logging.WARNING,
-                msg=f"Failed proteins:\n{aggregate_failed_proteins_for_display(failed_df)}",
-            ),
-        ]
-
-    return dict(
-        crosslinking_df=good_df,
-        imported_rows_with_errors_df=failed_df,
-        messages=messages,
-    )
+    return run_import(_import)
