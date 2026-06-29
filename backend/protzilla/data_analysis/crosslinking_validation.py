@@ -73,11 +73,11 @@ def get_reactive_atom_of_amino_acid_residue(
         messages.append(
             dict(
                 level=logging.WARNING,
-                msg= (
-                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker" 
+                msg=(
+                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker"
                     f"binding to the amino acid {amino_acid_type}."
                     f"Therefore the CA atom is used for the calculation of this crosslink."
-                )
+                ),
             )
         )
         return ["CA"], messages
@@ -107,11 +107,11 @@ def get_reactive_atom_of_amino_acid_residue(
         messages.append(
             dict(
                 level=logging.WARNING,
-                msg= (
-                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker " 
+                msg=(
+                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker "
                     f"binding to the amino acid {amino_acid_type}. "
                     f"Therefore the CA atom is used for the calculation of this crosslink."
-                )
+                ),
             )
         )
 
@@ -179,7 +179,7 @@ def expand_crosslinks_to_exact_binding_sites(
             messages,
         )
 
-    return pd.DataFrame(expanded_rows).reset_index(drop=True), messages 
+    return pd.DataFrame(expanded_rows).reset_index(drop=True), messages
 
 
 def deduplicate_messages(messages: list[dict]) -> list[dict]:

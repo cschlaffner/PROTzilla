@@ -36,7 +36,10 @@ from backend.protzilla.importing.alphafold_protein_structure_load import (
 )
 from backend.protzilla.importing.peptide_import import peptide_import, evidence_import
 from backend.protzilla.steps import Step, Section, StepOperation
-from backend.protzilla.importing.crosslinking_import import crosslinking_import, universal_crosslinking_import
+from backend.protzilla.importing.crosslinking_import import (
+    crosslinking_import,
+    universal_crosslinking_import,
+)
 from backend.protzilla.run import Run
 from backend.protzilla.importing.example_dataset_import import example_dataset_import
 from backend.protzilla.importing.fasta_import import fasta_import

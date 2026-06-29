@@ -48,37 +48,61 @@ columns_in_crosslinking_df = [
     "Q_value",
 ]
 
-columns_in_crosslinking_df_with_types = {
-    "Protein1": "string",
-    "Protein2": "string",
-    "Protein_id1": "string",
-    "Protein_id2": "string",
-    "Is_intra_crosslink": "string",
-    "Crosslinker": "string",
-    "Peptide1": "string",
-    "Peptide2": "string",
-    "CL_position_within_peptide1": "Int64",
-    "CL_position_within_peptide2": "Int64",
-    "Q_value": "Float64",
-}
-
 column_aliases = {
     "Protein1": [],
     "Protein2": [],
-    "Protein_id1": ["Accession A",],
-    "Protein_id2": ["Accession B",],
-    "Is_intra_crosslink": ["Crosslink Type", "XL_type", "Link-Type", "XFDR.is_intraprotein"],
+    "Protein_id1": [
+        "Accession A",
+    ],
+    "Protein_id2": [
+        "Accession B",
+    ],
+    "Is_intra_crosslink": [
+        "Crosslink Type",
+        "XL_type",
+        "Link-Type",
+        "XFDR.is_intraprotein",
+    ],
     "Crosslinker": ["xl_mod"],
-    "Peptide1": ["Sequence A", "Peptide A", "peptide_a", "peptide1", "Alpha peptide", "CleanPep 1", "PepSeq1", "alpha_sequence"],
-    "Peptide2": ["Sequence B", "Peptide B", "peptide_b", "peptide2", "Beta peptide", "CleanPep 2",  "PepSeq2", "beta_sequence"],
-    "CL_position_within_peptide1": ["Crosslinker Position A", "xl_a", "AlphaPos", "LinkPos1", "xl_pos1"],
-    "CL_position_within_peptide2": ["Crosslinker Position B", "xl_b", "BetaPos", "LinkPos2", "xl_pos2"],
-    "Q_value": ["Q-value", ],
+    "Peptide1": [
+        "Sequence A",
+        "Peptide A",
+        "peptide_a",
+        "peptide1",
+        "Alpha peptide",
+        "CleanPep 1",
+        "PepSeq1",
+        "alpha_sequence",
+    ],
+    "Peptide2": [
+        "Sequence B",
+        "Peptide B",
+        "peptide_b",
+        "peptide2",
+        "Beta peptide",
+        "CleanPep 2",
+        "PepSeq2",
+        "beta_sequence",
+    ],
+    "CL_position_within_peptide1": [
+        "Crosslinker Position A",
+        "xl_a",
+        "AlphaPos",
+        "LinkPos1",
+        "xl_pos1",
+    ],
+    "CL_position_within_peptide2": [
+        "Crosslinker Position B",
+        "xl_b",
+        "BetaPos",
+        "LinkPos2",
+        "xl_pos2",
+    ],
+    "Q_value": [
+        "Q-value",
+    ],
 }
 
 rename_columns_universal_format = {
-    alias: target
-    for target, aliases in column_aliases.items()
-    for alias in aliases
+    alias: target for target, aliases in column_aliases.items() for alias in aliases
 }
-
