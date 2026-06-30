@@ -184,6 +184,7 @@ def irwsva(
 
     :param dat: the data matrix with the variables in rows and samples in columns
     :param mod: the model matrix being used to fit the data
+    :param mod0: the null model being compared when fitting the data
     :param n_surrogate_variables: the number of surrogate variables to calculate
     :param B: number of iterations for the algorithm to perform
 
@@ -195,7 +196,6 @@ def irwsva(
     """
     if mod0 is None:
         mod0 = mod[:, 0:1]
-    mod = np.hstack([mod0, mod])
     n_rows, n_columns = dat.shape
     # calculate residuals
     beta, residuals, rank, s = np.linalg.lstsq(mod, dat.T, rcond=None)
