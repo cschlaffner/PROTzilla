@@ -413,7 +413,7 @@ def sva_correction(
 
     dat = (wide_protein_df.T).values
     mod0 = np.asarray(mod0)
-    mod = np.hstack([mod0, groups_int])
+    mod = groups_int
 
     if num_sv_method == NumSVMethods.be.value:
         if seed == -1:
