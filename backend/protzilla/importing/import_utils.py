@@ -49,13 +49,23 @@ columns_in_crosslinking_df = [
 ]
 
 column_aliases = {
-    "Protein1": [],
-    "Protein2": [],
+    "Protein1": [
+        "Protein A",
+    ],
+    "Protein2": [
+        "Protein B",
+    ],
     "Protein_id1": [
         "Accession A",
+        "Protein Accession A",
+        "protein_id_a",
+        "ProteinId1"
     ],
     "Protein_id2": [
         "Accession B",
+        "Protein Accession B",
+        "protein_id_b",
+        "ProteinId2"
     ],
     "Is_intra_crosslink": [
         "Crosslink Type",

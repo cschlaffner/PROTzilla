@@ -901,31 +901,6 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
 
         initial_columns = set(df.columns)
 
-        if {"Is_intra_crosslink"} <= initial_columns:
-            content = df["Is_intra_crosslink"].astype("string").str.strip().str.lower()
-            df["Is_intra_crosslink"] = (
-                content.str.contains("intra", na=False) | content.eq("true")
-            ).astype("boolean")
-        else:
-            df["Is_intra_crosslink"] = df["Protein1"].eq(df["Protein2"])
-
-        if (
-            not {"CL_position_within_peptide1", "CL_position_within_peptide2"}
-            <= initial_columns
-        ):
-            df["CL_position_within_peptide1"] = df["Peptide1"].apply(
-                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
-            )
-            df["CL_position_within_peptide2"] = df["Peptide2"].apply(
-                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
-            )
-            df["Peptide1"] = (
-                df["Peptide1"].apply(remove_brackets_from_peptide).astype("string")
-            )
-            df["Peptide2"] = (
-                df["Peptide2"].apply(remove_brackets_from_peptide).astype("string")
-            )
-
         has_gene_names = {"Protein1", "Protein2"} <= initial_columns
         has_protein_ids = {"Protein_id1", "Protein_id2"} <= initial_columns
         good_df = df
@@ -956,6 +931,31 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
                 existing_column="Protein",
                 missing_column="Protein_id",
                 uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
+            )
+        
+        if {"Is_intra_crosslink"} <= initial_columns:
+            content = good_df["Is_intra_crosslink"].astype("string").str.strip().str.lower()
+            good_df["Is_intra_crosslink"] = (
+                content.str.contains("intra", na=False) | content.eq("true")
+            ).astype("boolean")
+        else:
+            good_df["Is_intra_crosslink"] = good_df["Protein1"].eq(good_df["Protein2"])
+
+        if (
+            not {"CL_position_within_peptide1", "CL_position_within_peptide2"}
+            <= initial_columns
+        ):
+            good_df["CL_position_within_peptide1"] = good_df["Peptide1"].apply(
+                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
+            )
+            good_df["CL_position_within_peptide2"] = good_df["Peptide2"].apply(
+                get_amino_acid_where_crosslink_is_connected_proteomediscoverer_xlinkx_format
+            )
+            good_df["Peptide1"] = (
+                good_df["Peptide1"].apply(remove_brackets_from_peptide).astype("string")
+            )
+            good_df["Peptide2"] = (
+                good_df["Peptide2"].apply(remove_brackets_from_peptide).astype("string")
             )
 
         for column in columns_in_crosslinking_df:
