@@ -43,6 +43,7 @@ def get_reactive_atom_of_amino_acid_residue(
     amino_acid_type: str,
     amino_acid_position: int,
     crosslinker_type: str,
+    index_of_last_amino_acid: int, 
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> tuple[list[str], list[dict]]:
     """
@@ -94,6 +95,10 @@ def get_reactive_atom_of_amino_acid_residue(
         reactive_atoms_list.extend(
             REACTIVE_ATOMS[crosslinker_class].get("terminal_atoms", {}).get("NTERM", [])
         )
+    elif amino_acid_position == index_of_last_amino_acid: 
+        reactive_atoms_list.extend(
+            REACTIVE_ATOMS[crosslinker_class].get("terminal_atoms", {}).get("CTERM", [])
+        )
 
     if not reactive_atoms_list:
         reactive_atoms_list.extend(
@@ -120,6 +125,7 @@ def get_reactive_atom_of_amino_acid_residue(
 
 def expand_crosslinks_to_exact_binding_sites(
     relevant_crosslinks_df: pd.DataFrame,
+    amino_acid_sequences_df: pd.DataFrame, 
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
@@ -144,10 +150,19 @@ def expand_crosslinks_to_exact_binding_sites(
     for _, crosslink in relevant_crosslinks_df.iterrows():
         amino_acid_type1 = crosslink.Peptide1[crosslink.CL_position_within_peptide1 - 1]
         amino_acid_type2 = crosslink.Peptide2[crosslink.CL_position_within_peptide2 - 1]
+        index_of_last_amino_acid1 = get_index_of_last_amino_acid(
+            amino_acid_sequences_df=amino_acid_sequences_df, 
+            protein_id = crosslink.Protein_id1
+        )
+        index_of_last_amino_acid2 = get_index_of_last_amino_acid(
+            amino_acid_sequences_df=amino_acid_sequences_df, 
+            protein_id = crosslink.Protein_id2
+        )
         reactive_atoms1_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type1,
             crosslink.crosslinker_position1,
             crosslink.Crosslinker,
+            index_of_last_amino_acid1,
             REACTIVE_ATOMS,
         )
         messages.extend(msg)
@@ -155,6 +170,7 @@ def expand_crosslinks_to_exact_binding_sites(
             amino_acid_type2,
             crosslink.crosslinker_position2,
             crosslink.Crosslinker,
+            index_of_last_amino_acid2,
             REACTIVE_ATOMS,
         )
         messages.extend(msg)
@@ -180,6 +196,15 @@ def expand_crosslinks_to_exact_binding_sites(
         )
 
     return pd.DataFrame(expanded_rows).reset_index(drop=True), messages
+
+
+def get_index_of_last_amino_acid(amino_acid_sequences_df, protein_id) -> int:
+    protein_sequence = get_protein_sequence_from_df(
+        amino_acid_sequences_df = amino_acid_sequences_df, 
+        protein_id = protein_id
+    )
+    last_index = len(protein_sequence)-1
+    return last_index
 
 
 def deduplicate_messages(messages: list[dict]) -> list[dict]:
@@ -787,6 +812,7 @@ def validate_with_angstrom_deviation(
 
     relevant_crosslinks_df, expand_messages = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
+        amino_acid_sequences_df=amino_acid_sequences_df,
         REACTIVE_ATOMS=REACTIVE_ATOMS,
     )
     messages.extend(expand_messages)
