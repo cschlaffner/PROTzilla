@@ -6,6 +6,19 @@ crosslinker_classes:
   BS3: AMINE-REACTIVE/NHS-ESTER
   PhoX: AMINE-REACTIVE/NHS-ESTER
 
+  SDH: DIHYDRAZIDE(+DMTMM/EDC)
+  GDH: DIHYDRAZIDE(+DMTMM/EDC)
+  ADH: DIHYDRAZIDE(+DMTMM/EDC)
+  PDH: DIHYDRAZIDE(+DMTMM/EDC)
+  "Suberic acid dihydrazide": DIHYDRAZIDE(+DMTMM/EDC)
+  "Sebacic acid dihydrazide": DIHYDRAZIDE(+DMTMM/EDC)
+  PEG-dihydrazide: DIHYDRAZIDE(+DMTMM/EDC)
+  PEG-DHZ: DIHYDRAZIDE(+DMTMM/EDC)
+  PEG-DH: DIHYDRAZIDE(+DMTMM/EDC)
+  Carbohydrazide: DIHYDRAZIDE(+DMTMM/EDC)
+  CH: DIHYDRAZIDE(+DMTMM/EDC)
+  CDH: DIHYDRAZIDE(+DMTMM/EDC)
+
 AMINE-REACTIVE/NHS-ESTER: 
   primary_residue_atoms:
     K: # lysine
@@ -22,6 +35,32 @@ AMINE-REACTIVE/NHS-ESTER:
       - OG1 # hydroxyl-group
     Y: # tyrosine
       - OH # hydroxyl-group
+
+DIHYDRAZIDE(+DMTMM/EDC): 
+  primary_residue_atoms:
+    D: # aspartate
+      - CG # side-chain carboxyl carbon
+    E: # glutamate
+      - CD # side-chain carboxyl carbon
+
+  terminal_atoms:
+    CTERM: # last amino acid of the chain 
+      - C # carbonyl carbon of the terminal carboxyl group
+
+  secondary_residue_atoms: 
+    K:
+      - NZ # only if DMTMM directly mediates amide formation with lysine in the absence of PDH or at high DMTMM concentration
+    H:
+      - ND1
+      - NE2 # weak nucleophilic participation under certain conditions
+    Y:
+      - OH # extremely uncommon
+    S:
+      - OG # extremely uncommon
+    T:
+      - OG1 # extremely uncommon
+    C:
+      - SG # essentially negligible
 
 THIOL/SULFHYDRYL-REACTIVE:
   primary_residue_atoms: 
