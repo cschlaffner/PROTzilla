@@ -19,6 +19,9 @@ from backend.protzilla.constants.option_types import *
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
 from backend.protzilla.data_preprocessing.simplification import AggregationMethod
+from backend.protzilla.data_preprocessing.debug_transform_to_wide import (
+    transform_to_wide,
+)
 
 info_field_show_outliers = InfoField(
     name="show_outliers_info",
@@ -1072,3 +1075,19 @@ class FilterMetadataByExistingSamples(Step):
             )
         else:
             sample_column_field.set_options([])
+
+
+class TransformToWideFormat(Step):
+    section = Section.DATA_PREPROCESSING
+    display_name = "Transform Dataframe: Wide Format"
+    operation: StepOperation = StepOperation.DEBUG
+    method_description = "Turns the protein dataframe into wide format"
+    output_keys = [DataKey.DEBUG]
+
+    def create_form(self):
+        return Form(
+            label="Transform into a wide format dataframe",
+            input_fields=[],
+        )
+
+    calc_method = staticmethod(transform_to_wide)

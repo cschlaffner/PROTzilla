@@ -45,6 +45,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.FilterPsmByExistingProteins,
     data_preprocessing.FilterPsmByExistingSamples,
     data_preprocessing.GroupReplicates,
+    data_preprocessing.TransformToWideFormat,
     data_analysis.DifferentialExpressionANOVA,
     data_analysis.DifferentialExpressionTTest,
     data_analysis.DifferentialExpressionLinearModel,
