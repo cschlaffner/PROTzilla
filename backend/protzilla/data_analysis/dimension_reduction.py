@@ -245,8 +245,9 @@ def pca_scatter_plot(
     ]
 
     wide_protein_df = long_to_wide(protein_df)
+    samples = wide_protein_df.index
     color_column_list = collect_col_for_sample_in_order(
-        wide_protein_df=wide_protein_df, metadata_df=metadata_df, col_name=color_col
+        samples=samples, metadata_df=metadata_df, col_name=color_col
     )
 
     if len(pca_df.columns) < 2:

@@ -332,7 +332,7 @@ def combat_correction(
     """
     pycombat_protein_df = long_to_pycombat_df(protein_df=protein_df)
     batches_in_order = collect_col_for_sample_in_order(
-        wide_protein_df=pycombat_protein_df.T,
+        samples=pycombat_protein_df.columns,
         metadata_df=metadata_df,
         col_name=batch_column,
     )
@@ -378,7 +378,7 @@ def sva_correction(
 
     wide_protein_df = long_to_wide(protein_df)
     groups = collect_col_for_sample_in_order(
-        wide_protein_df=wide_protein_df,
+        samples=wide_protein_df.index,
         metadata_df=metadata_df,
         col_name=group_column,
     )
