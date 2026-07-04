@@ -41,7 +41,6 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import NotFittedError
-from tqdm.auto import tqdm
 
 
 MIN_LOESS_SIZE = 4
@@ -122,9 +121,7 @@ def correct_intra_batch_with_loess(
     corrector = _LoessCorrector(frac=frac)
 
     # for now I use tqdm to keep track of the progress. Currently, loading times are several minutes. I could think about parallelizing this.
-    for protein in tqdm(
-        batch_wide_protein_df.columns, desc="Progress in fitting proteins: "
-    ):
+    for protein in batch_wide_protein_df.columns:
 
         y_qc = qc_samples_values[protein].values
         y_all = all_samples_values[protein].values
@@ -145,5 +142,7 @@ def correct_intra_batch_with_loess(
         factor = x_qc - qc_mean
         corrected = y_all - factor
 
-        batch_wide_protein_df[protein] = corrected
+        batch_wide_protein_df[protein] = pd.Series(
+            corrected, index=all_samples_values.index
+        )
     return {"protein_df": batch_wide_protein_df, "messages": []}
