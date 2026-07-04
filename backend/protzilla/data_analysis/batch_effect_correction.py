@@ -20,6 +20,30 @@ from backend.protzilla.data_analysis.loess import correct_intra_batch_with_loess
 
 # <---- helper functions ---->
 
+# <-- all -->
+
+
+def get_covar_mod(
+    samples: list, metadata_df: pd.DataFrame, covar_columns: list[str]
+) -> pd.DataFrame:
+    """
+    Creates a covariates matrix for the ComBat method from the specified covariates, including only the samples from the protein data.
+
+    :param samples: list of samples
+    :param metadata_df: metadata dataframe for the protein data
+    :param covar_columns: the columns in metadata that specify the covariates of interest
+
+    :return: dataframe with the covariates for pycombat
+    """
+    # last part to keep the samples in the correct order (same as protein data) for combat
+    relevant_metadata_df = (
+        metadata_df[metadata_df["Sample"].isin(samples)]
+        .set_index("Sample")
+        .reindex(samples)
+    )
+    covar_df = relevant_metadata_df[covar_columns]
+    return covar_df
+
 
 # <- ComBat ->
 def long_to_pycombat_df(
@@ -74,29 +98,6 @@ def pycombat_df_to_long(
     intensity_df.insert(2, "Gene", gene_info)
 
     return intensity_df
-
-
-def get_covar_mod_combat(
-    pycombat_df: pd.DataFrame, metadata_df: pd.DataFrame, covar_columns: list[str]
-) -> pd.DataFrame:
-    """
-    Creates a covariates matrix for the ComBat method from the specified covariates, including only the samples from the protein data.
-
-    :param pycombat_df: dataframe containing the protein data (samples in columns, protein ids in rows)
-    :param metadata_df: metadata dataframe for the protein data
-    :param covar_columns: the columns in metadata that specify the covariates of interest
-
-    :return: dataframe with the covariates for pycombat
-    """
-    samples = pycombat_df.columns
-    # last part to keep the samples in the correct order (same as protein data) for combat
-    relevant_metadata_df = (
-        metadata_df[metadata_df["Sample"].isin(samples)]
-        .set_index("Sample")
-        .reindex(samples)
-    )
-    covar_df = relevant_metadata_df[covar_columns]
-    return covar_df
 
 
 # <- SVA ->
@@ -185,26 +186,6 @@ def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.Dat
     df["Sample"] = samples_in_order
     df = df[["Sample"] + sv_names]
     return df
-
-
-def get_covar_mod_sva(
-    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame, covar_columns: list[str]
-) -> pd.DataFrame:
-    """
-    Creates a covariates matrix for the SVA method from the specified covariates, including only the samples from the protein data.
-
-    :param wide_protein_df: dataframe containing the protein data (protein ids in columns, samples in rows)
-    :param metadata_df: metadata dataframe for the protein data
-    :param covar_columns: columns in metadata that specify the covariates of interest
-
-    :return: dataframe with the covariates for SVA
-    """
-    covar_df = get_covar_mod_combat(
-        pycombat_df=wide_protein_df.T,
-        metadata_df=metadata_df,
-        covar_columns=covar_columns,
-    )
-    return covar_df
 
 
 def turn_covar_df_into_design_matrix(
@@ -355,8 +336,8 @@ def combat_correction(
         metadata_df=metadata_df,
         col_name=batch_column,
     )
-    covar_df = get_covar_mod_combat(
-        pycombat_df=pycombat_protein_df,
+    covar_df = get_covar_mod(
+        samples=pycombat_protein_df.columns,
         metadata_df=metadata_df,
         covar_columns=covariates_columns,
     )
@@ -401,8 +382,8 @@ def sva_correction(
         metadata_df=metadata_df,
         col_name=group_column,
     )
-    covar_mod = get_covar_mod_sva(
-        wide_protein_df=wide_protein_df,
+    covar_mod = get_covar_mod(
+        samples=wide_protein_df.index,
         metadata_df=metadata_df,
         covar_columns=covariates_columns,
     )
