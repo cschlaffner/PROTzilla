@@ -93,6 +93,9 @@ def test_get_all_possible_step_names():
         "CrosslinkingValidationWithAngstromDeviation",
         "CrosslinkingValidationWithAngstromDeviationForMultimer",
         "PtmValidation",
+        "CorrelationMatrixWithPearsonCorrelation",
+        "DistanceMatrixBasedOnCorrelationMatrix",
+        "HDBSCAN",
     }
 
     steps = get_all_possible_steps()

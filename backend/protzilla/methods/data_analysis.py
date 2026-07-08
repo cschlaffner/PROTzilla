@@ -1,6 +1,5 @@
 from abc import ABC
 from typing_extensions import override
-import ast
 
 from backend.protzilla.constants.option_types import (
     CrosslinkingValidationCriterion,
@@ -97,6 +96,11 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     multimer_diagrams,
     monomer_validation,
     multimer_validation,
+)
+from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
+    get_correlation_matrix,
+    get_distance_matrix_from_correlation_matrix_df,
+    hdbscan_for_ppi,
 )
 
 
@@ -2525,3 +2529,40 @@ class PtmValidation(PeptideAnalysisStep):
                 )
             ],
         )
+
+
+class CorrelationMatrixWithPearsonCorrelation(DataAnalysisStep):
+    output_keys = ["correlation_matrix_df"]
+    display_name = "Pearson correlation matrix"
+    operation = "Clustering For PPIs"
+    method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
+    calc_method = staticmethod(get_correlation_matrix)
+
+    def create_form(self):
+        return Form(label="Pearson Correlation Matrix", input_fields=[])
+
+
+class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
+    output_keys = ["distance_matrix_df"]
+    display_name = "Distance matrix"
+    operation = "Clustering For PPIs"
+    method_description = (
+        "Creates a matrix showing dissimilarities between different proteins."
+    )
+    calc_method = staticmethod(get_distance_matrix_from_correlation_matrix_df)
+
+    def create_form(self):
+        return Form(
+            label="Distance Matrix Based On Correlation Matrix", input_fields=[]
+        )
+
+
+class HDBSCAN(DataAnalysisStep):
+    output_keys = []
+    display_name = "HDBSCAN"
+    operation = "Clustering For PPIs"
+    method_description = "Executes HDBSCAN clustering on a distance matrix."
+    calc_method = staticmethod(hdbscan_for_ppi)
+
+    def create_form(self):
+        return Form(label="HDBSCAN for PPIs", input_fields=[])
