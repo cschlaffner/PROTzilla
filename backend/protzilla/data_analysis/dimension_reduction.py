@@ -217,6 +217,7 @@ def dimension_reduction_pca(
     pca_df = pd.DataFrame(
         {f"PC{i+1}": pca_array[:, i] for i in range(pca_array.shape[1])}
     )
+    pca_df.insert(0, "Sample", wide_protein_df.index)
 
     return {"pca_df": pca_df}
 
@@ -250,7 +251,7 @@ def pca_scatter_plot(
         samples=samples, metadata_df=metadata_df, col_name=color_col
     )
 
-    if len(pca_df.columns) < 2:
+    if len(pca_df.columns) < 3:
         return {
             "pca_df": pca_df,
             "plots": [px.scatter()],
