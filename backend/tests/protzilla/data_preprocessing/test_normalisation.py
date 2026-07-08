@@ -50,6 +50,26 @@ def normalisation_df():
 
 
 @pytest.fixture
+def input_log_normalisation_df():
+    """Provides a mocked log-transformed dataset with -inf for failed runs."""
+    input_df = pd.DataFrame(
+        data=(
+            ["Sample_1", "Gene_1", -np.inf, -np.inf, -np.inf],
+            ["Sample_2", "Gene_2", 12.0, 14.0, 16.0],
+            ["Sample_3", "Gene_3", 14.0, 16.0, 18.0],
+            ["Sample_4", "Gene_4", -np.inf, -np.inf, -np.inf],
+        ),
+        columns=["Sample", "Gene", "Protein_1", "Protein_2", "Protein_3"],
+    )
+    return pd.melt(
+        input_df,
+        id_vars=["Sample", "Gene"],
+        var_name="Protein ID",
+        value_name="Intensity",
+    ).sort_values(by=["Sample", "Protein ID"], ignore_index=True)
+
+
+@pytest.fixture
 def normalisation_by_ref_protein_df():
     intensity_df = pd.DataFrame(
         data=(
@@ -209,6 +229,25 @@ def expected_df_by_median_normalisation():
 
 
 @pytest.fixture
+def expected_df_by_median_log_normalisation():
+    expected_df = pd.DataFrame(
+        data=(
+            ["Sample_1", "Gene_1", 0.0, 0.0, 0.0],
+            ["Sample_2", "Gene_2", 13.0, 15.0, 17.0],
+            ["Sample_3", "Gene_3", 13.0, 15.0, 17.0],
+            ["Sample_4", "Gene_4", 0.0, 0.0, 0.0],
+        ),
+        columns=["Sample", "Gene", "Protein_1", "Protein_2", "Protein_3"],
+    )
+    return pd.melt(
+        expected_df,
+        id_vars=["Sample", "Gene"],
+        var_name="Protein ID",
+        value_name="Normalised Intensity",
+    ).sort_values(by=["Sample", "Protein ID"], ignore_index=True)
+
+
+@pytest.fixture
 def expected_df_by_totalsum_normalisation():
     expected_df = pd.DataFrame(
         data=(
@@ -335,7 +374,7 @@ def test_normalisation_by_z_score(
 def test_normalisation_by_median(
     normalisation_df, expected_df_by_median_normalisation, show_figures
 ):
-    method_outputs = by_median(normalisation_df)
+    method_outputs = by_median(normalisation_df, log=False)
 
     fig = by_median_plot(
         normalisation_df,
@@ -359,9 +398,35 @@ def test_normalisation_by_median(
 
 def test_normalisation_by_median_invalid_percentile(normalisation_df):
     with pytest.raises(AssertionError):
-        by_median(normalisation_df, percentile=-1)
+        by_median(normalisation_df, log=False, percentile=-1)
     with pytest.raises(AssertionError):
-        by_median(normalisation_df, percentile=1.1)
+        by_median(normalisation_df, log=False, percentile=1.1)
+
+
+def test_normalisation_by_median_log(
+    input_log_normalisation_df, expected_df_by_median_log_normalisation, show_figures
+):
+    method_outputs = by_median(input_log_normalisation_df, log=True)
+
+    fig = by_median_plot(
+        input_log_normalisation_df,
+        method_outputs[DataKey.PROTEIN_DF],
+        "Boxplot",
+        "Sample",
+        "log10",
+        True,
+    )[0]
+    if show_figures:
+        fig.show()
+
+    result_df = method_outputs[DataKey.PROTEIN_DF]
+
+    assert result_df.round(3).equals(
+        expected_df_by_median_log_normalisation
+    ), f"Log median normalisation does not match! Should be \
+            \n{expected_df_by_median_log_normalisation}\nbut is\n{result_df}"
+
+    assert method_outputs["zeroed_samples"] == ["Sample_1", "Sample_4"]
 
 
 def test_totalsum_normalisation(

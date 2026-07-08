@@ -258,6 +258,7 @@ def test_runner_imports(
         },
         {
             "percentile": 0.5,
+            "log": False,
             "graph_type": "Boxplot",
             "group_by": "None",
             "visual_transformation": "log10",
