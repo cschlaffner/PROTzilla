@@ -644,6 +644,16 @@ class NormalisationByMedian(NormalisationStep):
                     max=1,
                     step=0.1,
                 ),
+                CheckboxField(
+                    name="log",
+                    label="Data was log-transformed before normalization",
+                    value=False,
+                ),
+                InfoField(
+                    name="log_before_normalisation_info",
+                    label="The normalisation is calculated differently for log-transformed data, "
+                    "using subtraction instead of division.",
+                ),
                 FormDivider("Plot settings"),
                 DropdownField(
                     name="graph_type",
@@ -672,6 +682,14 @@ class NormalisationByMedian(NormalisationStep):
                 info_field_show_outliers,
             ],
         )
+
+    def modify_form(self, run):
+        if self.form["log"].value:
+            self.form["visual_transformation"].value = (
+                VisualTransformations.LINEAR.value
+            )
+        elif not self.form["log"].value:
+            self.form["visual_transformation"].value = VisualTransformations.LOG10.value
 
     calc_method = staticmethod(normalisation.by_median)
     plot_method = staticmethod(normalisation.by_median_plot)
