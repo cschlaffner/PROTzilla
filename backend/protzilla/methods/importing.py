@@ -660,18 +660,20 @@ class AlphaFoldQueryJsonGeneration(Step):
                     label="File name and AlphaFold job name for generated query",
                 ),
                 InfoField(
+                    name="file_name_info",
                     label="Only enter file stem, '.json' will be added automatically."
                 ),
                 TextField(
                     name="protein_ids",
                     label="UniProt Protein IDs",
                 ),
-                InfoField(label="IDs should be space- or comma-separated."),
+                InfoField(name="protein_id_info", label="IDs should be space- or comma-separated."),
                 TextField(
                     name="number_copies",
                     label="Number of copies of each protein monomer",
                 ),
                 InfoField(
+                    name="number_of_copies_info",
                     label="For each entered ID a number should be entered.\n"
                     "Numbers should be space- or comma-separated."
                 ),
@@ -683,6 +685,7 @@ class AlphaFoldQueryJsonGeneration(Step):
                     value=-1,
                 ),
                 InfoField(
+                    name="random_seed_info",
                     label="Leave -1 if you want to use a random seed.\n"
                     "Otherwise enter a seed (integer between 0 and 4294967295)"
                 ),
