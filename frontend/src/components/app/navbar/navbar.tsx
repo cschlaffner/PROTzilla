@@ -16,6 +16,9 @@ import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
+import { API_ROOT } from "../../../constants";
+import { ensureCSRFToken } from "../../../utils/api-call";
+
 const NavbarBody = styled.div`
   align-items: center;
   width: 100vw;
@@ -77,27 +80,44 @@ const MemoryUsageTitle = styled(Text)`
   padding-right: ${spacing("medium")};
 `;
 
+const ChatModal = styled(Modal)`
+  width: min(960px, 95vw);
+  max-width: 95vw;
+`;
+
+const ChatBody = styled.div`
+  width: min(900px, 88vw);
+  height: 75vh;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+`;
+
 const ChatMessages = styled.div`
-  min-height: 220px;
-  max-height: 50vh;
+  min-height: 420px;
+  max-height: 56vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: ${spacing("small")};
   padding-bottom: ${spacing("small")};
+  flex: 1;
 `;
 
-const ChatMessage = styled.div`
-  border: 1px solid ${color("gray")};
+const ChatMessage = styled.div<{ $role: "user" | "assistant" }>`
+  border: 1px solid ${(props) => (props.$role === "user" ? color("primary") : color("gray"))};
   border-radius: 8px;
   padding: ${spacing("small")};
-  background: ${color("backgroundOffset")};
+  background: ${(props) => (props.$role === "user" ? color("primary") : "white")};
+  color: ${(props) => (props.$role === "user" ? color("onPrimary") : color("primary"))};
   white-space: pre-line;
+  max-width: 85%;
+  align-self: ${(props) => (props.$role === "user" ? "flex-end" : "flex-start")};
 `;
 
 const ChatInput = styled.textarea`
   width: 100%;
-  min-height: 90px;
+  min-height: 120px;
   box-sizing: border-box;
   resize: vertical;
   border: 1px solid ${color("gray")};
@@ -106,10 +126,41 @@ const ChatInput = styled.textarea`
   font: inherit;
 `;
 
-interface ChatMessage {
+const TraceDetails = styled.details`
+  margin: ${spacing("small")} 0;
+  padding: ${spacing("small")};
+  background: ${color("backgroundOffset")};
+  color: ${color("primary")};
+  border-left: 4px solid ${color("primary")};
+`;
+
+const TraceSummary = styled.summary`
+  cursor: pointer;
+  font-weight: ${fontWeight("bold")};
+`;
+
+const TracePre = styled.pre`
+  margin: ${spacing("verySmall")} 0 0 ${spacing("medium")};
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: inherit;
+`;
+
+interface ChatToolTraceEntry {
+  type: "trace";
+  toolCallId?: string;
+  tool: string;
+  arguments: unknown;
+  result: unknown;
+}
+
+interface ChatBubbleMessage {
+  type: "message";
   role: "user" | "assistant";
   content: string;
 }
+
+type ChatEntry = ChatBubbleMessage | ChatToolTraceEntry;
 
 export const Navbar: React.FC<NavbarProps> = ({
   showRunInformation,
@@ -126,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isWorkflowSaveOpen, setIsWorkflowSaveOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatEntry[]>([]);
   const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
   // <-- Modal for run properties and edit -->
   const [isRunSettingsOpen, openRunSettings, closeRunSettings] = useToggleableState();
@@ -181,29 +232,125 @@ export const Navbar: React.FC<NavbarProps> = ({
       return;
     }
 
-    const nextMessages = [...chatMessages, { role: "user" as const, content: trimmedMessage }];
+    const nextMessages = [
+      ...chatMessages,
+      { type: "message" as const, role: "user" as const, content: trimmedMessage },
+    ];
     setChatMessages(nextMessages);
     setChatInput("");
 
     setIsSendingChatMessage(true);
-    const response = await callApiWithParameters("send_chat_message", {
-      messages: nextMessages,
-    });
-    setIsSendingChatMessage(false);
+    try {
+      const csrfToken = await ensureCSRFToken();
+      const response = await fetch(`${API_ROOT}send_chat_message`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          messages: nextMessages
+            .filter((message) => message.type === "message")
+            .map((message) => ({
+              role: message.role,
+              content: message.content,
+            })),
+        }),
+      });
 
-    if (response?.success && response.answer) {
-      setChatMessages((messages) => [
-        ...messages,
-        { role: "assistant", content: response.answer as string },
-      ]);
-      return;
+      if (!response.ok || !response.body) {
+        throw new Error("The AI did not return an answer.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      for (;;) {
+        const { value, done: isDone } = await reader.read();
+        if (isDone) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) {
+            continue;
+          }
+
+          const event = JSON.parse(line) as
+            | {
+                type: "tool_start";
+                tool_call_id?: string;
+                tool: string;
+                arguments: unknown;
+              }
+            | { type: "tool_result"; tool_call_id?: string; result: unknown }
+            | { type: "answer"; answer: string }
+            | { type: "error"; message: string };
+
+          if (event.type === "tool_start") {
+            setChatMessages((messages) => [
+              ...messages,
+              {
+                type: "trace",
+                toolCallId: event.tool_call_id,
+                tool: event.tool,
+                arguments: event.arguments,
+                result: null,
+              },
+            ]);
+            continue;
+          }
+
+          if (event.type === "tool_result") {
+            setChatMessages((messages) =>
+              messages.map((message) =>
+                message.type === "trace" && message.toolCallId === event.tool_call_id
+                  ? { ...message, result: event.result }
+                  : message,
+              ),
+            );
+            continue;
+          }
+
+          if (event.type === "answer") {
+            setChatMessages((messages) => [
+              ...messages,
+              { type: "message", role: "assistant", content: event.answer },
+            ]);
+            continue;
+          }
+
+          throw new Error(event.message);
+        }
+      }
+
+      if (buffer.trim()) {
+        const event = JSON.parse(buffer) as
+          | { type: "answer"; answer: string }
+          | { type: "error"; message: string };
+        if (event.type === "error") {
+          throw new Error(event.message);
+        }
+        setChatMessages((messages) => [
+          ...messages,
+          { type: "message", role: "assistant", content: event.answer },
+        ]);
+      }
+    } catch (error) {
+      notify({
+        title: "Chat failed",
+        message: error instanceof Error ? error.message : "The AI did not return an answer.",
+        type: "error",
+      });
+    } finally {
+      setIsSendingChatMessage(false);
     }
-
-    notify({
-      title: "Chat failed",
-      message: response?.message ? String(response.message) : "The AI did not return an answer.",
-      type: "error",
-    });
   };
 
   const handleWorkflowSave = useCallback(
@@ -296,35 +443,53 @@ export const Navbar: React.FC<NavbarProps> = ({
         onDiscard={handleDiscard}
         onClose={closeDiscardModal}
       />
-      <Modal
+      <ChatModal
         title="Chat"
         isOpen={isChatOpen}
         onClose={() => {
           setIsChatOpen(false);
         }}
       >
-        <ChatMessages>
-          {chatMessages.map((message, index) => (
-            <ChatMessage key={index.toString()}>
-              <strong>{message.role === "user" ? "You" : "AI"}:</strong> {message.content}
-            </ChatMessage>
-          ))}
-        </ChatMessages>
-        <ChatInput
-          value={chatInput}
-          placeholder="Type a message..."
-          onChange={(event) => {
-            setChatInput(event.target.value);
-          }}
-        />
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: spacing("small") }}>
-          <Button
-            text={isSendingChatMessage ? "Sending..." : "Send"}
-            onPress={() => void handleSendChatMessage()}
-            isDisabled={isSendingChatMessage || !chatInput.trim()}
+        <ChatBody>
+          <ChatMessages>
+            {chatMessages.map((message, index) =>
+              message.type === "trace" ? (
+                <TraceDetails key={index.toString()}>
+                  <TraceSummary>{message.tool}</TraceSummary>
+                  <TracePre>
+                    {JSON.stringify(
+                      {
+                        arguments: message.arguments,
+                        result: message.result,
+                      },
+                      null,
+                      2,
+                    )}
+                  </TracePre>
+                </TraceDetails>
+              ) : (
+                <ChatMessage key={index.toString()} $role={message.role}>
+                  <strong>{message.role === "user" ? "You" : "AI"}:</strong> {message.content}
+                </ChatMessage>
+              ),
+            )}
+          </ChatMessages>
+          <ChatInput
+            value={chatInput}
+            placeholder="Type a message..."
+            onChange={(event) => {
+              setChatInput(event.target.value);
+            }}
           />
-        </div>
-      </Modal>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: spacing("small") }}>
+            <Button
+              text={isSendingChatMessage ? "Sending..." : "Send"}
+              onPress={() => void handleSendChatMessage()}
+              isDisabled={isSendingChatMessage || !chatInput.trim()}
+            />
+          </div>
+        </ChatBody>
+      </ChatModal>
       <Modal
         title="Save run as a custom workflow"
         isOpen={isWorkflowSaveOpen}

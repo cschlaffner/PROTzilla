@@ -1,15 +1,21 @@
+import asyncio
 import json
 import os
 import shutil
 from datetime import date
 from io import BytesIO
+from pathlib import Path
 
+import litellm
 import pandas
 import plotly.graph_objects as go
 import plotly.io as pio
+from langchain.agents import create_agent
+from langchain_litellm import ChatLiteLLM
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from PIL import Image
 from django.contrib import messages
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, StreamingHttpResponse
 
 from backend.main import settings
 from backend.main.views_helper import sanitize_name, load_settings_from_file
@@ -27,16 +33,9 @@ from backend.protzilla.constants.paths import (
     DEFAULT_PLOT_SETTINGS_FILE_STEM,
     DEFAULT_PTM_SETTINGS_FILE_STEM,
     CUSTOM_PTM_SETTINGS_FILE_STEM,
+    DATABASE_METADATA_PATH,
+    MCP_SERVER_PATH,
 )
-
-DATABASE_METADATA_PATH = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
-
-
-def _get_litellm():
-    import litellm
-
-    return litellm
-
 
 def _litellm_value(value):
     return getattr(value, "value", str(value))
@@ -56,6 +55,91 @@ def _chat_message_content(message):
     if content is None:
         return ""
     return str(content)
+
+
+def _jsonable_chat_value(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, tuple)):
+        return [_jsonable_chat_value(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _jsonable_chat_value(item) for key, item in value.items()}
+    if hasattr(value, "model_dump"):
+        return _jsonable_chat_value(value.model_dump())
+    return str(value)
+
+
+async def _stream_chat_message_with_langchain(model: str, api_key: str, messages: list[dict]):
+    if not MCP_SERVER_PATH.exists():
+        raise ValueError(
+            f"MCP server file not found at '{MCP_SERVER_PATH}'. Recreate the django container so the mcp-server volume is mounted."
+        )
+
+    client = MultiServerMCPClient(
+        {
+            "protzilla": {
+                "transport": "stdio",
+                "command": "python",
+                "args": [str(MCP_SERVER_PATH)],
+            }
+        }
+    )
+    tools = await client.get_tools()
+    agent = create_agent(
+        model=ChatLiteLLM(model=model, api_key=api_key),
+        tools=tools,
+        system_prompt=(
+            "You are PROTzilla's AI assistant. Use PROTzilla tools whenever they "
+            "help. Many PROTzilla tools already contain detailed descriptions of "
+            "their expected inputs, return values, constraints, and behaviour, so "
+            "read those tool descriptions carefully before acting. Prefer the "
+            "information from PROTzilla tools over guessing. If documentation is "
+            "needed, the PROTzilla wiki lives at "
+            "https://github.com/cschlaffner/PROTzilla/wiki."
+        ),
+    )
+    async for chunk in agent.astream(
+        {"messages": messages}, stream_mode="updates", version="v2"
+    ):
+        if chunk.get("type") != "updates":
+            continue
+
+        for node_data in chunk.get("data", {}).values():
+            for message in node_data.get("messages", []):
+                tool_calls = getattr(message, "tool_calls", None)
+                if tool_calls:
+                    for tool_call in tool_calls:
+                        yield {
+                            "type": "tool_start",
+                            "tool_call_id": (
+                                tool_call.get("id")
+                                if isinstance(tool_call, dict)
+                                else getattr(tool_call, "id", None)
+                            ),
+                            "tool": (
+                                tool_call.get("name")
+                                if isinstance(tool_call, dict)
+                                else getattr(tool_call, "name", "")
+                            ),
+                            "arguments": _jsonable_chat_value(
+                                tool_call.get("args")
+                                if isinstance(tool_call, dict)
+                                else getattr(tool_call, "args", {})
+                            ),
+                        }
+                    continue
+
+                if getattr(message, "type", None) == "tool":
+                    yield {
+                        "type": "tool_result",
+                        "tool_call_id": getattr(message, "tool_call_id", None),
+                        "result": _jsonable_chat_value(getattr(message, "content", None)),
+                    }
+                    continue
+
+                answer = _chat_message_content(message)
+                if answer:
+                    yield {"type": "answer", "answer": answer}
 
 
 def load_settings(request, default_file_stem: str):
@@ -170,22 +254,26 @@ def send_chat_message(request):
     if "/" not in model and provider not in {"openai", "chatgpt"}:
         model = f"{provider}/{model}"
 
-    try:
-        response = _get_litellm().completion(
-            model=model,
-            api_key=api_key,
-            messages=messages,
-        )
-        choice = response["choices"][0] if isinstance(response, dict) else response.choices[0]
-        message = choice["message"] if isinstance(choice, dict) else choice.message
-        answer = _chat_message_content(message)
-    except Exception as error:
-        return JsonResponse(
-            {"success": False, "message": str(error)},
-            status=400,
-        )
+    def stream():
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            stream_iterator = _stream_chat_message_with_langchain(
+                model, api_key, messages
+            ).__aiter__()
+            while True:
+                try:
+                    chunk = loop.run_until_complete(stream_iterator.__anext__())
+                except StopAsyncIteration:
+                    break
+                yield json.dumps(chunk) + "\n"
+        except Exception as error:
+            yield json.dumps({"type": "error", "message": str(error)}) + "\n"
+        finally:
+            if "loop" in locals():
+                loop.close()
 
-    return JsonResponse({"success": True, "answer": answer}, status=200)
+    return StreamingHttpResponse(stream(), content_type="application/x-ndjson")
 
 
 def get_ai_providers(request):
@@ -194,7 +282,6 @@ def get_ai_providers(request):
             {"success": False, "message": "Only GET requests are allowed."}, status=405
         )
 
-    litellm = _get_litellm()
     return JsonResponse(
         [_litellm_value(provider) for provider in litellm.provider_list], safe=False
     )
@@ -211,7 +298,6 @@ def get_ai_models(request):
     if provider.startswith("LlmProviders."):
         provider = provider.removeprefix("LlmProviders.").lower()
 
-    litellm = _get_litellm()
     models = litellm.models_by_provider.get(provider, [])
     return JsonResponse([str(model) for model in models], safe=False)
 

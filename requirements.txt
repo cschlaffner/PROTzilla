@@ -16,6 +16,9 @@ numba==0.62.1
 numpy==2.3.5
 matplotlib==3.10.7
 litellm
+langchain
+langchain-litellm
+langchain-mcp-adapters
 openpyxl==3.1.5
 pandas==2.3.3
 pillow==12.0.0
@@ -43,3 +46,4 @@ statsmodels==0.14.5
 tqdm==4.67.1
 tzlocal==5.3.1
 umap-learn==0.5.9.post2
+mcp[cli]>=1.27.2

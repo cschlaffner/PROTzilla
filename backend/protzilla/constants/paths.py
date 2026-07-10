@@ -12,6 +12,9 @@ SETTINGS_PATH = USER_DATA_PATH / "settings"
 EXTERNAL_DATA_PATH = USER_DATA_PATH / "external_data"
 UPLOAD_PATH = BACKEND_PATH / "uploads"
 
+DATABASE_METADATA_PATH = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot.json"
+MCP_SERVER_PATH = PROJECT_PATH / "mcp-server" / "server.py"
+
 CUSTOM_PLOT_SETTINGS_FILE_STEM = "plots"
 DEFAULT_PLOT_SETTINGS_FILE_STEM = "plots_default"
 CUSTOM_AI_SETTINGS_FILE_STEM = "ai_settings"
