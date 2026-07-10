@@ -32,7 +32,18 @@ export interface Image {
 }
 
 export interface Download {
-  json_downloads: Record<string, unknown>;
+  json_downloads:
+    | null
+    | {
+        filename: string;
+        data: string;
+      }[];
+  zip_downloads:
+    | null
+    | {
+        filename: string;
+        data: string;
+      }[];
 }
 
 export interface TrimeshMesh {

@@ -86,6 +86,7 @@ _forward_mapping: list[Step] = [
     data_analysis.CorrelationMatrixWithPearsonCorrelation,
     data_analysis.DistanceMatrixBasedOnCorrelationMatrix,
     data_analysis.HDBSCAN,
+    data_analysis.GetClustersAboveSetIntraClusterCorrelationMean,
     data_preprocessing.ImputationByMinPerSample,
     data_integration.EnrichmentAnalysisGOAnalysisWithString,
     data_integration.EnrichmentAnalysisGOAnalysisWithEnrichr,

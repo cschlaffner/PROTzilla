@@ -174,15 +174,28 @@ export const RunScreen: React.FC = () => {
   const [availableDownloads, setAvailableDownloads] = useState<StepOutputInfo[]>([]);
   const transformDownload = useCallback(
     (output: StepOutputInfo, response: ApiResponse<Download>) => ({
-      title: output.label,
-      data: response.data.json_downloads,
+      json: response.data.json_downloads,
+      zip: response.data.zip_downloads,
     }),
     [],
   );
   const downloads = useCertainStepOutputs<
     StepOutputInfo,
     ApiResponse<Download>,
-    { title: string; data: Record<string, unknown> }
+    {
+      json:
+        | null
+        | {
+            filename: string;
+            data: string;
+          }[];
+      zip:
+        | null
+        | {
+            filename: string;
+            data: string;
+          }[];
+    }
   >({
     available_outputs: availableDownloads,
     endpoint: "get_downloads_from_step/",
@@ -446,21 +459,58 @@ export const RunScreen: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadZip = (filename: string, base64: string) => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+
+    const blob = new Blob([byteArray], {
+      type: "application/zip",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   const downloadComponent = (
     <StyledContentContainer>
       {downloads.length > 0 ? (
-        downloads.flatMap((download) =>
-          Object.entries(download.data).map(([filename, content]) => (
-            <SecondaryButton
-              key={`${download.title}-${filename}`}
-              text={filename}
-              style={{ width: "fit-content" }}
-              onClick={() => {
-                downloadJson(filename, JSON.stringify(content, null, 2));
-              }}
-            />
-          )),
-        )
+        downloads.flatMap((download) => [
+          download.json
+            ? download.json.map((jsonFile) => (
+                <SecondaryButton
+                  key={jsonFile.filename}
+                  text={jsonFile.filename}
+                  style={{ width: "fit-content" }}
+                  onClick={() => {
+                    downloadJson(jsonFile.filename, JSON.stringify(jsonFile.data, null, 2));
+                  }}
+                />
+              ))
+            : [],
+          download.zip
+            ? download.zip.map((zipFile) => (
+                <SecondaryButton
+                  key={zipFile.filename}
+                  text={zipFile.filename}
+                  onClick={() => {
+                    downloadZip(zipFile.filename, zipFile.data);
+                  }}
+                />
+              ))
+            : [],
+        ])
       ) : (
         <SectionTitle baseComponent={"h4"} description={"Available downloads are loading..."} />
       )}

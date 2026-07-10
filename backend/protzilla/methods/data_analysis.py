@@ -101,6 +101,7 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     get_correlation_matrix,
     get_distance_matrix_from_correlation_matrix_df,
     hdbscan_for_ppi,
+    get_clusters_based_on_correlation_mean,
 )
 
 
@@ -2558,7 +2559,7 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 
 
 class HDBSCAN(DataAnalysisStep):
-    output_keys = []
+    output_keys = ["cluster_labels_df"]
     display_name = "HDBSCAN"
     operation = "Clustering For PPIs"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
@@ -2566,3 +2567,28 @@ class HDBSCAN(DataAnalysisStep):
 
     def create_form(self):
         return Form(label="HDBSCAN for PPIs", input_fields=[])
+
+
+class GetClustersAboveSetIntraClusterCorrelationMean(DataAnalysisStep):
+    output_keys = []
+    display_name = "Get Clusters Above Set Intra-Cluster Correlation Mean"
+    operation = "Clustering For PPIs"
+    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have an correlation mean above a set threshold."
+    calc_method = staticmethod(get_clusters_based_on_correlation_mean)
+
+    def create_form(self):
+        return Form(
+            label="Get Clusters Based On Correlation Mean",
+            input_fields=[
+                TextField(name="output_name", label="Name of output file"),
+                FloatField(
+                    name="correlation_threshold",
+                    label="Minimum correlation mean for clusters to be processed",
+                    value=0.7,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    hasStepButtons=True,
+                ),
+            ],
+        )

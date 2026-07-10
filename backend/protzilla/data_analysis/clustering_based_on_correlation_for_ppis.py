@@ -9,12 +9,15 @@ from typing import Literal
 from sklearn.metrics import silhouette_samples
 import os
 import hdbscan
+from io import BytesIO
+import zipfile
 
 from backend.protzilla.utilities.utilities import (
     default_intensity_column,
     fig_to_base64,
 )
 from backend.protzilla.steps import OutputItem, OutputType
+from protzilla.constants.paths import RUNS_PATH
 
 
 def make_protein_ids_STRING_readable(protein_ids: list[str]) -> list[str]:
@@ -97,6 +100,52 @@ def process_clustering(
     protein_id_to_number_of_residues,
     cluster_labels_to_ignore=None,
 ):
+    # run_directory = RUNS_PATH / disk_operator.run_dir
+
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for cluster_id in set(labels):
+            if cluster_labels_to_ignore and cluster_id in cluster_labels_to_ignore:
+                continue
+            fig, ax = plt.subplots(figsize=(10, 8))
+
+            proteins = get_proteins_of_specific_cluster(
+                cluster_id, labels, correlation_matrix
+            )
+            number_of_residues_in_cluster = (
+                get_number_of_amino_acid_residues_in_cluster(
+                    proteins, protein_id_to_number_of_residues
+                )
+            )
+
+            show_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
+
+            heatmap_filename = (
+                f"{clustering_algo}_heatmap_{cluster_id}"
+                f"__{number_of_residues_in_cluster}_residues.png"
+            )
+            heatmap_buffer = BytesIO()
+            plt.savefig(heatmap_buffer, format="png", dpi=300)
+            plt.close(fig)
+
+            heatmap_buffer.seek(0)
+
+            zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
+
+            string_filename = (
+                f"{clustering_algo}_cluster_{cluster_id}"
+                f"__{number_of_residues_in_cluster}_residues.png"
+            )
+
+            string_data = get_STRING_information_for_cluster(proteins)
+
+            zipf.writestr(f"string_network/{string_filename}", string_data)
+
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue()
+    # zip_buffer.getvalue() enthält zip als bytes
+
     for filename in os.listdir(f"plots/{clustering_algo}/heatmap/"):
         file_path = os.path.join(f"plots/{clustering_algo}/heatmap/", filename)
         os.remove(file_path)
@@ -168,6 +217,7 @@ def get_correlation_mean_of_cluster(
     proteins = get_proteins_of_specific_cluster(
         cluster_of_interest, clustering_labels, correlation_matrix
     )
+    print(proteins)
 
     # cluster_correlation_mean = 0
     # for protein in proteins:
@@ -183,7 +233,7 @@ def get_correlation_mean_of_cluster(
             correlation.size - len(proteins)
         )
     else:
-        return 0  # wenn genau ein Protein im cluster
+        return 0  # wenn genau ein Protein im cluster todo
 
 
 def get_correlation_matrix(protein_df: pd.DataFrame) -> dict:
@@ -231,7 +281,11 @@ def get_distance_matrix_from_correlation_matrix_df(
     distance_matrix = np.sqrt(2 * (1 - distance_matrix))
     np.fill_diagonal(distance_matrix, 0)
     return dict(
-        distance_matrix_df=pd.DataFrame(distance_matrix),
+        distance_matrix_df=pd.DataFrame(
+            distance_matrix,
+            index=correlation_matrix_df.index,
+            columns=correlation_matrix_df.columns,
+        ),
     )
 
 
@@ -250,4 +304,49 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
     )
     fig, ax = plt.subplots()
     ax.hist(score[1], bins=30)
-    return dict(plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig)))
+    ax.set_title("Histogram of DBCV Scores")
+    ax.set_xlabel("DBCV Score")
+    ax.set_ylabel("Number of clusters with certain DBCV Score")
+    return dict(
+        cluster_labels_df=OutputItem(
+            output_type=OutputType.DATAFRAME,
+            value=pd.DataFrame(clusterer.labels_, columns=["Label"]),
+        ),
+        plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig)),
+    )
+
+
+def get_clusters_based_on_correlation_mean(
+    correlation_threshold: float,
+    cluster_labels_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame,
+    output_name: str,
+) -> dict:
+    cluster_labels_to_ignore = [-1]
+    cluster_labels = cluster_labels_df["Label"].to_list()
+    for label in set(cluster_labels):
+        if (
+            get_correlation_mean_of_cluster(
+                cluster_labels, label, correlation_matrix_df
+            )
+            < correlation_threshold
+        ):
+            cluster_labels_to_ignore.append(label)
+    # protein_id_to_number_of_residues = dict(zip(protein_id_to_number_of_residues_df["protein_id"], protein_id_to_number_of_residues_df["number_of_residues"]))
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
+        list(correlation_matrix_df.columns)
+    )
+    zip_plot_in_bytes = process_clustering(
+        cluster_labels,
+        output_name,
+        correlation_matrix_df,
+        protein_id_to_number_of_residues,
+        cluster_labels_to_ignore,
+    )
+
+    return dict(
+        downloads=OutputItem(
+            output_type=OutputType.DOWNLOAD,
+            value={f"{output_name}.zip": zip_plot_in_bytes},
+        ),
+    )

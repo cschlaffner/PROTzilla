@@ -1,3 +1,4 @@
+import base64
 import json
 from shutil import copy2, make_archive
 import traceback
@@ -712,11 +713,31 @@ def get_downloads_from_step(request: HttpRequest):
             },
             status=405,
         )
+    json_downloads = []
+    zip_downloads = []
+    for download_name, download_item in downloads.items():
+        if download_name.endswith(".json"):
+            json_downloads.append({"filename": download_name, "data": download_item})
+        elif download_name.endswith(".zip"):
+            zip_downloads.append(
+                {
+                    "filename": download_name,
+                    "data": base64.b64encode(download_item).decode("utf-8"),
+                }
+            )
+        else:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": f"Type of at least one download item is not supported.",
+                },
+                status=405,
+            )
     return JsonResponse(
         {
             "success": True,
             "message": "Got the available download(s) for the step",
-            "data": {"json_downloads": downloads},
+            "data": {"json_downloads": json_downloads, "zip_downloads": zip_downloads},
         }
     )
 
