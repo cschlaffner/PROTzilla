@@ -146,6 +146,28 @@ const TracePre = styled.pre`
   font: inherit;
 `;
 
+const LoadingRow = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  padding: ${spacing("small")};
+`;
+
+const LoadingSpinner = styled(Icon)`
+  width: 28px;
+  height: 28px;
+
+  @keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(359deg);
+    }
+  }
+
+  animation: rotation 1.5s infinite linear;
+`;
+
 interface ChatToolTraceEntry {
   type: "trace";
   toolCallId?: string;
@@ -473,12 +495,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </ChatMessage>
               ),
             )}
+            {isSendingChatMessage && (
+              <LoadingRow>
+                <LoadingSpinner icon="spinner" color="primary" />
+              </LoadingRow>
+            )}
           </ChatMessages>
           <ChatInput
             value={chatInput}
             placeholder="Type a message..."
             onChange={(event) => {
               setChatInput(event.target.value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                if (!isSendingChatMessage && chatInput.trim()) {
+                  void handleSendChatMessage();
+                }
+              }
             }}
           />
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: spacing("small") }}>
