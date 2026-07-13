@@ -99,6 +99,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
 )
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
     get_clusters_based_on_dbcv,
+    get_clusters_based_on_silhouette,
     get_correlation_matrix,
     get_distance_matrix_from_correlation_matrix_df,
     hdbscan_for_ppi,
@@ -2542,7 +2543,7 @@ class PtmValidation(PeptideAnalysisStep):
 class CorrelationMatrixWithPearsonCorrelation(DataAnalysisStep):
     output_keys = ["correlation_matrix_df"]
     display_name = "Pearson correlation matrix"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
     calc_method = staticmethod(get_correlation_matrix)
 
@@ -2553,7 +2554,7 @@ class CorrelationMatrixWithPearsonCorrelation(DataAnalysisStep):
 class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
     output_keys = ["distance_matrix_df"]
     display_name = "Distance matrix"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = (
         "Creates a matrix showing dissimilarities between different proteins."
     )
@@ -2568,19 +2569,19 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 class HDBSCAN(DataAnalysisStep):
     output_keys = ["cluster_labels_df", "dbcv_scores_df"]
     display_name = "HDBSCAN"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
     calc_method = staticmethod(hdbscan_for_ppi)
     # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
-        return Form(label="HDBSCAN for PPIs", input_fields=[])
+        return Form(label="HDBSCAN for Protein-Protein-Interactions", input_fields=[])
 
 
 class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
     output_keys = []
     display_name = "Get Clusters Based On Intra-Cluster Correlation Mean"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a correlation mean above a certain threshold."
     calc_method = staticmethod(get_clusters_based_on_correlation_mean)
 
@@ -2612,7 +2613,7 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
 class GetClustersBasedOnDBCV(DataAnalysisStep):
     output_keys = []
     display_name = "Get Clusters Based On DBCV"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Takes a clustering that was calculated by HDBSCAN and returns heatmaps and STRING networks for all clusters that have a DBCV score above a certain threshold."
     calc_method = staticmethod(get_clusters_based_on_dbcv)
 
@@ -2642,16 +2643,16 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
 
 
 class HierarchicalClustering(DataAnalysisStep):
-    output_keys = ["cluster_labels_df"]
+    output_keys = ["cluster_labels_df", "silhouette_scores_per_cluster_df"]
     display_name = "Hierarchical Clustering"
-    operation = "Clustering For PPIs"
+    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes Hierarchical clustering on a distance matrix."
     calc_method = staticmethod(hierarchical_clustering_for_ppi)
     # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
         return Form(
-            label="HDBSCAN for PPIs",
+            label="HDBSCAN for Protein-Protein-Interactions",
             input_fields=[
                 DropdownField(
                     name="linkage_method",
@@ -2661,11 +2662,43 @@ class HierarchicalClustering(DataAnalysisStep):
                 ),
                 FloatField(
                     name="deep_split",
-                    label="Parameter that influences cluster size (0=bigger clusters, 4=smaller clusters)",
+                    label="Influence cluster size (0=bigger clusters, 4=smaller clusters)",
                     min=0,
                     max=4,
                     value=3,
                     step=0.1,
+                ),
+            ],
+        )
+
+
+class GetClustersBasedOnSilhouette(DataAnalysisStep):
+    output_keys = []
+    display_name = "Get Clusters Based On Silhouette"
+    operation = "Clustering For Protein-Protein-Interactions"
+    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a Silhouette score above a certain threshold."
+    calc_method = staticmethod(get_clusters_based_on_silhouette)
+
+    def create_form(self):
+        return Form(
+            label="Get Clusters Based On Silhouette Score",
+            input_fields=[
+                InfoField(
+                    label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."
+                ),
+                TextField(name="output_name", label="Name of output file"),
+                FloatField(
+                    name="silhouette_threshold",
+                    label="Minimum Silhouette score for clusters to be processed",
+                    value=0.7,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    hasStepButtons=True,
+                ),
+                CheckboxField(
+                    name="generate_STRING_networks",
+                    label="Generate STRING network images",
                 ),
             ],
         )

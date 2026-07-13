@@ -304,6 +304,39 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> 
     )
 
 
+def create_filtered_clusters_output(
+    cluster_labels_df,
+    output_name,
+    correlation_matrix_df,
+    generate_STRING_networks,
+    cluster_labels_to_ignore,
+):
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
+        list(correlation_matrix_df.columns)
+    )
+    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
+        cluster_labels_df["Label"],
+        output_name,
+        correlation_matrix_df,
+        protein_id_to_number_of_residues,
+        generate_STRING_networks,
+        cluster_labels_to_ignore,
+    )
+
+    messages = []
+    if clusters_too_big_for_alphafold > 0:
+        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
+        messages.append(dict(level=logging.WARNING, msg=msg))
+
+    return dict(
+        downloads=OutputItem(
+            output_type=OutputType.DOWNLOAD,
+            value={f"{output_name}.zip": zip_plot_in_bytes},
+        ),
+        messages=messages,
+    )
+
+
 def get_clusters_based_on_correlation_mean(
     correlation_threshold: float,
     cluster_labels_df: pd.DataFrame,
@@ -322,30 +355,13 @@ def get_clusters_based_on_correlation_mean(
             < correlation_threshold
         ):
             cluster_labels_to_ignore.append(label)
-    # protein_id_to_number_of_residues = dict(zip(protein_id_to_number_of_residues_df["protein_id"], protein_id_to_number_of_residues_df["number_of_residues"]))
-    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
-        list(correlation_matrix_df.columns)
-    )
-    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
-        cluster_labels_df["Label"],
+
+    return create_filtered_clusters_output(
+        cluster_labels_df,
         output_name,
         correlation_matrix_df,
-        protein_id_to_number_of_residues,
         generate_STRING_networks,
         cluster_labels_to_ignore,
-    )
-
-    messages = []
-    if clusters_too_big_for_alphafold > 0:
-        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
-        messages.append(dict(level=logging.WARNING, msg=msg))
-
-    return dict(
-        downloads=OutputItem(
-            output_type=OutputType.DOWNLOAD,
-            value={f"{output_name}.zip": zip_plot_in_bytes},
-        ),
-        messages=messages,
     )
 
 
@@ -363,30 +379,13 @@ def get_clusters_based_on_dbcv(
             continue
         if dbcv_scores_df.loc[label, "DBCV"] < dbcv_threshold:
             cluster_labels_to_ignore.append(label)
-    # protein_id_to_number_of_residues = dict(zip(protein_id_to_number_of_residues_df["protein_id"], protein_id_to_number_of_residues_df["number_of_residues"]))
-    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
-        list(correlation_matrix_df.columns)
-    )
-    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
-        cluster_labels_df["Label"],
+
+    return create_filtered_clusters_output(
+        cluster_labels_df,
         output_name,
         correlation_matrix_df,
-        protein_id_to_number_of_residues,
         generate_STRING_networks,
         cluster_labels_to_ignore,
-    )
-
-    messages = []
-    if clusters_too_big_for_alphafold > 0:
-        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
-        messages.append(dict(level=logging.WARNING, msg=msg))
-
-    return dict(
-        downloads=OutputItem(
-            output_type=OutputType.DOWNLOAD,
-            value={f"{output_name}.zip": zip_plot_in_bytes},
-        ),
-        messages=messages,
     )
 
 
@@ -405,14 +404,13 @@ def hierarchical_clustering_for_ppi(
         index=distance_matrix_df.index,
     )
 
-    silhouette_per_cluster = [0] * labels.nunique()
+    silhouette_per_cluster = pd.Series(dtype=float)
     silhouette_scores_per_sample = silhouette_samples(
         distance_matrix, labels, metric="precomputed"
     )
     for label in labels.unique():
         mask = labels == label
-        cluster_score = silhouette_scores_per_sample[mask].mean()
-        silhouette_per_cluster[label] = cluster_score
+        silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
     fig_silhouette, ax_silhouette = plt.subplots()
     ax_silhouette.hist(silhouette_per_cluster, bins=40)
     ax_silhouette.set_title("Histogram of Silhouette Scores")
@@ -444,4 +442,25 @@ def hierarchical_clustering_for_ppi(
         histogram_correlation_means=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(fig_correlation_means)
         ),
+    )
+
+
+def get_clusters_based_on_silhouette(
+    silhouette_threshold: float,
+    cluster_labels_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame,
+    silhouette_scores_df: pd.DataFrame,
+    output_name: str,
+    generate_STRING_networks: bool,
+) -> dict:
+    cluster_labels_to_ignore = []
+    for label in cluster_labels_df["Label"].unique():
+        if silhouette_scores_df.loc[label, "Silhouette"] < silhouette_threshold:
+            cluster_labels_to_ignore.append(label)
+    return create_filtered_clusters_output(
+        cluster_labels_df,
+        output_name,
+        correlation_matrix_df,
+        generate_STRING_networks,
+        cluster_labels_to_ignore,
     )
