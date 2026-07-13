@@ -236,6 +236,8 @@ def get_correlation_mean_of_cluster(
         # return cluster_correlation_mean/(len(proteins)*len(proteins)-len(proteins))
         correlation = correlation_matrix.loc[proteins, proteins].to_numpy()
         # Remove diagonal (self-correlations)
+        if (correlation.sum() - np.trace(correlation)) / (correlation.size - len(proteins)) > 1:
+            tmp = 2
         return (correlation.sum() - np.trace(correlation)) / (
             correlation.size - len(proteins)
         )
@@ -302,7 +304,7 @@ def get_distance_matrix_from_correlation_matrix_df(
     )
 
 
-def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
+def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> dict:
     print("RECEIVED:", distance_matrix_df.index[:5])
     distance_matrix = distance_matrix_df.to_numpy()
     clusterer = hdbscan.HDBSCAN(
@@ -327,7 +329,7 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
     for label in set(clusterer.labels_):
         cluster_correlation_means.append(
             get_correlation_mean_of_cluster(
-                clusterer.labels_, label, distance_matrix_df
+                clusterer.labels_, label, correlation_matrix_df
             )
         )
 
