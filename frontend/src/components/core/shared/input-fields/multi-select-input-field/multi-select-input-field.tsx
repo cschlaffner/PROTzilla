@@ -42,6 +42,19 @@ const OptionItem = styled.li`
 
 const ListLabel = styled(InputLabel)``;
 
+const OptionsListWrapper = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const OptionText = styled.span`
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const OptionsListComponent: React.FC<{
   titleLabel: string;
   optionsList: { label: string; value: string }[];
@@ -54,7 +67,7 @@ const OptionsListComponent: React.FC<{
   );
 
   return (
-    <div style={{ width: "100%" }}>
+    <OptionsListWrapper>
       <ListLabel text={titleLabel} />
       <OptionsListContainer>
         {filteredOptions.length > 0 ? (
@@ -68,13 +81,13 @@ const OptionsListComponent: React.FC<{
             >
               {isLeftList ? (
                 <>
-                  <span>{option.label}</span>
+                  <OptionText>{option.label}</OptionText>
                   <Icon icon="chevronRight" isSmall />
                 </>
               ) : (
                 <>
                   <Icon icon="chevronLeft" isSmall />
-                  <span>{option.label}</span>
+                  <OptionText>{option.label}</OptionText>
                 </>
               )}
             </OptionItem>
@@ -83,7 +96,7 @@ const OptionsListComponent: React.FC<{
           <OptionItem style={{ pointerEvents: "none" }}>No entry</OptionItem>
         )}
       </OptionsListContainer>
-    </div>
+    </OptionsListWrapper>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useNotification } from "@protzilla/app";
-import { color, fontSize, size, spacing, useTheme } from "@protzilla/theme";
+import { color, fontSize, spacing, useTheme } from "@protzilla/theme";
 import { CalculationMessage, callApiWithParameters } from "@protzilla/utils";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
@@ -29,7 +29,7 @@ import {
 import { H3 } from "../../text";
 
 const StyledForm = styled.div`
-  max-width: ${size("inputFieldsMaxWidth")};
+  width: auto;
 `;
 
 const StyledSubmitDiv = styled.div`

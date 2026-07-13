@@ -15,6 +15,7 @@ _forward_mapping: list[Step] = [
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
     importing.FastaImport,
+    importing.CustomPythonStep,
     data_preprocessing.FilterProteinsBySamplesMissing,
     data_preprocessing.FilterProteinsByNumberOfValuesPerGroup,
     data_preprocessing.FilterProteinsByProteinIDs,

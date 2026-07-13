@@ -466,6 +466,26 @@ class StepManager:
         self.graph.remove_edges_from(edges)  # pyright: ignore[reportArgumentType]
         self.invalidate_step_and_following_steps_based_on_step_id(step_id=target)
 
+    def remove_invalid_edges_for_step(self, step_id: StepID) -> None:
+        step = self.get_step_by_id(step_id)
+        valid_input_keys = set(step.external_input_keys)
+        valid_output_keys = set(step.output_keys)
+
+        invalid_incoming_edges = [
+            edge
+            for edge in self.graph.in_edges(step_id, data=True, keys=True)
+            if edge[3]["target_handle"] not in valid_input_keys
+        ]
+        invalid_outgoing_edges = [
+            edge
+            for edge in self.graph.out_edges(step_id, data=True, keys=True)
+            if edge[3]["source_handle"] not in valid_output_keys
+        ]
+
+        self.graph.remove_edges_from(
+            invalid_incoming_edges + invalid_outgoing_edges
+        )  # pyright: ignore[reportArgumentType]
+
     def get_edges(self) -> list[Connection]:
         """
         For front-end

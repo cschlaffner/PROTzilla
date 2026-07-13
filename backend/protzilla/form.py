@@ -52,6 +52,8 @@ class _baseField:
 class TextField(_baseField):
     type: str = "text"
     value: str = ""
+    rows: int = 1
+    isCodeEditor: bool = False
 
 
 @dataclass

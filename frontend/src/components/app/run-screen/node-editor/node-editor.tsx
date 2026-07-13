@@ -81,9 +81,9 @@ const StyledDivider = styled.div`
 const StyledFormColumn = styled.div`
   display: flex;
   flex-direction: column;
-  width: 20vw;
-  min-width: 250px;
-  max-width: 500px;
+  width: max-content;
+  flex: 0 0 auto;
+  max-width: 70vw;
   height: 100%;
   overflow-y: auto;
   overflow-x: auto;

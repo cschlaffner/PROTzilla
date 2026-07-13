@@ -7,4 +7,6 @@ export interface TextInputFieldProps extends InputContainerProps, UIStateProps {
   placeholder?: string;
   onChange: (value: string) => void;
   characterLimit?: number;
+  rows?: number;
+  isCodeEditor?: boolean;
 }

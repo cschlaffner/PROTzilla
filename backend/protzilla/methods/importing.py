@@ -1,5 +1,8 @@
 from __future__ import annotations
 from abc import ABC
+import textwrap
+import numpy as np
+import pandas as pd
 from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
@@ -11,7 +14,9 @@ from backend.protzilla.form import (
     Form,
     FormDivider,
     HeaderInfoField,
+    MultiSelectField,
     Option,
+    TextField,
 )
 from backend.protzilla.importing.debug_import import arbitrary_csv_import
 from backend.protzilla.importing.metadata_import import (
@@ -33,6 +38,38 @@ from backend.protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from backend.protzilla.utilities.utilities import default_intensity_column
+
+
+def custom_python_step(code: str, selected_outputs: list[str], **inputs):
+    if not code.strip():
+        raise ValueError("Please provide Python code.")
+    if not selected_outputs:
+        raise ValueError("Please select at least one output.")
+
+    namespace = {
+        "np": np,
+        "pd": pd,
+        "default_intensity_column": default_intensity_column,
+        **inputs,
+    }
+    exec(
+        "def _custom_step():\n" + textwrap.indent(code, "    "),
+        namespace,
+    )
+    result = namespace["_custom_step"]()
+    if not isinstance(result, dict):
+        raise ValueError("Custom step code must return a dictionary.")
+
+    missing_outputs = [
+        output_key for output_key in selected_outputs if output_key not in result
+    ]
+    if missing_outputs:
+        raise ValueError(
+            f"Custom step did not return the selected outputs: {', '.join(missing_outputs)}."
+        )
+
+    return result
 
 
 class ImportingStep(Step, ABC):
@@ -426,3 +463,55 @@ class ExampleDatasetImport(ImportingStep):
             if import_peptide_data_field.value
             else [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
         )
+
+
+class CustomPythonStep(ImportingStep):
+    display_name = "Custom Python Step"
+    operation = StepOperation.NOT_CATEGORIZED
+    method_description = "Run custom Python code inside PROTzilla."
+
+    def create_form(self):
+        data_key_options = [Option(data_key.value, data_key.value) for data_key in DataKey]
+        return Form(
+            label="Custom Python Step",
+            input_fields=[
+                HeaderInfoField(label=self.method_description),
+                MultiSelectField(
+                    name="selected_inputs",
+                    label="Inputs",
+                    options=data_key_options,
+                    value=[],
+                ),
+                MultiSelectField(
+                    name="selected_outputs",
+                    label="Outputs",
+                    options=data_key_options,
+                    value=[],
+                ),
+                TextField(
+                    name="code",
+                    label="Python code",
+                    rows=12,
+                    isCodeEditor=True,
+                    value="return dict()",
+                ),
+            ],
+        )
+
+    @property
+    def external_input_keys(self) -> list[DataKey]:
+        return [DataKey(key) for key in self.form["selected_inputs"].value]
+
+    @property
+    def output_keys(self) -> list[DataKey]:
+        return [DataKey(key) for key in self.form["selected_outputs"].value]
+
+    @property
+    def calculation_input(self) -> dict:
+        return {
+            "code": self.form["code"].value,
+            "selected_outputs": self.form["selected_outputs"].value,
+            **{key: self.inputs.get(key) for key in self.form["selected_inputs"].value},
+        }
+
+    calc_method = staticmethod(custom_python_step)
