@@ -98,6 +98,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     multimer_validation,
 )
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
+    get_clusters_based_on_dbcv,
     get_correlation_matrix,
     get_distance_matrix_from_correlation_matrix_df,
     hdbscan_cluster_scores_histograms,
@@ -2560,7 +2561,7 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 
 
 class HDBSCAN(DataAnalysisStep):
-    output_keys = ["cluster_labels_df"]
+    output_keys = ["cluster_labels_df", "dbcv_scores_df"]
     display_name = "HDBSCAN"
     operation = "Clustering For PPIs"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
@@ -2589,6 +2590,38 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                 FloatField(
                     name="correlation_threshold",
                     label="Minimum correlation mean for clusters to be processed",
+                    value=0.7,
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    hasStepButtons=True,
+                ),
+                CheckboxField(
+                    name="generate_STRING_networks",
+                    label="Generate STRING network images",
+                ),
+            ],
+        )
+
+
+class GetClustersBasedOnDBCV(DataAnalysisStep):
+    output_keys = []
+    display_name = "Get Clusters Based On DBCV"
+    operation = "Clustering For PPIs"
+    method_description = "Takes a clustering that was calculated by HDBSCAN and returns heatmaps and STRING networks for all clusters that have a DBCV score above a certain threshold."
+    calc_method = staticmethod(get_clusters_based_on_dbcv)
+
+    def create_form(self):
+        return Form(
+            label="Get Clusters Based On DBCV",
+            input_fields=[
+                InfoField(
+                    label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."
+                ),
+                TextField(name="output_name", label="Name of output file"),
+                FloatField(
+                    name="dbcv_threshold",
+                    label="Minimum DBCV score for clusters to be processed",
                     value=0.7,
                     min=0,
                     max=1,

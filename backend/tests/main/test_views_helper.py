@@ -97,6 +97,7 @@ def test_get_all_possible_step_names():
         "DistanceMatrixBasedOnCorrelationMatrix",
         "HDBSCAN",
         "GetClustersBasedOnIntraClusterCorrelationMean",
+        "GetClustersBasedOnDBCV",
     }
 
     steps = get_all_possible_steps()

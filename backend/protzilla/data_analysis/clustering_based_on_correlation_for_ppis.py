@@ -236,7 +236,9 @@ def get_correlation_mean_of_cluster(
         # return cluster_correlation_mean/(len(proteins)*len(proteins)-len(proteins))
         correlation = correlation_matrix.loc[proteins, proteins].to_numpy()
         # Remove diagonal (self-correlations)
-        if (correlation.sum() - np.trace(correlation)) / (correlation.size - len(proteins)) > 1:
+        if (correlation.sum() - np.trace(correlation)) / (
+            correlation.size - len(proteins)
+        ) > 1:
             tmp = 2
         return (correlation.sum() - np.trace(correlation)) / (
             correlation.size - len(proteins)
@@ -396,6 +398,48 @@ def get_clusters_based_on_correlation_mean(
             )
             < correlation_threshold
         ):
+            cluster_labels_to_ignore.append(label)
+    # protein_id_to_number_of_residues = dict(zip(protein_id_to_number_of_residues_df["protein_id"], protein_id_to_number_of_residues_df["number_of_residues"]))
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
+        list(correlation_matrix_df.columns)
+    )
+    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
+        cluster_labels,
+        output_name,
+        correlation_matrix_df,
+        protein_id_to_number_of_residues,
+        generate_STRING_networks,
+        cluster_labels_to_ignore,
+    )
+
+    messages = []
+    if clusters_too_big_for_alphafold > 0:
+        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
+        messages.append(dict(level=logging.WARNING, msg=msg))
+
+    return dict(
+        downloads=OutputItem(
+            output_type=OutputType.DOWNLOAD,
+            value={f"{output_name}.zip": zip_plot_in_bytes},
+        ),
+        messages=messages,
+    )
+
+
+def get_clusters_based_on_dbcv(
+    dbcv_threshold: float,
+    cluster_labels_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame,
+    dbcv_scores_df: pd.DataFrame,
+    output_name: str,
+    generate_STRING_networks: bool,
+) -> dict:
+    cluster_labels_to_ignore = [-1]
+    cluster_labels = cluster_labels_df["Label"].to_list()
+    for label in set(cluster_labels):
+        if label == -1:
+            continue
+        if dbcv_scores_df.loc[label, "DBCV"] < dbcv_threshold:
             cluster_labels_to_ignore.append(label)
     # protein_id_to_number_of_residues = dict(zip(protein_id_to_number_of_residues_df["protein_id"], protein_id_to_number_of_residues_df["number_of_residues"]))
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
