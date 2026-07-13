@@ -96,7 +96,7 @@ def test_get_all_possible_step_names():
         "CorrelationMatrixWithPearsonCorrelation",
         "DistanceMatrixBasedOnCorrelationMatrix",
         "HDBSCAN",
-        "GetClustersAboveSetIntraClusterCorrelationMean",
+        "GetClustersBasedOnIntraClusterCorrelationMean",
     }
 
     steps = get_all_possible_steps()

@@ -28,7 +28,7 @@ export interface ApiResponse<T> {
 export interface Image {
   title: string;
   alt: string;
-  base64image: string;
+  base64images: string[];
 }
 
 export interface Download {

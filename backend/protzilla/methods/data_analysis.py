@@ -100,6 +100,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
     get_correlation_matrix,
     get_distance_matrix_from_correlation_matrix_df,
+    hdbscan_cluster_scores_histograms,
     hdbscan_for_ppi,
     get_clusters_based_on_correlation_mean,
 )
@@ -2564,22 +2565,24 @@ class HDBSCAN(DataAnalysisStep):
     operation = "Clustering For PPIs"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
     calc_method = staticmethod(hdbscan_for_ppi)
+    #plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
         return Form(label="HDBSCAN for PPIs", input_fields=[])
 
 
-class GetClustersAboveSetIntraClusterCorrelationMean(DataAnalysisStep):
+class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
     output_keys = []
-    display_name = "Get Clusters Above Set Intra-Cluster Correlation Mean"
+    display_name = "Get Clusters Based On Intra-Cluster Correlation Mean"
     operation = "Clustering For PPIs"
-    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have an correlation mean above a set threshold."
+    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a correlation mean above a certain threshold."
     calc_method = staticmethod(get_clusters_based_on_correlation_mean)
 
     def create_form(self):
         return Form(
             label="Get Clusters Based On Correlation Mean",
             input_fields=[
+                InfoField(label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."),
                 TextField(name="output_name", label="Name of output file"),
                 FloatField(
                     name="correlation_threshold",
@@ -2590,5 +2593,9 @@ class GetClustersAboveSetIntraClusterCorrelationMean(DataAnalysisStep):
                     step=0.1,
                     hasStepButtons=True,
                 ),
+                CheckboxField(
+                    name="generate_STRING_networks",
+                    label="Generate STRING network images"
+                )
             ],
         )

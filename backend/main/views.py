@@ -790,7 +790,7 @@ def get_png_from_step(request: HttpRequest):
     run = Run(run_name)
     step = run.steps.get_step_by_id(step_id)
     output = step.output.get(output_key)
-    if not isinstance(output, bytes):
+    if not isinstance(output, list) or not all(isinstance(x, bytes) for x in output):
         return JsonResponse(
             {
                 "success": False,
@@ -799,9 +799,9 @@ def get_png_from_step(request: HttpRequest):
             status=405,
         )
 
-    content = output.decode("utf-8")
+    content = [img.decode("utf-8") for img in output]
     return JsonResponse(
-        {"success": True, "message": "OK", "data": {"base64image": content}}
+        {"success": True, "message": "OK", "data": {"base64images": content}}
     )
 
 

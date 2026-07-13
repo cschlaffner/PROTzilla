@@ -98,9 +98,12 @@ def process_clustering(
     clustering_algo,
     correlation_matrix,
     protein_id_to_number_of_residues,
+    generate_STRING_networks: bool,
     cluster_labels_to_ignore=None,
 ):
     # run_directory = RUNS_PATH / disk_operator.run_dir
+
+    clusters_too_big_for_alphafold = 0
 
     zip_buffer = BytesIO()
 
@@ -118,6 +121,9 @@ def process_clustering(
                     proteins, protein_id_to_number_of_residues
                 )
             )
+            alphafold_job_limit = 10000
+            if number_of_residues_in_cluster > alphafold_job_limit:
+                clusters_too_big_for_alphafold += 1
 
             show_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
 
@@ -133,17 +139,18 @@ def process_clustering(
 
             zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
 
-            string_filename = (
-                f"{clustering_algo}_cluster_{cluster_id}"
-                f"__{number_of_residues_in_cluster}_residues.png"
-            )
+            if generate_STRING_networks:
+                string_filename = (
+                    f"{clustering_algo}_cluster_{cluster_id}"
+                    f"__{number_of_residues_in_cluster}_residues.png"
+                )
 
-            string_data = get_STRING_information_for_cluster(proteins)
+                string_data = get_STRING_information_for_cluster(proteins)
 
-            zipf.writestr(f"string_network/{string_filename}", string_data)
+                zipf.writestr(f"string_network/{string_filename}", string_data)
 
     zip_buffer.seek(0)
-    return zip_buffer.getvalue()
+    return zip_buffer.getvalue(), clusters_too_big_for_alphafold
     # zip_buffer.getvalue() enthält zip als bytes
 
     for filename in os.listdir(f"plots/{clustering_algo}/heatmap/"):
@@ -217,7 +224,7 @@ def get_correlation_mean_of_cluster(
     proteins = get_proteins_of_specific_cluster(
         cluster_of_interest, clustering_labels, correlation_matrix
     )
-    print(proteins)
+    #print(proteins)
 
     # cluster_correlation_mean = 0
     # for protein in proteins:
@@ -280,16 +287,23 @@ def get_distance_matrix_from_correlation_matrix_df(
     )  # war notw. für den validity score von hdbscan ->wenn irgendwo eine 1 drin steht, wird das für die dist-matrix zu 0 und dann teilen wir im Algo durch 0
     distance_matrix = np.sqrt(2 * (1 - distance_matrix))
     np.fill_diagonal(distance_matrix, 0)
+    test = distance_matrix_df=pd.DataFrame(
+            distance_matrix,
+            index=correlation_matrix_df.columns,
+            columns=correlation_matrix_df.columns,
+        )
+    print("CREATED:", test.index[:5])
     return dict(
         distance_matrix_df=pd.DataFrame(
             distance_matrix,
-            index=correlation_matrix_df.index,
+            index=correlation_matrix_df.columns,
             columns=correlation_matrix_df.columns,
         ),
     )
 
 
 def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
+    print("RECEIVED:", distance_matrix_df.index[:5])
     distance_matrix = distance_matrix_df.to_numpy()
     clusterer = hdbscan.HDBSCAN(
         metric="precomputed", min_cluster_size=2, gen_min_span_tree=True
@@ -302,18 +316,60 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
         d=distance_matrix.shape[0],
         per_cluster_scores=True,
     )
-    fig, ax = plt.subplots()
-    ax.hist(score[1], bins=30)
-    ax.set_title("Histogram of DBCV Scores")
-    ax.set_xlabel("DBCV Score")
-    ax.set_ylabel("Number of clusters with certain DBCV Score")
+
+    fig_dbcv, ax_dbcv = plt.subplots()
+    ax_dbcv.hist(score[1], bins=40)
+    ax_dbcv.set_title("Histogram of DBCV Scores")
+    ax_dbcv.set_xlabel("DBCV Score")
+    ax_dbcv.set_ylabel("Number of clusters with certain DBCV Score")
+
+    cluster_correlation_means = []
+    for label in set(clusterer.labels_):
+        cluster_correlation_means.append(
+            get_correlation_mean_of_cluster(
+                clusterer.labels_, label, distance_matrix_df
+            )
+        )
+
+    fig_correlation_means, ax_correlation_means = plt.subplots()
+    ax_correlation_means.hist(cluster_correlation_means, bins=40)
+    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
+    ax_correlation_means.set_xlabel("Mean Correlation")
+    ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
+    
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(clusterer.labels_, columns=["Label"]),
         ),
-        plot=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig)),
+        dbcv_scores_df=OutputItem(
+            output_type=OutputType.DATAFRAME,
+            value=pd.DataFrame(score[1], columns=["DBCV"]),
+        ),
+        plots = OutputItem(OutputType.PNG_BASE64, [fig_to_base64(fig_dbcv), fig_to_base64(fig_correlation_means)])
     )
+
+def hdbscan_cluster_scores_histograms(output_dbcv_scores_df, output_cluster_labels_df, distance_matrix_df) -> list[OutputItem]:
+    fig_dbcv, ax_dbcv = plt.subplots()
+    ax_dbcv.hist(output_dbcv_scores_df["DBCV"], bins=40)
+    ax_dbcv.set_title("Histogram of DBCV Scores")
+    ax_dbcv.set_xlabel("DBCV Score")
+    ax_dbcv.set_ylabel("Number of clusters with certain DBCV Score")
+
+    cluster_correlation_means = []
+    for label in set( output_cluster_labels_df["Label"]):
+        cluster_correlation_means.append(
+            get_correlation_mean_of_cluster(
+                output_cluster_labels_df["Label"], label, distance_matrix_df
+            )
+        )
+
+    fig_correlation_means, ax_correlation_means = plt.subplots()
+    ax_correlation_means.hist(cluster_correlation_means, bins=40)
+    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
+    ax_correlation_means.set_xlabel("Mean Correlation")
+    ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
+    return [fig_to_base64(fig_dbcv), fig_to_base64(fig_correlation_means)]
 
 
 def get_clusters_based_on_correlation_mean(
@@ -321,6 +377,7 @@ def get_clusters_based_on_correlation_mean(
     cluster_labels_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     output_name: str,
+    generate_STRING_networks: bool
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     cluster_labels = cluster_labels_df["Label"].to_list()
@@ -336,17 +393,24 @@ def get_clusters_based_on_correlation_mean(
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
         list(correlation_matrix_df.columns)
     )
-    zip_plot_in_bytes = process_clustering(
+    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
         cluster_labels,
         output_name,
         correlation_matrix_df,
         protein_id_to_number_of_residues,
+        generate_STRING_networks,
         cluster_labels_to_ignore,
     )
+
+    messages = []
+    if clusters_too_big_for_alphafold > 0:
+        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
+        messages.append(dict(level=logging.WARNING, msg=msg))
 
     return dict(
         downloads=OutputItem(
             output_type=OutputType.DOWNLOAD,
             value={f"{output_name}.zip": zip_plot_in_bytes},
         ),
+        messages = messages
     )
