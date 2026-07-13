@@ -98,6 +98,7 @@ def test_get_all_possible_step_names():
         "HDBSCAN",
         "GetClustersBasedOnIntraClusterCorrelationMean",
         "GetClustersBasedOnDBCV",
+        "HierarchicalClustering",
     }
 
     steps = get_all_possible_steps()

@@ -101,9 +101,9 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     get_clusters_based_on_dbcv,
     get_correlation_matrix,
     get_distance_matrix_from_correlation_matrix_df,
-    hdbscan_cluster_scores_histograms,
     hdbscan_for_ppi,
     get_clusters_based_on_correlation_mean,
+    hierarchical_clustering_for_ppi,
 )
 
 
@@ -196,6 +196,11 @@ class ClusteringMetric(Enum):
 class ClusteringLinkage(Enum):
     ward = "ward"
     complete = "complete"
+    average = "average"
+    single = "single"
+
+
+class ClusteringLinkagePPI(Enum):
     average = "average"
     single = "single"
 
@@ -2631,6 +2636,36 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
                 CheckboxField(
                     name="generate_STRING_networks",
                     label="Generate STRING network images",
+                ),
+            ],
+        )
+
+
+class HierarchicalClustering(DataAnalysisStep):
+    output_keys = ["cluster_labels_df"]
+    display_name = "Hierarchical Clustering"
+    operation = "Clustering For PPIs"
+    method_description = "Executes Hierarchical clustering on a distance matrix."
+    calc_method = staticmethod(hierarchical_clustering_for_ppi)
+    # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
+
+    def create_form(self):
+        return Form(
+            label="HDBSCAN for PPIs",
+            input_fields=[
+                DropdownField(
+                    name="linkage_method",
+                    label="Linkage",
+                    options=ClusteringLinkagePPI,
+                    value=ClusteringLinkagePPI.average,
+                ),
+                FloatField(
+                    name="deep_split",
+                    label="Parameter that influences cluster size (0=bigger clusters, 4=smaller clusters)",
+                    min=0,
+                    max=4,
+                    value=3,
+                    step=0.1,
                 ),
             ],
         )
