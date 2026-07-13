@@ -2565,7 +2565,7 @@ class HDBSCAN(DataAnalysisStep):
     operation = "Clustering For PPIs"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
     calc_method = staticmethod(hdbscan_for_ppi)
-    #plot_method = staticmethod(hdbscan_cluster_scores_histograms)
+    # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
         return Form(label="HDBSCAN for PPIs", input_fields=[])
@@ -2582,7 +2582,9 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
         return Form(
             label="Get Clusters Based On Correlation Mean",
             input_fields=[
-                InfoField(label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."),
+                InfoField(
+                    label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."
+                ),
                 TextField(name="output_name", label="Name of output file"),
                 FloatField(
                     name="correlation_threshold",
@@ -2595,7 +2597,7 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="generate_STRING_networks",
-                    label="Generate STRING network images"
-                )
+                    label="Generate STRING network images",
+                ),
             ],
         )

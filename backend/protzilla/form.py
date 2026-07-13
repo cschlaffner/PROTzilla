@@ -173,7 +173,7 @@ class FormDivider:
 class InfoField(_baseField):
     """
     A field to show additional information for a specific field to the user.
-    If there is more than one info field for a step, names are required. 
+    If there is more than one info field for a step, names are required.
     Otherwise the infofields might not be removed when switching to a different step.
     """
 

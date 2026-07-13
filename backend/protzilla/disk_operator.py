@@ -533,30 +533,16 @@ class DiskOperator:
                             value=str(file_path.relative_to(self.run_dir)),
                         )
                     case OutputType.PNG_BASE64:
-                        if isinstance(item.value, list):
-                            output_data[key] = []
-                            for i in range(len(item.value)):
-                               file_path = (
-                                    self.plot_dir
-                                    / f"{step.instance_identifier}_{key}_image_{i+1}.png"
-                                ) 
-                               output_data[key].append(OutputItem(
-                                    output_type=OutputType.PNG_BASE64,
-                                    value=str(file_path.relative_to(self.run_dir)),
-                                ))
-                               if self._dump_is_outdated(step, "output"):
-                                   self.base64_operator.write(file_path, item.value[i])
-                        else:
-                            file_path = (
-                                self.plot_dir
-                                / f"{step.instance_identifier}_{key}_image.png"
-                            )
-                            if self._dump_is_outdated(step, "output"):
-                                self.base64_operator.write(file_path, item.value)
-                            output_data[key] = [OutputItem(
-                                output_type=OutputType.PNG_BASE64,
-                                value=str(file_path.relative_to(self.run_dir)),
-                            )]
+                        file_path = (
+                            self.plot_dir
+                            / f"{step.instance_identifier}_{key}_image.png"
+                        )
+                        if self._dump_is_outdated(step, "output"):
+                            self.base64_operator.write(file_path, item.value)
+                        output_data[key] = OutputItem(
+                            output_type=OutputType.PNG_BASE64,
+                            value=str(file_path.relative_to(self.run_dir)),
+                        )
                     case OutputType.VISUALIZATION:
                         file_path = (
                             self.artifact_dir

@@ -210,14 +210,14 @@ export const RunScreen: React.FC = () => {
     (output: StepOutputInfo, response: ApiResponse<Image>) => ({
       title: output.label,
       alt: output.label,
-      data: response.data.base64images.map((img) => `data:image/png;base64,${img}`),
+      data: "data:image/png;base64," + response.data.base64image,
     }),
     [],
   );
   const images = useCertainStepOutputs<
     StepOutputInfo,
     ApiResponse<Image>,
-    { title: string; alt: string; data: string[] }
+    { title: string; alt: string; data: string }
   >({
     available_outputs: availableImages,
     endpoint: "get_png_from_step/",
@@ -434,13 +434,10 @@ export const RunScreen: React.FC = () => {
         <>
           {images.map((image) => {
             return (
-              <div key={image.title}>
+              <>
                 <H3>{image.title}</H3>
-
-                {image.data.map((src, index) => (
-                  <img key={index} src={src} alt={`${image.alt} ${String(index + 1)}`} />
-                ))}
-              </div>
+                <img src={image.data} alt={image.alt} />
+              </>
             );
           })}
         </>

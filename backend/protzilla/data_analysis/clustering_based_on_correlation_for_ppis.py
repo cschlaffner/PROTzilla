@@ -224,7 +224,7 @@ def get_correlation_mean_of_cluster(
     proteins = get_proteins_of_specific_cluster(
         cluster_of_interest, clustering_labels, correlation_matrix
     )
-    #print(proteins)
+    # print(proteins)
 
     # cluster_correlation_mean = 0
     # for protein in proteins:
@@ -287,11 +287,11 @@ def get_distance_matrix_from_correlation_matrix_df(
     )  # war notw. für den validity score von hdbscan ->wenn irgendwo eine 1 drin steht, wird das für die dist-matrix zu 0 und dann teilen wir im Algo durch 0
     distance_matrix = np.sqrt(2 * (1 - distance_matrix))
     np.fill_diagonal(distance_matrix, 0)
-    test = distance_matrix_df=pd.DataFrame(
-            distance_matrix,
-            index=correlation_matrix_df.columns,
-            columns=correlation_matrix_df.columns,
-        )
+    test = distance_matrix_df = pd.DataFrame(
+        distance_matrix,
+        index=correlation_matrix_df.columns,
+        columns=correlation_matrix_df.columns,
+    )
     print("CREATED:", test.index[:5])
     return dict(
         distance_matrix_df=pd.DataFrame(
@@ -336,7 +336,7 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
     ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
     ax_correlation_means.set_xlabel("Mean Correlation")
     ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
-    
+
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
@@ -346,10 +346,16 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame) -> dict:
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(score[1], columns=["DBCV"]),
         ),
-        plots = OutputItem(OutputType.PNG_BASE64, [fig_to_base64(fig_dbcv), fig_to_base64(fig_correlation_means)])
+        histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_dbcv)),
+        histogram_correlation_means=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(fig_correlation_means)
+        ),
     )
 
-def hdbscan_cluster_scores_histograms(output_dbcv_scores_df, output_cluster_labels_df, distance_matrix_df) -> list[OutputItem]:
+
+def hdbscan_cluster_scores_histograms(
+    output_dbcv_scores_df, output_cluster_labels_df, distance_matrix_df
+) -> list[OutputItem]:
     fig_dbcv, ax_dbcv = plt.subplots()
     ax_dbcv.hist(output_dbcv_scores_df["DBCV"], bins=40)
     ax_dbcv.set_title("Histogram of DBCV Scores")
@@ -357,7 +363,7 @@ def hdbscan_cluster_scores_histograms(output_dbcv_scores_df, output_cluster_labe
     ax_dbcv.set_ylabel("Number of clusters with certain DBCV Score")
 
     cluster_correlation_means = []
-    for label in set( output_cluster_labels_df["Label"]):
+    for label in set(output_cluster_labels_df["Label"]):
         cluster_correlation_means.append(
             get_correlation_mean_of_cluster(
                 output_cluster_labels_df["Label"], label, distance_matrix_df
@@ -377,7 +383,7 @@ def get_clusters_based_on_correlation_mean(
     cluster_labels_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     output_name: str,
-    generate_STRING_networks: bool
+    generate_STRING_networks: bool,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     cluster_labels = cluster_labels_df["Label"].to_list()
@@ -412,5 +418,5 @@ def get_clusters_based_on_correlation_mean(
             output_type=OutputType.DOWNLOAD,
             value={f"{output_name}.zip": zip_plot_in_bytes},
         ),
-        messages = messages
+        messages=messages,
     )
