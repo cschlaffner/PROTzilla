@@ -39,7 +39,7 @@ from backend.protzilla.steps import Step, Section, StepOperation
 from backend.protzilla.importing.crosslinking_import import crosslinking_import
 from backend.protzilla.run import Run
 from backend.protzilla.importing.example_dataset_import import example_dataset_import
-from backend.protzilla.importing.fasta_import import fasta_import
+from backend.protzilla.importing.fasta_import import fasta_generation, fasta_import
 from backend.protzilla.importing.import_utils import (
     AggregationMethods,
     FeatureOrientationType,
@@ -382,6 +382,22 @@ class FastaImport(ImportingStep):
                     accept=".fasta,.fa,.faa",
                 ),
             ],
+        )
+
+
+class GenerateFastaWithUniProt(ImportingStep):
+    display_name = "FASTA Generation"
+    operation = StepOperation.FASTA_IMPORT
+    method_description = "Generate a fasta file containing protein sequences for all proteins contained in the input file using UniProt."
+
+    output_keys = [DataKey.FASTA_DF]
+
+    calc_method = staticmethod(fasta_generation)
+
+    def create_form(self):
+        return Form(
+            label="Fasta Protein Sequence Import",
+            input_fields=[],
         )
 
 

@@ -170,6 +170,32 @@ def get_protein_id_to_number_of_residues(protein_ids):
     return protein_id_to_number_of_residues
 
 
+def generate_alphafold_query_file_for_cluster(
+    name: str, model_seed: int, fastas: dict[str, str], proteins: list[str]
+):
+    query = {
+        "name": name,
+        "modelSeeds": [],
+        "sequences": [],
+        "dialect": "alphafoldserver",
+        "version": 1,
+    }
+
+    if model_seed != -1:
+        query["modelSeeds"] = [model_seed]
+
+    for protein_id in proteins:
+        query["sequences"].append(
+            {
+                "proteinChain": {
+                    "sequence": fastas[protein_id],
+                    "count": 1,
+                }
+            }
+        )
+    return query
+
+
 def get_correlation_mean_of_cluster(
     clustering_labels: pd.Series, cluster_of_interest, correlation_matrix
 ):
@@ -336,7 +362,7 @@ def create_filtered_clusters_output(
     correlation_matrix_df: pd.DataFrame,
     generate_STRING_networks: bool,
     cluster_labels_to_ignore: list[int],
-    only_include_alphafold_compatible_clusters:bool
+    only_include_alphafold_compatible_clusters: bool,
 ):
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
         list(correlation_matrix_df.columns)
@@ -371,7 +397,7 @@ def get_clusters_based_on_correlation_mean(
     correlation_matrix_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
-    only_include_alphafold_compatible_clusters:bool
+    only_include_alphafold_compatible_clusters: bool,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -402,7 +428,7 @@ def get_clusters_based_on_dbcv(
     dbcv_scores_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
-    only_include_alphafold_compatible_clusters:bool
+    only_include_alphafold_compatible_clusters: bool,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -485,7 +511,7 @@ def get_clusters_based_on_silhouette(
     silhouette_scores_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
-    only_include_alphafold_compatible_clusters: bool
+    only_include_alphafold_compatible_clusters: bool,
 ) -> dict:
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():

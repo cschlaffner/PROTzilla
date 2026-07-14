@@ -15,6 +15,7 @@ _forward_mapping: list[Step] = [
     importing.EvidenceImport,
     importing.ExampleDatasetImport,
     importing.FastaImport,
+    importing.GenerateFastaWithUniProt,
     importing.AlphaFoldPredictionLoad,
     importing.CrosslinkingImport,
     importing.AlphaFoldQueryJsonGeneration,
