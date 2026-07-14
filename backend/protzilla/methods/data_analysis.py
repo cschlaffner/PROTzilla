@@ -2575,7 +2575,17 @@ class HDBSCAN(DataAnalysisStep):
     # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
-        return Form(label="HDBSCAN for Protein-Protein-Interactions", input_fields=[])
+        return Form(
+            label="HDBSCAN for Protein-Protein-Interactions",
+            input_fields=[
+                NumberField(
+                    name="min_cluster_size",
+                    label="Minimum cluster size",
+                    min=2,
+                    value=2,
+                ),
+            ],
+        )
 
 
 class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
@@ -2659,6 +2669,12 @@ class HierarchicalClustering(DataAnalysisStep):
                     label="Linkage",
                     options=ClusteringLinkagePPI,
                     value=ClusteringLinkagePPI.average,
+                ),
+                NumberField(
+                    name="min_cluster_size",
+                    label="Minimum cluster size",
+                    min=2,
+                    value=2,
                 ),
                 FloatField(
                     name="deep_split",

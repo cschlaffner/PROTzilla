@@ -271,11 +271,15 @@ def get_cluster_correlation_means_histogram(cluster_correlation_means):
     return fig_correlation_means
 
 
-def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> dict:
+def hdbscan_for_ppi(
+    distance_matrix_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame,
+    min_cluster_size: int,
+) -> dict:
     print("RECEIVED:", distance_matrix_df.index[:5])
     distance_matrix = distance_matrix_df.to_numpy()
     clusterer = hdbscan.HDBSCAN(
-        metric="precomputed", min_cluster_size=2, gen_min_span_tree=True
+        metric="precomputed", min_cluster_size=min_cluster_size, gen_min_span_tree=True
     )  # , cluster_selection_method="leaf") #eins kleiner
     clusterer.fit(distance_matrix)
     labels = pd.Series(clusterer.labels_, index=distance_matrix_df.index, name="Label")
@@ -412,14 +416,15 @@ def hierarchical_clustering_for_ppi(
     distance_matrix_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     linkage_method,
-    deep_split,
+    deep_split: float,
+    min_cluster_size: int,
 ) -> dict:
     distance_matrix = distance_matrix_df.to_numpy()
     Z = linkage(squareform(distance_matrix), linkage_method)
     labels = pd.Series(
-        cutreeHybrid(Z, distance_matrix, minClusterSize=2, deepSplit=deep_split)[
-            "labels"
-        ],
+        cutreeHybrid(
+            Z, distance_matrix, minClusterSize=min_cluster_size, deepSplit=deep_split
+        )["labels"],
         index=distance_matrix_df.index,
     )
 
