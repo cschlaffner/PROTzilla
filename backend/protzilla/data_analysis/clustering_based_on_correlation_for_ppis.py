@@ -82,6 +82,7 @@ def process_clustering(
     correlation_matrix,
     protein_id_to_number_of_residues,
     generate_STRING_networks: bool,
+    only_include_alphafold_compatible_clusters: bool,
     cluster_labels_to_ignore=None,
 ):
     # run_directory = RUNS_PATH / disk_operator.run_dir
@@ -105,6 +106,8 @@ def process_clustering(
             alphafold_job_limit = 10000
             if number_of_residues_in_cluster > alphafold_job_limit:
                 clusters_too_big_for_alphafold += 1
+                if only_include_alphafold_compatible_clusters:
+                    continue
 
             show_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
 
@@ -328,11 +331,12 @@ def hdbscan_for_ppi(
 
 
 def create_filtered_clusters_output(
-    cluster_labels_df,
-    output_name,
-    correlation_matrix_df,
-    generate_STRING_networks,
-    cluster_labels_to_ignore,
+    cluster_labels_df: pd.DataFrame,
+    output_name: str,
+    correlation_matrix_df: pd.DataFrame,
+    generate_STRING_networks: bool,
+    cluster_labels_to_ignore: list[int],
+    only_include_alphafold_compatible_clusters:bool
 ):
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
         list(correlation_matrix_df.columns)
@@ -343,6 +347,7 @@ def create_filtered_clusters_output(
         correlation_matrix_df,
         protein_id_to_number_of_residues,
         generate_STRING_networks,
+        only_include_alphafold_compatible_clusters,
         cluster_labels_to_ignore,
     )
 
@@ -366,6 +371,7 @@ def get_clusters_based_on_correlation_mean(
     correlation_matrix_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
+    only_include_alphafold_compatible_clusters:bool
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -385,6 +391,7 @@ def get_clusters_based_on_correlation_mean(
         correlation_matrix_df,
         generate_STRING_networks,
         cluster_labels_to_ignore,
+        only_include_alphafold_compatible_clusters,
     )
 
 
@@ -395,6 +402,7 @@ def get_clusters_based_on_dbcv(
     dbcv_scores_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
+    only_include_alphafold_compatible_clusters:bool
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -409,6 +417,7 @@ def get_clusters_based_on_dbcv(
         correlation_matrix_df,
         generate_STRING_networks,
         cluster_labels_to_ignore,
+        only_include_alphafold_compatible_clusters,
     )
 
 
@@ -476,6 +485,7 @@ def get_clusters_based_on_silhouette(
     silhouette_scores_df: pd.DataFrame,
     output_name: str,
     generate_STRING_networks: bool,
+    only_include_alphafold_compatible_clusters: bool
 ) -> dict:
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():
@@ -487,4 +497,5 @@ def get_clusters_based_on_silhouette(
         correlation_matrix_df,
         generate_STRING_networks,
         cluster_labels_to_ignore,
+        only_include_alphafold_compatible_clusters,
     )

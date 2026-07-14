@@ -2616,6 +2616,11 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                     name="generate_STRING_networks",
                     label="Generate STRING network images",
                 ),
+                CheckboxField(
+                    name="only_include_alphafold_compatible_clusters",
+                    label="Only include clusters suitable for AlphaFold prediction (<10,000 residues).",
+                    value=True
+                ),
             ],
         )
 
@@ -2647,6 +2652,11 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
                 CheckboxField(
                     name="generate_STRING_networks",
                     label="Generate STRING network images",
+                ),
+                CheckboxField(
+                    name="only_include_alphafold_compatible_clusters",
+                    label="Only include clusters suitable for AlphaFold prediction (<10,000 residues).",
+                    value=True
                 ),
             ],
         )
@@ -2715,6 +2725,11 @@ class GetClustersBasedOnSilhouette(DataAnalysisStep):
                 CheckboxField(
                     name="generate_STRING_networks",
                     label="Generate STRING network images",
+                ),
+                CheckboxField(
+                    name="only_include_alphafold_compatible_clusters",
+                    label="Only include clusters suitable for AlphaFold prediction (<10,000 residues).",
+                    value=True
                 ),
             ],
         )
