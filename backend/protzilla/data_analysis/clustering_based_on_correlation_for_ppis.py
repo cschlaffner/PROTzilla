@@ -149,24 +149,12 @@ def get_number_of_amino_acid_residues_in_cluster(
     return number_of_residues
 
 
-def get_protein_id_to_number_of_residues(protein_ids):
+def get_protein_id_to_number_of_residues(fasta_df: pd.DataFrame):
     protein_id_to_number_of_residues = {}
-    for i in range(0, len(protein_ids), 1000):
-        url = f"https://rest.uniprot.org/uniprotkb/accessions?accessions={','.join(protein_ids[i:min(i + 1000, len(protein_ids))])}&format=fasta"
-        response = requests.get(url, timeout=20)  # todo: warnings wenn timeout/error
-        response.raise_for_status()
-        fasta = ""
-        current_id = None
-        for line in response.text.splitlines():
-            if line.startswith(">"):
-                if current_id is not None:
-                    protein_id_to_number_of_residues[current_id] = len("".join(fasta))
-                fasta = []
-                current_id = line.split("|")[1]
-            else:
-                fasta.append(line.strip())
-        if current_id is not None:
-            protein_id_to_number_of_residues[current_id] = len("".join(fasta))
+    for protein_id, protein_sequence in fasta_df[
+        ["Protein ID", "Protein Sequence"]
+    ].itertuples(index=False):
+        protein_id_to_number_of_residues[protein_id] = len(protein_sequence)
     return protein_id_to_number_of_residues
 
 
@@ -223,7 +211,7 @@ def get_correlation_mean_of_cluster(
         return 0  # wenn genau ein Protein im cluster todo
 
 
-def get_correlation_matrix(protein_df: pd.DataFrame) -> dict:
+def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> dict:
     intensity_name = default_intensity_column(protein_df)
     protein_ids = [
         key for key, _ in protein_df.sort_values("Sample").groupby("Protein ID")
@@ -231,7 +219,7 @@ def get_correlation_matrix(protein_df: pd.DataFrame) -> dict:
 
     # ToDo: Also remove NaNs
 
-    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(protein_ids)
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     ids_in_uniprot = set(protein_id_to_number_of_residues.keys())
     ids_not_in_uniprot = set(protein_ids) - ids_in_uniprot
 
@@ -244,7 +232,7 @@ def get_correlation_matrix(protein_df: pd.DataFrame) -> dict:
     correlation_matrix = pd.DataFrame(protein_to_intensities).corr()
 
     messages = []
-    msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids could not be found in uniprot."
+    msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
     messages.append(dict(level=logging.WARNING, msg=msg))
     msg = f"{len(protein_ids) - len(correlation_matrix.columns) - len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since all the protein's intensity values are identical, which would lead to a standard deviation of 0 for this protein, which would result in undefined correlation values between this protein and all other proteins."
     messages.append(dict(level=logging.WARNING, msg=msg))
@@ -363,10 +351,9 @@ def create_filtered_clusters_output(
     generate_STRING_networks: bool,
     cluster_labels_to_ignore: list[int],
     only_include_alphafold_compatible_clusters: bool,
+    fasta_df: pd.DataFrame,
 ):
-    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(
-        list(correlation_matrix_df.columns)
-    )
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
         cluster_labels_df["Label"],
         output_name,
@@ -398,6 +385,7 @@ def get_clusters_based_on_correlation_mean(
     output_name: str,
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
+    fasta_df: pd.DataFrame,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -418,6 +406,7 @@ def get_clusters_based_on_correlation_mean(
         generate_STRING_networks,
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
+        fasta_df,
     )
 
 
@@ -429,6 +418,7 @@ def get_clusters_based_on_dbcv(
     output_name: str,
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
+    fasta_df,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -444,6 +434,7 @@ def get_clusters_based_on_dbcv(
         generate_STRING_networks,
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
+        fasta_df,
     )
 
 
@@ -512,6 +503,7 @@ def get_clusters_based_on_silhouette(
     output_name: str,
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
+    fasta_df: pd.DataFrame,
 ) -> dict:
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():
@@ -524,4 +516,5 @@ def get_clusters_based_on_silhouette(
         generate_STRING_networks,
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
+        fasta_df,
     )

@@ -86,8 +86,8 @@ def fasta_generation(protein_df: pd.DataFrame):
                 if line.startswith(">"):
                     if current_id is not None:
                         # Make sure that the protein id has an isoform suffix even if it's the canonical isoform
-                        if "-" not in current_id:
-                            current_id = f"{current_id}-1"
+                        # if "-" not in current_id:
+                        #    current_id = f"{current_id}-1"
                         protein_ids.append(current_id)
                         protein_sequences.append("".join(fasta))
                     fasta = []
@@ -96,8 +96,8 @@ def fasta_generation(protein_df: pd.DataFrame):
                     fasta.append(line.strip())
             if current_id is not None:
                 # Make sure that the protein id has an isoform suffix even if it's the canonical isoform
-                if "-" not in current_id:
-                    current_id = f"{current_id}-1"
+                # if "-" not in current_id:
+                #    current_id = f"{current_id}-1"
                 protein_ids.append(current_id)
                 protein_sequences.append("".join(fasta))
 
