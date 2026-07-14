@@ -2643,7 +2643,7 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
 
 
 class HierarchicalClustering(DataAnalysisStep):
-    output_keys = ["cluster_labels_df", "silhouette_scores_per_cluster_df"]
+    output_keys = ["cluster_labels_df", "silhouette_scores_df"]
     display_name = "Hierarchical Clustering"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes Hierarchical clustering on a distance matrix."

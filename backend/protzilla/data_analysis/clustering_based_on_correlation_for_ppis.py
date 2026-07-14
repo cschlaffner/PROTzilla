@@ -1,3 +1,4 @@
+from collections import Counter
 import logging
 import pandas as pd
 import numpy as np
@@ -252,6 +253,24 @@ def get_distance_matrix_from_correlation_matrix_df(
     )
 
 
+def get_cluster_sizes_histogram(labels: pd.Series):
+    fig_cluster_sizes, ax_cluster_sizes = plt.subplots()
+    ax_cluster_sizes.hist(Counter(labels).values(), bins=40)
+    ax_cluster_sizes.set_title("Histogram of Cluster Sizes")
+    ax_cluster_sizes.set_xlabel("Cluster Size")
+    ax_cluster_sizes.set_ylabel("Number of clusters with certain cluster size")
+    return fig_cluster_sizes
+
+
+def get_cluster_correlation_means_histogram(cluster_correlation_means):
+    fig_correlation_means, ax_correlation_means = plt.subplots()
+    ax_correlation_means.hist(cluster_correlation_means, bins=40)
+    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
+    ax_correlation_means.set_xlabel("Mean Correlation")
+    ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
+    return fig_correlation_means
+
+
 def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> dict:
     print("RECEIVED:", distance_matrix_df.index[:5])
     distance_matrix = distance_matrix_df.to_numpy()
@@ -282,12 +301,6 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> 
             get_correlation_mean_of_cluster(labels, label, correlation_matrix_df)
         )
 
-    fig_correlation_means, ax_correlation_means = plt.subplots()
-    ax_correlation_means.hist(cluster_correlation_means, bins=40)
-    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
-    ax_correlation_means.set_xlabel("Mean Correlation")
-    ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
-
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
@@ -299,7 +312,13 @@ def hdbscan_for_ppi(distance_matrix_df: pd.DataFrame, correlation_matrix_df) -> 
         ),
         histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_dbcv)),
         histogram_correlation_means=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(fig_correlation_means)
+            OutputType.PNG_BASE64,
+            fig_to_base64(
+                get_cluster_correlation_means_histogram(cluster_correlation_means)
+            ),
+        ),
+        histogram_cluster_sizes=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
         ),
     )
 
@@ -423,24 +442,24 @@ def hierarchical_clustering_for_ppi(
             get_correlation_mean_of_cluster(labels, label, correlation_matrix_df)
         )
 
-    fig_correlation_means, ax_correlation_means = plt.subplots()
-    ax_correlation_means.hist(cluster_correlation_means, bins=40)
-    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
-    ax_correlation_means.set_xlabel("Mean Correlation")
-    ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
-
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(labels, columns=["Label"]),
         ),
-        silhouette_scores_per_cluster_df=OutputItem(
+        silhouette_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(silhouette_per_cluster, columns=["Silhouette"]),
         ),
         histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)),
         histogram_correlation_means=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(fig_correlation_means)
+            OutputType.PNG_BASE64,
+            fig_to_base64(
+                get_cluster_correlation_means_histogram(cluster_correlation_means)
+            ),
+        ),
+        histogram_cluster_sizes=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
         ),
     )
 
