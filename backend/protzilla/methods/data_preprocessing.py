@@ -684,12 +684,12 @@ class NormalisationByMedian(NormalisationStep):
         )
 
     def modify_form(self, run):
-        if self.form["log"].value:
-            self.form["visual_transformation"].value = (
-                VisualTransformations.LINEAR.value
-            )
-        elif not self.form["log"].value:
-            self.form["visual_transformation"].value = VisualTransformations.LOG10.value
+        visual_transformation_field: DropdownField = self.form["visual_transformation"]
+        log_field: CheckboxField = self.form["log"]
+        if log_field.value:
+            visual_transformation_field.value = VisualTransformations.LINEAR
+        elif not log_field.value:
+            visual_transformation_field.value = VisualTransformations.LOG10
 
     calc_method = staticmethod(normalisation.by_median)
     plot_method = staticmethod(normalisation.by_median_plot)

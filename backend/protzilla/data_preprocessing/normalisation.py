@@ -88,6 +88,8 @@ def by_median(
     samples = protein_df["Sample"].unique().tolist()
     zeroed_samples = []
 
+    normalised_intensity_name = f"Normalised {intensity_name}"
+
     if log:
         valid_mask = np.isfinite(protein_df[intensity_name])
         valid_data = protein_df.loc[valid_mask, intensity_name]
@@ -101,19 +103,19 @@ def by_median(
             if np.isfinite(quantile):
                 # without adding the global median our data would be zero centered and therefore one half would be
                 # negative which can lead to problems later down the workflow
-                df_sample[f"Normalised {intensity_name}"] = (
+                df_sample[normalised_intensity_name] = (
                     df_sample[intensity_name] - quantile + global_median
                 )
             else:
-                df_sample[f"Normalised {intensity_name}"] = 0
+                df_sample[normalised_intensity_name] = 0
                 zeroed_samples.append(sample)
         else:
             if quantile != 0:
-                df_sample[f"Normalised {intensity_name}"] = df_sample[
-                    intensity_name
-                ].div(quantile)
+                df_sample[normalised_intensity_name] = df_sample[intensity_name].div(
+                    quantile
+                )
             else:
-                df_sample[f"Normalised {intensity_name}"] = 0
+                df_sample[normalised_intensity_name] = 0
                 zeroed_samples.append(sample)
         df_sample.drop(axis=1, labels=[intensity_name], inplace=True)
         scaled_df = pd.concat([scaled_df, df_sample], ignore_index=True)
