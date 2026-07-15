@@ -90,11 +90,6 @@ def by_median(
 
     normalised_intensity_name = f"Normalised {intensity_name}"
 
-    if log:
-        valid_mask = np.isfinite(protein_df[intensity_name])
-        valid_data = protein_df.loc[valid_mask, intensity_name]
-        global_median = valid_data.median()
-
     for sample in samples:
         df_sample = protein_df.loc[protein_df["Sample"] == sample,]
         quantile = df_sample[intensity_name].quantile(q=percentile)
@@ -104,7 +99,7 @@ def by_median(
                 # without adding the global median our data would be zero centered and therefore one half would be
                 # negative which can lead to problems later down the workflow
                 df_sample[normalised_intensity_name] = (
-                    df_sample[intensity_name] - quantile + global_median
+                    df_sample[intensity_name] - quantile
                 )
             else:
                 df_sample[normalised_intensity_name] = 0
