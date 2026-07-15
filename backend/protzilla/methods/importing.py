@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from abc import ABC
 import textwrap
 import numpy as np
@@ -476,6 +476,11 @@ class CustomPythonStep(ImportingStep):
             label="Custom Python Step",
             input_fields=[
                 HeaderInfoField(label=self.method_description),
+                TextField(
+                    name="step_name",
+                    label="Step name",
+                    value=self.display_name,
+                ),
                 MultiSelectField(
                     name="selected_inputs",
                     label="Inputs",
