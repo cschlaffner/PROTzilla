@@ -236,6 +236,11 @@ class DimensionReductionMetric(Enum):
     cosine = "cosine"
 
 
+class DistanceFromCorrelation(Enum):
+    weight_in_negative_correlations = "sqrt(2*(1-correlation))"
+    do_not_weight_in_negative_correlations = "1 - max(0, correaltion)"
+
+
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
@@ -2562,7 +2567,22 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 
     def create_form(self):
         return Form(
-            label="Distance Matrix Based On Correlation Matrix", input_fields=[]
+            label="Distance Matrix Based On Correlation Matrix",
+            input_fields=[
+                DropdownField(
+                    name="distance_method",
+                    label="How to translate correlation into distance.",
+                    options=DistanceFromCorrelation,
+                ),
+                CheckboxField(
+                    name="hdbscan_suitable", label="Suitable for HDBSCAN", value=True
+                ),
+                InfoField(
+                    name="info_clipping_distance_matrix",
+                    label="To make the matrix suitable for the HDBSCAN step, the correlation matrix is clipped between -0.999999 and 0.999999 before applying the distance transformation. "
+                    "This results in no distances of exactly 0 since the dbcv calculation cannot deal with distances of exactly 0.",
+                ),
+            ],
         )
 
 
@@ -2734,13 +2754,13 @@ class HierarchicalClustering(DataAnalysisStep):
                     min=2,
                     value=2,
                 ),
-                FloatField(
+                NumberField(
                     name="deep_split",
                     label="Influence cluster size (0=bigger clusters, 4=smaller clusters)",
                     min=0,
                     max=4,
                     value=3,
-                    step=0.1,
+                    step=1,
                 ),
             ],
         )

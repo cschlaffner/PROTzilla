@@ -265,20 +265,22 @@ def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> 
 
 
 def get_distance_matrix_from_correlation_matrix_df(
-    correlation_matrix_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame, distance_method: str, hdbscan_suitable: bool
 ) -> dict:
     distance_matrix = correlation_matrix_df.to_numpy()
-    distance_matrix = np.clip(
-        distance_matrix, -0.999999, 0.999999
-    )  # war notw. für den validity score von hdbscan ->wenn irgendwo eine 1 drin steht, wird das für die dist-matrix zu 0 und dann teilen wir im Algo durch 0
-    distance_matrix = np.sqrt(2 * (1 - distance_matrix))
+    if hdbscan_suitable:
+        # without this clipping, the final distance matrix could contain values of exactly 0 that are not on the diagonal
+        # hdbscan.validity.validity_index cannot deal with these zeros
+        distance_matrix = np.clip(distance_matrix, -0.999999, 0.999999)
+    else:
+        # without clipping distance_matrix could contain values >1 due to rounding inaccuracies
+        # this would lead to a negative distance or taking the root of something negative, which would result in NaNs
+        distance_matrix = np.clip(distance_matrix, -1, 1)
+    if distance_method == "sqrt(2*(1-correlation))":
+        distance_matrix = np.sqrt(2 * (1 - distance_matrix))
+    else:
+        distance_matrix = 1 - np.maximum(0, distance_matrix)
     np.fill_diagonal(distance_matrix, 0)
-    test = distance_matrix_df = pd.DataFrame(
-        distance_matrix,
-        index=correlation_matrix_df.columns,
-        columns=correlation_matrix_df.columns,
-    )
-    print("CREATED:", test.index[:5])
     return dict(
         distance_matrix_df=pd.DataFrame(
             distance_matrix,
@@ -313,6 +315,9 @@ def hdbscan_for_ppi(
 ) -> dict:
     print("RECEIVED:", distance_matrix_df.index[:5])
     distance_matrix = distance_matrix_df.to_numpy()
+    distance_matrix = np.clip(
+        distance_matrix, -0.999999, 0.999999
+    )  # war notw. für den validity score von hdbscan ->wenn irgendwo eine 1 drin steht, wird das für die dist-matrix zu 0 und dann teilen wir im Algo durch 0
     clusterer = hdbscan.HDBSCAN(
         metric="precomputed", min_cluster_size=min_cluster_size, gen_min_span_tree=True
     )  # , cluster_selection_method="leaf") #eins kleiner
