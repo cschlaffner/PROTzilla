@@ -633,6 +633,7 @@ class NormalisationByMedian(NormalisationStep):
     method_description = "Normalise data by median"
 
     def create_form(self):
+        self.log_field_status = True
         return Form(
             label="Normalisation by Median",
             input_fields=[
@@ -682,6 +683,17 @@ class NormalisationByMedian(NormalisationStep):
                 info_field_show_outliers,
             ],
         )
+
+    def modify_form(self, run):
+        log_field = self.form["log"]
+        visual_transformation_field = self.form["visual_transformation"]
+
+        if self.log_field_status != log_field.value:
+            self.log_field_status = log_field.value
+            if log_field.value:
+                visual_transformation_field.value = VisualTransformations.LINEAR
+            elif not log_field.value:
+                visual_transformation_field.value = VisualTransformations.LOG10
 
     calc_method = staticmethod(normalisation.by_median)
     plot_method = staticmethod(normalisation.by_median_plot)
