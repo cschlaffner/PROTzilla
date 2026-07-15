@@ -1,7 +1,11 @@
 import sys
 import shutil
+import inspect
+import json
 from copy import deepcopy
 from dataclasses import asdict, is_dataclass
+from datetime import datetime, timezone
+from functools import wraps
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -18,6 +22,65 @@ from backend.protzilla.workflow import get_available_workflow_names
 from backend.main.views_helper import sanitize_name
 
 mcp = FastMCP("protzilla")
+
+
+def _mcp_tool_log_file() -> Path:
+    log_dir = PROJECT_ROOT / "mcp-server" / "ai"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir / "mcp_tool_calls.txt"
+
+
+def _jsonable_log_value(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, (list, tuple, set)):
+        return [_jsonable_log_value(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _jsonable_log_value(item) for key, item in value.items()}
+    if is_dataclass(value):
+        return _jsonable_log_value(asdict(value))
+    return str(value)
+
+
+def _write_mcp_tool_log(tool_name: str, arguments: dict, status: str, **data) -> None:
+    entry = {
+        "time": datetime.now(timezone.utc).isoformat(),
+        "tool": tool_name,
+        "arguments": _jsonable_log_value(arguments),
+        "status": status,
+        **{key: _jsonable_log_value(value) for key, value in data.items()},
+    }
+    with _mcp_tool_log_file().open("a", encoding="utf-8") as file:
+        file.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def mcp_tool():
+    def decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            try:
+                bound_arguments = inspect.signature(function).bind_partial(*args, **kwargs)
+                bound_arguments.apply_defaults()
+                arguments = dict(bound_arguments.arguments)
+            except Exception:
+                arguments = {"args": args, "kwargs": kwargs}
+
+            try:
+                result = function(*args, **kwargs)
+            except Exception as error:
+                _write_mcp_tool_log(
+                    function.__name__, arguments, "error", error=f"{type(error).__name__}: {error}"
+                )
+                raise
+
+            _write_mcp_tool_log(function.__name__, arguments, "success", result=result)
+            return result
+
+        return mcp.tool()(wrapper)
+
+    return decorator
 
 
 def _read_yaml(path: Path, *, base_loader: bool = False) -> dict:
@@ -39,7 +102,7 @@ def _imported_data_dir() -> Path:
     return PROJECT_ROOT / "mcp-server" / "imported-data"
 
 
-@mcp.tool()
+@mcp_tool()
 def list_workflows() -> list[str]:
     """List the names of all saved PROTzilla workflows.
 
@@ -58,7 +121,7 @@ def list_workflows() -> list[str]:
     return get_available_workflow_names()
 
 
-@mcp.tool()
+@mcp_tool()
 def import_file(source_path: str) -> dict:
     """Copy one external file into PROTzilla's MCP staging directory.
 
@@ -106,7 +169,7 @@ def import_file(source_path: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def get_workflow(workflow_name: str) -> dict:
     """Load one saved PROTzilla workflow and return its stored structure.
 
@@ -153,7 +216,7 @@ def get_workflow(workflow_name: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def list_runs() -> dict:
     """List saved PROTzilla runs together with their basic metadata.
 
@@ -224,7 +287,7 @@ def list_runs() -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def list_available_steps() -> dict:
     """List the PROTzilla step types that users can add to workflows.
 
@@ -255,7 +318,7 @@ def list_available_steps() -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def get_step_definition(step_type: str) -> dict:
     """Load one available PROTzilla step definition.
 
@@ -324,7 +387,7 @@ def get_step_definition(step_type: str) -> dict:
     raise ValueError(f"Unknown step type '{step_type}'.")
 
 
-@mcp.tool()
+@mcp_tool()
 def get_run(run_name: str) -> dict:
     """Load one saved PROTzilla run from disk.
 
@@ -375,7 +438,7 @@ def get_run(run_name: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def create_run(run_name: str, workflow_name: str, df_mode: str = "disk") -> dict:
     """Create a new PROTzilla run from an existing workflow.
 
@@ -414,7 +477,7 @@ def create_run(run_name: str, workflow_name: str, df_mode: str = "disk") -> dict
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def add_step_to_run(run_name: str, step_type: str) -> dict:
     """Add one new step node to an existing PROTzilla run.
 
@@ -463,7 +526,7 @@ def add_step_to_run(run_name: str, step_type: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def remove_step_from_run(run_name: str, step_id: str) -> dict:
     """Remove one step node from an existing PROTzilla run.
 
@@ -491,7 +554,7 @@ def remove_step_from_run(run_name: str, step_id: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def set_step_parameters(run_name: str, step_id: str, parameters: dict) -> dict:
     """Set form parameters for one step in an existing PROTzilla run.
 
@@ -527,7 +590,7 @@ def set_step_parameters(run_name: str, step_id: str, parameters: dict) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def set_step_input_file(
     run_name: str, step_id: str, input_name: str, file_path: str
 ) -> dict:
@@ -593,7 +656,7 @@ def set_step_input_file(
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def calculate_step(run_name: str, step_id: str) -> dict:
     """Calculate one step in an existing PROTzilla run.
 
@@ -633,7 +696,7 @@ def calculate_step(run_name: str, step_id: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def calculate_run(run_name: str) -> dict:
     """Calculate all steps of an existing PROTzilla run in workflow order.
 
@@ -711,7 +774,7 @@ def calculate_run(run_name: str) -> dict:
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def connect_steps(
     run_name: str,
     source_step_id: str,
@@ -757,7 +820,7 @@ def connect_steps(
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def delete_connection(
     run_name: str,
     source_step_id: str,
@@ -803,7 +866,7 @@ def delete_connection(
     }
 
 
-@mcp.tool()
+@mcp_tool()
 def get_step_info(run_name: str, step_id: str) -> dict:
     """Load one step from a saved run together with connections and result artifacts.
 
