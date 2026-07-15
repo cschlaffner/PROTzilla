@@ -233,8 +233,8 @@ def expected_df_by_median_log_normalisation():
     expected_df = pd.DataFrame(
         data=(
             ["Sample_1", "Gene_1", 0.0, 0.0, 0.0],
-            ["Sample_2", "Gene_2", 13.0, 15.0, 17.0],
-            ["Sample_3", "Gene_3", 13.0, 15.0, 17.0],
+            ["Sample_2", "Gene_2", -2.0, 0.0, 2.0],
+            ["Sample_3", "Gene_3", -2.0, 0.0, 2.0],
             ["Sample_4", "Gene_4", 0.0, 0.0, 0.0],
         ),
         columns=["Sample", "Gene", "Protein_1", "Protein_2", "Protein_3"],
