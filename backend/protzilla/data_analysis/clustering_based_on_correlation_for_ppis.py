@@ -1,4 +1,5 @@
 from collections import Counter
+import json
 import logging
 import pandas as pd
 import numpy as np
@@ -76,14 +77,45 @@ def get_proteins_of_specific_cluster(
     return all_labels[cluster_label == all_labels].index.tolist()
 
 
+def get_alphafold_query_file_for_specific_cluster(
+    name: str, model_seed: int, fasta_df: pd.DataFrame, proteins: list[str]
+):
+    query = {
+        "name": name,
+        "modelSeeds": [],
+        "sequences": [],
+        "dialect": "alphafoldserver",
+        "version": 1,
+    }
+
+    if model_seed != -1:
+        query["modelSeeds"] = [model_seed]
+
+    for protein_id in proteins:
+        query["sequences"].append(
+            {
+                "proteinChain": {
+                    "sequence": fasta_df.loc[
+                        fasta_df["Protein ID"] == protein_id, "Protein Sequence"
+                    ].iloc[0],
+                    "count": 1,
+                }
+            }
+        )
+    return json.dumps([query], indent=4)
+
+
 def process_clustering(
     labels: pd.Series,
-    clustering_algo,
+    clustering_algo: str,
     correlation_matrix,
     protein_id_to_number_of_residues,
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
-    cluster_labels_to_ignore=None,
+    fasta_df: pd.DataFrame,
+    cluster_labels_to_ignore: list[str],
+    generate_alphafold_queries: bool,
+    model_seed: int,
 ):
     # run_directory = RUNS_PATH / disk_operator.run_dir
 
@@ -93,7 +125,7 @@ def process_clustering(
 
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         for cluster_id in labels.unique():
-            if cluster_labels_to_ignore and cluster_id in cluster_labels_to_ignore:
+            if cluster_id in cluster_labels_to_ignore:
                 continue
             fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -133,6 +165,18 @@ def process_clustering(
 
                 zipf.writestr(f"string_network/{string_filename}", string_data)
 
+            if generate_alphafold_queries:
+                query_filename = (
+                    f"{clustering_algo}_alphafold_query_{cluster_id}"
+                    f"__{number_of_residues_in_cluster}_residues.json"
+                )
+                zipf.writestr(
+                    f"alphafold_prediction_queries/{query_filename}",
+                    get_alphafold_query_file_for_specific_cluster(
+                        f"cluster{cluster_id}", model_seed, fasta_df, proteins
+                    ),
+                )
+
     zip_buffer.seek(0)
     return zip_buffer.getvalue(), clusters_too_big_for_alphafold
     # zip_buffer.getvalue() enthält zip als bytes
@@ -156,32 +200,6 @@ def get_protein_id_to_number_of_residues(fasta_df: pd.DataFrame):
     ].itertuples(index=False):
         protein_id_to_number_of_residues[protein_id] = len(protein_sequence)
     return protein_id_to_number_of_residues
-
-
-def generate_alphafold_query_file_for_cluster(
-    name: str, model_seed: int, fastas: dict[str, str], proteins: list[str]
-):
-    query = {
-        "name": name,
-        "modelSeeds": [],
-        "sequences": [],
-        "dialect": "alphafoldserver",
-        "version": 1,
-    }
-
-    if model_seed != -1:
-        query["modelSeeds"] = [model_seed]
-
-    for protein_id in proteins:
-        query["sequences"].append(
-            {
-                "proteinChain": {
-                    "sequence": fastas[protein_id],
-                    "count": 1,
-                }
-            }
-        )
-    return query
 
 
 def get_correlation_mean_of_cluster(
@@ -352,6 +370,8 @@ def create_filtered_clusters_output(
     cluster_labels_to_ignore: list[int],
     only_include_alphafold_compatible_clusters: bool,
     fasta_df: pd.DataFrame,
+    generate_alphafold_queries: bool,
+    model_seed: int,
 ):
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
@@ -361,7 +381,10 @@ def create_filtered_clusters_output(
         protein_id_to_number_of_residues,
         generate_STRING_networks,
         only_include_alphafold_compatible_clusters,
+        fasta_df,
         cluster_labels_to_ignore,
+        generate_alphafold_queries,
+        model_seed,
     )
 
     messages = []
@@ -386,6 +409,8 @@ def get_clusters_based_on_correlation_mean(
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
     fasta_df: pd.DataFrame,
+    generate_alphafold_queries: bool,
+    model_seed: int,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -407,6 +432,8 @@ def get_clusters_based_on_correlation_mean(
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
         fasta_df,
+        generate_alphafold_queries,
+        model_seed,
     )
 
 
@@ -419,6 +446,8 @@ def get_clusters_based_on_dbcv(
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
     fasta_df,
+    generate_alphafold_queries: bool,
+    model_seed: int,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -435,6 +464,8 @@ def get_clusters_based_on_dbcv(
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
         fasta_df,
+        generate_alphafold_queries,
+        model_seed,
     )
 
 
@@ -453,6 +484,7 @@ def hierarchical_clustering_for_ppi(
         )["labels"],
         index=distance_matrix_df.index,
     )
+    labels = labels - 1
 
     silhouette_per_cluster = pd.Series(dtype=float)
     silhouette_scores_per_sample = silhouette_samples(
@@ -504,6 +536,8 @@ def get_clusters_based_on_silhouette(
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
     fasta_df: pd.DataFrame,
+    generate_alphafold_queries: bool,
+    model_seed: int,
 ) -> dict:
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():
@@ -517,4 +551,6 @@ def get_clusters_based_on_silhouette(
         cluster_labels_to_ignore,
         only_include_alphafold_compatible_clusters,
         fasta_df,
+        generate_alphafold_queries,
+        model_seed,
     )

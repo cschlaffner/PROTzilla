@@ -2621,8 +2621,32 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                     label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
                     value=True,
                 ),
+                CheckboxField(
+                    name="generate_alphafold_queries",
+                    label="Generate AlphaFold json queries",
+                    value=False,
+                ),
+                NumberField(
+                    name="model_seed",
+                    label="Model seed for AlphaFold",
+                    min=-1,
+                    max=4294967295,
+                    value=-1,
+                ),
+                InfoField(
+                    name="random_seed_info",
+                    label="Leave -1 if you want to use a random seed.\n",
+                ),
             ],
         )
+
+    def modify_form(self, run):
+        self.form["random_seed_info"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
+        self.form["model_seed"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
 
 
 class GetClustersBasedOnDBCV(DataAnalysisStep):
@@ -2658,8 +2682,32 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
                     label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
                     value=True,
                 ),
+                CheckboxField(
+                    name="generate_alphafold_queries",
+                    label="Generate AlphaFold json queries",
+                    value=False,
+                ),
+                NumberField(
+                    name="model_seed",
+                    label="Model seed for AlphaFold",
+                    min=-1,
+                    max=4294967295,
+                    value=-1,
+                ),
+                InfoField(
+                    name="random_seed_info",
+                    label="Leave -1 if you want to use a random seed.\n",
+                ),
             ],
         )
+
+    def modify_form(self, run):
+        self.form["random_seed_info"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
+        self.form["model_seed"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
 
 
 class HierarchicalClustering(DataAnalysisStep):
@@ -2716,7 +2764,7 @@ class GetClustersBasedOnSilhouette(DataAnalysisStep):
                 FloatField(
                     name="silhouette_threshold",
                     label="Minimum Silhouette score for clusters to be processed",
-                    value=0.7,
+                    value=0.9,
                     min=0,
                     max=1,
                     step=0.1,
@@ -2731,5 +2779,29 @@ class GetClustersBasedOnSilhouette(DataAnalysisStep):
                     label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
                     value=True,
                 ),
+                CheckboxField(
+                    name="generate_alphafold_queries",
+                    label="Generate AlphaFold json queries",
+                    value=False,
+                ),
+                NumberField(
+                    name="model_seed",
+                    label="Model seed for AlphaFold",
+                    min=-1,
+                    max=4294967295,
+                    value=-1,
+                ),
+                InfoField(
+                    name="random_seed_info",
+                    label="Leave -1 if you want to use a random seed.\n",
+                ),
             ],
         )
+
+    def modify_form(self, run):
+        self.form["random_seed_info"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
+        self.form["model_seed"].isVisible = self.form[
+            "generate_alphafold_queries"
+        ].value
