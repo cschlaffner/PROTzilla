@@ -1,7 +1,11 @@
 from abc import ABC
+from enum import StrEnum
 from typing_extensions import override
 
+from backend.protzilla.constants.colors import ALL_PLOTLY_COLORSCALES_WITH_REVERSED
 from backend.protzilla.constants.option_types import (
+    HeatmapColorBoundaryMode,
+    HeatmapColorMidMode,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
 )
@@ -64,11 +68,13 @@ from backend.protzilla.form import (
     FloatField,
     Form,
     FormField,
+    FormDivider,
     HeaderInfoField,
     InfoField,
     InputField,
     MultiSelectField,
     NumberField,
+    Option,
     TextField,
 )
 from backend.protzilla.steps import Step, Section, StepOperation
@@ -89,6 +95,9 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import 
     create_overview_ptm_visualization,
     get_detected_modifications,
 )
+
+import clusteredheatmap
+import typing
 
 
 class TTestType(Enum):
@@ -930,45 +939,125 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
             input_fields=[
                 MultiSelectField(
                     name="metadata_column_samplegroupings",
-                    label="Choose the column of the metadata dataframe that should be used for sample group annotation",
+                    label="Choose the columns of the metadata dataframe that will be used for sample group annotation",
                 ),
                 CheckboxField(
                     name="flip_axes",
-                    label="Flip axis",
+                    label="Flip axes",
                     text="Flip axes",
                 ),
+                FormDivider("Clustering settings"),
                 CheckboxField(
                     name="perform_row_clustering",
                     label="Perform row clustering",
                     text="Perform row clustering",
+                    value=True,
                 ),
                 CheckboxField(
                     name="perform_column_clustering",
                     label="Perform column clustering",
                     text="Perform column clustering",
+                    value=True,
                 ),
                 DropdownField(
                     name="linkage_method",
-                    label="Linkage method"
+                    label="Linkage method",
+                    value="single",
                 ),
                 DropdownField(
                     name="distance_method",
-                    label="Distance method"
+                    label="Distance method",
+                    value="dixon_pds_euclidean",
                 ),
+                CheckboxField(
+                    name="optimal_leaf_ordering",
+                    label="Perform optimal leaf ordering",
+                    text="Perform optimal leaf ordering",
+                    value=True,
+                ),
+                FormDivider("Plot Settings"),
                 DropdownField(
                     name="heatmap_color_scale",
-                    label="Heatmap color scale",
+                    label="Heatmap colourscale",
+                    options=form_helper.to_choices(ALL_PLOTLY_COLORSCALES_WITH_REVERSED),
+                    value="rdbu_r",
+                ),
+                DropdownField(
+                    name="heatmap_color_boundary_mode",
+                    label="Heatmap colourscale min/max values",
+                    options=HeatmapColorBoundaryMode,
+                    value=HeatmapColorBoundaryMode.q5,
                 ),
                 FloatField(
-                    name="heatmap_low_color_limit",
-                    label="Heatmap low color limit",
+                    name="heatmap_zmin",
+                    label="Heatmap low colour limit",
+                    value=-1.0,
                 ),
                 FloatField(
-                    name="heatmap_high_color_limit",
-                    label="Heatmap high color limit",
+                    name="heatmap_zmax",
+                    label="Heatmap high colour limit",
+                    value=1.0,
                 ),
+                DropdownField(
+                    name="heatmap_zmid_mode",
+                    label="Heatmap colourscale centre value",
+                    options=HeatmapColorMidMode,
+                    value=HeatmapColorMidMode.median,
+                ),
+                FloatField(
+                    name="heatmap_zmid",
+                    label="Heatmap centre colour value",
+                    value=0.0,
+                ),
+                ColorField(
+                    name="heatmap_nan_color",
+                    label="Heatmap NaN colour",
+                    value="#616161"
+                ),
+                CheckboxField(
+                    name="show_row_ticks",
+                    label="Show row ticks",
+                    text="Show row ticks",
+                    value=False,
+                ),
+                CheckboxField(
+                    name="show_column_ticks",
+                    label="Show column ticks",
+                    text="Show column ticks",
+                    value=False,
+                )
             ]
         )
+
+    @override
+    def modify_form(self, run: Run) -> None:
+        metadata_column_field: MultiSelectField = self.form["metadata_column_samplegroupings"]
+        metadata_source, source_handle = self.input_source(
+            run.steps, DataKey.METADATA_DF
+        )
+        if metadata_source is not None and source_handle is not None:
+            metadata_column_field.set_options(
+                form_helper.get_choices_for_metadata(
+                    run,
+                    instance_identifier=metadata_source,
+                    include_sample=False,
+                    output_key=source_handle,
+                )
+            )
+
+        linkage_method_field: DropdownField = self.form["linkage_method"]
+        distance_method_field: DropdownField = self.form["distance_method"]
+        supported_linkages = list(typing.get_args(clusteredheatmap.algos.linkage.LinkageFunName))
+        supported_distances = list(typing.get_args(clusteredheatmap.algos.distance.ScipySupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.ChmSupportedDist))
+        linkage_method_field.set_options(form_helper.to_choices(supported_linkages))
+        distance_method_field.set_options(form_helper.to_choices(supported_distances))
+
+        custom_zbounds_used: bool = (self.form["heatmap_color_boundary_mode"].value == HeatmapColorBoundaryMode.custom)
+        self.form["heatmap_zmin"].isVisible = custom_zbounds_used
+        self.form["heatmap_zmax"].isVisible = custom_zbounds_used
+
+        custom_zmid_used: bool = (self.form["heatmap_zmid_mode"].value == HeatmapColorMidMode.custom)
+        self.form["heatmap_zmid"].isVisible = custom_zmid_used
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"

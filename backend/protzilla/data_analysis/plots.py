@@ -1,6 +1,8 @@
 import logging
 
 from backend.protzilla.constants.option_types import (
+    HeatmapColorBoundaryMode,
+    HeatmapColorMidMode,
     PValueColumnName,
     SimpleImputerStrategyType,
 )
@@ -13,7 +15,6 @@ import plotly.graph_objects as go
 from scipy import stats
 from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
-
 from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
     PLOT_PRIMARY_COLOR,
@@ -24,6 +25,9 @@ from backend.protzilla.utilities.clustergram import (
     AXIS_PROTEIN,
 )
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+
+from clusteredheatmap.chm import ClusteredHeatMap
+from clusteredheatmap.visu.plotly.builder import PlotlyVisuBuilder
 
 colors = {
     "plot_bgcolor": "white",
@@ -230,18 +234,102 @@ def clusteredheatmap_plot(
     perform_column_clustering: bool = True,
     linkage_method: str = "single",
     distance_method: str = "euclidean",
+    optimal_leaf_ordering: bool = True,
     # Visu params
     heatmap_color_scale: str = "RdBu_r",
-    heatmap_low_color_limit: float | None = None,
-    heatmap_high_color_limit: float | None = None,
+    heatmap_color_boundary_mode: HeatmapColorBoundaryMode = HeatmapColorBoundaryMode.custom,
+    heatmap_zmin: float | None = None,
+    heatmap_zmax: float | None = None,
+    heatmap_zmid_mode: HeatmapColorMidMode = HeatmapColorMidMode.median,
+    heatmap_zmid: float | str | None = 0.0,
+    heatmap_nan_color: str = "#808080",
+    show_row_ticks: bool = False,
+    show_column_ticks: bool = False,
 ) -> dict:
+    # TODO LIST:
+    # - Intergrate metadata_df and metadata_column_samplegroupings
+
+    input_protein_df = long_to_wide(protein_df)
+    if flip_axes:
+        input_protein_df = input_protein_df.T
+
+    data_matrix = input_protein_df.to_numpy()
     
-    # c = ClusteredHeatMap()
-    c = None
+    c = ClusteredHeatMap(
+        input_protein_df,
+        distance=distance_method,
+        linkage=linkage_method,
+        column_group_mappings=None, # TODO
+        row_group_mappings=None, # TODO
+        optimal_leaf_ordering=optimal_leaf_ordering,
+        cluster_rows=perform_row_clustering,
+        cluster_columns=perform_column_clustering,
+        data_column_title="", # TODO
+        data_row_title="", # TODO
+        data_z_title="", # TODO
+    )
 
-    fig = c.get_visualization_plotly()
+    b = PlotlyVisuBuilder(
+        c,
+        vertical_layout="dgh",
+        horizontal_layout="dgh",
+    )
 
-    return dict(plots=[fig])
+    match heatmap_zmid_mode:
+        case HeatmapColorMidMode.median:
+            heatmap_zmid = "median"
+        case HeatmapColorMidMode.centered_to_bounds:
+            heatmap_zmid = None
+        case HeatmapColorMidMode.mean:
+            heatmap_zmid = "mean"
+        case HeatmapColorMidMode.custom:
+            pass
+
+    match heatmap_color_boundary_mode:
+        case HeatmapColorBoundaryMode.minmax:
+            heatmap_zmin = None
+            heatmap_zmax = None
+        case HeatmapColorBoundaryMode.q5:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.05))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.95))
+        case HeatmapColorBoundaryMode.q10:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.10))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.90))
+        case HeatmapColorBoundaryMode.q15:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.15))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.85))
+        case HeatmapColorBoundaryMode.custom:
+            pass
+
+    b.add_heatmap(
+        _zmin=heatmap_zmin,
+        _zmax=heatmap_zmax,
+        _zmid=heatmap_zmid,
+        nan_color=heatmap_nan_color,
+        colorscale=heatmap_color_scale,
+    )
+
+    if perform_column_clustering:
+        b.add_col_dendrogram()
+    if perform_row_clustering:
+        b.add_row_dendrogram()
+
+    b.add_col_group_markers()
+    b.add_row_group_markers()
+
+    if show_row_ticks:
+        b.add_row_ticks(anchor_subplot="h", side="right")
+    if show_column_ticks:
+        b.add_col_ticks(anchor_subplot="h", side="bottom")
+
+    fig = b.get_figure()
+    fig.update_layout(
+        autosize=True,
+        width=800,
+        height=1000,
+    )
+
+    return dict(plots=[b.get_figure()])
 
 def clustergram_plot(
     protein_df: pd.DataFrame,

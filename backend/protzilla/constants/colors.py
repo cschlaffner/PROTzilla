@@ -1,3 +1,5 @@
+import plotly.express as px
+
 PLOT_COLOR_SEQUENCE = [
     "#4A536A",
     "#CE5A5A",
@@ -45,3 +47,6 @@ def interpolate_color(color_a, color_b, t):
     interpolated_rgb = tuple(int(a + (b - a) * t) for a, b in zip(rgb_a, rgb_b))
 
     return rgb_to_hex(interpolated_rgb)
+
+ALL_PLOTLY_COLORSCALES = px.colors.named_colorscales()
+ALL_PLOTLY_COLORSCALES_WITH_REVERSED = ALL_PLOTLY_COLORSCALES + [i + "_r" for i in ALL_PLOTLY_COLORSCALES]
