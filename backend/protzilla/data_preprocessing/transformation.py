@@ -85,7 +85,7 @@ def by_log(
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
 
 
-def by_log_plot(
+def transformation_plot(
     protein_df, output_protein_df, graph_type, group_by, show_outliers=True
 ):
     if graph_type == "Boxplot":
@@ -110,3 +110,62 @@ def by_log_plot(
             y_title="Frequency of Protein Intensities",
         )
     return [fig]
+
+
+def transform_df_by_scale(
+    df: pd.DataFrame,
+    min_value: float,
+    max_value: float,
+) -> pd.DataFrame:
+
+    intensity_column_name = default_intensity_column(df)
+    intensity_column = df[intensity_column_name]
+
+    min_old = intensity_column.min()
+    max_old = intensity_column.max()
+
+    if min_old == max_old:
+        raise ValueError(
+            "Global max equals global min; cannot scale a constant dataset."
+        )
+
+    transformed_intensity_column = (
+        (intensity_column - min_old) / (max_old - min_old)
+    ) * (max_value - min_value) + min_value
+
+    df[intensity_column_name] = transformed_intensity_column
+    return df
+
+
+def by_scaling(
+    protein_df: pd.DataFrame,
+    min_value: float,
+    max_value: float,
+    peptide_df: pd.DataFrame | None = None,
+):
+    """
+    This function scales the intensity values of the given dataframe based on the min and max values given.
+    It maps the minimum of the protein intensities to the given minimum value and the maximum to the given maximum.
+    All values in between are scaled accordingly.
+
+    :param protein_df: a protein data frame in long format
+    :param minimum_value: minimum value the transformed data should have
+    :param maximum_value: maximum value the transformed data should have
+    :param peptide_df: a peptide data frame, that is to be transformed the same way as the protein data frame
+
+    :return: returns a dict containing the transformed dataframes for "protein_df" and "peptide_df" respectively
+    :rtype: dict[str, pd.DataFrame | None]
+    """
+    transformed_df = protein_df.copy()
+    transformed_peptide_df = peptide_df.copy() if peptide_df is not None else None
+
+    transformed_df = transform_df_by_scale(
+        df=transformed_df, min_value=min_value, max_value=max_value
+    )
+
+    if transformed_peptide_df is not None:
+        transformed_peptide_df = transform_df_by_scale(
+            df=transformed_peptide_df, min_value=min_value, max_value=max_value
+        )
+
+    return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
