@@ -50,32 +50,51 @@ columns_in_crosslinking_df = [
 
 column_aliases = {
     "Protein1": [
+        "protein1",
         "Protein A",
+        "Gene Name A",
+        "Gene names A",
+        "Alpha Gene Name",
     ],
     "Protein2": [
+        "protein2",
         "Protein B",
+        "Gene Name B",
+        "Gene names B",
+        "Beta Gene Name",
     ],
     "Protein_id1": [
-        "Accession A",
-        "Protein Accession A",
+        "protein_id1",
         "protein_id_a",
-        "ProteinId1"
+        "ProteinId1",
+        "Alpha Protein Id",
+        "Accession A",
+        "AccessionA",
+        "Protein Accession A",
+        "Protein Accessions A",
     ],
     "Protein_id2": [
-        "Accession B",
-        "Protein Accession B",
+        "protein_id2",
         "protein_id_b",
-        "ProteinId2"
+        "ProteinId2",
+        "Beta Protein Id",
+        "Accession B",
+        "AccessionB",
+        "Protein Accession B",
+        "Protein Accessions B",
     ],
     "Is_intra_crosslink": [
         "Crosslink Type",
         "XL_type",
         "Link-Type",
+        "LinkType",
+        "Link type",
         "XFDR.is_intraprotein",
     ],
     "Crosslinker": ["xl_mod"],
     "Peptide1": [
         "Sequence A",
+        "SequenceA",
         "Peptide A",
         "peptide_a",
         "peptide1",
@@ -86,6 +105,7 @@ column_aliases = {
     ],
     "Peptide2": [
         "Sequence B",
+        "SequenceB",
         "Peptide B",
         "peptide_b",
         "peptide2",
@@ -110,6 +130,7 @@ column_aliases = {
     ],
     "Q_value": [
         "Q-value",
+        "Qvalue",
     ],
 }
 

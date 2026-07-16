@@ -468,8 +468,16 @@ def iterate_for_protein_designation(
     for _, row in df.iterrows():
         row_dict = row.to_dict()
 
-        protein_id1 = row[existing_designation + "1"].split("-", 1)[0]
-        protein_id2 = row[existing_designation + "2"].split("-", 1)[0]
+        protein_id1 = (
+            str(row[existing_designation + "1"]).split("-", 1)[0]
+            if pd.notna(row[existing_designation + "1"])
+            else ""
+        )
+        protein_id2 = (
+            str(row[existing_designation + "2"]).split("-", 1)[0]
+            if pd.notna(row[existing_designation + "2"])
+            else ""
+        )
 
         success1, data1, error1 = uniprot_lookup_results.get(
             protein_id1, (False, None, ProteinLookupError.NOT_LOOKED_UP.value)
@@ -932,9 +940,11 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
                 missing_column="Protein_id",
                 uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
             )
-        
+
         if {"Is_intra_crosslink"} <= initial_columns:
-            content = good_df["Is_intra_crosslink"].astype("string").str.strip().str.lower()
+            content = (
+                good_df["Is_intra_crosslink"].astype("string").str.strip().str.lower()
+            )
             good_df["Is_intra_crosslink"] = (
                 content.str.contains("intra", na=False) | content.eq("true")
             ).astype("boolean")
