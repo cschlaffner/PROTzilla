@@ -2465,6 +2465,11 @@ class CrosslinkingValidationWithAngstromDeviation(
                     options=CrosslinkingValidationCriterion,
                     value=CrosslinkingValidationCriterion.manual_bounds,
                 ),
+                CheckboxField(
+                    name="use_ca_atom",
+                    label="Use the CA atom as the binding site of all crosslinks:",
+                    value=False,
+                ),
                 FormDivider(
                     label="Crosslinker lengths and bounds",
                 ),
@@ -2493,6 +2498,11 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
                     label="Validation criterion",
                     options=CrosslinkingValidationCriterion,
                     value=CrosslinkingValidationCriterion.manual_bounds,
+                ),
+                CheckboxField(
+                    name="use_ca_atom",
+                    label="Use the CA atom as the binding site of all crosslinks:",
+                    value=False,
                 ),
                 FormDivider(
                     label="Crosslinker lengths and bounds",

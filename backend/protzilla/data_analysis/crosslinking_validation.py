@@ -45,6 +45,7 @@ def get_reactive_atom_of_amino_acid_residue(
     crosslinker_type: str,
     index_of_last_amino_acid: int,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
+    use_ca_atom: bool,
 ) -> tuple[list[str], list[dict]]:
     """
     Returns a list of atom names of an amino acid residue that are considered
@@ -67,6 +68,10 @@ def get_reactive_atom_of_amino_acid_residue(
     :return: List of atom identifiers (e.g. ["CA", "NZ"]) considered reactive for this residue.
     """
     messages = []
+
+    if use_ca_atom:
+        reactive_atoms_list = ["CA"]
+        return reactive_atoms_list, messages
 
     if pd.isna(crosslinker_type):
         messages.append(
@@ -158,6 +163,7 @@ def expand_crosslinks_to_exact_binding_sites(
     relevant_crosslinks_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
+    use_ca_atom: bool,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
     Expands the crosslink df to also store the two exact reactive atoms for each crosslink.
@@ -195,6 +201,7 @@ def expand_crosslinks_to_exact_binding_sites(
             crosslink.Crosslinker,
             index_of_last_amino_acid1,
             REACTIVE_ATOMS,
+            use_ca_atom,
         )
         messages.extend(msg)
         reactive_atoms2_list, msg = get_reactive_atom_of_amino_acid_residue(
@@ -203,6 +210,7 @@ def expand_crosslinks_to_exact_binding_sites(
             crosslink.Crosslinker,
             index_of_last_amino_acid2,
             REACTIVE_ATOMS,
+            use_ca_atom,
         )
         messages.extend(msg)
 
@@ -583,6 +591,7 @@ def monomer_validation(
     pae_matrix: np.ndarray[tuple[int, int]],
     plddt_df: pd.DataFrame,
     validation_criterion: CrosslinkingValidationCriterion,
+    use_ca_atom: bool,
 ) -> dict:
     """
     Validates crosslinking data for a monomeric protein structure by checking
@@ -612,6 +621,7 @@ def monomer_validation(
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=[protein_id],
         validation_criterion=validation_criterion,
+        use_ca_atom=use_ca_atom,
     )
 
 
@@ -721,6 +731,7 @@ def multimer_validation(
     plddt_df: pd.DataFrame,
     pae_matrix: np.ndarray[tuple[int, int]],
     validation_criterion: CrosslinkingValidationCriterion,
+    use_ca_atom: bool,
 ) -> dict:
     """
     Validates crosslinking data for a multimeric protein complex by checking
@@ -759,6 +770,7 @@ def multimer_validation(
         pae_matrix=pae_matrix,
         plddt_df=plddt_df,
         validation_criterion=validation_criterion,
+        use_ca_atom=use_ca_atom,
     )
 
 
@@ -772,6 +784,7 @@ def validate_with_angstrom_deviation(
     id_column_name: str,
     structures_to_validate: list,
     validation_criterion: CrosslinkingValidationCriterion,
+    use_ca_atom: bool,
     plddt_df: pd.DataFrame | None = None,
     pae_matrix: np.ndarray[tuple[int, int]] | None = None,
 ) -> dict:
@@ -844,6 +857,7 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df=relevant_crosslinks_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         REACTIVE_ATOMS=REACTIVE_ATOMS,
+        use_ca_atom=use_ca_atom,
     )
     messages.extend(expand_messages)
 
