@@ -396,6 +396,41 @@ class FilterSamplesByProteinIntensitiesSum(FilterSamplesStep):
     plot_method = staticmethod(filter_samples.by_protein_intensity_sum_plot)
 
 
+class FilterSamplesByClass(FilterSamplesStep):
+    display_name = "Filter Samples: Class in metadata"
+    method_description = "Filter Samples (Class in metadata)"
+
+    def create_form(self):
+        return Form(
+            label="Filter Samples by Class in metadata",
+            input_fields=[
+                DropdownField(
+                    name="class_column",
+                    label="The name of the class column in metadata",
+                ),
+                MultiSelectField(
+                    name="classes_names",
+                    label="The classes that should be filtered out",
+                ),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BarAndPieChart.PIE_CHART.value,
+                    options=BarAndPieChart,
+                ),
+            ],
+        )
+
+    def modify_form(self, run):
+        self.set_grouping_options(run=run, column_field_name="class_column")
+        self.set_selected_groups_options(
+            run=run, column_field="class_column", group_field="classes_names"
+        )
+
+    calc_method = staticmethod(filter_samples.by_class_in_metadata)
+    plot_method = staticmethod(filter_samples.by_class_in_metadata_plot)
+
+
 class OutlierDetectionByPCA(OutlierDetectionStep):
     display_name = "Outlier Detection: PCA"
     method_description = "Detect outliers using PCA"

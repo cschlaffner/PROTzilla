@@ -19,6 +19,7 @@ def test_get_all_possible_step_names():
         "FilterByProteinsCount",
         "FilterSamplesByProteinsMissing",
         "FilterSamplesByProteinIntensitiesSum",
+        "FilterSamplesByClass",
         "OutlierDetectionByPCA",
         "OutlierDetectionByLocalOutlierFactor",
         "OutlierDetectionByIsolationForest",

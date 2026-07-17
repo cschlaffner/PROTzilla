@@ -22,6 +22,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.FilterByProteinsCount,
     data_preprocessing.FilterSamplesByProteinsMissing,
     data_preprocessing.FilterSamplesByProteinIntensitiesSum,
+    data_preprocessing.FilterSamplesByClass,
     data_preprocessing.OutlierDetectionByPCA,
     data_preprocessing.OutlierDetectionByLocalOutlierFactor,
     data_preprocessing.OutlierDetectionByIsolationForest,
