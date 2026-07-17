@@ -2638,7 +2638,7 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
-                    label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
+                    label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
                     value=True,
                 ),
                 CheckboxField(
@@ -2699,7 +2699,7 @@ class GetClustersBasedOnDBCV(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
-                    label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
+                    label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
                     value=True,
                 ),
                 CheckboxField(
@@ -2796,7 +2796,7 @@ class GetClustersBasedOnSilhouette(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
-                    label="Only include clusters suitable for AlphaFold prediction (<=10,000 residues)",
+                    label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
                     value=True,
                 ),
                 CheckboxField(

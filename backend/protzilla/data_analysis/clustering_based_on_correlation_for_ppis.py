@@ -135,7 +135,7 @@ def process_clustering(
                     proteins, protein_id_to_number_of_residues
                 )
             )
-            alphafold_job_limit = 10000
+            alphafold_job_limit = 5000
             if number_of_residues_in_cluster > alphafold_job_limit:
                 clusters_too_big_for_alphafold += 1
                 if only_include_alphafold_compatible_clusters:
@@ -394,7 +394,7 @@ def create_filtered_clusters_output(
 
     messages = []
     if clusters_too_big_for_alphafold > 0:
-        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 10,000 residues as of June 2026."
+        msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 5,000 residues as of June 2026."
         messages.append(dict(level=logging.WARNING, msg=msg))
 
     return dict(
