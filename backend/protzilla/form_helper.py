@@ -1,6 +1,5 @@
 from backend.protzilla.constants.data_types import DataKey, StepID
 from backend.protzilla.form import Option
-from backend.protzilla.run import Run
 
 
 def to_choices(choices: list[str], required: bool = True) -> list[Option]:
@@ -12,7 +11,7 @@ def to_choices(choices: list[str], required: bool = True) -> list[Option]:
 
 
 def get_choices_for_df_columns(
-    run: Run,
+    run,
     step_id: StepID,
     output_key: DataKey,
     required: bool = True,
@@ -28,7 +27,7 @@ def get_choices_for_df_columns(
 
 
 def get_choices_for_metadata(
-    run: Run,
+    run,
     instance_identifier: StepID,
     output_key: DataKey,
     include_sample: bool = True,
@@ -47,7 +46,7 @@ def get_choices_for_metadata(
 
 
 def get_choices_for_groups(
-    run: Run,
+    run,
     instance_identifier: StepID,
     output_key: DataKey,
     groups_column: str,
