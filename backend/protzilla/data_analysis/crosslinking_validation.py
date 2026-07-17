@@ -91,9 +91,8 @@ def get_reactive_atom_of_amino_acid_residue(
             dict(
                 level=logging.WARNING,
                 msg=(
-                    f"There is no specific reactive atom available for the {crosslinker_type} crosslinker"
-                    f"binding to the amino acid {amino_acid_type}."
-                    f"Therefore the CA atom is used for the calculation of this crosslink."
+                    f"Sadly the {crosslinker_type} crosslinker is unknown to us. "
+                    f"Therefore the CA atom is used for the calculation of those crosslinks."
                 ),
             )
         )
@@ -101,11 +100,24 @@ def get_reactive_atom_of_amino_acid_residue(
 
     reactive_atoms_list = []
 
-    reactive_atoms_list.extend(
-        REACTIVE_ATOMS[crosslinker_class]
-        .get("primary_residue_atoms", {})
-        .get(amino_acid_type, [])
+    # The amino acid types B, J and Z represent ambiguous amino acids.
+    # Therefore, we may need to consider multiple possible amino acid types.
+    amino_acid_type_mapping = {
+        "B": ["D", "N"],
+        "Z": ["E", "Q"],
+        "J": ["I", "L"],
+    }
+
+    amino_acid_type_list = amino_acid_type_mapping.get(
+        amino_acid_type, [amino_acid_type]
     )
+
+    for a_type in amino_acid_type_list:
+        reactive_atoms_list.extend(
+            REACTIVE_ATOMS[crosslinker_class]
+            .get("primary_residue_atoms", {})
+            .get(a_type, [])
+        )
 
     if amino_acid_position == 1:
         reactive_atoms_list.extend(
@@ -117,11 +129,12 @@ def get_reactive_atom_of_amino_acid_residue(
         )
 
     if not reactive_atoms_list:
-        reactive_atoms_list.extend(
-            REACTIVE_ATOMS[crosslinker_class]
-            .get("secondary_residue_atoms", {})
-            .get(amino_acid_type, [])
-        )
+        for a_type in amino_acid_type_list:
+            reactive_atoms_list.extend(
+                REACTIVE_ATOMS[crosslinker_class]
+                .get("secondary_residue_atoms", {})
+                .get(a_type, [])
+            )
 
     if not reactive_atoms_list:
         reactive_atoms_list = ["CA"]
@@ -135,6 +148,8 @@ def get_reactive_atom_of_amino_acid_residue(
                 ),
             )
         )
+
+    reactive_atoms_list = list(dict.fromkeys(reactive_atoms_list))
 
     return reactive_atoms_list, messages
 
