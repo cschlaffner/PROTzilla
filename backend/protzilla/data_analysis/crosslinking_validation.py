@@ -66,9 +66,25 @@ def get_reactive_atom_of_amino_acid_residue(
 
     :return: List of atom identifiers (e.g. ["CA", "NZ"]) considered reactive for this residue.
     """
-    # as soon as we change this, we will need to change the test test_validate_with_angstrom_deviation (and the visualization)
     messages = []
-    crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"].get(crosslinker_type)
+
+    if pd.isna(crosslinker_type):
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    f"At least one crosslinker name in your data could not be processed, "
+                    f"please make sure to provide valid data. "
+                    f"The CA atom is used for the calculation of this crosslink."
+                ),
+            )
+        )
+        return ["CA"], messages
+
+    normalized_crosslinker_type = crosslinker_type.upper()
+    crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"].get(
+        normalized_crosslinker_type
+    )
 
     if crosslinker_class is None:
         messages.append(
