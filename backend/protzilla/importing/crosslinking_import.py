@@ -926,6 +926,10 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
                 missing_column="Protein",
                 uniprot_lookup_function=get_gene_name_from_protein_ids,
             )
+            if good_df.empty:
+                raise ImportValidationError(
+                    "We could not find a Gene Name for any of the provided Protein Ids."
+                )
 
         if not has_protein_ids:
             organism_ids_list, scientific_organism_names = validate_organism_ids(
@@ -940,6 +944,10 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
                 missing_column="Protein_id",
                 uniprot_lookup_function=uniprot_lookup_function_with_organism_ids,
             )
+            if good_df.empty:
+                raise ImportValidationError(
+                    "We could not find a Protein Id for any of the provided Gene Names."
+                )
 
         if {"Is_intra_crosslink"} <= initial_columns:
             content = (
