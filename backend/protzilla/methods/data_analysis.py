@@ -3,10 +3,13 @@ import pandas as pd
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
+    ClusteringLinkagePPI,
     CorrelationMethod,
     CrosslinkingValidationCriterion,
+    DistanceFromCorrelation,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
+    StringDbNetworkType,
 )
 from backend.protzilla import form_helper
 from backend.protzilla.run import Run
@@ -204,11 +207,6 @@ class ClusteringLinkage(Enum):
     single = "single"
 
 
-class ClusteringLinkagePPI(Enum):
-    average = "average"
-    single = "single"
-
-
 class ClassificationValidationStrategy(Enum):
     k_fold = "KFold"
     repeated_k_fold = "repeated K-Fold"
@@ -237,11 +235,6 @@ class DimensionReductionMetric(Enum):
     euclidean = "euclidean"
     manhattan = "manhattan"
     cosine = "cosine"
-
-
-class DistanceFromCorrelation(Enum):
-    weight_in_negative_correlations = "sqrt(2*(1-correlation))"
-    do_not_weight_in_negative_correlations = "1 - max(0, correaltion)"
 
 
 class DataAnalysisStep(Step, ABC):
@@ -2664,6 +2657,11 @@ class ClusterSelectionStep(DataAnalysisStep):
                     label="Taxonomic identifier of organism",
                     options=get_STRING_supported_taxonomic_identifiers(),
                 ),
+                DropdownField(
+                    name="network_flavor",
+                    label="Network type",
+                    options=StringDbNetworkType,
+                ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
                     label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
@@ -2696,6 +2694,9 @@ class ClusterSelectionStep(DataAnalysisStep):
             "generate_alphafold_queries"
         ].value
         self.form["taxonomic_identifier"].isVisible = self.form[
+            "generate_STRING_networks"
+        ].value
+        self.form["network_flavor"].isVisible = self.form[
             "generate_STRING_networks"
         ].value
 

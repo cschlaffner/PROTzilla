@@ -1,15 +1,20 @@
 from collections import Counter
 import json
 import logging
+from matplotlib.axes import Axes
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
+import seaborn as sns
 import requests
 from typing import Literal
 from sklearn.metrics import silhouette_samples
-import os
-from backend.protzilla.constants.option_types import CorrelationMethod
+from backend.protzilla.constants.option_types import (
+    ClusteringLinkagePPI,
+    CorrelationMethod,
+    DistanceFromCorrelation,
+    StringDbNetworkType,
+)
 import hdbscan
 from io import BytesIO
 import zipfile
@@ -31,42 +36,57 @@ def make_protein_ids_STRING_readable(protein_ids: list[str]) -> list[str]:
     return [protein_id.split("-")[0] for protein_id in protein_ids]
 
 
+def _get_number_of_protein_ids_not_known_by_STRING(
+    protein_ids: list[str], taxonomic_identifier: int
+) -> int:
+    request_url = "https://version-12-0.string-db.org/api/tsv-no-header/get_string_ids"
+    params = {
+        "identifiers": "\r".join(protein_ids),
+        "species": taxonomic_identifier,
+        "caller_identity": "PROTzilla",
+    }
+    results = requests.post(request_url, data=params)
+    return len(protein_ids) - len(results.text.strip().split("\n"))
+
+
 def get_STRING_information_for_cluster(
     proteins: list[str],
     taxonomic_identifier: int,
-    image_type: Literal["svg", "highres_image"] = "highres_image",
-):
-    """to display the svgs: display(SVG(get_STRING_information_for_cluster(proteins))),
-    there might be ids STRING does not know and will therefore ignore"""
+    network_flavor: StringDbNetworkType.values,
+) -> tuple[bytes, int]:
+    """Fetches a PNG image of all known physical interactions between the proteins from the STRING API.
+    Attention: There is no warning if STRING does not know one or more of the proteins.
+    Therefore, we also determine and return the number of unknown protein ids in the query.
+    """
     proteins = make_protein_ids_STRING_readable(proteins)
-    request_url = f"https://version-12-0.string-db.org/api/{image_type}/network"
+
+    request_url = f"https://version-12-0.string-db.org/api/highres_image/network"
 
     params = {
         "identifiers": "\r".join(proteins),
         "species": taxonomic_identifier,
-        "network_flavor": "evidence",  # confidence vs. evidence
-        "network_type": "physical",  # physical vs functional
+        "network_flavor": network_flavor,
+        "network_type": "physical",
         "required_score": 0,
         "show_query_node_labels": 1,
         "add_white_nodes": 0,  # if string only knows one of the ids, do not automatically add the top10 interactors of this protein
-        "caller_identity": "Anna's bachelor thesis",
+        "caller_identity": "PROTzilla",
     }
 
     response = requests.post(request_url, data=params)
-    return response.content
-
-
-def show_heatmap_for_certain_cluster(proteins: list[str], axes, correlation_matrix):
-    df = pd.DataFrame(
-        np.zeros((len(proteins), len(proteins))), columns=proteins, index=proteins
+    return response.content, _get_number_of_protein_ids_not_known_by_STRING(
+        proteins, taxonomic_identifier
     )
-    for protein in proteins:
-        for protein2 in proteins:
-            df.loc[protein, protein2] = correlation_matrix.loc[protein, protein2]
+
+
+def get_heatmap_for_certain_cluster(
+    proteins: list[str], axes: Axes, correlation_matrix: pd.DataFrame
+) -> Axes:
+    correlation_matrix_of_cluster = correlation_matrix.loc[proteins, proteins]
     return sns.heatmap(
-        df,
-        xticklabels=df.columns.values,
-        yticklabels=df.columns.values,
+        correlation_matrix_of_cluster,
+        xticklabels=correlation_matrix_of_cluster.columns.values,
+        yticklabels=correlation_matrix_of_cluster.columns.values,
         cmap=sns.diverging_palette(220, 10, as_cmap=True),
         vmin=-1,
         vmax=1,
@@ -82,7 +102,8 @@ def get_proteins_of_specific_cluster(
 
 def get_alphafold_query_file_for_specific_cluster(
     name: str, model_seed: int, fasta_df: pd.DataFrame, proteins: list[str]
-):
+) -> str:
+    """This function creates a json that can be uploaded to AlphaFold Server for a multimer prediction of the proteins."""
     query = {
         "name": name,
         "modelSeeds": [],
@@ -108,11 +129,11 @@ def get_alphafold_query_file_for_specific_cluster(
     return json.dumps([query], indent=4)
 
 
-def process_clustering(
+def get_output_zip_for_clustering(
     labels: pd.Series,
     clustering_algo: str,
-    correlation_matrix,
-    protein_id_to_number_of_residues,
+    correlation_matrix: pd.DataFrame,
+    protein_id_to_number_of_residues: dict[str, int],
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
     fasta_df: pd.DataFrame,
@@ -120,8 +141,10 @@ def process_clustering(
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
-):
-    # run_directory = RUNS_PATH / disk_operator.run_dir
+    network_flavor: StringDbNetworkType.values,
+) -> tuple[bytes, int]:
+    """Create a zip file containing the user requested data (heatmaps, STRING networks, AlphaFold query files)
+    for all clusters that are not in cluster_labels_to_ignore."""
 
     clusters_too_big_for_alphafold = 0
 
@@ -145,7 +168,7 @@ def process_clustering(
                 if only_include_alphafold_compatible_clusters:
                     continue
 
-            show_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
+            get_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
 
             heatmap_filename = (
                 f"{clustering_algo}_heatmap_{cluster_id}"
@@ -165,11 +188,16 @@ def process_clustering(
                     f"__{number_of_residues_in_cluster}_residues.png"
                 )
 
-                string_data = get_STRING_information_for_cluster(
-                    taxonomic_identifier, proteins
+                string_data, number_of_ids_not_known_by_STRING = (
+                    get_STRING_information_for_cluster(
+                        taxonomic_identifier, proteins, network_flavor
+                    )
                 )
 
-                zipf.writestr(f"string_network/{string_filename}", string_data)
+                zipf.writestr(
+                    f"string_network/{string_filename}_{number_of_ids_not_known_by_STRING}_unknown_ids",
+                    string_data,
+                )
 
             if generate_alphafold_queries:
                 query_filename = (
@@ -185,21 +213,18 @@ def process_clustering(
 
     zip_buffer.seek(0)
     return zip_buffer.getvalue(), clusters_too_big_for_alphafold
-    # zip_buffer.getvalue() enthält zip als bytes
 
 
 def get_number_of_amino_acid_residues_in_cluster(
-    uniprot_ids: list[str], protein_id_to_number_of_residues
+    uniprot_ids: list[str], protein_id_to_number_of_residues: dict[str, int]
 ) -> int:
     number_of_residues = 0
     for id in uniprot_ids:
-        number_of_residues += protein_id_to_number_of_residues.get(
-            id, 0
-        )  # todo: wirklich 0?
+        number_of_residues += protein_id_to_number_of_residues.get(id, 0)
     return number_of_residues
 
 
-def get_protein_id_to_number_of_residues(fasta_df: pd.DataFrame):
+def get_protein_id_to_number_of_residues(fasta_df: pd.DataFrame) -> dict[str, int]:
     protein_id_to_number_of_residues = {}
     for protein_id, protein_sequence in fasta_df[
         ["Protein ID", "Protein Sequence"]
@@ -209,35 +234,38 @@ def get_protein_id_to_number_of_residues(fasta_df: pd.DataFrame):
 
 
 def get_correlation_mean_of_cluster(
-    clustering_labels: pd.Series, cluster_of_interest, correlation_matrix
-):
+    clustering_labels: pd.Series,
+    cluster_of_interest: int,
+    correlation_matrix: pd.DataFrame,
+) -> float:
+    """Get the mean of the correlation values of the cluster.
+    The values on the diagonal of the cluster (self-correlations) are ignored, so that smaller clusters are not favored.
+    Clusters containing exactly one protein are perfectly correlated."""
     proteins = get_proteins_of_specific_cluster(cluster_of_interest, clustering_labels)
-    # print(proteins)
-
-    # cluster_correlation_mean = 0
-    # for protein in proteins:
-    #     for protein2 in proteins:
-    #         if protein == protein2:
-    #             continue
-    #         cluster_correlation_mean += correlation_matrix.loc[protein, protein2]
     if len(proteins) > 1:
-        # return cluster_correlation_mean/(len(proteins)*len(proteins)-len(proteins))
-        correlation = correlation_matrix.loc[proteins, proteins].to_numpy()
-        # Remove diagonal (self-correlations)
-        if (correlation.sum() - np.trace(correlation)) / (
-            correlation.size - len(proteins)
-        ) > 1:
-            tmp = 2
-        return (correlation.sum() - np.trace(correlation)) / (
-            correlation.size - len(proteins)
-        )
+        cluster_correlation_values = correlation_matrix.loc[
+            proteins, proteins
+        ].to_numpy()
+        return (
+            cluster_correlation_values.sum() - np.trace(cluster_correlation_values)
+        ) / (cluster_correlation_values.size - len(proteins))
     else:
-        return 0  # wenn genau ein Protein im cluster todo
+        return 1
 
 
 def get_correlation_matrix(
     protein_df: pd.DataFrame, fasta_df: pd.DataFrame, method: CorrelationMethod
 ) -> dict:
+    """
+    Determines a correlation matrix for a protein dataframe.
+    Proteins that are not in the fasta are removed from the matrix, as well as proteins, that have the same
+    intensity value across all samples. If the user properly imputed the data there should not be any NaN values
+    in the correlation matrix. If there are any, the belonging proteins are removed, too.
+    :param protein_df: DataFrame containing Protein Ids, intensities and samples.
+    :param fasta_df: DataFrame containing the amino acid sequences of proteins.
+    :param method: Correlation method. Pearson or Spearman.
+    :return: A dict containing the correlation matrix, the removed protein ids and messages.
+    """
     intensity_name = default_intensity_column(protein_df)
     protein_ids = [
         id if "-" in id else f"{id}-1"
@@ -250,7 +278,8 @@ def get_correlation_matrix(
     protein_to_intensities = {
         key: pd.Series(group[intensity_name].to_list())
         for key, group in protein_df.sort_values("Sample").groupby("Protein ID")
-        if pd.Series(group[intensity_name].to_list()).nunique(dropna=True) > 1
+        if pd.Series(group[intensity_name].to_list()).nunique(dropna=True)
+        > 1  # std of a protein must be != 0, otherwise it results in a correlation of NaN
         and key in ids_in_uniprot
     }
     correlation_matrix = pd.DataFrame(protein_to_intensities).corr(method)
@@ -270,6 +299,7 @@ def get_correlation_matrix(
     if len(ids_not_in_uniprot) > 0:
         msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
         messages.append(dict(level=logging.WARNING, msg=msg))
+
     if (
         len(protein_ids)
         - len(correlation_matrix.columns)
@@ -292,8 +322,17 @@ def get_correlation_matrix(
 
 
 def get_distance_matrix_from_correlation_matrix_df(
-    correlation_matrix_df: pd.DataFrame, distance_method: str, hdbscan_suitable: bool
+    correlation_matrix_df: pd.DataFrame,
+    distance_method: DistanceFromCorrelation,
+    hdbscan_suitable: bool,
 ) -> dict:
+    """Determines a distance matrix based on the correlation matrix (high correlation = low distance, low correlation = high distance).
+    Whether no correlation and anti-correleation are regarded the same or not is determined by the user input.
+    :param correlation_matrix_df: DataFrame containing the correlation matrix.
+    :param distance_method: Determines which method is used to derive the distance from the correlation.
+    :param hdbscan_suitable: The HDBSCAN validity index cannot deal with perfect correlations. Therefore, the user has the option to clipp the distance matrix between -0.999999 and 0.999999.
+    :return: Returns a DataFrame containing the distance matrix.
+    """
     distance_matrix = correlation_matrix_df.to_numpy()
     if hdbscan_suitable:
         # without this clipping, the final distance matrix could contain values of exactly 0 that are not on the diagonal
@@ -303,7 +342,7 @@ def get_distance_matrix_from_correlation_matrix_df(
         # without clipping distance_matrix could contain values >1 due to rounding inaccuracies
         # this would lead to a negative distance or taking the root of something negative, which would result in NaNs
         distance_matrix = np.clip(distance_matrix, -1, 1)
-    if distance_method == "sqrt(2*(1-correlation))":
+    if distance_method == DistanceFromCorrelation.weight_in_negative_correlations:
         distance_matrix = np.sqrt(2 * (1 - distance_matrix))
     else:
         distance_matrix = 1 - np.maximum(0, distance_matrix)
@@ -317,7 +356,7 @@ def get_distance_matrix_from_correlation_matrix_df(
     )
 
 
-def get_cluster_sizes_histogram(labels: pd.Series):
+def get_cluster_sizes_histogram(labels: pd.Series) -> Axes:
     fig_cluster_sizes, ax_cluster_sizes = plt.subplots()
     ax_cluster_sizes.hist(Counter(labels).values(), bins=40)
     ax_cluster_sizes.set_title("Histogram of Cluster Sizes")
@@ -326,7 +365,9 @@ def get_cluster_sizes_histogram(labels: pd.Series):
     return fig_cluster_sizes
 
 
-def get_cluster_correlation_means_histogram(cluster_correlation_means):
+def get_cluster_correlation_means_histogram(
+    cluster_correlation_means: list[float],
+) -> Axes:
     fig_correlation_means, ax_correlation_means = plt.subplots()
     ax_correlation_means.hist(cluster_correlation_means, bins=40)
     ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
@@ -340,14 +381,16 @@ def hdbscan_for_ppi(
     correlation_matrix_df: pd.DataFrame,
     min_cluster_size: int,
 ) -> dict:
-    print("RECEIVED:", distance_matrix_df.index[:5])
+    """Runs the HDBSCAN algorithm (from the hdbscan library) for clustering the proteins that are likely to interact into groups.
+    :param distance_matrix_df: Dataframe containing the distance matrix.
+    :param correlation_matrix_df: Dataframe containing the original correlation matrix.
+    :param min_cluster_size: HDBSCAN won't determine clusters with less than min_cluster_size proteins.
+    :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with a dbcv score for each cluster and
+    histograms of the dbcv scores, correlation means and cluster sizes."""
     distance_matrix = distance_matrix_df.to_numpy()
-    distance_matrix = np.clip(
-        distance_matrix, -0.999999, 0.999999
-    )  # war notw. für den validity score von hdbscan ->wenn irgendwo eine 1 drin steht, wird das für die dist-matrix zu 0 und dann teilen wir im Algo durch 0
     clusterer = hdbscan.HDBSCAN(
         metric="precomputed", min_cluster_size=min_cluster_size, gen_min_span_tree=True
-    )  # , cluster_selection_method="leaf") #eins kleiner
+    )
     clusterer.fit(distance_matrix)
     labels = pd.Series(clusterer.labels_, index=distance_matrix_df.index, name="Label")
     score = hdbscan.validity.validity_index(
@@ -405,9 +448,10 @@ def create_filtered_clusters_output(
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
-):
+    network_flavor: StringDbNetworkType.values,
+) -> dict:
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
-    zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
+    zip_plot_in_bytes, clusters_too_big_for_alphafold = get_output_zip_for_clustering(
         cluster_labels_df["Label"],
         output_name,
         correlation_matrix_df,
@@ -419,6 +463,7 @@ def create_filtered_clusters_output(
         generate_alphafold_queries,
         model_seed,
         taxonomic_identifier,
+        network_flavor,
     )
 
     messages = []
@@ -446,8 +491,28 @@ def get_clusters_based_on_correlation_mean(
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
+    network_flavor: StringDbNetworkType.values,
 ) -> dict:
-    cluster_labels_to_ignore = [-1]
+    """Selects all clusters with a mean correlation above a certain threshold and
+    creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
+    :param threshold: The minimum corrrelation mean for a cluster to be included.
+    :param cluster_labels_df: DataFrame that contains the labels of the clustering.
+    :param correlation_matrix_df: DataFrame that contains the correlation matrix that was clustered.
+    :param output_name: Name of the output zip
+    :param generate_STRING_networks: Bool that determines whether STRING networks are added to the zip.
+    :param only_include_alphafold_compatible_clusters: Bool that determines whether clusters that are too big for AlphaFold are removed from the output zip.
+    :param fasta_df: DataFrame that contains the amino acid sequences of all the proteins in the correlation matrix.
+    :param generate_alphafold_queries: Bool that determines whether json queries for AlphaFold are added for each cluster to the output zip.
+    :param model_seed: Seed that will be used in the generated queries for AlphaFold.
+    :param taxonomic_identifier: If STRING networks are generated, the user needs to select to which species the proteins belong.
+    :param network_flavor: If STRING networks are generated, the user can select whether one wants to see which specific
+    sources support a protein interaction or whether just a generall confidence score should be included.
+    :return: A dict that contains a zip that contains heatmaps for the selected clusters
+    and that might also contain STRING network images and AlphaFold server json queries.
+    """
+    cluster_labels_to_ignore = [
+        -1
+    ]  # HDBSCAN labels proteins that are assigned to no cluster with -1
     for label in cluster_labels_df["Label"].unique():
         if label == -1:
             continue
@@ -470,6 +535,7 @@ def get_clusters_based_on_correlation_mean(
         generate_alphafold_queries,
         model_seed,
         taxonomic_identifier,
+        network_flavor,
     )
 
 
@@ -481,11 +547,29 @@ def get_clusters_based_on_dbcv(
     output_name: str,
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
-    fasta_df,
+    fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
+    network_flavor: StringDbNetworkType.values,
 ) -> dict:
+    """Selects all clusters with a dbcv score above a certain threshold and
+    creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
+    :param threshold: The minimum dbcv score for a cluster to be included.
+    :param cluster_labels_df: DataFrame that contains the labels of the clustering.
+    :param correlation_matrix_df: DataFrame that contains the correlation matrix that was clustered.
+    :param output_name: Name of the output zip
+    :param generate_STRING_networks: Bool that determines whether STRING networks are added to the zip.
+    :param only_include_alphafold_compatible_clusters: Bool that determines whether clusters that are too big for AlphaFold are removed from the output zip.
+    :param fasta_df: DataFrame that contains the amino acid sequences of all the proteins in the correlation matrix.
+    :param generate_alphafold_queries: Bool that determines whether json queries for AlphaFold are added for each cluster to the output zip.
+    :param model_seed: Seed that will be used in the generated queries for AlphaFold.
+    :param taxonomic_identifier: If STRING networks are generated, the user needs to select to which species the proteins belong.
+    :param network_flavor: If STRING networks are generated, the user can select whether one wants to see which specific
+    sources support a protein interaction or whether just a generall confidence score should be included.
+    :return: A dict that contains a zip that contains heatmaps for the selected clusters
+    and that might also contain STRING network images and AlphaFold server json queries.
+    """
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
         if label == -1:
@@ -504,16 +588,27 @@ def get_clusters_based_on_dbcv(
         generate_alphafold_queries,
         model_seed,
         taxonomic_identifier,
+        network_flavor,
     )
 
 
 def hierarchical_clustering_for_ppi(
     distance_matrix_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
-    linkage_method,
+    linkage_method: ClusteringLinkagePPI,
     deep_split: float,
     min_cluster_size: int,
 ) -> dict:
+    """Runs hierarchical clustering using scipy's linkage method in order to cluster proteins that are likely to interact.
+    :param distance_matrix_df: Dataframe containing the distance matrix.
+    :param correlation_matrix_df: Dataframe containing the original correlation matrix.
+    :param linkage_method: Determines whether single or average linkage is used for the hierarchical clustering.
+    :param deep_split: Integer between 0 and 4 which influences cluster size. The parameter is used by the dynamicTreeCut library, which we use to determine
+    where to cut the dendrogram. 0 bigger clusters, 4 means smaller clusters.
+    :param min_cluster_size: All clusters will have at least min_cluster_size many proteins.
+    :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with a silhouette score for each cluster and
+    histograms of the silhouette scores, correlation means and cluster sizes."""
+
     distance_matrix = distance_matrix_df.to_numpy()
     Z = linkage(squareform(distance_matrix), linkage_method)
     labels = pd.Series(
@@ -552,7 +647,9 @@ def hierarchical_clustering_for_ppi(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(silhouette_per_cluster, columns=["Silhouette"]),
         ),
-        histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)),
+        histogram_silhouette=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)
+        ),
         histogram_correlation_means=OutputItem(
             OutputType.PNG_BASE64,
             fig_to_base64(
@@ -577,7 +674,25 @@ def get_clusters_based_on_silhouette(
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
+    network_flavor: StringDbNetworkType.values,
 ) -> dict:
+    """Selects all clusters with a Silhouette score above a certain threshold and
+    creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
+    :param threshold: The minimum Silhouette score for a cluster to be included.
+    :param cluster_labels_df: DataFrame that contains the labels of the clustering.
+    :param correlation_matrix_df: DataFrame that contains the correlation matrix that was clustered.
+    :param output_name: Name of the output zip
+    :param generate_STRING_networks: Bool that determines whether STRING networks are added to the zip.
+    :param only_include_alphafold_compatible_clusters: Bool that determines whether clusters that are too big for AlphaFold are removed from the output zip.
+    :param fasta_df: DataFrame that contains the amino acid sequences of all the proteins in the correlation matrix.
+    :param generate_alphafold_queries: Bool that determines whether json queries for AlphaFold are added for each cluster to the output zip.
+    :param model_seed: Seed that will be used in the generated queries for AlphaFold.
+    :param taxonomic_identifier: If STRING networks are generated, the user needs to select to which species the proteins belong.
+    :param network_flavor: If STRING networks are generated, the user can select whether one wants to see which specific
+    sources support a protein interaction or whether just a generall confidence score should be included.
+    :return: A dict that contains a zip that contains heatmaps for the selected clusters
+    and that might also contain STRING network images and AlphaFold server json queries.
+    """
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():
         if silhouette_scores_df.loc[label, "Silhouette"] < threshold:
@@ -593,4 +708,5 @@ def get_clusters_based_on_silhouette(
         generate_alphafold_queries,
         model_seed,
         taxonomic_identifier,
+        network_flavor,
     )

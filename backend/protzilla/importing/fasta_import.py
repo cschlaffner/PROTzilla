@@ -67,6 +67,13 @@ def fasta_import(
 
 
 def fasta_generation(protein_df: pd.DataFrame):
+    """
+    Generate a fasta file based on a list of protein ids and return a DataFrame with the protein sequences and their protein ids
+
+    :param protein_df: DataFrame that contains the protein ids.
+
+    :return: A dictionary with a DataFrame containing the protein sequences and their protein ids
+    """
     protein_ids_from_input = protein_df["Protein ID"].unique()
     protein_ids = []
     protein_sequences = []

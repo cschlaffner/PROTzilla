@@ -79,3 +79,18 @@ T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
 class CorrelationMethod(Enum):
     pearson = "pearson"
     spearman = "spearman"
+
+
+class StringDbNetworkType(Enum):
+    evidence = "evidence"
+    confidence = "confidence"
+
+
+class DistanceFromCorrelation(Enum):
+    weight_in_negative_correlations = "sqrt(2*(1-correlation))"
+    do_not_weight_in_negative_correlations = "1 - max(0, correaltion)"  #
+
+
+class ClusteringLinkagePPI(Enum):
+    average = "average"
+    single = "single"
