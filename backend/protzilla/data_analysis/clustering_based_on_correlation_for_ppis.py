@@ -9,6 +9,7 @@ import requests
 from typing import Literal
 from sklearn.metrics import silhouette_samples
 import os
+from backend.protzilla.constants.option_types import CorrelationMethod
 import hdbscan
 from io import BytesIO
 import zipfile
@@ -31,7 +32,9 @@ def make_protein_ids_STRING_readable(protein_ids: list[str]) -> list[str]:
 
 
 def get_STRING_information_for_cluster(
-    proteins: list[str], image_type: Literal["svg", "highres_image"] = "highres_image"
+    proteins: list[str],
+    taxonomic_identifier: int,
+    image_type: Literal["svg", "highres_image"] = "highres_image",
 ):
     """to display the svgs: display(SVG(get_STRING_information_for_cluster(proteins))),
     there might be ids STRING does not know and will therefore ignore"""
@@ -40,7 +43,7 @@ def get_STRING_information_for_cluster(
 
     params = {
         "identifiers": "\r".join(proteins),
-        "species": 9606,  # Todo
+        "species": taxonomic_identifier,
         "network_flavor": "evidence",  # confidence vs. evidence
         "network_type": "physical",  # physical vs functional
         "required_score": 0,
@@ -116,6 +119,7 @@ def process_clustering(
     cluster_labels_to_ignore: list[str],
     generate_alphafold_queries: bool,
     model_seed: int,
+    taxonomic_identifier: int,
 ):
     # run_directory = RUNS_PATH / disk_operator.run_dir
 
@@ -161,7 +165,9 @@ def process_clustering(
                     f"__{number_of_residues_in_cluster}_residues.png"
                 )
 
-                string_data = get_STRING_information_for_cluster(proteins)
+                string_data = get_STRING_information_for_cluster(
+                    taxonomic_identifier, proteins
+                )
 
                 zipf.writestr(f"string_network/{string_filename}", string_data)
 
@@ -229,7 +235,9 @@ def get_correlation_mean_of_cluster(
         return 0  # wenn genau ein Protein im cluster todo
 
 
-def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> dict:
+def get_correlation_matrix(
+    protein_df: pd.DataFrame, fasta_df: pd.DataFrame, method: CorrelationMethod
+) -> dict:
     intensity_name = default_intensity_column(protein_df)
     protein_ids = [
         key for key, _ in protein_df.sort_values("Sample").groupby("Protein ID")
@@ -245,7 +253,7 @@ def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> 
         if pd.Series(group[intensity_name].to_list()).nunique(dropna=True) > 1
         and key in ids_in_uniprot
     }
-    correlation_matrix = pd.DataFrame(protein_to_intensities).corr()
+    correlation_matrix = pd.DataFrame(protein_to_intensities).corr(method)
 
     messages = []
 
@@ -396,6 +404,7 @@ def create_filtered_clusters_output(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
+    taxonomic_identifier: int,
 ):
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     zip_plot_in_bytes, clusters_too_big_for_alphafold = process_clustering(
@@ -409,6 +418,7 @@ def create_filtered_clusters_output(
         cluster_labels_to_ignore,
         generate_alphafold_queries,
         model_seed,
+        taxonomic_identifier,
     )
 
     messages = []
@@ -426,7 +436,7 @@ def create_filtered_clusters_output(
 
 
 def get_clusters_based_on_correlation_mean(
-    correlation_threshold: float,
+    threshold: float,
     cluster_labels_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     output_name: str,
@@ -435,6 +445,7 @@ def get_clusters_based_on_correlation_mean(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
+    taxonomic_identifier: int,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
@@ -444,7 +455,7 @@ def get_clusters_based_on_correlation_mean(
             get_correlation_mean_of_cluster(
                 cluster_labels_df["Label"], label, correlation_matrix_df
             )
-            < correlation_threshold
+            < threshold
         ):
             cluster_labels_to_ignore.append(label)
 
@@ -458,11 +469,12 @@ def get_clusters_based_on_correlation_mean(
         fasta_df,
         generate_alphafold_queries,
         model_seed,
+        taxonomic_identifier,
     )
 
 
 def get_clusters_based_on_dbcv(
-    dbcv_threshold: float,
+    threshold: float,
     cluster_labels_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     dbcv_scores_df: pd.DataFrame,
@@ -472,12 +484,13 @@ def get_clusters_based_on_dbcv(
     fasta_df,
     generate_alphafold_queries: bool,
     model_seed: int,
+    taxonomic_identifier: int,
 ) -> dict:
     cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
         if label == -1:
             continue
-        if dbcv_scores_df.loc[label, "DBCV"] < dbcv_threshold:
+        if dbcv_scores_df.loc[label, "DBCV"] < threshold:
             cluster_labels_to_ignore.append(label)
 
     return create_filtered_clusters_output(
@@ -490,6 +503,7 @@ def get_clusters_based_on_dbcv(
         fasta_df,
         generate_alphafold_queries,
         model_seed,
+        taxonomic_identifier,
     )
 
 
@@ -552,7 +566,7 @@ def hierarchical_clustering_for_ppi(
 
 
 def get_clusters_based_on_silhouette(
-    silhouette_threshold: float,
+    threshold: float,
     cluster_labels_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
     silhouette_scores_df: pd.DataFrame,
@@ -562,10 +576,11 @@ def get_clusters_based_on_silhouette(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
+    taxonomic_identifier: int,
 ) -> dict:
     cluster_labels_to_ignore = []
     for label in cluster_labels_df["Label"].unique():
-        if silhouette_scores_df.loc[label, "Silhouette"] < silhouette_threshold:
+        if silhouette_scores_df.loc[label, "Silhouette"] < threshold:
             cluster_labels_to_ignore.append(label)
     return create_filtered_clusters_output(
         cluster_labels_df,
@@ -577,4 +592,5 @@ def get_clusters_based_on_silhouette(
         fasta_df,
         generate_alphafold_queries,
         model_seed,
+        taxonomic_identifier,
     )

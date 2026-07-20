@@ -84,7 +84,7 @@ _forward_mapping: list[Step] = [
     data_analysis.CrosslinkingValidationWithAngstromDeviation,
     data_analysis.CrosslinkingValidationWithAngstromDeviationForMultimer,
     data_analysis.PtmValidation,
-    data_analysis.CorrelationMatrixWithPearsonCorrelation,
+    data_analysis.CorrelationMatrix,
     data_analysis.DistanceMatrixBasedOnCorrelationMatrix,
     data_analysis.HDBSCAN,
     data_analysis.GetClustersBasedOnIntraClusterCorrelationMean,

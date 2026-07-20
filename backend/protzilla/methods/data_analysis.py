@@ -1,7 +1,9 @@
 from abc import ABC
+import pandas as pd
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
+    CorrelationMethod,
     CrosslinkingValidationCriterion,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
@@ -70,6 +72,7 @@ from backend.protzilla.form import (
     InputField,
     MultiSelectField,
     NumberField,
+    Option,
     TextField,
     FormDivider,
 )
@@ -2545,15 +2548,22 @@ class PtmValidation(PeptideAnalysisStep):
         )
 
 
-class CorrelationMatrixWithPearsonCorrelation(DataAnalysisStep):
+class CorrelationMatrix(DataAnalysisStep):
     output_keys = ["correlation_matrix_df"]
-    display_name = "Pearson correlation matrix"
+    display_name = "Correlation matrix"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
     calc_method = staticmethod(get_correlation_matrix)
 
     def create_form(self):
-        return Form(label="Pearson Correlation Matrix", input_fields=[])
+        return Form(
+            label="Correlation Matrix",
+            input_fields=[
+                DropdownField(
+                    name="method", label="Correlation Method", options=CorrelationMethod
+                )
+            ],
+        )
 
 
 class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
@@ -2608,12 +2618,25 @@ class HDBSCAN(DataAnalysisStep):
         )
 
 
-class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
+def get_STRING_supported_taxonomic_identifiers():
+    species = pd.read_csv(
+        "backend/uploads/supported_organisms_by_STRING/species.v12.0.txt", sep="\t"
+    )
+    options = []
+    for _, row in species.iterrows():
+        options.append(
+            Option(
+                label=f"{row['#taxon_id']} {row['official_name_NCBI']}",
+                value=row["#taxon_id"],
+            )
+        )
+    return options
+
+
+class ClusterSelectionStep(DataAnalysisStep):
     output_keys = []
-    display_name = "Get Clusters Based On Intra-Cluster Correlation Mean"
     operation = "Clustering For Protein-Protein-Interactions"
-    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a correlation mean above a certain threshold."
-    calc_method = staticmethod(get_clusters_based_on_correlation_mean)
+    score_name = ""
 
     def create_form(self):
         return Form(
@@ -2624,8 +2647,8 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                 ),
                 TextField(name="output_name", label="Name of output file"),
                 FloatField(
-                    name="correlation_threshold",
-                    label="Minimum correlation mean for clusters to be processed",
+                    name="threshold",
+                    label=f"Minimum score for clusters to be processed",
                     value=0.7,
                     min=0,
                     max=1,
@@ -2635,6 +2658,11 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
                 CheckboxField(
                     name="generate_STRING_networks",
                     label="Generate STRING network images",
+                ),
+                DropdownField(
+                    name="taxonomic_identifier",
+                    label="Taxonomic identifier of organism",
+                    options=get_STRING_supported_taxonomic_identifiers(),
                 ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
@@ -2667,67 +2695,45 @@ class GetClustersBasedOnIntraClusterCorrelationMean(DataAnalysisStep):
         self.form["model_seed"].isVisible = self.form[
             "generate_alphafold_queries"
         ].value
+        self.form["taxonomic_identifier"].isVisible = self.form[
+            "generate_STRING_networks"
+        ].value
 
 
-class GetClustersBasedOnDBCV(DataAnalysisStep):
-    output_keys = []
+class GetClustersBasedOnIntraClusterCorrelationMean(ClusterSelectionStep):
+    display_name = "Get Clusters Based On Intra-Cluster Correlation Mean"
+    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a correlation mean above a certain threshold."
+    calc_method = staticmethod(get_clusters_based_on_correlation_mean)
+
+    def create_form(self):
+        form = super().create_form()
+        form.label = "Get Clusters Based On Correlation Mean"
+        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
+        return form
+
+
+class GetClustersBasedOnDBCV(ClusterSelectionStep):
     display_name = "Get Clusters Based On DBCV"
-    operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Takes a clustering that was calculated by HDBSCAN and returns heatmaps and STRING networks for all clusters that have a DBCV score above a certain threshold."
     calc_method = staticmethod(get_clusters_based_on_dbcv)
 
     def create_form(self):
-        return Form(
-            label="Get Clusters Based On DBCV",
-            input_fields=[
-                InfoField(
-                    label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."
-                ),
-                TextField(name="output_name", label="Name of output file"),
-                FloatField(
-                    name="dbcv_threshold",
-                    label="Minimum DBCV score for clusters to be processed",
-                    value=0.7,
-                    min=0,
-                    max=1,
-                    step=0.1,
-                    hasStepButtons=True,
-                ),
-                CheckboxField(
-                    name="generate_STRING_networks",
-                    label="Generate STRING network images",
-                ),
-                CheckboxField(
-                    name="only_include_alphafold_compatible_clusters",
-                    label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
-                    value=True,
-                ),
-                CheckboxField(
-                    name="generate_alphafold_queries",
-                    label="Generate AlphaFold json queries",
-                    value=False,
-                ),
-                NumberField(
-                    name="model_seed",
-                    label="Model seed for AlphaFold",
-                    min=-1,
-                    max=4294967295,
-                    value=-1,
-                ),
-                InfoField(
-                    name="random_seed_info",
-                    label="Leave -1 if you want to use a random seed.\n",
-                ),
-            ],
-        )
+        form = super().create_form()
+        form.label = "Get Clusters Based On DBCV"
+        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
+        return form
 
-    def modify_form(self, run):
-        self.form["random_seed_info"].isVisible = self.form[
-            "generate_alphafold_queries"
-        ].value
-        self.form["model_seed"].isVisible = self.form[
-            "generate_alphafold_queries"
-        ].value
+
+class GetClustersBasedOnSilhouette(ClusterSelectionStep):
+    display_name = "Get Clusters Based On Silhouette"
+    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a Silhouette score above a certain threshold."
+    calc_method = staticmethod(get_clusters_based_on_silhouette)
+
+    def create_form(self):
+        form = super().create_form()
+        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
+        form.label = "Get Clusters Based On Silhouette Score"
+        return form
 
 
 class HierarchicalClustering(DataAnalysisStep):
@@ -2764,64 +2770,3 @@ class HierarchicalClustering(DataAnalysisStep):
                 ),
             ],
         )
-
-
-class GetClustersBasedOnSilhouette(DataAnalysisStep):
-    output_keys = []
-    display_name = "Get Clusters Based On Silhouette"
-    operation = "Clustering For Protein-Protein-Interactions"
-    method_description = "Takes a clustering and returns heatmaps and STRING networks for all clusters that have a Silhouette score above a certain threshold."
-    calc_method = staticmethod(get_clusters_based_on_silhouette)
-
-    def create_form(self):
-        return Form(
-            label="Get Clusters Based On Silhouette Score",
-            input_fields=[
-                InfoField(
-                    label="This step is rather slow. A higher threshold or only generating the heatmaps will yield results faster."
-                ),
-                TextField(name="output_name", label="Name of output file"),
-                FloatField(
-                    name="silhouette_threshold",
-                    label="Minimum Silhouette score for clusters to be processed",
-                    value=0.9,
-                    min=0,
-                    max=1,
-                    step=0.1,
-                    hasStepButtons=True,
-                ),
-                CheckboxField(
-                    name="generate_STRING_networks",
-                    label="Generate STRING network images",
-                ),
-                CheckboxField(
-                    name="only_include_alphafold_compatible_clusters",
-                    label="Only include clusters suitable for AlphaFold prediction (<=5,000 residues)",
-                    value=True,
-                ),
-                CheckboxField(
-                    name="generate_alphafold_queries",
-                    label="Generate AlphaFold json queries",
-                    value=False,
-                ),
-                NumberField(
-                    name="model_seed",
-                    label="Model seed for AlphaFold",
-                    min=-1,
-                    max=4294967295,
-                    value=-1,
-                ),
-                InfoField(
-                    name="random_seed_info",
-                    label="Leave -1 if you want to use a random seed.\n",
-                ),
-            ],
-        )
-
-    def modify_form(self, run):
-        self.form["random_seed_info"].isVisible = self.form[
-            "generate_alphafold_queries"
-        ].value
-        self.form["model_seed"].isVisible = self.form[
-            "generate_alphafold_queries"
-        ].value

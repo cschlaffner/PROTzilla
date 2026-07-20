@@ -74,3 +74,8 @@ CORRECTED_P_VALUES_COLUMNS = [
 ]  # not true for PTM data
 LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"]  # not true for PTM data
 T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
+
+
+class CorrelationMethod(Enum):
+    pearson = "pearson"
+    spearman = "spearman"
