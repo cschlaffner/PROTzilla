@@ -2542,7 +2542,7 @@ class PtmValidation(PeptideAnalysisStep):
 
 
 class CorrelationMatrix(DataAnalysisStep):
-    output_keys = ["correlation_matrix_df"]
+    output_keys = [DataKey.CORRELATION_MATRIX_DF]
     display_name = "Correlation matrix"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
@@ -2560,7 +2560,7 @@ class CorrelationMatrix(DataAnalysisStep):
 
 
 class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
-    output_keys = ["distance_matrix_df"]
+    output_keys = [DataKey.DISTANCE_MATRIX_DF]
     display_name = "Distance matrix"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = (
@@ -2590,12 +2590,11 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 
 
 class HDBSCAN(DataAnalysisStep):
-    output_keys = ["cluster_labels_df", "dbcv_scores_df"]
+    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.DBCV_SCORES_DF]
     display_name = "HDBSCAN"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
     calc_method = staticmethod(hdbscan_for_ppi)
-    # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
         return Form(
@@ -2738,12 +2737,11 @@ class GetClustersBasedOnSilhouette(ClusterSelectionStep):
 
 
 class HierarchicalClustering(DataAnalysisStep):
-    output_keys = ["cluster_labels_df", "silhouette_scores_df"]
+    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.SILHOUETTE_SCORES_DF]
     display_name = "Hierarchical Clustering"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes Hierarchical clustering on a distance matrix."
     calc_method = staticmethod(hierarchical_clustering_for_ppi)
-    # plot_method = staticmethod(hdbscan_cluster_scores_histograms)
 
     def create_form(self):
         return Form(

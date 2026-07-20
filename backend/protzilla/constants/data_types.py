@@ -29,6 +29,11 @@ class DataKey(StrEnum):
     CONFIDENCE_DF = "confidence_df"
     FULL_DATA_DF = "full_data_df"
     JOB_REQUEST_DF = "job_request_df"
+    CORRELATION_MATRIX_DF = "correlation_matrix_df"
+    DISTANCE_MATRIX_DF = "distance_matrix_df"
+    CLUSTER_LABELS_DF = "cluster_labels_df"
+    DBCV_SCORES_DF = "dbcv_scores_df"
+    SILHOUETTE_SCORES_DF = "silhouette_scores_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)
