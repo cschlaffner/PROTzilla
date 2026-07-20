@@ -128,6 +128,10 @@ def transform_df_by_scale(
         raise ValueError(
             "Global max equals global min; cannot scale a constant dataset."
         )
+    elif min_value >= max_value:
+        raise ValueError(
+            "The minimum value given must be lower than the maximum value."
+        )
 
     transformed_intensity_column = (
         (intensity_column - min_old) / (max_old - min_old)
