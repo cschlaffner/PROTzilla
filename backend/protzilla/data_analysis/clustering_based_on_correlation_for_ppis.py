@@ -240,9 +240,9 @@ def get_correlation_matrix(
 ) -> dict:
     intensity_name = default_intensity_column(protein_df)
     protein_ids = [
-        key for key, _ in protein_df.sort_values("Sample").groupby("Protein ID")
+        id if "-" in id else f"{id}-1"
+        for id, _ in protein_df.sort_values("Sample").groupby("Protein ID")
     ]
-
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     ids_in_uniprot = set(protein_id_to_number_of_residues.keys())
     ids_not_in_uniprot = set(protein_ids) - ids_in_uniprot
