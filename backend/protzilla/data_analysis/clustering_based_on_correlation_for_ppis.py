@@ -235,8 +235,6 @@ def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> 
         key for key, _ in protein_df.sort_values("Sample").groupby("Protein ID")
     ]
 
-    # ToDo: Also remove NaNs
-
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     ids_in_uniprot = set(protein_id_to_number_of_residues.keys())
     ids_not_in_uniprot = set(protein_ids) - ids_in_uniprot
@@ -250,10 +248,31 @@ def get_correlation_matrix(protein_df: pd.DataFrame, fasta_df: pd.DataFrame) -> 
     correlation_matrix = pd.DataFrame(protein_to_intensities).corr()
 
     messages = []
-    msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
-    messages.append(dict(level=logging.WARNING, msg=msg))
-    msg = f"{len(protein_ids) - len(correlation_matrix.columns) - len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since all the protein's intensity values are identical, which would lead to a standard deviation of 0 for this protein, which would result in undefined correlation values between this protein and all other proteins."
-    messages.append(dict(level=logging.WARNING, msg=msg))
+
+    # remove NaN values
+    number_of_removals_caused_by_nans = 0
+    if np.isnan(correlation_matrix).any().any():
+        not_nan_mask = ~correlation_matrix.isna().any(axis=1)
+        correlation_matrix = correlation_matrix.loc[not_nan_mask, not_nan_mask]
+        number_of_removals_caused_by_nans = (~not_nan_mask).sum()
+        msg = f"{number_of_removals_caused_by_nans} proteins had a correlation of NaN with at least one other protein. \
+        Therefore, these proteins were removed. This should not occur if data was imputed properly."
+        messages.append(dict(level=logging.ERROR, msg=msg))
+
+    if len(ids_not_in_uniprot) > 0:
+        msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
+        messages.append(dict(level=logging.WARNING, msg=msg))
+    if (
+        len(protein_ids)
+        - len(correlation_matrix.columns)
+        - len(ids_not_in_uniprot)
+        - number_of_removals_caused_by_nans
+    ):
+        msg = f"{len(protein_ids) - len(correlation_matrix.columns) - len(ids_not_in_uniprot) - number_of_removals_caused_by_nans} \
+        protein ids were removed from the correlation matrix since all the protein's intensity values were identical, \
+        which would have lead to a standard deviation of 0 for this protein, \
+        which would have resulted in undefined correlation values between this protein and all other proteins."
+        messages.append(dict(level=logging.WARNING, msg=msg))
 
     return dict(
         correlation_matrix_df=correlation_matrix,
