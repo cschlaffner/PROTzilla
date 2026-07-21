@@ -42,4 +42,4 @@ statsmodels==0.14.5
 tqdm==4.67.1
 tzlocal==5.3.1
 umap-learn==0.5.9.post2
-clusteredheatmap @ git+https://github.com/jorisfu/clusteredheatmap.git@v0.0.2
+clusteredheatmap @ git+https://github.com/jorisfu/clusteredheatmap.git@main

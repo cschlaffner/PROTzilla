@@ -1,4 +1,4 @@
-import plotly.express as px
+import plotly
 
 PLOT_COLOR_SEQUENCE = [
     "#4A536A",
@@ -48,5 +48,4 @@ def interpolate_color(color_a, color_b, t):
 
     return rgb_to_hex(interpolated_rgb)
 
-ALL_PLOTLY_COLORSCALES = px.colors.named_colorscales()
-ALL_PLOTLY_COLORSCALES_WITH_REVERSED = ALL_PLOTLY_COLORSCALES + [i + "_r" for i in ALL_PLOTLY_COLORSCALES]
+ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED = list(filter(lambda x: not x.startswith("_") and not x.startswith("swatches"), dir(plotly.colors.diverging)))

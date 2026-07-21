@@ -2,7 +2,7 @@ from abc import ABC
 from enum import StrEnum
 from typing_extensions import override
 
-from backend.protzilla.constants.colors import ALL_PLOTLY_COLORSCALES_WITH_REVERSED
+from backend.protzilla.constants.colors import ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED
 from backend.protzilla.constants.option_types import (
     HeatmapColorBoundaryMode,
     HeatmapColorMidMode,
@@ -979,7 +979,7 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                 DropdownField(
                     name="heatmap_color_scale",
                     label="Heatmap colourscale",
-                    options=form_helper.to_choices(ALL_PLOTLY_COLORSCALES_WITH_REVERSED),
+                    options=form_helper.to_choices(ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED),
                     value="rdbu_r",
                 ),
                 DropdownField(

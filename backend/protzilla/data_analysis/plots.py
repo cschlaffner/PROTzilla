@@ -7,6 +7,7 @@ from backend.protzilla.constants.option_types import (
     SimpleImputerStrategyType,
 )
 from backend.protzilla.constants.data_types import ClassificationType
+from backend.protzilla.utilities.utilities import default_intensity_column
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -247,29 +248,35 @@ def clusteredheatmap_plot(
     show_column_ticks: bool = False,
 ) -> dict:
     # TODO LIST:
-    # - Intergrate metadata_df and metadata_column_samplegroupings for group mappings
-    # - Infer Column/Row/z titles from protein_df
     # - Fix Tooltip for Nans showing %{z}
-    # - Only show divergent colorscales as options
 
     input_protein_df = long_to_wide(protein_df)
     if flip_axes:
         input_protein_df = input_protein_df.T
 
+    row_title = input_protein_df.index.name
+    column_title = input_protein_df.columns.name
+    z_title = default_intensity_column(protein_df)
+
     data_matrix = input_protein_df.to_numpy()
+
+    sample_groupings = {}
+    for grouping in metadata_column_samplegroupings or []:
+        mapping = metadata_df[["Sample", grouping]].to_dict(orient="tight")["data"]
+        sample_groupings[grouping] = {k:v for [k, v] in mapping}
     
     c = ClusteredHeatMap(
         input_protein_df,
         distance=distance_method,
         linkage=linkage_method,
-        column_group_mappings=None, # TODO
-        row_group_mappings=None, # TODO
+        column_group_mappings=sample_groupings if flip_axes else None, # TODO
+        row_group_mappings=None if flip_axes else sample_groupings, # TODO
         optimal_leaf_ordering=optimal_leaf_ordering,
         cluster_rows=perform_row_clustering,
         cluster_columns=perform_column_clustering,
-        data_column_title="", # TODO
-        data_row_title="", # TODO
-        data_z_title="", # TODO
+        data_column_title=column_title,
+        data_row_title=row_title,
+        data_z_title=z_title,
     )
 
     b = PlotlyVisuBuilder(
