@@ -6,7 +6,8 @@ from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing.transformation import (
     by_inversion,
     by_log,
-    by_log_plot,
+    by_scaling,
+    transformation_plot,
 )
 
 
@@ -253,6 +254,50 @@ def inversion_transformation_expected_peptide_intensities():
     )
 
 
+@pytest.fixture
+def scaling_transformation_df():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 1.0],
+        ["Sample1", "Protein2", "Gene2", 4.0],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 10.0],
+        ["Sample2", "Protein1", "Gene1", 7.0],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+
+@pytest.fixture
+def scaling_transformation_expected_df_0_to_100():
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 0.0],
+        ["Sample1", "Protein2", "Gene2", 33.33333333333333],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+        ["Sample1", "Protein4", "Gene4", 100.0],
+        ["Sample2", "Protein1", "Gene1", 66.66666666666666],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+
+@pytest.fixture
+def scaling_transformation_faulty_df():
+    # All non-NaN values are identical (constant dataset)
+    test_intensity_list = (
+        ["Sample1", "Protein1", "Gene1", 5.0],
+        ["Sample1", "Protein2", "Gene2", 5.0],
+        ["Sample1", "Protein3", "Gene3", np.nan],
+    )
+    return pd.DataFrame(
+        data=test_intensity_list,
+        columns=["Sample", "Protein ID", "Gene", "Intensity"],
+    )
+
+
 def test_log2_transformation(
     show_figures,
     log2_transformation_df,
@@ -267,7 +312,7 @@ def test_log2_transformation(
     }
     method_outputs = by_log(**method_inputs)
 
-    fig = by_log_plot(
+    fig = transformation_plot(
         log2_transformation_df,
         method_outputs[DataKey.PROTEIN_DF],
         "Boxplot",
@@ -334,7 +379,7 @@ def test_log10_transformation(
     }
     method_output = by_log(**method_inputs)
 
-    fig = by_log_plot(
+    fig = transformation_plot(
         log10_transformation_df,
         method_output[DataKey.PROTEIN_DF],
         "Boxplot",
@@ -387,3 +432,71 @@ def test_inversion_transformation_div0(inversion_transformation_faulty_df):
         by_inversion(**method_inputs)
 
     assert str(excinfo.value) == "Division by zero when inverting values."
+
+
+def test_by_scaling(
+    scaling_transformation_df,
+    scaling_transformation_expected_df_0_to_100,
+):
+    method_inputs = {
+        "protein_df": scaling_transformation_df,
+        "min_value": 0.0,
+        "max_value": 100.0,
+        "peptide_df": None,
+    }
+
+    method_outputs = by_scaling(**method_inputs)
+    result_df = method_outputs["protein_df"]
+
+    pd.testing.assert_frame_equal(
+        result_df,
+        scaling_transformation_expected_df_0_to_100,
+        check_dtype=False,
+        atol=1e-5,
+    )
+
+
+def test_by_scaling_with_peptides(
+    scaling_transformation_df,
+    scaling_transformation_expected_df_0_to_100,
+):
+    method_inputs = {
+        "protein_df": scaling_transformation_df,
+        "peptide_df": scaling_transformation_df.copy(),
+        "min_value": 0.0,
+        "max_value": 100.0,
+    }
+
+    method_outputs = by_scaling(**method_inputs)
+
+    assert method_outputs["protein_df"] is not None
+    assert method_outputs["peptide_df"] is not None
+
+    pd.testing.assert_frame_equal(
+        method_outputs["protein_df"],
+        scaling_transformation_expected_df_0_to_100,
+        check_dtype=False,
+        atol=1e-5,
+    )
+    pd.testing.assert_frame_equal(
+        method_outputs["peptide_df"],
+        scaling_transformation_expected_df_0_to_100,
+        check_dtype=False,
+        atol=1e-5,
+    )
+
+
+def test_by_scaling_constant_value_error(scaling_transformation_faulty_df):
+    method_inputs = {
+        "protein_df": scaling_transformation_faulty_df,
+        "min_value": 0.0,
+        "max_value": 100.0,
+        "peptide_df": None,
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        by_scaling(**method_inputs)
+
+    assert "Global max equals global min; cannot scale a constant dataset." in str(
+        excinfo.value
+    )
