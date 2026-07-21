@@ -693,16 +693,6 @@ class NormalisationByMedian(NormalisationStep):
                     label="The normalisation is calculated differently for log-transformed data, "
                     "using subtraction instead of division.",
                 ),
-                CheckboxField(
-                    name="log",
-                    label="Data was log-transformed before normalization",
-                    value=False,
-                ),
-                InfoField(
-                    name="log_before_normalisation_info",
-                    label="The normalisation is calculated differently for log-transformed data, "
-                    "using subtraction instead of division.",
-                ),
                 FormDivider("Plot settings"),
                 DropdownField(
                     name="graph_type",

@@ -54,7 +54,6 @@ def by_z_score(protein_df: pd.DataFrame) -> dict:
 def by_median(
     protein_df: pd.DataFrame,
     log: bool,
-    log: bool,
     percentile=0.5,  # quartile, default is median
 ) -> dict:
     """
@@ -91,14 +90,6 @@ def by_median(
     zeroed_samples = []
 
     normalised_intensity_name = f"Normalised {intensity_name}"
-
-    normalised_intensity_name = f"Normalised {intensity_name}"
-
-    if log:
-        valid_data = protein_df.loc[
-            protein_df[intensity_name] != -np.inf, intensity_name
-        ]
-        global_median = valid_data.median()
 
     for sample in samples:
         df_sample = protein_df.loc[protein_df["Sample"] == sample,]
