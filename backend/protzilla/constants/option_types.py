@@ -77,9 +77,9 @@ T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
 class HeatmapColorBoundaryMode(StrEnum):
     custom = "Custom"
     minmax = "Min / Max z-values"
+    q1 = "1% / 99% quantiles"
     q5 = "5% / 95% quantiles"
     q10 = "10% / 90% quantiles"
-    q15 = "15% / 85% quantiles"
 
 class HeatmapColorMidMode(StrEnum):
     custom = "Custom"

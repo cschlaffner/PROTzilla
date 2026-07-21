@@ -247,7 +247,10 @@ def clusteredheatmap_plot(
     show_column_ticks: bool = False,
 ) -> dict:
     # TODO LIST:
-    # - Intergrate metadata_df and metadata_column_samplegroupings
+    # - Intergrate metadata_df and metadata_column_samplegroupings for group mappings
+    # - Infer Column/Row/z titles from protein_df
+    # - Fix Tooltip for Nans showing %{z}
+    # - Only show divergent colorscales as options
 
     input_protein_df = long_to_wide(protein_df)
     if flip_axes:
@@ -275,29 +278,43 @@ def clusteredheatmap_plot(
         horizontal_layout="dgh",
     )
 
+    ticktext_low = ""
+    ticktext_mid = ""
+    ticktext_high = ""
+
     match heatmap_zmid_mode:
         case HeatmapColorMidMode.median:
             heatmap_zmid = "median"
+            ticktext_mid = "Median: "
         case HeatmapColorMidMode.centered_to_bounds:
             heatmap_zmid = None
         case HeatmapColorMidMode.mean:
+            ticktext_mid = "Mean: "
             heatmap_zmid = "mean"
         case HeatmapColorMidMode.custom:
             pass
 
     match heatmap_color_boundary_mode:
         case HeatmapColorBoundaryMode.minmax:
-            heatmap_zmin = None
+            heatmap_zmin = None # CHM library handles this as min/max
             heatmap_zmax = None
+            ticktext_low = "Min: "
+            ticktext_high = "Max: "
+        case HeatmapColorBoundaryMode.q1:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.01))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.99))
+            ticktext_low = "1% quantile: "
+            ticktext_high = "99% quantile: "
         case HeatmapColorBoundaryMode.q5:
             heatmap_zmin = float(np.nanquantile(data_matrix, 0.05))
             heatmap_zmax = float(np.nanquantile(data_matrix, 0.95))
+            ticktext_low = "5% quantile: "
+            ticktext_high = "95% quantile: "
         case HeatmapColorBoundaryMode.q10:
             heatmap_zmin = float(np.nanquantile(data_matrix, 0.10))
             heatmap_zmax = float(np.nanquantile(data_matrix, 0.90))
-        case HeatmapColorBoundaryMode.q15:
-            heatmap_zmin = float(np.nanquantile(data_matrix, 0.15))
-            heatmap_zmax = float(np.nanquantile(data_matrix, 0.85))
+            ticktext_low = "10% quantile: "
+            ticktext_high = "90% quantile: "
         case HeatmapColorBoundaryMode.custom:
             pass
 
@@ -307,6 +324,7 @@ def clusteredheatmap_plot(
         _zmid=heatmap_zmid,
         nan_color=heatmap_nan_color,
         colorscale=heatmap_color_scale,
+        ticktext_prefix=(ticktext_low, ticktext_mid, ticktext_high),
     )
 
     if perform_column_clustering:
