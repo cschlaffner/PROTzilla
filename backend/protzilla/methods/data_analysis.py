@@ -2,7 +2,7 @@ from abc import ABC
 from enum import StrEnum
 from typing_extensions import override
 
-from backend.protzilla.constants.colors import ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED
+from backend.protzilla.constants.colors import ALL_PLOTLY_COLORSCALES_WITH_REVERSED, ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED
 from backend.protzilla.constants.option_types import (
     HeatmapColorBoundaryMode,
     HeatmapColorMidMode,
@@ -980,6 +980,12 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     value=True,
                 ),
                 FormDivider("Plot Settings"),
+                CheckboxField(
+                    name="show_continuous_colorscales",
+                    label="Show continuous colourscales",
+                    text="Show continuous colourscales",
+                    value=False,
+                ),
                 DropdownField(
                     name="heatmap_color_scale",
                     label="Heatmap colourscale",
@@ -1070,6 +1076,13 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
 
         custom_zmid_used: bool = (self.form["heatmap_zmid_mode"].value == HeatmapColorMidMode.custom)
         self.form["heatmap_zmid"].isVisible = custom_zmid_used
+
+        show_all_colorscales = self.form["show_continuous_colorscales"].value
+        colorscale_field: DropdownField = self.form["heatmap_color_scale"]
+        if show_all_colorscales:
+            colorscale_field.set_options(form_helper.to_choices(ALL_PLOTLY_COLORSCALES_WITH_REVERSED))
+        else:
+            colorscale_field.set_options(form_helper.to_choices(ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED))
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"
