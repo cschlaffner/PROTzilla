@@ -97,8 +97,6 @@ def by_median(
 
         if log:
             if np.isfinite(quantile):
-                # without adding the global median our data would be zero centered and therefore one half would be
-                # negative which can lead to problems later down the workflow
                 df_sample[normalised_intensity_name] = (
                     df_sample[intensity_name] - quantile
                 )
