@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import PurePath
+
 from collections.abc import Sequence
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
     pass
 
 
-FormInputType = str | int | float | bool | list[str]
+FormInputType = str | int | float | bool | None | list[str] | PurePath | Enum
 
 # Backwards compatibility for older imports that expect `inputs` from this module.
 inputs = FormInputType
@@ -152,7 +154,7 @@ class MultiSelectWithDropdownsField(_baseField):
 
 @dataclass
 class FileInput(_baseField):
-    value: str | None = None
+    value: PurePath | None = None
     type: str = "file"
     filedata: str = ""
     accept: str | None = None
@@ -295,7 +297,7 @@ class Form:
         return values
 
     class CustomEncoder(json.JSONEncoder):
-        "Custom JSON encoder that handles Enum classes and functions"
+        "Custom JSON encoder that handles Enum classes, paths and functions"
 
         def default(self, obj):
             # serialize functions
@@ -312,5 +314,8 @@ class Form:
             # Serialize Enum class as dict
             if type(obj) == type(Enum):
                 return [Option(item.name, item.value) for item in obj]
+
+            if isinstance(obj, PurePath):
+                return obj.name
 
             return super().default(obj)

@@ -518,7 +518,59 @@ class TransformationLog(DataPreprocessingStep):
             self.form["show_outliers_info"].isVisible = False
 
     calc_method = staticmethod(transformation.by_log)
-    plot_method = staticmethod(transformation.by_log_plot)
+    plot_method = staticmethod(transformation.transformation_plot)
+
+
+class TransformationScaling(DataPreprocessingStep):
+    display_name = "Transformation: Scaling"
+    operation: StepOperation = StepOperation.TRANSFORMATION
+    method_description = "Transform data by scaling"
+
+    def create_form(self):
+        return Form(
+            label="Scaling Transformation",
+            input_fields=[
+                FloatField(
+                    name="min_value",
+                    label="Minimum value that data minimum should be mapped to",
+                ),
+                FloatField(
+                    name="max_value",
+                    label="Maximum value that data maximum should be mapped to",
+                ),
+                FormDivider("Plot settings"),
+                DropdownField(
+                    name="graph_type",
+                    label="Graph type",
+                    value=BoxAndHistogramGraph.BOXPLOT.value,
+                    options=BoxAndHistogramGraph,
+                ),
+                DropdownField(
+                    name="group_by",
+                    label="Group by",
+                    value=GroupBy.NO_GROUPING.value,
+                    options=GroupBy,
+                ),
+                CheckboxField(
+                    name="show_outliers",
+                    label="Show outliers",
+                    value=True,
+                    isVisible=True,
+                ),
+                info_field_show_outliers,
+            ],
+        )
+
+    def modify_form(self, run):
+        if self.form["graph_type"].value == BoxAndHistogramGraph.BOXPLOT.value:
+            self.form["show_outliers"].isVisible = True
+            self.form["show_outliers_info"].isVisible = True
+        else:
+            self.form["show_outliers"].isVisible = False
+            self.form["show_outliers_info"].isVisible = False
+
+    calc_method = staticmethod(transformation.by_scaling)
+    plot_method = staticmethod(transformation.transformation_plot)
 
 
 class TransformationInversion(DataPreprocessingStep):
@@ -633,6 +685,7 @@ class NormalisationByMedian(NormalisationStep):
     method_description = "Normalise data by median"
 
     def create_form(self):
+        self.log_field_status = True
         return Form(
             label="Normalisation by Median",
             input_fields=[
@@ -643,6 +696,16 @@ class NormalisationByMedian(NormalisationStep):
                     min=0,
                     max=1,
                     step=0.1,
+                ),
+                CheckboxField(
+                    name="log",
+                    label="Data was log-transformed before normalization",
+                    value=False,
+                ),
+                InfoField(
+                    name="log_before_normalisation_info",
+                    label="The normalisation is calculated differently for log-transformed data, "
+                    "using subtraction instead of division.",
                 ),
                 FormDivider("Plot settings"),
                 DropdownField(
@@ -672,6 +735,17 @@ class NormalisationByMedian(NormalisationStep):
                 info_field_show_outliers,
             ],
         )
+
+    def modify_form(self, run):
+        log_field = self.form["log"]
+        visual_transformation_field = self.form["visual_transformation"]
+
+        if self.log_field_status != log_field.value:
+            self.log_field_status = log_field.value
+            if log_field.value:
+                visual_transformation_field.value = VisualTransformations.LINEAR
+            elif not log_field.value:
+                visual_transformation_field.value = VisualTransformations.LOG10
 
     calc_method = staticmethod(normalisation.by_median)
     plot_method = staticmethod(normalisation.by_median_plot)

@@ -26,6 +26,7 @@ _forward_mapping: list[Step] = [
     data_preprocessing.OutlierDetectionByLocalOutlierFactor,
     data_preprocessing.OutlierDetectionByIsolationForest,
     data_preprocessing.TransformationLog,
+    data_preprocessing.TransformationScaling,
     data_preprocessing.TransformationInversion,
     data_preprocessing.NormalisationByZScore,
     data_preprocessing.NormalisationByTotalSum,

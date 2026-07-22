@@ -17,7 +17,6 @@ PLOT_PRIMARY_COLOR = PLOT_COLOR_SEQUENCE[0]
 PLOT_SECONDARY_COLOR = PLOT_COLOR_SEQUENCE[1]
 """Second color in list."""
 
-
 def rgb_to_hex(rgb):
     # Convert RGB tuples back to hex color strings
     return f"#{''.join(f'{c:02x}' for c in rgb)}"
