@@ -941,6 +941,10 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     name="metadata_column_samplegroupings",
                     label="Choose the columns of the metadata dataframe that will be used for sample group annotation",
                 ),
+                MultiSelectField(
+                    name="enrichment_terms",
+                    label="Choose the enrichment terms to use as protein group markers",
+                ),
                 CheckboxField(
                     name="flip_axes",
                     label="Flip axes",
@@ -1044,6 +1048,14 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     output_key=source_handle,
                 )
             )
+
+        enrichment_term_field: MultiSelectField = self.form["enrichment_terms"]
+        enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
+        if enrichment_df is not None:
+            terms = enrichment_df["term"].to_list()
+            description = enrichment_df["description"].to_list()
+            options = [Option(term, term + " " + desc) for term, desc in zip(terms, description)]
+            enrichment_term_field.set_options(options)
 
         linkage_method_field: DropdownField = self.form["linkage_method"]
         distance_method_field: DropdownField = self.form["distance_method"]

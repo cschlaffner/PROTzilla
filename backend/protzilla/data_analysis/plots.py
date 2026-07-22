@@ -228,8 +228,10 @@ def create_volcano_plot(
 def clusteredheatmap_plot(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None,
+    enrichment_df: pd.DataFrame | None,
     flip_axes: bool = False,
     metadata_column_samplegroupings: list[str] | None = None,
+    enrichment_terms: list[str] | None = None,
     # Algo params
     perform_row_clustering: bool = True,
     perform_column_clustering: bool = True,
@@ -264,13 +266,20 @@ def clusteredheatmap_plot(
     for grouping in metadata_column_samplegroupings or []:
         mapping = metadata_df[["Sample", grouping]].to_dict(orient="tight")["data"]
         sample_groupings[grouping] = {k:v for [k, v] in mapping}
+
+    protein_groupings = {}
+    for grouping in enrichment_terms or []:
+        grouping_row = enrichment_df[enrichment_df["term"] == grouping]
+        label = grouping_row["description"].iloc[0]
+        proteins = grouping_row["inputGenes"].iloc[0].split(',')
+        protein_groupings[grouping] = {k: label for k in proteins}
     
     c = ClusteredHeatMap(
         input_protein_df,
         distance=distance_method,
         linkage=linkage_method,
-        column_group_mappings=sample_groupings if flip_axes else None, # TODO
-        row_group_mappings=None if flip_axes else sample_groupings, # TODO
+        column_group_mappings=sample_groupings if flip_axes else protein_groupings,
+        row_group_mappings=protein_groupings if flip_axes else sample_groupings,
         optimal_leaf_ordering=optimal_leaf_ordering,
         cluster_rows=perform_row_clustering,
         cluster_columns=perform_column_clustering,

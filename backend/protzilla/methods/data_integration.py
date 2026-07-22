@@ -44,7 +44,7 @@ class Direction(Enum):
 
 
 class Organism(Enum):
-    human = "Human"
+    human = "human"
     mouse = "Mouse"
     rat = "Rat"
     yeast = "Yeast"
