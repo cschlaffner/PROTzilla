@@ -23,7 +23,7 @@ import { CSVButton } from "../shared";
 
 const StyledCSVButton = styled(CSVButton)`
   width: auto;
-  align-self: flex-end;
+  align-self: flex-start;
   margin-top: ${spacing("buttonGap")};
 `;
 
