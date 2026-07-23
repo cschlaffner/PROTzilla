@@ -306,9 +306,7 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
                     )  # TODO check whether we need to pass the organism name here
                 )
             except Exception:
-                gene_sets_enricher_field.set_options(
-                    form_helper.to_choices([])
-                )
+                gene_sets_enricher_field.set_options(form_helper.to_choices([]))
         else:
             gene_sets_path_field.isVisible = True
 
