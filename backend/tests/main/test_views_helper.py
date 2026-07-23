@@ -100,6 +100,7 @@ def test_get_all_possible_step_names():
         "GetClustersBasedOnIntraClusterCorrelationMean",
         "GetClustersBasedOnDBCV",
         "HierarchicalClustering",
+        "KMedoidsClustering",
         "GetClustersBasedOnSilhouette",
     }
 

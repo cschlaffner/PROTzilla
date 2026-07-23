@@ -13,6 +13,7 @@ gseapy==1.2.1
 isort==7.0.0
 joblib==1.2.0
 kaleido~=0.1
+kmedoids
 networkx==3.5
 numba==0.62.1
 numpy==2.3.5

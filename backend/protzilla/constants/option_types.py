@@ -76,21 +76,26 @@ LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"]  # not true for PT
 T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
 
 
-class CorrelationMethod(Enum):
+class CorrelationMethod(StrEnum):
     pearson = "pearson"
     spearman = "spearman"
 
 
-class StringDbNetworkType(Enum):
+class StringDbNetworkType(StrEnum):
     evidence = "evidence"
     confidence = "confidence"
 
 
-class DistanceFromCorrelation(Enum):
+class DistanceFromCorrelation(StrEnum):
     weight_in_negative_correlations = "sqrt(2*(1-correlation))"
-    do_not_weight_in_negative_correlations = "1 - max(0, correaltion)"  #
+    do_not_weight_in_negative_correlations = "1 - max(0, correlation)"
 
 
-class ClusteringLinkagePPI(Enum):
+class ClusteringLinkagePPI(StrEnum):
     average = "average"
     single = "single"
+
+
+class StopCriterionKmedoids(StrEnum):
+    correlation_mean = "each cluster has a minimum correlation mean"
+    max_cluster_size = "each cluster contains at most x proteins"

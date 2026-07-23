@@ -9,6 +9,7 @@ from backend.protzilla.constants.option_types import (
     DistanceFromCorrelation,
     LogBaseWithNoneType,
     SimpleImputerStrategyType,
+    StopCriterionKmedoids,
     StringDbNetworkType,
 )
 from backend.protzilla import form_helper
@@ -111,6 +112,7 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     hdbscan_for_ppi,
     get_clusters_based_on_correlation_mean,
     hierarchical_clustering_for_ppi,
+    k_medoids_for_ppi,
 )
 
 
@@ -2542,7 +2544,7 @@ class PtmValidation(PeptideAnalysisStep):
 
 
 class CorrelationMatrix(DataAnalysisStep):
-    output_keys = [DataKey.CORRELATION_MATRIX_DF]
+    output_keys = [DataKey.CORRELATION_MATRIX_DF, DataKey.PROTEIN_TO_INTENSITIES_DF]
     display_name = "Correlation matrix"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
@@ -2769,3 +2771,71 @@ class HierarchicalClustering(DataAnalysisStep):
                 ),
             ],
         )
+
+
+class KMedoidsClustering(DataAnalysisStep):
+    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.SILHOUETTE_SCORES_DF]
+    display_name = "K-Medoids"
+    operation = "Clustering For Protein-Protein-Interactions"
+    method_description = "Executes k-medoids clustering with FasterPAM from kmedoids library on a distance matrix."
+    calc_method = staticmethod(k_medoids_for_ppi)
+
+    def create_form(self):
+        return Form(
+            label="K-Medoids for Protein-Protein-Interactions",
+            input_fields=[
+                InfoField(
+                    name="info_on_kmedoids",
+                    label="Instead of the traditional PAM (=Partioning Around Medoids) algorithm, this step uses a faster variant called FasterPAM "
+                    "from the kmedoids package. (https://doi.org/10.1016/j.is.2021.101804)."
+                    "This step runs FasterPAM for all numbers of cluster between 2 and (number of proteins/expected cluster sizes)."
+                    "For number of clusters the Silhouette Score is determined. As long as the stopping criterion is not reached, the resulting clusters"
+                    "will be clustered again with the same method.",
+                ),
+                DropdownField(
+                    name="distance_method",
+                    label="Distance method originally used to calculate correlation matrix",
+                    options=DistanceFromCorrelation,
+                ),
+                NumberField(
+                    name="average_expected_cluster_sizes",
+                    label="Average of expected cluster sizes",
+                ),
+                DropdownField(
+                    name="stop_criterion",
+                    label="When to stop splitting clusters",
+                    options=StopCriterionKmedoids,
+                    value=StopCriterionKmedoids.max_cluster_size,
+                ),
+                FloatField(
+                    name="min_correlation_mean",
+                    label="Minimum correlation mean for a cluster to stop splitting it.",
+                    min=-1,
+                    max=1,
+                    value=0.7,
+                    isVisible=False,
+                ),
+                NumberField(
+                    name="max_cluster_size",
+                    label="Maximum cluster size",
+                    min=2,
+                    value=50,
+                    isVisible=True,
+                ),
+                CheckboxField(
+                    name="continue_subsampling_as_long_as_silhouette_improves",
+                    label="Continue splitting clusters that already reached the stopping criterion as long as the silhouette score increases.",
+                ),
+                NumberField(
+                    name="random_seed", label="Random Seed Used for FasterPAM", value=0
+                ),
+            ],
+        )
+
+    def modify_form(self, run):
+        if self.form["stop_criterion"].value == StopCriterionKmedoids.correlation_mean:
+            self.form["min_correlation_mean"].isVisible = True
+            self.form["max_cluster_size"].isVisible = False
+        else:
+            self.form["min_correlation_mean"].isVisible = False
+            self.form["max_cluster_size"].isVisible = True

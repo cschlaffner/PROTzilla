@@ -1,21 +1,26 @@
 from collections import Counter
 import json
 import logging
+import math
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 from typing import Literal
-from sklearn.metrics import silhouette_samples
+from sklearn.metrics import silhouette_samples, silhouette_score
+from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.constants.option_types import (
     ClusteringLinkagePPI,
     CorrelationMethod,
     DistanceFromCorrelation,
+    StopCriterionKmedoids,
     StringDbNetworkType,
 )
 import hdbscan
+import kmedoids
 from io import BytesIO
 import zipfile
 from scipy.spatial.distance import squareform
@@ -52,7 +57,7 @@ def _get_number_of_protein_ids_not_known_by_STRING(
 def get_STRING_information_for_cluster(
     proteins: list[str],
     taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    network_flavor: StringDbNetworkType,
 ) -> tuple[bytes, int]:
     """Fetches a PNG image of all known physical interactions between the proteins from the STRING API.
     Attention: There is no warning if STRING does not know one or more of the proteins.
@@ -137,11 +142,11 @@ def get_output_zip_for_clustering(
     generate_STRING_networks: bool,
     only_include_alphafold_compatible_clusters: bool,
     fasta_df: pd.DataFrame,
-    cluster_labels_to_ignore: list[str],
+    cluster_labels_to_ignore: list[int],
     generate_alphafold_queries: bool,
     model_seed: int,
     taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    network_flavor: StringDbNetworkType,
 ) -> tuple[bytes, int]:
     """Create a zip file containing the user requested data (heatmaps, STRING networks, AlphaFold query files)
     for all clusters that are not in cluster_labels_to_ignore."""
@@ -183,19 +188,19 @@ def get_output_zip_for_clustering(
             zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
 
             if generate_STRING_networks:
-                string_filename = (
-                    f"{clustering_algo}_cluster_{cluster_id}"
-                    f"__{number_of_residues_in_cluster}_residues.png"
-                )
-
                 string_data, number_of_ids_not_known_by_STRING = (
                     get_STRING_information_for_cluster(
-                        taxonomic_identifier, proteins, network_flavor
+                        proteins, taxonomic_identifier, network_flavor
                     )
                 )
 
+                string_filename = (
+                    f"{clustering_algo}_cluster_{cluster_id}"
+                    f"__{number_of_residues_in_cluster}_residues_{number_of_ids_not_known_by_STRING}_unknown_ids.png"
+                )
+
                 zipf.writestr(
-                    f"string_network/{string_filename}_{number_of_ids_not_known_by_STRING}_unknown_ids",
+                    f"string_network/{string_filename}",
                     string_data,
                 )
 
@@ -266,21 +271,26 @@ def get_correlation_matrix(
     :param method: Correlation method. Pearson or Spearman.
     :return: A dict containing the correlation matrix, the removed protein ids and messages.
     """
+    protein_ids_from_input = protein_df["Protein ID"].unique()
     intensity_name = default_intensity_column(protein_df)
-    protein_ids = [
-        id if "-" in id else f"{id}-1"
-        for id, _ in protein_df.sort_values("Sample").groupby("Protein ID")
-    ]
+    protein_df["Protein ID"] = protein_df["Protein ID"].apply(
+        lambda id: id if "-" in id else f"{id}-1"
+    )
+
+    protein_ids_in_protein_df = set(protein_df["Protein ID"])
+    number_of_protein_ids_in_input = protein_df["Protein ID"].nunique()
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
-    ids_in_uniprot = set(protein_id_to_number_of_residues.keys())
-    ids_not_in_uniprot = set(protein_ids) - ids_in_uniprot
+    ids_in_uniprot = set(
+        protein_id_to_number_of_residues.keys()
+    )  # can also contain ids that were removed during imputation
+    number_of_ids_not_in_uniprot = len(protein_ids_in_protein_df - ids_in_uniprot)
 
     protein_to_intensities = {
-        key: pd.Series(group[intensity_name].to_list())
-        for key, group in protein_df.sort_values("Sample").groupby("Protein ID")
+        id: pd.Series(group[intensity_name].to_list())
+        for id, group in protein_df.sort_values("Sample").groupby("Protein ID")
         if pd.Series(group[intensity_name].to_list()).nunique(dropna=True)
         > 1  # std of a protein must be != 0, otherwise it results in a correlation of NaN
-        and key in ids_in_uniprot
+        and id in ids_in_uniprot
     }
     correlation_matrix = pd.DataFrame(protein_to_intensities).corr(method)
 
@@ -296,17 +306,18 @@ def get_correlation_matrix(
         Therefore, these proteins were removed. This should not occur if data was imputed properly."
         messages.append(dict(level=logging.ERROR, msg=msg))
 
-    if len(ids_not_in_uniprot) > 0:
-        msg = f"{len(ids_not_in_uniprot)} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
+    if number_of_ids_not_in_uniprot > 0:
+        msg = f"{number_of_ids_not_in_uniprot} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
         messages.append(dict(level=logging.WARNING, msg=msg))
 
-    if (
-        len(protein_ids)
+    number_of_ids_removed_due_to_std_of_zero = (
+        number_of_protein_ids_in_input
         - len(correlation_matrix.columns)
-        - len(ids_not_in_uniprot)
+        - number_of_ids_not_in_uniprot
         - number_of_removals_caused_by_nans
-    ):
-        msg = f"{len(protein_ids) - len(correlation_matrix.columns) - len(ids_not_in_uniprot) - number_of_removals_caused_by_nans} \
+    )
+    if number_of_ids_removed_due_to_std_of_zero > 0:
+        msg = f"{number_of_ids_removed_due_to_std_of_zero} \
         protein ids were removed from the correlation matrix since all the protein's intensity values were identical, \
         which would have lead to a standard deviation of 0 for this protein, \
         which would have resulted in undefined correlation values between this protein and all other proteins."
@@ -315,8 +326,13 @@ def get_correlation_matrix(
     return dict(
         correlation_matrix_df=correlation_matrix,
         removed_protein_ids_df=pd.DataFrame(
-            {"Protein Id": list(set(protein_ids) - set(correlation_matrix.columns))}
+            {
+                "Protein Id": sorted(
+                    protein_ids_in_protein_df - set(correlation_matrix.columns)
+                )
+            }
         ),
+        protein_to_intensities_df=pd.DataFrame(protein_to_intensities),
         messages=messages,
     )
 
@@ -356,9 +372,9 @@ def get_distance_matrix_from_correlation_matrix_df(
     )
 
 
-def get_cluster_sizes_histogram(labels: pd.Series) -> Axes:
+def get_cluster_sizes_histogram(labels: pd.Series) -> Figure:
     fig_cluster_sizes, ax_cluster_sizes = plt.subplots()
-    ax_cluster_sizes.hist(Counter(labels).values(), bins=40)
+    ax_cluster_sizes.hist(list(Counter(labels).values()), bins=40)
     ax_cluster_sizes.set_title("Histogram of Cluster Sizes")
     ax_cluster_sizes.set_xlabel("Cluster Size")
     ax_cluster_sizes.set_ylabel("Number of clusters with certain cluster size")
@@ -366,14 +382,44 @@ def get_cluster_sizes_histogram(labels: pd.Series) -> Axes:
 
 
 def get_cluster_correlation_means_histogram(
-    cluster_correlation_means: list[float],
-) -> Axes:
+    cluster_correlation_means: list[float], clusters_of_size_one_omitted: bool = False
+) -> Figure:
     fig_correlation_means, ax_correlation_means = plt.subplots()
     ax_correlation_means.hist(cluster_correlation_means, bins=40)
-    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
+    if clusters_of_size_one_omitted:
+        ax_correlation_means.set_title(
+            "Histogram of Intra Cluster Correlation Means (clusters with exactly one protein are omitted)"
+        )
+    else:
+        ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
     ax_correlation_means.set_xlabel("Mean Correlation")
     ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
     return fig_correlation_means
+
+
+def get_cluster_silhouette_histogram(
+    distance_matrix: np.ndarray,
+    labels: pd.Series,
+    clusters_of_size_one_omitted: bool = False,
+) -> tuple[Figure, pd.Series]:
+    silhouette_per_cluster = pd.Series(dtype=float)
+    silhouette_scores_per_sample = silhouette_samples(
+        distance_matrix, labels, metric="precomputed"
+    )
+    for label in labels.unique():
+        mask = labels == label
+        silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
+    fig_silhouette, ax_silhouette = plt.subplots()
+    ax_silhouette.hist(silhouette_per_cluster, bins=40)
+    if clusters_of_size_one_omitted:
+        ax_silhouette.set_title(
+            "Histogram of Silhouette Scores (clusters with exactly one protein are omitted)"
+        )
+    else:
+        ax_silhouette.set_title("Histogram of Silhouette Scores")
+    ax_silhouette.set_xlabel("Silhouette Score")
+    ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
+    return fig_silhouette, silhouette_per_cluster
 
 
 def hdbscan_for_ppi(
@@ -393,7 +439,7 @@ def hdbscan_for_ppi(
     )
     clusterer.fit(distance_matrix)
     labels = pd.Series(clusterer.labels_, index=distance_matrix_df.index, name="Label")
-    score = hdbscan.validity.validity_index(
+    dbcv, dbcv_per_cluster = hdbscan.validity.validity_index(
         distance_matrix,
         clusterer.labels_,
         metric="precomputed",
@@ -402,7 +448,7 @@ def hdbscan_for_ppi(
     )
 
     fig_dbcv, ax_dbcv = plt.subplots()
-    ax_dbcv.hist(score[1], bins=40)
+    ax_dbcv.hist(dbcv_per_cluster, bins=40)
     ax_dbcv.set_title("Histogram of DBCV Scores")
     ax_dbcv.set_xlabel("DBCV Score")
     ax_dbcv.set_ylabel("Number of clusters with certain DBCV Score")
@@ -422,7 +468,7 @@ def hdbscan_for_ppi(
         ),
         dbcv_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(score[1], columns=["DBCV"]),
+            value=pd.DataFrame(dbcv_per_cluster, columns=["DBCV"]),
         ),
         histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_dbcv)),
         histogram_correlation_means=OutputItem(
@@ -432,7 +478,12 @@ def hdbscan_for_ppi(
             ),
         ),
         histogram_cluster_sizes=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
+            OutputType.PNG_BASE64,
+            fig_to_base64(
+                get_cluster_sizes_histogram(
+                    pd.Series([label for label in labels if label > -1])
+                )
+            ),
         ),
     )
 
@@ -447,8 +498,8 @@ def create_filtered_clusters_output(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
-    taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    taxonomic_identifier: str,
+    network_flavor: StringDbNetworkType,
 ) -> dict:
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     zip_plot_in_bytes, clusters_too_big_for_alphafold = get_output_zip_for_clustering(
@@ -462,7 +513,7 @@ def create_filtered_clusters_output(
         cluster_labels_to_ignore,
         generate_alphafold_queries,
         model_seed,
-        taxonomic_identifier,
+        int(taxonomic_identifier.split()[0]),
         network_flavor,
     )
 
@@ -490,8 +541,8 @@ def get_clusters_based_on_correlation_mean(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
-    taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    taxonomic_identifier: str,
+    network_flavor: StringDbNetworkType,
 ) -> dict:
     """Selects all clusters with a mean correlation above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -512,7 +563,7 @@ def get_clusters_based_on_correlation_mean(
     """
     cluster_labels_to_ignore = [
         -1
-    ]  # HDBSCAN labels proteins that are assigned to no cluster with -1
+    ]  # proteins that are assigned to no cluster are labeled with -1
     for label in cluster_labels_df["Label"].unique():
         if label == -1:
             continue
@@ -550,8 +601,8 @@ def get_clusters_based_on_dbcv(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
-    taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    taxonomic_identifier: str,
+    network_flavor: StringDbNetworkType,
 ) -> dict:
     """Selects all clusters with a dbcv score above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -619,24 +670,15 @@ def hierarchical_clustering_for_ppi(
     )
     labels = labels - 1
 
-    silhouette_per_cluster = pd.Series(dtype=float)
-    silhouette_scores_per_sample = silhouette_samples(
-        distance_matrix, labels, metric="precomputed"
-    )
-    for label in labels.unique():
-        mask = labels == label
-        silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
-    fig_silhouette, ax_silhouette = plt.subplots()
-    ax_silhouette.hist(silhouette_per_cluster, bins=40)
-    ax_silhouette.set_title("Histogram of Silhouette Scores")
-    ax_silhouette.set_xlabel("Silhouette Score")
-    ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
-
     cluster_correlation_means = []
     for label in labels.unique():
         cluster_correlation_means.append(
             get_correlation_mean_of_cluster(labels, label, correlation_matrix_df)
         )
+
+    silhouette_scores_histogram, silhouette_scores_per_cluster = (
+        get_cluster_silhouette_histogram(distance_matrix, labels)
+    )
 
     return dict(
         cluster_labels_df=OutputItem(
@@ -645,10 +687,10 @@ def hierarchical_clustering_for_ppi(
         ),
         silhouette_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(silhouette_per_cluster, columns=["Silhouette"]),
+            value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
         ),
         histogram_silhouette=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)
+            OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)
         ),
         histogram_correlation_means=OutputItem(
             OutputType.PNG_BASE64,
@@ -673,8 +715,8 @@ def get_clusters_based_on_silhouette(
     fasta_df: pd.DataFrame,
     generate_alphafold_queries: bool,
     model_seed: int,
-    taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType.values,
+    taxonomic_identifier: str,
+    network_flavor: StringDbNetworkType,
 ) -> dict:
     """Selects all clusters with a Silhouette score above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -709,4 +751,191 @@ def get_clusters_based_on_silhouette(
         model_seed,
         taxonomic_identifier,
         network_flavor,
+    )
+
+
+def kmedoids_with_subsampling(
+    distance_matrix: np.ndarray,
+    correlation_matrix: pd.DataFrame,
+    random_seed: int,
+    average_expected_cluster_sizes: int,
+    continue_subsampling_as_long_as_silhouette_improves: bool,
+    stop_criterion: StopCriterionKmedoids,
+    min_correlation_mean: float,
+    max_cluster_size: int,
+    # distance_method: DistanceFromCorrelation,
+    s_score_parent: float = 0.0,
+) -> list[list[str]]:
+    clusters = []
+    silhouette_scores = []
+    for i in range(
+        2,
+        math.ceil(len(correlation_matrix.columns) / average_expected_cluster_sizes) + 1,
+    ):
+        print(i)
+        labels = kmedoids.fasterpam(distance_matrix, i, random_state=random_seed).labels
+        silhouette_scores.append(
+            silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
+        )
+    best_number_of_clusters = 2 + silhouette_scores.index(max(silhouette_scores))
+    labels = kmedoids.fasterpam(
+        distance_matrix, best_number_of_clusters, random_state=random_seed
+    ).labels
+    print(
+        len(correlation_matrix.columns),
+        best_number_of_clusters + 2,
+        max(silhouette_scores),
+    )
+    s_score = silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
+    print(s_score_parent, s_score)
+    s_score_parent = float(s_score)
+
+    for label in np.unique(labels):
+        proteins: list[str] = correlation_matrix.columns[
+            get_proteins_of_specific_cluster(label, pd.Series(labels))
+        ]
+        if (
+            stop_criterion == StopCriterionKmedoids.correlation_mean
+            and get_correlation_mean_of_cluster(
+                pd.Series(labels), label, correlation_matrix
+            )
+            >= min_correlation_mean
+        ) or (
+            stop_criterion == StopCriterionKmedoids.max_cluster_size
+            and len(proteins) <= max_cluster_size
+        ):
+            clusters.append(proteins)
+        elif len(proteins) <= 2:
+            continue
+        else:
+            # result_filtered_new = {
+            #    key: series
+            #    for key, series in result_filtered.items()
+            #    if key in proteins
+            # }
+            # correlation_matrix_new = pd.DataFrame(result_filtered_new).corr()
+            correlation_matrix_new = correlation_matrix.loc[proteins, proteins]
+
+            protein_to_idx = {
+                protein: i for i, protein in enumerate(correlation_matrix.columns)
+            }
+            indices = [protein_to_idx[p] for p in proteins]
+
+            distance_matrix_new = distance_matrix[np.ix_(indices, indices)]
+
+            # distance_matrix_new = get_distance_matrix_from_correlation_matrix_df(
+            #    correlation_matrix_new, distance_method, hdbscan_suitable=False
+            # )[DataKey.DISTANCE_MATRIX_DF].to_numpy()
+            clusters = clusters + kmedoids_with_subsampling(
+                distance_matrix_new,
+                correlation_matrix_new,
+                random_seed,
+                average_expected_cluster_sizes,
+                continue_subsampling_as_long_as_silhouette_improves,
+                stop_criterion,
+                min_correlation_mean,
+                max_cluster_size,
+                # distance_method,
+                s_score_parent,
+            )
+    return clusters
+
+
+def k_medoids_for_ppi(
+    distance_matrix_df: pd.DataFrame,
+    correlation_matrix_df: pd.DataFrame,
+    random_seed: int,
+    continue_subsampling_as_long_as_silhouette_improves: bool,
+    stop_criterion: StopCriterionKmedoids,
+    min_correlation_mean: float,
+    average_expected_cluster_sizes: int,
+    distance_method: DistanceFromCorrelation,
+    max_cluster_size: int,
+) -> dict:
+    """Runs kmedoids clustering with the FasterPAM algorithm using kmedoid's fasterPAM algorithm (https://doi.org/10.1016/j.is.2021.101804)
+    in order to cluster proteins that are likely to interact. Determine the best number of clusters using the silhouette score.
+    Split clusters that do not meet the stopping criterion and repeat the process.
+    :param distance_matrix_df: Dataframe containing the distance matrix.
+    :param correlation_matrix_df: Dataframe containing the original correlation matrix.
+    :param random_seed: Random seed used for the fasterPAM executions.
+    :param continue_subsampling_as_long_as_silhouette_improves: Determines whether clusters which already meet the stopping criterion
+    will still be split if the silhouette score of the clustered version of the cluster is better than the silhouette score of the current clustering.
+    :param min_correlation_mean: Float that determines the minimum cluster correlation mean of a cluster to stop it from being split any further.
+    :param average_expected_cluster_sizes: Used to determine an upper bound on the number of clusters that should be considered.
+    :param max_number_of_clusters:
+    :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with a silhouette score for each cluster and
+    histograms of the silhouette scores, correlation means and cluster sizes."""
+
+    distance_matrix = distance_matrix_df.to_numpy()
+    # correlation_matrix = correlation_matrix_df.to_numpy()
+    # protein_to_intensities = protein_to_intensities_df.to_dict(orient="list")
+    clusters = kmedoids_with_subsampling(
+        distance_matrix,
+        correlation_matrix_df,
+        random_seed,
+        average_expected_cluster_sizes,
+        continue_subsampling_as_long_as_silhouette_improves,
+        stop_criterion,
+        min_correlation_mean,
+        max_cluster_size,
+    )
+
+    cluster_map: dict[str, int] = {
+        protein: cluster_id
+        for cluster_id, cluster in enumerate(clusters)
+        for protein in cluster
+    }
+
+    labels = pd.Series(
+        [cluster_map.get(protein, -1) for protein in correlation_matrix_df.columns],
+        index=correlation_matrix_df.columns,
+    )
+
+    silhouette_per_cluster = pd.Series(dtype=float)
+    silhouette_scores_per_sample = silhouette_samples(
+        distance_matrix, labels, metric="precomputed"
+    )
+    for label in labels.unique():
+        if label == -1:
+            continue
+        mask = labels == label
+        silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
+
+    fig_silhouette, ax_silhouette = plt.subplots()
+    ax_silhouette.hist(silhouette_per_cluster, bins=40)
+    ax_silhouette.set_title(
+        "Histogram of Silhouette Scores (ignoring clusters of size 1)"
+    )
+    ax_silhouette.set_xlabel("Silhouette Score")
+    ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
+
+    cluster_correlation_means = []
+    for label in labels.unique():
+        if label == -1:
+            continue  # todo
+        cluster_correlation_means.append(
+            get_correlation_mean_of_cluster(labels, label, correlation_matrix_df)
+        )
+
+    return dict(
+        cluster_labels_df=OutputItem(
+            output_type=OutputType.DATAFRAME,
+            value=pd.DataFrame(labels, columns=["Label"]),
+        ),
+        silhouette_scores_df=OutputItem(
+            output_type=OutputType.DATAFRAME,
+            value=pd.DataFrame(silhouette_per_cluster, columns=["Silhouette"]),
+        ),
+        histogram_silhouette=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)
+        ),
+        histogram_correlation_means=OutputItem(
+            OutputType.PNG_BASE64,
+            fig_to_base64(
+                get_cluster_correlation_means_histogram(cluster_correlation_means)
+            ),
+        ),
+        histogram_cluster_sizes=OutputItem(
+            OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
+        ),
     )
