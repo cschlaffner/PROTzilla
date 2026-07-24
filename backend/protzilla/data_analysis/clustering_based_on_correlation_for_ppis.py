@@ -332,7 +332,6 @@ def get_correlation_matrix(
                 )
             }
         ),
-        protein_to_intensities_df=pd.DataFrame(protein_to_intensities),
         messages=messages,
     )
 
@@ -407,6 +406,8 @@ def get_cluster_silhouette_histogram(
         distance_matrix, labels, metric="precomputed"
     )
     for label in labels.unique():
+        if clusters_of_size_one_omitted and label == -1:
+            continue
         mask = labels == label
         silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
     fig_silhouette, ax_silhouette = plt.subplots()
@@ -425,11 +426,13 @@ def get_cluster_silhouette_histogram(
 def hdbscan_for_ppi(
     distance_matrix_df: pd.DataFrame,
     correlation_matrix_df: pd.DataFrame,
+    protein_df: pd.DataFrame,
     min_cluster_size: int,
 ) -> dict:
     """Runs the HDBSCAN algorithm (from the hdbscan library) for clustering the proteins that are likely to interact into groups.
     :param distance_matrix_df: Dataframe containing the distance matrix.
     :param correlation_matrix_df: Dataframe containing the original correlation matrix.
+    :param protein_df: Dataframe used for the correlation matrix. Used to determine the original number of features.
     :param min_cluster_size: HDBSCAN won't determine clusters with less than min_cluster_size proteins.
     :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with a dbcv score for each cluster and
     histograms of the dbcv scores, correlation means and cluster sizes."""
@@ -443,7 +446,7 @@ def hdbscan_for_ppi(
         distance_matrix,
         clusterer.labels_,
         metric="precomputed",
-        d=distance_matrix.shape[0],
+        d=protein_df["Sample"].nunique(),
         per_cluster_scores=True,
     )
 
@@ -754,6 +757,42 @@ def get_clusters_based_on_silhouette(
     )
 
 
+def _is_stopping_criterion_fullfilled(
+    stop_criterion: StopCriterionKmedoids,
+    labels: np.ndarray,
+    label: int,
+    correlation_matrix_df: pd.DataFrame,
+    min_correlation_mean: float,
+    max_cluster_size: int,
+) -> bool:
+    return (
+        (
+            stop_criterion == StopCriterionKmedoids.correlation_mean
+            and get_correlation_mean_of_cluster(
+                pd.Series(labels, index=correlation_matrix_df.columns),
+                label,
+                correlation_matrix_df,
+            )
+            >= min_correlation_mean
+        )
+        or (
+            stop_criterion == StopCriterionKmedoids.max_cluster_size
+            and (labels == label).sum() <= max_cluster_size
+        )
+        or (
+            stop_criterion
+            == StopCriterionKmedoids.correlation_mean_and_max_cluster_size
+            and get_correlation_mean_of_cluster(
+                pd.Series(labels, index=correlation_matrix_df.columns),
+                label,
+                correlation_matrix_df,
+            )
+            >= min_correlation_mean
+            and (labels == label).sum() <= max_cluster_size
+        )
+    )
+
+
 def kmedoids_with_subsampling(
     distance_matrix: np.ndarray,
     correlation_matrix: pd.DataFrame,
@@ -763,16 +802,37 @@ def kmedoids_with_subsampling(
     stop_criterion: StopCriterionKmedoids,
     min_correlation_mean: float,
     max_cluster_size: int,
-    # distance_method: DistanceFromCorrelation,
+    min_cluster_size: int,
+    min_number_of_silhouette_scores_to_inspect: int,
     s_score_parent: float = 0.0,
 ) -> list[list[str]]:
+    """
+    Runs kmedoids clustering with the FasterPAM algorithm using kmedoid's fasterPAM algorithm (https://doi.org/10.1016/j.is.2021.101804)
+    in order to cluster proteins that are likely to interact. Determine the best number of clusters using the silhouette score.
+    Split clusters that do not meet the stopping criterion and repeat the process.
+    :param distance_matrix_df: Dataframe containing the distance matrix.
+    :param correlation_matrix_df: Dataframe containing the original correlation matrix.
+    :param random_seed: Random seed used for the fasterPAM executions.
+    :param continue_subsampling_as_long_as_silhouette_improves: Determines whether clusters which already meet the stopping criterion
+    will still be split if the silhouette score of the clustered version of the cluster is better than the silhouette score of the current clustering.
+    :param min_correlation_mean: Float that determines the minimum cluster correlation mean of a cluster to stop it from being split any further.
+    :param average_expected_cluster_size: Used to determine an upper bound on the number of clusters that should be considered.
+    :param max_cluster_size: If one selects a stopping criterion that includes a maximum cluster size, one also needs to provide the maximum cluster size.
+    :param min_cluster_size: The minimum number of proteins in each cluster in the output.
+    :param min_number_of_silhouette_scores_to_inspect: If (number of proteins in cluster / average_expected_cluster_size) < min_number_of_silhouette_scores_to_inspect
+    min_cluster_size will be used to determine the different numbers of clusters for which the silhouette score will be determined.
+    :return: Returns a list of lists. Each of the lists contains all protein-ids of one cluster.
+    """
     clusters = []
     silhouette_scores = []
-    for i in range(
-        2,
-        math.ceil(len(correlation_matrix.columns) / average_expected_cluster_sizes) + 1,
-    ):
-        print(i)
+    number_of_proteins_in_cluster = len(correlation_matrix.columns)
+    upper_bound_on_cluster_numbers_to_inspect = (
+        math.ceil(number_of_proteins_in_cluster / min_cluster_size)
+        if math.ceil(number_of_proteins_in_cluster / average_expected_cluster_sizes) - 1
+        < min_number_of_silhouette_scores_to_inspect
+        else math.ceil(number_of_proteins_in_cluster / average_expected_cluster_sizes)
+    )
+    for i in range(2, upper_bound_on_cluster_numbers_to_inspect + 1):
         labels = kmedoids.fasterpam(distance_matrix, i, random_state=random_seed).labels
         silhouette_scores.append(
             silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
@@ -783,49 +843,51 @@ def kmedoids_with_subsampling(
     ).labels
     print(
         len(correlation_matrix.columns),
-        best_number_of_clusters + 2,
+        best_number_of_clusters,
         max(silhouette_scores),
     )
     s_score = silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
-    print(s_score_parent, s_score)
+    if (
+        _is_stopping_criterion_fullfilled(
+            stop_criterion,
+            np.array([1] * number_of_proteins_in_cluster),
+            1,
+            correlation_matrix,
+            min_correlation_mean,
+            max_cluster_size,
+        )
+        and s_score < s_score_parent
+    ):
+        return [list(correlation_matrix.columns)]
     s_score_parent = float(s_score)
 
     for label in np.unique(labels):
-        proteins: list[str] = correlation_matrix.columns[
-            get_proteins_of_specific_cluster(label, pd.Series(labels))
-        ]
-        if (
-            stop_criterion == StopCriterionKmedoids.correlation_mean
-            and get_correlation_mean_of_cluster(
-                pd.Series(labels), label, correlation_matrix
+        proteins: list[str] = get_proteins_of_specific_cluster(
+            label, pd.Series(labels, index=correlation_matrix.columns)
+        )
+        if len(proteins) <= min_cluster_size:
+            continue
+        elif (
+            _is_stopping_criterion_fullfilled(
+                stop_criterion,
+                labels,
+                label,
+                correlation_matrix,
+                min_correlation_mean,
+                max_cluster_size,
             )
-            >= min_correlation_mean
-        ) or (
-            stop_criterion == StopCriterionKmedoids.max_cluster_size
-            and len(proteins) <= max_cluster_size
+            and not continue_subsampling_as_long_as_silhouette_improves
         ):
             clusters.append(proteins)
-        elif len(proteins) <= 2:
-            continue
         else:
-            # result_filtered_new = {
-            #    key: series
-            #    for key, series in result_filtered.items()
-            #    if key in proteins
-            # }
-            # correlation_matrix_new = pd.DataFrame(result_filtered_new).corr()
             correlation_matrix_new = correlation_matrix.loc[proteins, proteins]
 
             protein_to_idx = {
                 protein: i for i, protein in enumerate(correlation_matrix.columns)
             }
             indices = [protein_to_idx[p] for p in proteins]
-
             distance_matrix_new = distance_matrix[np.ix_(indices, indices)]
 
-            # distance_matrix_new = get_distance_matrix_from_correlation_matrix_df(
-            #    correlation_matrix_new, distance_method, hdbscan_suitable=False
-            # )[DataKey.DISTANCE_MATRIX_DF].to_numpy()
             clusters = clusters + kmedoids_with_subsampling(
                 distance_matrix_new,
                 correlation_matrix_new,
@@ -835,7 +897,8 @@ def kmedoids_with_subsampling(
                 stop_criterion,
                 min_correlation_mean,
                 max_cluster_size,
-                # distance_method,
+                min_cluster_size,
+                min_number_of_silhouette_scores_to_inspect,
                 s_score_parent,
             )
     return clusters
@@ -848,9 +911,10 @@ def k_medoids_for_ppi(
     continue_subsampling_as_long_as_silhouette_improves: bool,
     stop_criterion: StopCriterionKmedoids,
     min_correlation_mean: float,
-    average_expected_cluster_sizes: int,
-    distance_method: DistanceFromCorrelation,
+    average_expected_cluster_size: int,
     max_cluster_size: int,
+    min_cluster_size: int,
+    min_number_of_silhouette_scores_to_inspect: int,
 ) -> dict:
     """Runs kmedoids clustering with the FasterPAM algorithm using kmedoid's fasterPAM algorithm (https://doi.org/10.1016/j.is.2021.101804)
     in order to cluster proteins that are likely to interact. Determine the best number of clusters using the silhouette score.
@@ -861,23 +925,26 @@ def k_medoids_for_ppi(
     :param continue_subsampling_as_long_as_silhouette_improves: Determines whether clusters which already meet the stopping criterion
     will still be split if the silhouette score of the clustered version of the cluster is better than the silhouette score of the current clustering.
     :param min_correlation_mean: Float that determines the minimum cluster correlation mean of a cluster to stop it from being split any further.
-    :param average_expected_cluster_sizes: Used to determine an upper bound on the number of clusters that should be considered.
-    :param max_number_of_clusters:
-    :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with a silhouette score for each cluster and
+    :param average_expected_cluster_size: Used to determine an upper bound on the number of clusters that should be considered.
+    :param max_cluster_size: If one selects a stopping criterion that includes a maximum cluster size, one also needs to provide the maximum cluster size.
+    :param min_cluster_size: The minimum number of proteins in each cluster in the output.
+    :param min_number_of_silhouette_scores_to_inspect: If (number of proteins in cluster / average_expected_cluster_size) < min_number_of_silhouette_scores_to_inspect
+    min_cluster_size will be used to determine the different numbers of clusters for which the silhouette score will be determined.
+    :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with the silhouette score for each cluster and
     histograms of the silhouette scores, correlation means and cluster sizes."""
 
     distance_matrix = distance_matrix_df.to_numpy()
-    # correlation_matrix = correlation_matrix_df.to_numpy()
-    # protein_to_intensities = protein_to_intensities_df.to_dict(orient="list")
     clusters = kmedoids_with_subsampling(
         distance_matrix,
         correlation_matrix_df,
         random_seed,
-        average_expected_cluster_sizes,
+        average_expected_cluster_size,
         continue_subsampling_as_long_as_silhouette_improves,
         stop_criterion,
         min_correlation_mean,
         max_cluster_size,
+        min_cluster_size,
+        min_number_of_silhouette_scores_to_inspect,
     )
 
     cluster_map: dict[str, int] = {
@@ -891,28 +958,16 @@ def k_medoids_for_ppi(
         index=correlation_matrix_df.columns,
     )
 
-    silhouette_per_cluster = pd.Series(dtype=float)
-    silhouette_scores_per_sample = silhouette_samples(
-        distance_matrix, labels, metric="precomputed"
+    silhouette_scores_histogram, silhouette_scores_per_cluster = (
+        get_cluster_silhouette_histogram(
+            distance_matrix, labels, clusters_of_size_one_omitted=True
+        )
     )
-    for label in labels.unique():
-        if label == -1:
-            continue
-        mask = labels == label
-        silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
-
-    fig_silhouette, ax_silhouette = plt.subplots()
-    ax_silhouette.hist(silhouette_per_cluster, bins=40)
-    ax_silhouette.set_title(
-        "Histogram of Silhouette Scores (ignoring clusters of size 1)"
-    )
-    ax_silhouette.set_xlabel("Silhouette Score")
-    ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
 
     cluster_correlation_means = []
     for label in labels.unique():
         if label == -1:
-            continue  # todo
+            continue
         cluster_correlation_means.append(
             get_correlation_mean_of_cluster(labels, label, correlation_matrix_df)
         )
@@ -924,18 +979,25 @@ def k_medoids_for_ppi(
         ),
         silhouette_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(silhouette_per_cluster, columns=["Silhouette"]),
+            value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
         ),
         histogram_silhouette=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(fig_silhouette)
+            OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)
         ),
         histogram_correlation_means=OutputItem(
             OutputType.PNG_BASE64,
             fig_to_base64(
-                get_cluster_correlation_means_histogram(cluster_correlation_means)
+                get_cluster_correlation_means_histogram(
+                    cluster_correlation_means, clusters_of_size_one_omitted=True
+                )
             ),
         ),
         histogram_cluster_sizes=OutputItem(
-            OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
+            OutputType.PNG_BASE64,
+            fig_to_base64(
+                get_cluster_sizes_histogram(
+                    pd.Series([label for label in labels if label != -1])
+                )
+            ),
         ),
     )

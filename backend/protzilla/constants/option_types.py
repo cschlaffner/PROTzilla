@@ -99,3 +99,6 @@ class ClusteringLinkagePPI(StrEnum):
 class StopCriterionKmedoids(StrEnum):
     correlation_mean = "each cluster has a minimum correlation mean"
     max_cluster_size = "each cluster contains at most x proteins"
+    correlation_mean_and_max_cluster_size = (
+        "each cluster has a minimum correlation mean and contains at most x proteins"
+    )

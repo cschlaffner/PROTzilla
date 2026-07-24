@@ -34,7 +34,6 @@ class DataKey(StrEnum):
     CLUSTER_LABELS_DF = "cluster_labels_df"
     DBCV_SCORES_DF = "dbcv_scores_df"
     SILHOUETTE_SCORES_DF = "silhouette_scores_df"
-    PROTEIN_TO_INTENSITIES_DF = "protein_to_intensities_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)

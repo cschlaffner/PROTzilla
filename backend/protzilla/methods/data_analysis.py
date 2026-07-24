@@ -2544,7 +2544,7 @@ class PtmValidation(PeptideAnalysisStep):
 
 
 class CorrelationMatrix(DataAnalysisStep):
-    output_keys = [DataKey.CORRELATION_MATRIX_DF, DataKey.PROTEIN_TO_INTENSITIES_DF]
+    output_keys = [DataKey.CORRELATION_MATRIX_DF]
     display_name = "Correlation matrix"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Creates a matrix showing the correlation between the intensities across samples for each pair of protein ids."
@@ -2612,21 +2612,6 @@ class HDBSCAN(DataAnalysisStep):
         )
 
 
-def get_STRING_supported_taxonomic_identifiers():
-    species = pd.read_csv(
-        "backend/uploads/supported_organisms_by_STRING/species.v12.0.txt", sep="\t"
-    )
-    options = []
-    for _, row in species.iterrows():
-        options.append(
-            Option(
-                label=f"{row['#taxon_id']} {row['official_name_NCBI']}",
-                value=row["#taxon_id"],
-            )
-        )
-    return options
-
-
 class ClusterSelectionStep(DataAnalysisStep):
     output_keys = []
     operation = "Clustering For Protein-Protein-Interactions"
@@ -2656,7 +2641,7 @@ class ClusterSelectionStep(DataAnalysisStep):
                 DropdownField(
                     name="taxonomic_identifier",
                     label="Taxonomic identifier of organism",
-                    options=get_STRING_supported_taxonomic_identifiers(),
+                    options=self.get_STRING_supported_taxonomic_identifiers(),
                 ),
                 DropdownField(
                     name="network_flavor",
@@ -2701,6 +2686,20 @@ class ClusterSelectionStep(DataAnalysisStep):
             "generate_STRING_networks"
         ].value
 
+    def get_STRING_supported_taxonomic_identifiers(self):
+        species = pd.read_csv(
+            "backend/uploads/supported_organisms_by_STRING/species.v12.0.txt", sep="\t"
+        )
+        options = []
+        for _, row in species.iterrows():
+            options.append(
+                Option(
+                    label=f"{row['#taxon_id']} {row['official_name_NCBI']}",
+                    value=row["#taxon_id"],
+                )
+            )
+        return options
+
 
 class GetClustersBasedOnIntraClusterCorrelationMean(ClusterSelectionStep):
     display_name = "Get Clusters Based On Intra-Cluster Correlation Mean"
@@ -2710,7 +2709,6 @@ class GetClustersBasedOnIntraClusterCorrelationMean(ClusterSelectionStep):
     def create_form(self):
         form = super().create_form()
         form.label = "Get Clusters Based On Correlation Mean"
-        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
         return form
 
 
@@ -2722,7 +2720,6 @@ class GetClustersBasedOnDBCV(ClusterSelectionStep):
     def create_form(self):
         form = super().create_form()
         form.label = "Get Clusters Based On DBCV"
-        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
         return form
 
 
@@ -2733,7 +2730,6 @@ class GetClustersBasedOnSilhouette(ClusterSelectionStep):
 
     def create_form(self):
         form = super().create_form()
-        print(self.__class__.__name__, id(form["generate_STRING_networks"]))
         form.label = "Get Clusters Based On Silhouette Score"
         return form
 
@@ -2787,29 +2783,27 @@ class KMedoidsClustering(DataAnalysisStep):
                 InfoField(
                     name="info_on_kmedoids",
                     label="Instead of the traditional PAM (=Partioning Around Medoids) algorithm, this step uses a faster variant called FasterPAM "
-                    "from the kmedoids package. (https://doi.org/10.1016/j.is.2021.101804)."
-                    "This step runs FasterPAM for all numbers of cluster between 2 and (number of proteins/expected cluster sizes)."
-                    "For number of clusters the Silhouette Score is determined. As long as the stopping criterion is not reached, the resulting clusters"
-                    "will be clustered again with the same method.",
-                ),
-                DropdownField(
-                    name="distance_method",
-                    label="Distance method originally used to calculate correlation matrix",
-                    options=DistanceFromCorrelation,
+                    "from the kmedoids package. (https://doi.org/10.1016/j.is.2021.101804).\n"
+                    "This step runs FasterPAM for different numbers of clusters. For each number of clusters the Silhouette score is then determined. "
+                    "The clustering with the highest score gets selected. For each cluster in the clustering, the cluster will be clustered again with the same "
+                    "method, if it does not fullfill the stopping criterion. If some proteins never meet the stopping criterion, they will not be added to "
+                    "any cluster (=they get the label -1).",
                 ),
                 NumberField(
-                    name="average_expected_cluster_sizes",
-                    label="Average of expected cluster sizes",
+                    name="random_seed",
+                    label="Random seed used for FasterPAM",
+                    value=0,
+                    min=0,
                 ),
                 DropdownField(
                     name="stop_criterion",
-                    label="When to stop splitting clusters",
+                    label="Stop splitting clusters when",
                     options=StopCriterionKmedoids,
                     value=StopCriterionKmedoids.max_cluster_size,
                 ),
                 FloatField(
                     name="min_correlation_mean",
-                    label="Minimum correlation mean for a cluster to stop splitting it.",
+                    label="Minimum correlation mean for a cluster to stop splitting it",
                     min=-1,
                     max=1,
                     value=0.7,
@@ -2824,18 +2818,44 @@ class KMedoidsClustering(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="continue_subsampling_as_long_as_silhouette_improves",
-                    label="Continue splitting clusters that already reached the stopping criterion as long as the silhouette score increases.",
+                    label="Continue splitting clusters that already reached the stopping criterion as long as the silhouette score increases",
+                ),
+                InfoField(
+                    name="info_parameter_influencen_on_number_of_different_cluster_numbers_examined",
+                    label="The following 3 parameters influence for how many different numbers of clusters the silhouette score will be determined before "
+                    "deciding on an optimal number of clusters. Let x be (number of proteins in cluster/average expected cluster size). For each clustering "
+                    "all numbers of clusters between 2 and x are examined. However, for smaller clusters x might become quite small. E.g. if there are only "
+                    "30 proteins in the cluster and we have an expected cluster size of 10, we would only consider having 2 or 3 clusters. "
+                    "Therefore, one can set a lower bound on the number of clusters to inspect in each clustering step. If (x-1) is smaller than this lower bound, "
+                    "we set x to (number of proteins in cluster/minimum cluster size).",
                 ),
                 NumberField(
-                    name="random_seed", label="Random Seed Used for FasterPAM", value=0
+                    name="average_expected_cluster_size",
+                    label="Average expected cluster size",
+                ),
+                NumberField(
+                    name="min_cluster_size",
+                    label="Minimum cluster size",
+                    min=2,
+                    value=2,
+                ),
+                NumberField(
+                    name="min_number_of_silhouette_scores_to_inspect",
+                    label="Lower bound on number of clusters to inspect in each subclustering step",
+                    value=10,
+                    min=1,
                 ),
             ],
         )
 
     def modify_form(self, run):
-        if self.form["stop_criterion"].value == StopCriterionKmedoids.correlation_mean:
-            self.form["min_correlation_mean"].isVisible = True
-            self.form["max_cluster_size"].isVisible = False
-        else:
-            self.form["min_correlation_mean"].isVisible = False
-            self.form["max_cluster_size"].isVisible = True
+        match self.form["stop_criterion"].value:
+            case StopCriterionKmedoids.correlation_mean:
+                self.form["min_correlation_mean"].isVisible = True
+                self.form["max_cluster_size"].isVisible = False
+            case StopCriterionKmedoids.max_cluster_size:
+                self.form["min_correlation_mean"].isVisible = False
+                self.form["max_cluster_size"].isVisible = True
+            case StopCriterionKmedoids.correlation_mean_and_max_cluster_size:
+                self.form["min_correlation_mean"].isVisible = True
+                self.form["max_cluster_size"].isVisible = True
