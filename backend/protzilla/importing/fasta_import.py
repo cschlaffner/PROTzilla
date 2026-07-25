@@ -129,7 +129,7 @@ def fasta_generation(protein_df: pd.DataFrame) -> dict[str, pd.DataFrame | list 
             )
         )
     return dict(
-        fasta_df =pd.DataFrame(
+        fasta_df=pd.DataFrame(
             {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
         ),
         messages=messages,

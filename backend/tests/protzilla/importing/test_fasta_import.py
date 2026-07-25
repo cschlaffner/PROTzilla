@@ -1,8 +1,15 @@
+import logging
+
 import pytest
 import pandas as pd
+import requests
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.importing.fasta_import import fasta_generation, parse_fasta_id, fasta_import
+from backend.protzilla.importing.fasta_import import (
+    fasta_generation,
+    parse_fasta_id,
+    fasta_import,
+)
 from backend.tests.paths import TEST_FASTA_PATH
 
 
@@ -64,11 +71,60 @@ def test_import_fasta_with_no_sequences():
         fasta_import(no_sequences_fasta_file)
 
 
-def test_most_simple_fasta_generation():
-    protein_df = pd.DataFrame({"Protein ID": ["P01308"]})
-    output = fasta_generation(protein_df)
+@pytest.fixture
+def mock_uniprot(monkeypatch):
+    sequences = {
+        "Protein1": "ABC",
+        "Protein2": "XY",
+    }
+
+    def mock_get(url, timeout):
+        requested_ids = url.split("accessions=")[1].split("&")[0].split(",")
+
+        fasta = ""
+        for protein_id in requested_ids:
+            if protein_id in sequences:
+                fasta += f">sp|{protein_id}|mock_protein\n" f"{sequences[protein_id]}\n"
+
+        class MockResponse:
+            status_code = 200
+            text = fasta
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+
+def test_most_simple_fasta_generation(mock_uniprot):
+    output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1"]}))
     generated_fasta_df: pd.DataFrame = output["fasta_df"]
-    assert(len(generated_fasta_df) == 1)
-    assert(list(generated_fasta_df.columns) == ["Protein ID", "Protein Sequence"])
-    assert(generated_fasta_df["Protein ID"].iloc[0] == "P01308-1")
-    assert(generated_fasta_df["Protein Sequence"].iloc[0] == "MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN")
+    assert len(generated_fasta_df) == 1
+    assert list(generated_fasta_df.columns) == ["Protein ID", "Protein Sequence"]
+    assert generated_fasta_df["Protein ID"].iloc[0] == "Protein1-1"
+    assert generated_fasta_df["Protein Sequence"].iloc[0] == "ABC"
+
+
+def test_fasta_generation_with_more_than_one_protein(mock_uniprot):
+    output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1", "Protein2"]}))
+    generated_fasta_df: pd.DataFrame = output["fasta_df"]
+    assert len(generated_fasta_df) == 2
+    assert generated_fasta_df["Protein ID"].iloc[0] == "Protein1-1"
+    assert generated_fasta_df["Protein Sequence"].iloc[0] == "ABC"
+    assert generated_fasta_df["Protein ID"].iloc[1] == "Protein2-1"
+    assert generated_fasta_df["Protein Sequence"].iloc[1] == "XY"
+
+
+def test_fasta_generation_ignores_id_duplicates(mock_uniprot):
+    output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1", "Protein1"]}))
+    generated_fasta_df: pd.DataFrame = output["fasta_df"]
+    assert len(generated_fasta_df) == 1
+
+
+def test_fasta_generation_gives_warning_for_unknown_id(mock_uniprot):
+    output = fasta_generation(pd.DataFrame({"Protein ID": ["abcxyz"]}))
+    generated_fasta_df: pd.DataFrame = output["fasta_df"]
+    messages: pd.DataFrame = output["messages"]
+    assert len(generated_fasta_df) == 0
+    assert len(messages) == 1
+    assert messages[0]["level"] == logging.WARNING
+    assert "1 protein ids were not found" in messages[0]["msg"]
