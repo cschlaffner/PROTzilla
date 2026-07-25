@@ -1,7 +1,8 @@
 import pytest
+import pandas as pd
 
 from backend.protzilla.constants.data_types import DataKey
-from backend.protzilla.importing.fasta_import import parse_fasta_id, fasta_import
+from backend.protzilla.importing.fasta_import import fasta_generation, parse_fasta_id, fasta_import
 from backend.tests.paths import TEST_FASTA_PATH
 
 
@@ -61,3 +62,13 @@ def test_import_fasta_with_no_sequences():
         match="The provided fasta file does not contain protein sequences for all of the protein ids.",
     ):
         fasta_import(no_sequences_fasta_file)
+
+
+def test_most_simple_fasta_generation():
+    protein_df = pd.DataFrame({"Protein ID": ["P01308"]})
+    output = fasta_generation(protein_df)
+    generated_fasta_df: pd.DataFrame = output["fasta_df"]
+    assert(len(generated_fasta_df) == 1)
+    assert(list(generated_fasta_df.columns) == ["Protein ID", "Protein Sequence"])
+    assert(generated_fasta_df["Protein ID"].iloc[0] == "P01308-1")
+    assert(generated_fasta_df["Protein Sequence"].iloc[0] == "MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN")

@@ -66,7 +66,7 @@ def fasta_import(
     return {DataKey.FASTA_DF.value: fasta_sequences}
 
 
-def fasta_generation(protein_df: pd.DataFrame):
+def fasta_generation(protein_df: pd.DataFrame) -> dict[str, pd.DataFrame | list | dict]:
     """
     Generate a fasta file based on a list of protein ids and return a DataFrame with the protein sequences and their protein ids
 
@@ -129,7 +129,7 @@ def fasta_generation(protein_df: pd.DataFrame):
             )
         )
     return dict(
-        fasta_df=pd.DataFrame(
+        fasta_df =pd.DataFrame(
             {"Protein ID": protein_ids, "Protein Sequence": protein_sequences}
         ),
         messages=messages,
