@@ -25,7 +25,7 @@ from io import BytesIO
 import zipfile
 from scipy.spatial.distance import squareform
 from dynamicTreeCut import cutreeHybrid  # does not work with numpy >= 2.4
-from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import cophenet, linkage
 
 
 from backend.protzilla.utilities.utilities import (
@@ -682,7 +682,7 @@ def hierarchical_clustering_for_ppi(
     silhouette_scores_histogram, silhouette_scores_per_cluster = (
         get_cluster_silhouette_histogram(distance_matrix, labels)
     )
-
+    msg = f"Clustering has Cophenetic Correlation score of {cophenet(Z, squareform(distance_matrix))}."
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
@@ -704,6 +704,7 @@ def hierarchical_clustering_for_ppi(
         histogram_cluster_sizes=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
         ),
+        message=[dict(level=logging.INFO, msg=msg)],
     )
 
 

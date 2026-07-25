@@ -946,6 +946,10 @@ class ImputationByKNN(ImputationStep):
         return Form(
             label="Imputation by KNN",
             input_fields=[
+                InfoField(
+                    name="info_handling_with_only_nans",
+                    label="Info: If a protein has NaN in all samples, it will be filtered out.",
+                ),
                 NumberField(
                     name="number_of_neighbours",
                     label="Number of neighbours",
