@@ -79,9 +79,10 @@ def get_STRING_information_for_cluster(
     }
 
     response = requests.post(request_url, data=params)
-    return response.content, _get_number_of_protein_ids_not_known_by_STRING(
+    unknown_ids = _get_number_of_protein_ids_not_known_by_STRING(
         proteins, taxonomic_identifier
     )
+    return response.content, unknown_ids
 
 
 def get_heatmap_for_certain_cluster(
@@ -102,6 +103,7 @@ def get_heatmap_for_certain_cluster(
 def get_proteins_of_specific_cluster(
     cluster_label: int, all_labels: pd.Series
 ) -> list[str]:
+    """returns ids of all proteins with cluster_label"""
     return all_labels[cluster_label == all_labels].index.tolist()
 
 
@@ -132,92 +134,6 @@ def get_alphafold_query_file_for_specific_cluster(
             }
         )
     return json.dumps([query], indent=4)
-
-
-def get_output_zip_for_clustering(
-    labels: pd.Series,
-    clustering_algo: str,
-    correlation_matrix: pd.DataFrame,
-    protein_id_to_number_of_residues: dict[str, int],
-    generate_STRING_networks: bool,
-    only_include_alphafold_compatible_clusters: bool,
-    fasta_df: pd.DataFrame,
-    cluster_labels_to_ignore: list[int],
-    generate_alphafold_queries: bool,
-    model_seed: int,
-    taxonomic_identifier: int,
-    network_flavor: StringDbNetworkType,
-) -> tuple[bytes, int]:
-    """Create a zip file containing the user requested data (heatmaps, STRING networks, AlphaFold query files)
-    for all clusters that are not in cluster_labels_to_ignore."""
-
-    clusters_too_big_for_alphafold = 0
-
-    zip_buffer = BytesIO()
-
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for cluster_id in labels.unique():
-            if cluster_id in cluster_labels_to_ignore:
-                continue
-            fig, ax = plt.subplots(figsize=(10, 8))
-
-            proteins = get_proteins_of_specific_cluster(cluster_id, labels)
-            number_of_residues_in_cluster = (
-                get_number_of_amino_acid_residues_in_cluster(
-                    proteins, protein_id_to_number_of_residues
-                )
-            )
-            alphafold_job_limit = 5000
-            if number_of_residues_in_cluster > alphafold_job_limit:
-                clusters_too_big_for_alphafold += 1
-                if only_include_alphafold_compatible_clusters:
-                    continue
-
-            get_heatmap_for_certain_cluster(proteins, ax, correlation_matrix)
-
-            heatmap_filename = (
-                f"{clustering_algo}_heatmap_{cluster_id}"
-                f"__{number_of_residues_in_cluster}_residues.png"
-            )
-            heatmap_buffer = BytesIO()
-            plt.savefig(heatmap_buffer, format="png", dpi=300)
-            plt.close(fig)
-
-            heatmap_buffer.seek(0)
-
-            zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
-
-            if generate_STRING_networks:
-                string_data, number_of_ids_not_known_by_STRING = (
-                    get_STRING_information_for_cluster(
-                        proteins, taxonomic_identifier, network_flavor
-                    )
-                )
-
-                string_filename = (
-                    f"{clustering_algo}_cluster_{cluster_id}"
-                    f"__{number_of_residues_in_cluster}_residues_{number_of_ids_not_known_by_STRING}_unknown_ids.png"
-                )
-
-                zipf.writestr(
-                    f"string_network/{string_filename}",
-                    string_data,
-                )
-
-            if generate_alphafold_queries:
-                query_filename = (
-                    f"{clustering_algo}_alphafold_query_{cluster_id}"
-                    f"__{number_of_residues_in_cluster}_residues.json"
-                )
-                zipf.writestr(
-                    f"alphafold_prediction_queries/{query_filename}",
-                    get_alphafold_query_file_for_specific_cluster(
-                        f"cluster{cluster_id}", model_seed, fasta_df, proteins
-                    ),
-                )
-
-    zip_buffer.seek(0)
-    return zip_buffer.getvalue(), clusters_too_big_for_alphafold
 
 
 def get_number_of_amino_acid_residues_in_cluster(
@@ -504,25 +420,95 @@ def create_filtered_clusters_output(
     taxonomic_identifier: str,
     network_flavor: StringDbNetworkType,
 ) -> dict:
+    """Create a zip file containing the user requested data (heatmaps, STRING networks, AlphaFold query files)
+    for all clusters that are not in cluster_labels_to_ignore."""
+
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
-    zip_plot_in_bytes, clusters_too_big_for_alphafold = get_output_zip_for_clustering(
-        cluster_labels_df["Label"],
-        output_name,
-        correlation_matrix_df,
-        protein_id_to_number_of_residues,
-        generate_STRING_networks,
-        only_include_alphafold_compatible_clusters,
-        fasta_df,
-        cluster_labels_to_ignore,
-        generate_alphafold_queries,
-        model_seed,
-        int(taxonomic_identifier.split()[0]),
-        network_flavor,
-    )
+    labels = cluster_labels_df["Label"]
+
+    # transformation necessary due to the dropdown format containing id and organism name
+    taxonomic_id = int(taxonomic_identifier.split()[0])
+
+    clusters_too_big_for_alphafold = 0
+    at_least_one_failed_string_request = False
+
+    zip_buffer = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for cluster_id in labels.unique():
+            if cluster_id in cluster_labels_to_ignore:
+                continue
+            fig, ax = plt.subplots(figsize=(10, 8))
+
+            proteins = get_proteins_of_specific_cluster(cluster_id, labels)
+            number_of_residues_in_cluster = (
+                get_number_of_amino_acid_residues_in_cluster(
+                    proteins, protein_id_to_number_of_residues
+                )
+            )
+            alphafold_job_limit = 5000
+            if number_of_residues_in_cluster > alphafold_job_limit:
+                clusters_too_big_for_alphafold += 1
+                if only_include_alphafold_compatible_clusters:
+                    continue
+
+            get_heatmap_for_certain_cluster(proteins, ax, correlation_matrix_df)
+
+            heatmap_filename = (
+                f"{output_name}_heatmap_{cluster_id}"
+                f"__{number_of_residues_in_cluster}_residues.png"
+            )
+            heatmap_buffer = BytesIO()
+            plt.savefig(heatmap_buffer, format="png", dpi=300)
+            plt.close(fig)
+
+            heatmap_buffer.seek(0)
+
+            zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
+
+            if generate_STRING_networks:
+                try:
+                    string_data, number_of_ids_not_known_by_STRING = (
+                        get_STRING_information_for_cluster(
+                            proteins, taxonomic_id, network_flavor
+                        )
+                    )
+                except:
+                    at_least_one_failed_string_request = True
+                    continue
+
+                string_filename = (
+                    f"{output_name}_cluster_{cluster_id}"
+                    f"__{number_of_residues_in_cluster}_residues_{number_of_ids_not_known_by_STRING}_unknown_ids.png"
+                )
+
+                zipf.writestr(
+                    f"string_network/{string_filename}",
+                    string_data,
+                )
+
+            if generate_alphafold_queries:
+                query_filename = (
+                    f"{output_name}_alphafold_query_{cluster_id}"
+                    f"__{number_of_residues_in_cluster}_residues.json"
+                )
+                zipf.writestr(
+                    f"alphafold_prediction_queries/{query_filename}",
+                    get_alphafold_query_file_for_specific_cluster(
+                        f"cluster{cluster_id}", model_seed, fasta_df, proteins
+                    ),
+                )
+
+    zip_buffer.seek(0)
+    zip_plot_in_bytes = zip_buffer.getvalue()
 
     messages = []
     if clusters_too_big_for_alphafold > 0:
         msg = f"{clusters_too_big_for_alphafold} clusters are too big for generating a AlphaFold Multimer query as AlphaFold only allows jobs of up to 5,000 residues as of June 2026."
+        messages.append(dict(level=logging.WARNING, msg=msg))
+
+    if at_least_one_failed_string_request:
+        msg = f"At least one request for a STRING network failed."
         messages.append(dict(level=logging.WARNING, msg=msg))
 
     return dict(

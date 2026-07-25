@@ -95,7 +95,7 @@ def mock_uniprot(monkeypatch):
     monkeypatch.setattr(requests, "get", mock_get)
 
 
-def test_most_simple_fasta_generation(mock_uniprot):
+def test_basic_fasta_generation(mock_uniprot):
     output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1"]}))
     generated_fasta_df: pd.DataFrame = output["fasta_df"]
     assert len(generated_fasta_df) == 1
