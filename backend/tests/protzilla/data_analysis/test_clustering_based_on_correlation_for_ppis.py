@@ -6,16 +6,21 @@ import pytest
 import requests
 from unittest import mock
 
+from sklearn.metrics import silhouette_samples
+
 from backend.protzilla.constants.option_types import (
     CorrelationMethod,
+    DistanceFromCorrelation,
     StringDbNetworkType,
 )
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
     _get_number_of_protein_ids_not_known_by_STRING,
     get_STRING_information_for_cluster,
     get_alphafold_query_file_for_specific_cluster,
+    get_cluster_silhouette_histogram,
     get_correlation_matrix,
     get_correlation_mean_of_cluster,
+    get_distance_matrix_from_correlation_matrix_df,
     get_number_of_amino_acid_residues_in_cluster,
     get_protein_id_to_number_of_residues,
     get_proteins_of_specific_cluster,
@@ -421,3 +426,80 @@ def test_get_correlation_matrix_removes_proteins_that_miss_in_the_fasta(
         removed_protein_ids_df, pd.DataFrame(["A-1"], columns=["Protein ID"])
     )
     assert "since the ids were not found in the provided fasta." in messages[0]["msg"]
+
+
+@pytest.fixture
+def correlation_matrix_df(
+    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+):
+    return get_correlation_matrix(
+        protein_df_for_correlation_matrix,
+        fasta_df_for_correlation_matrix,
+        CorrelationMethod.pearson,
+    )["correlation_matrix_df"]
+
+
+@pytest.mark.parametrize(
+    "distance_method, hdbscan_suitable",
+    [
+        (DistanceFromCorrelation.weight_in_negative_correlations, True),
+        (DistanceFromCorrelation.weight_in_negative_correlations, False),
+        (DistanceFromCorrelation.do_not_weight_in_negative_correlations, True),
+        (DistanceFromCorrelation.do_not_weight_in_negative_correlations, False),
+    ],
+)
+def test_get_distance_matrix_from_correlation_matrix_df(
+    correlation_matrix_df, distance_method, hdbscan_suitable
+):
+    distance_matrix_df = get_distance_matrix_from_correlation_matrix_df(
+        correlation_matrix_df, distance_method, hdbscan_suitable
+    )["distance_matrix_df"]
+    expected_distance_matrix = correlation_matrix_df.to_numpy()
+    if hdbscan_suitable:
+        distance_matrix = np.clip(expected_distance_matrix, -0.999999, 0.999999)
+    else:
+        expected_distance_matrix = np.clip(expected_distance_matrix, -1, 1)
+    if distance_method == DistanceFromCorrelation.weight_in_negative_correlations:
+        expected_distance_matrix = np.sqrt(2 * (1 - expected_distance_matrix))
+    else:
+        expected_distance_matrix = 1 - np.maximum(0, expected_distance_matrix)
+    np.fill_diagonal(expected_distance_matrix, 0)
+    expected_distance_matrix = pd.DataFrame(
+        expected_distance_matrix,
+        index=correlation_matrix_df.columns,
+        columns=correlation_matrix_df.columns,
+    )
+    pd.testing.assert_frame_equal(distance_matrix_df, expected_distance_matrix)
+
+
+@pytest.fixture
+def distance_matrix_df(correlation_matrix_df):
+    return get_distance_matrix_from_correlation_matrix_df(
+        correlation_matrix_df,
+        DistanceFromCorrelation.weight_in_negative_correlations,
+        hdbscan_suitable=True,
+    )["distance_matrix_df"]
+
+
+@pytest.mark.parametrize("clusters_of_size_one_ommitted", [True, False])
+def test_get_cluster_silhouette_histograms_determines_right_silhouette_score_for_each_cluster(
+    distance_matrix_df, clusters_of_size_one_ommitted
+):
+    labels = pd.Series([1, 1, 1, -1], index=["A-1", "B-1", "C-2", "D-1"])
+    figure, silhouette_per_cluster = get_cluster_silhouette_histogram(
+        distance_matrix_df.to_numpy(), labels, clusters_of_size_one_ommitted
+    )
+    expected_silhouette_per_cluster = pd.Series(dtype=float)
+    silhouette_scores_per_sample = silhouette_samples(
+        distance_matrix_df.to_numpy(), labels, metric="precomputed"
+    )
+    for label in labels.unique():
+        if clusters_of_size_one_ommitted and label == -1:
+            continue
+        mask = labels == label
+        expected_silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[
+            mask
+        ].mean()
+    pd.testing.assert_series_equal(
+        silhouette_per_cluster, expected_silhouette_per_cluster
+    )
