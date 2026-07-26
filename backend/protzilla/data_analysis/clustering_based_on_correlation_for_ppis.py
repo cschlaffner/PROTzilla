@@ -163,15 +163,13 @@ def get_correlation_mean_of_cluster(
     The values on the diagonal of the cluster (self-correlations) are ignored, so that smaller clusters are not favored.
     Clusters containing exactly one protein are perfectly correlated."""
     proteins = get_proteins_of_specific_cluster(cluster_of_interest, clustering_labels)
-    if len(proteins) > 1:
-        cluster_correlation_values = correlation_matrix.loc[
-            proteins, proteins
-        ].to_numpy()
-        return (
-            cluster_correlation_values.sum() - np.trace(cluster_correlation_values)
-        ) / (cluster_correlation_values.size - len(proteins))
-    else:
-        return 1
+    assert (
+        len(proteins) > 1
+    ), "Tried to determine correlation mean for cluster of size 1. This means that clusters of size 1 are not properly ignored."
+    cluster_correlation_values = correlation_matrix.loc[proteins, proteins].to_numpy()
+    return (cluster_correlation_values.sum() - np.trace(cluster_correlation_values)) / (
+        cluster_correlation_values.size - len(proteins)
+    )
 
 
 def get_correlation_matrix(
@@ -196,17 +194,19 @@ def get_correlation_matrix(
     protein_ids_in_protein_df = set(protein_df["Protein ID"])
     number_of_protein_ids_in_input = protein_df["Protein ID"].nunique()
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
-    ids_in_uniprot = set(
+    ids_in_provided_fasta = set(
         protein_id_to_number_of_residues.keys()
-    )  # can also contain ids that were removed during imputation
-    number_of_ids_not_in_uniprot = len(protein_ids_in_protein_df - ids_in_uniprot)
+    )  # might also contain ids that were removed during imputation
+    number_of_ids_not_in_provided_fasta = len(
+        protein_ids_in_protein_df - ids_in_provided_fasta
+    )
 
     protein_to_intensities = {
         id: pd.Series(group[intensity_name].to_list())
         for id, group in protein_df.sort_values("Sample").groupby("Protein ID")
         if pd.Series(group[intensity_name].to_list()).nunique(dropna=True)
         > 1  # std of a protein must be != 0, otherwise it results in a correlation of NaN
-        and id in ids_in_uniprot
+        and id in ids_in_provided_fasta
     }
     correlation_matrix = pd.DataFrame(protein_to_intensities).corr(method)
 
@@ -222,14 +222,14 @@ def get_correlation_matrix(
         Therefore, these proteins were removed. This should not occur if data was imputed properly."
         messages.append(dict(level=logging.ERROR, msg=msg))
 
-    if number_of_ids_not_in_uniprot > 0:
-        msg = f"{number_of_ids_not_in_uniprot} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
+    if number_of_ids_not_in_provided_fasta > 0:
+        msg = f"{number_of_ids_not_in_provided_fasta} protein ids were removed from the correlation matrix since the ids were not found in the provided fasta."
         messages.append(dict(level=logging.WARNING, msg=msg))
 
     number_of_ids_removed_due_to_std_of_zero = (
         number_of_protein_ids_in_input
         - len(correlation_matrix.columns)
-        - number_of_ids_not_in_uniprot
+        - number_of_ids_not_in_provided_fasta
         - number_of_removals_caused_by_nans
     )
     if number_of_ids_removed_due_to_std_of_zero > 0:
@@ -243,7 +243,7 @@ def get_correlation_matrix(
         correlation_matrix_df=correlation_matrix,
         removed_protein_ids_df=pd.DataFrame(
             {
-                "Protein Id": sorted(
+                "Protein ID": sorted(
                     protein_ids_in_protein_df - set(correlation_matrix.columns)
                 )
             }
@@ -852,9 +852,9 @@ def kmedoids_with_subsampling(
         proteins: list[str] = get_proteins_of_specific_cluster(
             label, pd.Series(labels, index=correlation_matrix.columns)
         )
-        if len(proteins) <= min_cluster_size:
+        if len(proteins) < min_cluster_size:
             continue
-        elif (
+        elif len(proteins) == min_cluster_size or (
             _is_stopping_criterion_fullfilled(
                 stop_criterion,
                 labels,

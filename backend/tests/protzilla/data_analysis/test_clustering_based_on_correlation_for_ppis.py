@@ -1,16 +1,23 @@
 import json
 
+import numpy as np
 import pandas as pd
 import pytest
 import requests
 from unittest import mock
 
-from backend.protzilla.constants.option_types import StringDbNetworkType
+from backend.protzilla.constants.option_types import (
+    CorrelationMethod,
+    StringDbNetworkType,
+)
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
     _get_number_of_protein_ids_not_known_by_STRING,
     get_STRING_information_for_cluster,
     get_alphafold_query_file_for_specific_cluster,
+    get_correlation_matrix,
+    get_correlation_mean_of_cluster,
     get_number_of_amino_acid_residues_in_cluster,
+    get_protein_id_to_number_of_residues,
     get_proteins_of_specific_cluster,
     make_protein_ids_STRING_readable,
 )
@@ -214,3 +221,203 @@ def test_get_number_of_amino_acid_residues_in_cluster_with_unknown_protein_ids()
     )
     expected_number_of_residues = 5
     assert number_of_residues == expected_number_of_residues
+
+
+def test_get_protein_id_to_number_of_residues():
+    fasta_df = pd.DataFrame(
+        {
+            "Protein ID": ["P4", "P3", "P0"],
+            "Protein Sequence": ["AAAA", "BBB", ""],
+        }
+    )
+    protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
+    expected_protein_id_to_number_of_residues = {"P4": 4, "P3": 3, "P0": 0}
+    assert protein_id_to_number_of_residues == expected_protein_id_to_number_of_residues
+
+
+def test_get_correlation_mean_of_cluster():
+    labels = pd.Series([1, 1, 2, 1], index=("A", "B", "C", "D"))
+    correlation_matrix_df = pd.DataFrame(
+        [
+            [1.0, 0.8, 0.5, 0.5],
+            [0.8, 1.0, 0.7, 0.5],
+            [0.8, 0.5, 1.0, 0.5],
+            [0.8, 0.4, 0.7, 1.0],
+        ],
+        index=["A", "B", "C", "D"],
+        columns=["A", "B", "C", "D"],
+    )
+    correlation_mean = get_correlation_mean_of_cluster(labels, 1, correlation_matrix_df)
+    expected_correlation_mean = 3.8 / 6
+    assert abs(correlation_mean - expected_correlation_mean) < 0.000001
+
+
+def test_get_correlation_mean_of_cluster_raises_error_for_cluster_of_size_one():
+    with pytest.raises(AssertionError):
+        labels = pd.Series([1], index=["A"])
+        correlation_matrix_df = pd.DataFrame([[1.0]], index=["A"], columns=["A"])
+        get_correlation_mean_of_cluster(labels, 1, correlation_matrix_df)
+
+
+@pytest.fixture
+def protein_df_for_correlation_matrix():
+    return pd.DataFrame(
+        [
+            ["A", "Sample1", 100],
+            ["A", "Sample2", 10],
+            ["A", "Sample3", 15],
+            ["A", "Sample4", 20],
+            ["B", "Sample1", 80],
+            ["B", "Sample2", 20],
+            ["B", "Sample3", 10],
+            ["B", "Sample4", 15],
+            ["C-2", "Sample1", 50],
+            ["C-2", "Sample2", 55],
+            ["C-2", "Sample3", 10],
+            ["C-2", "Sample4", 15],
+            ["D", "Sample1", 10],
+            ["D", "Sample2", 100],
+            ["D", "Sample3", 10],
+            ["D", "Sample4", 15],
+        ],
+        columns=["Protein ID", "Sample", "Intensity"],
+    )
+
+
+@pytest.fixture
+def fasta_df_for_correlation_matrix():
+    return pd.DataFrame(
+        [["A-1", "AA"], ["B-1", "BBB"], ["C-2", "CCCC"], ["D-1", "DDDDD"]],
+        columns=["Protein ID", "Protein Sequence"],
+    )
+
+
+@pytest.mark.parametrize(
+    "correlation_method", [CorrelationMethod.pearson, CorrelationMethod.spearman]
+)
+def test_get_correlation_matrix_with_different_correlation_methods(
+    protein_df_for_correlation_matrix,
+    fasta_df_for_correlation_matrix,
+    correlation_method,
+):
+    output = get_correlation_matrix(
+        protein_df_for_correlation_matrix,
+        fasta_df_for_correlation_matrix,
+        correlation_method,
+    )
+    correlation_matrix_df = output["correlation_matrix_df"]
+    removed_protein_ids_df = output["removed_protein_ids_df"]
+    protein_to_intensities = {
+        id: pd.Series(group["Intensity"].to_list())
+        for id, group in protein_df_for_correlation_matrix.sort_values(
+            "Sample"
+        ).groupby("Protein ID")
+    }
+    expected_correlation_matrix_df = pd.DataFrame(protein_to_intensities).corr(
+        correlation_method
+    )
+    expected_correlation_matrix_df.columns = ["A-1", "B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.index = ["A-1", "B-1", "C-2", "D-1"]
+    pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
+
+
+def test_get_correlation_matrix_removes_nans(
+    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+):
+    protein_df = protein_df_for_correlation_matrix.copy()
+    # A-1 and B-1 will have a correlation of nan with each other
+    protein_df.loc[0, "Intensity"] = np.nan
+    protein_df.loc[1, "Intensity"] = np.nan
+    protein_df.loc[6, "Intensity"] = np.nan
+    protein_df.loc[7, "Intensity"] = np.nan
+    output = get_correlation_matrix(
+        protein_df, fasta_df_for_correlation_matrix, CorrelationMethod.pearson
+    )
+    correlation_matrix_df = output["correlation_matrix_df"]
+    removed_protein_ids_df = output["removed_protein_ids_df"]
+    messages = output["messages"]
+    protein_to_intensities = {
+        id: pd.Series(group["Intensity"].to_list())
+        for id, group in protein_df.sort_values("Sample").groupby("Protein ID")
+        if pd.Series(group["Intensity"].to_list()).nunique(dropna=True) > 1
+    }
+    expected_correlation_matrix_df = (
+        pd.DataFrame(protein_to_intensities)
+        .corr("pearson")
+        .drop(index=["A-1", "B-1"], columns=["A-1", "B-1"])
+    )
+    expected_correlation_matrix_df.columns = ["C-2", "D-1"]
+    expected_correlation_matrix_df.index = ["C-2", "D-1"]
+    pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
+    pd.testing.assert_frame_equal(
+        removed_protein_ids_df, pd.DataFrame(["A-1", "B-1"], columns=["Protein ID"])
+    )
+    assert "2 proteins had a correlation of NaN" in messages[0]["msg"]
+
+
+def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
+    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+):
+    protein_df = protein_df_for_correlation_matrix.copy()
+    protein_df_for_correlation_matrix.loc[0, "Intensity"] = 15
+    protein_df_for_correlation_matrix.loc[1, "Intensity"] = 15
+    protein_df_for_correlation_matrix.loc[3, "Intensity"] = 15
+    output = get_correlation_matrix(
+        protein_df_for_correlation_matrix,
+        fasta_df_for_correlation_matrix,
+        CorrelationMethod.pearson,
+    )
+    correlation_matrix_df = output["correlation_matrix_df"]
+    removed_protein_ids_df = output["removed_protein_ids_df"]
+    messages = output["messages"]
+    protein_to_intensities = {
+        id: pd.Series(group["Intensity"].to_list())
+        for id, group in protein_df_for_correlation_matrix.sort_values(
+            "Sample"
+        ).groupby("Protein ID")
+        if pd.Series(group["Intensity"].to_list()).nunique(dropna=True) > 1
+    }
+    expected_correlation_matrix_df = pd.DataFrame(protein_to_intensities).corr(
+        "pearson"
+    )
+    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1"]
+    pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
+    pd.testing.assert_frame_equal(
+        removed_protein_ids_df, pd.DataFrame(["A-1"], columns=["Protein ID"])
+    )
+    assert "all the protein's intensity values were identical" in messages[0]["msg"]
+
+
+def test_get_correlation_matrix_removes_proteins_that_miss_in_the_fasta(
+    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+):
+    fasta_df = fasta_df_for_correlation_matrix.copy()
+    fasta_df = fasta_df.drop(fasta_df.index[0])
+    output = get_correlation_matrix(
+        protein_df_for_correlation_matrix,
+        fasta_df,
+        CorrelationMethod.pearson,
+    )
+    correlation_matrix_df = output["correlation_matrix_df"]
+    removed_protein_ids_df = output["removed_protein_ids_df"]
+    messages = output["messages"]
+    protein_to_intensities = {
+        id: pd.Series(group["Intensity"].to_list())
+        for id, group in protein_df_for_correlation_matrix.sort_values(
+            "Sample"
+        ).groupby("Protein ID")
+        if pd.Series(group["Intensity"].to_list()).nunique(dropna=True) > 1
+    }
+    expected_correlation_matrix_df = (
+        pd.DataFrame(protein_to_intensities)
+        .corr("pearson")
+        .drop(index=["A-1"], columns=["A-1"])
+    )
+    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1"]
+    pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
+    pd.testing.assert_frame_equal(
+        removed_protein_ids_df, pd.DataFrame(["A-1"], columns=["Protein ID"])
+    )
+    assert "since the ids were not found in the provided fasta." in messages[0]["msg"]

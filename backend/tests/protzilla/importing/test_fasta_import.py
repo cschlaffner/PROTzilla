@@ -105,12 +105,12 @@ def test_basic_fasta_generation(mock_uniprot):
 
 
 def test_fasta_generation_with_more_than_one_protein(mock_uniprot):
-    output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1", "Protein2"]}))
+    output = fasta_generation(pd.DataFrame({"Protein ID": ["Protein1", "Protein2-2"]}))
     generated_fasta_df: pd.DataFrame = output["fasta_df"]
     assert len(generated_fasta_df) == 2
     assert generated_fasta_df["Protein ID"].iloc[0] == "Protein1-1"
     assert generated_fasta_df["Protein Sequence"].iloc[0] == "ABC"
-    assert generated_fasta_df["Protein ID"].iloc[1] == "Protein2-1"
+    assert generated_fasta_df["Protein ID"].iloc[1] == "Protein2-2"
     assert generated_fasta_df["Protein Sequence"].iloc[1] == "XY"
 
 
