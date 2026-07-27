@@ -1,12 +1,14 @@
 import json
+import zipfile
 
 import numpy as np
 import pandas as pd
 import pytest
 import requests
+from io import BytesIO
 from unittest import mock
 
-from sklearn.metrics import silhouette_samples
+from backend.protzilla.steps import OutputType
 
 from backend.protzilla.constants.option_types import (
     ClusteringLinkagePPI,
@@ -19,6 +21,7 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     _get_number_of_protein_ids_not_known_by_STRING,
     _get_upper_bound_on_cluster_numbers_to_inspect,
     _is_stopping_criterion_fullfilled,
+    create_filtered_clusters_output,
     get_STRING_information_for_cluster,
     get_alphafold_query_file_for_specific_cluster,
     get_cluster_silhouette_histogram,
@@ -33,6 +36,7 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     k_medoids_for_ppi,
     make_protein_ids_STRING_readable,
 )
+from backend.protzilla.data_analysis import clustering_based_on_correlation_for_ppis
 
 
 def test_make_protein_ids_STRING_readable_removes_isoform_identifiers():
@@ -105,6 +109,7 @@ def test_get_STRING_information_for_cluster_returns_image_bytes_and_unknown_prot
         proteins=["Protein1", "Protein2"],
         taxonomic_identifier=9606,
         network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score = 0
     )
 
     assert image == b"fake_png"
@@ -114,7 +119,7 @@ def test_get_STRING_information_for_cluster_returns_image_bytes_and_unknown_prot
 def test_get_STRING_information_for_cluster_sends_correct_parameters(mock_STRING):
     proteins = ["Protein1", "Protein2"]
     network_flavor = StringDbNetworkType.evidence
-    get_STRING_information_for_cluster(proteins, 9606, network_flavor)
+    get_STRING_information_for_cluster(proteins, 9606, network_flavor, 0)
     url, params = mock_STRING[0]
 
     assert url == "https://version-12-0.string-db.org/api/highres_image/network"
@@ -124,6 +129,7 @@ def test_get_STRING_information_for_cluster_sends_correct_parameters(mock_STRING
     assert params["network_type"] == "physical"
     assert params["required_score"] == 0
     assert params["add_white_nodes"] == 0
+    assert params["required_string_score"] == 0
     assert params["caller_identity"] == "PROTzilla"
 
 
@@ -141,6 +147,7 @@ def test_get_STRING_information_for_cluster_handles_STRING_connection_error(
             ["Protein1"],
             9606,
             StringDbNetworkType.evidence,
+            0
         )
 
 
@@ -821,19 +828,38 @@ def distance_matrix_df_kmedoids2(correlation_matrix_df_kmedoids2):
     )["distance_matrix_df"]
 
 
-def test_kmedoids_for_ppi_is_impacted_by_continue_subsampling_as_long_as_silhouette_improves(
-    fasta_df, correlation_matrix_df_kmedoids2, distance_matrix_df_kmedoids2
+@pytest.mark.parametrize(
+    "max_cluster_size, average_expected_cluster_size, continue_subsampling_as_long_as_silhouette_improves",
+    [
+        # max_cluster_size of 6 means that stopping criterion is fullfilled right from the beginning
+        # if continue subsampling were false, would result in the following labeling [1, 1, 1, 1, 0, 0]
+        pytest.param(
+            6,
+            3,
+            True,
+            id="continue_subsampling_as_long_as_silhouette_improves has impact",
+        ),
+        # in the first step only 2 clusters are considered, if the result has 3 clusters that means that a recursive call happened
+        pytest.param(3, 3, False, id="recursive subsampling call happens"),
+    ],
+)
+def test_kmedoids_for_ppi_parameter_influence(
+    correlation_matrix_df_kmedoids2,
+    distance_matrix_df_kmedoids2,
+    max_cluster_size,
+    average_expected_cluster_size,
+    continue_subsampling_as_long_as_silhouette_improves,
 ):
     labels_df = k_medoids_for_ppi(
         distance_matrix_df_kmedoids2,
         correlation_matrix_df_kmedoids2,
         random_seed=0,
-        continue_subsampling_as_long_as_silhouette_improves=True,  # if False would result in the following labeling [1, 1, 1, 1, 0, 0]
+        continue_subsampling_as_long_as_silhouette_improves=continue_subsampling_as_long_as_silhouette_improves,
         stop_criterion=StopCriterionKmedoids.max_cluster_size,
         min_cluster_size=2,
         min_correlation_mean=0,
-        max_cluster_size=6,  # stopping criterion is fullfilled right from the beginning
-        average_expected_cluster_size=3,
+        max_cluster_size=max_cluster_size,
+        average_expected_cluster_size=average_expected_cluster_size,
         min_number_of_silhouette_scores_to_inspect=0,
     )["cluster_labels_df"].value
     expected_cluster_labels_df = pd.DataFrame(
@@ -842,3 +868,163 @@ def test_kmedoids_for_ppi_is_impacted_by_continue_subsampling_as_long_as_silhoue
         index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
     )
     pd.testing.assert_frame_equal(labels_df, expected_cluster_labels_df)
+
+
+def test_create_filtered_clusters_output_only_heatmaps(correlation_matrix_df, fasta_df):
+    labels_df = pd.DataFrame(
+        [[2], [1], [1], [2], [0], [0]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    output = create_filtered_clusters_output(
+        correlation_matrix_df=correlation_matrix_df,
+        cluster_labels_df = labels_df,
+        output_name="filename",
+        generate_STRING_networks=False,
+        cluster_labels_to_ignore=[],
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=False,
+        model_seed = -1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=0
+    )
+    
+    messages = output["messages"]
+    assert messages == []
+
+    assert output["downloads"].output_type == OutputType.DOWNLOAD
+    zip_in_bytes = output["downloads"].value["filename.zip"]
+    with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
+        assert len(zip.namelist()) == 3
+        assert sorted(zip.namelist())[0].startswith("heatmap/filename_heatmap_0")
+        assert sorted(zip.namelist())[1].startswith("heatmap/filename_heatmap_1")
+        assert sorted(zip.namelist())[2].startswith("heatmap/filename_heatmap_2")
+        assert zip.namelist()[0].endswith(".png")
+        assert zip.namelist()[1].endswith(".png")
+        assert zip.namelist()[2].endswith(".png")
+
+@pytest.mark.parametrize(
+        "only_include_alphafold_compatible_clusters, expected_files", [(True, []), (False, ["heatmap/filename_heatmap_0__100_residues.png"])]
+)
+def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(correlation_matrix_df, fasta_df, only_include_alphafold_compatible_clusters, expected_files):
+    fasta_df.loc[0, "Protein Sequence"] = 8000*"A"
+    labels_df = pd.DataFrame(
+        [[1], [1], [1], [1], [1], [1]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    output = create_filtered_clusters_output(
+        correlation_matrix_df=correlation_matrix_df,
+        cluster_labels_df = labels_df,
+        output_name="filename",
+        generate_STRING_networks=False,
+        cluster_labels_to_ignore=[],
+        only_include_alphafold_compatible_clusters=only_include_alphafold_compatible_clusters,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=False,
+        model_seed = -1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=0
+    )
+    
+    messages = output["messages"]
+    assert len(messages)>0
+
+    assert output["downloads"].output_type == OutputType.DOWNLOAD
+    zip_in_bytes = output["downloads"].value["filename.zip"]
+    with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
+        assert len(zip.namelist()) == len(expected_files)
+        if len(expected_files) > 0:
+            assert zip.namelist()[0].startswith("heatmap/filename_heatmap_1")
+            assert zip.namelist()[0].endswith(".png")
+
+
+@pytest.fixture
+def mock_STRING_for_output_creation(monkeypatch):
+    STRING_requests = []
+
+    def mock_post(url, data):
+        STRING_requests.append((url, data))
+        response = mock.Mock()
+        if "network" in url:
+            response.content = b"fake_png"
+        else:
+            response.text = "A-1\nB-1\nC-2\nD-1\nE-1\nF-1"
+
+        response.status_code = 200
+        return response
+
+    monkeypatch.setattr(requests, "post", mock_post)
+    return STRING_requests
+
+def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(correlation_matrix_df, fasta_df, mock_STRING_for_output_creation):
+    labels_df = pd.DataFrame(
+        [[1], [1], [1], [1], [1], [1]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    output = create_filtered_clusters_output(
+        correlation_matrix_df=correlation_matrix_df,
+        cluster_labels_df = labels_df,
+        output_name="filename",
+        generate_STRING_networks=True,
+        cluster_labels_to_ignore=[],
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=True,
+        model_seed = -1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=0
+    )
+
+    assert output["downloads"].output_type == OutputType.DOWNLOAD
+    zip_in_bytes = output["downloads"].value["filename.zip"]
+    with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
+        assert len(zip.namelist()) == 3
+        assert sorted(zip.namelist())[0].startswith("alphafold_prediction_queries/")
+        assert sorted(zip.namelist())[1].startswith("heatmap/")
+        assert sorted(zip.namelist())[2].startswith("string_network/")
+        assert sorted(zip.namelist())[0].endswith(".json")
+        assert sorted(zip.namelist())[1].endswith(".png")
+        assert sorted(zip.namelist())[2].endswith(".png")
+
+
+def test_create_filtered_clusters_output_with_unknown_string_id(correlation_matrix_df, fasta_df, monkeypatch):
+    monkeypatch.setattr(
+        clustering_based_on_correlation_for_ppis,
+        "get_STRING_information_for_cluster",
+        mock.Mock(side_effect=Exception),
+    )
+    labels_df = pd.DataFrame(
+        [[1], [1], [1], [1], [1], [1]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    output = create_filtered_clusters_output(
+        correlation_matrix_df=correlation_matrix_df,
+        cluster_labels_df = labels_df,
+        output_name="filename",
+        generate_STRING_networks=True,
+        cluster_labels_to_ignore=[],
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=True,
+        model_seed = -1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score = 0
+    )
+
+    assert output["downloads"].output_type == OutputType.DOWNLOAD
+    zip_in_bytes = output["downloads"].value["filename.zip"]
+    with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
+        assert len(zip.namelist()) == 2
+        assert sorted(zip.namelist())[0].startswith("alphafold_prediction_queries/")
+        assert sorted(zip.namelist())[1].startswith("heatmap/")
+        assert sorted(zip.namelist())[0].endswith(".json")
+        assert sorted(zip.namelist())[1].endswith(".png")
+        

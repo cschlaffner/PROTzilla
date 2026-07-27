@@ -533,7 +533,7 @@ class OutputType(StrEnum):
     FLOAT = "float"
     INT = "int"
     PNG_BASE64 = "png_base64"
-    DOWNLOAD = "download"  # right now only JSONs are supported, value should be dict(filename, json content)
+    DOWNLOAD = "download"  # right now only JSONs and ZIPs are supported, value should be dict(filename, content), filename needs to end with .json/.zip
     VISUALIZATION = "visualization"
     # for every data type that is not yaml serializable
     JOBLIB_ARTIFACT = "joblib_artifact"
