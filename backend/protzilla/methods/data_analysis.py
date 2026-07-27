@@ -2345,14 +2345,14 @@ class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
                 DropdownField(
                     name="batch_column", label="Name of the batch column in metadata"
                 ),
-                InfoField(
-                    name="covariates_info_field",
-                    label="Group and covariates can be specified below for the ComBat calculation. This is optional but recommended. "
-                    "The group and covariates must be categorical. Example: Covariates like 'Age' must be turned into categories or excluded.",
-                ),
                 MultiSelectField(
                     name="covariates_columns",
                     label="Name of all covariate columns that should be included in the analysis (optional)",
+                ),
+                InfoField(
+                    name="covariates_info_field",
+                    label="Group and covariates can be specified above for the ComBat calculation. This is optional but recommended. "
+                    "The group and covariates must be categorical. Example: Covariates like 'Age' must be turned into categories or excluded.",
                 ),
             ],
         )
