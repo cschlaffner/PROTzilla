@@ -293,6 +293,7 @@ def get_cluster_sizes_histogram(labels: pd.Series) -> Figure:
     ax_cluster_sizes.set_title("Histogram of Cluster Sizes")
     ax_cluster_sizes.set_xlabel("Cluster Size")
     ax_cluster_sizes.set_ylabel("Number of clusters with certain cluster size")
+    plt.close(fig_cluster_sizes)
     return fig_cluster_sizes
 
 
@@ -309,6 +310,7 @@ def get_cluster_correlation_means_histogram(
         ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
     ax_correlation_means.set_xlabel("Mean Correlation")
     ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
+    plt.close(fig_correlation_means)
     return fig_correlation_means
 
 
@@ -336,6 +338,7 @@ def get_cluster_silhouette_histogram(
         ax_silhouette.set_title("Histogram of Silhouette Scores")
     ax_silhouette.set_xlabel("Silhouette Score")
     ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
+    plt.close(fig_silhouette)
     return fig_silhouette, silhouette_per_cluster
 
 
@@ -410,6 +413,55 @@ def hdbscan_for_ppi(
     )
 
 
+def save_heatmap(
+    zip: zipfile.ZipFile,
+    proteins: list[str],
+    correlation_matrix_df: pd.DataFrame,
+    output_name: str,
+    cluster_id: int,
+    number_of_residues_in_cluster: int,
+) -> None:
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    get_heatmap_for_certain_cluster(proteins, ax, correlation_matrix_df)
+
+    heatmap_filename = (
+        f"{output_name}_heatmap_{cluster_id}"
+        f"__{number_of_residues_in_cluster}_residues.png"
+    )
+    heatmap_buffer = BytesIO()
+    plt.savefig(heatmap_buffer, format="png", dpi=300)
+    plt.close(fig)
+
+    heatmap_buffer.seek(0)
+
+    zip.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
+
+
+def save_STRING_network(
+    zip: zipfile.ZipFile,
+    proteins: list[str],
+    taxonomic_id: int,
+    network_flavor: StringDbNetworkType,
+    output_name: str,
+    cluster_id: int,
+    number_of_residues_in_cluster: int,
+) -> None:
+    string_data, number_of_ids_not_known_by_STRING = get_STRING_information_for_cluster(
+        proteins, taxonomic_id, network_flavor
+    )
+
+    string_filename = (
+        f"{output_name}_cluster_{cluster_id}"
+        f"__{number_of_residues_in_cluster}_residues_{number_of_ids_not_known_by_STRING}_unknown_ids.png"
+    )
+
+    zip.writestr(
+        f"string_network/{string_filename}",
+        string_data,
+    )
+
+
 def create_filtered_clusters_output(
     cluster_labels_df: pd.DataFrame,
     output_name: str,
@@ -428,6 +480,7 @@ def create_filtered_clusters_output(
 
     protein_id_to_number_of_residues = get_protein_id_to_number_of_residues(fasta_df)
     labels = cluster_labels_df["Label"]
+    ALPHAFOLD_JOB_LIMIT = 5000
 
     # transformation necessary due to the dropdown format containing id and organism name
     taxonomic_id = int(taxonomic_identifier.split()[0])
@@ -437,65 +490,51 @@ def create_filtered_clusters_output(
 
     zip_buffer = BytesIO()
 
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip:
         for cluster_id in labels.unique():
             if cluster_id in cluster_labels_to_ignore:
                 continue
-            fig, ax = plt.subplots(figsize=(10, 8))
-
             proteins = get_proteins_of_specific_cluster(cluster_id, labels)
             number_of_residues_in_cluster = (
                 get_number_of_amino_acid_residues_in_cluster(
                     proteins, protein_id_to_number_of_residues
                 )
             )
-            alphafold_job_limit = 5000
-            if number_of_residues_in_cluster > alphafold_job_limit:
+
+            if number_of_residues_in_cluster > ALPHAFOLD_JOB_LIMIT:
                 clusters_too_big_for_alphafold += 1
                 if only_include_alphafold_compatible_clusters:
                     continue
 
-            get_heatmap_for_certain_cluster(proteins, ax, correlation_matrix_df)
-
-            heatmap_filename = (
-                f"{output_name}_heatmap_{cluster_id}"
-                f"__{number_of_residues_in_cluster}_residues.png"
+            save_heatmap(
+                zip,
+                proteins,
+                correlation_matrix_df,
+                output_name,
+                cluster_id,
+                number_of_residues_in_cluster,
             )
-            heatmap_buffer = BytesIO()
-            plt.savefig(heatmap_buffer, format="png", dpi=300)
-            plt.close(fig)
-
-            heatmap_buffer.seek(0)
-
-            zipf.writestr(f"heatmap/{heatmap_filename}", heatmap_buffer.getvalue())
 
             if generate_STRING_networks:
                 try:
-                    string_data, number_of_ids_not_known_by_STRING = (
-                        get_STRING_information_for_cluster(
-                            proteins, taxonomic_id, network_flavor
-                        )
+                    save_STRING_network(
+                        zip,
+                        proteins,
+                        taxonomic_id,
+                        network_flavor,
+                        output_name,
+                        cluster_id,
+                        number_of_residues_in_cluster,
                     )
-                except:
+                except Exception:
                     at_least_one_failed_string_request = True
-                    continue
-
-                string_filename = (
-                    f"{output_name}_cluster_{cluster_id}"
-                    f"__{number_of_residues_in_cluster}_residues_{number_of_ids_not_known_by_STRING}_unknown_ids.png"
-                )
-
-                zipf.writestr(
-                    f"string_network/{string_filename}",
-                    string_data,
-                )
 
             if generate_alphafold_queries:
                 query_filename = (
                     f"{output_name}_alphafold_query_{cluster_id}"
                     f"__{number_of_residues_in_cluster}_residues.json"
                 )
-                zipf.writestr(
+                zip.writestr(
                     f"alphafold_prediction_queries/{query_filename}",
                     get_alphafold_query_file_for_specific_cluster(
                         f"cluster{cluster_id}", model_seed, fasta_df, proteins
@@ -693,7 +732,7 @@ def hierarchical_clustering_for_ppi(
         histogram_cluster_sizes=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(get_cluster_sizes_histogram(labels))
         ),
-        message=[dict(level=logging.INFO, msg=msg)],
+        messages=[dict(level=logging.INFO, msg=msg)],
     )
 
 
@@ -783,11 +822,25 @@ def _is_stopping_criterion_fullfilled(
     )
 
 
+def _get_upper_bound_on_cluster_numbers_to_inspect(
+    number_of_proteins_in_cluster: int,
+    min_cluster_size: int,
+    average_expected_cluster_size: int,
+    min_number_of_silhouette_scores_to_inspect: int,
+) -> int:
+    return (
+        math.ceil(number_of_proteins_in_cluster / min_cluster_size)
+        if math.ceil(number_of_proteins_in_cluster / average_expected_cluster_size) - 1
+        < min_number_of_silhouette_scores_to_inspect
+        else math.ceil(number_of_proteins_in_cluster / average_expected_cluster_size)
+    )
+
+
 def kmedoids_with_subsampling(
     distance_matrix: np.ndarray,
     correlation_matrix: pd.DataFrame,
     random_seed: int,
-    average_expected_cluster_sizes: int,
+    average_expected_cluster_size: int,
     continue_subsampling_as_long_as_silhouette_improves: bool,
     stop_criterion: StopCriterionKmedoids,
     min_correlation_mean: float,
@@ -817,10 +870,12 @@ def kmedoids_with_subsampling(
     silhouette_scores = []
     number_of_proteins_in_cluster = len(correlation_matrix.columns)
     upper_bound_on_cluster_numbers_to_inspect = (
-        math.ceil(number_of_proteins_in_cluster / min_cluster_size)
-        if math.ceil(number_of_proteins_in_cluster / average_expected_cluster_sizes) - 1
-        < min_number_of_silhouette_scores_to_inspect
-        else math.ceil(number_of_proteins_in_cluster / average_expected_cluster_sizes)
+        _get_upper_bound_on_cluster_numbers_to_inspect(
+            number_of_proteins_in_cluster,
+            min_cluster_size,
+            average_expected_cluster_size,
+            min_number_of_silhouette_scores_to_inspect,
+        )
     )
     for i in range(2, upper_bound_on_cluster_numbers_to_inspect + 1):
         labels = kmedoids.fasterpam(distance_matrix, i, random_state=random_seed).labels
@@ -831,11 +886,6 @@ def kmedoids_with_subsampling(
     labels = kmedoids.fasterpam(
         distance_matrix, best_number_of_clusters, random_state=random_seed
     ).labels
-    print(
-        len(correlation_matrix.columns),
-        best_number_of_clusters,
-        max(silhouette_scores),
-    )
     s_score = silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
     if (
         _is_stopping_criterion_fullfilled(
@@ -882,7 +932,7 @@ def kmedoids_with_subsampling(
                 distance_matrix_new,
                 correlation_matrix_new,
                 random_seed,
-                average_expected_cluster_sizes,
+                average_expected_cluster_size,
                 continue_subsampling_as_long_as_silhouette_improves,
                 stop_criterion,
                 min_correlation_mean,
@@ -923,6 +973,24 @@ def k_medoids_for_ppi(
     :return: Returns a dict with a dataframe containing the assigned labels, a dataframe with the silhouette score for each cluster and
     histograms of the silhouette scores, correlation means and cluster sizes."""
 
+    if (
+        _get_upper_bound_on_cluster_numbers_to_inspect(
+            len(correlation_matrix_df.columns),
+            min_cluster_size,
+            average_expected_cluster_size,
+            min_number_of_silhouette_scores_to_inspect,
+        )
+        < 2
+    ):
+        raise ValueError(
+            "Please change min_cluster_size/average_expected_cluster_size/min_number_of_silhouette_scores_to_inspect. The current combination allows less than 2 clusters for the input."
+        )
+
+    if average_expected_cluster_size < min_cluster_size:
+        raise ValueError(
+            "Min cluster size cannot be smaller than average expected cluster size."
+        )
+
     distance_matrix = distance_matrix_df.to_numpy()
     clusters = kmedoids_with_subsampling(
         distance_matrix,
@@ -936,6 +1004,11 @@ def k_medoids_for_ppi(
         min_cluster_size,
         min_number_of_silhouette_scores_to_inspect,
     )
+
+    """if len(clusters) == 0:
+        return dict(
+            messages=[dict(level=logging.WARNING, msg=msg)],
+        )"""
 
     cluster_map: dict[str, int] = {
         protein: cluster_id

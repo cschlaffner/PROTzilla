@@ -9,12 +9,16 @@ from unittest import mock
 from sklearn.metrics import silhouette_samples
 
 from backend.protzilla.constants.option_types import (
+    ClusteringLinkagePPI,
     CorrelationMethod,
     DistanceFromCorrelation,
+    StopCriterionKmedoids,
     StringDbNetworkType,
 )
 from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis import (
     _get_number_of_protein_ids_not_known_by_STRING,
+    _get_upper_bound_on_cluster_numbers_to_inspect,
+    _is_stopping_criterion_fullfilled,
     get_STRING_information_for_cluster,
     get_alphafold_query_file_for_specific_cluster,
     get_cluster_silhouette_histogram,
@@ -25,6 +29,8 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     get_protein_id_to_number_of_residues,
     get_proteins_of_specific_cluster,
     hdbscan_for_ppi,
+    hierarchical_clustering_for_ppi,
+    k_medoids_for_ppi,
     make_protein_ids_STRING_readable,
 )
 
@@ -267,6 +273,7 @@ def test_get_correlation_mean_of_cluster_raises_error_for_cluster_of_size_one():
 
 @pytest.fixture
 def protein_df_for_correlation_matrix():
+    """A, B and C are very close and D, E and F are very close."""
     return pd.DataFrame(
         [
             ["A", "Sample1", 100],
@@ -299,7 +306,7 @@ def protein_df_for_correlation_matrix():
 
 
 @pytest.fixture
-def fasta_df_for_correlation_matrix():
+def fasta_df():
     return pd.DataFrame(
         [
             ["A-1", "AA"],
@@ -318,12 +325,12 @@ def fasta_df_for_correlation_matrix():
 )
 def test_get_correlation_matrix_with_different_correlation_methods(
     protein_df_for_correlation_matrix,
-    fasta_df_for_correlation_matrix,
+    fasta_df,
     correlation_method,
 ):
     output = get_correlation_matrix(
         protein_df_for_correlation_matrix,
-        fasta_df_for_correlation_matrix,
+        fasta_df,
         correlation_method,
     )
     correlation_matrix_df = output["correlation_matrix_df"]
@@ -343,7 +350,7 @@ def test_get_correlation_matrix_with_different_correlation_methods(
 
 
 def test_get_correlation_matrix_removes_nans(
-    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+    protein_df_for_correlation_matrix, fasta_df
 ):
     protein_df = protein_df_for_correlation_matrix.copy()
     # A-1 and B-1 will have a correlation of nan with each other
@@ -351,9 +358,7 @@ def test_get_correlation_matrix_removes_nans(
     protein_df.loc[1, "Intensity"] = np.nan
     protein_df.loc[6, "Intensity"] = np.nan
     protein_df.loc[7, "Intensity"] = np.nan
-    output = get_correlation_matrix(
-        protein_df, fasta_df_for_correlation_matrix, CorrelationMethod.pearson
-    )
+    output = get_correlation_matrix(protein_df, fasta_df, CorrelationMethod.pearson)
     correlation_matrix_df = output["correlation_matrix_df"]
     removed_protein_ids_df = output["removed_protein_ids_df"]
     messages = output["messages"]
@@ -377,7 +382,7 @@ def test_get_correlation_matrix_removes_nans(
 
 
 def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
-    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+    protein_df_for_correlation_matrix, fasta_df
 ):
     protein_df = protein_df_for_correlation_matrix.copy()
     protein_df_for_correlation_matrix.loc[0, "Intensity"] = 80
@@ -386,7 +391,7 @@ def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
     protein_df_for_correlation_matrix.loc[3, "Intensity"] = 80
     output = get_correlation_matrix(
         protein_df_for_correlation_matrix,
-        fasta_df_for_correlation_matrix,
+        fasta_df,
         CorrelationMethod.pearson,
     )
     correlation_matrix_df = output["correlation_matrix_df"]
@@ -412,9 +417,9 @@ def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
 
 
 def test_get_correlation_matrix_removes_proteins_that_miss_in_the_fasta(
-    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
+    protein_df_for_correlation_matrix, fasta_df
 ):
-    fasta_df = fasta_df_for_correlation_matrix.copy()
+    fasta_df = fasta_df.copy()
     fasta_df = fasta_df.drop(fasta_df.index[0])
     output = get_correlation_matrix(
         protein_df_for_correlation_matrix,
@@ -446,12 +451,10 @@ def test_get_correlation_matrix_removes_proteins_that_miss_in_the_fasta(
 
 
 @pytest.fixture
-def correlation_matrix_df(
-    protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
-):
+def correlation_matrix_df(protein_df_for_correlation_matrix, fasta_df):
     return get_correlation_matrix(
         protein_df_for_correlation_matrix,
-        fasta_df_for_correlation_matrix,
+        fasta_df,
         CorrelationMethod.pearson,
     )["correlation_matrix_df"]
 
@@ -502,30 +505,23 @@ def distance_matrix_df(correlation_matrix_df):
     )["distance_matrix_df"]
 
 
-@pytest.mark.parametrize("clusters_of_size_one_ommitted", [True, False])
+@pytest.mark.parametrize(
+    "clusters_of_size_one_ommitted, expected",
+    [
+        (True, pd.Series([0.24318947211130532], index=[1])),
+        (False, pd.Series([0.24318947211130532, 0.998565566764047], index=[1, -1])),
+    ],
+)
 def test_get_cluster_silhouette_histograms_determines_right_silhouette_score_for_each_cluster(
-    distance_matrix_df, clusters_of_size_one_ommitted
+    distance_matrix_df, clusters_of_size_one_ommitted, expected
 ):
     labels = pd.Series(
         [1, 1, 1, -1, 1, -1], index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
     )
-    figure, silhouette_per_cluster = get_cluster_silhouette_histogram(
+    _, silhouette_per_cluster = get_cluster_silhouette_histogram(
         distance_matrix_df.to_numpy(), labels, clusters_of_size_one_ommitted
     )
-    expected_silhouette_per_cluster = pd.Series(dtype=float)
-    silhouette_scores_per_sample = silhouette_samples(
-        distance_matrix_df.to_numpy(), labels, metric="precomputed"
-    )
-    for label in labels.unique():
-        if clusters_of_size_one_ommitted and label == -1:
-            continue
-        mask = labels == label
-        expected_silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[
-            mask
-        ].mean()
-    pd.testing.assert_series_equal(
-        silhouette_per_cluster, expected_silhouette_per_cluster
-    )
+    pd.testing.assert_series_equal(silhouette_per_cluster, expected)
 
 
 def test_hdbscan_for_ppi(
@@ -545,4 +541,304 @@ def test_hdbscan_for_ppi(
     pd.testing.assert_frame_equal(
         output["cluster_labels_df"].value, expected_cluster_labels_df
     )
-    # assert 1 == output["cluster_labels_df"]["Label"]
+    expected_dbcv_scores_df = pd.DataFrame(
+        [[0.9792144189920727], [0.9989207800642764]], columns=["DBCV"]
+    )
+    pd.testing.assert_frame_equal(
+        output["dbcv_scores_df"].value, expected_dbcv_scores_df
+    )
+
+
+@pytest.mark.parametrize(
+    "linkage_method, deep_split",
+    [(ClusteringLinkagePPI.average, 2), (ClusteringLinkagePPI.single, 4)],
+)
+def test_hierarchical_clustering_for_ppi(
+    distance_matrix_df, correlation_matrix_df, linkage_method, deep_split
+):
+    output = hierarchical_clustering_for_ppi(
+        distance_matrix_df,
+        correlation_matrix_df,
+        linkage_method,
+        deep_split,
+        min_cluster_size=2,
+    )
+    expected_cluster_labels_df = pd.DataFrame(
+        [[0], [0], [0], [1], [1], [1]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    pd.testing.assert_frame_equal(
+        output["cluster_labels_df"].value, expected_cluster_labels_df
+    )
+    expected_silhouette_scores_df = pd.DataFrame(
+        [[0.9858408387900489], [0.9989237891348767]], columns=["Silhouette"]
+    )
+    pd.testing.assert_frame_equal(
+        output["silhouette_scores_df"].value, expected_silhouette_scores_df
+    )
+
+
+@pytest.mark.parametrize(
+    "stop_criterion, min_correlation_mean, max_cluster_size, label, expected",
+    [
+        (StopCriterionKmedoids.correlation_mean, 0.999, 0, 0, True),
+        (StopCriterionKmedoids.correlation_mean, 0.9999, 0, 0, False),
+        (StopCriterionKmedoids.max_cluster_size, 0, 4, 1, True),
+        (StopCriterionKmedoids.max_cluster_size, 0, 3, 1, True),
+        (StopCriterionKmedoids.max_cluster_size, 0, 2, 1, False),
+        pytest.param(
+            StopCriterionKmedoids.correlation_mean_and_max_cluster_size,
+            0.9999,
+            2,
+            0,
+            False,
+            id="no part of double criterion fullfilled",
+        ),
+        pytest.param(
+            StopCriterionKmedoids.correlation_mean_and_max_cluster_size,
+            0.999,
+            3,
+            0,
+            True,
+            id="both parts of double criterion fullfilled",
+        ),
+        pytest.param(
+            StopCriterionKmedoids.correlation_mean_and_max_cluster_size,
+            0.999,
+            2,
+            0,
+            False,
+            id="only correlation mean fullfilled",
+        ),
+        pytest.param(
+            StopCriterionKmedoids.correlation_mean_and_max_cluster_size,
+            1,
+            3,
+            0,
+            False,
+            id="only cluster size fullfilled",
+        ),
+    ],
+)
+def test_is_stopping_criterion_fullfilled(
+    stop_criterion,
+    min_correlation_mean,
+    max_cluster_size,
+    correlation_matrix_df,
+    label,
+    expected,
+):
+    labels = np.array([0, 0, 0, 1, 1, 1])
+    result = _is_stopping_criterion_fullfilled(
+        stop_criterion,
+        labels,
+        label,
+        correlation_matrix_df,
+        min_correlation_mean,
+        max_cluster_size,
+    )
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "number_of_proteins_in_cluster, min_cluster_size, average_expected_cluster_size, min_number_of_silhouette_scores_to_inspect, expected",
+    [
+        pytest.param(
+            30,
+            2,
+            10,
+            4,
+            15,
+            id="use min_cluster_size instead of average_expected_cluster_size",
+        ),
+        pytest.param(30, 2, 4, 4, 8, id="use average_expected_cluster_size"),
+        pytest.param(
+            35,
+            2,
+            5,
+            6,
+            7,
+            id="use avg. cluster size if (number proteins / avg. size) = min_number_of_silhouette_scores_to_inspect",
+        ),
+    ],
+)
+def test_get_upper_bound_on_cluster_numbers_to_inspect(
+    number_of_proteins_in_cluster,
+    min_cluster_size,
+    average_expected_cluster_size,
+    min_number_of_silhouette_scores_to_inspect,
+    expected,
+):
+    upper_bound = _get_upper_bound_on_cluster_numbers_to_inspect(
+        number_of_proteins_in_cluster,
+        min_cluster_size,
+        average_expected_cluster_size,
+        min_number_of_silhouette_scores_to_inspect,
+    )
+    assert upper_bound == expected
+
+
+@pytest.fixture
+def protein_df_for_kmedoids():
+    """A&B, C&D and E&F are each quite strongly correlated"""
+    return pd.DataFrame(
+        [
+            ["A", "Sample1", 100],
+            ["A", "Sample2", 20],
+            ["A", "Sample3", 40],
+            ["A", "Sample4", 80],
+            ["B", "Sample1", 95],
+            ["B", "Sample2", 15],
+            ["B", "Sample3", 35],
+            ["B", "Sample4", 75],
+            ["C-2", "Sample1", 10],
+            ["C-2", "Sample2", 9],
+            ["C-2", "Sample3", 10],
+            ["C-2", "Sample4", 11],
+            ["D", "Sample1", 20],
+            ["D", "Sample2", 18],
+            ["D", "Sample3", 19],
+            ["D", "Sample4", 21],
+            ["E", "Sample1", 205],
+            ["E", "Sample2", 155],
+            ["E", "Sample3", 105],
+            ["E", "Sample4", 55],
+            ["F", "Sample1", 195],
+            ["F", "Sample2", 145],
+            ["F", "Sample3", 95],
+            ["F", "Sample4", 45],
+        ],
+        columns=["Protein ID", "Sample", "Intensity"],
+    )
+
+
+@pytest.fixture
+def correlation_matrix_df_kmedoids(protein_df_for_kmedoids, fasta_df):
+    return get_correlation_matrix(
+        protein_df_for_kmedoids,
+        fasta_df,
+        CorrelationMethod.pearson,
+    )["correlation_matrix_df"]
+
+
+@pytest.fixture
+def distance_matrix_df_kmedoids(correlation_matrix_df_kmedoids):
+    return get_distance_matrix_from_correlation_matrix_df(
+        correlation_matrix_df_kmedoids,
+        DistanceFromCorrelation.weight_in_negative_correlations,
+        hdbscan_suitable=True,
+    )["distance_matrix_df"]
+
+
+@pytest.mark.parametrize(
+    "min_cluster_size, expected",
+    # with min cluster size of 2 we would prefer to cluster A-B, C-D, E-F, but this is not possible with min cluster size of 3
+    [
+        pytest.param(
+            2, [[2], [2], [1], [1], [0], [0]], id="most basic kmedoids subsampling run"
+        ),
+        pytest.param(
+            3, [[0], [0], [0], [0], [-1], [-1]], id="respect min cluster size"
+        ),
+    ],
+)
+def test_kmedoids_for_ppi(
+    distance_matrix_df_kmedoids,
+    correlation_matrix_df_kmedoids,
+    min_cluster_size,
+    expected,
+):
+    labels_df = k_medoids_for_ppi(
+        distance_matrix_df_kmedoids,
+        correlation_matrix_df_kmedoids,
+        random_seed=0,
+        continue_subsampling_as_long_as_silhouette_improves=False,
+        stop_criterion=StopCriterionKmedoids.max_cluster_size,
+        min_cluster_size=min_cluster_size,
+        min_correlation_mean=0,
+        max_cluster_size=6,
+        average_expected_cluster_size=min_cluster_size,
+        min_number_of_silhouette_scores_to_inspect=1,
+    )["cluster_labels_df"].value
+    expected_cluster_labels_df = pd.DataFrame(
+        expected,
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    pd.testing.assert_frame_equal(labels_df, expected_cluster_labels_df)
+
+
+@pytest.fixture
+def protein_df_for_kmedoids2():
+    """A, B, C, D are quite similar, A&D are very similar, B&C are very similar, E&F are similar but very different from A,B,C,D"""
+    return pd.DataFrame(
+        [
+            ["A", "Sample1", 20],
+            ["A", "Sample2", 40],
+            ["A", "Sample3", 80],
+            ["A", "Sample4", 100],
+            ["B", "Sample1", 30],
+            ["B", "Sample2", 50],
+            ["B", "Sample3", 70],
+            ["B", "Sample4", 90],
+            ["C-2", "Sample1", 35],
+            ["C-2", "Sample2", 55],
+            ["C-2", "Sample3", 75],
+            ["C-2", "Sample4", 95],
+            ["D", "Sample1", 20],
+            ["D", "Sample2", 40],
+            ["D", "Sample3", 80],
+            ["D", "Sample4", 100],
+            ["E", "Sample1", 205],
+            ["E", "Sample2", 155],
+            ["E", "Sample3", 105],
+            ["E", "Sample4", 55],
+            ["F", "Sample1", 195],
+            ["F", "Sample2", 145],
+            ["F", "Sample3", 95],
+            ["F", "Sample4", 45],
+        ],
+        columns=["Protein ID", "Sample", "Intensity"],
+    )
+
+
+@pytest.fixture
+def correlation_matrix_df_kmedoids2(protein_df_for_kmedoids2, fasta_df):
+    return get_correlation_matrix(
+        protein_df_for_kmedoids2,
+        fasta_df,
+        CorrelationMethod.pearson,
+    )["correlation_matrix_df"]
+
+
+@pytest.fixture
+def distance_matrix_df_kmedoids2(correlation_matrix_df_kmedoids2):
+    return get_distance_matrix_from_correlation_matrix_df(
+        correlation_matrix_df_kmedoids2,
+        DistanceFromCorrelation.weight_in_negative_correlations,
+        hdbscan_suitable=True,
+    )["distance_matrix_df"]
+
+
+def test_kmedoids_for_ppi_is_impacted_by_continue_subsampling_as_long_as_silhouette_improves(
+    fasta_df, correlation_matrix_df_kmedoids2, distance_matrix_df_kmedoids2
+):
+    labels_df = k_medoids_for_ppi(
+        distance_matrix_df_kmedoids2,
+        correlation_matrix_df_kmedoids2,
+        random_seed=0,
+        continue_subsampling_as_long_as_silhouette_improves=True,  # if False would result in the following labeling [1, 1, 1, 1, 0, 0]
+        stop_criterion=StopCriterionKmedoids.max_cluster_size,
+        min_cluster_size=2,
+        min_correlation_mean=0,
+        max_cluster_size=6,  # stopping criterion is fullfilled right from the beginning
+        average_expected_cluster_size=3,
+        min_number_of_silhouette_scores_to_inspect=0,
+    )["cluster_labels_df"].value
+    expected_cluster_labels_df = pd.DataFrame(
+        [[2], [1], [1], [2], [0], [0]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    pd.testing.assert_frame_equal(labels_df, expected_cluster_labels_df)

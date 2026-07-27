@@ -2782,12 +2782,12 @@ class KMedoidsClustering(DataAnalysisStep):
             input_fields=[
                 InfoField(
                     name="info_on_kmedoids",
-                    label="Instead of the traditional PAM (=Partioning Around Medoids) algorithm, this step uses a faster variant called FasterPAM "
+                    label="Instead of the traditional PAM (= Partioning Around Medoids) algorithm, this step uses a faster variant called FasterPAM "
                     "from the kmedoids package. (https://doi.org/10.1016/j.is.2021.101804).\n"
-                    "This step runs FasterPAM for different numbers of clusters. For each number of clusters the Silhouette score is then determined. "
+                    "This step runs FasterPAM for different numbers of clusters. For each number of clusters, the Silhouette score is then determined. "
                     "The clustering with the highest score gets selected. For each cluster in the clustering, the cluster will be clustered again with the same "
-                    "method, if it does not fullfill the stopping criterion. If some proteins never meet the stopping criterion, they will not be added to "
-                    "any cluster (=they get the label -1).\n"
+                    "method if it does not fulfill the stopping criterion. If some proteins never meet the stopping criterion, they will not be added to "
+                    "any cluster (= they get the label -1).\n"
                     "This step might take several minutes.",
                 ),
                 NumberField(
@@ -2819,13 +2819,13 @@ class KMedoidsClustering(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="continue_subsampling_as_long_as_silhouette_improves",
-                    label="Continue splitting clusters that already reached the stopping criterion as long as the silhouette score increases",
+                    label="Continue splitting clusters, that already reached the stopping criterion as long as the silhouette score increases",
                 ),
                 InfoField(
                     name="info_parameter_influencen_on_number_of_different_cluster_numbers_examined",
-                    label="The following 3 parameters influence for how many different numbers of clusters the silhouette score will be determined before "
-                    "deciding on an optimal number of clusters. Let x be (number of proteins in cluster/average expected cluster size). For each clustering "
-                    "all numbers of clusters between 2 and x are examined. However, for smaller clusters x might become quite small. E.g. if there are only "
+                    label="The following 3 parameters influence how many different numbers of clusters the silhouette score will be determined for before "
+                    "deciding on an optimal number of clusters. Let x be (number of proteins in cluster/average expected cluster size). For each clustering, "
+                    "all numbers of clusters between 2 and x are examined. However, for smaller clusters x might become quite small. E.g., if there are only "
                     "30 proteins in the cluster and we have an expected cluster size of 10, we would only consider having 2 or 3 clusters. "
                     "Therefore, one can set a lower bound on the number of clusters to inspect in each clustering step. If (x-1) is smaller than this lower bound, "
                     "we set x to (number of proteins in cluster/minimum cluster size).",
