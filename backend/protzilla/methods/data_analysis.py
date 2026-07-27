@@ -2787,7 +2787,8 @@ class KMedoidsClustering(DataAnalysisStep):
                     "This step runs FasterPAM for different numbers of clusters. For each number of clusters the Silhouette score is then determined. "
                     "The clustering with the highest score gets selected. For each cluster in the clustering, the cluster will be clustered again with the same "
                     "method, if it does not fullfill the stopping criterion. If some proteins never meet the stopping criterion, they will not be added to "
-                    "any cluster (=they get the label -1).",
+                    "any cluster (=they get the label -1).\n"
+                    "This step might take several minutes.",
                 ),
                 NumberField(
                     name="random_seed",

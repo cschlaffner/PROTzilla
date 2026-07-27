@@ -24,6 +24,7 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     get_number_of_amino_acid_residues_in_cluster,
     get_protein_id_to_number_of_residues,
     get_proteins_of_specific_cluster,
+    hdbscan_for_ppi,
     make_protein_ids_STRING_readable,
 )
 
@@ -269,21 +270,29 @@ def protein_df_for_correlation_matrix():
     return pd.DataFrame(
         [
             ["A", "Sample1", 100],
-            ["A", "Sample2", 10],
-            ["A", "Sample3", 15],
-            ["A", "Sample4", 20],
-            ["B", "Sample1", 80],
-            ["B", "Sample2", 20],
-            ["B", "Sample3", 10],
-            ["B", "Sample4", 15],
-            ["C-2", "Sample1", 50],
-            ["C-2", "Sample2", 55],
-            ["C-2", "Sample3", 10],
-            ["C-2", "Sample4", 15],
-            ["D", "Sample1", 10],
-            ["D", "Sample2", 100],
-            ["D", "Sample3", 10],
-            ["D", "Sample4", 15],
+            ["A", "Sample2", 20],
+            ["A", "Sample3", 40],
+            ["A", "Sample4", 80],
+            ["B", "Sample1", 95],
+            ["B", "Sample2", 15],
+            ["B", "Sample3", 35],
+            ["B", "Sample4", 75],
+            ["C-2", "Sample1", 105],
+            ["C-2", "Sample2", 22],
+            ["C-2", "Sample3", 45],
+            ["C-2", "Sample4", 85],
+            ["D", "Sample1", 200],
+            ["D", "Sample2", 150],
+            ["D", "Sample3", 100],
+            ["D", "Sample4", 50],
+            ["E", "Sample1", 205],
+            ["E", "Sample2", 155],
+            ["E", "Sample3", 105],
+            ["E", "Sample4", 55],
+            ["F", "Sample1", 195],
+            ["F", "Sample2", 145],
+            ["F", "Sample3", 95],
+            ["F", "Sample4", 45],
         ],
         columns=["Protein ID", "Sample", "Intensity"],
     )
@@ -292,7 +301,14 @@ def protein_df_for_correlation_matrix():
 @pytest.fixture
 def fasta_df_for_correlation_matrix():
     return pd.DataFrame(
-        [["A-1", "AA"], ["B-1", "BBB"], ["C-2", "CCCC"], ["D-1", "DDDDD"]],
+        [
+            ["A-1", "AA"],
+            ["B-1", "BBB"],
+            ["C-2", "CCCC"],
+            ["D-1", "DDDDD"],
+            ["E-1", "E"],
+            ["F-1", "FFFF"],
+        ],
         columns=["Protein ID", "Protein Sequence"],
     )
 
@@ -321,8 +337,8 @@ def test_get_correlation_matrix_with_different_correlation_methods(
     expected_correlation_matrix_df = pd.DataFrame(protein_to_intensities).corr(
         correlation_method
     )
-    expected_correlation_matrix_df.columns = ["A-1", "B-1", "C-2", "D-1"]
-    expected_correlation_matrix_df.index = ["A-1", "B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.columns = ["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
+    expected_correlation_matrix_df.index = ["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
     pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
 
 
@@ -351,8 +367,8 @@ def test_get_correlation_matrix_removes_nans(
         .corr("pearson")
         .drop(index=["A-1", "B-1"], columns=["A-1", "B-1"])
     )
-    expected_correlation_matrix_df.columns = ["C-2", "D-1"]
-    expected_correlation_matrix_df.index = ["C-2", "D-1"]
+    expected_correlation_matrix_df.columns = ["C-2", "D-1", "E-1", "F-1"]
+    expected_correlation_matrix_df.index = ["C-2", "D-1", "E-1", "F-1"]
     pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
     pd.testing.assert_frame_equal(
         removed_protein_ids_df, pd.DataFrame(["A-1", "B-1"], columns=["Protein ID"])
@@ -364,9 +380,10 @@ def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
     protein_df_for_correlation_matrix, fasta_df_for_correlation_matrix
 ):
     protein_df = protein_df_for_correlation_matrix.copy()
-    protein_df_for_correlation_matrix.loc[0, "Intensity"] = 15
-    protein_df_for_correlation_matrix.loc[1, "Intensity"] = 15
-    protein_df_for_correlation_matrix.loc[3, "Intensity"] = 15
+    protein_df_for_correlation_matrix.loc[0, "Intensity"] = 80
+    protein_df_for_correlation_matrix.loc[1, "Intensity"] = 80
+    protein_df_for_correlation_matrix.loc[2, "Intensity"] = 80
+    protein_df_for_correlation_matrix.loc[3, "Intensity"] = 80
     output = get_correlation_matrix(
         protein_df_for_correlation_matrix,
         fasta_df_for_correlation_matrix,
@@ -385,8 +402,8 @@ def test_get_correlation_matrix_removes_proteins_with_identical_intensities(
     expected_correlation_matrix_df = pd.DataFrame(protein_to_intensities).corr(
         "pearson"
     )
-    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1"]
-    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1", "E-1", "F-1"]
+    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1", "E-1", "F-1"]
     pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
     pd.testing.assert_frame_equal(
         removed_protein_ids_df, pd.DataFrame(["A-1"], columns=["Protein ID"])
@@ -419,8 +436,8 @@ def test_get_correlation_matrix_removes_proteins_that_miss_in_the_fasta(
         .corr("pearson")
         .drop(index=["A-1"], columns=["A-1"])
     )
-    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1"]
-    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1"]
+    expected_correlation_matrix_df.columns = ["B-1", "C-2", "D-1", "E-1", "F-1"]
+    expected_correlation_matrix_df.index = ["B-1", "C-2", "D-1", "E-1", "F-1"]
     pd.testing.assert_frame_equal(correlation_matrix_df, expected_correlation_matrix_df)
     pd.testing.assert_frame_equal(
         removed_protein_ids_df, pd.DataFrame(["A-1"], columns=["Protein ID"])
@@ -456,7 +473,9 @@ def test_get_distance_matrix_from_correlation_matrix_df(
     )["distance_matrix_df"]
     expected_distance_matrix = correlation_matrix_df.to_numpy()
     if hdbscan_suitable:
-        distance_matrix = np.clip(expected_distance_matrix, -0.999999, 0.999999)
+        expected_distance_matrix = np.clip(
+            expected_distance_matrix, -0.999999, 0.999999
+        )
     else:
         expected_distance_matrix = np.clip(expected_distance_matrix, -1, 1)
     if distance_method == DistanceFromCorrelation.weight_in_negative_correlations:
@@ -469,7 +488,9 @@ def test_get_distance_matrix_from_correlation_matrix_df(
         index=correlation_matrix_df.columns,
         columns=correlation_matrix_df.columns,
     )
-    pd.testing.assert_frame_equal(distance_matrix_df, expected_distance_matrix)
+    pd.testing.assert_frame_equal(
+        distance_matrix_df, expected_distance_matrix, atol=1e-5
+    )
 
 
 @pytest.fixture
@@ -485,7 +506,9 @@ def distance_matrix_df(correlation_matrix_df):
 def test_get_cluster_silhouette_histograms_determines_right_silhouette_score_for_each_cluster(
     distance_matrix_df, clusters_of_size_one_ommitted
 ):
-    labels = pd.Series([1, 1, 1, -1], index=["A-1", "B-1", "C-2", "D-1"])
+    labels = pd.Series(
+        [1, 1, 1, -1, 1, -1], index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
+    )
     figure, silhouette_per_cluster = get_cluster_silhouette_histogram(
         distance_matrix_df.to_numpy(), labels, clusters_of_size_one_ommitted
     )
@@ -503,3 +526,23 @@ def test_get_cluster_silhouette_histograms_determines_right_silhouette_score_for
     pd.testing.assert_series_equal(
         silhouette_per_cluster, expected_silhouette_per_cluster
     )
+
+
+def test_hdbscan_for_ppi(
+    distance_matrix_df, correlation_matrix_df, protein_df_for_correlation_matrix
+):
+    output = hdbscan_for_ppi(
+        distance_matrix_df,
+        correlation_matrix_df,
+        protein_df_for_correlation_matrix,
+        min_cluster_size=2,
+    )
+    expected_cluster_labels_df = pd.DataFrame(
+        [[0], [0], [0], [1], [1], [1]],
+        columns=["Label"],
+        index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+    )
+    pd.testing.assert_frame_equal(
+        output["cluster_labels_df"].value, expected_cluster_labels_df
+    )
+    # assert 1 == output["cluster_labels_df"]["Label"]

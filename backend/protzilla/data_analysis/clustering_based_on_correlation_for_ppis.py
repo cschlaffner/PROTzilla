@@ -354,7 +354,10 @@ def hdbscan_for_ppi(
     histograms of the dbcv scores, correlation means and cluster sizes."""
     distance_matrix = distance_matrix_df.to_numpy()
     clusterer = hdbscan.HDBSCAN(
-        metric="precomputed", min_cluster_size=min_cluster_size, gen_min_span_tree=True
+        metric="precomputed",
+        min_cluster_size=min_cluster_size,
+        gen_min_span_tree=True,
+        min_samples=1,
     )
     clusterer.fit(distance_matrix)
     labels = pd.Series(clusterer.labels_, index=distance_matrix_df.index, name="Label")
