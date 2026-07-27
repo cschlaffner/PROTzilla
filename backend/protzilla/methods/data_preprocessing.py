@@ -576,6 +576,10 @@ class TransformationScaling(DataPreprocessingStep):
                     name="max_value",
                     label="Maximum value that data maximum should be mapped to",
                 ),
+                InfoField(
+                    name="min_max_value_info",
+                    label="The minumum value provided must be lower than the maximum value.",
+                ),
                 FormDivider("Plot settings"),
                 DropdownField(
                     name="graph_type",
