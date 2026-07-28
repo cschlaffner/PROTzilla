@@ -26,6 +26,7 @@ import {
   SingleCheckboxInputField,
   TextInputField,
 } from "../../input-fields";
+import { NameModal } from "../../modal";
 import { H3 } from "../../text";
 
 const StyledForm = styled.div`
@@ -63,6 +64,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
 
   const [BackendFormData, setBackendFormData] = useState<BackendFormData>();
   const [isloading, setLoading] = useState(false);
+  const [isCustomStepNameOpen, setIsCustomStepNameOpen] = useState(false);
 
   const getStepForm = useCallback(
     async (values: Record<string, BackendInputValueType> = {}) => {
@@ -117,6 +119,21 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     }
   };
 
+  const saveCustomStep = async (name: string) => {
+    const response = await callApiWithParameters("custom_steps/", {
+      action: "save",
+      run_name: runName,
+      step_id: current_step_id,
+      name,
+    });
+    notify({
+      type: response.success ? "success" : "error",
+      title: response.success ? "Custom step saved" : "Could not save custom step",
+      message: response.message,
+    });
+    if (response.success) setIsCustomStepNameOpen(false);
+  };
+
   const handleSubmit =
     currentStepCalculationStatus === "complete"
       ? onNext
@@ -153,6 +170,14 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
             <InputField key={inputField.name} onChange={handleChange} {...inputField} />
           ))}
           <StyledSubmitDiv>
+            {runData.current_section === "custom" && (
+              <Button
+                text="Save Custom Step"
+                onPress={() => {
+                  setIsCustomStepNameOpen(true);
+                }}
+              />
+            )}
             <SubmitButton
               isDisabled={
                 previousStepCalculationStatus === "incomplete" ||
@@ -165,6 +190,18 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
           </StyledSubmitDiv>
         </StyledForm>
       )}
+      <NameModal
+        title="Save custom step"
+        label="With custom step name:"
+        submitLabel="Save custom step"
+        isOpen={isCustomStepNameOpen}
+        onClose={() => {
+          setIsCustomStepNameOpen(false);
+        }}
+        onSubmit={(name) => {
+          void saveCustomStep(name);
+        }}
+      />
     </>
   );
 });

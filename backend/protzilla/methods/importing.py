@@ -14,6 +14,7 @@ from backend.protzilla.form import (
     Form,
     FormDivider,
     HeaderInfoField,
+    InfoField,
     MultiSelectField,
     Option,
     TextField,
@@ -466,21 +467,19 @@ class ExampleDatasetImport(ImportingStep):
 
 
 class CustomPythonStep(ImportingStep):
+    section = Section.CUSTOM
     display_name = "Custom Python Step"
     operation = StepOperation.NOT_CATEGORIZED
     method_description = "Run custom Python code inside PROTzilla."
 
     def create_form(self):
-        data_key_options = [Option(data_key.value, data_key.value) for data_key in DataKey]
+        data_key_options = [
+            Option(data_key.value, data_key.value) for data_key in DataKey
+        ]
         return Form(
             label="Custom Python Step",
             input_fields=[
                 HeaderInfoField(label=self.method_description),
-                TextField(
-                    name="step_name",
-                    label="Step name",
-                    value=self.display_name,
-                ),
                 MultiSelectField(
                     name="selected_inputs",
                     label="Inputs",
@@ -499,6 +498,9 @@ class CustomPythonStep(ImportingStep):
                     rows=12,
                     isCodeEditor=True,
                     value="return dict()",
+                ),
+                InfoField(
+                    label="⚠️ Never import code that you do not trust. ⚠️",
                 ),
             ],
         )

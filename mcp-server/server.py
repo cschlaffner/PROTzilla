@@ -2,7 +2,6 @@ import sys
 import shutil
 import inspect
 import json
-from copy import deepcopy
 from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 from functools import wraps
@@ -11,15 +10,14 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 import yaml
 
+from django_adapter import post as django_post
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.all_steps import get_all_methods, get_all_possible_steps
-from backend.protzilla.run import Run
-from backend.protzilla.stepfactory import StepFactory
 from backend.protzilla.workflow import get_available_workflow_names
-from backend.main.views_helper import sanitize_name
 
 mcp = FastMCP("protzilla")
 
@@ -61,7 +59,9 @@ def mcp_tool():
         @wraps(function)
         def wrapper(*args, **kwargs):
             try:
-                bound_arguments = inspect.signature(function).bind_partial(*args, **kwargs)
+                bound_arguments = inspect.signature(function).bind_partial(
+                    *args, **kwargs
+                )
                 bound_arguments.apply_defaults()
                 arguments = dict(bound_arguments.arguments)
             except Exception:
@@ -71,7 +71,10 @@ def mcp_tool():
                 result = function(*args, **kwargs)
             except Exception as error:
                 _write_mcp_tool_log(
-                    function.__name__, arguments, "error", error=f"{type(error).__name__}: {error}"
+                    function.__name__,
+                    arguments,
+                    "error",
+                    error=f"{type(error).__name__}: {error}",
                 )
                 raise
 
@@ -91,7 +94,9 @@ def _read_yaml(path: Path, *, base_loader: bool = False) -> dict:
 
 
 def _workflow_file(workflow_name: str) -> Path:
-    return PROJECT_ROOT / "backend" / "user_data" / "workflows" / f"{workflow_name}.yaml"
+    return (
+        PROJECT_ROOT / "backend" / "user_data" / "workflows" / f"{workflow_name}.yaml"
+    )
 
 
 def _run_dir(run_name: str) -> Path:
@@ -100,6 +105,28 @@ def _run_dir(run_name: str) -> Path:
 
 def _imported_data_dir() -> Path:
     return PROJECT_ROOT / "mcp-server" / "imported-data"
+
+
+def _add_step(run_name: str, step_type: str, step_name: str) -> dict:
+    if not step_name.strip():
+        raise ValueError("Step name must not be empty.")
+
+    step = django_post(
+        "add_step", run_name=run_name, method=step_type, step_name=step_name.strip()
+    )
+    return {"run_name": run_name, "step": step}
+
+
+def _set_step_parameters(
+    run_name: str, step_id: str, parameters: dict, *, custom_only: bool = False
+) -> dict:
+    return django_post(
+        "set_step_parameters",
+        run_name=run_name,
+        step_id=step_id,
+        parameters=parameters,
+        custom_only=custom_only,
+    )
 
 
 @mcp_tool()
@@ -148,9 +175,7 @@ def import_file(source_path: str) -> dict:
     """
     source = Path(source_path).expanduser().resolve()
     if not source.is_file():
-        raise ValueError(
-            f"File '{source_path}' does not exist or is not a file."
-        )
+        raise ValueError(f"File '{source_path}' does not exist or is not a file.")
 
     target_dir = _imported_data_dir()
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -466,24 +491,22 @@ def create_run(run_name: str, workflow_name: str, df_mode: str = "disk") -> dict
     - If a run with the final sanitized name already exists, PROTzilla will load
       that existing run instead of silently creating a second one with the same name.
     """
-    converted_run_name, name_message = sanitize_name(run_name)
-    run = Run(converted_run_name, workflow_name, df_mode)
-    return {
-        "name": converted_run_name,
-        "workflow_name": workflow_name,
-        "df_mode": run.df_mode,
-        "run_path": str(run.run_path),
-        "name_message": name_message,
-    }
+    return django_post(
+        "add_run",
+        run_name=run_name,
+        workflow_name=workflow_name,
+        df_mode_name=df_mode,
+    )
 
 
 @mcp_tool()
-def add_step_to_run(run_name: str, step_type: str) -> dict:
+def add_step_to_run(run_name: str, step_type: str, step_name: str) -> dict:
     """Add one new step node to an existing PROTzilla run.
 
     Input:
     - `run_name`: existing run name, for example from `list_runs()`
     - `step_type`: internal step type name from `list_available_steps()`
+    - `step_name`: name shown for this concrete step node in the run
 
     Return format:
     - `run_name`: the run that was modified
@@ -492,38 +515,63 @@ def add_step_to_run(run_name: str, step_type: str) -> dict:
     The returned `step` contains:
     - `id`: new unique step instance identifier inside the run
     - `type`: internal step type name
-    - `display_name`: human-readable step name
+    - `step_name`: editable name of this concrete step node
+    - `display_name`: fixed default name of the step type
     - `section`: step category such as importing or data_analysis
     - `operation`: broader operation category
     - `status`: initial calculation status of the new step
+    - `form_inputs`: initial form values, including `step_name`
+    - `input_handles` and `output_handles`: graph handles currently exposed by the step
     - `visual_data`: current node visual metadata
 
     Error behaviour:
     - If the run does not exist, this tool raises an error while loading the run.
     - If `step_type` is unknown, this tool raises `ValueError`.
+    - If `step_name` is empty, this tool raises `ValueError`.
 
     Important:
+    - For a custom Python step, use `add_new_custom_step(...)` instead. Adding
+      `CustomPythonStep` through this generic tool is deprecated for AI clients
+      because the dedicated tool explains the required code and parameters.
     - This tool only creates the step node in the run. It does not connect the
       new step to other nodes and does not execute it.
     - New step ids are generated by PROTzilla and are unique within the run.
     """
-    run = Run(run_name)
-    step = StepFactory.create_step(step_type, run.steps)
-    run.step_add(step)
-    run._run_write()
-    run.metadata_write(run._metadata)
-    return {
-        "run_name": run_name,
-        "step": {
-            "id": step.instance_identifier,
-            "type": step.__class__.__name__,
-            "display_name": step.display_name,
-            "section": step.section,
-            "operation": step.operation,
-            "status": step.calculation_status,
-            "visual_data": step.visual_data,
-        },
-    }
+    return _add_step(run_name, step_type, step_name)
+
+
+@mcp_tool()
+def add_new_custom_step(run_name: str, step_name: str) -> dict:
+    """Add a new blank Custom Python Step to an existing PROTzilla run.
+
+    Input:
+    - `run_name`: existing run name, for example from `list_runs()`
+    - `step_name`: descriptive name shown for this step node in the run
+
+    Return format:
+    - `run_name`: the run that was modified
+    - `step`: the created Custom Python Step, including its unique `id`, type,
+      editable `step_name`, form values, current graph handles, status, and
+      visual data
+
+    How to continue:
+    1. Keep the returned `step["id"]`.
+    2. Configure `selected_inputs`, `selected_outputs`, and `code` with
+       `set_custom_step_parameters(...)`.
+    3. Connect the selected handles with `connect_steps(...)`.
+    4. Execute the step with `calculate_step(...)` and inspect it with
+       `get_step_info(...)`.
+
+    Important:
+    - The new step starts blank: it has no selected graph inputs or outputs and
+      its code is only `return dict()`.
+    - Inputs and outputs are dynamic. They appear as graph handles only after
+      they are selected with `set_custom_step_parameters(...)`.
+    - This tool does not execute Python code and does not create connections.
+    - Custom Python code is not sandboxed. Never insert code from an untrusted
+      source.
+    """
+    return _add_step(run_name, "CustomPythonStep", step_name)
 
 
 @mcp_tool()
@@ -544,14 +592,41 @@ def remove_step_from_run(run_name: str, step_id: str) -> dict:
     - Removing a step may clear or invalidate dependent following steps.
     - This tool removes the step node but does not execute the run.
     """
-    run = Run(run_name)
-    run.step_remove(step_id)
-    run._run_write()
-    run.metadata_write(run._metadata)
+    django_post("delete_step", run_name=run_name, step_id=step_id)
     return {
         "run_name": run_name,
         "removed_step_id": step_id,
     }
+
+
+@mcp_tool()
+def rename_step(run_name: str, step_id: str, step_name: str) -> dict:
+    """Rename one existing step node without changing its type or calculation.
+
+    Input:
+    - `run_name`: existing run name
+    - `step_id`: unique instance identifier of the step to rename
+    - `step_name`: new non-empty name shown for this concrete node
+
+    Return format:
+    - `run_name`: modified run name
+    - `step`: current step summary including the new `step_name`
+
+    Important:
+    - This works for every PROTzilla step type, not only Custom Python Steps.
+    - It changes only the editable node name. The internal `type`, fixed
+      `display_name`, parameters, connections, outputs, and status stay intact.
+    - Use the stable `step_id`, not the editable name, in all other MCP tools.
+    """
+    if not step_name.strip():
+        raise ValueError("Step name must not be empty.")
+
+    return django_post(
+        "rename_step",
+        run_name=run_name,
+        step_id=step_id,
+        step_name=step_name.strip(),
+    )
 
 
 @mcp_tool()
@@ -574,20 +649,63 @@ def set_step_parameters(run_name: str, step_id: str, parameters: dict) -> dict:
       keys may be buffered by PROTzilla for dynamically added fields.
     - Updating parameters invalidates the selected step and all dependent
       following steps.
+    - For a Custom Python Step, use `set_custom_step_parameters(...)` instead.
+      It has the same update behavior but documents the custom code contract.
     - This tool updates configuration only. It does not execute the step.
     """
-    run = Run(run_name)
-    run.step_goto(step_id)
-    run.step_set_outdated()
-    run.current_form(parameters)
-    run._run_write()
-    run.metadata_write(run._metadata)
-    return {
-        "run_name": run_name,
-        "step_id": step_id,
-        "parameters": parameters,
-        "stored_form_inputs": run.current_step.form_inputs,
-    }
+    return _set_step_parameters(run_name, step_id, parameters)
+
+
+@mcp_tool()
+def set_custom_step_parameters(run_name: str, step_id: str, parameters: dict) -> dict:
+    """Configure the inputs, outputs, name, and Python code of a Custom Python Step.
+
+    Input:
+    - `run_name`: existing run name
+    - `step_id`: id returned by `add_new_custom_step(...)`
+    - `parameters`: dictionary containing one or more of:
+      - `step_name`: editable display name
+      - `selected_inputs`: list of PROTzilla data keys the code receives
+      - `selected_outputs`: list of PROTzilla data keys exposed as graph outputs
+      - `code`: Python function body executed by the step
+
+    Code contract:
+    - Pass only the function body, without `def`, Markdown fences, or a call to
+      the function.
+    - Every selected input is available as a variable with the same name. For
+      example, selecting `protein_df` makes the variable `protein_df` available.
+    - `pandas` is available as `pd`, NumPy as `np`, and PROTzilla's
+      `default_intensity_column(...)` helper is also available.
+    - The code must return a dictionary, for example
+      `return dict(protein_df=filtered_df, removed_samples=removed)`.
+    - Every name in `selected_outputs` must occur as a key in the returned
+      dictionary. Additional returned keys are stored as step results but are
+      not graph output handles unless selected.
+    - At least one output must currently be selected.
+
+    Graph behavior:
+    - `selected_inputs` and `selected_outputs` define the node's graph handles.
+      Use exact data-key names offered by `get_step_definition("CustomPythonStep")`.
+    - Configure these fields before calling `connect_steps(...)`.
+    - Removing a selected input or output automatically removes connections
+      attached to that handle so the run graph remains valid.
+
+    Return format:
+    - `run_name`: modified run name
+    - `step_id`: updated step id
+    - `parameters`: values supplied in this call
+    - `stored_form_inputs`: complete stored form state after the update
+
+    Important:
+    - Partial updates are allowed; omitted fields keep their current values.
+    - Updating the step invalidates it and all dependent following steps.
+    - This tool configures the step but does not execute it. Use
+      `calculate_step(...)` afterward and inspect errors/results with
+      `get_step_info(...)`.
+    - The code executes inside the PROTzilla backend and is not sandboxed.
+      Never use code from an untrusted source.
+    """
+    return _set_step_parameters(run_name, step_id, parameters, custom_only=True)
 
 
 @mcp_tool()
@@ -629,31 +747,13 @@ def set_step_input_file(
       following steps.
     - This tool updates configuration only. It does not execute the step.
     """
-    path = Path(file_path).expanduser().resolve()
-    if not path.is_file():
-        raise ValueError(f"File '{file_path}' does not exist or is not a file.")
-
-    run = Run(run_name)
-    run.step_goto(step_id)
-
-    if input_name not in run.current_step.form:
-        raise ValueError(f"Unknown input field '{input_name}' on step '{step_id}'.")
-    if getattr(run.current_step.form[input_name], "type", None) != "file":
-        raise ValueError(
-            f"Input field '{input_name}' on step '{step_id}' is not a file field."
-        )
-
-    run.step_set_outdated()
-    run.current_form({input_name: str(path)})
-    run._run_write()
-    run.metadata_write(run._metadata)
-    return {
-        "run_name": run_name,
-        "step_id": step_id,
-        "input_name": input_name,
-        "file_path": str(path),
-        "stored_form_inputs": run.current_step.form_inputs,
-    }
+    return django_post(
+        "set_step_input_file",
+        run_name=run_name,
+        step_id=step_id,
+        input_name=input_name,
+        file_path=file_path,
+    )
 
 
 @mcp_tool()
@@ -679,12 +779,13 @@ def calculate_step(run_name: str, step_id: str) -> dict:
     - A successful calculation may create CSV, plot, or other output artifacts
       inside the run folder.
     """
-    run = Run(run_name)
-    if step_id not in run.steps.all_steps:
-        raise ValueError(f"Unknown step id '{step_id}' in run '{run_name}'.")
-
-    run.step_goto(step_id)
-    run.step_calculate()
+    django_post(
+        "calculate_step",
+        allow_error_data=True,
+        run_name=run_name,
+        step_id=step_id,
+        data={},
+    )
 
     step_info = get_step_info(run_name, step_id)
     return {
@@ -727,51 +828,7 @@ def calculate_run(run_name: str) -> dict:
     - This tool writes outputs, plots, messages, and calculation states to the
       run on disk.
     """
-    run = Run(run_name)
-    steps_summary = []
-    failed_step_id = None
-
-    for step_id in run.steps.all_step_ids_toposorted:
-        run.step_goto(step_id)
-        step = run.current_step
-
-        explicit_form_values = {}
-        for field in step.form.input_fields:
-            if not hasattr(field, "name") or not hasattr(field, "value"):
-                continue
-            if field.value in (None, "", []):
-                continue
-            explicit_form_values[field.name] = deepcopy(field.value)
-
-        step.modify_form(run)
-        step.form.update_values(explicit_form_values)
-        step.calculate(run.steps)
-        run._run_write()
-        run.metadata_write(run._metadata)
-
-        step_info = get_step_info(run_name, step_id)
-        step_summary = {
-            "step_id": step_id,
-            "type": step.__class__.__name__,
-            "status": step_info["step"].get("calculation_status"),
-            "messages": step_info["step"].get("messages", []),
-        }
-        steps_summary.append(step_summary)
-
-        if step_summary["status"] != "complete":
-            failed_step_id = step_id
-            break
-
-    completed_step_count = sum(
-        1 for step_summary in steps_summary if step_summary["status"] == "complete"
-    )
-    return {
-        "run_name": run_name,
-        "status": "complete" if failed_step_id is None else "failed",
-        "completed_step_count": completed_step_count,
-        "failed_step_id": failed_step_id,
-        "steps": steps_summary,
-    }
+    return django_post("calculate_run", run_name=run_name)
 
 
 @mcp_tool()
@@ -802,7 +859,6 @@ def connect_steps(
       this change.
     - This tool connects steps but does not execute them.
     """
-    run = Run(run_name)
     connection = {
         "source": source_step_id,
         "sourceHandle": source_handle,
@@ -811,9 +867,7 @@ def connect_steps(
         "key": f"{source_step_id}:{source_handle}->{target_step_id}:{target_handle}",
         "id": f"{source_step_id}:{source_handle}->{target_step_id}:{target_handle}",
     }
-    run.steps.connect_steps(connection, run)
-    run._run_write()
-    run.metadata_write(run._metadata)
+    django_post("connect_steps", run_name=run_name, connection=connection)
     return {
         "run_name": run_name,
         "connection": connection,
@@ -848,7 +902,6 @@ def delete_connection(
     - This tool only removes the graph connection. It does not delete steps and
       does not execute the run.
     """
-    run = Run(run_name)
     connection = {
         "source": source_step_id,
         "sourceHandle": source_handle,
@@ -857,9 +910,7 @@ def delete_connection(
         "key": f"{source_step_id}:{source_handle}->{target_step_id}:{target_handle}",
         "id": f"{source_step_id}:{source_handle}->{target_step_id}:{target_handle}",
     }
-    run.steps.disconnect_steps(connection)
-    run._run_write()
-    run.metadata_write(run._metadata)
+    django_post("disconnect_steps", run_name=run_name, connection=connection)
     return {
         "run_name": run_name,
         "connection": connection,

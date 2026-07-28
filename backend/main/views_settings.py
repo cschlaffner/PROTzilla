@@ -69,7 +69,9 @@ def _jsonable_chat_value(value):
     return str(value)
 
 
-async def _stream_chat_message_with_langchain(model: str, api_key: str, messages: list[dict]):
+async def _stream_chat_message_with_langchain(
+    model: str, api_key: str, messages: list[dict]
+):
     if not MCP_SERVER_PATH.exists():
         raise ValueError(
             f"MCP server file not found at '{MCP_SERVER_PATH}'. Recreate the django container so the mcp-server volume is mounted."
@@ -133,7 +135,9 @@ async def _stream_chat_message_with_langchain(model: str, api_key: str, messages
                     yield {
                         "type": "tool_result",
                         "tool_call_id": getattr(message, "tool_call_id", None),
-                        "result": _jsonable_chat_value(getattr(message, "content", None)),
+                        "result": _jsonable_chat_value(
+                            getattr(message, "content", None)
+                        ),
                     }
                     continue
 
@@ -221,9 +225,7 @@ def save_ai_settings(request):
     try:
         op.write(path, ai_settings)
     except:
-        return JsonResponse(
-            {"success": False, "message": "Saving failed!"}, status=400
-        )
+        return JsonResponse({"success": False, "message": "Saving failed!"}, status=400)
 
     return JsonResponse(
         {"success": True, "message": "Settings successfully saved."}, status=200

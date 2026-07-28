@@ -20,6 +20,7 @@ class DataKey(StrEnum):
     LOG2_FOLD_CHANGE_DF = "log2_fold_change_df"
     ENRICHMENT_DF = "enrichment_df"
     GENE_MAPPING_DF = "gene_mapping_df"
+    CUSTOM_DF = "custom_df"
 
 
 ProteinDf = NewType("ProteinDf", pd.DataFrame)

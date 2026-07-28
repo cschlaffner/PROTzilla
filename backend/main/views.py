@@ -1,4 +1,7 @@
 import json
+from copy import deepcopy
+from pathlib import Path
+from queue import Empty, Queue
 from shutil import copy2, make_archive
 import traceback
 from zipfile import ZipFile
@@ -8,7 +11,7 @@ import logging
 from plotly.io import to_json
 
 import pandas as pd
-from django.http import HttpResponse, JsonResponse, FileResponse
+from django.http import FileResponse, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.http.request import HttpRequest
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -28,10 +31,13 @@ from backend.protzilla.workflow import (
     get_available_workflow_names,
 )
 from backend.protzilla.constants.paths import (
+    CUSTOM_STEPS_PATH,
     EXTERNAL_DATA_PATH,
+    PROJECT_PATH,
     RUNS_PATH,
     WORKFLOWS_PATH,
 )
+from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.utilities.utilities import format_trace, get_memory_usage
 from backend.protzilla.stepfactory import StepFactory
 from backend.main.views_helper import (
@@ -48,6 +54,66 @@ database_metadata_path = EXTERNAL_DATA_PATH / "internal" / "metadata" / "uniprot
 
 # Labels of outputs not sent via the output tables API
 hidden_outputs = ["messages"]
+run_update_listeners = {}
+
+
+def _jsonable(value):
+    return json.loads(json.dumps(value, default=str))
+
+
+def _step_summary(step):
+    summary = get_step(step)
+    summary.update(
+        {
+            "type": step.__class__.__name__,
+            "step_name": step.form["step_name"].value,
+            "display_name": step.display_name,
+            "form_inputs": step.form_inputs,
+            "input_handles": list(step.external_input_keys),
+            "output_handles": list(step.output_keys),
+        }
+    )
+    return _jsonable(summary)
+
+
+def _select_step(run, step_id):
+    if step_id not in run.steps.all_steps:
+        raise ValueError(f"Unknown step id '{step_id}' in run '{run.run_name}'.")
+    run.step_goto(step_id)
+
+
+def _notify_run_update(run_name):
+    for listener in list(run_update_listeners.get(run_name, [])):
+        listener.put_nowait(None)
+
+
+def run_updates(request):
+    run_name = request.GET.get("run_name")
+    if not run_name:
+        return JsonResponse(
+            {"success": False, "message": "Missing run name."}, status=400
+        )
+
+    listener = Queue()
+    listeners = run_update_listeners.setdefault(run_name, set())
+    listeners.add(listener)
+
+    def events():
+        try:
+            yield ": connected\n\n"
+            while True:
+                try:
+                    listener.get(timeout=15)
+                    yield "data: update\n\n"
+                except Empty:
+                    yield ": keep-alive\n\n"
+        finally:
+            listeners.discard(listener)
+
+    response = StreamingHttpResponse(events(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
 
 
 @ensure_csrf_cookie
@@ -157,11 +223,14 @@ def add_run(request):
         converted_run_name, additional_message = sanitize_name(run_name)
 
         try:
-            Run(
+            run = Run(
                 converted_run_name,
                 workflow_name,
                 df_mode_name,
             )
+            run._run_write()
+            run.metadata_write(run._metadata)
+            _notify_run_update(converted_run_name)
             message = (
                 f"Created run {converted_run_name}. \n{additional_message}"
                 if len(additional_message) > 0
@@ -171,7 +240,14 @@ def add_run(request):
                 {
                     "success": True,
                     "message": message,
-                    "data": {"run_name": converted_run_name},
+                    "data": {
+                        "run_name": converted_run_name,
+                        "name": converted_run_name,
+                        "workflow_name": workflow_name,
+                        "df_mode": run.df_mode,
+                        "run_path": str(run.run_path),
+                        "name_message": additional_message,
+                    },
                 }
             )
         except Exception as e:
@@ -356,13 +432,19 @@ def add_step(request):
 
         run = Run(run_name)
         step = StepFactory.create_step(method, run.steps)
+        step_name = data.get("step_name", "").strip()
+        if step_name:
+            step.form["step_name"].value = step_name
         run.step_add(step)
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(run_name)
 
         return JsonResponse(
             {
                 "success": True,
                 "message": "Added step: " + method,
-                "data": get_step(step),
+                "data": _step_summary(step),
             },
             safe=False,
         )
@@ -370,6 +452,78 @@ def add_step(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+
+def custom_steps(request):
+    operator = YamlOperator()
+
+    if request.method == "GET":
+        templates = [
+            {"name": path.stem, "step_name": operator.read(path)["step_name"]}
+            for path in sorted(CUSTOM_STEPS_PATH.glob("*.yaml"))
+        ]
+        return JsonResponse({"success": True, "data": templates})
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+
+    def template_path(name):
+        filename, _ = sanitize_name(name.strip())
+        if not filename:
+            raise ValueError("Please provide a name.")
+        return CUSTOM_STEPS_PATH / f"{filename}.yaml"
+
+    try:
+        action = data.get("action")
+        if action == "save":
+            run = Run(data.get("run_name"))
+            step = run.steps.get_step_by_id(data.get("step_id"))
+            if step.section != "custom":
+                raise ValueError("Only custom steps can be saved.")
+            name = data.get("name", "").strip()
+            operator.write(
+                template_path(name),
+                {
+                    "step_name": name,
+                    "inputs": step.form["selected_inputs"].value,
+                    "outputs": step.form["selected_outputs"].value,
+                    "code": step.form["code"].value,
+                },
+            )
+        elif action == "add":
+            template = operator.read(template_path(data.get("name", "")))
+            run = Run(data.get("run_name"))
+            step = StepFactory.create_step("CustomPythonStep", run.steps)
+            step.form.update_values(
+                {
+                    "step_name": template["step_name"],
+                    "selected_inputs": template["inputs"],
+                    "selected_outputs": template["outputs"],
+                    "code": template["code"],
+                }
+            )
+            run.step_add(step)
+        elif action == "rename":
+            old_path = template_path(data.get("name", ""))
+            new_name = data.get("new_name", "").strip()
+            template = operator.read(old_path)
+            template["step_name"] = new_name
+            new_path = template_path(new_name)
+            operator.write(new_path, template)
+            if old_path != new_path:
+                old_path.unlink()
+        elif action == "delete":
+            template_path(data.get("name", "")).unlink()
+        else:
+            raise ValueError("Unknown custom step action.")
+    except Exception as error:
+        return JsonResponse({"success": False, "message": str(error)}, status=400)
+
+    return JsonResponse({"success": True, "message": "Custom step updated."})
 
 
 def delete_step(request):
@@ -389,6 +543,9 @@ def delete_step(request):
 
     try:
         run.step_remove(step_id)
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(run_name)
     except ValueError as e:
         return JsonResponse(
             {"success": False, "message": "Cannot delete step: " + str(e)}
@@ -444,6 +601,9 @@ def connect_steps(request) -> JsonResponse:
         run = Run(run_name)
         try:
             run.steps.connect_steps(connection, run)
+            run._run_write()
+            run.metadata_write(run._metadata)
+            _notify_run_update(run_name)
             return JsonResponse(
                 {
                     "success": True,
@@ -482,6 +642,9 @@ def disconnect_steps(request) -> JsonResponse:
         run = Run(run_name)
         try:
             run.steps.disconnect_steps(connection)
+            run._run_write()
+            run.metadata_write(run._metadata)
+            _notify_run_update(run_name)
             return JsonResponse(
                 {
                     "success": True,
@@ -675,6 +838,122 @@ def get_step_form(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+
+def set_step_parameters(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    try:
+        run = Run(data.get("run_name"))
+        _select_step(run, data.get("step_id"))
+        if (
+            data.get("custom_only")
+            and run.current_step.__class__.__name__ != "CustomPythonStep"
+        ):
+            raise ValueError(f"Step '{data.get('step_id')}' is not a CustomPythonStep.")
+        parameters = data.get("parameters", {})
+        run.step_set_outdated()
+        run.current_form(parameters)
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(data.get("run_name"))
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "run_name": data.get("run_name"),
+                    "step_id": data.get("step_id"),
+                    "parameters": parameters,
+                    "stored_form_inputs": _jsonable(run.current_step.form_inputs),
+                },
+            },
+            encoder=Form.CustomEncoder,
+        )
+    except Exception as error:
+        return JsonResponse({"success": False, "message": str(error)}, status=400)
+
+
+def rename_step(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    try:
+        step_name = data.get("step_name", "").strip()
+        if not step_name:
+            raise ValueError("Step name must not be empty.")
+        run = Run(data.get("run_name"))
+        _select_step(run, data.get("step_id"))
+        run.current_step.form["step_name"].value = step_name
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(data.get("run_name"))
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "run_name": data.get("run_name"),
+                    "step": _step_summary(run.current_step),
+                },
+            }
+        )
+    except Exception as error:
+        return JsonResponse({"success": False, "message": str(error)}, status=400)
+
+
+def set_step_input_file(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    try:
+        run = Run(data.get("run_name"))
+        _select_step(run, data.get("step_id"))
+        input_name = data.get("input_name")
+        path = Path(data.get("file_path", "")).expanduser().resolve()
+        imported_path = PROJECT_PATH / "mcp-server" / "imported-data" / path.name
+        if not path.is_file() and imported_path.is_file():
+            path = imported_path
+        if not path.is_file():
+            raise ValueError(
+                f"File '{data.get('file_path')}' does not exist or is not a file."
+            )
+        if input_name not in run.current_step.form:
+            raise ValueError(
+                f"Unknown input field '{input_name}' on step '{data.get('step_id')}'."
+            )
+        if getattr(run.current_step.form[input_name], "type", None) != "file":
+            raise ValueError(
+                f"Input field '{input_name}' on step '{data.get('step_id')}' is not a file field."
+            )
+        run.step_set_outdated()
+        run.current_form({input_name: str(path)})
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(data.get("run_name"))
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "run_name": data.get("run_name"),
+                    "step_id": data.get("step_id"),
+                    "input_name": input_name,
+                    "file_path": str(path),
+                    "stored_form_inputs": _jsonable(run.current_step.form_inputs),
+                },
+            },
+            encoder=Form.CustomEncoder,
+        )
+    except Exception as error:
+        return JsonResponse({"success": False, "message": str(error)}, status=400)
 
 
 def get_step_plots(request):
@@ -873,9 +1152,11 @@ def calculate_step(request):
     if request.method == "POST":
         data = json.loads(request.body)
         run_name = data.get("run_name")
-        user_input = data.get("data")
+        user_input = data.get("data", {})
 
         run = Run(run_name)
+        if data.get("step_id"):
+            _select_step(run, data.get("step_id"))
 
         if not run.current_step_ready_for_calculation:
             return JsonResponse(
@@ -890,6 +1171,9 @@ def calculate_step(request):
 
         run.current_form(user_input)
         run.step_calculate()
+        run._run_write()
+        run.metadata_write(run._metadata)
+        _notify_run_update(run_name)
 
         calculation_data = {}
         calculation_data["step_id"] = run.current_step.instance_identifier
@@ -919,6 +1203,65 @@ def calculate_step(request):
         return JsonResponse(
             {"success": False, "message": "Invalid request method"}, status=405
         )
+
+
+def calculate_run(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    try:
+        run = Run(data.get("run_name"))
+        steps = []
+        failed_step_id = None
+
+        for step_id in run.steps.all_step_ids_toposorted:
+            run.step_goto(step_id)
+            step = run.current_step
+            values = {
+                field.name: deepcopy(field.value)
+                for field in step.form.input_fields
+                if hasattr(field, "name")
+                and hasattr(field, "value")
+                and field.value not in (None, "", [])
+            }
+            step.modify_form(run)
+            step.form.update_values(values)
+            step.calculate(run.steps)
+            run._run_write()
+            run.metadata_write(run._metadata)
+            _notify_run_update(data.get("run_name"))
+
+            steps.append(
+                {
+                    "step_id": step_id,
+                    "type": step.__class__.__name__,
+                    "status": step.calculation_status,
+                    "messages": list(step.messages.messages),
+                }
+            )
+            if step.calculation_status != "complete":
+                failed_step_id = step_id
+                break
+
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "run_name": data.get("run_name"),
+                    "status": "complete" if failed_step_id is None else "failed",
+                    "completed_step_count": sum(
+                        step["status"] == "complete" for step in steps
+                    ),
+                    "failed_step_id": failed_step_id,
+                    "steps": steps,
+                },
+            }
+        )
+    except Exception as error:
+        return JsonResponse({"success": False, "message": str(error)}, status=400)
 
 
 def upload_file(request):

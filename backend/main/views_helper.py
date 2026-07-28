@@ -63,10 +63,12 @@ def convert_str_if_possible(s):
 # TODO: Rename this
 # Why? ~R
 def get_step(step: Step) -> dict:
-    step_name = step.form["step_name"].value if "step_name" in step.form else step.display_name
+    step_name = (
+        step.form["step_name"].value if "step_name" in step.form else step.display_name
+    )
     return {
         "id": step.instance_identifier,
-        "name": step_name,
+        "name": step_name or step.display_name,
         "section": step.section,
         "input_keys": step.external_input_keys,
         "output_keys": step.output_keys,

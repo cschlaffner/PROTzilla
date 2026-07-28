@@ -23,6 +23,7 @@ from . import views, views_settings
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("healthcheck/", views.healthcheck, name="healthcheck"),
+    path("api/run_updates/", views.run_updates, name="run_updates"),
     path("api/get_csrf_token/", views.get_csrf_token, name="get_csrf_token"),
     path("api/run_information/", views.run_information_list, name="run_information"),
     path("api/step_list/", views.all_steps, name="step_list"),
@@ -40,6 +41,7 @@ urlpatterns = [
     path("api/import_run/", views.import_run, name="import_run"),
     path("api/add_plot/", views.add_plot, name="add_plot"),
     path("api/add_step/", views.add_step, name="add_step"),
+    path("api/custom_steps/", views.custom_steps, name="custom_steps"),
     path("api/delete_step/", views.delete_step, name="delete_step"),
     path("api/navigate_to_step/", views.navigate_to_step, name="navigate_to_step"),
     path("api/set_step_pos/", views.set_step_pos, name="set_step_pos"),
@@ -48,6 +50,17 @@ urlpatterns = [
     path("api/get_edges/", views.get_edges, name="get_edges"),
     path("api/save_workflow/", views.save_workflow, name="save_workflow"),
     path("api/get_step_form/", views.get_step_form, name="get_step_form"),
+    path(
+        "api/set_step_parameters/",
+        views.set_step_parameters,
+        name="set_step_parameters",
+    ),
+    path("api/rename_step/", views.rename_step, name="rename_step"),
+    path(
+        "api/set_step_input_file/",
+        views.set_step_input_file,
+        name="set_step_input_file",
+    ),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
     path(
         "api/get_current_step_output_labels/",
@@ -67,15 +80,26 @@ urlpatterns = [
     path("api/get_run_data/", views.get_run_data, name="get_run_data"),
     path("api/upload_file/", views.upload_file, name="upload_file"),
     path("api/calculate_step/", views.calculate_step, name="calculate_step"),
+    path("api/calculate_run/", views.calculate_run, name="calculate_run"),
     path("api/export_workflow/", views.export_workflow, name="export_workflow"),
     path("api/import_workflow/", views.import_workflow, name="import_workflow"),
     path("api/delete_workflow/", views.delete_workflow, name="delete_workflow"),
     path("api/load_settings", views_settings.load_plot_settings, name="load_settings"),
     path("api/save_settings", views_settings.save_plot_settings, name="save_settings"),
-    path("api/load_ai_settings", views_settings.load_ai_settings, name="load_ai_settings"),
-    path("api/save_ai_settings", views_settings.save_ai_settings, name="save_ai_settings"),
-    path("api/send_chat_message", views_settings.send_chat_message, name="send_chat_message"),
-    path("api/get_ai_providers", views_settings.get_ai_providers, name="get_ai_providers"),
+    path(
+        "api/load_ai_settings", views_settings.load_ai_settings, name="load_ai_settings"
+    ),
+    path(
+        "api/save_ai_settings", views_settings.save_ai_settings, name="save_ai_settings"
+    ),
+    path(
+        "api/send_chat_message",
+        views_settings.send_chat_message,
+        name="send_chat_message",
+    ),
+    path(
+        "api/get_ai_providers", views_settings.get_ai_providers, name="get_ai_providers"
+    ),
     path("api/get_ai_models", views_settings.get_ai_models, name="get_ai_models"),
     path("api/download_plot", views_settings.download_plot, name="download_plot"),
     path("api/get_databases", views_settings.get_databases, name="get_databases"),

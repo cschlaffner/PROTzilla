@@ -25,6 +25,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
+import { API_ROOT } from "../../../constants";
 import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
@@ -191,14 +192,26 @@ export const RunScreen: React.FC = () => {
     void fetchData();
   }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
-  const onFormSubmit = () => {
+  const onFormSubmit = useCallback(() => {
     setAvailableTables(undefined);
     setAvailableImages([]);
     setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
-  };
+  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
+
+  useEffect(() => {
+    if (!runName) return;
+
+    const updates = new EventSource(
+      `${API_ROOT}run_updates/?run_name=${encodeURIComponent(runName)}`,
+    );
+    updates.onmessage = onFormSubmit;
+    return () => {
+      updates.close();
+    };
+  }, [runName, onFormSubmit]);
 
   const handleDownloadPlot = (plot: Figure) => {
     setSelectedPlot(plot);

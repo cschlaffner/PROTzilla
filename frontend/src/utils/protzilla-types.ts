@@ -49,6 +49,7 @@ export const enum SectionIDs {
   DataPreprocessing = "data_preprocessing",
   DataAnalysis = "data_analysis",
   DataIntegration = "data_integration",
+  Custom = "custom",
 }
 
 export interface Section {
@@ -72,6 +73,10 @@ export const supportedSections: Section[] = [
   {
     id: SectionIDs.DataIntegration,
     name: "Data Integration",
+  },
+  {
+    id: SectionIDs.Custom,
+    name: "Custom",
   },
 ];
 

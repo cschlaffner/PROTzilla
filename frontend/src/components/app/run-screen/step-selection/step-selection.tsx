@@ -1,11 +1,14 @@
 import type { IconType } from "@protzilla/core";
 import {
   Button,
+  DeleteModal,
   GrayButton,
   Icon,
   IconButton,
   iconColor,
   Modal,
+  NameModal,
+  SecondaryButton,
   SectionTitle,
   ToggleableButton,
 } from "@protzilla/core";
@@ -22,6 +25,7 @@ const sectionModes = {
   [SectionIDs.DataPreprocessing]: "Data Preprocessing",
   [SectionIDs.DataAnalysis]: "Data Analysis",
   [SectionIDs.DataIntegration]: "Data Integration",
+  [SectionIDs.Custom]: "Custom",
 };
 
 const allSteps = "All steps";
@@ -34,6 +38,11 @@ export interface StepItem {
   operation_display_name: string;
   method_description: string;
   calculation_status: string;
+}
+
+interface CustomStepTemplate {
+  name: string;
+  step_name: string;
 }
 
 const stepOperationIconMap: Partial<Record<string, string>> = {
@@ -56,6 +65,11 @@ const stepOperationIconMap: Partial<Record<string, string>> = {
 
 const fetchStepList = async (): Promise<StepItem[]> => {
   return callApi("step_list/");
+};
+
+const fetchCustomSteps = async (): Promise<CustomStepTemplate[]> => {
+  const response = await callApi("custom_steps/");
+  return response.data;
 };
 
 const WideModal = styled(Modal)`
@@ -99,6 +113,17 @@ const StepList = styled.div`
 
 const StepWrapper = styled.div`
   padding: ${spacing("listButtonPadding")};
+`;
+
+const CustomStepWrapper = styled(StepWrapper)`
+  display: flex;
+  align-items: center;
+  gap: ${spacing("verySmall")};
+`;
+
+const CustomStepActions = styled.div`
+  display: flex;
+  margin-left: auto;
 `;
 
 const LightGrayButton = styled(GrayButton)`
@@ -158,8 +183,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - Step list handling - - -
   const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
-  const [listMode, setListMode] = useState<string>(); // now for operations
+  const [listMode, setListMode] = useState(allSteps);
   const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+  const [customSteps, setCustomSteps] = useState<CustomStepTemplate[]>([]);
+  const [customStepToRename, setCustomStepToRename] = useState<CustomStepTemplate | null>(null);
+  const [customStepToDelete, setCustomStepToDelete] = useState<CustomStepTemplate | null>(null);
 
   useEffect(() => {
     if (!selectedSection) return;
@@ -214,6 +242,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     [stepsGroupedByOperation],
   );
 
+  const operationTitle = (operation: string) =>
+    section === SectionIDs.Custom && operation === "others"
+      ? "Create blank Step"
+      : stepsGroupedByOperation[operation][0].operation_display_name;
+
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
     await callApiWithParameters("add_step/", {
@@ -224,6 +257,18 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     });
   };
 
+  const updateCustomStep = async (action: string, name: string, new_name = "") => {
+    const response = await callApiWithParameters("custom_steps/", {
+      action,
+      name,
+      new_name,
+      run_name: runName,
+    });
+    if (!response.success) return;
+    if (action === "add") onAddStep();
+    else setCustomSteps(await fetchCustomSteps());
+  };
+
   // - - - Modal handling - - -
   const [isModalOpen, openModal, closeModal] = useToggleableState(false);
   const refModal = useRef<HTMLDivElement>(null);
@@ -232,6 +277,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   const handleOpenModal = () => {
     openModal();
     setSelectedSection(section);
+    if (section === SectionIDs.Custom) void fetchCustomSteps().then(setCustomSteps);
   };
 
   // - - - Step description dropdown - - -
@@ -286,10 +332,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
             <MakeRowDiv>
               <SectionSelection>
                 {operationModes.map((mode: string) => {
-                  const buttonLabel =
-                    mode === "All steps"
-                      ? "All Steps"
-                      : (stepsGroupedByOperation[mode][0]?.operation_display_name ?? "Unknown");
+                  const buttonLabel = mode === "All steps" ? "All Steps" : operationTitle(mode);
                   return (
                     <SectionButton
                       key={mode}
@@ -319,7 +362,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       .filter((op) => op !== allSteps)
                       .map((operation) => {
                         const icon = stepOperationIconMap[operation] ?? (section as IconType);
-                        const title = stepsGroupedByOperation[operation][0].operation_display_name;
+                        const title = operationTitle(operation);
 
                         return (
                           <div key={operation}>
@@ -366,20 +409,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <OperationIconWrapper>
-                          <Icon
-                            icon={
-                              // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                              (stepOperationIconMap[listMode as string] ?? section) as IconType
-                            }
-                          />
+                          <Icon icon={(stepOperationIconMap[listMode] ?? section) as IconType} />
                         </OperationIconWrapper>
                         <SectionTitle
                           baseComponent={"h3"}
-                          description={
-                            // eslint-disable-next-line
-                            stepsGroupedByOperation[listMode as string]?.[0]
-                              .operation_display_name || ""
-                          }
+                          description={operationTitle(listMode)}
                         ></SectionTitle>
                       </div>
                       <div style={{ padding: "10px 10px 10px 20px" }}>
@@ -412,11 +446,70 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       </div>
                     </div>
                   )}
+                  {section === SectionIDs.Custom && customSteps.length > 0 && (
+                    <div>
+                      <SectionTitle baseComponent={"h3"} description={"Saved custom steps"} />
+                      {customSteps.map((template) => (
+                        <CustomStepWrapper key={template.name}>
+                          <LightGrayButton
+                            onPress={() => void updateCustomStep("add", template.name)}
+                            text={template.step_name}
+                          />
+                          <CustomStepActions>
+                            <SecondaryButton
+                              isSmall={true}
+                              isShy={true}
+                              onPress={() => {
+                                setCustomStepToRename(template);
+                              }}
+                            >
+                              <Icon icon={"edit"} style={{ height: "15px" }} />
+                            </SecondaryButton>
+                            <SecondaryButton
+                              isSmall={true}
+                              isShy={true}
+                              isCautious={true}
+                              onPress={() => {
+                                setCustomStepToDelete(template);
+                              }}
+                            >
+                              <Icon icon={"trash"} style={{ height: "15px" }} />
+                            </SecondaryButton>
+                          </CustomStepActions>
+                        </CustomStepWrapper>
+                      ))}
+                    </div>
+                  )}
                 </StepList>
               </div>
             </MakeRowDiv>
           </BorderDiv>
         </WideModal>
+        <NameModal
+          title="Rename custom step"
+          label="With custom step name:"
+          submitLabel="Rename custom step"
+          initialValue={customStepToRename?.step_name}
+          isOpen={customStepToRename !== null}
+          onClose={() => {
+            setCustomStepToRename(null);
+          }}
+          onSubmit={(name) => {
+            if (customStepToRename) void updateCustomStep("rename", customStepToRename.name, name);
+            setCustomStepToRename(null);
+          }}
+        />
+        <DeleteModal
+          title={`Delete custom step "${customStepToDelete?.step_name ?? ""}"?`}
+          isOpen={customStepToDelete !== null}
+          onClose={() => {
+            setCustomStepToDelete(null);
+          }}
+          onConfirm={() => {
+            if (customStepToDelete) void updateCustomStep("delete", customStepToDelete.name);
+            setCustomStepToDelete(null);
+          }}
+        />
       </div>
     </div>
   );

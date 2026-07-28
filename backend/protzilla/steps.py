@@ -12,7 +12,7 @@ import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
-from backend.protzilla.form import FormInputType, Form, InputField
+from backend.protzilla.form import FormInputType, Form, InputField, TextField
 from backend.protzilla.utilities.utilities import format_trace, name_to_title
 
 # to avoid circular imports
@@ -35,6 +35,7 @@ class Section(StrEnum):
     DATA_PREPROCESSING = "data_preprocessing"
     DATA_ANALYSIS = "data_analysis"
     DATA_INTEGRATION = "data_integration"
+    CUSTOM = "custom"
     NOT_CATEGORIZED = "others"
 
 
@@ -123,6 +124,7 @@ class Step(ABC):
         self.disk_write_mutex = Lock()
 
         self.form = self.create_form()
+        self.add_step_name_field()
 
         # Keeps track of calculations to avoid repetitive dumping
         self.artifact_versions = {
@@ -142,6 +144,17 @@ class Step(ABC):
             )
             instance_identifier = StepID(self.__class__.__name__)
         self.instance_identifier: StepID = instance_identifier
+
+    def add_step_name_field(self) -> None:
+        if "step_name" in self.form:
+            return
+        name_field = TextField(
+            name="step_name",
+            label="Step name",
+            value=self.display_name,
+        )
+        self.form.input_fields = [name_field, *self.form.input_fields]
+        self.form._field_map[name_field.name] = name_field
 
     def __repr__(self):
         return self.__class__.__name__
