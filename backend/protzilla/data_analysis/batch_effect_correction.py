@@ -382,12 +382,12 @@ def sva_correction(
         metadata_df=metadata_df,
         col_name=group_column,
     )
+    groups_int = np.array(turn_group_names_to_int(groups)).reshape(-1, 1)
     covar_mod = get_covar_mod(
         samples=wide_protein_df.index,
         metadata_df=metadata_df,
         covar_columns=covariates_columns,
     )
-    groups_int = np.array(turn_group_names_to_int(groups)).reshape(-1, 1)
     mod0 = turn_covar_df_into_design_matrix(
         wide_protein_df=wide_protein_df, covar_df=covar_mod
     )

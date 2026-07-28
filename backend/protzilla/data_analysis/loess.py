@@ -139,8 +139,8 @@ def correct_intra_batch_with_loess(
         x_qc = corrector.predict(all_samples_in_order)
 
         # different from the tidyms implementation because we expect our data to be log transformed already
-        factor = x_qc - qc_mean
-        corrected = y_all - factor
+        factor = qc_mean - x_qc
+        corrected = y_all + factor
 
         batch_wide_protein_df[protein] = pd.Series(
             corrected, index=all_samples_values.index
