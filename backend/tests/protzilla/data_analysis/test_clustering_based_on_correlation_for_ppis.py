@@ -25,6 +25,9 @@ from backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis im
     get_STRING_information_for_cluster,
     get_alphafold_query_file_for_specific_cluster,
     get_cluster_silhouette_histogram,
+    get_clusters_based_on_correlation_mean,
+    get_clusters_based_on_dbcv,
+    get_clusters_based_on_silhouette,
     get_correlation_matrix,
     get_correlation_mean_of_cluster,
     get_distance_matrix_from_correlation_matrix_df,
@@ -109,7 +112,7 @@ def test_get_STRING_information_for_cluster_returns_image_bytes_and_unknown_prot
         proteins=["Protein1", "Protein2"],
         taxonomic_identifier=9606,
         network_flavor=StringDbNetworkType.evidence,
-        min_required_string_score = 0
+        min_required_string_score=0,
     )
 
     assert image == b"fake_png"
@@ -129,7 +132,7 @@ def test_get_STRING_information_for_cluster_sends_correct_parameters(mock_STRING
     assert params["network_type"] == "physical"
     assert params["required_score"] == 0
     assert params["add_white_nodes"] == 0
-    assert params["required_string_score"] == 0
+    assert params["required_score"] == 0
     assert params["caller_identity"] == "PROTzilla"
 
 
@@ -144,10 +147,7 @@ def test_get_STRING_information_for_cluster_handles_STRING_connection_error(
 
     with pytest.raises(requests.ConnectionError):
         get_STRING_information_for_cluster(
-            ["Protein1"],
-            9606,
-            StringDbNetworkType.evidence,
-            0
+            ["Protein1"], 9606, StringDbNetworkType.evidence, 0
         )
 
 
@@ -878,19 +878,19 @@ def test_create_filtered_clusters_output_only_heatmaps(correlation_matrix_df, fa
     )
     output = create_filtered_clusters_output(
         correlation_matrix_df=correlation_matrix_df,
-        cluster_labels_df = labels_df,
+        cluster_labels_df=labels_df,
         output_name="filename",
         generate_STRING_networks=False,
         cluster_labels_to_ignore=[],
         only_include_alphafold_compatible_clusters=False,
         fasta_df=fasta_df,
         generate_alphafold_queries=False,
-        model_seed = -1,
+        model_seed=-1,
         taxonomic_identifier="9606 human",
         network_flavor=StringDbNetworkType.evidence,
-        min_required_string_score=0
+        min_required_string_score=0,
     )
-    
+
     messages = output["messages"]
     assert messages == []
 
@@ -905,11 +905,18 @@ def test_create_filtered_clusters_output_only_heatmaps(correlation_matrix_df, fa
         assert zip.namelist()[1].endswith(".png")
         assert zip.namelist()[2].endswith(".png")
 
+
 @pytest.mark.parametrize(
-        "only_include_alphafold_compatible_clusters, expected_files", [(True, []), (False, ["heatmap/filename_heatmap_0__100_residues.png"])]
+    "only_include_alphafold_compatible_clusters, expected_files",
+    [(True, []), (False, ["heatmap/filename_heatmap_0__100_residues.png"])],
 )
-def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(correlation_matrix_df, fasta_df, only_include_alphafold_compatible_clusters, expected_files):
-    fasta_df.loc[0, "Protein Sequence"] = 8000*"A"
+def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(
+    correlation_matrix_df,
+    fasta_df,
+    only_include_alphafold_compatible_clusters,
+    expected_files,
+):
+    fasta_df.loc[0, "Protein Sequence"] = 8000 * "A"
     labels_df = pd.DataFrame(
         [[1], [1], [1], [1], [1], [1]],
         columns=["Label"],
@@ -917,21 +924,21 @@ def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(corr
     )
     output = create_filtered_clusters_output(
         correlation_matrix_df=correlation_matrix_df,
-        cluster_labels_df = labels_df,
+        cluster_labels_df=labels_df,
         output_name="filename",
         generate_STRING_networks=False,
         cluster_labels_to_ignore=[],
         only_include_alphafold_compatible_clusters=only_include_alphafold_compatible_clusters,
         fasta_df=fasta_df,
         generate_alphafold_queries=False,
-        model_seed = -1,
+        model_seed=-1,
         taxonomic_identifier="9606 human",
         network_flavor=StringDbNetworkType.evidence,
-        min_required_string_score=0
+        min_required_string_score=0,
     )
-    
+
     messages = output["messages"]
-    assert len(messages)>0
+    assert len(messages) > 0
 
     assert output["downloads"].output_type == OutputType.DOWNLOAD
     zip_in_bytes = output["downloads"].value["filename.zip"]
@@ -960,7 +967,10 @@ def mock_STRING_for_output_creation(monkeypatch):
     monkeypatch.setattr(requests, "post", mock_post)
     return STRING_requests
 
-def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(correlation_matrix_df, fasta_df, mock_STRING_for_output_creation):
+
+def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(
+    correlation_matrix_df, fasta_df, mock_STRING_for_output_creation
+):
     labels_df = pd.DataFrame(
         [[1], [1], [1], [1], [1], [1]],
         columns=["Label"],
@@ -968,17 +978,17 @@ def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(
     )
     output = create_filtered_clusters_output(
         correlation_matrix_df=correlation_matrix_df,
-        cluster_labels_df = labels_df,
+        cluster_labels_df=labels_df,
         output_name="filename",
         generate_STRING_networks=True,
         cluster_labels_to_ignore=[],
         only_include_alphafold_compatible_clusters=False,
         fasta_df=fasta_df,
         generate_alphafold_queries=True,
-        model_seed = -1,
+        model_seed=-1,
         taxonomic_identifier="9606 human",
         network_flavor=StringDbNetworkType.evidence,
-        min_required_string_score=0
+        min_required_string_score=0,
     )
 
     assert output["downloads"].output_type == OutputType.DOWNLOAD
@@ -993,7 +1003,9 @@ def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(
         assert sorted(zip.namelist())[2].endswith(".png")
 
 
-def test_create_filtered_clusters_output_with_unknown_string_id(correlation_matrix_df, fasta_df, monkeypatch):
+def test_create_filtered_clusters_output_with_unknown_string_id(
+    correlation_matrix_df, fasta_df, monkeypatch
+):
     monkeypatch.setattr(
         clustering_based_on_correlation_for_ppis,
         "get_STRING_information_for_cluster",
@@ -1006,17 +1018,17 @@ def test_create_filtered_clusters_output_with_unknown_string_id(correlation_matr
     )
     output = create_filtered_clusters_output(
         correlation_matrix_df=correlation_matrix_df,
-        cluster_labels_df = labels_df,
+        cluster_labels_df=labels_df,
         output_name="filename",
         generate_STRING_networks=True,
         cluster_labels_to_ignore=[],
         only_include_alphafold_compatible_clusters=False,
         fasta_df=fasta_df,
         generate_alphafold_queries=True,
-        model_seed = -1,
+        model_seed=-1,
         taxonomic_identifier="9606 human",
         network_flavor=StringDbNetworkType.evidence,
-        min_required_string_score = 0
+        min_required_string_score=0,
     )
 
     assert output["downloads"].output_type == OutputType.DOWNLOAD
@@ -1027,4 +1039,106 @@ def test_create_filtered_clusters_output_with_unknown_string_id(correlation_matr
         assert sorted(zip.namelist())[1].startswith("heatmap/")
         assert sorted(zip.namelist())[0].endswith(".json")
         assert sorted(zip.namelist())[1].endswith(".png")
-        
+
+
+def return_fifth_arg(*args, **kwargs):
+    return args[4]
+
+
+@mock.patch(
+    "backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis.create_filtered_clusters_output"
+)
+def test_get_clusters_based_on_dbcv(
+    mock_create_filtered_clusters_output, fasta_df, correlation_matrix_df
+):
+    mock_create_filtered_clusters_output.side_effect = return_fifth_arg
+
+    output = get_clusters_based_on_dbcv(
+        threshold=0.8,
+        cluster_labels_df=pd.DataFrame(
+            [[1], [1], [2], [2], [0], [0]],
+            columns=["Label"],
+            index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+        ),
+        correlation_matrix_df=correlation_matrix_df,
+        dbcv_scores_df=pd.DataFrame(
+            [[0.5], [0.8], [0.9]],
+            columns=["DBCV"],
+        ),
+        output_name="name",
+        generate_STRING_networks=False,
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=False,
+        model_seed=-1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=150,
+    )
+    assert sorted(output) == [-1, 0]
+
+
+@mock.patch(
+    "backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis.create_filtered_clusters_output"
+)
+def test_get_clusters_based_on_silhouette(
+    mock_create_filtered_clusters_output, fasta_df, correlation_matrix_df
+):
+    mock_create_filtered_clusters_output.side_effect = return_fifth_arg
+
+    output = get_clusters_based_on_silhouette(
+        threshold=0.8,
+        cluster_labels_df=pd.DataFrame(
+            [[1], [1], [2], [2], [0], [0]],
+            columns=["Label"],
+            index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+        ),
+        correlation_matrix_df=correlation_matrix_df,
+        silhouette_scores_df=pd.DataFrame(
+            [[0.5], [0.8], [0.9]],
+            columns=["Silhouette"],
+        ),
+        output_name="name",
+        generate_STRING_networks=False,
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=False,
+        model_seed=-1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=150,
+    )
+    assert sorted(output) == [-1, 0]
+
+
+@mock.patch(
+    "backend.protzilla.data_analysis.clustering_based_on_correlation_for_ppis.create_filtered_clusters_output"
+)
+def test_get_clusters_based_on_correlation_mean(
+    mock_create_filtered_clusters_output, fasta_df, correlation_matrix_df
+):
+    mock_create_filtered_clusters_output.side_effect = return_fifth_arg
+
+    output = get_clusters_based_on_correlation_mean(
+        threshold=0.8,
+        cluster_labels_df=pd.DataFrame(
+            [[1], [1], [2], [2], [0], [0]],
+            columns=["Label"],
+            index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
+        ),
+        correlation_matrix_df=correlation_matrix_df,
+        cluster_correlation_means_df=pd.DataFrame(
+            [[0.5], [0.8], [0.9]],
+            columns=["Correlation Mean"],
+        ),
+        output_name="name",
+        generate_STRING_networks=False,
+        only_include_alphafold_compatible_clusters=False,
+        fasta_df=fasta_df,
+        generate_alphafold_queries=False,
+        model_seed=-1,
+        taxonomic_identifier="9606 human",
+        network_flavor=StringDbNetworkType.evidence,
+        min_required_string_score=150,
+    )
+    assert sorted(output) == [-1, 0]

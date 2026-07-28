@@ -2592,7 +2592,11 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
 
 
 class HDBSCAN(DataAnalysisStep):
-    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.DBCV_SCORES_DF, DataKey.CLUSTER_CORRELATION_MEANS_DF]
+    output_keys = [
+        DataKey.CLUSTER_LABELS_DF,
+        DataKey.DBCV_SCORES_DF,
+        DataKey.CLUSTER_CORRELATION_MEANS_DF,
+    ]
     display_name = "HDBSCAN"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes HDBSCAN clustering on a distance matrix."
@@ -2651,9 +2655,9 @@ class ClusterSelectionStep(DataAnalysisStep):
                 NumberField(
                     name="min_required_string_score",
                     label="Minimum required STRING score for a connection to be included in the network image",
-                    value = 150,
-                    min = 0,
-                    max=1000
+                    value=150,
+                    min=0,
+                    max=1000,
                 ),
                 CheckboxField(
                     name="only_include_alphafold_compatible_clusters",
@@ -2742,7 +2746,11 @@ class GetClustersBasedOnSilhouette(ClusterSelectionStep):
 
 
 class HierarchicalClustering(DataAnalysisStep):
-    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.SILHOUETTE_SCORES_DF, DataKey.CLUSTER_CORRELATION_MEANS_DF]
+    output_keys = [
+        DataKey.CLUSTER_LABELS_DF,
+        DataKey.SILHOUETTE_SCORES_DF,
+        DataKey.CLUSTER_CORRELATION_MEANS_DF,
+    ]
     display_name = "Hierarchical Clustering"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes Hierarchical clustering on a distance matrix."
@@ -2777,7 +2785,11 @@ class HierarchicalClustering(DataAnalysisStep):
 
 
 class KMedoidsClustering(DataAnalysisStep):
-    output_keys = [DataKey.CLUSTER_LABELS_DF, DataKey.SILHOUETTE_SCORES_DF, DataKey.CLUSTER_CORRELATION_MEANS_DF]
+    output_keys = [
+        DataKey.CLUSTER_LABELS_DF,
+        DataKey.SILHOUETTE_SCORES_DF,
+        DataKey.CLUSTER_CORRELATION_MEANS_DF,
+    ]
     display_name = "K-Medoids"
     operation = "Clustering For Protein-Protein-Interactions"
     method_description = "Executes k-medoids clustering with FasterPAM from kmedoids library on a distance matrix."

@@ -58,7 +58,7 @@ def get_STRING_information_for_cluster(
     proteins: list[str],
     taxonomic_identifier: int,
     network_flavor: StringDbNetworkType,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> tuple[bytes, int]:
     """Fetches a PNG image of all known physical interactions between the proteins from the STRING API.
     Attention: There is no warning if STRING does not know one or more of the proteins.
@@ -396,9 +396,9 @@ def hdbscan_for_ppi(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(dbcv_per_cluster, columns=["DBCV"]),
         ),
-        cluster_correlation_means_df = OutputItem(
+        cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"])
+            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
         ),
         histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_dbcv)),
         histogram_correlation_means=OutputItem(
@@ -451,7 +451,7 @@ def save_STRING_network(
     output_name: str,
     cluster_id: int,
     number_of_residues_in_cluster: int,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> None:
     string_data, number_of_ids_not_known_by_STRING = get_STRING_information_for_cluster(
         proteins, taxonomic_id, network_flavor, min_required_string_score
@@ -480,7 +480,7 @@ def create_filtered_clusters_output(
     model_seed: int,
     taxonomic_identifier: str,
     network_flavor: StringDbNetworkType,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> dict:
     """Create a zip file containing the user requested data (heatmaps, STRING networks, AlphaFold query files)
     for all clusters that are not in cluster_labels_to_ignore."""
@@ -532,7 +532,7 @@ def create_filtered_clusters_output(
                         output_name,
                         cluster_id,
                         number_of_residues_in_cluster,
-                        min_required_string_score
+                        min_required_string_score,
                     )
                 except Exception:
                     at_least_one_failed_string_request = True
@@ -583,7 +583,7 @@ def get_clusters_based_on_correlation_mean(
     model_seed: int,
     taxonomic_identifier: str,
     network_flavor: StringDbNetworkType,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> dict:
     """Selects all clusters with a mean correlation above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -609,10 +609,7 @@ def get_clusters_based_on_correlation_mean(
     for label in cluster_labels_df["Label"].unique():
         if label == -1:
             continue
-        if (
-            cluster_correlation_means_df.loc[label, "Correlation Mean"]
-            < threshold
-        ):
+        if cluster_correlation_means_df.loc[label, "Correlation Mean"] < threshold:
             cluster_labels_to_ignore.append(label)
 
     return create_filtered_clusters_output(
@@ -627,7 +624,7 @@ def get_clusters_based_on_correlation_mean(
         model_seed,
         taxonomic_identifier,
         network_flavor,
-        min_required_string_score
+        min_required_string_score,
     )
 
 
@@ -644,7 +641,7 @@ def get_clusters_based_on_dbcv(
     model_seed: int,
     taxonomic_identifier: str,
     network_flavor: StringDbNetworkType,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> dict:
     """Selects all clusters with a dbcv score above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -682,7 +679,7 @@ def get_clusters_based_on_dbcv(
         model_seed,
         taxonomic_identifier,
         network_flavor,
-        min_required_string_score
+        min_required_string_score,
     )
 
 
@@ -732,9 +729,9 @@ def hierarchical_clustering_for_ppi(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
         ),
-        cluster_correlation_means_df = OutputItem(
+        cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"])
+            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
         ),
         histogram_silhouette=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)
@@ -765,7 +762,7 @@ def get_clusters_based_on_silhouette(
     model_seed: int,
     taxonomic_identifier: str,
     network_flavor: StringDbNetworkType,
-    min_required_string_score: int
+    min_required_string_score: int,
 ) -> dict:
     """Selects all clusters with a Silhouette score above a certain threshold and
     creates the requested output zip (heatmaps, STRING networks, AlphaFold json queries) for them.
@@ -784,8 +781,10 @@ def get_clusters_based_on_silhouette(
     :return: A dict that contains a zip that contains heatmaps for the selected clusters
     and that might also contain STRING network images and AlphaFold server json queries.
     """
-    cluster_labels_to_ignore = []
+    cluster_labels_to_ignore = [-1]
     for label in cluster_labels_df["Label"].unique():
+        if label == -1:
+            continue
         if silhouette_scores_df.loc[label, "Silhouette"] < threshold:
             cluster_labels_to_ignore.append(label)
     return create_filtered_clusters_output(
@@ -800,7 +799,7 @@ def get_clusters_based_on_silhouette(
         model_seed,
         taxonomic_identifier,
         network_flavor,
-        min_required_string_score
+        min_required_string_score,
     )
 
 
@@ -1024,7 +1023,7 @@ def k_medoids_for_ppi(
     )
 
     if len(clusters) == 0:
-        msg="No cluster was found."
+        msg = "No cluster was found."
         return dict(
             messages=[dict(level=logging.Error, msg=msg)],
         )
@@ -1063,9 +1062,9 @@ def k_medoids_for_ppi(
             output_type=OutputType.DATAFRAME,
             value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
         ),
-        cluster_correlation_means_df = OutputItem(
+        cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"])
+            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
         ),
         histogram_silhouette=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)
