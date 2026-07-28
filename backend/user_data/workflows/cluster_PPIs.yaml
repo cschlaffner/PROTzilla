@@ -1,0 +1,255 @@
+current_step_id: s00012_KMedoidsClustering
+df_mode: Standard
+graph_edges:
+- !!python/tuple
+  - s00001_MaxQuantImport
+  - s00004_GenerateFastaWithUniProt
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00001_MaxQuantImport
+  - s00003_ImputationByKNN
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00003_ImputationByKNN
+  - s00005_CorrelationMatrix
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00003_ImputationByKNN
+  - s00010_HDBSCAN
+  - source_handle: protein_df
+    target_handle: protein_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00005_CorrelationMatrix
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00007_GetClustersBasedOnDBCV
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00009_GetClustersBasedOnSilhouette
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00006_DistanceMatrixBasedOnCorrelationMatrix
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00011_HierarchicalClustering
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00012_KMedoidsClustering
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00010_HDBSCAN
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00007_GetClustersBasedOnDBCV
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00009_GetClustersBasedOnSilhouette
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00006_DistanceMatrixBasedOnCorrelationMatrix
+  - s00010_HDBSCAN
+  - source_handle: distance_matrix_df
+    target_handle: distance_matrix_df
+- !!python/tuple
+  - s00006_DistanceMatrixBasedOnCorrelationMatrix
+  - s00011_HierarchicalClustering
+  - source_handle: distance_matrix_df
+    target_handle: distance_matrix_df
+- !!python/tuple
+  - s00006_DistanceMatrixBasedOnCorrelationMatrix
+  - s00012_KMedoidsClustering
+  - source_handle: distance_matrix_df
+    target_handle: distance_matrix_df
+- !!python/tuple
+  - s00010_HDBSCAN
+  - s00007_GetClustersBasedOnDBCV
+  - source_handle: dbcv_scores_df
+    target_handle: dbcv_scores_df
+- !!python/tuple
+  - s00010_HDBSCAN
+  - s00007_GetClustersBasedOnDBCV
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+- !!python/tuple
+  - s00011_HierarchicalClustering
+  - s00009_GetClustersBasedOnSilhouette
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+- !!python/tuple
+  - s00011_HierarchicalClustering
+  - s00009_GetClustersBasedOnSilhouette
+  - source_handle: silhouette_scores_df
+    target_handle: silhouette_scores_df
+- !!python/tuple
+  - s00012_KMedoidsClustering
+  - s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_correlation_means_df
+    target_handle: cluster_correlation_means_df
+- !!python/tuple
+  - s00012_KMedoidsClustering
+  - s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+id_clock: 12
+steps:
+- form_inputs:
+    aggregation_method: Sum
+    file_path: null
+    ignore_only_identified_by_site: false
+    intensity_name: Intensity
+    map_to_uniprot: false
+  instance_identifier: s00001_MaxQuantImport
+  type: MaxQuantImport
+  visual_data:
+    node_position:
+      x: 164.29950514186356
+      y: -429.7518972909771
+- form_inputs:
+    graph_type: Boxplot
+    graph_type_quantities: Pie chart
+    group_by: None
+    number_of_neighbours: 5
+    show_outliers: false
+    visual_transformation: log10
+  instance_identifier: s00003_ImputationByKNN
+  type: ImputationByKNN
+  visual_data:
+    node_position:
+      x: 289.5869877866474
+      y: -294.12699564168537
+- form_inputs: {}
+  instance_identifier: s00004_GenerateFastaWithUniProt
+  type: GenerateFastaWithUniProt
+  visual_data:
+    node_position:
+      x: -28.14486996143353
+      y: -291.5435642602135
+- form_inputs:
+    method: pearson
+  instance_identifier: s00005_CorrelationMatrix
+  type: CorrelationMatrix
+  visual_data:
+    node_position:
+      x: 151.0219267198844
+      y: -171.62251482186002
+- form_inputs:
+    distance_method: sqrt(2*(1-correlation))
+    hdbscan_suitable: true
+  instance_identifier: s00006_DistanceMatrixBasedOnCorrelationMatrix
+  type: DistanceMatrixBasedOnCorrelationMatrix
+  visual_data:
+    node_position:
+      x: 148.0219267198844
+      y: -62.69679391188228
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.85
+  instance_identifier: s00007_GetClustersBasedOnDBCV
+  type: GetClustersBasedOnDBCV
+  visual_data:
+    node_position:
+      x: -156.0
+      y: 223.30908026753536
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.85
+  instance_identifier: s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  type: GetClustersBasedOnIntraClusterCorrelationMean
+  visual_data:
+    node_position:
+      x: 463.99999999999994
+      y: 217.30320658812695
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.85
+  instance_identifier: s00009_GetClustersBasedOnSilhouette
+  type: GetClustersBasedOnSilhouette
+  visual_data:
+    node_position:
+      x: 154.0
+      y: 218.37748517813998
+- form_inputs:
+    min_cluster_size: 2
+  instance_identifier: s00010_HDBSCAN
+  type: HDBSCAN
+  visual_data:
+    node_position:
+      x: -150.82602442670515
+      y: 91.73291752412297
+- form_inputs:
+    deep_split: 3
+    linkage_method: average
+    min_cluster_size: 2
+  instance_identifier: s00011_HierarchicalClustering
+  type: HierarchicalClustering
+  visual_data:
+    node_position:
+      x: 157.79349389332367
+      y: 93.00940530857002
+- form_inputs:
+    average_expected_cluster_size: 25
+    continue_subsampling_as_long_as_silhouette_improves: true
+    max_cluster_size: 50
+    min_cluster_size: 2
+    min_correlation_mean: 0.7
+    min_number_of_silhouette_scores_to_inspect: 5
+    random_seed: 0
+    stop_criterion: each cluster contains at most x proteins
+  instance_identifier: s00012_KMedoidsClustering
+  type: KMedoidsClustering
+  visual_data:
+    node_position:
+      x: 466.79349389332367
+      y: 89.30320658812695
