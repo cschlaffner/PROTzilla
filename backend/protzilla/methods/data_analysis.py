@@ -50,6 +50,7 @@ from backend.protzilla.utilities.clustergram import (
     HEATMAP_HIGH_COLOR,
 )
 from backend.protzilla.data_analysis.ptm_analysis import (
+    ptm_validation,
     ptms_per_protein_and_sample,
     ptms_per_sample,
 )
@@ -2419,7 +2420,7 @@ class CrosslinkingValidationWithAngstromStep(DataAnalysisStep):
 
             bounds_visible = (
                 form["validation_criterion"].value
-                == CrosslinkingValidationCriterion.manual_bounds.value
+                == CrosslinkingValidationCriterion.manual_bounds
             )
             form[f"{crosslinker}_upper_accepted_deviation"].isVisible = bounds_visible
             form[f"{crosslinker}_lower_accepted_deviation"].isVisible = bounds_visible
@@ -2510,5 +2511,27 @@ class CrosslinkingValidationWithAngstromDeviationForMultimer(
                 InfoField(
                     label="Set default crosslink lengths and their upper/lower deviations in settings under 'Crosslinks Defaults'.",
                 ),
+            ],
+        )
+
+
+class PtmValidation(PeptideAnalysisStep):
+    display_name = "PTM Validation"
+    method_description = "Validates PTMs in protein structure predictions."
+    output_keys = ["ptm_collisions_df"]
+    calc_method = staticmethod(ptm_validation)
+
+    def create_form(self):
+        return Form(
+            label="PTM Validation",
+            input_fields=[
+                NumberField(
+                    name="ignored_neighbors",
+                    label="Number of PTM residue neighbors to ignore",
+                    value=0,
+                    min=0,
+                    step=1,
+                    hasStepButtons=True,
+                )
             ],
         )

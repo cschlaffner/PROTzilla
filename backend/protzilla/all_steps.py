@@ -83,6 +83,7 @@ _forward_mapping: list[Step] = [
     data_analysis.PTMDetailsVisualization,
     data_analysis.CrosslinkingValidationWithAngstromDeviation,
     data_analysis.CrosslinkingValidationWithAngstromDeviationForMultimer,
+    data_analysis.PtmValidation,
     data_preprocessing.ImputationByMinPerSample,
     data_integration.EnrichmentAnalysisGOAnalysisWithString,
     data_integration.EnrichmentAnalysisGOAnalysisWithEnrichr,

@@ -29,7 +29,6 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { CrosslinkerInformation } from "../../core/shared/molstar-viewer/crosslinker-processing";
 import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
@@ -155,13 +154,14 @@ export const RunScreen: React.FC = () => {
       structureEntryId: response.data.structureEntryId,
       cifString: response.data.cifString,
       crosslinks: response.data.crosslinks,
+      trimeshMeshes: response.data.trimeshMeshes,
     }),
     [],
   );
   const visualizations = useCertainStepOutputs<
     StepOutputInfo,
     ApiResponse<Visualization>,
-    { structureEntryId: string; cifString: string; crosslinks?: CrosslinkerInformation[] }
+    Visualization
   >({
     available_outputs: availableVisualizations,
     endpoint: "get_step_visualizations/",
@@ -380,7 +380,11 @@ export const RunScreen: React.FC = () => {
       {visualizations.length > 0 ? (
         visualizations.map((viz) => (
           <StyledContentDiv key={viz.structureEntryId}>
-            <MolstarViewer cifText={viz.cifString} crosslinks={viz.crosslinks} />
+            <MolstarViewer
+              cifText={viz.cifString}
+              crosslinks={viz.crosslinks}
+              trimeshMeshes={viz.trimeshMeshes}
+            />
           </StyledContentDiv>
         ))
       ) : (

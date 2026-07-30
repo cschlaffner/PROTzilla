@@ -60,7 +60,7 @@ class PValueColumnName(StrEnum):
     ptm = "PTM"
 
 
-class CrosslinkingValidationCriterion(Enum):
+class CrosslinkingValidationCriterion(StrEnum):
     manual_bounds = "Manual Bounds (set below)"
     max_pae = "CL length +/- maximum PAE between sites"
     min_pae = "CL length +/- minimum PAE between sites"

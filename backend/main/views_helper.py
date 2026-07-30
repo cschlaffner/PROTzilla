@@ -5,6 +5,10 @@ import numpy as np
 import pandas as pd
 
 from backend.protzilla.constants.paths import SETTINGS_PATH
+from backend.protzilla.data_analysis.amino_acid_spheres import (
+    calculate_amino_acid_spheres,
+    calculate_ptm_spheres,
+)
 from backend.protzilla.disk_operator import YamlOperator
 from backend.protzilla.steps import Step
 from backend.protzilla.step_manager import StepManager
@@ -211,6 +215,8 @@ def create_visualization(
     cif_df: pd.DataFrame,
     structure_entry_id: str,
     crosslinking_df: pd.DataFrame | None = None,
+    include_ptm_spheres: bool = False,
+    ignored_neighbors: int = 0,
 ) -> dict:
     """
     Create visualization data, by packaging a mmCIF string (converted from a CIF DataFrame) with its structure entry ID.
@@ -232,6 +238,14 @@ def create_visualization(
         cif_string = ""
 
     result = {"structureEntryId": structure_entry_id, "cifString": cif_string}
+
+    if include_ptm_spheres:
+        result["trimeshMeshes"] = calculate_amino_acid_spheres(
+            cif_df,
+            only_intersecting_ptms=True,
+            ignored_neighbors=int(ignored_neighbors),
+        )
+        result["trimeshMeshes"].extend(calculate_ptm_spheres(cif_df))
 
     if crosslinking_df is not None:
         result["crosslinks"] = extract_relevant_crosslink_information(crosslinking_df)
@@ -290,8 +304,8 @@ def extract_relevant_crosslink_information(
     As well as a boolean for its validity and wether it is an intra or inter crosslink.
 
     :param crosslinking_df: DataFrame with columns
-        'crosslinker_position1',
-        'crosslinker_position2',
+        '1_based_crosslinker_position1',
+        '1_based_crosslinker_position2',
         'Chain_id1',
         'Chain_id2',
         'reactive_atom1'
@@ -310,8 +324,8 @@ def extract_relevant_crosslink_information(
     """
     crosslinks = []
     for _, row in crosslinking_df.iterrows():
-        position1 = row.get("crosslinker_position1")
-        position2 = row.get("crosslinker_position2")
+        position1 = row.get("1_based_crosslinker_position1")
+        position2 = row.get("1_based_crosslinker_position2")
         chain_id1 = row.get("Chain_id1")
         chain_id2 = row.get("Chain_id2")
         reactive_atom1 = row.get("reactive_atom1")

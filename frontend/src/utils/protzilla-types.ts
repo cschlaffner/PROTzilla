@@ -35,10 +35,23 @@ export interface Download {
   json_downloads: Record<string, unknown>;
 }
 
+export interface TrimeshMesh {
+  vertices: number[][];
+  faces: number[][];
+}
+
+export interface TrimeshShape {
+  label: string;
+  mesh: TrimeshMesh;
+  color?: number;
+  alpha?: number;
+}
+
 export interface Visualization {
   structureEntryId: string;
   cifString: string;
   crosslinks?: CrosslinkerInformation[];
+  trimeshMeshes?: TrimeshShape[];
 }
 
 // We assume these are the only data types we receive for tables
