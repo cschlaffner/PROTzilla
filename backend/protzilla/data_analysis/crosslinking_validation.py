@@ -187,8 +187,8 @@ def expand_crosslinks_to_exact_binding_sites(
     messages = []
 
     for _, crosslink in relevant_crosslinks_df.iterrows():
-        amino_acid_type1 = crosslink.Peptide1[crosslink.CL_position_within_peptide1 - 1]
-        amino_acid_type2 = crosslink.Peptide2[crosslink.CL_position_within_peptide2 - 1]
+        amino_acid_type1 = crosslink.Peptide1[crosslink["1_based_CL_position_within_peptide1"] - 1]
+        amino_acid_type2 = crosslink.Peptide2[crosslink["1_based_CL_position_within_peptide2"] - 1]
         index_of_last_amino_acid1 = get_index_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id1,
@@ -199,7 +199,7 @@ def expand_crosslinks_to_exact_binding_sites(
         )
         reactive_atoms1_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type1,
-            crosslink.crosslinker_position1,
+            crosslink["1_based_crosslinker_position1"],
             crosslink.Crosslinker,
             index_of_last_amino_acid1,
             REACTIVE_ATOMS,
@@ -208,7 +208,7 @@ def expand_crosslinks_to_exact_binding_sites(
         messages.extend(msg)
         reactive_atoms2_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type2,
-            crosslink.crosslinker_position2,
+            crosslink["1_based_crosslinker_position2"],
             crosslink.Crosslinker,
             index_of_last_amino_acid2,
             REACTIVE_ATOMS,

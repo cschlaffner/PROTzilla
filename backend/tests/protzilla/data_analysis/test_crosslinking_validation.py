@@ -84,8 +84,8 @@ def make_crosslink_df(
             "Protein_id2": ["P12345"],
             "Peptide1": [peptide1],
             "Peptide2": [peptide2],
-            "CL_position_within_peptide1": [pos1],
-            "CL_position_within_peptide2": [pos2],
+            "1_based_CL_position_within_peptide1": [pos1],
+            "1_based_CL_position_within_peptide2": [pos2],
             "Crosslinker": ["DSS"],
         }
     )

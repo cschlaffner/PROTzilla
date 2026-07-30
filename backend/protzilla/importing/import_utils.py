@@ -114,14 +114,14 @@ column_aliases = {
         "PepSeq2",
         "beta_sequence",
     ],
-    "CL_position_within_peptide1": [
+    "1_based_CL_position_within_peptide1": [
         "Crosslinker Position A",
         "xl_a",
         "AlphaPos",
         "LinkPos1",
         "xl_pos1",
     ],
-    "CL_position_within_peptide2": [
+    "1_based_CL_position_within_peptide2": [
         "Crosslinker Position B",
         "xl_b",
         "BetaPos",
