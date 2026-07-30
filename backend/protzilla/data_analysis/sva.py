@@ -96,17 +96,17 @@ def calculate_n_sv_leek(
 
     n_rows, n_columns = dat.shape
     a = np.linspace(0, 2, 100)
-    n = np.floor(n_columns / 10)
+    n = np.floor(n_rows / 10)
     rhat = np.zeros((100, 10))
     P = np.eye(n_columns) - mod @ np.linalg.inv(mod.T @ mod) @ mod.T
     for j in range(1, 11):
         dats = dat[0 : int(j * n), :]
         eigenvalues, eigenvector = np.linalg.eigh(dats.T @ dats)
-        sigbar = eigenvalues[n_columns - 1] / (j * n)
+        sigbar = eigenvalues[0] / (j * n)
         R = dats @ P
         wm = (1 / (j * n)) * R.T @ R - P * sigbar
         eigenvalues, eigenvector = np.linalg.eigh(wm)
-        thresholds = a * (j * n) ** (-1 / 3) * n_rows
+        thresholds = a * (j * n) ** (-1 / 3) * n_columns
         counts = np.sum(eigenvalues > thresholds[:, np.newaxis], axis=1)
         rhat[:, j - 1] = counts
     # default ddof for R is 1, for numpy it is 0
@@ -130,7 +130,7 @@ def calculate_n_sv_leek(
     stable_estimates = rhat[start : finish + 1, 9]
     vals, counts = np.unique(stable_estimates, return_counts=True)
     n_sv = vals[np.argmax(counts)]
-    return n_sv
+    return int(n_sv)
 
 
 def f_pvalue(dat: np.ndarray, mod: np.ndarray, mod0: np.ndarray) -> np.ndarray:
