@@ -489,11 +489,10 @@ def create_filtered_clusters_output(
     labels = cluster_labels_df["Label"]
     ALPHAFOLD_JOB_LIMIT = 5000
 
-    # transformation necessary due to the dropdown format containing id and organism name
-    taxonomic_id = int(taxonomic_identifier.split()[0])
-
     clusters_too_big_for_alphafold = 0
     at_least_one_failed_string_request = False
+
+    selected_clusters = []
 
     zip_buffer = BytesIO()
 
@@ -501,6 +500,7 @@ def create_filtered_clusters_output(
         for cluster_id in labels.unique():
             if cluster_id in cluster_labels_to_ignore:
                 continue
+
             proteins = get_proteins_of_specific_cluster(cluster_id, labels)
             number_of_residues_in_cluster = (
                 get_number_of_amino_acid_residues_in_cluster(
@@ -513,6 +513,8 @@ def create_filtered_clusters_output(
                 if only_include_alphafold_compatible_clusters:
                     continue
 
+            selected_clusters.append(cluster_id)
+
             save_heatmap(
                 zip,
                 proteins,
@@ -523,6 +525,8 @@ def create_filtered_clusters_output(
             )
 
             if generate_STRING_networks:
+                # transformation necessary due to the dropdown format containing id and organism name
+                taxonomic_id = int(taxonomic_identifier.split()[0])
                 try:
                     save_STRING_network(
                         zip,
@@ -565,6 +569,10 @@ def create_filtered_clusters_output(
         downloads=OutputItem(
             output_type=OutputType.DOWNLOAD,
             value={f"{output_name}.zip": zip_plot_in_bytes},
+        ),
+        selected_clusters_df=OutputItem(
+            output_type=OutputType.DATAFRAME,
+            value=pd.DataFrame(sorted(selected_clusters), columns=["Cluster Id"]),
         ),
         messages=messages,
     )

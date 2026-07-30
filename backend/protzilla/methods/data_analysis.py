@@ -2693,6 +2693,9 @@ class ClusterSelectionStep(DataAnalysisStep):
         self.form["taxonomic_identifier"].isVisible = self.form[
             "generate_STRING_networks"
         ].value
+        self.form["min_required_string_score"].isVisible = self.form[
+                    "generate_STRING_networks"
+                ].value
         self.form["network_flavor"].isVisible = self.form[
             "generate_STRING_networks"
         ].value

@@ -894,6 +894,11 @@ def test_create_filtered_clusters_output_only_heatmaps(correlation_matrix_df, fa
     messages = output["messages"]
     assert messages == []
 
+    pd.testing.assert_frame_equal(
+        output["selected_clusters_df"].value,
+        pd.DataFrame([0, 1, 2], columns=["Cluster Id"]),
+    )
+
     assert output["downloads"].output_type == OutputType.DOWNLOAD
     zip_in_bytes = output["downloads"].value["filename.zip"]
     with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
@@ -907,14 +912,15 @@ def test_create_filtered_clusters_output_only_heatmaps(correlation_matrix_df, fa
 
 
 @pytest.mark.parametrize(
-    "only_include_alphafold_compatible_clusters, expected_files",
-    [(True, []), (False, ["heatmap/filename_heatmap_0__100_residues.png"])],
+    "only_include_alphafold_compatible_clusters, expected_files, expected_clusters",
+    [(True, [], []), (False, ["heatmap/filename_heatmap_0__100_residues.png"], [1])],
 )
 def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(
     correlation_matrix_df,
     fasta_df,
     only_include_alphafold_compatible_clusters,
     expected_files,
+    expected_clusters,
 ):
     fasta_df.loc[0, "Protein Sequence"] = 8000 * "A"
     labels_df = pd.DataFrame(
@@ -939,6 +945,11 @@ def test_create_filtered_clusters_output_with_too_big_cluster_for_alphafold(
 
     messages = output["messages"]
     assert len(messages) > 0
+
+    pd.testing.assert_frame_equal(
+        output["selected_clusters_df"].value,
+        pd.DataFrame(expected_clusters, columns=["Cluster Id"]),
+    )
 
     assert output["downloads"].output_type == OutputType.DOWNLOAD
     zip_in_bytes = output["downloads"].value["filename.zip"]
@@ -991,6 +1002,9 @@ def test_create_filtered_clusters_output_with_alphafold_json_and_string_network(
         min_required_string_score=0,
     )
 
+    pd.testing.assert_frame_equal(
+        output["selected_clusters_df"].value, pd.DataFrame([1], columns=["Cluster Id"])
+    )
     assert output["downloads"].output_type == OutputType.DOWNLOAD
     zip_in_bytes = output["downloads"].value["filename.zip"]
     with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
@@ -1032,6 +1046,9 @@ def test_create_filtered_clusters_output_with_unknown_string_id(
     )
 
     assert output["downloads"].output_type == OutputType.DOWNLOAD
+    pd.testing.assert_frame_equal(
+        output["selected_clusters_df"].value, pd.DataFrame([1], columns=["Cluster Id"])
+    )
     zip_in_bytes = output["downloads"].value["filename.zip"]
     with zipfile.ZipFile(BytesIO(zip_in_bytes)) as zip:
         assert len(zip.namelist()) == 2
