@@ -2694,8 +2694,8 @@ class ClusterSelectionStep(DataAnalysisStep):
             "generate_STRING_networks"
         ].value
         self.form["min_required_string_score"].isVisible = self.form[
-                    "generate_STRING_networks"
-                ].value
+            "generate_STRING_networks"
+        ].value
         self.form["network_flavor"].isVisible = self.form[
             "generate_STRING_networks"
         ].value
@@ -2761,7 +2761,7 @@ class HierarchicalClustering(DataAnalysisStep):
 
     def create_form(self):
         return Form(
-            label="HDBSCAN for Protein-Protein-Interactions",
+            label="Hierarchical Clustering for Protein-Protein-Interactions",
             input_fields=[
                 DropdownField(
                     name="linkage_method",
