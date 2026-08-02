@@ -851,6 +851,12 @@ def validate_with_angstrom_deviation(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
 
+    if relevant_crosslinks_df.empty:
+        msg = "None of the peptide sequences were found in the protein sequence."
+        messages = [dict(level=logging.WARNING, msg=msg)]
+        logger.warning(msg)
+        return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
+
     REACTIVE_ATOMS = yaml.safe_load(
         (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
     )
