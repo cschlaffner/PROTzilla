@@ -360,8 +360,6 @@ def hdbscan_for_ppi(
     clusterer = hdbscan.HDBSCAN(
         metric="precomputed",
         min_cluster_size=min_cluster_size,
-        gen_min_span_tree=True,
-        min_samples=1,
     )
     clusterer.fit(distance_matrix)
     labels = pd.Series(clusterer.labels_, index=distance_matrix_df.index, name="Label")
@@ -390,15 +388,27 @@ def hdbscan_for_ppi(
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=labels.to_frame(),
+            value=pd.DataFrame(
+                {"Protein Id": correlation_matrix_df.columns, "Label": labels}
+            ),
         ),
         dbcv_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(dbcv_per_cluster, columns=["DBCV"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(dbcv_per_cluster)),
+                    "DBCV": dbcv_per_cluster,
+                }
+            ),
         ),
         cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(cluster_correlation_means)),
+                    "Correlation Mean": cluster_correlation_means,
+                }
+            ),
         ),
         histogram_dbcv=OutputItem(OutputType.PNG_BASE64, fig_to_base64(fig_dbcv)),
         histogram_correlation_means=OutputItem(
@@ -731,15 +741,27 @@ def hierarchical_clustering_for_ppi(
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(labels, columns=["Label"]),
+            value=pd.DataFrame(
+                {"Protein Id": correlation_matrix_df.columns, "Label": labels}
+            ),
         ),
         silhouette_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(silhouette_scores_per_cluster)),
+                    "Silhouette": silhouette_scores_per_cluster,
+                }
+            ),
         ),
         cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(cluster_correlation_means)),
+                    "Correlation Mean": cluster_correlation_means,
+                }
+            ),
         ),
         histogram_silhouette=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)
@@ -1033,7 +1055,7 @@ def k_medoids_for_ppi(
     if len(clusters) == 0:
         msg = "No cluster was found."
         return dict(
-            messages=[dict(level=logging.Error, msg=msg)],
+            messages=[dict(level=logging.ERROR, msg=msg)],
         )
 
     cluster_map: dict[str, int] = {
@@ -1064,15 +1086,27 @@ def k_medoids_for_ppi(
     return dict(
         cluster_labels_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(labels, columns=["Label"]),
+            value=pd.DataFrame(
+                {"Protein Id": correlation_matrix_df.columns, "Label": labels}
+            ),
         ),
         silhouette_scores_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(silhouette_scores_per_cluster, columns=["Silhouette"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(silhouette_scores_per_cluster)),
+                    "Silhouette": silhouette_scores_per_cluster,
+                }
+            ),
         ),
         cluster_correlation_means_df=OutputItem(
             output_type=OutputType.DATAFRAME,
-            value=pd.DataFrame(cluster_correlation_means, columns=["Correlation Mean"]),
+            value=pd.DataFrame(
+                {
+                    "Cluster Id": range(0, len(cluster_correlation_means)),
+                    "Correlation Mean": cluster_correlation_means,
+                }
+            ),
         ),
         histogram_silhouette=OutputItem(
             OutputType.PNG_BASE64, fig_to_base64(silhouette_scores_histogram)

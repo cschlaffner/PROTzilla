@@ -541,15 +541,16 @@ def test_hdbscan_for_ppi(
         min_cluster_size=2,
     )
     expected_cluster_labels_df = pd.DataFrame(
-        [[0], [0], [0], [1], [1], [1]],
-        columns=["Label"],
+        [["A-1", 0], ["B-1", 0], ["C-2", 0], ["D-1", 1], ["E-1", 1], ["F-1", 1]],
+        columns=["Protein Id", "Label"],
         index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
     )
     pd.testing.assert_frame_equal(
         output["cluster_labels_df"].value, expected_cluster_labels_df
     )
     expected_dbcv_scores_df = pd.DataFrame(
-        [[0.9792144189920727], [0.9989207800642764]], columns=["DBCV"]
+        [[0, 0.9792144189920727], [1, 0.9989207800642764]],
+        columns=["Cluster Id", "DBCV"],
     )
     pd.testing.assert_frame_equal(
         output["dbcv_scores_df"].value, expected_dbcv_scores_df
@@ -571,15 +572,16 @@ def test_hierarchical_clustering_for_ppi(
         min_cluster_size=2,
     )
     expected_cluster_labels_df = pd.DataFrame(
-        [[0], [0], [0], [1], [1], [1]],
-        columns=["Label"],
+        [["A-1", 0], ["B-1", 0], ["C-2", 0], ["D-1", 1], ["E-1", 1], ["F-1", 1]],
+        columns=["Protein Id", "Label"],
         index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
     )
     pd.testing.assert_frame_equal(
         output["cluster_labels_df"].value, expected_cluster_labels_df
     )
     expected_silhouette_scores_df = pd.DataFrame(
-        [[0.9858408387900489], [0.9989237891348767]], columns=["Silhouette"]
+        [[0, 0.9858408387900489], [1, 0.9989237891348767]],
+        columns=["Cluster Id", "Silhouette"],
     )
     pd.testing.assert_frame_equal(
         output["silhouette_scores_df"].value, expected_silhouette_scores_df
@@ -743,10 +745,14 @@ def distance_matrix_df_kmedoids(correlation_matrix_df_kmedoids):
     # with min cluster size of 2 we would prefer to cluster A-B, C-D, E-F, but this is not possible with min cluster size of 3
     [
         pytest.param(
-            2, [[2], [2], [1], [1], [0], [0]], id="most basic kmedoids subsampling run"
+            2,
+            [["A-1", 2], ["B-1", 2], ["C-2", 1], ["D-1", 1], ["E-1", 0], ["F-1", 0]],
+            id="most basic kmedoids subsampling run",
         ),
         pytest.param(
-            3, [[0], [0], [0], [0], [-1], [-1]], id="respect min cluster size"
+            3,
+            [["A-1", 0], ["B-1", 0], ["C-2", 0], ["D-1", 0], ["E-1", -1], ["F-1", -1]],
+            id="respect min cluster size",
         ),
     ],
 )
@@ -770,7 +776,7 @@ def test_kmedoids_for_ppi(
     )["cluster_labels_df"].value
     expected_cluster_labels_df = pd.DataFrame(
         expected,
-        columns=["Label"],
+        columns=["Protein Id", "Label"],
         index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
     )
     pd.testing.assert_frame_equal(labels_df, expected_cluster_labels_df)
@@ -863,8 +869,8 @@ def test_kmedoids_for_ppi_parameter_influence(
         min_number_of_silhouette_scores_to_inspect=0,
     )["cluster_labels_df"].value
     expected_cluster_labels_df = pd.DataFrame(
-        [[2], [1], [1], [2], [0], [0]],
-        columns=["Label"],
+        [["A-1", 2], ["B-1", 1], ["C-2", 1], ["D-1", 2], ["E-1", 0], ["F-1", 0]],
+        columns=["Protein Id", "Label"],
         index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"],
     )
     pd.testing.assert_frame_equal(labels_df, expected_cluster_labels_df)
