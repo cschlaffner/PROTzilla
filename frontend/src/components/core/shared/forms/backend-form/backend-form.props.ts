@@ -101,4 +101,5 @@ export interface BackendInputFieldProps {
   options?: { label: string; value: string }[];
   key: string;
   isVisible?: boolean;
+  stepId: string;
 }
