@@ -1,14 +1,18 @@
-import json
 import os
-import shutil
+
+import pandas as pd
 from pathlib import Path
 from unittest import mock
 
-import pandas as pd
+import json
 import pytest
+import shutil
 import yaml
 
 from backend.main import settings
+from backend.protzilla import disk_operator
+from backend.protzilla.constants.option_types import Separators
+from backend.protzilla.runner import Runner
 from backend.protzilla.runner import _serialize_graphs
 from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
@@ -17,8 +21,6 @@ from backend.tests.paths import (
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from backend.protzilla import disk_operator
-from backend.protzilla.runner import Runner
 from runner_cli import args_parser
 
 
@@ -239,6 +241,7 @@ def test_runner_imports(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         },
         {"percentage": 0.5, "graph_type": "Pie chart"},
         {"deviation_threshold": 2.0, "graph_type": "Pie chart"},
@@ -259,6 +262,7 @@ def test_runner_imports(
         },
         {
             "percentile": 0.5,
+            "log": False,
             "graph_type": "Boxplot",
             "group_by": "None",
             "visual_transformation": "log10",
@@ -374,6 +378,7 @@ def test_runner_calculates(
         {
             "file_path": (settings.FILE_UPLOAD_TEMP_DIR / metadata_file_path),
             "feature_orientation": "Columns (samples in rows, features in columns)",
+            "separator": Separators.comma.value,
         },
         {"percentage": 0.5, "graph_type": "Bar chart"},
     ]

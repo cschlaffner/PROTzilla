@@ -7,6 +7,7 @@ import pandas as pd
 from backend.protzilla.form import *
 from backend.protzilla import form_helper
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import Separators
 from backend.protzilla.form import (
     CheckboxField,
     DropdownField,
@@ -226,6 +227,12 @@ class MetadataImport(MetadataImportingStep):
                     label="Feature orientation",
                     options=FeatureOrientationType,
                     value=FeatureOrientationType.COLUMNS.value,
+                ),
+                DropdownField(
+                    name="separator",
+                    label="Separator",
+                    options=Separators,
+                    value=Separators.comma.value,
                 ),
             ],
         )

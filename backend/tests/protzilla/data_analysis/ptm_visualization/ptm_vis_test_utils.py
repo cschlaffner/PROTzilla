@@ -8,6 +8,7 @@ from _pytest.monkeypatch import MonkeyPatch
 
 from backend.main.views_helper import load_settings_from_file
 from backend.protzilla.constants.intensity_types import IntensityType
+from backend.protzilla.constants.option_types import Separators
 from backend.protzilla.constants.paths import SETTINGS_PATH
 from backend.protzilla.data_analysis.ptm_visualization import ptm_vis_utils
 from backend.protzilla.data_analysis.ptm_visualization.ptm_bar_plot import (
@@ -39,9 +40,11 @@ def get_evidence_df(path: Path):
 
 
 def get_metadata_df(path: Path):
-    metadata_df = metadata_import_method(file_path=path, feature_orientation="columns")[
-        "metadata_df"
-    ]
+    metadata_df = metadata_import_method(
+        file_path=path,
+        feature_orientation="columns",
+        separator=Separators.comma.value,
+    )["metadata_df"]
     return metadata_df
 
 

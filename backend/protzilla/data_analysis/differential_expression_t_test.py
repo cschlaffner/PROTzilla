@@ -321,7 +321,7 @@ def t_test(
             "Protein ID",
             "Gene",
             default_intensity_column(differentially_expressed_proteins_df),
-            "Group",
+            grouping,
             "corrected_p_value",
             "log2_fold_change",
             "t_statistic",
