@@ -32,6 +32,11 @@ export interface BackendFormData {
   input_fields: BackendInputField[];
 }
 
+export interface NamedHandle {
+  name: string;
+  type: string;
+}
+
 export type BackendInputField =
   | ({
       type: "text";
@@ -68,6 +73,14 @@ export type BackendInputField =
       name: string;
       isVisible: boolean;
     } & Omit<MultiSelectInputFieldProps, "onChange">)
+  | {
+      type: "named-handles";
+      name: string;
+      label: string;
+      isVisible: boolean;
+      options: { label: string; value: string }[];
+      value: NamedHandle[];
+    }
   | ({
       type: "dropdown";
       name: string;
@@ -92,13 +105,15 @@ type InputFields =
 
 type ExtractValueType<T> = T extends { value?: infer U } ? U : never;
 
-export type BackendInputValueType = ExtractValueType<InputFields>;
+export type BackendInputValueType = ExtractValueType<InputFields> | NamedHandle[];
 
 export interface BackendInputFieldProps {
   type: string;
   name: string;
   onChange: (name: string, value: BackendInputValueType) => void;
   options?: { label: string; value: string }[];
+  label?: string;
+  value?: BackendInputValueType;
   key: string;
   isVisible?: boolean;
 }

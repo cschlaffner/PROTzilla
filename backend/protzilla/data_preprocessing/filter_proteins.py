@@ -6,6 +6,7 @@ from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
+# --8<-- [start:by_samples_missing]
 def by_samples_missing(
     protein_df: pd.DataFrame | None,
     percentage: float = 0.5,
@@ -37,6 +38,10 @@ def by_samples_missing(
     )
 
 
+# --8<-- [end:by_samples_missing]
+
+
+# --8<-- [start:by_number_of_values_per_group]
 def by_number_of_values_per_group(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -75,11 +80,19 @@ def by_number_of_values_per_group(
     )
 
 
+# --8<-- [end:by_number_of_values_per_group]
+
+
+# --8<-- [start:by_protein_ids]
 def by_protein_ids(protein_df: pd.DataFrame, protein_ids: list[str]) -> dict:
     filtered_df = protein_df[(protein_df["Protein ID"].isin(protein_ids))]
     return dict(protein_df=filtered_df)
 
 
+# --8<-- [end:by_protein_ids]
+
+
+# --8<-- [start:keep_n_most_significant_proteins]
 def keep_n_most_significant_proteins(
     number_of_proteins_to_keep: int, differentially_expressed_proteins_df: pd.DataFrame
 ) -> dict:
@@ -102,6 +115,9 @@ def keep_n_most_significant_proteins(
         )  # keep the n proteins with the smallest p_value
     )
     return dict(differentially_expressed_proteins_df=filtered_df)
+
+
+# --8<-- [end:keep_n_most_significant_proteins]
 
 
 def by_samples_missing_plot(

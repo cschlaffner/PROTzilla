@@ -1,0 +1,135 @@
+site_name: PROTzilla Documentation
+site_description: Documentation for PROTzilla
+site_url: https://cschlaffner.github.io/PROTzilla/
+repo_url: https://github.com/cschlaffner/PROTzilla
+repo_name: cschlaffner/PROTzilla
+
+theme:
+  name: material
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+watch:
+  - backend/protzilla
+
+nav:
+  - Home: index.md
+  - User Guide:
+      - Overview: user-guide.md
+      - Installation:
+          - Linux: user-guide/Linux.md
+          - macOS: user-guide/MacOS.md
+          - Windows: user-guide/Windows.md
+          - Windows Server 2012: user-guide/WindowsServer2012.md
+  - AI Guide: ai-guide.md
+  - Step Documentation:
+      - Overview: step-documentation.md
+      - Importing:
+          - Overview: step-documentation/importing.md
+          - Example Import:
+              - Example Dataset Import: step-documentation/importing/example-dataset-import.md
+          - Fasta Import:
+              - Fasta Protein Sequence Import: step-documentation/importing/fasta-protein-sequence-import.md
+          - Metadata Import:
+              - Metadata Import: step-documentation/importing/metadata-import.md
+              - Metadata Column Assignment: step-documentation/importing/metadata-column-assignment.md
+          - Peptide Import:
+              - MaxQuant Peptide Import: step-documentation/importing/maxquant-peptide-import.md
+          - Protein Import:
+              - DIA-NN Import: step-documentation/importing/dia-nn-import.md
+              - MaxQuant Protein Groups Import: step-documentation/importing/maxquant-protein-groups-import.md
+              - MS Fragger Combined Protein Import: step-documentation/importing/ms-fragger-combined-protein-import.md
+          - PSM Import:
+              - MaxQuant Evidence Import: step-documentation/importing/maxquant-evidence-import.md
+      - Data Preprocessing:
+          - Overview: step-documentation/data-preprocessing.md
+          - Filter Peptides:
+              - "PEP Threshold": step-documentation/data-preprocessing/filter-peptides-pep-threshold.md
+              - Existing Proteins: step-documentation/data-preprocessing/filter-peptides-existing-proteins.md
+              - Existing Samples: step-documentation/data-preprocessing/filter-peptides-existing-samples.md
+          - Filter Proteins:
+              - Missing Samples: step-documentation/data-preprocessing/filter-proteins-missing-samples.md
+              - "#Values / Group": step-documentation/data-preprocessing/filter-proteins-values-per-group.md
+              - Specific IDs: step-documentation/data-preprocessing/filter-proteins-specific-ids.md
+              - Keep n Most Significant: step-documentation/data-preprocessing/filter-proteins-keep-n-most-significant.md
+          - Filter Samples:
+              - Missing Proteins: step-documentation/data-preprocessing/filter-samples-missing-proteins.md
+              - "#Proteins / Sample": step-documentation/data-preprocessing/filter-samples-proteins-per-sample.md
+              - Sum of Intensities: step-documentation/data-preprocessing/filter-samples-sum-of-intensities.md
+          - Filter PSMs:
+              - "PEP Threshold": step-documentation/data-preprocessing/filter-psms-pep-threshold.md
+              - Existing Proteins: step-documentation/data-preprocessing/filter-psms-existing-proteins.md
+              - Existing Samples: step-documentation/data-preprocessing/filter-psms-existing-samples.md
+          - Filter Metadata:
+              - Existing Samples: step-documentation/data-preprocessing/filter-metadata-existing-samples.md
+          - Imputation:
+              - kNN: step-documentation/data-preprocessing/imputation-knn.md
+              - Min per Dataset: step-documentation/data-preprocessing/imputation-min-per-dataset.md
+              - Min per Protein: step-documentation/data-preprocessing/imputation-min-per-protein.md
+              - Min per Sample: step-documentation/data-preprocessing/imputation-min-per-sample.md
+              - Normal Distribution Sampling: step-documentation/data-preprocessing/imputation-normal-distribution-sampling.md
+              - per Protein: step-documentation/data-preprocessing/imputation-per-protein.md
+          - Normalisation:
+              - Median: step-documentation/data-preprocessing/normalisation-median.md
+              - Total Sum: step-documentation/data-preprocessing/normalisation-total-sum.md
+              - Reference Protein: step-documentation/data-preprocessing/normalisation-reference-protein.md
+              - Z-Score: step-documentation/data-preprocessing/normalisation-z-score.md
+              - Width Adjustment: step-documentation/data-preprocessing/normalisation-width-adjustment.md
+          - Outlier Detection:
+              - Isolation Forest: step-documentation/data-preprocessing/outlier-detection-isolation-forest.md
+              - Local Outlier Factor: step-documentation/data-preprocessing/outlier-detection-local-outlier-factor.md
+              - PCA: step-documentation/data-preprocessing/outlier-detection-pca.md
+          - Transformation:
+              - Log: step-documentation/data-preprocessing/transformation-log.md
+              - Inversion: step-documentation/data-preprocessing/transformation-inversion.md
+          - Replicates:
+              - Group Replicates: step-documentation/data-preprocessing/group-replicates.md
+      - Data Analysis:
+          - Overview: step-documentation/data-analysis.md
+          - Differential Expression:
+              - ANOVA: step-documentation/data-analysis/differential-expression-anova.md
+              - t-Test: step-documentation/data-analysis/differential-expression-t-test.md
+              - Linear Model: step-documentation/data-analysis/differential-expression-linear-model.md
+              - Mann-Whitney Test: step-documentation/data-analysis/differential-expression-mann-whitney-test.md
+              - Kruskal-Wallis Test: step-documentation/data-analysis/differential-expression-kruskal-wallis-test.md
+              - "PTM: Mann-Whitney Test": step-documentation/data-analysis/ptm-differential-expression-mann-whitney-test.md
+              - "PTM: Kruskal-Wallis Test": step-documentation/data-analysis/ptm-differential-expression-kruskal-wallis-test.md
+          - Plots:
+              - Volcano Plot: step-documentation/data-analysis/volcano-plot.md
+              - Protein Coverage Plot: step-documentation/data-analysis/protein-coverage-plot.md
+              - Scatter Plot: step-documentation/data-analysis/scatter-plot.md
+              - Clustergram: step-documentation/data-analysis/clustergram.md
+              - Protein Quantification Plot: step-documentation/data-analysis/protein-quantification-plot.md
+              - ROC Curve Plot: step-documentation/data-analysis/roc-curve-plot.md
+              - Precision Recall Curve Plot: step-documentation/data-analysis/precision-recall-curve-plot.md
+          - Clustering:
+              - KMeans: step-documentation/data-analysis/clustering-kmeans.md
+              - EM: step-documentation/data-analysis/clustering-em.md
+              - HAC: step-documentation/data-analysis/clustering-hac.md
+          - Classification:
+              - Random Forest: step-documentation/data-analysis/classification-random-forest.md
+              - SVM: step-documentation/data-analysis/classification-svm.md
+              - Model Evaluation: step-documentation/data-analysis/classification-model-evaluation.md
+          - Dimension Reduction:
+              - t-SNE: step-documentation/data-analysis/dimension-reduction-t-sne.md
+              - UMAP: step-documentation/data-analysis/dimension-reduction-umap.md
+          - PTM Quantification and Analysis:
+              - FLEXIQuant-LF: step-documentation/data-analysis/flexiquant-lf.md
+              - MultiFLEX-LF: step-documentation/data-analysis/multiflex-lf.md
+              - PTMs per Sample: step-documentation/data-analysis/ptms-per-sample.md
+          - PTM Visualisation:
+              - Overview Plot: step-documentation/data-analysis/ptm-visualisation-overview-plot.md
+              - Bar Plot: step-documentation/data-analysis/ptm-visualisation-bar-plot.md
+              - Details Plot: step-documentation/data-analysis/ptm-visualisation-details-plot.md
+      - Custom Steps: step-documentation/custom-steps.md

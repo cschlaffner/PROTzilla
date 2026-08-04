@@ -4,6 +4,7 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "127.0.0.1:5175:5175"
 
     # volumes:
     # Use this if you want to persistently store user data
@@ -24,6 +25,7 @@ services:
       - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
+      - "127.0.0.1:5175:5175"
     networks:
       - "dev-network"
     healthcheck:
@@ -67,6 +69,14 @@ services:
     entrypoint: ["pnpm", "run", "storybook", "--no-open"]
     ports:
       - "6006:6006"
+
+  docs:
+    image: squidfunk/mkdocs-material:9.7.6
+    command: ["serve", "--livereload", "--dev-addr=0.0.0.0:8000"]
+    volumes:
+      - ".:/docs:Z"
+    ports:
+      - "5174:8000"
 
 volumes:
   uniprot:

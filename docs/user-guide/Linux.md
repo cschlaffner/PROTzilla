@@ -27,7 +27,7 @@ If you only wish to download the current state of the repository, you don't need
 
 ## Configuring PROTzilla (optional)
 
-If you'd like to tweak some settings, you can edit the [compose file](compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
+If you'd like to tweak some settings, you can edit the [compose file](https://github.com/cschlaffner/PROTzilla/blob/dev/compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
 They can be made persistent by editing this section (find the `prod` section of `services`, should be the first):
 
 ```yaml

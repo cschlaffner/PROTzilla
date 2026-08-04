@@ -38,6 +38,7 @@ def get_bar_plot_config_module(
     return plot_config_module
 
 
+# --8<-- [start:create_bar_ptm_visualization]
 def create_bar_ptm_visualization(
     psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
@@ -67,3 +68,4 @@ def create_bar_ptm_visualization(
     fig, messages = bar_plotter.create_bar_plot()
 
     return dict(plots=[fig], messages=messages)
+# --8<-- [end:create_bar_ptm_visualization]

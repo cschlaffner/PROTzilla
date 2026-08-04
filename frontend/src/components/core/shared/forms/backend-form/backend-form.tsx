@@ -1,7 +1,7 @@
 import { useNotification } from "@protzilla/app";
-import { color, fontSize, spacing, useTheme } from "@protzilla/theme";
+import { border, borderColors, color, fontSize, spacing, useTheme } from "@protzilla/theme";
 import { CalculationMessage, callApiWithParameters } from "@protzilla/utils";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import {
@@ -9,6 +9,7 @@ import {
   BackendFormProps,
   BackendInputFieldProps,
   BackendInputValueType,
+  NamedHandle,
 } from "./backend-form.props";
 import { Button } from "../../button";
 import {
@@ -47,6 +48,27 @@ const SubmitButton = styled(Button)`
   font-size: ${fontSize("default")};
 `;
 
+const HandleList = styled.div`
+  display: grid;
+  gap: ${spacing("verySmall")};
+  padding: ${spacing("verySmall")} 0 ${spacing("small")};
+`;
+
+const HandleRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: ${spacing("verySmall")};
+`;
+
+const HandleControl = styled.input`
+  border: ${border("defaultStrength")} solid ${borderColors("default")};
+  border-radius: ${border("defaultRadius")};
+  min-width: 0;
+  padding: ${spacing("verySmall")};
+`;
+
+const HandleSelect = styled(HandleControl).attrs({ as: "select" })``;
+
 export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   runName,
   buttonText,
@@ -65,6 +87,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   const [BackendFormData, setBackendFormData] = useState<BackendFormData>();
   const [isloading, setLoading] = useState(false);
   const [isCustomStepNameOpen, setIsCustomStepNameOpen] = useState(false);
+  const formUpdateRef = useRef(Promise.resolve());
 
   const getStepForm = useCallback(
     async (values: Record<string, BackendInputValueType> = {}) => {
@@ -85,8 +108,9 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   }, [current_step_id, getStepForm, runData]);
 
   const handleChange = (name: string, value: BackendInputValueType) => {
-    void getStepForm({ [name]: value });
-    onChange();
+    formUpdateRef.current = formUpdateRef.current
+      .then(() => getStepForm({ [name]: value }))
+      .then(onChange);
   };
 
   const handleNotify = (message: CalculationMessage) => {
@@ -247,6 +271,15 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
       return (
         <MultiSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
       );
+    case "named-handles":
+      return (
+        <NamedHandlesInputField
+          label={props.label}
+          value={props.value as NamedHandle[]}
+          options={options ?? []}
+          onChange={handleInputChange}
+        />
+      );
     case "file":
       return <FileInputField onChange={handleInputChange} {...props} />;
     case "form-divider":
@@ -259,3 +292,104 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
       return null;
   }
 });
+
+const NamedHandlesInputField: React.FC<{
+  label?: string;
+  value: NamedHandle[];
+  options: { label: string; value: string }[];
+  onChange: (value: NamedHandle[]) => void;
+}> = ({ label, value, options, onChange }) => {
+  const [handles, setHandles] = useState(value);
+
+  useEffect(() => {
+    setHandles(value);
+  }, [value]);
+
+  const commit = (next: NamedHandle[]) => {
+    setHandles(next);
+    onChange(next);
+  };
+
+  const uniqueName = (name: string, index = -1) => {
+    const base =
+      name
+        .trim()
+        .replace(/\W/g, "_")
+        .replace(/^(?=\d)/, "_") || "value";
+    let candidate = base;
+    let suffix = 2;
+    while (
+      handles.some((handle, handleIndex) => handleIndex !== index && handle.name === candidate)
+    ) {
+      candidate = `${base}_${String(suffix++)}`;
+    }
+    return candidate;
+  };
+
+  const addHandle = () => {
+    const type = options.find((option) => option.value === "custom_df")?.value ?? options[0]?.value;
+    if (type) {
+      commit([...handles, { name: uniqueName(type), type }]);
+    }
+  };
+
+  return (
+    <HandleList>
+      <strong>{label}</strong>
+      {handles.map((handle, index) => (
+        <HandleRow key={index}>
+          <HandleSelect
+            aria-label="Data type"
+            value={handle.type}
+            onChange={(event) => {
+              commit(
+                handles.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, type: event.target.value } : item,
+                ),
+              );
+            }}
+          >
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </HandleSelect>
+          <HandleControl
+            aria-label="Variable name"
+            placeholder="Variable name"
+            value={handle.name}
+            onChange={(event) => {
+              setHandles(
+                handles.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, name: event.target.value } : item,
+                ),
+              );
+            }}
+            onBlur={() => {
+              commit(
+                handles.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, name: uniqueName(item.name, index) } : item,
+                ),
+              );
+            }}
+          />
+          <Button
+            icon="trash"
+            isSmall
+            aria-label="Remove handle"
+            onPress={() => {
+              commit(handles.filter((_, itemIndex) => itemIndex !== index));
+            }}
+          />
+        </HandleRow>
+      ))}
+      <Button
+        icon="add"
+        isSmall
+        text={`Add ${label?.toLowerCase().replace(/s$/, "") ?? "handle"}`}
+        onPress={addHandle}
+      />
+    </HandleList>
+  );
+};

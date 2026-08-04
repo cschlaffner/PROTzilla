@@ -10,6 +10,7 @@ from backend.protzilla.data_preprocessing.plots import (
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
+# --8<-- [start:by_z_score]
 def by_z_score(protein_df: pd.DataFrame) -> dict:
     """
     A function to run the sklearn StandardScaler class on your dataframe.
@@ -49,6 +50,10 @@ def by_z_score(protein_df: pd.DataFrame) -> dict:
     return dict(protein_df=scaled_df)
 
 
+# --8<-- [end:by_z_score]
+
+
+# --8<-- [start:by_median]
 def by_median(
     protein_df: pd.DataFrame,
     percentile=0.5,  # quartile, default is median
@@ -110,6 +115,10 @@ def by_median(
     return output
 
 
+# --8<-- [end:by_median]
+
+
+# --8<-- [start:by_totalsum]
 def by_totalsum(protein_df: pd.DataFrame) -> dict:
     """
     A function to perform normalisation using the total sum
@@ -163,6 +172,10 @@ def by_totalsum(protein_df: pd.DataFrame) -> dict:
     return output
 
 
+# --8<-- [end:by_totalsum]
+
+
+# --8<-- [start:by_width_adjustment]
 def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     """
     The first, second and third quartiles (q_1, q_2, q_3) are calculated
@@ -268,6 +281,10 @@ def by_width_adjustment(protein_df: pd.DataFrame) -> dict:
     return dict(protein_df=result_df)
 
 
+# --8<-- [end:by_width_adjustment]
+
+
+# --8<-- [start:by_reference_protein]
 def by_reference_protein(
     protein_df: pd.DataFrame,
     reference_protein: str,
@@ -320,6 +337,9 @@ def by_reference_protein(
         scaled_df = pd.concat([scaled_df, df_sample], ignore_index=True)
 
     return dict(protein_df=scaled_df, dropped_samples=dropped_samples)
+
+
+# --8<-- [end:by_reference_protein]
 
 
 def by_z_score_plot(

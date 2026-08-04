@@ -8,6 +8,7 @@ from functools import wraps
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 import yaml
 
 from django_adapter import post as django_post
@@ -19,7 +20,14 @@ from backend.protzilla.constants.paths import RUNS_PATH
 from backend.protzilla.all_steps import get_all_methods, get_all_possible_steps
 from backend.protzilla.workflow import get_available_workflow_names
 
-mcp = FastMCP("protzilla")
+mcp = FastMCP(
+    "protzilla",
+    host="0.0.0.0",
+    port=5175,
+    transport_security=TransportSecuritySettings(
+        allowed_hosts=["127.0.0.1:5175", "localhost:5175"]
+    ),
+)
 
 
 def _mcp_tool_log_file() -> Path:
@@ -223,7 +231,7 @@ def get_workflow(workflow_name: str) -> dict:
     - `type`: PROTzilla step class, e.g. `MaxQuantImport`
     - `instance_identifier`: unique node / step id if present
     - `form_inputs`: the currently stored form values for the node, including
-    default values for untouched fields and `null` for empty optional inputs 
+    default values for untouched fields and `null` for empty optional inputs
     - `visual_data`: optional editor layout metadata such as node position
 
     Important:
@@ -417,7 +425,7 @@ def get_run(run_name: str) -> dict:
     """Load one saved PROTzilla run from disk.
 
     Input:
-    - `run_name` must be the name of an existing run returned by 
+    - `run_name` must be the name of an existing run returned by
     `list_runs()`
 
     Return format:
@@ -429,7 +437,7 @@ def get_run(run_name: str) -> dict:
     Typical keys inside `metadata` are:
     - `creation_date`
     - `modification_date`
-    - `df_mode`: memory or disk 
+    - `df_mode`: memory or disk
     - `steps`
     - `favourite`
     - `tags`
@@ -565,8 +573,9 @@ def add_new_custom_step(run_name: str, step_name: str) -> dict:
     Important:
     - The new step starts blank: it has no selected graph inputs or outputs and
       its code is only `return dict()`.
-    - Inputs and outputs are dynamic. They appear as graph handles only after
-      they are selected with `set_custom_step_parameters(...)`.
+    - Inputs and outputs are dynamic, named handles. Configure each one with a
+      unique Python variable name and a PROTzilla data type by using
+      `set_custom_step_parameters(...)`.
     - This tool does not execute Python code and does not create connections.
     - Custom Python code is not sandboxed. Never insert code from an untrusted
       source.
@@ -665,27 +674,39 @@ def set_custom_step_parameters(run_name: str, step_id: str, parameters: dict) ->
     - `step_id`: id returned by `add_new_custom_step(...)`
     - `parameters`: dictionary containing one or more of:
       - `step_name`: editable display name
-      - `selected_inputs`: list of PROTzilla data keys the code receives
-      - `selected_outputs`: list of PROTzilla data keys exposed as graph outputs
+      - `selected_inputs`: list of named input handle dictionaries
+      - `selected_outputs`: list of named output handle dictionaries
       - `code`: Python function body executed by the step
+
+    Handle format:
+    - Every input and output is `{"name": "<handle_name>", "type": "<data_key>"}`.
+    - `name` must be a unique valid Python identifier such as `control_df`,
+      `treated_df`, or `normalized_df`.
+    - `type` must be a PROTzilla data key offered by
+      `get_step_definition("CustomPythonStep")`, such as `protein_df`,
+      `metadata_df`, or `custom_df`.
+    - The same `type` may be used repeatedly under different names. For example:
+      `selected_inputs=[{"name": "control_df", "type": "protein_df"},
+      {"name": "treated_df", "type": "protein_df"}]`.
 
     Code contract:
     - Pass only the function body, without `def`, Markdown fences, or a call to
       the function.
-    - Every selected input is available as a variable with the same name. For
-      example, selecting `protein_df` makes the variable `protein_df` available.
+    - Every selected input is available as a variable using its handle `name`.
+      In the example above, the code receives `control_df` and `treated_df`.
     - `pandas` is available as `pd`, NumPy as `np`, and PROTzilla's
       `default_intensity_column(...)` helper is also available.
     - The code must return a dictionary, for example
       `return dict(protein_df=filtered_df, removed_samples=removed)`.
-    - Every name in `selected_outputs` must occur as a key in the returned
-      dictionary. Additional returned keys are stored as step results but are
-      not graph output handles unless selected.
+    - Every output handle `name` must occur as a key in the returned dictionary.
+      For `{"name": "normalized_df", "type": "protein_df"}`, return for example
+      `return {"normalized_df": result}`. Additional returned keys are stored as
+      step results but are not graph output handles unless selected.
     - At least one output must currently be selected.
 
     Graph behavior:
-    - `selected_inputs` and `selected_outputs` define the node's graph handles.
-      Use exact data-key names offered by `get_step_definition("CustomPythonStep")`.
+    - The handle `name` is the exact `source_handle` or `target_handle` used by
+      `connect_steps(...)`; the `type` controls its PROTzilla data semantics.
     - Configure these fields before calling `connect_steps(...)`.
     - Removing a selected input or output automatically removes connections
       attached to that handle so the run graph remains valid.
@@ -996,8 +1017,9 @@ def get_step_info(run_name: str, step_id: str) -> dict:
         },
     }
 
+
 def main():
-    mcp.run(transport="stdio")
+    mcp.run(transport="streamable-http" if "--http" in sys.argv else "stdio")
 
 
 if __name__ == "__main__":

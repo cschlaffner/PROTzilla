@@ -114,6 +114,7 @@ def vectorized_t_test(
     return t_statistics, p_values
 
 
+# --8<-- [start:t_test]
 def t_test(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -352,3 +353,4 @@ def t_test(
         ),
         messages=messages,
     )
+# --8<-- [end:t_test]

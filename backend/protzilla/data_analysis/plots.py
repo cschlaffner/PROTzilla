@@ -34,6 +34,7 @@ colors = {
 }
 
 
+# --8<-- [start:scatter_plot]
 def scatter_plot(
     input_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None = None,
@@ -107,6 +108,10 @@ def scatter_plot(
     return dict(plots=[fig])
 
 
+# --8<-- [end:scatter_plot]
+
+
+# --8<-- [start:create_volcano_plot]
 def create_volcano_plot(
     corrected_p_values_df: pd.DataFrame,
     log2_fold_change_df: pd.DataFrame,
@@ -221,6 +226,10 @@ def create_volcano_plot(
     )
 
 
+# --8<-- [end:create_volcano_plot]
+
+
+# --8<-- [start:clustergram_plot]
 def clustergram_plot(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None,
@@ -366,6 +375,10 @@ def clustergram_plot(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
 
+# --8<-- [end:clustergram_plot]
+
+
+# --8<-- [start:prot_quant_plot]
 def prot_quant_plot(
     protein_df: pd.DataFrame,
     protein_group: str,
@@ -542,6 +555,10 @@ def prot_quant_plot(
     return dict(plots=[fig])
 
 
+# --8<-- [end:prot_quant_plot]
+
+
+# --8<-- [start:precision_recall_plot]
 def precision_recall_plot(
     model: ClassificationType,
     X_test_df: pd.DataFrame,
@@ -562,6 +579,10 @@ def precision_recall_plot(
     return dict(plots=[fig])
 
 
+# --8<-- [end:precision_recall_plot]
+
+
+# --8<-- [start:roc_plot]
 def roc_plot(
     model: ClassificationType,
     X_test_df: pd.DataFrame,
@@ -580,3 +601,4 @@ def roc_plot(
     )
 
     return dict(plots=[fig])
+# --8<-- [end:roc_plot]

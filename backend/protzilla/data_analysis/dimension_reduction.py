@@ -11,6 +11,7 @@ class TSNEMethod(Enum):
     exact = "exact"
 
 
+# --8<-- [start:t_sne]
 def t_sne(
     protein_df: pd.DataFrame,
     method: str,
@@ -106,6 +107,10 @@ def t_sne(
     return dict(embedded_data=embedded_data)
 
 
+# --8<-- [end:t_sne]
+
+
+# --8<-- [start:umap]
 def umap(
     protein_df: pd.DataFrame,
     n_neighbors: float = 15,
@@ -177,3 +182,4 @@ def umap(
     ).reset_index()
 
     return dict(embedded_data=embedded_data)
+# --8<-- [end:umap]

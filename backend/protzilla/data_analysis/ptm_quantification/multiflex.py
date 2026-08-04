@@ -27,6 +27,7 @@ class MultiFlexColorMaps(Enum):
     RdYlBu = "Red-Yellow-Blue"
 
 
+# --8<-- [start:multiflex_lf]
 def multiflex_lf(
     peptide_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -413,6 +414,9 @@ def multiflex_lf(
         plots=[rm_score_dist_plots, peptide_clustering_fig] + heatmap_plots,
         messages=flexi_error_messages,
     )
+
+
+# --8<-- [end:multiflex_lf]
 
 
 def create_RM_score_distribution_plots(

@@ -14,6 +14,7 @@ from backend.protzilla.data_analysis.differential_expression_helper import (
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
+# --8<-- [start:mann_whitney_test_on_intensity_data]
 def mann_whitney_test_on_intensity_data(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -95,6 +96,10 @@ def mann_whitney_test_on_intensity_data(
     )
 
 
+# --8<-- [end:mann_whitney_test_on_intensity_data]
+
+
+# --8<-- [start:mann_whitney_test_on_ptm_data]
 def mann_whitney_test_on_ptm_data(
     ptm_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -156,6 +161,9 @@ def mann_whitney_test_on_ptm_data(
         corrected_alpha=output["corrected_alpha"],
         messages=output["messages"],
     )
+
+
+# --8<-- [end:mann_whitney_test_on_ptm_data]
 
 
 def mann_whitney_test_on_columns(

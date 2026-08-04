@@ -16,6 +16,7 @@ from .differential_expression_helper import (
 )
 
 
+# --8<-- [start:anova]
 def anova(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -131,3 +132,4 @@ def anova(
         filtered_proteins=filtered_proteins,
         messages=messages,
     )
+# --8<-- [end:anova]

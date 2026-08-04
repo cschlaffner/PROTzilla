@@ -34,6 +34,8 @@ export interface Step {
   section: SectionIDs;
   input_keys: string[];
   output_keys: string[];
+  input_types?: Record<string, string>;
+  output_types?: Record<string, string>;
   visual_data?: {
     node_position?: {
       x: number;

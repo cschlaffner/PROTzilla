@@ -14,6 +14,7 @@ from backend.protzilla.data_preprocessing.plots import (
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
+# --8<-- [start:by_isolation_forest]
 def by_isolation_forest(
     protein_df: pd.DataFrame,
     n_estimators: int = 100,
@@ -62,6 +63,10 @@ def by_isolation_forest(
     )
 
 
+# --8<-- [end:by_isolation_forest]
+
+
+# --8<-- [start:by_local_outlier_factor]
 def by_local_outlier_factor(
     protein_df: pd.DataFrame,
     number_of_neighbors: int = 20,
@@ -109,6 +114,10 @@ def by_local_outlier_factor(
     )
 
 
+# --8<-- [end:by_local_outlier_factor]
+
+
+# --8<-- [start:by_pca]
 def by_pca(
     protein_df: pd.DataFrame,
     threshold: int = 2,
@@ -192,6 +201,9 @@ def by_pca(
         pca_df=df_transformed_pca_data,
         explained_variance_ratio=(pca_model.explained_variance_ratio_).tolist(),
     )
+
+
+# --8<-- [end:by_pca]
 
 
 def by_isolation_forest_plot(output_anomaly_df):

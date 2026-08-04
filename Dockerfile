@@ -45,6 +45,7 @@ COPY --chown=prot --from=backend-base /prot/zilla/backend/user_data/external_dat
 COPY --chown=prot --from=frontend-base /prot/zilla/frontend/dist frontend/dist
 
 COPY --chown=prot backend backend
+COPY --chown=prot mcp-server mcp-server
 COPY --chown=prot runner_cli.py runner_cli.py
 
-ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["bash", "-c", "(until echo > /dev/tcp/127.0.0.1/8000 2>/dev/null; do sleep 1; done; exec python mcp-server/server.py --http) & exec python backend/manage.py runserver 0.0.0.0:8000"]

@@ -66,6 +66,7 @@ def get_detected_modifications(
     return dict(modification_df=modification_df)
 
 
+# --8<-- [start:create_overview_ptm_visualization]
 def create_overview_ptm_visualization(
     psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
@@ -89,3 +90,4 @@ def create_overview_ptm_visualization(
     fig, messages = overview_plotter.create_overview_plot()
 
     return dict(plots=[fig], messages=messages)
+# --8<-- [end:create_overview_ptm_visualization]

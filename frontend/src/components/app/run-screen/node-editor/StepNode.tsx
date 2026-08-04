@@ -154,7 +154,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
       {/* Input handles */}
       {data.step.input_keys.sort().map((input, index) => {
-        const InputIcon = DATA_TYPE_ICON_MAP[input];
+        const InputIcon = DATA_TYPE_ICON_MAP[data.step.input_types?.[input] ?? input];
         return (
           <Handle
             key={`in-${String(index)}`}
@@ -207,7 +207,7 @@ export default function StepNode({ data }: NodeProps<StepNodeType>) {
 
       {/* Output handles */}
       {data.step.output_keys.sort().map((output, index) => {
-        const OutputIcon = DATA_TYPE_ICON_MAP[output];
+        const OutputIcon = DATA_TYPE_ICON_MAP[data.step.output_types?.[output] ?? output];
         return (
           <Handle
             key={`out-${String(index)}`}

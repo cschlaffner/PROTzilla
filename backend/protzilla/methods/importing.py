@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 from abc import ABC
+import keyword
 import textwrap
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ from backend.protzilla.form import (
     FormDivider,
     HeaderInfoField,
     InfoField,
-    MultiSelectField,
+    NamedHandlesField,
     Option,
     TextField,
 )
@@ -42,6 +43,7 @@ from backend.protzilla.constants.intensity_types import IntensityType, Intensity
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
+# --8<-- [start:custom_python_step]
 def custom_python_step(code: str, selected_outputs: list[str], **inputs):
     if not code.strip():
         raise ValueError("Please provide Python code.")
@@ -71,6 +73,7 @@ def custom_python_step(code: str, selected_outputs: list[str], **inputs):
         )
 
     return result
+# --8<-- [end:custom_python_step]
 
 
 class ImportingStep(Step, ABC):
@@ -480,13 +483,13 @@ class CustomPythonStep(ImportingStep):
             label="Custom Python Step",
             input_fields=[
                 HeaderInfoField(label=self.method_description),
-                MultiSelectField(
+                NamedHandlesField(
                     name="selected_inputs",
                     label="Inputs",
                     options=data_key_options,
                     value=[],
                 ),
-                MultiSelectField(
+                NamedHandlesField(
                     name="selected_outputs",
                     label="Outputs",
                     options=data_key_options,
@@ -505,20 +508,51 @@ class CustomPythonStep(ImportingStep):
             ],
         )
 
-    @property
-    def external_input_keys(self) -> list[DataKey]:
-        return [DataKey(key) for key in self.form["selected_inputs"].value]
+    def _handles(self, field_name: str) -> list[dict[str, str]]:
+        handles = [
+            {"name": handle, "type": handle} if isinstance(handle, str) else handle
+            for handle in self.form[field_name].value
+        ]
+        self.form[field_name].value = handles
+        names = [handle["name"] for handle in handles]
+        if len(names) != len(set(names)):
+            raise ValueError(f"{field_name} names must be unique.")
+        if any(not name.isidentifier() or keyword.iskeyword(name) for name in names):
+            raise ValueError(f"{field_name} names must be valid Python identifiers.")
+        for handle in handles:
+            DataKey(handle["type"])
+        return handles
 
     @property
-    def output_keys(self) -> list[DataKey]:
-        return [DataKey(key) for key in self.form["selected_outputs"].value]
+    def input_handles(self) -> list[dict[str, str]]:
+        return self._handles("selected_inputs")
+
+    @property
+    def output_handles(self) -> list[dict[str, str]]:
+        return self._handles("selected_outputs")
+
+    @property
+    def external_input_keys(self) -> list[str]:
+        return [handle["name"] for handle in self.input_handles]
+
+    @property
+    def output_keys(self) -> list[str]:
+        return [handle["name"] for handle in self.output_handles]
+
+    @property
+    def input_types(self) -> dict[str, str]:
+        return {handle["name"]: handle["type"] for handle in self.input_handles}
+
+    @property
+    def output_types(self) -> dict[str, str]:
+        return {handle["name"]: handle["type"] for handle in self.output_handles}
 
     @property
     def calculation_input(self) -> dict:
         return {
             "code": self.form["code"].value,
-            "selected_outputs": self.form["selected_outputs"].value,
-            **{key: self.inputs.get(key) for key in self.form["selected_inputs"].value},
+            "selected_outputs": self.output_keys,
+            **{key: self.inputs.get(key) for key in self.external_input_keys},
         }
 
     calc_method = staticmethod(custom_python_step)

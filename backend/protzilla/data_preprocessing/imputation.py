@@ -60,6 +60,7 @@ def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
     return dict(protein_df=df, messages=messages)
 
 
+# --8<-- [start:by_knn]
 def by_knn(protein_df: pd.DataFrame, number_of_neighbours: int = 5) -> dict:
     """
     A function to perform value imputation based on KNN
@@ -100,6 +101,10 @@ def by_knn(protein_df: pd.DataFrame, number_of_neighbours: int = 5) -> dict:
     return flag_invalid_values(imputed_df, [])
 
 
+# --8<-- [end:by_knn]
+
+
+# --8<-- [start:by_simple_imputer]
 def by_simple_imputer(
     protein_df: pd.DataFrame,
     strategy: str = "mean",
@@ -140,6 +145,10 @@ def by_simple_imputer(
     return flag_invalid_values(imputed_df, [])
 
 
+# --8<-- [end:by_simple_imputer]
+
+
+# --8<-- [start:by_min_per_sample]
 def by_min_per_sample(
     protein_df: pd.DataFrame,
     shrinking_value: float = 1,
@@ -182,6 +191,10 @@ def by_min_per_sample(
     return flag_invalid_values(protein_df_copy, [])
 
 
+# --8<-- [end:by_min_per_sample]
+
+
+# --8<-- [start:by_min_per_protein]
 def by_min_per_protein(
     protein_df: pd.DataFrame,
     shrinking_value: float = 1,
@@ -225,6 +238,10 @@ def by_min_per_protein(
     return flag_invalid_values(imputed_df, [])
 
 
+# --8<-- [end:by_min_per_protein]
+
+
+# --8<-- [start:by_min_per_dataset]
 def by_min_per_dataset(
     protein_df: pd.DataFrame,
     shrinking_value: float = 1,
@@ -255,6 +272,10 @@ def by_min_per_dataset(
     return flag_invalid_values(protein_df_copy, [])
 
 
+# --8<-- [end:by_min_per_dataset]
+
+
+# --8<-- [start:by_normal_distribution_sampling]
 def by_normal_distribution_sampling(
     protein_df: pd.DataFrame,
     strategy: str = "perProtein",
@@ -350,6 +371,9 @@ def by_normal_distribution_sampling(
         protein_df[intensity_type].fillna(impute_value_series, inplace=True)
 
         return flag_invalid_values(protein_df, [])
+
+
+# --8<-- [end:by_normal_distribution_sampling]
 
 
 def by_knn_plot(

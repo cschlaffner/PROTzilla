@@ -102,6 +102,7 @@ def perform_classification(
         return model.best_estimator_, model_evaluation_df
 
 
+# --8<-- [start:random_forest]
 def random_forest(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -253,6 +254,10 @@ def random_forest(
     )
 
 
+# --8<-- [end:random_forest]
+
+
+# --8<-- [start:svm]
 def svm(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -433,3 +438,4 @@ def svm(
         y_train_df=y_train.to_frame(),
         y_test_df=y_test.to_frame(),
     )
+# --8<-- [end:svm]

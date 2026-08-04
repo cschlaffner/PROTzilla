@@ -4,6 +4,7 @@ from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_p
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
+# --8<-- [start:by_protein_intensity_sum]
 def by_protein_intensity_sum(
     protein_df: pd.DataFrame,
     deviation_threshold: float,
@@ -37,6 +38,10 @@ def by_protein_intensity_sum(
     )
 
 
+# --8<-- [end:by_protein_intensity_sum]
+
+
+# --8<-- [start:by_protein_count]
 def by_protein_count(
     protein_df: pd.DataFrame,
     deviation_threshold: float,
@@ -75,6 +80,10 @@ def by_protein_count(
     )
 
 
+# --8<-- [end:by_protein_count]
+
+
+# --8<-- [start:by_proteins_missing]
 def by_proteins_missing(
     protein_df: pd.DataFrame,
     percentage: float,
@@ -107,6 +116,9 @@ def by_proteins_missing(
         protein_df=filtered_df,
         filtered_samples=filtered_samples_list,
     )
+
+
+# --8<-- [end:by_proteins_missing]
 
 
 def by_protein_intensity_sum_plot(

@@ -19,6 +19,7 @@ from backend.protzilla.utilities.transform_dfs import (
 )
 
 
+# --8<-- [start:k_means]
 def k_means(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -158,6 +159,10 @@ def k_means(
         )
 
 
+# --8<-- [end:k_means]
+
+
+# --8<-- [start:expectation_maximisation]
 def expectation_maximisation(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -275,6 +280,10 @@ def expectation_maximisation(
     )
 
 
+# --8<-- [end:expectation_maximisation]
+
+
+# --8<-- [start:hierarchical_agglomerative_clustering]
 def hierarchical_agglomerative_clustering(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -365,6 +374,9 @@ def hierarchical_agglomerative_clustering(
         model_evaluation_df=model_evaluation_df,
         cluster_labels_df=cluster_labels_df,
     )
+
+
+# --8<-- [end:hierarchical_agglomerative_clustering]
 
 
 def perform_clustering(

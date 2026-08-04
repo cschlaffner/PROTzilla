@@ -61,6 +61,7 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   const [value, setValue] = useState(initialValue);
 
   const wasThereInputAfterHandleBlurRef = useRef(false);
+  const isEditingRef = useRef(false);
 
   const handleChange = useCallback(
     (value: string) => {
@@ -77,6 +78,7 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   );
 
   const handleBlur = useCallback(() => {
+    isEditingRef.current = false;
     wasThereInputAfterHandleBlurRef.current = false;
     if (characterLimit >= 0 && value.length > characterLimit) {
       return;
@@ -86,7 +88,9 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
   }, [characterLimit, onChange, value]);
 
   useEffect(() => {
-    setValue(initialValue);
+    if (!isEditingRef.current) {
+      setValue(initialValue);
+    }
   }, [initialValue]);
 
   const codeEditorExtensions = useMemo(
@@ -94,6 +98,10 @@ export const TextInputField: React.FC<TextInputFieldProps> = ({
       python(),
       EditorView.lineWrapping,
       EditorView.domEventHandlers({
+        focus: () => {
+          isEditingRef.current = true;
+          return false;
+        },
         blur: () => {
           handleBlur();
           return false;

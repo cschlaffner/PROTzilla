@@ -89,6 +89,7 @@ def get_details_plot_config_module(
     return plot_config_module
 
 
+# --8<-- [start:create_details_ptm_visualization]
 def create_details_ptm_visualization(
     psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
@@ -118,3 +119,4 @@ def create_details_ptm_visualization(
     fig, messages = plotter.create_details_plot()
 
     return dict(plots=[fig], messages=messages)
+# --8<-- [end:create_details_ptm_visualization]

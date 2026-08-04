@@ -57,6 +57,7 @@ def postprocess_raw_scores(
     return df_raw_scores_cutoff, removed
 
 
+# --8<-- [start:flexiquant_lf]
 def flexiquant_lf(
     peptide_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -339,6 +340,9 @@ def flexiquant_lf(
         plots=regression_plots,
         messages=messages,
     )
+
+
+# --8<-- [end:flexiquant_lf]
 
 
 def calculate_confidence_band(

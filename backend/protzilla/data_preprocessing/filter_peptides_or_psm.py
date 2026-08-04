@@ -4,6 +4,7 @@ from plotly.graph_objs import Figure
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
 
 
+# --8<-- [start:by_pep_value]
 def by_pep_value(
     peptide_or_psm_df: pd.DataFrame, threshold: float
 ) -> (pd.DataFrame, list):
@@ -26,6 +27,7 @@ def by_pep_value(
     filtered_peptides_or_psm_list = filtered["Sequence"].unique().tolist()
 
     return peptide_or_psm_df, filtered_peptides_or_psm_list
+# --8<-- [end:by_pep_value]
 
 
 def filter_peptides_by_pep_value(peptide_df: pd.DataFrame, threshold: float) -> dict:
@@ -73,6 +75,7 @@ def filter_psm_by_pep_value_plot(output_psm_df, output_filtered_psm, graph_type)
     return by_pep_value_plot(output_psm_df, output_filtered_psm, graph_type)
 
 
+# --8<-- [start:by_existing_proteins]
 def by_existing_proteins(
     peptide_or_psm_df: pd.DataFrame, protein_df: pd.DataFrame
 ) -> pd.DataFrame:
@@ -89,6 +92,9 @@ def by_existing_proteins(
     return filtered_peptide_df
 
 
+# --8<-- [end:by_existing_proteins]
+
+
 def filter_peptides_by_existing_proteins(
     peptide_df: pd.DataFrame, protein_df: pd.DataFrame
 ) -> dict:
@@ -101,6 +107,7 @@ def filter_psm_by_existing_proteins(
     return dict(psm_df=by_existing_proteins(psm_df, protein_df))
 
 
+# --8<-- [start:by_existing_samples]
 def by_existing_samples(
     peptide_or_psm_df: pd.DataFrame, protein_df: pd.DataFrame
 ) -> pd.DataFrame:
@@ -116,6 +123,9 @@ def by_existing_samples(
         peptide_or_psm_df["Sample"].isin(protein_df["Sample"])
     ]
     return filtered_peptide_df
+
+
+# --8<-- [end:by_existing_samples]
 
 
 def filter_peptides_by_existing_samples(

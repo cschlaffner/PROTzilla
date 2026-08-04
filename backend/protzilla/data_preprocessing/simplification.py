@@ -12,6 +12,7 @@ class AggregationMethod(Enum):
     max = "max"
 
 
+# --8<-- [start:group_replicates]
 def group_replicates(
     metadata_df: pd.DataFrame,
     protein_df: pd.DataFrame,
@@ -50,6 +51,10 @@ def group_replicates(
     return dict(protein_df=protein_df)
 
 
+# --8<-- [end:group_replicates]
+
+
+# --8<-- [start:metadata_filter_by_samples]
 def metadata_filter_by_samples(
     metadata_df: pd.DataFrame,
     protein_df: pd.DataFrame,
@@ -64,3 +69,4 @@ def metadata_filter_by_samples(
     """
     meta_filtered = metadata_df[metadata_df[sample_column].isin(protein_df["Sample"])]
     return dict(metadata_df=meta_filtered)
+# --8<-- [end:metadata_filter_by_samples]
