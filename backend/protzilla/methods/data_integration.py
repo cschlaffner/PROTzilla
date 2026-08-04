@@ -44,13 +44,12 @@ class Direction(Enum):
 
 
 class Organism(Enum):
-    human = "Human"
-    mouse = "Mouse"
-    rat = "Rat"
-    yeast = "Yeast"
-    fly = "Fly"
-    fish = "Fish"
-    worm = "Worm"
+    human = "human"
+    mouse = "mouse"
+    yeast = "yeast"
+    fly = "fly"
+    fish = "fish"
+    worm = "worm"
 
 
 class PermutationTypeField(Enum):
@@ -300,11 +299,14 @@ class EnrichmentAnalysisGOAnalysisWithEnrichr(EnrichmentAnalysisGOStep):
 
         if gene_sets_field.value == GeneSetsType.choose_from_enrichr_options.value:
             gene_sets_enricher_field.isVisible = True
-            gene_sets_enricher_field.set_options(
-                form_helper.to_choices(
-                    gseapy.get_library_name()
-                )  # TODO check whether we need to pass the organism name here
-            )
+            try:
+                gene_sets_enricher_field.set_options(
+                    form_helper.to_choices(
+                        gseapy.get_library_name()
+                    )  # TODO check whether we need to pass the organism name here
+                )
+            except Exception:
+                gene_sets_enricher_field.set_options(form_helper.to_choices([]))
         else:
             gene_sets_path_field.isVisible = True
 

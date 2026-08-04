@@ -1,19 +1,16 @@
+import numpy as np
+import pandas as pd
+import plotly.colors
+import plotly.graph_objects as go
 from dataclasses import dataclass
 from enum import StrEnum
-
-import pandas as pd
-import plotly.graph_objects as go
 from numpy import log2
 from tqdm import tqdm
 
-from backend.protzilla.constants.colors import (
-    PLOT_PRIMARY_COLOR,
-    PLOT_COLOR_SEQUENCE,
-    interpolate_color,
-)
+from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.utilities.utilities import default_intensity_column
 
-INTENSITY_COLORS = ["#FFFFFF", PLOT_COLOR_SEQUENCE[3]]
+INTENSITY_COLOR_SCALE = plotly.colors.sequential.Cividis
 SEQUENCE_DEPTH_PEPTIDE_SPACING = 1
 
 
@@ -170,9 +167,9 @@ def plot_protein_coverage(
     # add group information to the peptide dataframe
     peptide_df = peptide_df.merge(metadata_df, on="Sample")
 
-    reduced_peptide_df = peptide_df[
-        peptide_df[grouping].isin(selected_groups) & peptide_df["Intensity"] > 0
-    ]
+    reduced_peptide_df = peptide_df[peptide_df[grouping].isin(selected_groups)].fillna(
+        0
+    )
     if len(reduced_peptide_df) == 0:
         raise ValueError("No peptides found for the samples provided.")
 
@@ -309,14 +306,21 @@ def build_coverage_plot(
         )
 
         # Peptide plot
+        # Checking for -inf because these are the result of log-transforming 0 intensities, i.e., peptides that were
+        # identified but not quantified. We want to plot them but assign them a default color as not to distort the
+        # color scale for actual intensity values.
         current_group_intensities = [
-            peptide_match.intensity for row in peptide_rows for peptide_match in row
+            peptide_match.intensity
+            for row in peptide_rows
+            for peptide_match in row
+            if peptide_match.intensity > -np.inf
         ]
-        max_intensity, min_intensity = max(current_group_intensities), min(
-            current_group_intensities
-        )
+        max_intensity = max(current_group_intensities)
+        min_intensity = min(current_group_intensities)
 
         def scale_intensity(intensity):
+            if intensity == -np.inf:
+                return np.nan
             if max_intensity != min_intensity:
                 return (intensity - min_intensity) / (max_intensity - min_intensity)
             return 0
@@ -331,8 +335,6 @@ def build_coverage_plot(
                     row_index=row_index,
                     offset=max_coverage_value + SEQUENCE_DEPTH_PEPTIDE_SPACING,
                     box_height=peptide_box_height,
-                    color_a=INTENSITY_COLORS[0],
-                    color_b=INTENSITY_COLORS[1],
                     grouping=grouping,
                 )
 
@@ -369,18 +371,17 @@ def add_intensity_legend(
     :param fig: The plotly figure to add the legend to
     :param aggregation_method: The method used to aggregate peptide intensities
     """
-    color_scale = [[0, INTENSITY_COLORS[0]], [1, INTENSITY_COLORS[1]]]
     color_legend_trace = go.Scatter(
         x=[None],
         y=[None],
         mode="markers",
         marker={
-            "colorscale": color_scale,
+            "colorscale": INTENSITY_COLOR_SCALE,
             "showscale": True,
             "cmin": 0,
             "cmax": 1,
             "colorbar": {
-                "title": f"Intensity of peptide<br>(aggregated via {aggregation_method})",
+                "title": f"Relative intensity of peptide<br>(aggregated via {aggregation_method})",
                 "x": 1.0,
                 "len": 0.9,
                 "thickness": 30,
@@ -424,8 +425,6 @@ def add_peptide_to_plot(
     row_index: int,
     offset: int,
     box_height: float,
-    color_a: str = "#FFFFFF",
-    color_b: str = PLOT_COLOR_SEQUENCE[3],
     grouping: str = "",
 ) -> None:
     """
@@ -448,7 +447,11 @@ def add_peptide_to_plot(
     )
     y0, y1 = row_index * box_height + offset, (row_index + 1) * box_height + offset
     # interpolate between the two colors
-    color = interpolate_color(color_a, color_b, normalized_intensity)
+    color = (
+        plotly.colors.sample_colorscale(INTENSITY_COLOR_SCALE, normalized_intensity)[0]
+        if not np.isnan(normalized_intensity)
+        else "#CCCCCC"
+    )
     peptide_shape = {
         "type": "rect",
         "x0": x0 - 0.5,
@@ -471,7 +474,7 @@ def add_peptide_to_plot(
             text=[
                 f"{grouping}: {peptide_match.metadata_group}<br>Peptide: {peptide_match.peptide_sequence}<br>"
                 f"({peptide_match.start_location_on_protein}-{peptide_match.end_location_on_protein})<br>"
-                f"Intensity: {peptide_match.intensity}"
+                f"Log2 Intensity: {peptide_match.intensity}"
             ]
             * len(peptide_match.peptide_sequence),
             mode="markers",

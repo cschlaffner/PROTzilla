@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from backend.protzilla.data_preprocessing.plots import (
@@ -56,6 +57,7 @@ def by_z_score(protein_df: pd.DataFrame) -> dict:
 # --8<-- [start:by_median]
 def by_median(
     protein_df: pd.DataFrame,
+    log: bool,
     percentile=0.5,  # quartile, default is median
 ) -> dict:
     """
@@ -67,6 +69,8 @@ def by_median(
     :param protein_df: the dataframe that should be filtered in
         long format
     :type protein_df: pandas DataFrame
+    :param log: whether the data was log transformed before the normalisation or not
+    :type log: bool
     :param percentile: the chosen quartile of the sample intensities for
         normalisation
     :type percentile: float
@@ -89,17 +93,30 @@ def by_median(
     samples = protein_df["Sample"].unique().tolist()
     zeroed_samples = []
 
+    normalised_intensity_name = f"Normalised {intensity_name}"
+
     for sample in samples:
         df_sample = protein_df.loc[protein_df["Sample"] == sample,]
         quantile = df_sample[intensity_name].quantile(q=percentile)
 
-        if quantile != 0:
-            df_sample[f"Normalised {intensity_name}"] = df_sample[intensity_name].div(
-                quantile
-            )
+        if log:
+            if np.isfinite(quantile):
+                # without adding the global median our data would be zero centered and therefore one half would be
+                # negative which can lead to problems later down the workflow
+                df_sample[normalised_intensity_name] = (
+                    df_sample[intensity_name] - quantile
+                )
+            else:
+                df_sample[normalised_intensity_name] = 0
+                zeroed_samples.append(sample)
         else:
-            df_sample[f"Normalised {intensity_name}"] = 0
-            zeroed_samples.append(sample)
+            if quantile != 0:
+                df_sample[normalised_intensity_name] = df_sample[intensity_name].div(
+                    quantile
+                )
+            else:
+                df_sample[normalised_intensity_name] = 0
+                zeroed_samples.append(sample)
         df_sample.drop(axis=1, labels=[intensity_name], inplace=True)
         scaled_df = pd.concat([scaled_df, df_sample], ignore_index=True)
 

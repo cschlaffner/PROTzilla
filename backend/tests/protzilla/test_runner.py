@@ -1,14 +1,15 @@
-import json
-import shutil
 from pathlib import Path
 from unittest import mock
 
-from PIL.ImageShow import im
-
+import json
 import pytest
+import shutil
 import yaml
 
 from backend.main import settings
+from backend.protzilla import disk_operator
+from backend.protzilla.constants.option_types import Separators
+from backend.protzilla.runner import Runner
 from backend.protzilla.runner import _serialize_graphs
 from backend.protzilla.utilities.utilities import random_string
 from backend.tests.paths import (
@@ -16,10 +17,7 @@ from backend.tests.paths import (
     TEST_METADATA_PATH,
     TEST_WORKFLOWS_PATH,
 )
-from backend.protzilla import disk_operator
-from backend.protzilla.runner import Runner
 from runner_cli import args_parser
-from backend.protzilla.constants.option_types import Separators
 
 
 @pytest.fixture
@@ -69,7 +67,13 @@ def mock_perform_method(runner: Runner):
     def mock_current_parameters(*args, **kwargs):
         # saving parameters for later inspection
         mock_perform.methods.append(str(runner.run.current_step))
-        mock_perform.inputs.append(runner.run.current_step.form_inputs)
+        mock_perform.inputs.append(
+            {
+                key: value
+                for key, value in runner.run.current_step.form_inputs.items()
+                if key != "step_name"
+            }
+        )
 
         runner.run.current_step.calculation_status = "complete"
 
@@ -260,6 +264,7 @@ def test_runner_imports(
         },
         {
             "percentile": 0.5,
+            "log": False,
             "graph_type": "Boxplot",
             "group_by": "None",
             "visual_transformation": "log10",
