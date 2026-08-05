@@ -44,7 +44,10 @@ def wide_to_long(wide_df: pd.DataFrame, original_long_df: pd.DataFrame) -> pd.Da
     """
     # Read out info from original dataframe
     intensity_name = default_intensity_column(original_long_df)
-    gene_info = original_long_df["Gene"]
+    try:
+        gene_info = original_long_df["Gene"]
+    except KeyError:
+        gene_info = [None for _ in range(len(original_long_df.index))]
     # Turn the wide format into the long format
     intensity_df = pd.melt(
         wide_df.reset_index(),
