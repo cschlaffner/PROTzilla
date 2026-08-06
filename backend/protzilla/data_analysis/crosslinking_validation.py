@@ -40,13 +40,18 @@ from backend.protzilla.constants.colors import (
 )
 from backend.protzilla.constants.cif_columns import ATOM_SITE_COLUMNS
 
+AMBIGUOUS_AMINO_ACIDS = {
+    "B": ["D", "N"],
+    "Z": ["E", "Q"],
+    "J": ["I", "L"],
+}
 
-def get_reactive_atom_of_amino_acid_residue(
+def get_all_reactive_atoms_for_residue(
     amino_acid_type: str,
     amino_acid_position: int,
     crosslinker_type: str,
     index_of_last_amino_acid: int,
-    REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
+    reactivity_config: dict[str, dict[str, list[str]]],
     use_ca_atom: bool,
 ) -> tuple[list[str], list[dict]]:
     """
@@ -72,75 +77,63 @@ def get_reactive_atom_of_amino_acid_residue(
     messages = []
 
     if use_ca_atom:
-        reactive_atoms_list = ["CA"]
-        return reactive_atoms_list, messages
-
-    if pd.isna(crosslinker_type):
-        messages.append(
-            dict(
-                level=logging.WARNING,
-                msg=(
-                    f"At least one crosslinker name in your data could not be processed, "
-                    f"please make sure to provide valid data. "
-                    f"The CA atom is used for the calculation of this crosslink."
-                ),
-            )
-        )
         return ["CA"], messages
-
-    normalized_crosslinker_type = crosslinker_type.upper()
-    crosslinker_class = REACTIVE_ATOMS["crosslinker_classes"].get(
-        normalized_crosslinker_type
+    
+    crosslinker_class, msg = get_crosslinker_class(
+        crosslinker=crosslinker_type,
+        reactivity_config=reactivity_config,
     )
+    messages.extend(msg)
 
-    if crosslinker_class is None:
-        messages.append(
-            dict(
-                level=logging.WARNING,
-                msg=(
-                    f"Sadly the {crosslinker_type} crosslinker is unknown to us. "
-                    f"Therefore the CA atom is used for the calculation of those crosslinks."
-                ),
-            )
-        )
+    if crosslinker_class is None: 
         return ["CA"], messages
 
     reactive_atoms_list = []
 
     # The amino acid types B, J and Z represent ambiguous amino acids.
     # Therefore, we may need to consider multiple possible amino acid types.
-    amino_acid_type_mapping = {
-        "B": ["D", "N"],
-        "Z": ["E", "Q"],
-        "J": ["I", "L"],
-    }
-
-    amino_acid_type_list = amino_acid_type_mapping.get(
+    amino_acid_type_list = AMBIGUOUS_AMINO_ACIDS.get(
         amino_acid_type, [amino_acid_type]
     )
 
     for a_type in amino_acid_type_list:
         reactive_atoms_list.extend(
-            REACTIVE_ATOMS[crosslinker_class]
-            .get("primary_residue_atoms", {})
-            .get(a_type, [])
+            lookup_reactive_atoms(
+                reactivity_config=reactivity_config,
+                crosslinker_class=crosslinker_class,
+                atom_class="primary_residue_atoms",
+                amino_acid_type=a_type,
+            )
         )
 
     if amino_acid_position == 1:
         reactive_atoms_list.extend(
-            REACTIVE_ATOMS[crosslinker_class].get("terminal_atoms", {}).get("NTERM", [])
+            lookup_reactive_atoms(
+                reactivity_config=reactivity_config,
+                crosslinker_class=crosslinker_class,
+                atom_class="terminal_atoms",
+                amino_acid_type="NTERM",
+            )
         )
     elif amino_acid_position == index_of_last_amino_acid:
         reactive_atoms_list.extend(
-            REACTIVE_ATOMS[crosslinker_class].get("terminal_atoms", {}).get("CTERM", [])
+            lookup_reactive_atoms(
+                reactivity_config=reactivity_config,
+                crosslinker_class=crosslinker_class,
+                atom_class="terminal_atoms",
+                amino_acid_type="CTERM",
+            )
         )
 
     if not reactive_atoms_list:
         for a_type in amino_acid_type_list:
             reactive_atoms_list.extend(
-                REACTIVE_ATOMS[crosslinker_class]
-                .get("secondary_residue_atoms", {})
-                .get(a_type, [])
+                lookup_reactive_atoms(
+                    reactivity_config=reactivity_config,
+                    crosslinker_class=crosslinker_class,
+                    atom_class="secondary_residue_atoms",
+                    amino_acid_type=a_type,
+                )
             )
 
     if not reactive_atoms_list:
@@ -161,10 +154,61 @@ def get_reactive_atom_of_amino_acid_residue(
     return reactive_atoms_list, messages
 
 
+def get_crosslinker_class(
+    reactivity_config: dict[str, dict[str, list[str]]],
+    crosslinker: str,
+) -> tuple[str | None, list[dict]]: 
+    messages = []
+
+    if pd.isna(crosslinker):
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    f"At least one crosslinker name in your data could not be processed, "
+                    f"please make sure to provide valid data. "
+                    f"The CA atom is used for the calculation of this crosslink."
+                ),
+            )
+        )
+        return None, messages
+
+    normalized_crosslinker_type = crosslinker.upper()
+    crosslinker_class = reactivity_config["crosslinker_classes"].get(
+        normalized_crosslinker_type
+    )
+
+    if crosslinker_class is None:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    f"Sadly the {crosslinker} crosslinker is unknown to us. "
+                    f"Therefore the CA atom is used for the calculation of those crosslinks."
+                ),
+            )
+        )
+    
+    return crosslinker_class, messages 
+
+
+def lookup_reactive_atoms(
+    reactivity_config: dict[str, dict[str, list[str]]],  
+    crosslinker_class: str, 
+    atom_class: str,
+    amino_acid_type: str, 
+) -> list[str]:
+    return (
+        reactivity_config[crosslinker_class]
+        .get(atom_class, {})
+        .get(amino_acid_type, [])
+    )
+
+
 def expand_crosslinks_to_exact_binding_sites(
     relevant_crosslinks_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
-    REACTIVE_ATOMS: dict[str, dict[str, list[str]]],
+    reactivity_config: dict[str, dict[str, list[str]]],
     use_ca_atom: bool,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
@@ -191,29 +235,29 @@ def expand_crosslinks_to_exact_binding_sites(
     for index, crosslink in relevant_crosslinks_df.iterrows():
         amino_acid_type1 = crosslink.Peptide1[crosslink["1_based_CL_position_within_peptide1"] - 1]
         amino_acid_type2 = crosslink.Peptide2[crosslink["1_based_CL_position_within_peptide2"] - 1]
-        index_of_last_amino_acid1 = get_index_of_last_amino_acid(
+        index_of_last_amino_acid1 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id1,
         )
-        index_of_last_amino_acid2 = get_index_of_last_amino_acid(
+        index_of_last_amino_acid2 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id2,
         )
-        reactive_atoms1_list, msg = get_reactive_atom_of_amino_acid_residue(
+        reactive_atoms1_list, msg = get_all_reactive_atoms_for_residue(
             amino_acid_type1,
             crosslink["1_based_crosslinker_position1"],
             crosslink.Crosslinker,
             index_of_last_amino_acid1,
-            REACTIVE_ATOMS,
+            reactivity_config,
             use_ca_atom,
         )
         unknown_site_messages.extend(msg)
-        reactive_atoms2_list, msg = get_reactive_atom_of_amino_acid_residue(
+        reactive_atoms2_list, msg = get_all_reactive_atoms_for_residue(
             amino_acid_type2,
             crosslink["1_based_crosslinker_position2"],
             crosslink.Crosslinker,
             index_of_last_amino_acid2,
-            REACTIVE_ATOMS,
+            reactivity_config,
             use_ca_atom,
         )
         unknown_site_messages.extend(msg)
@@ -226,6 +270,12 @@ def expand_crosslinks_to_exact_binding_sites(
             new_row["reactive_atom1"] = reactive_atom1
             new_row["reactive_atom2"] = reactive_atom2
             expanded_rows.append(new_row)
+        
+        num_combinations = (
+            len(reactive_atoms1_list)
+            * len(reactive_atoms2_list)
+        )
+        if num_combinations > 1:
             duplicate_messages.append(
                 {
                     "level": logging.WARNING,
@@ -239,12 +289,12 @@ def expand_crosslinks_to_exact_binding_sites(
             "The CA atom had to be used for the calculation of some Crosslinks:\n"
             + "\n".join(f"• {message['msg']}" for message in unknown_site_messages)
         )
-    messages.append(
-        {
-            "level": logging.WARNING,
-            "msg": combined_message,
-        }
-    )
+        messages.append(
+            {
+                "level": logging.WARNING,
+                "msg": combined_message,
+            }
+        )
     
     if duplicate_messages:
         duplicate_messages = deduplicate_messages(duplicate_messages)
@@ -252,12 +302,12 @@ def expand_crosslinks_to_exact_binding_sites(
             "Some reactive binding sites were ambiguous:\n"
             + "\n".join(f"• {message['msg']}" for message in duplicate_messages)
         )
-    messages.append(
-        {
-            "level": logging.WARNING,
-            "msg": combined_message,
-        }
-    )
+        messages.append(
+            {
+                "level": logging.WARNING,
+                "msg": combined_message,
+            }
+        )
 
     if not expanded_rows:
         return (
@@ -271,12 +321,12 @@ def expand_crosslinks_to_exact_binding_sites(
     return pd.DataFrame(expanded_rows).reset_index(drop=True), messages
 
 
-def get_index_of_last_amino_acid(amino_acid_sequences_df, protein_id) -> int:
+def get_pos_of_last_amino_acid(amino_acid_sequences_df, protein_id) -> int:
     protein_sequence = get_protein_sequence_from_df(
         amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
     )
-    last_index = len(protein_sequence) - 1
-    return last_index
+    last_pos = len(protein_sequence)
+    return last_pos
 
 
 def deduplicate_messages(messages: list[dict]) -> list[dict]:
@@ -914,14 +964,14 @@ def validate_with_angstrom_deviation(
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
-    REACTIVE_ATOMS = yaml.safe_load(
+    reactivity_config = yaml.safe_load(
         (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
     )
 
     relevant_crosslinks_df, section_messages = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
-        REACTIVE_ATOMS=REACTIVE_ATOMS,
+        reactivity_config=reactivity_config,
         use_ca_atom=use_ca_atom,
     )
     messages.extend(section_messages)
