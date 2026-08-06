@@ -184,9 +184,11 @@ def expand_crosslinks_to_exact_binding_sites(
     """
 
     expanded_rows = []
+    unknown_site_messages = []
+    duplicate_messages = []
     messages = []
 
-    for _, crosslink in relevant_crosslinks_df.iterrows():
+    for index, crosslink in relevant_crosslinks_df.iterrows():
         amino_acid_type1 = crosslink.Peptide1[crosslink["1_based_CL_position_within_peptide1"] - 1]
         amino_acid_type2 = crosslink.Peptide2[crosslink["1_based_CL_position_within_peptide2"] - 1]
         index_of_last_amino_acid1 = get_index_of_last_amino_acid(
@@ -205,7 +207,7 @@ def expand_crosslinks_to_exact_binding_sites(
             REACTIVE_ATOMS,
             use_ca_atom,
         )
-        messages.extend(msg)
+        unknown_site_messages.extend(msg)
         reactive_atoms2_list, msg = get_reactive_atom_of_amino_acid_residue(
             amino_acid_type2,
             crosslink["1_based_crosslinker_position2"],
@@ -214,7 +216,7 @@ def expand_crosslinks_to_exact_binding_sites(
             REACTIVE_ATOMS,
             use_ca_atom,
         )
-        messages.extend(msg)
+        unknown_site_messages.extend(msg)
 
         for reactive_atom1, reactive_atom2 in itertools.product(
             reactive_atoms1_list,
@@ -224,14 +226,38 @@ def expand_crosslinks_to_exact_binding_sites(
             new_row["reactive_atom1"] = reactive_atom1
             new_row["reactive_atom2"] = reactive_atom2
             expanded_rows.append(new_row)
+            duplicate_messages.append(
+                {
+                    "level": logging.WARNING,
+                    "msg": f"Row {index} was duplicated due to several possible reactive atoms.",
+                }
+            )
 
-    messages = deduplicate_messages(messages)
-
-    if messages:
+    if unknown_site_messages:
+        unknown_site_messages = deduplicate_messages(unknown_site_messages)
+        combined_message = (
+            "The CA atom had to be used for the calculation of some Crosslinks:\n"
+            + "\n".join(f"• {message['msg']}" for message in unknown_site_messages)
+        )
+    messages.append(
+        {
+            "level": logging.WARNING,
+            "msg": combined_message,
+        }
+    )
+    
+    if duplicate_messages:
+        duplicate_messages = deduplicate_messages(duplicate_messages)
         combined_message = (
             "Some reactive binding sites were ambiguous:\n"
-            + "\n".join(f"• {message['msg']}" for message in messages)
+            + "\n".join(f"• {message['msg']}" for message in duplicate_messages)
         )
+    messages.append(
+        {
+            "level": logging.WARNING,
+            "msg": combined_message,
+        }
+    )
 
     if not expanded_rows:
         return (
@@ -239,7 +265,7 @@ def expand_crosslinks_to_exact_binding_sites(
                 columns=list(relevant_crosslinks_df.columns)
                 + ["reactive_atom1", "reactive_atom2"]
             ),
-            combined_message,
+            messages,
         )
 
     return pd.DataFrame(expanded_rows).reset_index(drop=True), messages
@@ -1072,6 +1098,7 @@ def validate_with_angstrom_deviation(
     results = []
     result_indices = []
     rows_to_delete = []
+    section_messages = []
 
     for idx, crosslink in relevant_crosslinks_df.iterrows():
         try:
@@ -1081,7 +1108,7 @@ def validate_with_angstrom_deviation(
 
         except ValueError as e:
             rows_to_delete.append(idx)
-            messages.append(
+            section_messages.append(
                 dict(
                     level=logging.WARNING,
                     msg=f"Crosslink entry {idx} was deleted: {e}",
@@ -1089,6 +1116,18 @@ def validate_with_angstrom_deviation(
             )
 
     relevant_crosslinks_df.drop(rows_to_delete, inplace=True)
+    
+    if section_messages:
+        combined_message = (
+            "Some Crosslink entries were deleted:\n"
+            + "\n".join(f"• {message['msg']}" for message in section_messages)
+        )
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=combined_message,
+            )
+        )
 
     results_df = pd.DataFrame(results, index=result_indices)
 
