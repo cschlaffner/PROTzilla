@@ -227,13 +227,19 @@ def expand_crosslinks_to_exact_binding_sites(
 
     messages = deduplicate_messages(messages)
 
+    if messages:
+        combined_message = (
+            "Some reactive binding sites were ambiguous:\n"
+            + "\n".join(f"• {message['msg']}" for message in messages)
+        )
+
     if not expanded_rows:
         return (
             pd.DataFrame(
                 columns=list(relevant_crosslinks_df.columns)
                 + ["reactive_atom1", "reactive_atom2"]
             ),
-            messages,
+            combined_message,
         )
 
     return pd.DataFrame(expanded_rows).reset_index(drop=True), messages
@@ -443,6 +449,8 @@ def add_protein_crosslink_positions_to_df(
     rows_to_duplicate = {}
     rows_to_delete = []
     messages = []
+    not_found_messages = []
+    duplicate_messages = []
 
     for idx, crosslinker_row in crosslinking_df.iterrows():
         peptide_sequence1 = re.escape(crosslinker_row.Peptide1)
@@ -471,7 +479,7 @@ def add_protein_crosslink_positions_to_df(
                 msg = f"Peptide sequences {peptide_sequence1} and {peptide_sequence2} of crosslink entry {idx} were not found in the protein sequences. The entry was deleted."
             else:
                 msg = f"Peptide sequence {peptide_sequence1 if not peptide1_positions else peptide_sequence2} of crosslink entry {idx} was not found in the protein sequences. The entry was deleted."
-            messages.append(dict(level=logging.WARNING, msg=msg))
+            not_found_messages.append(msg)
             rows_to_delete.append(idx)
             continue
         crosslinker_position1, crosslinker_position2 = all_position_combinations[0]
@@ -483,6 +491,17 @@ def add_protein_crosslink_positions_to_df(
 
     crosslinking_df.drop(rows_to_delete, inplace=True)
 
+    if not_found_messages:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    "Some peptide sequences could not be found in the protein sequences:\n"
+                    + "\n".join(f"• {msg}" for msg in not_found_messages)
+                ),
+            )
+        )
+
     if not rows_to_duplicate:
         return crosslinking_df, messages
     new_rows = []
@@ -492,15 +511,25 @@ def add_protein_crosslink_positions_to_df(
             new_row["1_based_crosslinker_position1"] = potential_cl_position1
             new_row["1_based_crosslinker_position2"] = potential_cl_position2
             new_rows.append(new_row)
-        messages.append(
-            dict(
-                level=logging.WARNING,
-                msg=f"Row {row_to_duplicate_idx} was duplicated {len(potential_positions)} times due to several matches between peptide sequence and protein sequence.",
-            )
+        duplicate_messages.append(
+            f"Row {row_to_duplicate_idx} was duplicated " 
+            f"{len(potential_positions)} times due to several matches between "
+            "peptide sequence and protein sequence.",
         )
     if new_rows:
         crosslinking_df = pd.concat(
             [crosslinking_df, pd.DataFrame(new_rows)], ignore_index=True
+        )
+
+    if duplicate_messages:
+        messages.append(
+            dict(
+                level=logging.WARNING,
+                msg=(
+                    "Some crosslink entries were duplicated because of multiple matches in the sequence:\n"
+                    + "\n".join(f"• {msg}" for msg in duplicate_messages)
+                ),
+            )
         )
 
     return crosslinking_df, messages
@@ -813,6 +842,7 @@ def validate_with_angstrom_deviation(
     :raises KeyError: If a required crosslinker field is missing in crosslinker_information.
     :raises ValueError: If peptide sequences cannot be matched to the protein sequence.
     """
+    messages = []
 
     all_crosslinks_df = crosslinking_df.copy()
     mask = (all_crosslinks_df["Protein_id1"].isin(structures_to_validate)) & (
@@ -847,9 +877,10 @@ def validate_with_angstrom_deviation(
         logger.warning(msg)
         return dict(crosslinking_result_df=pd.DataFrame(), messages=messages)
 
-    relevant_crosslinks_df, messages = add_protein_crosslink_positions_to_df(
+    relevant_crosslinks_df, section_messages = add_protein_crosslink_positions_to_df(
         relevant_crosslinks_df, amino_acid_sequences_df
     )
+    messages.extend(section_messages)
 
     if relevant_crosslinks_df.empty:
         msg = "None of the peptide sequences were found in the protein sequence."
@@ -861,13 +892,13 @@ def validate_with_angstrom_deviation(
         (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
     )
 
-    relevant_crosslinks_df, expand_messages = expand_crosslinks_to_exact_binding_sites(
+    relevant_crosslinks_df, section_messages = expand_crosslinks_to_exact_binding_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         REACTIVE_ATOMS=REACTIVE_ATOMS,
         use_ca_atom=use_ca_atom,
     )
-    messages.extend(expand_messages)
+    messages.extend(section_messages)
 
     def check_crosslink(crosslink: pd.Series) -> pd.Series:
 
