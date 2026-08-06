@@ -1038,9 +1038,30 @@ def validate_with_angstrom_deviation(
         "1_based_crosslinker_position2"
     ].astype("Int64")
 
-    relevant_crosslinks_df[new_columns] = relevant_crosslinks_df.apply(
-        check_crosslink, axis=1
-    )
+    results = []
+    result_indices = []
+    rows_to_delete = []
+
+    for idx, crosslink in relevant_crosslinks_df.iterrows():
+        try:
+            result = check_crosslink(crosslink)
+            results.append(result)
+            result_indices.append(idx)
+
+        except ValueError as e:
+            rows_to_delete.append(idx)
+            messages.append(
+                dict(
+                    level=logging.WARNING,
+                    msg=f"Crosslink entry {idx} was deleted: {e}",
+                )
+            )
+
+    relevant_crosslinks_df.drop(rows_to_delete, inplace=True)
+
+    results_df = pd.DataFrame(results, index=result_indices)
+
+    relevant_crosslinks_df[new_columns] = results_df
 
     # removing all crosslinks that weren't checked from the df
     checked_crosslinks_df = relevant_crosslinks_df[
