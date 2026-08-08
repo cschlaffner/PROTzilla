@@ -50,29 +50,24 @@ def get_all_reactive_atoms_for_residue(
     amino_acid_type: str,
     amino_acid_position: int,
     crosslinker_type: str,
-    index_of_last_amino_acid: int,
+    pos_of_last_amino_acid: int,
     reactivity_config: dict[str, dict[str, list[str]]],
     use_ca_atom: bool,
 ) -> tuple[list[str], list[dict]]:
     """
-    Returns a list of atom names of an amino acid residue that are considered
-    reactive for crosslinking, depending on amino acid type, position within
-    the peptide, and crosslinker-specific reactivity rules.
+    Returns the reactive atom(s) for a residue based on the crosslinker type,
+    residue type, and residue position.
 
-    The function uses a hierarchy of rules:
-    1. If the crosslinker type is unknown, defaults to ["CA"].
-    2. Primary residue-specific reactive atoms (residue_atoms).
-    3. If the amino acid is at the N-terminus (position == 1), terminal atoms are added.
-    4. If no primary atoms are found, secondary residue-specific atoms are used.
-    5. If still empty, defaults to ["CA"].
+    Falls back to the CA atom if no specific reactive atom can be determined.
 
-    :param amino_acid_type: One-letter or internal code of the amino acid residue.
-    :param amino_acid_position: Position of the amino acid within the peptide (1 = N-terminus).
-    :param crosslinker_type: Identifier of the crosslinker used in the experiment.
-    :param REACTIVE_ATOMS: Nested dictionary defining reactive atom rules per crosslinker class,
-                           residue type, and terminal/secondary categories.
+    :param amino_acid_type: One-letter amino acid code.
+    :param amino_acid_position: One-based residue position within the protein.
+    :param crosslinker_type: Name of the crosslinker.
+    :param pos_of_last_amino_acid: One-based position of the last residue.
+    :param reactivity_config: Crosslinker reactivity configuration.
+    :param use_ca_atom: If True, always returns the CA atom.
 
-    :return: List of atom identifiers (e.g. ["CA", "NZ"]) considered reactive for this residue.
+    :return: A tuple containing the reactive atom names and warning messages.
     """
     messages = []
 
@@ -115,7 +110,7 @@ def get_all_reactive_atoms_for_residue(
                 amino_acid_type="NTERM",
             )
         )
-    elif amino_acid_position == index_of_last_amino_acid:
+    elif amino_acid_position == pos_of_last_amino_acid:
         reactive_atoms_list.extend(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
@@ -158,6 +153,14 @@ def get_crosslinker_class(
     reactivity_config: dict[str, dict[str, list[str]]],
     crosslinker: str,
 ) -> tuple[str | None, list[dict]]: 
+    """
+    Returns the reactivity class for a crosslinker.
+
+    :param reactivity_config: Crosslinker reactivity configuration.
+    :param crosslinker_type: Name of the crosslinker.
+
+    :return: A tuple containing the crosslinker class (or None) and warning messages.
+    """
     messages = []
 
     if pd.isna(crosslinker):
@@ -198,6 +201,16 @@ def lookup_reactive_atoms(
     atom_class: str,
     amino_acid_type: str, 
 ) -> list[str]:
+    """
+    Returns the reactive atoms defined for a residue or terminal group.
+
+    :param reactivity_config: Crosslinker reactivity configuration.
+    :param crosslinker_class: Reactivity class of the crosslinker.
+    :param atom_class: Reactive atom category.
+    :param amino_acid_type: Amino acid code or terminal identifier.
+
+    :return: List of reactive atom names.
+    """
     return (
         reactivity_config[crosslinker_class]
         .get(atom_class, {})
@@ -212,19 +225,16 @@ def expand_crosslinks_to_exact_binding_sites(
     use_ca_atom: bool,
 ) -> tuple[pd.DataFrame, list[dict]]:
     """
-    Expands the crosslink df to also store the two exact reactive atoms for each crosslink.
-    If the exact reactive atom is ambigous this row is duplicated,
-    so that the crosslinker exists with both possible exact binding sites.
+    Expands crosslinks to all possible reactive atom combinations.
+    If multiple reactive atoms are possible for a residue, the corresponding
+    crosslink is duplicated for each valid atom combination.
 
-    :param relevant_crosslinks_df: DataFrame containing crosslink-level annotations.
-                                   Must include peptide sequences and crosslink positions.
-    :param REACTIVE_ATOMS: Nested dictionary defining reactive atom rules per crosslinker class
-                           and residue type.
+    :param relevant_crosslinks_df: DataFrame containing crosslink annotations.
+    :param amino_acid_sequences_df: DataFrame containing protein sequences.
+    :param reactivity_config: Crosslinker reactivity configuration.
+    :param use_ca_atom: If True, always uses the CA atom.
 
-    :return: DataFrame where each crosslink is expanded into all possible atom-level
-             binding site combinations, with added columns:
-             - reactive_atom1
-             - reactive_atom2
+    :return: A tuple containing the expanded DataFrame and warning messages.
     """
 
     expanded_rows = []
@@ -322,6 +332,14 @@ def expand_crosslinks_to_exact_binding_sites(
 
 
 def get_pos_of_last_amino_acid(amino_acid_sequences_df, protein_id) -> int:
+    """
+    Returns the one-based position of the last amino acid in a protein.
+
+    :param amino_acid_sequences_df: DataFrame containing protein sequences.
+    :param protein_id: Protein identifier.
+
+    :return: One-based position of the last amino acid.
+    """
     protein_sequence = get_protein_sequence_from_df(
         amino_acid_sequences_df=amino_acid_sequences_df, protein_id=protein_id
     )
@@ -330,6 +348,13 @@ def get_pos_of_last_amino_acid(amino_acid_sequences_df, protein_id) -> int:
 
 
 def deduplicate_messages(messages: list[dict]) -> list[dict]:
+    """
+    Removes duplicate messages while preserving their original order.
+
+    :param messages: List of message dictionaries.
+
+    :return: List of unique messages.
+    """
     seen = set()
     unique_messages = []
 
