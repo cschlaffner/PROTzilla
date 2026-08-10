@@ -213,6 +213,11 @@ class DimensionReductionMetric(Enum):
     cosine = "cosine"
 
 
+class DimensionReductionValue(Enum):
+    sample = "Sample"
+    protein = "Protein ID"
+
+
 class DataAnalysisStep(Step, ABC):
     section = Section.DATA_ANALYSIS
 
@@ -896,6 +901,12 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                     name="metadata_column",
                     label="Choose the column of the metadata dataframe that should be used for coloring",
                 ),
+                DropdownField(
+                    name="sample_name",
+                    label="Choose the column that contains the sample information",
+                    value=DimensionReductionValue.sample.value,
+                    options=DimensionReductionValue,
+                ),
             ],
         )
 
@@ -911,6 +922,7 @@ class PlotScatterPlot(DataAnalysisPlotStep):
                     run,
                     instance_identifier=metadata_source,
                     include_sample=False,
+                    required=False,
                     output_key=source_handle,
                 )
             )
@@ -1994,6 +2006,11 @@ class DimensionReductionTSNE(DataAnalysisStep):
                     label="Distance metric",
                     options=DimensionReductionMetric,
                 ),
+                DropdownField(
+                    name="value",
+                    label="Values for dimension reduction",
+                    options=DimensionReductionValue,
+                ),
                 NumberField(
                     name="random_state",
                     label="Seed for random number generation",
@@ -2065,6 +2082,11 @@ class DimensionReductionUMAP(DataAnalysisStep):
                     name="metric",
                     label="Distance metric",
                     options=DimensionReductionMetric,
+                ),
+                DropdownField(
+                    name="value",
+                    label="Values for dimension reduction",
+                    options=DimensionReductionValue,
                 ),
                 NumberField(
                     name="random_state",

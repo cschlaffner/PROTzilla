@@ -109,12 +109,14 @@ def metadata_df():
 
 
 def check_dimensionality_reduction_output(
-    out_df: pd.DataFrame, orig_df: pd.DataFrame, n_components: int
+    out_df: pd.DataFrame,
+    orig_df: pd.DataFrame,
+    n_components: int,
+    value: str = "Sample",
 ):
     assert (
-        out_df.shape == (orig_df["Sample"].nunique(), n_components + 1)
-        and out_df["Sample"].sort_values().tolist()
-        == sorted(orig_df["Sample"].unique())
+        out_df.shape == (orig_df[value].nunique(), n_components + 1)
+        and out_df[value].sort_values().tolist() == sorted(orig_df[value].unique())
         and all(
             (
                 pd.api.types.is_numeric_dtype(out_df[f"Component{i + 1}"])
@@ -169,8 +171,8 @@ def test_tsne_nan_handling(df_with_nan):
 def test_tsne_perplexity(dimension_reduction_df):
     with pytest.raises(
         ValueError,
-        match="Perplexity must be less than the number of samples. In the selected dataframe there "
-        f"is {dimension_reduction_df['Sample'].nunique()} samples",
+        match="Perplexity must be less than the number of Samples. In the selected dataframe there "
+        f"are {dimension_reduction_df['Sample'].nunique()} Samples",
     ):
         _ = t_sne(
             dimension_reduction_df,
@@ -251,6 +253,85 @@ def test_tsne_scatter_plot_integration(
 
 
 @pytest.mark.parametrize(
+    "df_name,n_components,method",
+    [
+        ("dimension_reduction_df", 2, TSNEMethod.exact.value),
+        ("dimension_reduction_four_proteins_df", 2, TSNEMethod.exact.value),
+        ("dimension_reduction_df", 2, TSNEMethod.barnes_hut.value),
+        ("dimension_reduction_four_proteins_df", 2, TSNEMethod.barnes_hut.value),
+    ],
+)
+def test_tsne_protein_id_value(df_name, n_components, method, request):
+    df = request.getfixturevalue(df_name)
+    out = t_sne(
+        df,
+        method=method,
+        n_components=n_components,
+        perplexity=2,
+        value="Protein ID",
+        random_state=42,
+    )
+    check_dimensionality_reduction_output(
+        out["embedded_data"], df, n_components, value="Protein ID"
+    )
+
+
+@pytest.mark.parametrize(
+    "df_name,n_components,method",
+    [
+        ("dimension_reduction_df", 2, TSNEMethod.exact.value),
+        ("dimension_reduction_four_proteins_df", 2, TSNEMethod.exact.value),
+    ],
+)
+def test_tsne_metrics_protein_id(df_name, n_components, method, request):
+    for metric in DimensionReductionMetric:
+        df = request.getfixturevalue(df_name)
+        current_out = t_sne(
+            df,
+            method=method,
+            n_components=n_components,
+            perplexity=2,
+            metric=metric.value,
+            value="Protein ID",
+            random_state=42,
+        )
+        check_dimensionality_reduction_output(
+            current_out["embedded_data"], df, n_components, value="Protein ID"
+        )
+
+
+def test_tsne_perplexity_protein_id(dimension_reduction_df):
+    with pytest.raises(
+        ValueError,
+        match="Perplexity must be less than the number of Protein IDs. In the selected dataframe there "
+        f"are {dimension_reduction_df['Protein ID'].nunique()} Protein IDs",
+    ):
+        _ = t_sne(
+            dimension_reduction_df,
+            method=TSNEMethod.barnes_hut.value,
+            n_components=2,
+            perplexity=5,
+            value="Protein ID",
+        )
+
+
+def test_tsne_n_components_protein_id(dimension_reduction_df):
+    with pytest.raises(
+        ValueError,
+        match="The number of dimensions of the embedded space must be between 1 and "
+        f"{min(dimension_reduction_df['Protein ID'].nunique(), dimension_reduction_df['Sample'].nunique())}",
+    ):
+        _ = t_sne(
+            dimension_reduction_df,
+            method="exact",
+            n_components=5,
+            perplexity=2,
+            value="Protein ID",
+            random_state=42,
+        )
+
+
+@pytest.mark.parametrize(
     "n_components",
     [2, 3],
 )
@@ -268,6 +349,26 @@ def test_umap(dimension_reduction_df, n_components):
         )
         check_dimensionality_reduction_output(
             current_out["embedded_data"], dimension_reduction_df, n_components
+        )
+
+
+@pytest.mark.parametrize("n_components", [2])
+def test_umap_protein_id_value(dimension_reduction_four_proteins_df, n_components):
+    for metric in DimensionReductionMetric:
+        current_out = umap(
+            dimension_reduction_four_proteins_df,
+            n_components=n_components,
+            metric=metric.value,
+            n_neighbors=3,
+            value="Protein ID",
+            random_state=42,
+            transform_seed=42,
+        )
+        check_dimensionality_reduction_output(
+            current_out["embedded_data"],
+            dimension_reduction_four_proteins_df,
+            n_components,
+            value="Protein ID",
         )
 
 

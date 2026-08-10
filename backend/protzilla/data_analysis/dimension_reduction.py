@@ -17,6 +17,7 @@ def t_sne(
     n_components: int = 2,
     perplexity: float = 30.0,
     metric: str = "euclidean",
+    value: str = "Sample",
     random_state: int = 42,
     max_iter: int = 1000,
     n_iter_without_progress: int = 300,
@@ -38,6 +39,8 @@ def t_sne(
     :param metric: The metric to use when calculating distance between instances in a
         feature array. Possible metrics are: euclidean, manhattan, cosine and haversine
     :type metric: str
+    :param value: whether to use the "Sample" or the "Protein ID" as values for dimension reduction.
+    :type value: str
     :param random_state: determines the random number generator.
     :type random_state: int
     :param max_iter: maximum number of iterations for the optimization
@@ -59,9 +62,11 @@ def t_sne(
     """
 
     input_df = protein_df
-
+    columns = "Protein ID" if value == "Sample" else "Sample"
     intensity_df_wide = (
-        long_to_wide(input_df) if is_long_format(input_df) else input_df.copy()
+        long_to_wide(input_df, index=value, columns=columns)
+        if is_long_format(input_df)
+        else input_df.copy()
     )
     if intensity_df_wide.isnull().sum().any():
         raise ValueError(
@@ -70,8 +75,8 @@ def t_sne(
         )
     if perplexity >= intensity_df_wide.shape[0]:
         raise ValueError(
-            "Perplexity must be less than the number of samples. In the selected dataframe there "
-            f"is {intensity_df_wide.shape[0]} samples"
+            f"Perplexity must be less than the number of {value}s. In the selected dataframe there "
+            f"are {intensity_df_wide.shape[0]} {value}s."
         )
     if (
         min(intensity_df_wide.shape[0], intensity_df_wide.shape[1]) <= n_components
@@ -80,7 +85,7 @@ def t_sne(
         raise ValueError(
             "The number of dimensions of the embedded space must be between 1 and "
             f"{min(intensity_df_wide.shape[0], intensity_df_wide.shape[1])} (the smaller one of number of "
-            "samples/features). "
+            f"{value}s/features). "
         )
     if n_components > 3 and method == TSNEMethod.barnes_hut.value:
         raise ValueError(
@@ -112,6 +117,7 @@ def umap(
     n_components: int = 2,
     min_dist: float = 0.1,
     metric: str = "euclidean",
+    value: str = "Sample",
     random_state: int = 42,
     transform_seed: int = 42,
 ):
@@ -138,6 +144,8 @@ def umap(
     :param metric: The metric to use when calculating distance between instances in a
         feature array.
     :type metric: str
+    :param value: whether to use the "Sample" or the "Protein ID" as values for dimension reduction.
+    :type value: str
     :param random_state: determines the random number generator.
     :type random_state: int
     :param transform_seed: Random seed used for the stochastic aspects of the transform
@@ -155,7 +163,12 @@ def umap(
 
     input_df = protein_df
 
-    intensity_df_wide = long_to_wide(input_df) if is_long_format(input_df) else input_df
+    columns = "Protein ID" if value == "Sample" else "Sample"
+    intensity_df_wide = (
+        long_to_wide(input_df, index=value, columns=columns)
+        if is_long_format(input_df)
+        else input_df
+    )
     if intensity_df_wide.isnull().sum().any():
         raise ValueError(
             "UMAP does not accept missing values encoded as NaN. Consider preprocessing your data to remove NaN "

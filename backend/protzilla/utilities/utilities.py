@@ -86,7 +86,7 @@ def default_intensity_column(
         return matched_columns[0]
 
     raise ValueError(
-        "No intensity column name provided and no default intensity column could be determined."
+        "No intensity column name provided and no default intensity column could be determined. "
         "Please provide the intensity column name manually to the function call."
     )
 
