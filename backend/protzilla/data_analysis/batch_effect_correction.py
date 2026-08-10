@@ -25,16 +25,18 @@ from backend.protzilla.data_analysis.loess import correct_intra_batch_with_loess
 
 def get_covar_mod(
     samples: list, metadata_df: pd.DataFrame, covar_columns: list[str]
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
-    Creates a covariates matrix for the ComBat method from the specified covariates, including only the samples from the protein data.
+    Creates a covariates matrix from the specified covariates, including only the samples from the protein data.
 
     :param samples: list of samples
     :param metadata_df: metadata dataframe for the protein data
     :param covar_columns: the columns in metadata that specify the covariates of interest
 
-    :return: dataframe with the covariates for pycombat
+    :return: dataframe with the covariates
     """
+    if not covar_columns:
+        return None
     # last part to keep the samples in the correct order (same as protein data) for combat
     relevant_metadata_df = (
         metadata_df[metadata_df["Sample"].isin(samples)]
@@ -410,7 +412,7 @@ def sva_correction(
     sv, pprob_gam, pprob_b, num_sv = irwsva(
         dat=dat,
         mod=mod,
-        mod0=None,
+        mod0=mod0,
         n_surrogate_variables=n_surrogate_variables,
     )
     (
@@ -418,7 +420,12 @@ def sva_correction(
         _adjusted,
         _new_sv,
     ) = fsva(
-        dbdat=dat, mod=mod, sv=sv, n_sv=num_sv, pprob_gam=pprob_gam, pprob_b=pprob_gam
+        dbdat=dat,
+        mod=mod,
+        sv=sv,
+        n_sv=num_sv,
+        pprob_gam=pprob_gam,
+        pprob_b=pprob_b,
     )
     cleaned_wide_protein_df = pd.DataFrame(
         cleaned_dat.T, index=wide_protein_df.index, columns=wide_protein_df.columns
