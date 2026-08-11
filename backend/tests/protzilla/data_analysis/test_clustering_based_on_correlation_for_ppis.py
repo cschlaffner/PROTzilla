@@ -512,23 +512,45 @@ def distance_matrix_df(correlation_matrix_df):
     )["distance_matrix_df"]
 
 
-@pytest.mark.parametrize(
-    "clusters_of_size_one_ommitted, expected",
-    [
-        (True, pd.Series([0.24318947211130532], index=[1])),
-        (False, pd.Series([0.24318947211130532, 0.998565566764047], index=[1, -1])),
-    ],
-)
-def test_get_cluster_silhouette_histograms_determines_right_silhouette_score_for_each_cluster(
-    distance_matrix_df, clusters_of_size_one_ommitted, expected
+def test_get_cluster_silhouette_histogram_determines_right_silhouette_score_for_each_cluster(
+    distance_matrix_df,
 ):
     labels = pd.Series(
         [1, 1, 1, -1, 1, -1], index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
     )
     _, silhouette_per_cluster = get_cluster_silhouette_histogram(
-        distance_matrix_df.to_numpy(), labels, clusters_of_size_one_ommitted
+        distance_matrix_df.to_numpy(), labels
     )
+
+    expected = pd.Series([0.24318947211130532], index=[1])
+
     pd.testing.assert_series_equal(silhouette_per_cluster, expected)
+
+
+def test_get_cluster_silhouette_histogram_raises_error_when_all_proteins_are_unclustered(
+    distance_matrix_df,
+):
+    labels = pd.Series(
+        [-1, -1, -1, -1, -1, -1], index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
+    )
+    with pytest.raises(
+        ValueError,
+        match="None of the proteins were assigned to a cluster. Try clustering again with different parameters.",
+    ):
+        get_cluster_silhouette_histogram(distance_matrix_df.to_numpy(), labels)
+
+
+def test_get_cluster_silhouette_histogram_raises_error_when_all_proteins_are_one_cluster(
+    distance_matrix_df,
+):
+    labels = pd.Series(
+        [1, 1, 1, 1, 1, 1], index=["A-1", "B-1", "C-2", "D-1", "E-1", "F-1"]
+    )
+    with pytest.raises(
+        ValueError,
+        match="All proteins were clustered in one big cluster. Try clustering again with different parameters.",
+    ):
+        get_cluster_silhouette_histogram(distance_matrix_df.to_numpy(), labels)
 
 
 def test_hdbscan_for_ppi(

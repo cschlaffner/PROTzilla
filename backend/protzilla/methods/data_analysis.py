@@ -2649,7 +2649,7 @@ class ClusterSelectionStep(DataAnalysisStep):
                 ),
                 DropdownField(
                     name="network_flavor",
-                    label="Network type",
+                    label="Network Flavor",
                     options=StringDbNetworkType,
                 ),
                 NumberField(
@@ -2841,7 +2841,7 @@ class KMedoidsClustering(DataAnalysisStep):
                 ),
                 CheckboxField(
                     name="continue_subsampling_as_long_as_silhouette_improves",
-                    label="Continue splitting clusters, that already reached the stopping criterion as long as the silhouette score increases",
+                    label="Continue splitting clusters which already reached the stopping criterion as long as the silhouette score increases",
                 ),
                 InfoField(
                     name="info_parameter_influencen_on_number_of_different_cluster_numbers_examined",
@@ -2855,6 +2855,7 @@ class KMedoidsClustering(DataAnalysisStep):
                 NumberField(
                     name="average_expected_cluster_size",
                     label="Average expected cluster size",
+                    value=25,
                 ),
                 NumberField(
                     name="min_cluster_size",
