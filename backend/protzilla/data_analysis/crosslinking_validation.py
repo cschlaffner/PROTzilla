@@ -248,11 +248,11 @@ def expand_crosslinks_to_exact_binding_sites(
         amino_acid_type2 = crosslink.Peptide2[
             crosslink["1_based_CL_position_within_peptide2"] - 1
         ]
-        index_of_last_amino_acid1 = get_pos_of_last_amino_acid(
+        pos_of_last_amino_acid1 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id1,
         )
-        index_of_last_amino_acid2 = get_pos_of_last_amino_acid(
+        pos_of_last_amino_acid2 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id2,
         )
@@ -260,7 +260,7 @@ def expand_crosslinks_to_exact_binding_sites(
             amino_acid_type1,
             crosslink["1_based_crosslinker_position1"],
             crosslink.Crosslinker,
-            index_of_last_amino_acid1,
+            pos_of_last_amino_acid1,
             reactivity_config,
             use_ca_atom,
         )
@@ -269,7 +269,7 @@ def expand_crosslinks_to_exact_binding_sites(
             amino_acid_type2,
             crosslink["1_based_crosslinker_position2"],
             crosslink.Crosslinker,
-            index_of_last_amino_acid2,
+            pos_of_last_amino_acid2,
             reactivity_config,
             use_ca_atom,
         )

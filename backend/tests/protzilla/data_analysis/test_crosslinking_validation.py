@@ -23,6 +23,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     get_all_reactive_atoms_for_residue,
     deduplicate_messages,
     expand_crosslinks_to_exact_binding_sites,
+    get_pos_of_last_amino_acid,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
@@ -1644,3 +1645,18 @@ def test_expand_crosslinks_with_multiple_possible_atom_combinations(
 
     assert len(result_df) == 4
     assert len(messages) == 1
+
+
+def test_get_pos_of_last_amino_acid():
+    amino_acid_sequences_df = pd.DataFrame(
+        {
+            "Protein ID": ["P1-1"],
+            "Protein Sequence": ["ABCDE"],
+        }
+    )
+    pos_of_last_amino_acid = get_pos_of_last_amino_acid(
+        amino_acid_sequences_df=amino_acid_sequences_df,
+        protein_id="P1",
+    )
+
+    assert pos_of_last_amino_acid == 5
