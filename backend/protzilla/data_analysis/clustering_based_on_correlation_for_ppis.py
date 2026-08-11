@@ -969,14 +969,16 @@ def kmedoids_with_subsampling(
         proteins: list[str] = get_proteins_of_specific_cluster(
             label, pd.Series(labels, index=correlation_matrix.columns)
         )
-        is_stopping_criterion_fullfilled = _is_stopping_criterion_fullfilled(
-            stop_criterion,
-            labels,
-            label,
-            correlation_matrix,
-            min_correlation_mean,
-            max_cluster_size,
-        )
+        is_stopping_criterion_fullfilled = False
+        if len(proteins) > min_cluster_size:
+            is_stopping_criterion_fullfilled = _is_stopping_criterion_fullfilled(
+                stop_criterion,
+                labels,
+                label,
+                correlation_matrix,
+                min_correlation_mean,
+                max_cluster_size,
+            )
         if len(proteins) < min_cluster_size:
             continue
         elif len(proteins) == min_cluster_size or (
