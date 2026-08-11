@@ -960,7 +960,10 @@ def universal_crosslinking_import(file_path: Path, organism_ids: str) -> dict:
             good_df["Is_intra_crosslink"] = good_df["Protein1"].eq(good_df["Protein2"])
 
         if (
-            not {"1_based_CL_position_within_peptide1", "1_based_CL_position_within_peptide2"}
+            not {
+                "1_based_CL_position_within_peptide1",
+                "1_based_CL_position_within_peptide2",
+            }
             <= initial_columns
         ):
             good_df["1_based_CL_position_within_peptide1"] = good_df["Peptide1"].apply(

@@ -66,7 +66,7 @@ class CrosslinkingValidationCriterion(StrEnum):
     min_pae = "CL length +/- minimum PAE between sites"
     plddt_adjusted = "plDDT adjusted"
 
-    
+
 class Separators(StrEnum):
     comma = "comma"
     semicolon = "semicolon"

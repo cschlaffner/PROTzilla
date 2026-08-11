@@ -46,6 +46,7 @@ AMBIGUOUS_AMINO_ACIDS = {
     "J": ["I", "L"],
 }
 
+
 def get_all_reactive_atoms_for_residue(
     amino_acid_type: str,
     amino_acid_position: int,
@@ -73,23 +74,21 @@ def get_all_reactive_atoms_for_residue(
 
     if use_ca_atom:
         return ["CA"], messages
-    
+
     crosslinker_class, msg = get_crosslinker_class(
         crosslinker=crosslinker_type,
         reactivity_config=reactivity_config,
     )
     messages.extend(msg)
 
-    if crosslinker_class is None: 
+    if crosslinker_class is None:
         return ["CA"], messages
 
     reactive_atoms_list = []
 
     # The amino acid types B, J and Z represent ambiguous amino acids.
     # Therefore, we may need to consider multiple possible amino acid types.
-    amino_acid_type_list = AMBIGUOUS_AMINO_ACIDS.get(
-        amino_acid_type, [amino_acid_type]
-    )
+    amino_acid_type_list = AMBIGUOUS_AMINO_ACIDS.get(amino_acid_type, [amino_acid_type])
 
     for a_type in amino_acid_type_list:
         reactive_atoms_list.extend(
@@ -152,7 +151,7 @@ def get_all_reactive_atoms_for_residue(
 def get_crosslinker_class(
     reactivity_config: dict[str, dict[str, list[str]]],
     crosslinker: str,
-) -> tuple[str | None, list[dict]]: 
+) -> tuple[str | None, list[dict]]:
     """
     Returns the reactivity class for a crosslinker.
 
@@ -191,15 +190,15 @@ def get_crosslinker_class(
                 ),
             )
         )
-    
-    return crosslinker_class, messages 
+
+    return crosslinker_class, messages
 
 
 def lookup_reactive_atoms(
-    reactivity_config: dict[str, dict[str, list[str]]],  
-    crosslinker_class: str, 
+    reactivity_config: dict[str, dict[str, list[str]]],
+    crosslinker_class: str,
     atom_class: str,
-    amino_acid_type: str, 
+    amino_acid_type: str,
 ) -> list[str]:
     """
     Returns the reactive atoms defined for a residue or terminal group.
@@ -243,8 +242,12 @@ def expand_crosslinks_to_exact_binding_sites(
     messages = []
 
     for index, crosslink in relevant_crosslinks_df.iterrows():
-        amino_acid_type1 = crosslink.Peptide1[crosslink["1_based_CL_position_within_peptide1"] - 1]
-        amino_acid_type2 = crosslink.Peptide2[crosslink["1_based_CL_position_within_peptide2"] - 1]
+        amino_acid_type1 = crosslink.Peptide1[
+            crosslink["1_based_CL_position_within_peptide1"] - 1
+        ]
+        amino_acid_type2 = crosslink.Peptide2[
+            crosslink["1_based_CL_position_within_peptide2"] - 1
+        ]
         index_of_last_amino_acid1 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id1,
@@ -280,11 +283,8 @@ def expand_crosslinks_to_exact_binding_sites(
             new_row["reactive_atom1"] = reactive_atom1
             new_row["reactive_atom2"] = reactive_atom2
             expanded_rows.append(new_row)
-        
-        num_combinations = (
-            len(reactive_atoms1_list)
-            * len(reactive_atoms2_list)
-        )
+
+        num_combinations = len(reactive_atoms1_list) * len(reactive_atoms2_list)
         if num_combinations > 1:
             duplicate_messages.append(
                 {
@@ -305,12 +305,11 @@ def expand_crosslinks_to_exact_binding_sites(
                 "msg": combined_message,
             }
         )
-    
+
     if duplicate_messages:
         duplicate_messages = deduplicate_messages(duplicate_messages)
-        combined_message = (
-            "Some reactive binding sites were ambiguous:\n"
-            + "\n".join(f"• {message['msg']}" for message in duplicate_messages)
+        combined_message = "Some reactive binding sites were ambiguous:\n" + "\n".join(
+            f"• {message['msg']}" for message in duplicate_messages
         )
         messages.append(
             {
@@ -613,7 +612,7 @@ def add_protein_crosslink_positions_to_df(
             new_row["1_based_crosslinker_position2"] = potential_cl_position2
             new_rows.append(new_row)
         duplicate_messages.append(
-            f"Row {row_to_duplicate_idx} was duplicated " 
+            f"Row {row_to_duplicate_idx} was duplicated "
             f"{len(potential_positions)} times due to several matches between "
             "peptide sequence and protein sequence.",
         )
@@ -1009,7 +1008,10 @@ def validate_with_angstrom_deviation(
 
             plddt_at_position1 = float(
                 plddt_df.loc[
-                    (plddt_df["residueNumber"] == crosslink["1_based_crosslinker_position1"])
+                    (
+                        plddt_df["residueNumber"]
+                        == crosslink["1_based_crosslinker_position1"]
+                    )
                     & (plddt_df["chainID"] == crosslink["Chain_id1"]),
                     "confidenceScore",
                 ].iloc[0]
@@ -1017,7 +1019,10 @@ def validate_with_angstrom_deviation(
 
             plddt_at_position2 = float(
                 plddt_df.loc[
-                    (plddt_df["residueNumber"] == crosslink["1_based_crosslinker_position2"])
+                    (
+                        plddt_df["residueNumber"]
+                        == crosslink["1_based_crosslinker_position2"]
+                    )
                     & (plddt_df["chainID"] == crosslink["Chain_id2"]),
                     "confidenceScore",
                 ].iloc[0]
@@ -1194,11 +1199,10 @@ def validate_with_angstrom_deviation(
             )
 
     relevant_crosslinks_df.drop(rows_to_delete, inplace=True)
-    
+
     if section_messages:
-        combined_message = (
-            "Some Crosslink entries were deleted:\n"
-            + "\n".join(f"• {message['msg']}" for message in section_messages)
+        combined_message = "Some Crosslink entries were deleted:\n" + "\n".join(
+            f"• {message['msg']}" for message in section_messages
         )
         messages.append(
             dict(

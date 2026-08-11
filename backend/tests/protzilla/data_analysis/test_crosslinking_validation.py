@@ -64,7 +64,7 @@ def make_cif_df(distance):
     # Fake AlphaFold Data with chain IDs
     return pd.DataFrame(
         {
-            #"_atom_site.label_atom_id": ["N", "CA"],
+            # "_atom_site.label_atom_id": ["N", "CA"],
             "_atom_site.label_atom_id": ["CA", "CA"],
             "_atom_site.label_asym_id": ["A", "A"],
             "_atom_site.label_seq_id": [1, 2],
@@ -1333,6 +1333,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
 
 # ------------------------- tests using the exact atom for validation: -------------------------
 
+
 @pytest.fixture
 def exact_atom_reactivity_config():
     return {
@@ -1370,6 +1371,7 @@ def test_get_crosslinker_class_returns_class_for_known_crosslinker(
     assert crosslinker_class == "AMINE-REACTIVE"
     assert messages == []
 
+
 def test_get_crosslinker_class_is_case_insensitive(
     exact_atom_reactivity_config,
 ):
@@ -1380,6 +1382,7 @@ def test_get_crosslinker_class_is_case_insensitive(
 
     assert crosslinker_class == "AMINE-REACTIVE"
     assert messages == []
+
 
 def test_get_crosslinker_class_returns_warning_for_unknown_crosslinker(
     exact_atom_reactivity_config,
@@ -1392,6 +1395,7 @@ def test_get_crosslinker_class_returns_warning_for_unknown_crosslinker(
     assert crosslinker_class is None
     assert len(messages) == 1
     assert messages[0]["level"] == logging.WARNING
+
 
 def test_get_crosslinker_class_returns_warning_for_missing_crosslinker(
     exact_atom_reactivity_config,
@@ -1406,9 +1410,7 @@ def test_get_crosslinker_class_returns_warning_for_missing_crosslinker(
     assert messages[0]["level"] == logging.WARNING
 
 
-def test_lookup_reactive_atoms_returns_defined_atoms(
-        exact_atom_reactivity_config
-):
+def test_lookup_reactive_atoms_returns_defined_atoms(exact_atom_reactivity_config):
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
         crosslinker_class="AMINE-REACTIVE",
@@ -1418,8 +1420,9 @@ def test_lookup_reactive_atoms_returns_defined_atoms(
 
     assert atoms == ["NZ"]
 
+
 def test_lookup_reactive_atoms_returns_empty_list_for_unknown_amino_acid_type(
-        exact_atom_reactivity_config
+    exact_atom_reactivity_config,
 ):
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
@@ -1430,8 +1433,9 @@ def test_lookup_reactive_atoms_returns_empty_list_for_unknown_amino_acid_type(
 
     assert atoms == []
 
+
 def test_lookup_reactive_atoms_returns_empty_list_for_unknown_atom_class(
-        exact_atom_reactivity_config
+    exact_atom_reactivity_config,
 ):
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
@@ -1458,6 +1462,7 @@ def test_get_all_reactive_atoms_returns_ca_when_checkbox_checked(
     assert atoms == ["CA"]
     assert messages == []
 
+
 def test_get_all_reactive_atoms_returns_primary_reactive_atom(
     exact_atom_reactivity_config,
 ):
@@ -1472,6 +1477,7 @@ def test_get_all_reactive_atoms_returns_primary_reactive_atom(
 
     assert atoms == ["NZ"]
     assert messages == []
+
 
 def test_get_all_reactive_atoms_returns_n_term(
     exact_atom_reactivity_config,
@@ -1488,6 +1494,7 @@ def test_get_all_reactive_atoms_returns_n_term(
     assert set(atoms) == {"NZ", "N"}
     assert messages == []
 
+
 def test_get_all_reactive_atoms_returns_c_term(
     exact_atom_reactivity_config,
 ):
@@ -1502,6 +1509,7 @@ def test_get_all_reactive_atoms_returns_c_term(
 
     assert set(atoms) == {"NZ", "C"}
     assert messages == []
+
 
 def test_get_all_reactive_atoms_returns_secondary_reactive_atom(
     exact_atom_reactivity_config,
@@ -1518,6 +1526,7 @@ def test_get_all_reactive_atoms_returns_secondary_reactive_atom(
     assert atoms == ["OG1"]
     assert messages == []
 
+
 def test_get_all_reactive_atoms_returns_CA_atom_if_no_other_found(
     exact_atom_reactivity_config,
 ):
@@ -1532,6 +1541,7 @@ def test_get_all_reactive_atoms_returns_CA_atom_if_no_other_found(
 
     assert atoms == ["CA"]
     assert len(messages) == 1
+
 
 def test_get_all_reactive_atoms_with_ambiguous_amino_acids(
     exact_atom_reactivity_config,
@@ -1600,6 +1610,7 @@ def test_expand_crosslinks_with_one_possible_atom_combination(
     assert result_df.loc[0, "reactive_atom2"] == "NZ"
     assert messages == []
 
+
 def test_expand_crosslinks_with_multiple_possible_atom_combinations(
     exact_atom_reactivity_config,
 ):
@@ -1633,4 +1644,3 @@ def test_expand_crosslinks_with_multiple_possible_atom_combinations(
 
     assert len(result_df) == 4
     assert len(messages) == 1
-
