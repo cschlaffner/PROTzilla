@@ -18,6 +18,11 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     get_chains,
     get_crosslink_positions_in_protein,
     get_protein_sequence_from_df,
+    get_crosslinker_class,
+    lookup_reactive_atoms,
+    get_all_reactive_atoms_for_residue,
+    deduplicate_messages,
+    expand_crosslinks_to_exact_binding_sites,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
 from backend.protzilla.data_analysis.plots import (
@@ -1324,3 +1329,308 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
         zip(inter_links["Chain_id1"].tolist(), inter_links["Chain_id2"].tolist())
     )
     assert inter_combos == {("A", "B")}
+
+
+# ------------------------- tests using the exact atom for validation: -------------------------
+
+@pytest.fixture
+def exact_atom_reactivity_config():
+    return {
+        "crosslinker_classes": {
+            "DSS": "AMINE-REACTIVE",
+            "CDI": "AMINE-REACTIVE",
+        },
+        "AMINE-REACTIVE": {
+            "primary_residue_atoms": {
+                "K": ["NZ"],
+                "D": ["OD1"],
+                "N": ["OD2"],
+            },
+            "terminal_atoms": {
+                "NTERM": ["N"],
+                "CTERM": ["C"],
+            },
+            "secondary_residue_atoms": {
+                "S": ["OG"],
+                "T": ["OG1"],
+                "Y": ["OH"],
+            },
+        },
+    }
+
+
+def test_get_crosslinker_class_returns_class_for_known_crosslinker(
+    exact_atom_reactivity_config,
+):
+    crosslinker_class, messages = get_crosslinker_class(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker="DSS",
+    )
+
+    assert crosslinker_class == "AMINE-REACTIVE"
+    assert messages == []
+
+def test_get_crosslinker_class_is_case_insensitive(
+    exact_atom_reactivity_config,
+):
+    crosslinker_class, messages = get_crosslinker_class(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker="dss",
+    )
+
+    assert crosslinker_class == "AMINE-REACTIVE"
+    assert messages == []
+
+def test_get_crosslinker_class_returns_warning_for_unknown_crosslinker(
+    exact_atom_reactivity_config,
+):
+    crosslinker_class, messages = get_crosslinker_class(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker="unknown",
+    )
+
+    assert crosslinker_class is None
+    assert len(messages) == 1
+    assert messages[0]["level"] == logging.WARNING
+
+def test_get_crosslinker_class_returns_warning_for_missing_crosslinker(
+    exact_atom_reactivity_config,
+):
+    crosslinker_class, messages = get_crosslinker_class(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker=np.nan,
+    )
+
+    assert crosslinker_class is None
+    assert len(messages) == 1
+    assert messages[0]["level"] == logging.WARNING
+
+
+def test_lookup_reactive_atoms_returns_defined_atoms(
+        exact_atom_reactivity_config
+):
+    atoms = lookup_reactive_atoms(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker_class="AMINE-REACTIVE",
+        atom_class="primary_residue_atoms",
+        amino_acid_type="K",
+    )
+
+    assert atoms == ["NZ"]
+
+def test_lookup_reactive_atoms_returns_empty_list_for_unknown_amino_acid_type(
+        exact_atom_reactivity_config
+):
+    atoms = lookup_reactive_atoms(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker_class="AMINE-REACTIVE",
+        atom_class="primary_residue_atoms",
+        amino_acid_type="Unknown",
+    )
+
+    assert atoms == []
+
+def test_lookup_reactive_atoms_returns_empty_list_for_unknown_atom_class(
+        exact_atom_reactivity_config
+):
+    atoms = lookup_reactive_atoms(
+        reactivity_config=exact_atom_reactivity_config,
+        crosslinker_class="AMINE-REACTIVE",
+        atom_class="Unknown",
+        amino_acid_type="K",
+    )
+
+    assert atoms == []
+
+
+def test_get_all_reactive_atoms_returns_ca_when_checkbox_checked(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="K",
+        amino_acid_position=5,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=True,
+    )
+
+    assert atoms == ["CA"]
+    assert messages == []
+
+def test_get_all_reactive_atoms_returns_primary_reactive_atom(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="K",
+        amino_acid_position=5,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert atoms == ["NZ"]
+    assert messages == []
+
+def test_get_all_reactive_atoms_returns_n_term(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="K",
+        amino_acid_position=1,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert set(atoms) == {"NZ", "N"}
+    assert messages == []
+
+def test_get_all_reactive_atoms_returns_c_term(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="K",
+        amino_acid_position=10,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert set(atoms) == {"NZ", "C"}
+    assert messages == []
+
+def test_get_all_reactive_atoms_returns_secondary_reactive_atom(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="T",
+        amino_acid_position=5,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert atoms == ["OG1"]
+    assert messages == []
+
+def test_get_all_reactive_atoms_returns_CA_atom_if_no_other_found(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="A",
+        amino_acid_position=5,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert atoms == ["CA"]
+    assert len(messages) == 1
+
+def test_get_all_reactive_atoms_with_ambiguous_amino_acids(
+    exact_atom_reactivity_config,
+):
+    atoms, messages = get_all_reactive_atoms_for_residue(
+        amino_acid_type="B",
+        amino_acid_position=5,
+        crosslinker_type="DSS",
+        pos_of_last_amino_acid=10,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert set(atoms) == {"OD1", "OD2"}
+    assert messages == []
+
+
+def test_deduplicate_messages():
+    messages = [
+        {"level": logging.WARNING, "msg": "Warning 1"},
+        {"level": logging.WARNING, "msg": "Warning 1"},
+        {"level": logging.WARNING, "msg": "Warning 2"},
+    ]
+
+    result = deduplicate_messages(messages)
+
+    assert result == [
+        {"level": logging.WARNING, "msg": "Warning 1"},
+        {"level": logging.WARNING, "msg": "Warning 2"},
+    ]
+
+
+def test_expand_crosslinks_with_one_possible_atom_combination(
+    exact_atom_reactivity_config,
+):
+    crosslinks_df = pd.DataFrame(
+        {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
+            "Peptide1": ["AKC"],
+            "Peptide2": ["AKC"],
+            "1_based_CL_position_within_peptide1": [2],
+            "1_based_CL_position_within_peptide2": [2],
+            "1_based_crosslinker_position1": [2],
+            "1_based_crosslinker_position2": [2],
+            "Crosslinker": ["DSS"],
+        }
+    )
+
+    sequences_df = pd.DataFrame(
+        {
+            "Protein ID": ["P1-1"],
+            "Protein Sequence": ["AKC"],
+        }
+    )
+
+    result_df, messages = expand_crosslinks_to_exact_binding_sites(
+        relevant_crosslinks_df=crosslinks_df,
+        amino_acid_sequences_df=sequences_df,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert len(result_df) == 1
+    assert result_df.loc[0, "reactive_atom1"] == "NZ"
+    assert result_df.loc[0, "reactive_atom2"] == "NZ"
+    assert messages == []
+
+def test_expand_crosslinks_with_multiple_possible_atom_combinations(
+    exact_atom_reactivity_config,
+):
+    crosslinks_df = pd.DataFrame(
+        {
+            "Protein_id1": ["P1"],
+            "Protein_id2": ["P1"],
+            "Peptide1": ["KA"],
+            "Peptide2": ["KA"],
+            "1_based_CL_position_within_peptide1": [1],
+            "1_based_CL_position_within_peptide2": [1],
+            "1_based_crosslinker_position1": [1],
+            "1_based_crosslinker_position2": [1],
+            "Crosslinker": ["DSS"],
+        }
+    )
+
+    sequences_df = pd.DataFrame(
+        {
+            "Protein ID": ["P1-1"],
+            "Protein Sequence": ["KA"],
+        }
+    )
+
+    result_df, messages = expand_crosslinks_to_exact_binding_sites(
+        relevant_crosslinks_df=crosslinks_df,
+        amino_acid_sequences_df=sequences_df,
+        reactivity_config=exact_atom_reactivity_config,
+        use_ca_atom=False,
+    )
+
+    assert len(result_df) == 4
+    assert len(messages) == 1
+
