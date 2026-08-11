@@ -59,7 +59,8 @@ def make_cif_df(distance):
     # Fake AlphaFold Data with chain IDs
     return pd.DataFrame(
         {
-            "_atom_site.label_atom_id": ["N", "CA"],
+            #"_atom_site.label_atom_id": ["N", "CA"],
+            "_atom_site.label_atom_id": ["CA", "CA"],
             "_atom_site.label_asym_id": ["A", "A"],
             "_atom_site.label_seq_id": [1, 2],
             "_atom_site.Cartn_x": [0, distance],
@@ -101,6 +102,7 @@ def run_validation(
     structure_metadata_df,
     valid_ids,
     structures_to_validate,
+    use_ca_atom,
     **kwargs,
 ):
     return validate_with_angstrom_deviation(
@@ -113,6 +115,7 @@ def run_validation(
         id_column_name="_atom_site.pdbx_sifts_xref_db_acc",
         structures_to_validate=structures_to_validate,
         validation_criterion=validation_criterion,
+        use_ca_atom=use_ca_atom,
         **kwargs,
     )
 
@@ -176,6 +179,7 @@ def test_monomer_validation_baseline_manual_bounds(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
     )
 
     df: pd.DataFrame = result["crosslinking_result_df"]
@@ -218,6 +222,7 @@ def test_cl_validation_pae_noerrror(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         pae_matrix=pae_matrix,
     )
 
@@ -258,6 +263,7 @@ def test_cl_validation_pae_haserror(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         pae_matrix=pae_matrix,
     )
 
@@ -273,6 +279,7 @@ def test_cl_validation_pae_haserror(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         pae_matrix=pae_matrix,
     )
 
@@ -315,6 +322,7 @@ def test_cl_validation_plddt_noerrror(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         plddt_df=plddt_df_noerror,
     )
 
@@ -365,6 +373,7 @@ def test_cl_validation_plddt_witherror(
         structure_metadata_df=structure_metadata_df,
         valid_ids=valid_ids,
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         plddt_df=plddt_df_noerror,
     )
 
@@ -518,7 +527,8 @@ def test_add_crosslinker_positions_with_valid_and_invalid_rows_mixed():
 
     df, messages = add_protein_crosslink_positions_to_df(df, amino_acid_sequences_df)
 
-    assert len(messages) == 2
+    # Only one message, because for different rows they get aggraégated into one message
+    assert len(messages) == 1
     assert messages[0]["level"] == logging.WARNING
 
     # First row valid
@@ -628,6 +638,7 @@ def test_validate_multimer_filters_only_pairs_within_structures_to_validate():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds,
     )
 
@@ -704,6 +715,7 @@ def test_validate_multimer_no_links_between_structures_returns_empty_and_warning
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds,
     )
 
@@ -776,6 +788,7 @@ def test_validate_multimer_duplicates_rows_for_multiple_peptide_matches_and_vali
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds,
     )
 
@@ -1105,6 +1118,7 @@ def test_validate_multimer_with_invalid_crosslinks():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds,
     )
 
@@ -1282,6 +1296,7 @@ def test_validate_multimer_same_protein_different_chains_intra_vs_inter():
         valid_ids=valid_ids,
         id_column_name="_atom_site.label_entity_id",
         structures_to_validate=structures_to_validate,
+        use_ca_atom=True,
         validation_criterion=CrosslinkingValidationCriterion.manual_bounds,
     )
 

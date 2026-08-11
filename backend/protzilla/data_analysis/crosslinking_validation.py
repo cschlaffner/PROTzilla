@@ -1008,16 +1008,19 @@ def validate_with_angstrom_deviation(
                 return np.nan, np.nan
 
             plddt_at_position1 = float(
-                plddt_df.query(
-                    "residueNumber == @crosslink['1_based_crosslinker_position1'] and "
-                    + "chainID == @crosslink.Chain_id1"
-                ).iloc[0]["confidenceScore"]
+                plddt_df.loc[
+                    (plddt_df["residueNumber"] == crosslink["1_based_crosslinker_position1"])
+                    & (plddt_df["chainID"] == crosslink["Chain_id1"]),
+                    "confidenceScore",
+                ].iloc[0]
             )
+
             plddt_at_position2 = float(
-                plddt_df.query(
-                    "residueNumber == @crosslink['1_based_crosslinker_position2'] and "
-                    + "chainID == @crosslink.Chain_id2"
-                ).iloc[0]["confidenceScore"]
+                plddt_df.loc[
+                    (plddt_df["residueNumber"] == crosslink["1_based_crosslinker_position2"])
+                    & (plddt_df["chainID"] == crosslink["Chain_id2"]),
+                    "confidenceScore",
+                ].iloc[0]
             )
 
             return plddt_at_position1, plddt_at_position2
