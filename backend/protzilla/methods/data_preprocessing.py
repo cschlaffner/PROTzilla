@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 from collections.abc import Sequence
+from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
 from backend.protzilla.data_preprocessing import (
@@ -21,6 +22,11 @@ from backend.protzilla.run import Run
 from backend.protzilla.data_preprocessing.simplification import AggregationMethod
 from backend.protzilla.data_preprocessing.debug_transform_to_wide import (
     transform_to_wide,
+)
+from backend.protzilla.data_preprocessing.batch_effect_correction import (
+    combat_correction,
+    sva_correction,
+    loess_correction,
 )
 
 info_field_show_outliers = InfoField(
@@ -1204,3 +1210,142 @@ class TransformToWideFormat(Step):
         )
 
     calc_method = staticmethod(transform_to_wide)
+
+
+class BatchEffectCorrectionStep(DataPreprocessingStep, ABC):
+    operation: StepOperation = StepOperation.BATCH_EFFECT_CORRECTION
+
+
+class BatchEffectCorrectionComBat(BatchEffectCorrectionStep):
+    display_name = "Batch Effect Correction: ComBat"
+    method_description = "Corrects batch effects in the protein dataset using the method: ComBat (Johnson et al. 2007)"
+    output_keys = ["protein_df"]
+    calc_method = staticmethod(combat_correction)
+
+    def create_form(self):
+        return Form(
+            label="Batch Effect Correction: ComBat",
+            input_fields=[
+                CheckboxField(
+                    name="par_prior",
+                    label="The batch effects can be parametrically estimated, parametric ComBat can be used (Default).",
+                    value=True,
+                ),
+                DropdownField(
+                    name="batch_column", label="Name of the batch column in metadata"
+                ),
+                MultiSelectField(
+                    name="covariates_columns",
+                    label="Name of all covariate columns that should be included in the analysis (optional)",
+                ),
+                InfoField(
+                    name="covariates_info_field",
+                    label="Group and covariates can be specified above for the ComBat calculation. This is optional but recommended. "
+                    "The group and covariates must be categorical. Example: Covariates like 'Age' must be turned into categories or excluded.",
+                ),
+            ],
+        )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+        self.set_grouping_options(run=run, column_field_name="batch_column")
+        self.set_grouping_options(run=run, column_field_name="covariates_columns")
+
+
+class BatchEffectCorrectionSVA(BatchEffectCorrectionStep):
+    display_name = "Batch Effect Correction: SVA"
+    method_description = "Corrects batch effects in the protein dataset using the method: SVA (Leek and Storey, 2007, 2008)."
+    output_keys = ["protein_df"]
+    calc_method = staticmethod(sva_correction)
+
+    def create_form(self):
+        return Form(
+            label="Batch Effect Correction: SVA",
+            input_fields=[
+                InfoField(
+                    # TODO: improve wording below
+                    name="info-field",
+                    label="The protein data is corrected with the frozen surrogate variables analysis method using the "
+                    "surrogate variables calculated with the iteratively re-weighted least squares approach of surrogate variable analysis.",
+                ),
+                DropdownField(
+                    name="num_sv_method",
+                    label="The method to calculate the optimal number of surrogate variables",
+                    options=NumSVMethods,
+                    value=NumSVMethods.be.value,
+                ),
+                DropdownField(
+                    name="group_column",
+                    label="Name of the group column in metadata",
+                ),
+                MultiSelectField(
+                    name="covariates_columns",
+                    label="Name of all covariate columns that should be included in the analysis (optional)",
+                ),
+                NumberField(
+                    name="seed",
+                    label="Seed for permutations in calculation of the number of surrogate variables. (Enter -1 to have no seed specified)",
+                    value=-1,
+                    min=-1,
+                    isVisible=True,
+                    step=1,
+                ),
+            ],
+        )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run)
+        self.set_grouping_options(run=run, column_field_name="group_column")
+        self.set_grouping_options(run=run, column_field_name="covariates_columns")
+
+        if self.form["num_sv_method"].value == NumSVMethods.be.value:
+            self.form["seed"].isVisible = True
+        else:
+            self.form["seed"].isVisible = False
+
+
+class BatchEffectCorrectionLOESS(BatchEffectCorrectionStep):
+    display_name = "Batch Effect Correction: LOESS"
+    method_description = "Corrects intra batch effects in the protein dataset using a LOESS based method. (Rusilowicz, Martin et al. 2016)"
+    output_keys = ["protein_df"]
+    calc_method = staticmethod(loess_correction)
+
+    def create_form(self):
+        return Form(
+            label="Batch Effect Correction: LOESS",
+            input_fields=[
+                DropdownField(
+                    name="group_column", label="Name of the group column in metadata"
+                ),
+                MultiSelectField(
+                    name="qc_group_names", label="Quality Control group names"
+                ),
+                DropdownField(
+                    name="batch_column", label="Name of the batch column in metadata"
+                ),
+                DropdownField(
+                    name="order_column", label="Name of the order column in metadata"
+                ),
+                FloatField(
+                    name="frac",
+                    label="Fraction of samples around a point, used to fit the LOESS curve at this specific point",
+                    min=0.0,
+                    max=1.0,
+                    step=0.1,
+                    value=0.5,
+                ),
+            ],
+        )
+
+    @override
+    def modify_form(self, run):
+        super().modify_form(run=run)
+
+        self.set_grouping_options(run=run, column_field_name="group_column")
+        self.set_selected_groups_options(
+            run=run, column_field="group_column", group_field="qc_group_names"
+        )
+        self.set_grouping_options(run=run, column_field_name="batch_column")
+        self.set_grouping_options(run=run, column_field_name="order_column")

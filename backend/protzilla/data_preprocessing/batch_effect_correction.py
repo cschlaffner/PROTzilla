@@ -10,13 +10,13 @@ from backend.protzilla.utilities.utilities import (
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
 import numpy as np
 from backend.protzilla.constants.option_types import NumSVMethods
-from backend.protzilla.data_analysis.sva import (
+from backend.protzilla.data_preprocessing.sva import (
     calculate_n_sv_be,
     calculate_n_sv_leek,
     irwsva,
     fsva,
 )
-from backend.protzilla.data_analysis.loess import correct_intra_batch_with_loess
+from backend.protzilla.data_preprocessing.loess import correct_intra_batch_with_loess
 
 # <---- helper functions ---->
 

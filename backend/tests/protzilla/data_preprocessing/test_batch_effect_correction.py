@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from backend.protzilla.data_analysis.batch_effect_correction import (
+from backend.protzilla.data_preprocessing.batch_effect_correction import (
     long_to_pycombat_df,
     pycombat_df_to_long,
 )
