@@ -66,7 +66,7 @@ def wide_to_long(wide_df: pd.DataFrame, original_long_df: pd.DataFrame) -> pd.Da
 
 
 def is_long_format(df: pd.DataFrame):
-    return set(df.columns[:3]) == {"Sample", "Protein ID", "Gene"}
+    return {"Sample", "Protein ID", "Gene"}.issubset(df.columns)
 
 
 def is_intensity_df(df: pd.DataFrame):
