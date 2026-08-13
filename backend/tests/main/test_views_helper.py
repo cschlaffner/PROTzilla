@@ -64,6 +64,10 @@ def test_get_all_possible_step_names():
         "ClassificationRandomForest",
         "ClassificationSVM",
         "ModelEvaluationClassificationModel",
+        "BatchEffectCorrectionSVA",
+        "BatchEffectCorrectionLOESS",
+        "BatchEffectCorrectionComBat",
+        "DimensionReductionPCA",
         "DimensionReductionTSNE",
         "DimensionReductionUMAP",
         "FLEXIQuantLF",
@@ -86,6 +90,7 @@ def test_get_all_possible_step_names():
         "PlotGSEADotPlot",
         "PlotGSEAEnrichmentPlot",
         "ArbitraryCSVImport",
+        "TransformToWideFormat",
     }
 
     steps = get_all_possible_steps()
