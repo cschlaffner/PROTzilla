@@ -49,22 +49,22 @@ AMBIGUOUS_AMINO_ACIDS = {
 
 def get_all_reactive_atoms_for_residue(
     amino_acid_type: str,
-    amino_acid_position: int,
     crosslinker_type: str,
-    pos_of_last_amino_acid: int,
+    is_nterm: bool,
+    is_cterm: bool,
     reactivity_config: dict[str, dict[str, list[str]]],
     use_ca_atom: bool,
 ) -> tuple[list[str], list[dict]]:
     """
-    Returns the reactive atom(s) for a residue based on the crosslinker type,
-    residue type, and residue position.
+    Returns the possible reactive atom(s) for a residue based on the
+    crosslinker type, residue type, and terminal position.
 
     Falls back to the CA atom if no specific reactive atom can be determined.
 
     :param amino_acid_type: One-letter amino acid code.
-    :param amino_acid_position: One-based residue position within the protein.
     :param crosslinker_type: Name of the crosslinker.
-    :param pos_of_last_amino_acid: One-based position of the last residue.
+    :param isNterm: Whether the residue is the N-terminal residue of the protein.
+    :param isCterm: Whether the residue is the C-terminal residue of the protein.
     :param reactivity_config: Crosslinker reactivity configuration.
     :param use_ca_atom: If True, always returns the CA atom.
 
@@ -100,7 +100,7 @@ def get_all_reactive_atoms_for_residue(
             )
         )
 
-    if amino_acid_position == 1:
+    if is_nterm:
         reactive_atoms_list.extend(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
@@ -109,7 +109,7 @@ def get_all_reactive_atoms_for_residue(
                 amino_acid_type="NTERM",
             )
         )
-    elif amino_acid_position == pos_of_last_amino_acid:
+    if is_cterm:
         reactive_atoms_list.extend(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
@@ -239,37 +239,49 @@ def expand_crosslinks_to_exact_binding_sites(
     expanded_rows = []
     unknown_site_messages = []
     duplicate_messages = []
-    messages = []
+    messages = [] 
 
     for index, crosslink in relevant_crosslinks_df.iterrows():
+        is_nterm1 = False
+        is_nterm2 = False
+        is_cterm1 = False 
+        is_cterm2 = False
+
         amino_acid_type1 = crosslink.Peptide1[
             crosslink["1_based_CL_position_within_peptide1"] - 1
         ]
         amino_acid_type2 = crosslink.Peptide2[
             crosslink["1_based_CL_position_within_peptide2"] - 1
         ]
+
         pos_of_last_amino_acid1 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id1,
         )
+        is_nterm1 = crosslink["1_based_crosslinker_position1"] == 1
+        is_cterm1 = crosslink["1_based_crosslinker_position1"] == pos_of_last_amino_acid1
+
         pos_of_last_amino_acid2 = get_pos_of_last_amino_acid(
             amino_acid_sequences_df=amino_acid_sequences_df,
             protein_id=crosslink.Protein_id2,
         )
+        is_nterm2 = crosslink["1_based_crosslinker_position2"] == 1
+        is_cterm2 = crosslink["1_based_crosslinker_position2"] == pos_of_last_amino_acid2
+
         reactive_atoms1_list, msg = get_all_reactive_atoms_for_residue(
             amino_acid_type1,
-            crosslink["1_based_crosslinker_position1"],
             crosslink.Crosslinker,
-            pos_of_last_amino_acid1,
+            is_nterm1,
+            is_cterm1,
             reactivity_config,
             use_ca_atom,
         )
         unknown_site_messages.extend(msg)
         reactive_atoms2_list, msg = get_all_reactive_atoms_for_residue(
             amino_acid_type2,
-            crosslink["1_based_crosslinker_position2"],
             crosslink.Crosslinker,
-            pos_of_last_amino_acid2,
+            is_nterm2,
+            is_cterm2,
             reactivity_config,
             use_ca_atom,
         )
