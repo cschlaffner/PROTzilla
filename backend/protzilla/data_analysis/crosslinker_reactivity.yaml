@@ -1,62 +1,62 @@
-crosslinker_classes: 
-  DSSO: AMINE-REACTIVE #NHS-ESTER
-  DSS: AMINE-REACTIVE #NHS-ESTER
-  DSBSO: AMINE-REACTIVE #NHS-ESTER
-  DSBU: AMINE-REACTIVE #NHS-ESTER
-  BS3: AMINE-REACTIVE #NHS-ESTER
-  PHOX: AMINE-REACTIVE #NHS-ESTER
+crosslinker_reactivity_classes: 
+  DSSO: AMINE-REACTIVE # bifunctional NHS-ester crosslinker
+  DSS: AMINE-REACTIVE # bifunctional NHS-ester crosslinker
+  DSBSO: AMINE-REACTIVE # bifunctional NHS-ester crosslinker
+  DSBU: AMINE-REACTIVE # bifunctional NHS-ester crosslinker
+  BS3: AMINE-REACTIVE # bifunctional NHS-ester crosslinker
+  PHOX: AMINE-REACTIVE # bifunctional NHS-ester crosslinker with phosphonic acid enrichment group
 
-  CDI: AMINE-REACTIVE #CARBONYL-ACTIVATED
+  CDI: AMINE-REACTIVE # carbonyl-based crosslinker with imidazole leaving groups
 
-  PDH/DMTMM: CARBOXYL-REACTIVE #DIHYDRAZIDE+COUPLING-REAGENT
-  DHSO/DMTMM: CARBOXYL-REACTIVE #DIHYDRAZIDE+COUPLING-REAGENT
+  PDH/DMTMM: CARBOXYL-REACTIVE # dihydrazide crosslinker with DMTMM coupling reagent
+  DHSO/DMTMM: CARBOXYL-REACTIVE # dihydrazide crosslinker with DMTMM coupling reagent
 
-  S-S: DISULFIDEBOND
+  S-S: DISULFIDE-BOND
 
 AMINE-REACTIVE: 
-  primary_residue_atoms:
+  primary_reactive_atoms:
     K: # lysine
-      - NZ # terminal nitrogen of the lysine side chain
+      - NZ # epsilon-amino nitrogen of the lysine side chain
 
   terminal_atoms:
-    NTERM: # first amino acid of the chain 
-      - N # backbone nitrogen of the first amino acid of the chain 
+    NTERM: # N-terminus (first amino acid of the chain) 
+      - N # alpha-amino nitrogen of the N-terminal residue 
 
-  secondary_residue_atoms:
+  secondary_reactive_atoms:
     S: # serine 
-      - OG # hydroxyl-group
+      - OG # hydroxyl oxygen of the side chain
     T: # threonine 
-      - OG1 # hydroxyl-group
+      - OG1 # hydroxyl oxygen of the side chain
     Y: # tyrosine
-      - OH # hydroxyl-group
+      - OH # hydroxyl oxygen of the side chain
 
 CARBOXYL-REACTIVE: 
-  primary_residue_atoms:
+  primary_reactive_atoms:
     D: # aspartate
-      - CG # side-chain carboxyl carbon
+      - CG # carbonyl carbon of the side-chain carboxyl group
     E: # glutamate
-      - CD # side-chain carboxyl carbon
+      - CD # carbonyl carbon of the side-chain carboxyl group
 
   terminal_atoms:
-    CTERM: # last amino acid of the chain 
+    CTERM: # C-terminus (last amino acid of the chain)
       - C # carbonyl carbon of the terminal carboxyl group
 
-  secondary_residue_atoms: 
-    K:
-      - NZ 
-    H:
-      - ND1
-      - NE2 
-    Y:
-      - OH 
-    S:
-      - OG 
-    T:
-      - OG1 
-    C:
-      - SG 
-
-DISULFIDEBOND: 
-  primary_residue_atoms:
+  secondary_reactive_atoms: 
+    K: # lysine
+      - NZ # epsilon-amino nitrogen of the lysine side chain
+    S: # serine
+      - OG # hydroxyl oxygen of the side chain
+    T: # threonine 
+      - OG1 # hydroxyl oxygen of the side chain
+    Y: # tyrosine 
+      - OH # hydroxyl oxygen of the side chain
+    H: # histidine
+      - ND1 # imidazole ring nitrogen of the side chain
+      - NE2 # imidazole ring nitrogen of the side chain
     C: # cysteine
-      - SG # sulfur of the thiol residue
+      - SG # sulfur of the thiol side chain
+
+DISULFIDE-BOND: 
+  primary_reactive_atoms:
+    C: # cysteine
+      - SG # sulfur of the thiol side chain

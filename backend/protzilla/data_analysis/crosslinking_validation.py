@@ -95,7 +95,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="primary_residue_atoms",
+                atom_class="primary_reactive_atoms",
                 amino_acid_type=a_type,
             )
         )
@@ -125,7 +125,7 @@ def get_all_reactive_atoms_for_residue(
                 lookup_reactive_atoms(
                     reactivity_config=reactivity_config,
                     crosslinker_class=crosslinker_class,
-                    atom_class="secondary_residue_atoms",
+                    atom_class="secondary_reactive_atoms",
                     amino_acid_type=a_type,
                 )
             )
@@ -176,7 +176,7 @@ def get_crosslinker_class(
         return None, messages
 
     normalized_crosslinker_type = crosslinker.upper()
-    crosslinker_class = reactivity_config["crosslinker_classes"].get(
+    crosslinker_class = reactivity_config["crosslinker_reactivity_classes"].get(
         normalized_crosslinker_type
     )
 
