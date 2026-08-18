@@ -95,7 +95,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="primary_reactive_atoms",
+                atom_class="primary_reactive_sites",
                 amino_acid_type=a_type,
             )
         )
@@ -105,7 +105,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="terminal_atoms",
+                atom_class="primary_reactive_sites",
                 amino_acid_type="NTERM",
             )
         )
@@ -114,7 +114,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="terminal_atoms",
+                atom_class="primary_reactive_sites",
                 amino_acid_type="CTERM",
             )
         )
@@ -125,7 +125,7 @@ def get_all_reactive_atoms_for_residue(
                 lookup_reactive_atoms(
                     reactivity_config=reactivity_config,
                     crosslinker_class=crosslinker_class,
-                    atom_class="secondary_reactive_atoms",
+                    atom_class="secondary_reactive_sites",
                     amino_acid_type=a_type,
                 )
             )

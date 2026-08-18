@@ -14,15 +14,17 @@ crosslinker_reactivity_classes:
   S-S: DISULFIDE-BOND
 
 AMINE-REACTIVE: 
-  primary_reactive_atoms:
+  primary_reactive_sites:
     K: # lysine
       - NZ # epsilon-amino nitrogen of the lysine side chain
-
-  terminal_atoms:
     NTERM: # N-terminus (first amino acid of the chain) 
       - N # alpha-amino nitrogen of the N-terminal residue 
 
-  secondary_reactive_atoms:
+  terminal_reactive_sites:
+    NTERM: # N-terminus (first amino acid of the chain) 
+      - N # alpha-amino nitrogen of the N-terminal residue 
+
+  secondary_reactive_sites:
     S: # serine 
       - OG # hydroxyl oxygen of the side chain
     T: # threonine 
@@ -31,17 +33,19 @@ AMINE-REACTIVE:
       - OH # hydroxyl oxygen of the side chain
 
 CARBOXYL-REACTIVE: 
-  primary_reactive_atoms:
+  primary_reactive_sites:
     D: # aspartate
       - CG # carbonyl carbon of the side-chain carboxyl group
     E: # glutamate
       - CD # carbonyl carbon of the side-chain carboxyl group
-
-  terminal_atoms:
     CTERM: # C-terminus (last amino acid of the chain)
       - C # carbonyl carbon of the terminal carboxyl group
 
-  secondary_reactive_atoms: 
+  terminal_reactive_sites:
+    CTERM: # C-terminus (last amino acid of the chain)
+      - C # carbonyl carbon of the terminal carboxyl group
+
+  secondary_reactive_sites: 
     K: # lysine
       - NZ # epsilon-amino nitrogen of the lysine side chain
     S: # serine
@@ -57,6 +61,6 @@ CARBOXYL-REACTIVE:
       - SG # sulfur of the thiol side chain
 
 DISULFIDE-BOND: 
-  primary_reactive_atoms:
+  primary_reactive_sites:
     C: # cysteine
       - SG # sulfur of the thiol side chain
