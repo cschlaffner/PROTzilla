@@ -18,11 +18,7 @@ AMINE-REACTIVE:
     K: # lysine
       - NZ # epsilon-amino nitrogen of the lysine side chain
     NTERM: # N-terminus (first amino acid of the chain) 
-      - N # alpha-amino nitrogen of the N-terminal residue 
-
-  terminal_reactive_sites:
-    NTERM: # N-terminus (first amino acid of the chain) 
-      - N # alpha-amino nitrogen of the N-terminal residue 
+      - N # alpha-amino nitrogen of the N-terminal residue  
 
   secondary_reactive_sites:
     S: # serine 
@@ -38,10 +34,6 @@ CARBOXYL-REACTIVE:
       - CG # carbonyl carbon of the side-chain carboxyl group
     E: # glutamate
       - CD # carbonyl carbon of the side-chain carboxyl group
-    CTERM: # C-terminus (last amino acid of the chain)
-      - C # carbonyl carbon of the terminal carboxyl group
-
-  terminal_reactive_sites:
     CTERM: # C-terminus (last amino acid of the chain)
       - C # carbonyl carbon of the terminal carboxyl group
 
