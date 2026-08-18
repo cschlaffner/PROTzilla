@@ -99,6 +99,7 @@ def pycombat_df_to_long(
         inplace=True,
     )
     intensity_df.insert(2, "Gene", gene_info)
+    intensity_df = intensity_df[["Sample", "Protein ID", "Gene", "Intensity"]]
 
     return intensity_df
 
