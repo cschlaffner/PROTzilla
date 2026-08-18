@@ -31,9 +31,9 @@ def get_covar_mod(
 
     :param samples: list of samples
     :param metadata_df: metadata dataframe for the protein data
-    :param covar_columns: the columns in metadata that specify the covariates of interest
+    :param covar_columns: list of columns in metadata that specify covariates of interest
 
-    :return: dataframe with the covariates
+    :return: dataframe with the covariates or None if no covariate columns given
     """
     if not covar_columns:
         return None
@@ -57,6 +57,7 @@ def long_to_pycombat_df(
     Therefore, each Protein ID gets one row with all observations in the different samples as columns.
 
     :param protein_df: the dataframe that should be transformed into the format suitable for pyCombat
+    :param value_name: optional parameter, determining the name of the intensity column in protein_df
 
     :return: returns dataframe in a format suitable for use for the combat method from pycombat
     """
@@ -128,47 +129,6 @@ def turn_group_names_to_int(groups: list) -> list:
     return groups_as_integer
 
 
-# currently unused
-# could be useful if we want the surrogate variables listed for each protein even though they are only for each sample
-def sv_wide_to_long(
-    wide_df: pd.DataFrame, original_long_df: pd.DataFrame, n_surrogate_variables: int
-) -> pd.DataFrame:
-    """
-    Transforms a dataframe from a wide format containing surrogate variables into the PROTzilla default format
-    where each combination of Sample and Protein ID are a row and the column names are "Sample", "Protein ID",
-    "Gene", "_intensity_name_", "Surrogate Variable 1", "Surrogate Variable 2", ...
-
-    :param wide_df: the dataframe that should be transformed into long format
-    :param original_protein_df: the original PROTzilla default formatted dataframe which we need to reintroduce
-        the gene information
-    :param n_surrogate_variables: Number of surrogate variables
-
-    :return: returns dataframe in the default PROTzilla format with a added surrogate variables columns
-    """
-    # Read out info from original dataframe
-    intensity_name = default_intensity_column(original_long_df)
-    # Collect surrogate variable column names
-    sv_names = []
-    for i in range(n_surrogate_variables):
-        sv_names.append(f"Surrogate Variable {i+1}")
-    # Turn the wide format into the long format
-    intensity_df = pd.melt(
-        wide_df.reset_index(),
-        id_vars=["Sample"] + sv_names,
-        var_name="Protein ID",
-        value_name=intensity_name,
-    )
-    intensity_df.sort_values(
-        by=["Sample", "Protein ID"],
-        ignore_index=True,
-        inplace=True,
-    )
-    # sort the columns
-    columns = ["Sample", "Protein ID", intensity_name] + sv_names
-    intensity_df = intensity_df[columns]
-    return intensity_df
-
-
 def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.DataFrame:
     """
     Creates a surrogate variables dataframe with only Sample and their surrogate variables as columns.
@@ -181,7 +141,6 @@ def create_sv_dataframe(sv_columns: list, samples_in_order: list[str]) -> pd.Dat
     sv_names = []
     df = pd.DataFrame()
     for i in range(len(sv_columns)):
-        # sv_name = f"Surrogate Variable {i+1}"
         sv_name = f"SV{i+1}"
         sv_names.append(sv_name)
         df[sv_name] = sv_columns[i]
