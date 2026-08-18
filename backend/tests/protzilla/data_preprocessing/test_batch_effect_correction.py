@@ -1,6 +1,7 @@
 import pandas as pd
 from patsy import DesignMatrix, dmatrix
 import pytest
+from backend.protzilla.utilities.transform_dfs import long_to_wide
 from backend.protzilla.data_preprocessing.batch_effect_correction import (
     long_to_pycombat_df,
     pycombat_df_to_long,
@@ -8,6 +9,7 @@ from backend.protzilla.data_preprocessing.batch_effect_correction import (
     turn_group_names_to_int,
     create_sv_dataframe,
     turn_covar_df_into_design_matrix,
+    filter_samples_based_on_col,
 )
 
 
@@ -41,6 +43,35 @@ def long_protein_df() -> pd.DataFrame:
     )
     return long_protein_df
 
+@pytest.fixture
+def wide_protein_df() -> pd.DataFrame:
+    long_protein_df = pd.DataFrame(
+            data=(
+                ["Sample_1", "Gene_1", 0, 0, 0, 0],
+                ["Sample_2", "Gene_2", 1, 2, 3, 4],
+                ["Sample_3", "Gene_2", 1, 0, 1, 0],
+                ["Sample_4", "Gene_2", 1, 2, 2, 2],
+            ),
+            columns=[
+                "Sample",
+                "Gene",
+                "Protein_1",
+                "Protein_2",
+                "Protein_3",
+                "Protein_4",
+            ],
+        )
+    long_protein_df = pd.melt(
+        long_protein_df,
+        id_vars=["Sample", "Gene"],
+        var_name="Protein ID",
+        value_name="Intensity",
+    )
+    long_protein_df = long_protein_df[["Protein ID", "Sample", "Gene", "Intensity"]]
+    long_protein_df = long_protein_df.sort_values(
+        by=["Sample", "Protein ID"], ignore_index=True
+    )
+    return long_to_wide(long_protein_df)
 
 @pytest.fixture
 def pycombat_protein_df() -> pd.DataFrame:
@@ -96,6 +127,21 @@ def sv_df() -> pd.DataFrame:
     return sv_df
 
 
+@pytest.fixture
+def covar_df() -> pd.DataFrame:
+    covar_df = pd.DataFrame(
+        data=(
+            ["Sample_1", "Female"],
+            ["Sample_2", "Male"],
+            ["Sample_3", "Male"],
+            ["Sample_4", "Female"],
+        ),
+        columns=["Sample", "Sex"],
+    )
+    covar_df = covar_df.set_index("Sample")
+    return covar_df
+
+
 def test_long_to_pycombat(long_protein_df: pd.DataFrame, pycombat_protein_df):
     df = long_to_pycombat_df(long_protein_df)
     pd.testing.assert_frame_equal(df, pycombat_protein_df)
@@ -121,23 +167,13 @@ def test_get_covar_mod_none(metadata_df: pd.DataFrame):
     )
 
 
-def test_get_covar_mod(metadata_df: pd.DataFrame):
-    df = pd.DataFrame(
-        data=(
-            ["Sample_1", "Female"],
-            ["Sample_2", "Male"],
-            ["Sample_3", "Male"],
-            ["Sample_4", "Female"],
-        ),
-        columns=["Sample", "Sex"],
-    )
-    df = df.set_index("Sample")
+def test_get_covar_mod(metadata_df: pd.DataFrame, covar_df: pd.DataFrame):
     test_df = get_covar_mod(
         samples=["Sample_1", "Sample_2", "Sample_3", "Sample_4"],
         metadata_df=metadata_df,
         covar_columns=["Sex"],
     )
-    pd.testing.assert_frame_equal(df, test_df)
+    pd.testing.assert_frame_equal(covar_df, test_df)
 
 
 def test_turn_group_names_to_int():
@@ -159,3 +195,67 @@ def test_create_sv_dataframe(sv_df: pd.DataFrame):
         samples_in_order=samples,
     )
     pd.testing.assert_frame_equal(sv_df, test_df)
+
+
+def test_turn_covar_df_into_design_matrix(wide_protein_df: pd.DataFrame, covar_df: pd.DataFrame):
+    test_dm =  turn_covar_df_into_design_matrix(wide_protein_df, covar_df)
+    assert test_dm.shape[0] == 4 
+    assert test_dm.shape[1] == 2
+    assert "Intercept" in test_dm.design_info.column_names
+
+
+def test_turn_covar_df_into_design_matrix_no_covariates(wide_protein_df: pd.DataFrame,):
+    test_dm =  turn_covar_df_into_design_matrix(wide_protein_df, None)
+    assert test_dm.shape[0] == 4 
+    assert test_dm.shape[1] == 1
+    assert "Intercept" in test_dm.design_info.column_names
+
+
+def test_filter_samples_based_on_col(
+    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame
+):
+    test_df = filter_samples_based_on_col(
+        wide_protein_df,
+        metadata_df,
+        column_name="Group",
+        filter_names=["CTR"],
+    )
+    long_df = pd.DataFrame(
+            data=(
+                ["Sample_2", "Gene_2", 1, 2, 3, 4],
+                ["Sample_4", "Gene_2", 1, 2, 2, 2],
+            ),
+            columns=[
+                "Sample",
+                "Gene",
+                "Protein_1",
+                "Protein_2",
+                "Protein_3",
+                "Protein_4",
+            ],
+        )
+    long_df = pd.melt(
+            long_df,
+            id_vars=["Sample", "Gene"],
+            var_name="Protein ID",
+            value_name="Intensity",
+        )
+    long_df = long_df[["Protein ID", "Sample", "Gene", "Intensity"]]
+    long_df = long_df.sort_values(
+            by=["Sample", "Protein ID"], ignore_index=True
+        )
+    df = long_to_wide(long_df)
+    pd.testing.assert_frame_equal(df, test_df)
+
+
+def test_filter_samples_based_on_col_all_columns(
+    wide_protein_df: pd.DataFrame, metadata_df: pd.DataFrame
+):
+    test_df = filter_samples_based_on_col(
+        wide_protein_df,
+        metadata_df,
+        column_name="Group",
+        filter_names=["AD", "CTR"],
+    )
+
+    pd.testing.assert_frame_equal(wide_protein_df, test_df)
