@@ -323,7 +323,7 @@ def sva_correction(
         for or the asymptotic method by Leek.
     :param group_column: the name of the column that specifies the group in the metadata
     :param seed: Seed for the permutation in the permutation-based calculation of the number of surrogate variables.
-        If seed is -1, it means there is no seed (seed=None).
+        If the seed is set to -1, it means there is no seed (seed=None).
     :param covariates_columns: the columns in metadata that specify the covariates of interest
 
     return: a dictionary containing the corrected protein data and a dataframe with the surrogate variables
@@ -411,6 +411,7 @@ def loess_correction(
     :param qc_group_names: the list of group names that should be taken as quality control group
     :param batch_column: the name of the column that specifies the batch in the metadata
     :param order_column: the name of the column that specifies the order in the metadata
+    :param frac: the portion of samples lowess should use to fit the curve at a specific point.
 
     return: a dictionary containing the corrected protein data and, if there any, messages
     """
