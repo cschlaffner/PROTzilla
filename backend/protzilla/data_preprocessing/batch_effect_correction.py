@@ -20,8 +20,6 @@ from backend.protzilla.data_preprocessing.loess import correct_intra_batch_with_
 
 # <---- helper functions ---->
 
-# <-- all -->
-
 
 def get_covar_mod(
     samples: list, metadata_df: pd.DataFrame, covar_columns: list[str]
@@ -47,7 +45,6 @@ def get_covar_mod(
     return covar_df
 
 
-# <- ComBat ->
 def long_to_pycombat_df(
     protein_df: pd.DataFrame, value_name: str | None = None
 ) -> pd.DataFrame:
@@ -102,9 +99,6 @@ def pycombat_df_to_long(
     intensity_df = intensity_df[["Sample", "Protein ID", "Gene", "Intensity"]]
 
     return intensity_df
-
-
-# <- SVA ->
 
 
 def turn_group_names_to_int(groups: list) -> list:
@@ -174,9 +168,6 @@ def turn_covar_df_into_design_matrix(
     else:
         covar_dm = dmatrix("~1", pd.DataFrame(wide_protein_df))
     return covar_dm
-
-
-# <--LOESS-->
 
 
 def filter_samples_based_on_col(
