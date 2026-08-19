@@ -22,7 +22,7 @@ from backend.protzilla.data_analysis.crosslinking_validation import (
     lookup_reactive_atoms,
     get_all_reactive_atoms_for_residue,
     deduplicate_messages,
-    expand_crosslinks_to_exact_binding_sites,
+    expand_crosslinks_to_exact_reactive_sites,
     get_pos_of_last_amino_acid,
 )
 from backend.protzilla.constants.colors import PLOT_PRIMARY_COLOR
@@ -1599,7 +1599,7 @@ def test_expand_crosslinks_with_one_possible_atom_combination(
         }
     )
 
-    result_df, messages = expand_crosslinks_to_exact_binding_sites(
+    result_df, messages = expand_crosslinks_to_exact_reactive_sites(
         relevant_crosslinks_df=crosslinks_df,
         amino_acid_sequences_df=sequences_df,
         reactivity_config=exact_atom_reactivity_config,
@@ -1636,7 +1636,7 @@ def test_expand_crosslinks_with_multiple_possible_atom_combinations(
         }
     )
 
-    result_df, messages = expand_crosslinks_to_exact_binding_sites(
+    result_df, messages = expand_crosslinks_to_exact_reactive_sites(
         relevant_crosslinks_df=crosslinks_df,
         amino_acid_sequences_df=sequences_df,
         reactivity_config=exact_atom_reactivity_config,

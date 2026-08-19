@@ -217,7 +217,7 @@ def lookup_reactive_atoms(
     )
 
 
-def expand_crosslinks_to_exact_binding_sites(
+def expand_crosslinks_to_exact_reactive_sites(
     relevant_crosslinks_df: pd.DataFrame,
     amino_acid_sequences_df: pd.DataFrame,
     reactivity_config: dict[str, dict[str, list[str]]],
@@ -1004,7 +1004,7 @@ def validate_with_angstrom_deviation(
         (Path(__file__).parent / "crosslinker_reactivity.yaml").read_text()
     )
 
-    relevant_crosslinks_df, section_messages = expand_crosslinks_to_exact_binding_sites(
+    relevant_crosslinks_df, section_messages = expand_crosslinks_to_exact_reactive_sites(
         relevant_crosslinks_df=relevant_crosslinks_df,
         amino_acid_sequences_df=amino_acid_sequences_df,
         reactivity_config=reactivity_config,
