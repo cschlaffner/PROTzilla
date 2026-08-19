@@ -1415,7 +1415,7 @@ def test_lookup_reactive_atoms_returns_defined_atoms(exact_atom_reactivity_confi
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
         crosslinker_class="AMINE-REACTIVE",
-        atom_class="primary_residue_atoms",
+        reactive_site_class="primary_residue_atoms",
         amino_acid_type="K",
     )
 
@@ -1428,7 +1428,7 @@ def test_lookup_reactive_atoms_returns_empty_list_for_unknown_amino_acid_type(
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
         crosslinker_class="AMINE-REACTIVE",
-        atom_class="primary_residue_atoms",
+        reactive_site_class="primary_residue_atoms",
         amino_acid_type="Unknown",
     )
 
@@ -1441,7 +1441,7 @@ def test_lookup_reactive_atoms_returns_empty_list_for_unknown_atom_class(
     atoms = lookup_reactive_atoms(
         reactivity_config=exact_atom_reactivity_config,
         crosslinker_class="AMINE-REACTIVE",
-        atom_class="Unknown",
+        reactive_site_class="Unknown",
         amino_acid_type="K",
     )
 

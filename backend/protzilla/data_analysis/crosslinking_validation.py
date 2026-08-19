@@ -95,7 +95,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="primary_reactive_sites",
+                reactive_site_class="primary_reactive_sites",
                 amino_acid_type=a_type,
             )
         )
@@ -105,7 +105,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="primary_reactive_sites",
+                reactive_site_class="primary_reactive_sites",
                 amino_acid_type="NTERM",
             )
         )
@@ -114,7 +114,7 @@ def get_all_reactive_atoms_for_residue(
             lookup_reactive_atoms(
                 reactivity_config=reactivity_config,
                 crosslinker_class=crosslinker_class,
-                atom_class="primary_reactive_sites",
+                reactive_site_class="primary_reactive_sites",
                 amino_acid_type="CTERM",
             )
         )
@@ -125,7 +125,7 @@ def get_all_reactive_atoms_for_residue(
                 lookup_reactive_atoms(
                     reactivity_config=reactivity_config,
                     crosslinker_class=crosslinker_class,
-                    atom_class="secondary_reactive_sites",
+                    reactive_site_class="secondary_reactive_sites",
                     amino_acid_type=a_type,
                 )
             )
@@ -197,7 +197,7 @@ def get_crosslinker_class(
 def lookup_reactive_atoms(
     reactivity_config: dict[str, dict[str, list[str]]],
     crosslinker_class: str,
-    atom_class: str,
+    reactive_site_class: str,
     amino_acid_type: str,
 ) -> list[str]:
     """
@@ -212,7 +212,7 @@ def lookup_reactive_atoms(
     """
     return (
         reactivity_config[crosslinker_class]
-        .get(atom_class, {})
+        .get(reactive_site_class, {})
         .get(amino_acid_type, [])
     )
 
