@@ -1,5 +1,5 @@
 import { spacing } from "@protzilla/theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { CheckboxSelectInputFieldProps } from "./checkbox-select-input-field.props.ts";
@@ -30,6 +30,7 @@ export const CheckboxSelectInputField: React.FC<CheckboxSelectInputFieldProps> =
   options,
   value = [],
   onChange,
+  id,
   ...props
 }) => {
   const [selectedValues, setSelectedValues] = useState(() => {
@@ -37,6 +38,11 @@ export const CheckboxSelectInputField: React.FC<CheckboxSelectInputFieldProps> =
     onChange(sortedDefaultOptions);
     return sortedDefaultOptions;
   });
+
+  useEffect(() => {
+    const sorted = [...value].sort((a, b) => a.localeCompare(b));
+    setSelectedValues(sorted);
+  }, [value]);
 
   const handleChange = (value: string) => {
     const newSelectedValues = selectedValues.includes(value)
@@ -49,15 +55,17 @@ export const CheckboxSelectInputField: React.FC<CheckboxSelectInputFieldProps> =
     onChange(sortedSelection);
   };
 
+  const baseId = id ?? "checkbox";
+
   return (
     <InputContainer {...props}>
       <StyledCheckboxContainer $isSmall={props.isSmall ?? false}>
         {options.map((option) => {
-          const id = `checkbox-${option.value}`;
+          const optionId = `${baseId}-${option.value}`;
           return (
-            <StyledLabel key={option.value} htmlFor={id}>
+            <StyledLabel key={option.value} htmlFor={optionId}>
               <input
-                id={id}
+                id={optionId}
                 type="checkbox"
                 value={option.value}
                 checked={selectedValues.includes(option.value)}
