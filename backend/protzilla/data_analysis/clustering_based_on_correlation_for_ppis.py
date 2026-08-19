@@ -2,6 +2,7 @@ from collections import Counter
 import json
 import logging
 import math
+from joblib import Parallel, delayed
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import pandas as pd
@@ -896,6 +897,14 @@ def _get_upper_bound_on_cluster_numbers_to_inspect(
     )
 
 
+def _evaluate_number_of_clusters(number_of_clusters, distance_matrix, random_seed):
+    labels = kmedoids.fasterpam(
+        distance_matrix, number_of_clusters, random_state=random_seed
+    ).labels
+    score = silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
+    return score
+
+
 def kmedoids_with_subsampling(
     distance_matrix: np.ndarray,
     correlation_matrix: pd.DataFrame,
@@ -932,7 +941,6 @@ def kmedoids_with_subsampling(
     :return: Returns a list of lists. Each of the lists contains all protein-ids of one cluster.
     """
     clusters = []
-    silhouette_scores = []
     number_of_proteins_in_cluster = len(correlation_matrix.columns)
     upper_bound_on_cluster_numbers_to_inspect = (
         _get_upper_bound_on_cluster_numbers_to_inspect(
@@ -942,11 +950,10 @@ def kmedoids_with_subsampling(
             min_number_of_silhouette_scores_to_inspect,
         )
     )
-    for i in range(2, upper_bound_on_cluster_numbers_to_inspect + 1):
-        labels = kmedoids.fasterpam(distance_matrix, i, random_state=random_seed).labels
-        silhouette_scores.append(
-            silhouette_score(X=distance_matrix, labels=labels, metric="precomputed")
-        )
+    silhouette_scores = Parallel(n_jobs=-1)(
+        delayed(_evaluate_number_of_clusters)(i, distance_matrix, random_seed)
+        for i in range(2, upper_bound_on_cluster_numbers_to_inspect + 1)
+    )
     best_number_of_clusters = 2 + silhouette_scores.index(max(silhouette_scores))
     labels = kmedoids.fasterpam(
         distance_matrix, best_number_of_clusters, random_state=random_seed
@@ -964,11 +971,10 @@ def kmedoids_with_subsampling(
         )
         if s_score_parent_with_subclustering < s_score_parent:
             return [list(correlation_matrix.columns)]
-
     for label in np.unique(labels):
-        proteins: list[str] = get_proteins_of_specific_cluster(
-            label, pd.Series(labels, index=correlation_matrix.columns)
-        )
+        cluster_indices = np.where(labels == label)[0]
+        proteins = list(correlation_matrix.columns[cluster_indices])
+
         is_stopping_criterion_fullfilled = False
         if len(proteins) > min_cluster_size:
             is_stopping_criterion_fullfilled = _is_stopping_criterion_fullfilled(
@@ -987,16 +993,12 @@ def kmedoids_with_subsampling(
         ):
             clusters.append(proteins)
         else:
-            # temporary fix as long as we drop the index every time we write to disk
-            if isinstance(correlation_matrix.index, pd.RangeIndex):
-                correlation_matrix.index = correlation_matrix.columns
-            correlation_matrix_new = correlation_matrix.loc[proteins, proteins]
-
-            protein_to_idx = {
-                protein: i for i, protein in enumerate(correlation_matrix.columns)
-            }
-            indices = [protein_to_idx[p] for p in proteins]
-            distance_matrix_new = distance_matrix[np.ix_(indices, indices)]
+            correlation_matrix_new = correlation_matrix.iloc[
+                cluster_indices, cluster_indices
+            ]
+            distance_matrix_new = distance_matrix[
+                np.ix_(cluster_indices, cluster_indices)
+            ]
             if is_stopping_criterion_fullfilled:
                 additional_params = {
                     "labels_parent": pd.Series(
