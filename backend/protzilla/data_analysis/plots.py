@@ -237,6 +237,7 @@ def clusteredheatmap_plot(
     perform_column_clustering: bool = True,
     linkage_method: str = "single",
     distance_method: str = "euclidean",
+    use_completecase_analysis: bool = False,
     optimal_leaf_ordering: bool = True,
     # Visu params
     heatmap_color_scale: str = "RdBu_r",
@@ -277,6 +278,7 @@ def clusteredheatmap_plot(
     c = ClusteredHeatMap(
         input_protein_df,
         distance=distance_method,
+        use_completecase_analysis=use_completecase_analysis,
         linkage=linkage_method,
         column_group_mappings=sample_groupings if flip_axes else protein_groupings,
         row_group_mappings=protein_groupings if flip_axes else sample_groupings,

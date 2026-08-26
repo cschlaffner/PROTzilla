@@ -974,6 +974,12 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     value="dixon_pds_euclidean",
                 ),
                 CheckboxField(
+                    name="use_completecase_analysis",
+                    label="Use complete-case analysis",
+                    text="Use complete-case analysis (not recommended)",
+                    value=False,
+                ),
+                CheckboxField(
                     name="optimal_leaf_ordering",
                     label="Perform optimal leaf ordering",
                     text="Perform optimal leaf ordering",
