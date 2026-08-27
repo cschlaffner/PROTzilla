@@ -40,17 +40,6 @@ CARBOXYL-REACTIVE:
   secondary_reactive_sites: 
     K: # lysine
       - NZ # epsilon-amino nitrogen of the lysine side chain
-    S: # serine
-      - OG # hydroxyl oxygen of the side chain
-    T: # threonine 
-      - OG1 # hydroxyl oxygen of the side chain
-    Y: # tyrosine 
-      - OH # hydroxyl oxygen of the side chain
-    H: # histidine
-      - ND1 # imidazole ring nitrogen of the side chain
-      - NE2 # imidazole ring nitrogen of the side chain
-    C: # cysteine
-      - SG # sulfur of the thiol side chain
 
 DISULFIDE-BOND: 
   primary_reactive_sites:
