@@ -71,6 +71,7 @@ def create_ranked_df(
     return ranked_df
 
 
+# --8<-- [start:gsea_preranked]
 def gsea_preranked(
     protein_df,
     gene_mapping_df,
@@ -234,6 +235,7 @@ def gsea_preranked(
         out_dict["filtered_groups"] = filtered_groups
         out_dict["messages"] = [dict(level=logging.WARNING, msg=msg)]
     return out_dict
+# --8<-- [end:gsea_preranked]
 
 
 def create_genes_intensity_wide_df(
@@ -287,6 +289,7 @@ class GeneSetsType(Enum):
     choose_from_enrichr_options = "Choose from Enrichr options"
 
 
+# --8<-- [start:gsea]
 def gsea(
     protein_df,
     metadata_df,
@@ -492,3 +495,4 @@ def gsea(
         out_dict["filtered_groups"] = filtered_groups
         out_dict["messages"] = [dict(level=logging.WARNING, msg=msg)]
     return out_dict
+# --8<-- [end:gsea]

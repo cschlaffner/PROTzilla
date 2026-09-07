@@ -120,6 +120,7 @@ def transformation_plot(
     return [fig]
 
 
+# --8<-- [start:by_scaling]
 def transform_df_by_scale(
     df: pd.DataFrame,
     min_value: float,
@@ -181,3 +182,4 @@ def by_scaling(
         )
 
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
+# --8<-- [end:by_scaling]

@@ -59,6 +59,7 @@ The preprocessing categories can be combined as needed and do not all have to be
 ## Transformation
 
 - [Transformation: Log](data-preprocessing/transformation-log.md)
+- [Transformation: Scaling](data-preprocessing/transformation-scaling.md)
 - [Transformation: Inversion](data-preprocessing/transformation-inversion.md)
 
 ## Replicates

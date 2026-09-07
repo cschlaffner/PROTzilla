@@ -1,14 +1,14 @@
 # Normalisation: Reference Protein
 
-Normalises each sample relative to a selected reference protein. Every protein intensity is divided by the intensity of the reference protein in the same sample:
+Given a reference protein identifier, identifies the protein group $g$ containing it. For each sample $s$, every protein-group intensity is normalised by the intensity of $g$ in the same sample:
 
 $$
-I_{\text{norm}} = \frac{I}{I_{\text{ref, Sample}}}
+\hat{x}_{s,p} = \frac{x_{s,p}}{x_{s,g}}.
 $$
 
-Here, $I$ is the original protein intensity and $I_{\text{ref, Sample}}$ is the intensity of the selected reference protein in that sample.
+Consequently, the normalised intensity of the reference group $g$ equals $1$ in every retained sample. A `Protein ID` may represent a semicolon-separated protein group, such as `P12345;Q67890`; entering either member selects this group as the reference.
 
-Samples in which the reference protein has an intensity of zero or is not measured are excluded from the normalisation and reported separately. An example reference protein identifier is `A0A0B4J1V0`.
+Samples in which the reference intensity is missing, zero, or negative are removed and reported separately. If the selected reference identifier does not occur in the protein table, the calculation fails.
 
 ## Implementation in PROTzilla
 

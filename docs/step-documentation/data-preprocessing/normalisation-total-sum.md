@@ -1,14 +1,18 @@
 # Normalisation: Total Sum
 
-Normalises the intensities of each sample by dividing every value by the sum of all intensities in that sample:
+For each sample $s$, calculates the sum of its measured protein intensities:
 
 $$
-I_{\text{norm}} = \frac{I}{\sum I_{\text{Sample}}}
+T_s = \sum_{p \in O_s} x_{s,p},
 $$
 
-Here, $I$ is the original intensity and $\sum I_{\text{Sample}}$ is the sum of all intensities in the corresponding sample.
+where $O_s$ is the set of proteins with a measured intensity in sample $s$. Each intensity is then normalised by
 
-If the intensity sum of a sample is zero, all intensities of that sample are set to zero and a warning is returned.
+$$
+\hat{x}_{s,p} = \frac{x_{s,p}}{T_s}.
+$$
+
+Consequently, the normalised measured intensities of each sample sum to $1$. If $T_s=0$, all normalised intensities of the affected sample are set to zero and a warning is returned.
 
 ## Implementation in PROTzilla
 

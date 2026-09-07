@@ -6,6 +6,7 @@ from backend.protzilla.data_integration import database_query
 from backend.protzilla.utilities.utilities import clean_uniprot_id, unique_justseen
 
 
+# --8<-- [start:add_uniprot_data]
 def add_uniprot_data(
     protein_df: pd.DataFrame, database_name: str = None, fields: list[str] = None
 ) -> dict:
@@ -81,8 +82,10 @@ def add_uniprot_data(
                 new_column.append(";".join(map(str, group_values)))
         protein_df[field] = new_column
     return {"protein_df": protein_df}
+# --8<-- [end:add_uniprot_data]
 
 
+# --8<-- [start:gene_mapping]
 def gene_mapping(
     protein_df: pd.DataFrame, database_names: list[str] | str, use_biomart: bool = False
 ):
@@ -114,3 +117,4 @@ def gene_mapping(
         protein_groups, database_names, use_biomart=use_biomart
     )
     return mapping_results
+# --8<-- [end:gene_mapping]

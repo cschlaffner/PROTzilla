@@ -1,8 +1,14 @@
 # Outlier Detection: Isolation Forest
 
-Uses an Isolation Forest to identify outlier samples through random splits. Samples in dense regions generally require many splits to be isolated, while unusual samples can often be isolated with only a few splits.
+Transforms the given protein table into a matrix with samples as rows and proteins as columns, then fits an Isolation Forest with the selected number of estimators. Each tree is trained on $\lfloor n/2 \rfloor$ randomly selected samples, where $n$ is the total number of samples.
 
-The fewer splits a sample requires, the more likely it is to be classified as an outlier. The `number of estimators` parameter controls how many random decision trees are generated.
+Each sample $s$ receives a decision score $a_s$, where lower values indicate stronger anomalies. A sample is classified as an outlier iff
+
+$$
+a_s < 0.
+$$
+
+Outlier samples are removed from the protein table and returned together with all decision scores. The fixed random seed makes repeated calculations with the same input and parameters reproducible. For details about the algorithm, see the [scikit-learn Isolation Forest documentation](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html).
 
 ## Implementation in PROTzilla
 

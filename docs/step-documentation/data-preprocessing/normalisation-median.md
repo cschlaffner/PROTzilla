@@ -1,16 +1,26 @@
 # Normalisation: Median
 
-Normalises the intensities of each sample by dividing every value by a selected quantile of that sample. The median, corresponding to the 50th percentile, is used by default. A different quantile can be selected through the `percentile` parameter.
-
-For each sample, the calculation is:
+For each sample $s$, calculates the selected intensity quantile
 
 $$
-I_{\text{norm}} = \frac{I}{Q_p(\text{Sample})}
+q_s = Q_{\tau}\left(\{x_{s,p}\}_p\right),
 $$
 
-Here, $I$ is the original intensity and $Q_p(\text{Sample})$ is the selected quantile of the intensities in that sample.
+where $\tau \in [0,1]$ is the selected percentile. The default $\tau=0.5$ corresponds to the median.
 
-If the selected quantile is zero, all intensities of the affected sample are set to zero and a warning is returned.
+If the intensities are not log-transformed, each intensity is normalised by
+
+$$
+\hat{x}_{s,p} = \frac{x_{s,p}}{q_s}.
+$$
+
+If the intensities were log-transformed before normalisation, division on the original scale is performed as subtraction on the log scale:
+
+$$
+\hat{x}_{s,p} = x_{s,p} - q_s.
+$$
+
+If $q_s=0$ for non-log-transformed data or $q_s$ is not finite for log-transformed data, all normalised intensities of the affected sample are set to zero and a warning is returned.
 
 ## Implementation in PROTzilla
 

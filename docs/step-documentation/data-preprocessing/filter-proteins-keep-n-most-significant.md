@@ -1,6 +1,6 @@
 # Filter Proteins: Keep n Most Significant
 
-Filters the given differential-expression table to retain the selected number of most significant proteins. Proteins are ranked by `corrected_p_value` in ascending order, so smaller values are considered more significant. Duplicate `Protein ID` entries are removed, keeping the entry with the smallest corrected p-value.
+Sorts the given differential-expression table by `corrected_p_value` in ascending order. Duplicate `Protein ID` entries are removed, retaining the entry with the smallest corrected p-value. The first $n$ proteins of the resulting ranked table are retained, where $n$ is the selected number of proteins.
 
 ## Implementation in PROTzilla
 

@@ -1,6 +1,8 @@
 # Imputation: Min per Protein
 
-Determines the smallest measured intensity separately for each protein. Missing values are replaced with the minimum intensity of the corresponding protein, multiplied by the selected shrinking value.
+For each protein $p$, replaces every missing intensity with $\lambda \cdot x_{\min,p}$, where $x_{\min,p}$ is the smallest measured intensity of protein $p$ across all samples and $\lambda$ is the selected shrinking value, which defaults to $1$.
+
+Proteins without a measured intensity in any sample are removed before imputation.
 
 ## Implementation in PROTzilla
 

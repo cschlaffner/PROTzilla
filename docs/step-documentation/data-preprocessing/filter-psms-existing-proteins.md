@@ -1,5 +1,7 @@
 # Filter PSMs: Existing Proteins
 
+Filters the given PSM table against the given protein table. A PSM row is retained iff its `Protein ID` occurs in the protein table.
+
 ## Implementation in PROTzilla
 
 ```python

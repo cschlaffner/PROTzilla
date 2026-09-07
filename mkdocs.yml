@@ -92,6 +92,7 @@ nav:
               - PCA: step-documentation/data-preprocessing/outlier-detection-pca.md
           - Transformation:
               - Log: step-documentation/data-preprocessing/transformation-log.md
+              - Scaling: step-documentation/data-preprocessing/transformation-scaling.md
               - Inversion: step-documentation/data-preprocessing/transformation-inversion.md
           - Replicates:
               - Group Replicates: step-documentation/data-preprocessing/group-replicates.md
@@ -132,4 +133,21 @@ nav:
               - Overview Plot: step-documentation/data-analysis/ptm-visualisation-overview-plot.md
               - Bar Plot: step-documentation/data-analysis/ptm-visualisation-bar-plot.md
               - Details Plot: step-documentation/data-analysis/ptm-visualisation-details-plot.md
+      - Data Integration:
+          - Overview: step-documentation/data-integration.md
+          - Gene Ontology Analysis:
+              - "GO Analysis (STRING API)": step-documentation/data-integration/go-analysis-string-api.md
+              - "GO Analysis (Enrichr API)": step-documentation/data-integration/go-analysis-enrichr-api.md
+              - "GO Analysis (Offline)": step-documentation/data-integration/go-analysis-offline.md
+          - Gene Set Enrichment Analysis:
+              - GSEA: step-documentation/data-integration/gsea.md
+              - "GSEA (Preranked)": step-documentation/data-integration/gsea-preranked.md
+          - Database Integration:
+              - Gene Mapping: step-documentation/data-integration/gene-mapping.md
+              - Add UniProt Data: step-documentation/data-integration/add-uniprot-data.md
+          - Plots:
+              - "GO Results: Bar Plot": step-documentation/data-integration/go-results-bar-plot.md
+              - "GO Results: Dot Plot": step-documentation/data-integration/go-results-dot-plot.md
+              - "GSEA Results: Dot Plot": step-documentation/data-integration/gsea-results-dot-plot.md
+              - "GSEA Results: Enrichment Plot": step-documentation/data-integration/gsea-results-enrichment-plot.md
       - Custom Steps: step-documentation/custom-steps.md

@@ -1,13 +1,12 @@
 # Normalisation: Z-Score
 
-Standardises the intensities in each sample so that they have a mean of zero and a standard deviation of one:
+For each sample $s$, calculates the mean $\mu_s$ and standard deviation $\sigma_s$ of its measured protein intensities. Each measured intensity is then standardised by
 
 $$
-I_{\text{norm}} =
-\frac{I - \mu_{\text{Sample}}}{\sigma_{\text{Sample}}}
+\hat{x}_{s,p} = \frac{x_{s,p} - \mu_s}{\sigma_s}.
 $$
 
-Here, $I$ is the original intensity, $\mu_{\text{Sample}}$ is the arithmetic mean, and $\sigma_{\text{Sample}}$ is the standard deviation of the intensities in the sample.
+Consequently, the standardised intensities of each sample have mean $0$ and standard deviation $1$. If $\sigma_s=0$, all measured intensities of the affected sample are set to zero. Missing intensities remain missing.
 
 ## Implementation in PROTzilla
 

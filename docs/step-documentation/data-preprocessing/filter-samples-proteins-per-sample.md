@@ -1,17 +1,18 @@
 # Filter Samples: #Proteins / Sample
 
-Filters the given protein table based on the number of unique proteins with a non-missing intensity in each sample. The median and standard deviation of these protein counts are calculated across all samples. A sample is retained only if its protein count lies within the following range:
+For each sample $s$, calculates the number $c_s$ of unique proteins with a non-missing intensity:
 
 $$
-\left[
-\text{Median} - (\text{Threshold} \cdot \sigma),
-\;
-\text{Median} + (\text{Threshold} \cdot \sigma)
-\right]
+c_s = \text{number of unique proteins with a non-missing intensity in sample } s.
 $$
 
+Let $\tilde{c}$ be the median and $\sigma$ the standard deviation of these counts across all samples. The sample is retained iff
 
-The threshold specifies the maximum allowed deviation from the median in units of standard deviations.
+$$
+\left|c_s - \tilde{c}\right| \leq \tau \cdot \sigma,
+$$
+
+where $\tau$ is the selected maximum deviation from the median in units of standard deviations.
 
 ## Implementation in PROTzilla
 
